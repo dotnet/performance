@@ -144,39 +144,49 @@ The path to this file can be passed in as an optional argument for the ``microbe
 
 ##### ASP.NET Benchmarks
 
-To run the infrastructure on a specific set of ASP.NET Benchmarks such as the suite comprising of The Json Min, Fortunes ETF and the Stage1gRPC run the following:
+To run the infrastructure on a specific set of ASP.NET Benchmarks, do the following:
 
 1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
-2. ``.\GC.Infrastructure.exe aspnetbenchmarks --configuration C:\GC.Analysis.API\Configurations\ASPNetBenchmarks\ASPNetBenchmarks.yaml``.
+2. ``.\GC.Infrastructure.exe aspnetbenchmarks --configuration C:\performance\src\benchmarks\gc\GC.Infrastructure\Configurations\ASPNetBenchmarks\ASPNetBenchmarks.csv``.
 
 More details about running and troubleshooting ASP.NET benchmarks can be found [here](./docs/ASPNETBenchmarks.md).
 
-###### Uploading Only A Subset of the Binaries
+###### Uploading Your Own Binaries 
 
-The ASP.NET benchmarks can be run without any of the users changes however, if the user wants to upload modified binaries with their changes, it is advisable to only upload those as long as they are compatible with the version of .NET runtime you wish to test against. Currently, the default framework to run these tests is net8.0.
+The ASP.NET benchmarks can be run without any of the users changes however, if the user wants to upload modified binaries with their changes, it is advisable to only upload those as long as they are compatible with the version of .NET runtime you wish to test against. The infrastructure allows you to either upload a single binary or a directory with one or more binaries.
 
-This can be accomplished in 2 steps:
+This can be accomplished by specifying either a file or a directory as the corerun path of a particular run:
 
-1. Copy over the binaries you want to change to a new empty folder.
-2. Set the run's corerun path in the configuration to that of a folder with just the copied over binaries.
+As an example, if I were to only update ``gc.cpp`` and build a standalone ``clrgc.dll``, specifically set the ``corerun`` field of the said run to the path of the ``clrgc.dll``. 
+NOTE: the environment variable ``COMPlus_GCName`` must be set in this case:
 
-As an example, if I were to only update ``gc.cpp`` and build a standalone ``clrgc.dll``, I would copy the binary to a folder such as the following, update the ``runs`` section of the configuration and point to the folder containing the binary; NOTE: the environment variable ``COMPlus_GCName`` must be set in this case:
-
-1. Copy the clrgc.dll to a new and empty folder.
+1. Assume your ``clrgc.dll`` is placed in ``C:\ASPNETUpload``:  
 
 ```powershell
 C:\ASPNETUPLOAD
 |-----> clrgc.dll
 ```
 
-2. Adjust the corerun to point to the new folder:
+2. Adjust the corerun to point to the path of clrgc.dll:
 
 ```yaml
 runs:
   run:
-    corerun: C:\ASPNetUpload\ # This was updated.
+    corerun: C:\ASPNetUpload\clrgc.dll
     environment_variables:
       COMPlus_GCName: clrgc.dll # This environment variable was set.
+```
+
+NOTE: For this case, ensure the environment variable ``COMPlus_GCName`` or ``DOTNET_GCName`` is set to clrgc.dll.
+
+On the other hand, if you want upload the entire directory, say ``C:\ASPNETUpload2``, simply set the path to the directory in the corerun of a corerun:
+
+```yaml
+runs:
+  run:
+    corerun: C:\ASPNetUpload2
+    environment_variables:
+      COMPlus_GCName: clrgc.dll
 ```
 
 ###### Updating Which Benchmarks to Run
@@ -187,7 +197,7 @@ You can update this file by changing the following field:
 
 ```yaml
 benchmark_settings:
-  benchmark_file: C:\InfraRuns\RunNew_All\Suites\ASPNETBenchmarks\ASPNetBenchmarks.csv # Change this.
+  benchmark_file: C:\InfraRuns\RunNew_All\Suites\ASPNETBenchmarks\ASPNetBenchmarks.csv
 ```
 
 The format of this file is:
@@ -204,7 +214,7 @@ It's worth noting that if you have specified Linux based binaries in the corerun
 ###### How To Add New Benchmarks
 
 1. If you are collecting traces, make sure to include Linux (_Linux) or Windows (_Windows) suffix in the Legend column because we run PerfView to collect traces for Windows and dotnet-trace for `gc` trace; currently not working for other types of traces on Linux.
-2. Find the base commandline for the benchmark to run by choosing the appropriate test and configuration from the [ASP.NET Dashboard](https://msit.powerbi.com/groups/me/reports/10265790-7e2e-41d3-9388-86ab72be3fe9/ReportSection30725cd056a647733762?experience=power-bi)
+2. Find the base command line for the benchmark to run by choosing the appropriate test and configuration from the [ASP.NET Dashboard](https://msit.powerbi.com/groups/me/reports/10265790-7e2e-41d3-9388-86ab72be3fe9/ReportSection30725cd056a647733762?experience=power-bi)
 3. Copy over the command line from the table to the Base CommandLine column after:
    1. Remove the ``crank`` prefix from the command line.
    2. Remove the ``--application.aspNetCoreVersion``, ``--application.runtimeVersion`` and ``--application.sdkVersion`` command args from the command line that you paste in the CSV as the versions are set by the infrastructure itself.
