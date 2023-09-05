@@ -151,13 +151,13 @@ To run the infrastructure on a specific set of ASP.NET Benchmarks, do the follow
 
 More details about running and troubleshooting ASP.NET benchmarks can be found [here](./docs/ASPNETBenchmarks.md).
 
-###### Uploading Your Own Binaries 
+###### Uploading Your Own Binaries
 
 The ASP.NET benchmarks can be run without any of the users changes however, if the user wants to upload modified binaries with their changes, it is advisable to only upload those as long as they are compatible with the version of .NET runtime you wish to test against. The infrastructure allows you to either upload a single binary or a directory with one or more binaries.
 
 This can be accomplished by specifying either a file or a directory as the corerun path of a particular run:
 
-As an example, if I were to only update ``gc.cpp`` and build a standalone ``clrgc.dll``, specifically set the ``corerun`` field of the said run to the path of the ``clrgc.dll``. 
+As an example, if I were to only update ``gc.cpp`` and build a standalone ``clrgc.dll``, specifically set the ``corerun`` field of the said run to the path of the ``clrgc.dll``.
 NOTE: the environment variable ``COMPlus_GCName`` must be set in this case:
 
 1. Assume your ``clrgc.dll`` is placed in ``C:\ASPNETUpload``:  

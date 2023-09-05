@@ -31,7 +31,7 @@ To confirm this is the case, check the ``*build.log`` file associated with the r
 
 #### 2. Runtime Test Failures
 
-These will show up in the following form: 
+These will show up in the following form:
 
 ```psh
 [STDERR] GC initialization failed with error 0x8007007E
