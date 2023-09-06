@@ -499,7 +499,6 @@ class Item : ITypeWithPayload
         if (state != ItemState.NoHandle)
         {
             Debug.Assert(h.IsAllocated);
-            // Console.WriteLine("freeing handle to byte[{0}]", payload.Length);
             h.Free();
         }
 
@@ -805,11 +804,6 @@ struct SizeSlot
     // an object size distribution for SOH/LOH derived from a real server scenario
     public static SizeSlot[] sohLohSizeSlots = new SizeSlot[]
     {
-//        new SizeSlot(        24,  16229766), We are creating some small wrapper objects of 32 and 40 bytes around the
-//        new SizeSlot(        32,  48790439), payload objects - somewhat compensate for this by distorting the distribution
-//        new SizeSlot(        40,  21496250), at the low end
-//        new SizeSlot(        48,  15020039),
-//
         new SizeSlot(        56,  12134890),
         new SizeSlot(        64,   7554729),
         new SizeSlot(        72,   4745645),
@@ -1808,7 +1802,9 @@ class ArgsParser
         {
             SizeSlot.BuildSOHBucketSpecsFromSizeDistribution(bucketList, sohSurvInterval, reqSohSurvInterval, sohPinInterval, sohFinalizableInterval);
             SizeSlot.BuildLOHBucketSpecsFromSizeDistribution(bucketList, lohSurvInterval, reqLohSurvInterval, lohPinInterval, lohFinalizableInterval);
+#if NET5_0_OR_GREATER
             SizeSlot.BuildPOHBucketSpecsFromSizeDistribution(bucketList, pohSurvInterval, reqPohSurvInterval, 0,              pohFinalizableInterval);
+#endif // NET5_0_OR_GREATER
         }
         else
         {
@@ -2204,12 +2200,6 @@ class MemoryAlloc
         {
             b[i * pageSize] = (byte)(i % 256);
         }
-
-        // Trying to increase the amount of work we do to see if that affects ideal thread count
-        // for (uint i = 0; i < size; i++)
-        // {
-        //    b[i] = (byte)(i % 256);
-        // }
     }
 
     void TouchPage(ITypeWithPayload item)
@@ -2355,7 +2345,6 @@ class MemoryAlloc
 
             if (totalAllocBytesLeft <= 0)
             {
-                // if (args.print) Console.WriteLine("T{0}: SOH/LOH allocated {1:n0}/{2:n0} >= {3:n0}", threadIndex, sohAllocatedBytesTotalSum, lohAllocatedBytesTotalSum, totalAllocBytesLeft);
                 if (!GoToNextPhase()) break;
             }
 
@@ -2422,14 +2411,6 @@ class MemoryAlloc
             else
                 Util.AssertAboutEqual(oldArr.TotalLiveBytes, curPhase.totalLiveBytes);
 
-            // if (args.print)
-            // {
-            //     Console.WriteLine("T{0}: allocated {1} ({2}MB) on SOH, {3} ({4}MB) on LOH",
-            //         threadIndex,
-            //         sohAllocatedElements, Util.BytesToMB(sohAllocatedBytes),
-            //         lohAllocatedElements, Util.BytesToMB(lohAllocatedBytes));
-            // }
-
             if (args.verifyLiveSize)
             {
                 oldArr.VerifyLiveSize();
@@ -2439,10 +2420,6 @@ class MemoryAlloc
                     throw new Exception("TODO");
                 }
             }
-
-            // GC.Collect();
-            // Console.WriteLine("init done");
-            // Console.ReadLine();
 
             if (curPhase.totalAllocBytes != 0)
             {
@@ -2499,26 +2476,12 @@ class MemoryAlloc
     // Allocates object and survives it. Returns the object size.
     void MakeObjectAndMaybeSurvive()
     {
-        // if (isLarge && args.lohPauseMeasure)
-        // {
-        //     stopwatch.Reset();
-        //     stopwatch.Start();
-        // }
-
         // TODO: We should have a sequence number that just grows (since we only allocate sequentially on 
         // the same thread anyway). This way we can use this number to indicate the ages of items. 
         // If an item with a very current seq number points to an item with small seq number we can conclude
         // that we have young gen object pointing to a very old object. This can help us recognize things
         // like object locality, eg if demotion has demoted very old objects next to young objects.
         (ITypeWithPayload item, ObjectSpec spec) = MakeObjectAndTouchPage();
-
-        // if (isLarge && args.lohPauseMeasure)
-        // {
-        //     stopwatch.Stop();
-        //     lohAllocPauses.Add(stopwatch.Elapsed.TotalMilliseconds);
-        // }
-
-        // Thread.Sleep(1);
 
         if (spec.ShouldSurvive)
         {
@@ -2702,12 +2665,9 @@ class MemoryAlloc
         Debug.Assert(SimpleRefPayLoad.NumPinned == SimpleRefPayLoad.NumUnpinned);
 #endif
 
+        Console.WriteLine($"Time Taken: {tEnd - tStart}ms");
         sw.WriteLine("Took {0}ms", tEnd - tStart);
         sw.Flush();
-
-        // sw.WriteLine("after init: heap size {0}, press any key to continue", GC.GetTotalMemory(false));
-        // Console.ReadLine();
-
         sw.Flush();
         sw.Close();
         return testResult;
@@ -2814,6 +2774,8 @@ class MemoryAlloc
             Console.WriteLine($"final_heap_size_bytes: {heapSizeBytes}");
             Console.WriteLine($"final_fragmentation_bytes: {fragmentedBytes}");
         }
+
+        Console.WriteLine("Time ");
     }
 
     private static T GetProperty<T>(object instance, string name)
