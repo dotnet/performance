@@ -2774,8 +2774,6 @@ class MemoryAlloc
             Console.WriteLine($"final_heap_size_bytes: {heapSizeBytes}");
             Console.WriteLine($"final_fragmentation_bytes: {fragmentedBytes}");
         }
-
-        Console.WriteLine("Time ");
     }
 
     private static T GetProperty<T>(object instance, string name)
