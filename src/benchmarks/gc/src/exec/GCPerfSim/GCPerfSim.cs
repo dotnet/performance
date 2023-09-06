@@ -52,6 +52,7 @@ It's in in per thousands (not percents! even though in the output it says %). So
 5‰ of the allocations will be on LOH.
 
 -pohAllocRatio/-pohar: pohAllocRatio
+(.NET 5.0 or later)
 POH alloc ratio (this controls the bytes we allocate on POH out of all allocations we do)
 It's in in per thousands (not percents! even though in the output it says %). So if it's 5, that means 
 5‰ of the allocations will be on POH.
@@ -81,6 +82,7 @@ meaning every Nth SOH object allocated during a request survives
 meaning every Nth LOH object allocated during a request survives
 
 -reqPohSurvInterval/-rpohsi":
+(.NET 5.0 or later)
 meaning every Nth POH object allocated during a request survives
 
 -totalMins/-tm: totalMinutesToRun
@@ -98,7 +100,12 @@ we allocate SOH that's randomly chosen between this range.
 we allocate LOH that's randomly chosen between this range.
 
 -pohSizeRange/-pohsr: pohAllocLow, pohAllocHigh
+(.NET 5.0 or later)
 we allocate POH that's randomly chosen between this range.
+
+-sizeDistribution/-sizeDist: 1/0
+1 means use the built-in size distributions to generate bucket specs
+0 (default) means generate simple ones from values (or defaults) for -sohsr and related arguments
 
 -sohSurvInterval/-sohsi: sohSurvInterval
 meaning every Nth SOH object allocated will survive. This is something we will consider changing to survival rate
@@ -109,6 +116,7 @@ to all be similar sizes.
 meaning every Nth LOH object allocated will survive. 
 
 -pohSurvInterval/-pohsi:
+(.NET 5.0 or later)
 meaning every Nth POH object allocated will survive.
 
 Note that -sohSurvInterval/-lohSurvInterval are only applicable for steady state.
@@ -117,13 +125,29 @@ During initialization everything survives.
 -sohPinningInterval/-sohpi: sohPinningInterval
 meaning every Nth SOH object survived will be pinned. 
 
+-sohFinalizableInterval/-sohfi: sohFinalizableInterval
+meaning every Nth SOH object survived will be finalizable.
+
 -lohPinningInterval/-lohpi: lohPinningInterval
 meaning every Nth LOH object survived will be pinned. 
+
+-lohFinalizableInterval/-lohfi: lohFinalizableInterval
+meaning every Nth LOH object survived will be finalizable.
+
+-pohFinalizableInterval/-pohfi: pohFinalizableInterval
+(.NET 5.0 or later)
+meaning every Nth POH object survived will be finalizable.
 
 -allocType/-at: allocType
 What kind of objects are we allocating? Current supported types: 
 0 means SimpleItem - a byte array (implemented by the Item class)
 1 means ReferenceItem - contains refs and can form linked list (implemented by the ReferenceItemWithSize class)
+
+-verifyLiveSize: 1/0
+Perform some verification that the live object size matches the expected size
+
+-printEveryNthIter: printEveryNthIter
+Display a summary every N iterations
 
 -handleTest - NOT IMPLEMENTED other than pinned handles. Should write some interesting cases for weak handles.
 
