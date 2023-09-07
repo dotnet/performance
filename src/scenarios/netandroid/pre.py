@@ -15,7 +15,7 @@ setup_loggers(True)
 precommands = PreCommands()
 install_versioned_maui(precommands)
 
-# Setup the Maui folder
+# Setup the app folder
 precommands.new(template='android',
                 output_dir=const.APPDIR,
                 bin_dir=const.BINDIR,
@@ -33,8 +33,8 @@ if precommands.output:
     output_dir = precommands.output
 remove_aab_files(output_dir)
 
-# Copy the xamarinVersion to a file so we have it on the machine
-xamarin_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Mono.Android.dll")
-version_dict = { "xamarinVersion": xamarin_version }
+# Copy the netAndroidVersion to a file so we have it on the machine
+net_android_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Mono.Android.dll")
+version_dict = { "netAndroidVersion": net_android_version }
 versions_write_json(version_dict, rf"{output_dir}\versions.json")
 print(f"Versions: {version_dict} from location " + rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Mono.Android.dll")
