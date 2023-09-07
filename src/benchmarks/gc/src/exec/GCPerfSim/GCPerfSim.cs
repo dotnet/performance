@@ -804,6 +804,11 @@ struct SizeSlot
     // an object size distribution for SOH/LOH derived from a real server scenario
     public static SizeSlot[] sohLohSizeSlots = new SizeSlot[]
     {
+//        new SizeSlot(        24,  16229766), We are creating some small wrapper objects of 32 and 40 bytes around the
+//        new SizeSlot(        32,  48790439), payload objects - somewhat compensate for this by distorting the distribution
+//        new SizeSlot(        40,  21496250), at the low end
+//        new SizeSlot(        48,  15020039),
+//
         new SizeSlot(        56,  12134890),
         new SizeSlot(        64,   7554729),
         new SizeSlot(        72,   4745645),
@@ -1212,13 +1217,15 @@ class Args
     public readonly PerThreadArgs perThreadArgs;
     public readonly bool finishWithFullCollect;
     public readonly bool endException;
+    public readonly bool writeTimeToConsole;
 
-    public Args(uint threadCount, in PerThreadArgs perThreadArgs, bool finishWithFullCollect, bool endException)
+    public Args(uint threadCount, in PerThreadArgs perThreadArgs, bool finishWithFullCollect, bool endException, bool writeTimeToConsole)
     {
         this.threadCount = threadCount;
         this.perThreadArgs = perThreadArgs;
         this.finishWithFullCollect = finishWithFullCollect;
         this.endException = endException;
+        this.writeTimeToConsole = writeTimeToConsole;
     }
 
     public void Describe()
@@ -1315,7 +1322,8 @@ class ArgsParser
                         printEveryNthIter: printEveryNthIter,
                         phases: phases),
                     finishWithFullCollect: false,
-                    endException: false);
+                    endException: false,
+                    writeTimeToConsole: false);
             }
             CharSpan word = text.TakeWord();
             text.TakeSpace();
@@ -1620,6 +1628,8 @@ class ArgsParser
         ulong requestLiveBytes = 0;
         uint sizeDist = 0;
 
+        bool writeTimeToConsole = false;
+
         for (uint i = 0; i < args.Length; ++i)
         {
             switch (args[i])
@@ -1771,6 +1781,9 @@ class ArgsParser
                 case "-printEveryNthIter":
                     printEveryNthIter = ParseUInt32(args[++i]);
                     break;
+                case "-writeTimeToConsole":
+                    writeTimeToConsole = true;
+                    break;
                 default:
                     throw new Exception($"Unrecognized argument: {args[i]}");
             }
@@ -1895,7 +1908,8 @@ class ArgsParser
             threadCount: threadCount,
             perThreadArgs: new PerThreadArgs(verifyLiveSize: verifyLiveSize, printEveryNthIter: printEveryNthIter, phases: new Phase[] { onlyPhase }),
             finishWithFullCollect: finishWithFullCollect,
-            endException: endException);
+            endException: endException,
+            writeTimeToConsole: writeTimeToConsole);
     }
 }
 
@@ -2476,6 +2490,13 @@ class MemoryAlloc
     // Allocates object and survives it. Returns the object size.
     void MakeObjectAndMaybeSurvive()
     {
+        // TODO: Convert this into a config - refer to the comment above.
+        // if (isLarge && args.lohPauseMeasure)
+        // {
+        //     stopwatch.Reset();
+        //     stopwatch.Start();
+        // }
+
         // TODO: We should have a sequence number that just grows (since we only allocate sequentially on 
         // the same thread anyway). This way we can use this number to indicate the ages of items. 
         // If an item with a very current seq number points to an item with small seq number we can conclude
@@ -2602,8 +2623,13 @@ class MemoryAlloc
         TestResult testResult = new TestResult();
         // TODO: we probably need to synchronize writes to this somehow
         string logFileName = currentPid + "-output.txt";
-        StreamWriter sw = new StreamWriter(logFileName);
-        sw.WriteLine("Started running");
+
+        StreamWriter? sw = null;
+        if (!args.writeTimeToConsole)
+        {
+            sw = new StreamWriter(logFileName);
+            sw.WriteLine("Started running");
+        }
 
         long tStart = Environment.TickCount;
         Phase[] phases = args.perThreadArgs.phases;
@@ -2629,8 +2655,13 @@ class MemoryAlloc
                     threads[i].Start();
                 for (uint i = 0; i < threads.Length; i++)
                     threads[i].Join();
-                for (uint i = 0; i < threadLaunchers.Length; i++)
-                    threadLaunchers[i].Alloc.PrintPauses(sw);
+
+                if (!args.writeTimeToConsole)
+                {
+                    for (uint i = 0; i < threadLaunchers.Length; i++)
+                        threadLaunchers[i].Alloc.PrintPauses(sw!);
+                }
+
                 for (int i = 0; i < threadLaunchers.Length; i++)
                 {
                     Bucket[] buckets = threadLaunchers[i].Alloc.bucketChooser.buckets;
@@ -2647,7 +2678,12 @@ class MemoryAlloc
                 // Easier to debug without launching a separate thread
                 ThreadLauncher t = new ThreadLauncher(0, perThreadArgs);
                 t.Run();
-                t.Alloc.PrintPauses(sw);
+
+                if (!args.writeTimeToConsole)
+                {
+                    t.Alloc.PrintPauses(sw!);
+                }
+
                 Bucket[] buckets = t.Alloc.bucketChooser.buckets;
                 for (int j = 0; j < buckets.Length; j++)
                 {
@@ -2665,11 +2701,25 @@ class MemoryAlloc
         Debug.Assert(SimpleRefPayLoad.NumPinned == SimpleRefPayLoad.NumUnpinned);
 #endif
 
-        Console.WriteLine($"Time Taken: {tEnd - tStart}ms");
-        sw.WriteLine("Took {0}ms", tEnd - tStart);
-        sw.Flush();
-        sw.Flush();
-        sw.Close();
+        if (args.writeTimeToConsole)
+        {
+            Console.WriteLine($"Time Taken: {tEnd - tStart}ms");
+        }
+
+        else
+        {
+            sw!.WriteLine("Took {0}ms", tEnd - tStart);
+            sw.Flush();
+
+            // TODO: Turn this into a config - this is useful when you want to have the process paused at the end
+            // instead just exit.
+            // sw.WriteLine("after init: heap size {0}, press any key to continue", GC.GetTotalMemory(false));
+            // Console.ReadLine();
+
+            sw.Flush();
+            sw.Close();
+        }
+
         return testResult;
     }
 
