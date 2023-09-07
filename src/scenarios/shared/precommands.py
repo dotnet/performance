@@ -281,7 +281,7 @@ class PreCommands:
         if not self.has_workload:
             if self.readonly_dotnet:
                 raise Exception('workload needed to build, but has_workload=false, and readonly_dotnet=true')
-            subprocess.run(["dotnet", "workload", "install", workloadid] + install_args)
+            subprocess.run(["dotnet", "workload", "install", workloadid] + install_args, check=True)
 
     def uninstall_workload(self, workloadid: str):
         'Uninstalls the workload, if possible'

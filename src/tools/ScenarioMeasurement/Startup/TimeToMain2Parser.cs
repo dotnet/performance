@@ -1,18 +1,15 @@
-﻿using Microsoft.Diagnostics.Tracing;
-using Microsoft.Diagnostics.Tracing.Parsers;
-using Reporting;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Microsoft.Diagnostics.Tracing;
+using Reporting;
+using ScenarioMeasurement.TraceEventParsers;
 
 namespace ScenarioMeasurement;
 
 public class TimeToMain2Parser : IParser
 {
-    private const string EventSourceName = PerfLabValues.EventSourceName;
-    private const string OnMainEventName = PerfLabValues.OnMainEventName;
-    private const int OnMainEventId = PerfLabValues.OnMainEventId;
-
     public void EnableKernelProvider(ITraceSession kernel)
     {
         kernel.EnableKernelProvider(TraceSessionManager.KernelKeyword.Process, TraceSessionManager.KernelKeyword.Thread, TraceSessionManager.KernelKeyword.ContextSwitch);
@@ -20,7 +17,13 @@ public class TimeToMain2Parser : IParser
 
     public void EnableUserProviders(ITraceSession user)
     {
-        user.EnableUserProvider(EventSourceName, TraceEventLevel.Verbose);
+        user.EnableUserProvider(PerfLabValues.EventSourceName, TraceEventLevel.Verbose);
+        if (user is LinuxTraceSession)
+        {
+            user.AddRawEvent($"{PerfLabValues.LTTngProviderName}:{PerfLabValues.OnMainEventName}");
+        }
+        var baseDir = Environment.GetEnvironmentVariable("HELIX_CORRELATION_PAYLOAD") ?? Path.GetFullPath("..");
+        Startup.AddTestProcessEnvironmentVariable("DOTNET_STARTUP_HOOKS", Path.Join(baseDir, PerfLabValues.ForwarderName, $"{PerfLabValues.ForwarderName}.dll"));
     }
 
     public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
@@ -66,7 +69,7 @@ public class TimeToMain2Parser : IParser
 
             if (source.IsWindows)
             {
-                source.Source.Dynamic.AddCallbackForProviderEvent(EventSourceName, OnMainEventName, evt =>
+                source.Source.Dynamic.AddCallbackForProviderEvent(PerfLabValues.EventSourceName, PerfLabValues.OnMainEventName, evt =>
                 {
                     if (pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                     {
@@ -80,9 +83,10 @@ public class TimeToMain2Parser : IParser
             }
             else
             {
-                source.Source.Clr.EventSourceEvent += evt =>
+                var perfLabParser = new PerfLabGenericEventSourceLTTngProviderParser(source.Source);
+                perfLabParser.OnMain += evt =>
                 {
-                    if (pid.HasValue && evt.ProcessID == pid && evt.EventID == OnMainEventId)
+                    if (pid.HasValue && evt.ProcessID == pid)
                     {
                         results.Add(evt.TimeStampRelativeMSec - start);
                         threadTimes.Add(threadTime);

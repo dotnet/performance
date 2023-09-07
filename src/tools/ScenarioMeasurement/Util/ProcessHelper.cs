@@ -113,7 +113,7 @@ public class RawProcessHelper : IProcessHelper
     }
     public void AddEnvironmentVariable(string name, string value)
     {
-        EnvironmentVariables.Add(name, value);
+        EnvironmentVariables[name] = value;
     }
     public ProcessResult Run()
     {
@@ -164,7 +164,7 @@ public class ManagedProcessHelper : IProcessHelper
 
     public void AddEnvironmentVariable(string name, string value)
     {
-        EnvironmentVariables.Add(name, value);
+        EnvironmentVariables[name] = value;
     }
     public ProcessResult Run()
     {

@@ -10,4 +10,8 @@ class PerfLabValues
     public const int StartupEventId = MagicConstant + 1;
     public const string OnMainEventName = "OnMain";
     public const int OnMainEventId = MagicConstant + 2;
+
+    public const string ForwarderName = "PerfLabGenericEventSourceForwarder";
+    public const string LTTngProviderName = "PerfLabGenericEventSourceLTTngProvider";
+    public const string LTTngProviderLibraryName = LTTngProviderName;
 }

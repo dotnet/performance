@@ -12,7 +12,7 @@ parameters:
 resources:
   containers:
     - container: ubuntu_x64_build_container
-      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04
 
 # CI Trigger on main branch
 trigger:
@@ -65,7 +65,7 @@ jobs:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
         - win-x64
-        - ubuntu-x64-1804
+        - ubuntu-x64
       isPublic: true
       jobParameters:
         kind: scenarios
@@ -276,7 +276,7 @@ jobs:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
         - win-x64
-        - ubuntu-x64-1804
+        - ubuntu-x64
         - win-arm64
         - ubuntu-arm64-ampere
       isPublic: false

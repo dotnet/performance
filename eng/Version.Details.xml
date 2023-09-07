@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="8.0.0-rc.2.23417.23">
+    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="8.0.0-rc.2.23456.8">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>f7df78f4c9b3944d1b937b264601d7b5da55f3ab</Sha>
+      <Sha>1222f14d02818cfab597fa2a17c8664fe6cb39be</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="8.0.0-rc.2.23417.23">
+    <Dependency Name="Microsoft.NET.ILLink" Version="8.0.0-rc.2.23456.8">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>f7df78f4c9b3944d1b937b264601d7b5da55f3ab</Sha>
+      <Sha>1222f14d02818cfab597fa2a17c8664fe6cb39be</Sha>
     </Dependency>
-    <Dependency Name="System.Threading.Channels" Version="8.0.0-rc.2.23417.23">
+    <Dependency Name="System.Threading.Channels" Version="8.0.0-rc.2.23456.8">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>f7df78f4c9b3944d1b937b264601d7b5da55f3ab</Sha>
+      <Sha>1222f14d02818cfab597fa2a17c8664fe6cb39be</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="8.0.0-rc.2.23417.23">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="8.0.0-rc.2.23456.8">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>f7df78f4c9b3944d1b937b264601d7b5da55f3ab</Sha>
+      <Sha>1222f14d02818cfab597fa2a17c8664fe6cb39be</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.23415.4">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.23451.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>46ff142f43e887d5f9a4d87ef39d72166f61db8d</Sha>
+      <Sha>4665b3d04e1da3796b965c3c3e3b97f55c449a6e</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.23415.4">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.23451.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>46ff142f43e887d5f9a4d87ef39d72166f61db8d</Sha>
+      <Sha>4665b3d04e1da3796b965c3c3e3b97f55c449a6e</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
