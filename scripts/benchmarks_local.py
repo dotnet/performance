@@ -198,9 +198,25 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         else:
             getLogger().info(f"dotnet_mono already exists in {artifact_mono_interpreter} and {artifact_mono_jit}. Skipping generation.")
 
-    if check_for_runtype_specified(parsed_args, [RunType.MonoAOTLLVM]):
-        raise NotImplementedError("MonoAOTLLVM is not yet implemented.") # TODO: Finish MonoAOTLLVM Build stuff
-        build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false'])
+    if check_for_runtype_specified(parsed_args, [RunType.MonoAOTLLVM]): # TODO: Is all the cross stuff needed?
+        artifact_mono_aot_llvm = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoAOTLLVM, commit), "monoaot")
+        if force_regenerate or not os.path.exists(artifact_mono_aot_llvm):
+            build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['-cross', '/p:BuildMonoAOTCrossCompiler=true', '/p:MonoLibClang="/usr/local/lib/libclang.so.16"', f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
+            
+            # Move to the bin/aot location
+            src_dir_aot = os.path.join(repo_path, "artifacts", "bin", "mono", f"{parsed_args.os}.{parsed_args.architecture}.Release", "cross", f"{parsed_args.os}-{parsed_args.architecture}")
+            dest_dir_aot = os.path.join(repo_path, "artifacts", "bin", "aot")
+            copy_directory_contents(src_dir_aot, dest_dir_aot)
+            src_dir_aot_pack = os.path.join(repo_path, "artifacts", "bin", f"microsoft.netcore.app.runtime.{parsed_args.os}-{parsed_args.architecture}", "Release")
+            dest_dir_aot_pack = os.path.join(repo_path, "artifacts", "bin", "aot", "pack")
+            copy_directory_contents(src_dir_aot_pack, dest_dir_aot_pack)
+            
+            generate_layout(parsed_args, repo_path, ["/p:LibrariesConfiguration=Release", "-cross"])
+            src_dir_aot_final = os.path.join(repo_path, "artifacts", "bin", "aot")
+            shutil.rmtree(artifact_mono_aot_llvm, ignore_errors=True)
+            copy_directory_contents(src_dir_aot_final, artifact_mono_aot_llvm)
+        else:
+            getLogger().info(f"dotnet_mono already exists in {artifact_mono_aot_llvm}. Skipping generation.")
 
     if check_for_runtype_specified(parsed_args, [RunType.WasmInterpreter, RunType.WasmAOT]):
         # Must have jsvu installed also
@@ -266,9 +282,6 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
         bdn_args_unescaped += ['--corerun']
         for commit in all_commits:
             bdn_args_unescaped += [os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if is_windows(parsed_args) else ""}')]
-
-    elif specific_run_type == RunType.MonoAOTLLVM:
-        raise NotImplementedError("MonoAOTLLVM is not yet implemented.")
     
     elif specific_run_type == RunType.MonoInterpreter:
         bdn_args_unescaped += [
@@ -310,11 +323,14 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
             bdn_args_unescaped += [corerun_path]
 
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
+    elif specific_run_type == RunType.MonoAOTLLVM:
+        raise TypeError("MonoAOTLLVM does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
+
     elif specific_run_type == RunType.WasmInterpreter:
         raise TypeError("WasmInterpreter does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
 
     elif specific_run_type == RunType.WasmAOT:
-        raise TypeError("WasmInterpreter does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
+        raise TypeError("WasmAOT does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
 
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
@@ -344,7 +360,16 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         ]
 
     elif specific_run_type == RunType.MonoAOTLLVM:
-        raise NotImplementedError("MonoAOTLLVM is not yet implemented.")
+        bdn_args_unescaped += [
+            '--anyCategories', 'Libraries', 'Runtime',
+            '--category-exclusion-filter', 'NoAOT', 'NoWASM',
+            '--runtimes', "monoaotllvm",
+            '--aotcompilerpath', os.path.join(get_run_artifact_path(parsed_args, RunType.MonoAOTLLVM, commit), "monoaot", "mono-aot-cross"),
+            '--customruntimepack', os.path.join(get_run_artifact_path(parsed_args, RunType.MonoAOTLLVM, commit), "monoaot", "pack"),
+            '--aotcompilermode', 'llvm',
+            '--logBuildOutput',
+            '--generateBinLog'
+        ]
     
     elif specific_run_type == RunType.MonoInterpreter:
         bdn_args_unescaped += [
@@ -354,7 +379,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
             '--generateBinLog'
         ]
         
-        # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
+        # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from. There should only ever be 1 core run so this is just a check.
         corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
         if len(corerun_capture) == 0:
             raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
@@ -457,7 +482,7 @@ def run_benchmarks(parsed_args: Namespace, commits: list) -> None:
                 getLogger().info(f"Running benchmarks_ci.py for {run_type} at {commits} with arguments \"{' '.join(benchmark_ci_args)}\".")
                 kill_dotnet_processes(parsed_args)
                 benchmarks_ci.__main(benchmark_ci_args) # Build the runtime includes a download of dotnet at this location
-            elif run_type in [RunType.WasmInterpreter, RunType.WasmAOT]:
+            elif run_type in [RunType.MonoAOTLLVM, RunType.WasmInterpreter, RunType.WasmAOT]:
                 for commit in commits:
                     benchmark_ci_args = generate_single_benchmark_ci_args(parsed_args, run_type, commit)
                     getLogger().info(f"Running single benchmarks_ci.py for {run_type} at {commit} with arguments \"{' '.join(benchmark_ci_args)}\".")
