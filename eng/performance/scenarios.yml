@@ -137,7 +137,7 @@ jobs:
               Write-Host "##vso[task.setvariable variable=DotnetVersion;]$dotnet_version"
               Write-Host "Found dotnet version $dotnet_version"
             displayName: Get dotnetVersion to use
-          - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --dotnet-versions $(DotnetVersion) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber)$(HybridGlobalizationConfig) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup --install-dir $(CorrelationStaging)dotnet $(runEnvVarsParam) $(AffinityParam) $(TargetsWindowsParam)
+          - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --dotnet-versions $(DotnetVersion) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)$(HybridGlobalizationConfig) --output-file $(CorrelationStaging)machine-setup --install-dir $(CorrelationStaging)dotnet $(runEnvVarsParam) $(AffinityParam) $(TargetsWindowsParam)
             displayName: Run ci_setup.py with dotnetVersionsLinks
         - powershell: |
             Write-Host "##vso[task.setvariable variable=DOTNET_ROOT;]$(CorrelationStaging)dotnet"
