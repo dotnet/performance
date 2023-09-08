@@ -201,7 +201,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOTLLVM]): # TODO: Is all the cross stuff needed?
         artifact_mono_aot_llvm = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoAOTLLVM, commit), "monoaot")
         if force_regenerate or not os.path.exists(artifact_mono_aot_llvm):
-            build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['-cross', '/p:BuildMonoAOTCrossCompiler=true', '/p:MonoLibClang="/usr/local/lib/libclang.so.16"', f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
+            build_runtime_dependency(parsed_args, repo_path, "clr+mono+libs+host+packs", additional_args=['-cross', '/p:BuildMonoAOTCrossCompiler=true', '/p:MonoLibClang="/usr/local/lib/libclang.so.16"', f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
             
             # Move to the bin/aot location
             src_dir_aot = os.path.join(repo_path, "artifacts", "bin", "mono", f"{parsed_args.os}.{parsed_args.architecture}.Release", "cross", f"{parsed_args.os}-{parsed_args.architecture}")
