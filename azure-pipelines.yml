@@ -321,7 +321,7 @@ jobs:
         dotnetVersionsLinks:
           main: https://aka.ms/dotnet/sdk/maui/net8.0.json
 
-  # Maui iOS scenario benchmarks
+  # Maui iOS Mono scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
@@ -335,7 +335,22 @@ jobs:
           main: https://aka.ms/dotnet/sdk/maui/net8.0.json
         runtimeFlavor: mono
 
-  # Maui iOS scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_ios
+        projectFile: maui_scenarios_ios.proj
+        dotnetVersionsLinks:
+          main: https://aka.ms/dotnet/sdk/maui/net8.0.json
+        runtimeFlavor: mono
+        hybridGlobalization: true
+        additionalJobIdentifier: 'HybridGlobalization_True'
+
+  # Maui iOS Native AOT scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
@@ -348,6 +363,21 @@ jobs:
         dotnetVersionsLinks:
           main: https://aka.ms/dotnet/sdk/maui/net8.0.json
         runtimeFlavor: coreclr
+
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_ios
+        projectFile: maui_scenarios_ios.proj
+        dotnetVersionsLinks:
+          main: https://aka.ms/dotnet/sdk/maui/net8.0.json
+        runtimeFlavor: coreclr
+        hybridGlobalization: true
+        additionalJobIdentifier: 'HybridGlobalization_True'
 
   ## Maui scenario benchmarks
   #- template: /eng/performance/build_machine_matrix.yml

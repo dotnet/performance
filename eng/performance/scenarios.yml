@@ -14,6 +14,7 @@ parameters:
   runEnvVars: []        # optional -- Environment variables to set for the benchmark run in the form of a multi-line object like: "runEnvVars:\n - DOTNET_GCgen0size=1E00000 \n - DOTNET_GCHeapCount=4 \n - DOTNET_GCTotalPhysicalMemory=200000000"
   additionalJobIdentifier: '' # optional -- Additional identifier to append to the job name (no spaces)
   runtimeFlavor: ''     # optional -- Runtime flavor used for scenarios
+  hybridGlobalization: false # optional -- Globalization used for scenarios
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -32,6 +33,11 @@ jobs:
           ${{ if ne(parameters.affinity, '0')}}:
             value: '--affinity ${{ parameters.affinity }}'
           ${{ else }}: # Affinity of 0 seems to cause problems with BDN, so don't set it if we don't need to
+            value: ''
+        - name: HybridGlobalizationConfig
+          ${{ if eq(parameters.hybridGlobalization, 'true')}}:
+            value: ' HybridGlobalization=True'
+          ${{ else }}: # Only include hybridGlobalization if explicitly set to true
             value: ''
         - name: runEnvVarsParam
           ${{ if ne(length(parameters.runEnvVars), 0)}}:
@@ -119,7 +125,7 @@ jobs:
         - checkout: self
           clean: true
         - ${{ if ne(length(parameters.channels), 0) }}:
-          - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup --install-dir $(CorrelationStaging)dotnet $(runEnvVarsParam) $(AffinityParam) $(TargetsWindowsParam)
+          - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)$(HybridGlobalizationConfig) --output-file $(CorrelationStaging)machine-setup --install-dir $(CorrelationStaging)dotnet $(runEnvVarsParam) $(AffinityParam) $(TargetsWindowsParam)
             displayName: Run ci_setup.py
         - ${{ elseif ne(length(parameters.dotnetVersionsLinks), 0) }}:
           - powershell: |
@@ -131,7 +137,7 @@ jobs:
               Write-Host "##vso[task.setvariable variable=DotnetVersion;]$dotnet_version"
               Write-Host "Found dotnet version $dotnet_version"
             displayName: Get dotnetVersion to use
-          - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --dotnet-versions $(DotnetVersion) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup --install-dir $(CorrelationStaging)dotnet $(runEnvVarsParam) $(AffinityParam) $(TargetsWindowsParam)
+          - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --dotnet-versions $(DotnetVersion) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)$(HybridGlobalizationConfig) --output-file $(CorrelationStaging)machine-setup --install-dir $(CorrelationStaging)dotnet $(runEnvVarsParam) $(AffinityParam) $(TargetsWindowsParam)
             displayName: Run ci_setup.py with dotnetVersionsLinks
         - powershell: |
             Write-Host "##vso[task.setvariable variable=DOTNET_ROOT;]$(CorrelationStaging)dotnet"
@@ -183,7 +189,7 @@ jobs:
               $(Python) -m pip install urllib3==1.26.15
               $(Python) -m pip install requests
               .\src\scenarios\init.ps1 -DotnetDirectory $(CorrelationStaging)dotnet
-              dotnet msbuild .\eng\performance\${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /bl:.\artifacts\log\$(_BuildConfig)\PrepareWorkItemPayloads.binlog
+              dotnet msbuild .\eng\performance\${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /p:HybridGlobalization=${{ parameters.hybridGlobalization }} /bl:.\artifacts\log\$(_BuildConfig)\PrepareWorkItemPayloads.binlog
             displayName: Prepare scenarios
             env:
               CorrelationPayloadDirectory: $(CorrelationStaging)
@@ -222,7 +228,7 @@ jobs:
               $(Python) -m pip install --user urllib3==1.26.15
               $(Python) -m pip install --user requests
               . ./src/scenarios/init.sh -dotnetdir $(CorrelationStaging)dotnet
-              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
+              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /p:HybridGlobalization=${{ parameters.hybridGlobalization }} /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
             displayName: Prepare scenarios
             env:
               CorrelationPayloadDirectory: $(CorrelationStaging)
@@ -256,7 +262,7 @@ jobs:
               $(Python) -m pip install --user urllib3==1.26.15
               $(Python) -m pip install --user requests
               . ./src/scenarios/init.sh -dotnetdir $(CorrelationStaging)dotnet
-              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
+              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /p:HybridGlobalization=${{ parameters.hybridGlobalization }} /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
             displayName: Prepare scenarios
             env:
               CorrelationPayloadDirectory: $(CorrelationStaging)
@@ -287,3 +293,4 @@ jobs:
             WorkItemTimeout: 4:00 # 4 hours
             Python: $(Python)
             RuntimeFlavor: ${{ parameters.runtimeFlavor }}
+            HybridGlobalization: ${{ parameters.hybridGlobalization }}
