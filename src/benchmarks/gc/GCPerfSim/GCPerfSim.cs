@@ -116,8 +116,8 @@ to all be similar sizes.
 meaning every Nth LOH object allocated will survive. 
 
 -pohSurvInterval/-pohsi:
-meaning every Nth POH object allocated will survive.
 (.NET 5.0 or later)
+meaning every Nth POH object allocated will survive.
 
 Note that -sohSurvInterval/-lohSurvInterval are only applicable for steady state.
 During initialization everything survives.
@@ -133,6 +133,7 @@ meaning every Nth LOH object survived will be pinned.
 
 -lohFinalizableInterval/-lohfi: lohFinalizableInterval
 meaning every Nth LOH object survived will be finalizable.
+
 -pohFinalizableInterval/-pohfi: pohFinalizableInterval
 (.NET 5.0 or later)
 meaning every Nth POH object survived will be finalizable.
@@ -144,6 +145,7 @@ What kind of objects are we allocating? Current supported types:
 
 -verifyLiveSize: 1/0
 Perform some verification that the live object size matches the expected size
+
 -printEveryNthIter: printEveryNthIter
 Display a summary every N iterations
 
