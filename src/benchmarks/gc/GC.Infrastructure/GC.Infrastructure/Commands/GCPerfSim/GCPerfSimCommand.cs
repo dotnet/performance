@@ -58,8 +58,6 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             AnsiConsole.Write(new Rule("GCPerfSim Orchestrator"));
             AnsiConsole.WriteLine();
 
-            ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(GCPerfSimCommand));
-
             GCPerfSimConfiguration configuration = GCPerfSimConfigurationParser.Parse(settings.ConfigurationPath);
             GCPerfSimResults _ = RunGCPerfSim(configuration, settings.Server);
 
@@ -68,7 +66,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             return 0;
         }
 
-        public static GCPerfSimResults RunGCPerfSim(GCPerfSimConfiguration configuration, string server)
+        public static GCPerfSimResults RunGCPerfSim(GCPerfSimConfiguration configuration, string? server)
         {
             Core.Utilities.TryCreateDirectory(configuration.Output.Path);
 
@@ -100,7 +98,6 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             return new GCPerfSimResults(executionDetails, GCPerfSimAnalyzeCommand.ExecuteAnalysis(configuration, executionDetails));
         }
 
-        // Trace Path -> Markdown file.
         internal static Dictionary<string, ProcessExecutionDetails> ExecuteLocally(GCPerfSimConfiguration configuration, IReadOnlyList<RunInfo> runInfos)
         {
             Dictionary<string, ProcessExecutionDetails> executionDetails = new();
@@ -126,7 +123,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         gcperfsimProcess.StartInfo.RedirectStandardOutput = true;
                         gcperfsimProcess.StartInfo.CreateNoWindow = true;
 
-                        AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Running {Path.GetFileNameWithoutExtension(configuration.Name)}: {runInfo.CorerunDetails.Key} for {runInfo.RunDetails.Key} [/]");
+                        AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Running {Path.GetFileNameWithoutExtension(configuration.Name)}: {runInfo.CorerunDetails.Key} for {runInfo.RunDetails.Key} - Iteration: {iterationIdx} [/]");
 
                         // Environment Variables.
                         Dictionary<string, string> environmentVariables = new();
@@ -168,17 +165,25 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         string error = null;
 
                         string key = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
-                        using (TraceCollector traceCollector = new TraceCollector($"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}", collectType, outputPath))
+                        string traceName = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
+                        using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, outputPath))
                         {
                             gcperfsimProcess.Start();
                             output = gcperfsimProcess.StandardOutput.ReadToEnd();
                             error = gcperfsimProcess.StandardError.ReadToEnd(); 
-
                             gcperfsimProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
                             File.WriteAllText(Path.Combine(outputPath, key + ".txt"), "Standard Out: \n" + output + "\n Standard Error: \n" + error);
                         }
 
-                        // TODO: Another check here could be to check for the existence of the trace.. if not, we got a problem specifically if the configuration wasn't passed.
+                        // If a trace is requested, ensure the file exists. If not, there is was an error and alert the user.
+                        if (configuration.TraceConfigurations?.Type != "none")
+                        {
+                            // Not checking Linux here since the local run only allows for Windows.
+                            if (!File.Exists(Path.Combine(outputPath, traceName + ".etl.zip")))
+                            {
+                                AnsiConsole.MarkupLine($"[yellow bold] ({DateTime.Now}) The trace for the run wasn't successfully captured. Please check the log file for more details: {output} Full run details: {Path.GetFileNameWithoutExtension(configuration.Name)}: {runInfo.CorerunDetails.Key} for {runInfo.RunDetails.Key} [/]");
+                            }
+                        }
                         
                         int exitCode = gcperfsimProcess.ExitCode;
                         ProcessExecutionDetails details = new(key: key,
@@ -225,16 +230,15 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 
                         crankProcess.OutputDataReceived += (s, d) =>
                         {
-                            Console.WriteLine(d.Data?.ToString());
                             output.AppendLine(d.Data);
                         };
                         crankProcess.ErrorDataReceived += (s, d) =>
                         {
-                            Console.WriteLine(d.Data?.ToString());
                             error.Append(d.Data);
                         };
 
                         Console.WriteLine($"Executing: {processAndParameters.Item1} {processAndParameters.Item2}");
+                        AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Running {Path.GetFileNameWithoutExtension(configuration.Name)}: {run.CorerunDetails.Key} for {run.RunDetails.Key} - Iteration: {iterationIdx} [/]");
                         crankProcess.Start();
                         crankProcess.BeginOutputReadLine();
                         crankProcess.BeginErrorReadLine();

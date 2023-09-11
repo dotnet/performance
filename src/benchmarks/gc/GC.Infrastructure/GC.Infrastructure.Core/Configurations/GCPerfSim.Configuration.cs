@@ -46,36 +46,56 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
         public static GCPerfSimConfiguration Parse(string path)
         {
             // Preconditions.
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
-            {
-                throw new ArgumentNullException($"{nameof(GCPerfSimConfigurationParser)}: {nameof(path)} is null/empty or doesn't exist. You must specify a valid path.");
-            }
+            ConfigurationChecker.VerifyFile(path, nameof(GCPerfSimConfigurationParser)); 
 
             string serializedConfiguration = File.ReadAllText(path);
-            GCPerfSimConfiguration configuration = _deserializer.Deserialize<GCPerfSimConfiguration>(serializedConfiguration);
+            GCPerfSimConfiguration? configuration = null; 
+            try
+            {
+                configuration = _deserializer.Deserialize<GCPerfSimConfiguration>(serializedConfiguration);
+            }
 
-            // Checks if mandatory arguments are specified in the configuration.
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"{nameof(GCPerfSimConfiguration)}: Unable to parse the yaml file because of an error in the syntax. Please use the configurations under: Configuration/GCPerfSim/*.yaml in as example to ensure the file is formatted correctly. Exception: {ex.Message} \n Call Stack: {ex.StackTrace}");
+            }
+
             if (configuration == null)
             {
                 throw new ArgumentNullException($"{nameof(GCPerfSimConfigurationParser)}: {nameof(configuration)} is null. Check the syntax of the configuration.");
             }
 
-            // Runs.
+            // Check to ensure the path to GCPerfSim exists / is valid.
+            if (string.IsNullOrEmpty(configuration.gcperfsim_configurations.gcperfsim_path) || !File.Exists(configuration.gcperfsim_configurations.gcperfsim_path))
+            {
+                throw new ArgumentException($"{nameof(GCPerfSimConfigurationParser)}: The GCPerfSim binary either doesn't exist or the path provided is incorrect. Please ensure the path is valid; the path provided: {configuration.gcperfsim_configurations.gcperfsim_path}");
+            }
+
+            // Check to ensure the runs are valid.
             if (configuration.Runs == null || configuration.Runs?.Count == 0)
             {
-                throw new ArgumentNullException($"{nameof(configuration.Runs)} are null or empty. 1 or more runs should be specified.");
+                throw new ArgumentNullException($"{nameof(GCPerfSimConfigurationParser)}: {nameof(configuration.Runs)} are null or empty. 1 or more runs should be specified.");
+            }
+
+            // Check to ensure the builds are valid i.e., have an existent path to corerun.
+            foreach (var build in configuration.coreruns)
+            {
+                if (string.IsNullOrEmpty(build.Value.Path) || !File.Exists(build.Value.Path))
+                {
+                    throw new ArgumentException($"{nameof(GCPerfSimConfigurationParser)}: The corerun for {build.Key} either doesn't exist or the path provided is incorrect. Please ensure that path points to a valid corerun");
+                }
             }
 
             // Parameters.
             if (configuration.gcperfsim_configurations.Parameters == null || configuration.gcperfsim_configurations.Parameters.Count == 0)
             {
-                throw new ArgumentNullException($"{nameof(GCPerfSimConfigurationParser)}: {nameof(configuration.gcperfsim_configurations.Parameters)} are null or empty. GC Perf Sim Parameters must be specified."); 
+                throw new ArgumentException($"{nameof(GCPerfSimConfigurationParser)}: {nameof(configuration.gcperfsim_configurations.Parameters)} are null or empty. GC PerfSim Parameters must be specified."); 
             }
 
             // Trace Configurations if specified, must have a type specified.
             if (configuration.TraceConfigurations != null && string.IsNullOrEmpty(configuration.TraceConfigurations.Type))
             {
-                throw new ArgumentNullException($"{nameof(GCPerfSimConfigurationParser)}: {nameof(configuration.TraceConfigurations.Type)} is null or empty. This value should be specified if the a 'trace_configurations' node is added");
+                throw new ArgumentException($"{nameof(GCPerfSimConfigurationParser)}: Please ensure a trace configuration type is specified. If you don't want to collect a trace, simply don't include the trace_configuration type or choose either: gc, verbose, cpu, cpu_managed, threadtime, threadtime_managed.");
             }
 
             return configuration;
