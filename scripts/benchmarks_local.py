@@ -201,7 +201,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOTLLVM]): # TODO: Is all the cross stuff needed?
         artifact_mono_aot_llvm = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoAOTLLVM, commit), "monoaot")
         if force_regenerate or not os.path.exists(artifact_mono_aot_llvm):
-            build_runtime_dependency(parsed_args, repo_path, "clr+mono+libs+host+packs", additional_args=['-cross', '/p:BuildMonoAOTCrossCompiler=true', '/p:MonoLibClang="/usr/local/lib/libclang.so.16"', f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
+            build_runtime_dependency(parsed_args, repo_path, "clr+mono+libs+host+packs", additional_args=['-cross', '/p:BuildMonoAOTCrossCompiler=true', f'/p:MonoLibClang={parsed_args.mono_libclang_path}' if parsed_args.mono_libclang_path else '', f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
             
             # Move to the bin/aot location
             src_dir_aot = os.path.join(repo_path, "artifacts", "bin", "mono", f"{parsed_args.os}.{parsed_args.architecture}.Release", "cross", f"{parsed_args.os}-{parsed_args.architecture}")
@@ -562,7 +562,8 @@ def add_arguments(parser):
     parser.add_argument('--filter', type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
     parser.add_argument('-f', '--framework', choices=ChannelMap.get_supported_frameworks(), default='net8.0', help='The target framework to run the benchmarks against.') # Can and should this accept multiple frameworks?
     parser.add_argument('--csproj', type=str, default=os.path.join("..", "src", "benchmarks", "micro", "MicroBenchmarks.csproj"), help='The path to the csproj file to run benchmarks against.')   
-    parser.add_argument('--wasm-engine-path', type=str, help='The full path to the wasm engine to use for the benchmarks. e.g. /usr/local/bin/v8') 
+    parser.add_argument('--wasm-engine-path', type=str, help='The full path to the wasm engine to use for the benchmarks. e.g. /usr/local/bin/v8') # TODO: Setup required arguments
+    parser.add_argument('--mono-libclang-path', type=str, help='The full path to the clang compiler to use for the benchmarks. e.g. "/usr/local/lib/libclang.so.16", used for "MonoLibClang" build property.') # TODO: Setup required arguments
 
 def get_default_os():
     system = platform.system().lower()
