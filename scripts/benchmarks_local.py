@@ -213,7 +213,6 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             dest_dir_aot_pack = os.path.join(repo_path, "artifacts", "bin", "aot", "pack")
             copy_directory_contents(src_dir_aot_pack, dest_dir_aot_pack)
             
-            generate_layout(parsed_args, repo_path, ["/p:LibrariesConfiguration=Release"])
             src_dir_aot_final = os.path.join(repo_path, "artifacts", "bin", "aot")
             shutil.rmtree(artifact_mono_aot_llvm, ignore_errors=True)
             copy_directory_contents(src_dir_aot_final, artifact_mono_aot_llvm)
