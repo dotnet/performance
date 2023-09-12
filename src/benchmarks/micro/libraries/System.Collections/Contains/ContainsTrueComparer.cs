@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
@@ -27,6 +28,7 @@ namespace System.Collections
         private SortedSet<T> _sortedSet;
         private ImmutableHashSet<T> _immutableHashSet;
         private ImmutableSortedSet<T> _immutableSortedSet;
+        private FrozenSet<T> _frozenSet;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
@@ -97,6 +99,24 @@ namespace System.Collections
         {
             bool result = default;
             ImmutableSortedSet<T> collection = _immutableSortedSet;
+            T[] found = _found;
+            for (int i = 0; i < found.Length; i++)
+                result ^= collection.Contains(found[i]);
+            return result;
+        }
+
+        [GlobalSetup(Target = nameof(FrozenSet))]
+        public void SetupFrozenSet()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _frozenSet = _found.ToFrozenSet(new WrapDefaultComparer());
+        }
+
+        [Benchmark]
+        public bool FrozenSet()
+        {
+            bool result = default;
+            FrozenSet<T> collection = _frozenSet;
             T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);

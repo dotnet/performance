@@ -80,6 +80,8 @@ jobs:
           - ${{ if ne(parameters.osName, 'ubuntu')}}:
             - name: InstallPrerequisites
               value: ''
+          - name: TargetsWindowsParam
+            value: ''
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           # for public runs, we do not want to upload perflab data
           - name: PerfLabArguments

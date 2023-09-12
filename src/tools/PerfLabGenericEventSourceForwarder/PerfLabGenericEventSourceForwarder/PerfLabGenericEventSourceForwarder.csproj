@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFramework>
+        <!-- Supported target frameworks -->
+        <TargetFramework Condition="'$(TargetFramework)' == ''">net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+    <ItemGroup>
+      <Compile Include="..\..\ScenarioMeasurement\Startup\PerfLabValues.cs" Link="PerfLabValues.cs" />
+    </ItemGroup>
+</Project>

@@ -11,7 +11,13 @@
     <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
-    <OptionalCommandProps Condition="'$(RuntimeFlavor)' == 'coreclr'">--nativeaot true</OptionalCommandProps>
+    
+    <NativeAOTCommandProps Condition="'$(RuntimeFlavor)' == 'coreclr'">--nativeaot true</NativeAOTCommandProps>
+    <!-- For non-default configurations, add the configuration to the name of the test (in the matching format), otherwise didn't add anything.
+    This will ensure that PowerBI's using the test name rather than the run configuration for the data continue to work properly and defaults are connected -->
+    <HybridGlobalizationString></HybridGlobalizationString>
+    <HybridGlobalizationString Condition="'$(HybridGlobalization)' == 'true'"> HybridGlobalization</HybridGlobalizationString>
+    <RunConfigsString>$(RuntimeFlavor)$(HybridGlobalizationString)</RunConfigsString>
   </PropertyGroup>
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
@@ -26,19 +32,19 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <MAUIiOSScenario Include="Xamarin iOS Default $(RuntimeFlavor)">
+    <MAUIiOSScenario Include="Xamarin iOS Default $(RunConfigsString)">
       <ScenarioDirectoryName>xamarinios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>XamariniOSDefault</IPAName>
       <PackageName>com.companyname.XamariniOSDefault</PackageName>
     </MAUIiOSScenario>
-    <MAUIiOSScenario Include="Maui iOS Default $(RuntimeFlavor)">
+    <MAUIiOSScenario Include="Maui iOS Default $(RunConfigsString)">
       <ScenarioDirectoryName>mauiios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiiOSDefault</IPAName>
       <PackageName>net.dot.mauitesting</PackageName>
     </MAUIiOSScenario>
-    <MAUIiOSScenario Include="Maui Blazor iOS Default $(RuntimeFlavor)">
+    <MAUIiOSScenario Include="Maui Blazor iOS Default $(RunConfigsString)">
       <ScenarioDirectoryName>mauiblazorios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiBlazoriOSDefault</IPAName>
@@ -55,7 +61,7 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(OptionalCommandProps) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(NativeAOTCommandProps) --hybrid-globalization $(HybridGlobalization) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
@@ -69,7 +75,8 @@
       <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub; mv $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; unzip -d $HELIX_WORKITEM_ROOT/pub $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; rm $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-    <XHarnessAppBundleToTest Include="Device Startup - iOS Xamarin Default $(RuntimeFlavor)">
+    <!-- Tracking issue: https://github.com/dotnet/performance/issues/3148 -->
+    <XHarnessAppBundleToTest Condition="'$(RuntimeFlavor)' == 'mono'" Include="Device Startup - iOS Xamarin Default $(RunConfigsString)">
       <AppBundlePath>$(ScenariosDir)xamarinios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
@@ -97,7 +104,8 @@
           ]]>
         </CustomCommands>
     </XHarnessAppBundleToTest>
-    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Default $(RuntimeFlavor)">
+    <!-- Tracking issue: https://github.com/dotnet/performance/issues/3148 -->
+    <XHarnessAppBundleToTest Condition="'$(RuntimeFlavor)' == 'mono'" Include="Device Startup - iOS Maui Default $(RunConfigsString)">
       <AppBundlePath>$(ScenariosDir)mauiios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
@@ -125,7 +133,8 @@
           ]]>
         </CustomCommands>
     </XHarnessAppBundleToTest>
-    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Blazor Default $(RuntimeFlavor)">
+    <!-- Tracking issue: https://github.com/dotnet/performance/issues/3148 -->
+    <XHarnessAppBundleToTest Condition="'$(RuntimeFlavor)' == 'mono'" Include="Device Startup - iOS Maui Blazor Default $(RunConfigsString)">
       <AppBundlePath>$(ScenariosDir)mauiblazorios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
