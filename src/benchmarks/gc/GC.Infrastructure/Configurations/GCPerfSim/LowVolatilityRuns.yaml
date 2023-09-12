@@ -57,11 +57,13 @@ environment:
   iterations: 1
 coreruns:
   baseline:
-    path: C:\CoreRuns\Test\corerun.exe
-    environment_variables: {} #COMPlus_GCName: clrgc.dll
+    path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
+    environment_variables:
+      COMPlus_GCName: clrgc.dll
   run:
-    path: C:\CoreRuns\Test\corerun.exe
-    environment_variables: {} #COMPlus_GCName: clrgc.dll
+    path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
+    environment_variables:
+      COMPlus_GCName: clrgc.dll
 linux_coreruns: 
 output:
   path: C:\InfraRuns\GCPerfSim\
