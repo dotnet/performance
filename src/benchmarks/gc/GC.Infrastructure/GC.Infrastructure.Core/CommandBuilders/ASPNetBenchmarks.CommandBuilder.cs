@@ -41,7 +41,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
                     string.CompareOrdinal(env.Key, "COMPlus_GCLogFile") == 0)
                 {
                     string fileNameOfLog = Path.GetFileName(env.Value);
-                    commandStringBuilder.Append( $" --application.options.downloadFiles \"*.*{fileNameOfLog}.log\" " );
+                    commandStringBuilder.Append( $" --application.options.downloadFiles \"*{fileNameOfLog}.log\" " );
                     string fileName = Path.GetFileNameWithoutExtension(env.Value);
                     commandStringBuilder.Append( $" --application.options.downloadFilesOutput \"{Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkNameToCommand.Key}_GCLog")}\" " );
                 }
