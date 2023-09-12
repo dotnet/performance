@@ -78,7 +78,7 @@ namespace GC.Infrastructure.Core.TraceCollection
             if (_collectType != CollectType.none)
             {
                 _sessionName = Guid.NewGuid();
-                foreach(var invalid in Path.InvalidPathChars)
+                foreach(var invalid in Path.GetInvalidPathChars())
                 {
                     name = name.Replace(invalid.ToString(), string.Empty);
                 }

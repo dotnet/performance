@@ -109,7 +109,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 (string, string) processAndParameters = GCPerfSimCommandBuilder.BuildForLocal(configuration, runInfo.RunDetails, runInfo.CorerunDetails.Value);
 
                 // Create the run path directory.
-                string outputPath = Path.Combine(configuration.Output.Path, runInfo.RunDetails.Key);
+                string outputPath = Path.Combine(configuration.Output!.Path, runInfo.RunDetails.Key);
                 Core.Utilities.TryCreateDirectory(outputPath);
 
                 for (int iterationIdx = 0; iterationIdx < configuration.Environment.Iterations; iterationIdx++)
@@ -161,8 +161,8 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         }
 
                         // Format: (Name of Run).(corerun / name of corerun).(IterationIdx)
-                        string output = null;
-                        string error = null;
+                        string? output = null;
+                        string? error = null;
 
                         string key = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
                         string traceName = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
@@ -186,6 +186,11 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         }
                         
                         int exitCode = gcperfsimProcess.ExitCode;
+                        if (!string.IsNullOrEmpty(error))
+                        {
+                            AnsiConsole.MarkupLine($"[red bold] {Path.GetFileNameWithoutExtension(configuration.Name)}: {runInfo.CorerunDetails.Key} for {runInfo.RunDetails.Key} failed with: \n{Markup.Escape(error)} [/]");
+                        }
+
                         ProcessExecutionDetails details = new(key: key,
                                                               commandlineArgs: $"{processAndParameters.Item1} {processAndParameters.Item2}", 
                                                               environmentVariables: environmentVariables, 
@@ -208,7 +213,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             foreach (var run in runInfos)
             {
                 // Create the run path directory.
-                string outputPath = Path.Combine(configuration.Output.Path, run.RunDetails.Key);
+                string outputPath = Path.Combine(configuration.Output!.Path, run.RunDetails.Key);
                 Core.Utilities.TryCreateDirectory(outputPath);
 
                 for (int iterationIdx = 0; iterationIdx < configuration.Environment.Iterations; iterationIdx++)
@@ -217,6 +222,10 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                     (string, string) processAndParameters = GCPerfSimCommandBuilder.BuildForServer(configuration, run.RunDetails, iterationIdx, run.CorerunDetails, serverName, os);
 
                     string key = $"{run.RunDetails.Key}.{run.CorerunDetails.Key}.{iterationIdx}";
+                    StringBuilder output = new();
+                    StringBuilder error = new();
+
+                    int exitCode = -1;
 
                     using (Process crankProcess = new())
                     {
@@ -225,8 +234,6 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         crankProcess.StartInfo.UseShellExecute = false;
                         crankProcess.StartInfo.RedirectStandardOutput = true;
                         crankProcess.StartInfo.RedirectStandardError = true;
-                        StringBuilder output = new();
-                        StringBuilder error = new();
 
                         crankProcess.OutputDataReceived += (s, d) =>
                         {
@@ -234,26 +241,34 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         };
                         crankProcess.ErrorDataReceived += (s, d) =>
                         {
-                            error.Append(d.Data);
+                            error.AppendLine(d.Data);
                         };
 
-                        Console.WriteLine($"Executing: {processAndParameters.Item1} {processAndParameters.Item2}");
                         AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Running {Path.GetFileNameWithoutExtension(configuration.Name)}: {run.CorerunDetails.Key} for {run.RunDetails.Key} - Iteration: {iterationIdx} [/]");
                         crankProcess.Start();
                         crankProcess.BeginOutputReadLine();
                         crankProcess.BeginErrorReadLine();
-
                         crankProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
                         Thread.Sleep(1000);
 
-                        ProcessExecutionDetails details = new(key: key,
-                                                              commandlineArgs: $"{processAndParameters.Item1} {processAndParameters.Item2}", 
-                                                              environmentVariables: new(), 
-                                                              standardError: error.ToString(), 
-                                                              standardOut: output.ToString(),
-                                                              exitCode: crankProcess.ExitCode);
-                        executionDetails[key] = details;
+                        if (crankProcess.HasExited)
+                        {
+                            exitCode = crankProcess.ExitCode;
+                        }
                     }
+
+                    if (exitCode != 0)
+                    {
+                        AnsiConsole.MarkupLine($"[red bold] {Path.GetFileNameWithoutExtension(configuration.Name)}: {run.CorerunDetails.Key} for {run.RunDetails.Key} - Iteration: {iterationIdx} failed with \n{Markup.Escape(error.ToString())} \n {Markup.Escape(output.ToString())} [/]");
+                    }
+
+                    ProcessExecutionDetails details = new(key: key,
+                                                          commandlineArgs: $"{processAndParameters.Item1} {processAndParameters.Item2}",
+                                                          environmentVariables: new(), // The environment variables are embedded in the command line for crank. 
+                                                          standardError: error.ToString(), 
+                                                          standardOut: output.ToString(),
+                                                          exitCode: exitCode);
+                    executionDetails[key] = details;
                 }
             }
 
