@@ -523,7 +523,6 @@ class Item : ITypeWithPayload
         if (state != ItemState.NoHandle)
         {
             Debug.Assert(h.IsAllocated);
-            // Console.WriteLine("freeing handle to byte[{0}]", payload.Length);
             h.Free();
         }
 
@@ -643,7 +642,7 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
     private SimpleRefPayLoad? payload; // null only if this has been freed
     private ReferenceItemWithSize? next; // Note: ReferenceItemWithSize owns its 'next' -- should be the only reference to that
     public ulong TotalSize { get; private set; }
-    
+
     public static readonly uint FieldSize = 2 * Util.POINTER_SIZE + sizeof(ulong);
     public static readonly uint ReferenceItemWithSizeSize = Util.OBJECT_HEADER_SIZE + FieldSize;
 
@@ -922,7 +921,7 @@ struct SizeSlot
     }
     public static void BuildLOHBucketSpecsFromSizeDistribution(List<BucketSpec> bucketSpecs, uint survInterval, uint reqSurvInterval, uint pinInterval, uint finalizableInterval)
     {
-            BuildBucketSpecsFromSizeDistribution(bucketSpecs, sohLohSizeSlots, new SizeRange(85_000, uint.MaxValue), survInterval, reqSurvInterval, pinInterval, finalizableInterval, false);
+        BuildBucketSpecsFromSizeDistribution(bucketSpecs, sohLohSizeSlots, new SizeRange(85_000, uint.MaxValue), survInterval, reqSurvInterval, pinInterval, finalizableInterval, false);
     }
 
     // an object size distribution for OH derived from a real server scenario
@@ -1832,7 +1831,9 @@ class ArgsParser
         {
             SizeSlot.BuildSOHBucketSpecsFromSizeDistribution(bucketList, sohSurvInterval, reqSohSurvInterval, sohPinInterval, sohFinalizableInterval);
             SizeSlot.BuildLOHBucketSpecsFromSizeDistribution(bucketList, lohSurvInterval, reqLohSurvInterval, lohPinInterval, lohFinalizableInterval);
+#if NET5_0_OR_GREATER
             SizeSlot.BuildPOHBucketSpecsFromSizeDistribution(bucketList, pohSurvInterval, reqPohSurvInterval, 0,              pohFinalizableInterval);
+#endif // NET5_0_OR_GREATER
         }
         else
         {
@@ -2228,12 +2229,6 @@ class MemoryAlloc
         {
             b[i * pageSize] = (byte)(i % 256);
         }
-
-        // Trying to increase the amount of work we do to see if that affects ideal thread count
-        // for (uint i = 0; i < size; i++)
-        // {
-        //    b[i] = (byte)(i % 256);
-        // }
     }
 
     void TouchPage(ITypeWithPayload item)
@@ -2379,7 +2374,6 @@ class MemoryAlloc
 
             if (totalAllocBytesLeft <= 0)
             {
-                // if (args.print) Console.WriteLine("T{0}: SOH/LOH allocated {1:n0}/{2:n0} >= {3:n0}", threadIndex, sohAllocatedBytesTotalSum, lohAllocatedBytesTotalSum, totalAllocBytesLeft);
                 if (!GoToNextPhase()) break;
             }
 
@@ -2446,14 +2440,6 @@ class MemoryAlloc
             else
                 Util.AssertAboutEqual(oldArr.TotalLiveBytes, curPhase.totalLiveBytes);
 
-            // if (args.print)
-            // {
-            //     Console.WriteLine("T{0}: allocated {1} ({2}MB) on SOH, {3} ({4}MB) on LOH",
-            //         threadIndex,
-            //         sohAllocatedElements, Util.BytesToMB(sohAllocatedBytes),
-            //         lohAllocatedElements, Util.BytesToMB(lohAllocatedBytes));
-            // }
-
             if (args.verifyLiveSize)
             {
                 oldArr.VerifyLiveSize();
@@ -2463,10 +2449,6 @@ class MemoryAlloc
                     throw new Exception("TODO");
                 }
             }
-
-            // GC.Collect();
-            // Console.WriteLine("init done");
-            // Console.ReadLine();
 
             if (curPhase.totalAllocBytes != 0)
             {
@@ -2523,6 +2505,7 @@ class MemoryAlloc
     // Allocates object and survives it. Returns the object size.
     void MakeObjectAndMaybeSurvive()
     {
+        // TODO: Convert this into a config - refer to the comment above.
         // if (isLarge && args.lohPauseMeasure)
         // {
         //     stopwatch.Reset();
@@ -2535,14 +2518,6 @@ class MemoryAlloc
         // that we have young gen object pointing to a very old object. This can help us recognize things
         // like object locality, eg if demotion has demoted very old objects next to young objects.
         (ITypeWithPayload item, ObjectSpec spec) = MakeObjectAndTouchPage();
-
-        // if (isLarge && args.lohPauseMeasure)
-        // {
-        //     stopwatch.Stop();
-        //     lohAllocPauses.Add(stopwatch.Elapsed.TotalMilliseconds);
-        // }
-
-        // Thread.Sleep(1);
 
         if (spec.ShouldSurvive)
         {
@@ -2627,12 +2602,11 @@ class MemoryAlloc
         }
     }
 
-    void PrintPauses(StreamWriter sw)
+    void PrintPauses()
     {
         if (curPhase.lohPauseMeasure)
         {
-            sw.WriteLine("T{0} {1:n0} entries in pause, top entries(ms)", threadIndex, lohAllocPauses.Count);
-            sw.Flush();
+            Console.WriteLine("T{0} {1:n0} entries in pause, top entries(ms)", threadIndex, lohAllocPauses.Count);
 
             int numLOHAllocPauses = lohAllocPauses.Count;
             if (numLOHAllocPauses >= 0)
@@ -2640,15 +2614,15 @@ class MemoryAlloc
                 lohAllocPauses.Sort();
                 // lohAllocPauses.OrderByDescending(a => a);
 
-                sw.WriteLine("===============STATS for thread {0}=================", threadIndex);
+                Console.WriteLine("===============STATS for thread {0}=================", threadIndex);
 
                 int startIndex = ((numLOHAllocPauses < 10) ? 0 : (numLOHAllocPauses - 10));
                 for (int i = startIndex; i < numLOHAllocPauses; i++)
                 {
-                    sw.WriteLine(lohAllocPauses[i]);
+                    Console.WriteLine(lohAllocPauses[i]);
                 }
 
-                sw.WriteLine("===============END STATS for thread {0}=================", threadIndex);
+                Console.WriteLine("===============END STATS for thread {0}=================", threadIndex);
             }
         }
     }
@@ -2661,11 +2635,6 @@ class MemoryAlloc
     static TestResult DoTest(in Args args, int currentPid)
     {
         TestResult testResult = new TestResult();
-        // TODO: we probably need to synchronize writes to this somehow
-        string logFileName = currentPid + "-output.txt";
-        StreamWriter sw = new StreamWriter(logFileName);
-        sw.WriteLine("Started running");
-
         long tStart = Environment.TickCount;
         Phase[] phases = args.perThreadArgs.phases;
         for (int phaseIndex = 0; phaseIndex < phases.Length; phaseIndex++)
@@ -2691,7 +2660,8 @@ class MemoryAlloc
                 for (uint i = 0; i < threads.Length; i++)
                     threads[i].Join();
                 for (uint i = 0; i < threadLaunchers.Length; i++)
-                    threadLaunchers[i].Alloc.PrintPauses(sw);
+                    threadLaunchers[i].Alloc.PrintPauses();
+
                 for (int i = 0; i < threadLaunchers.Length; i++)
                 {
                     Bucket[] buckets = threadLaunchers[i].Alloc.bucketChooser.buckets;
@@ -2708,7 +2678,8 @@ class MemoryAlloc
                 // Easier to debug without launching a separate thread
                 ThreadLauncher t = new ThreadLauncher(0, perThreadArgs);
                 t.Run();
-                t.Alloc.PrintPauses(sw);
+                t.Alloc.PrintPauses();
+
                 Bucket[] buckets = t.Alloc.bucketChooser.buckets;
                 for (int j = 0; j < buckets.Length; j++)
                 {
@@ -2725,15 +2696,6 @@ class MemoryAlloc
         Debug.Assert(ReferenceItemWithSize.NumConstructed == ReferenceItemWithSize.NumFreed);
         Debug.Assert(SimpleRefPayLoad.NumPinned == SimpleRefPayLoad.NumUnpinned);
 #endif
-
-        sw.WriteLine("Took {0}ms", tEnd - tStart);
-        sw.Flush();
-
-        // sw.WriteLine("after init: heap size {0}, press any key to continue", GC.GetTotalMemory(false));
-        // Console.ReadLine();
-
-        sw.Flush();
-        sw.Close();
         return testResult;
     }
 
