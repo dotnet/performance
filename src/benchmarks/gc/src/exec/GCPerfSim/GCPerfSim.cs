@@ -1217,15 +1217,13 @@ class Args
     public readonly PerThreadArgs perThreadArgs;
     public readonly bool finishWithFullCollect;
     public readonly bool endException;
-    public readonly bool writeTimeToConsole;
 
-    public Args(uint threadCount, in PerThreadArgs perThreadArgs, bool finishWithFullCollect, bool endException, bool writeTimeToConsole)
+    public Args(uint threadCount, in PerThreadArgs perThreadArgs, bool finishWithFullCollect, bool endException)
     {
         this.threadCount = threadCount;
         this.perThreadArgs = perThreadArgs;
         this.finishWithFullCollect = finishWithFullCollect;
         this.endException = endException;
-        this.writeTimeToConsole = writeTimeToConsole;
     }
 
     public void Describe()
@@ -1322,8 +1320,7 @@ class ArgsParser
                         printEveryNthIter: printEveryNthIter,
                         phases: phases),
                     finishWithFullCollect: false,
-                    endException: false,
-                    writeTimeToConsole: false);
+                    endException: false);
             }
             CharSpan word = text.TakeWord();
             text.TakeSpace();
@@ -1628,8 +1625,6 @@ class ArgsParser
         ulong requestLiveBytes = 0;
         uint sizeDist = 0;
 
-        bool writeTimeToConsole = false;
-
         for (uint i = 0; i < args.Length; ++i)
         {
             switch (args[i])
@@ -1781,9 +1776,6 @@ class ArgsParser
                 case "-printEveryNthIter":
                     printEveryNthIter = ParseUInt32(args[++i]);
                     break;
-                case "-writeTimeToConsole":
-                    writeTimeToConsole = true;
-                    break;
                 default:
                     throw new Exception($"Unrecognized argument: {args[i]}");
             }
@@ -1908,8 +1900,7 @@ class ArgsParser
             threadCount: threadCount,
             perThreadArgs: new PerThreadArgs(verifyLiveSize: verifyLiveSize, printEveryNthIter: printEveryNthIter, phases: new Phase[] { onlyPhase }),
             finishWithFullCollect: finishWithFullCollect,
-            endException: endException,
-            writeTimeToConsole: writeTimeToConsole);
+            endException: endException);
     }
 }
 
@@ -2587,12 +2578,11 @@ class MemoryAlloc
         }
     }
 
-    void PrintPauses(StreamWriter sw)
+    void PrintPauses()
     {
         if (curPhase.lohPauseMeasure)
         {
-            sw.WriteLine("T{0} {1:n0} entries in pause, top entries(ms)", threadIndex, lohAllocPauses.Count);
-            sw.Flush();
+            Console.WriteLine("T{0} {1:n0} entries in pause, top entries(ms)", threadIndex, lohAllocPauses.Count);
 
             int numLOHAllocPauses = lohAllocPauses.Count;
             if (numLOHAllocPauses >= 0)
@@ -2600,15 +2590,15 @@ class MemoryAlloc
                 lohAllocPauses.Sort();
                 // lohAllocPauses.OrderByDescending(a => a);
 
-                sw.WriteLine("===============STATS for thread {0}=================", threadIndex);
+                Console.WriteLine("===============STATS for thread {0}=================", threadIndex);
 
                 int startIndex = ((numLOHAllocPauses < 10) ? 0 : (numLOHAllocPauses - 10));
                 for (int i = startIndex; i < numLOHAllocPauses; i++)
                 {
-                    sw.WriteLine(lohAllocPauses[i]);
+                    Console.WriteLine(lohAllocPauses[i]);
                 }
 
-                sw.WriteLine("===============END STATS for thread {0}=================", threadIndex);
+                Console.WriteLine("===============END STATS for thread {0}=================", threadIndex);
             }
         }
     }
@@ -2621,16 +2611,6 @@ class MemoryAlloc
     static TestResult DoTest(in Args args, int currentPid)
     {
         TestResult testResult = new TestResult();
-        // TODO: we probably need to synchronize writes to this somehow
-        string logFileName = currentPid + "-output.txt";
-
-        StreamWriter? sw = null;
-        if (!args.writeTimeToConsole)
-        {
-            sw = new StreamWriter(logFileName);
-            sw.WriteLine("Started running");
-        }
-
         long tStart = Environment.TickCount;
         Phase[] phases = args.perThreadArgs.phases;
         for (int phaseIndex = 0; phaseIndex < phases.Length; phaseIndex++)
@@ -2655,12 +2635,8 @@ class MemoryAlloc
                     threads[i].Start();
                 for (uint i = 0; i < threads.Length; i++)
                     threads[i].Join();
-
-                if (!args.writeTimeToConsole)
-                {
-                    for (uint i = 0; i < threadLaunchers.Length; i++)
-                        threadLaunchers[i].Alloc.PrintPauses(sw!);
-                }
+                for (uint i = 0; i < threadLaunchers.Length; i++)
+                    threadLaunchers[i].Alloc.PrintPauses();
 
                 for (int i = 0; i < threadLaunchers.Length; i++)
                 {
@@ -2678,11 +2654,7 @@ class MemoryAlloc
                 // Easier to debug without launching a separate thread
                 ThreadLauncher t = new ThreadLauncher(0, perThreadArgs);
                 t.Run();
-
-                if (!args.writeTimeToConsole)
-                {
-                    t.Alloc.PrintPauses(sw!);
-                }
+                t.Alloc.PrintPauses();
 
                 Bucket[] buckets = t.Alloc.bucketChooser.buckets;
                 for (int j = 0; j < buckets.Length; j++)
@@ -2700,26 +2672,7 @@ class MemoryAlloc
         Debug.Assert(ReferenceItemWithSize.NumConstructed == ReferenceItemWithSize.NumFreed);
         Debug.Assert(SimpleRefPayLoad.NumPinned == SimpleRefPayLoad.NumUnpinned);
 #endif
-
-        if (args.writeTimeToConsole)
-        {
-            Console.WriteLine($"Time Taken: {tEnd - tStart}ms");
-        }
-
-        else
-        {
-            sw!.WriteLine("Took {0}ms", tEnd - tStart);
-            sw.Flush();
-
-            // TODO: Turn this into a config - this is useful when you want to have the process paused at the end
-            // instead just exit.
-            // sw.WriteLine("after init: heap size {0}, press any key to continue", GC.GetTotalMemory(false));
-            // Console.ReadLine();
-
-            sw.Flush();
-            sw.Close();
-        }
-
+        Console.WriteLine($"Time Taken: {tEnd - tStart}ms");
         return testResult;
     }
 
