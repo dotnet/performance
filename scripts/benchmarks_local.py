@@ -62,6 +62,18 @@ class RunType(Enum):
 def is_windows(parsed_args: Namespace):
     return parsed_args.os == "windows"
 
+def get_os_short_name(os_name: str):
+    if os_name == "windows":
+        return "win"
+    elif os_name == "linux":
+        return "linux"
+    elif os_name == "osx":
+        return "osx"
+    elif os_name == "browser":
+        return "browser"
+    else:
+        raise ValueError(f"Unknown OS {os_name}")
+
 def is_running_as_admin(parsed_args: Namespace):
     if is_windows(parsed_args):
         return ctypes.windll.shell32.IsUserAnAdmin()
@@ -206,10 +218,10 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=build_args)
             
             # Move to the bin/aot location
-            src_dir_aot = os.path.join(repo_path, "artifacts", "bin", "mono", f"{parsed_args.os}.{parsed_args.architecture}.Release", "cross", f"{parsed_args.os}-{parsed_args.architecture}")
+            src_dir_aot = os.path.join(repo_path, "artifacts", "bin", "mono", f"{parsed_args.os}.{parsed_args.architecture}.Release", "cross", f"{get_os_short_name(parsed_args.os)}-{parsed_args.architecture}")
             dest_dir_aot = os.path.join(repo_path, "artifacts", "bin", "aot")
             copy_directory_contents(src_dir_aot, dest_dir_aot)
-            src_dir_aot_pack = os.path.join(repo_path, "artifacts", "bin", f"microsoft.netcore.app.runtime.{parsed_args.os}-{parsed_args.architecture}", "Release")
+            src_dir_aot_pack = os.path.join(repo_path, "artifacts", "bin", f"microsoft.netcore.app.runtime.{get_os_short_name(parsed_args.os)}-{parsed_args.architecture}", "Release")
             dest_dir_aot_pack = os.path.join(repo_path, "artifacts", "bin", "aot", "pack")
             copy_directory_contents(src_dir_aot_pack, dest_dir_aot_pack)
             
@@ -365,7 +377,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
             '--anyCategories', 'Libraries', 'Runtime',
             '--category-exclusion-filter', 'NoAOT', 'NoWASM',
             '--runtimes', "monoaotllvm",
-            '--aotcompilerpath', os.path.join(get_run_artifact_path(parsed_args, RunType.MonoAOTLLVM, commit), "monoaot", "mono-aot-cross"),
+            '--aotcompilerpath', os.path.join(get_run_artifact_path(parsed_args, RunType.MonoAOTLLVM, commit), "monoaot", f"mono-aot-cross{'.exe' if is_windows(parsed_args) else ''}"),
             '--customruntimepack', os.path.join(get_run_artifact_path(parsed_args, RunType.MonoAOTLLVM, commit), "monoaot", "pack"),
             '--aotcompilermode', 'llvm',
             '--logBuildOutput',
