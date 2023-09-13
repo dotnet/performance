@@ -2519,6 +2519,14 @@ class MemoryAlloc
         // like object locality, eg if demotion has demoted very old objects next to young objects.
         (ITypeWithPayload item, ObjectSpec spec) = MakeObjectAndTouchPage();
 
+        // TODO: As 2 comments above, convert this into a config.
+        // if (isLarge && args.lohPauseMeasure)
+        // {
+        //     stopwatch.Stop();
+        //     lohAllocPauses.Add(stopwatch.Elapsed.TotalMilliseconds);
+        // }
+        // Thread.Sleep(1);
+
         if (spec.ShouldSurvive)
         {
             DoSurvive(ref oldArr, item, false);
