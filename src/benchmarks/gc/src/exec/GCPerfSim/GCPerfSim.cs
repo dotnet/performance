@@ -2672,7 +2672,6 @@ class MemoryAlloc
         Debug.Assert(ReferenceItemWithSize.NumConstructed == ReferenceItemWithSize.NumFreed);
         Debug.Assert(SimpleRefPayLoad.NumPinned == SimpleRefPayLoad.NumUnpinned);
 #endif
-        Console.WriteLine($"Time Taken: {tEnd - tStart}ms");
         return testResult;
     }
 
