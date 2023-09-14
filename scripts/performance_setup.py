@@ -256,8 +256,10 @@ def run(args: PerformanceSetupArgs):
     if args.wasm_bundle_directory is not None:
         wasm_bundle_directory_path = payload_directory
         shutil.copytree(args.wasm_bundle_directory, wasm_bundle_directory_path)
-        
-        wasm_args = "--experimental-wasm-eh --expose_wasm"
+
+        # Ensure there is a space at the beginning, so BDN can correctly read them
+        # as arguments to `--wasmArgs`
+        wasm_args = " --experimental-wasm-eh --expose_wasm"
 
         if args.javascript_engine == "v8":
             wasm_args += " --module"

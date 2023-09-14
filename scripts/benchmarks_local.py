@@ -388,24 +388,28 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
     elif specific_run_type == RunType.WasmInterpreter:
         benchmark_ci_args += ['--wasm']
+        # Ensure there is a space at the beginning of `--wasmArgs` argument, so BDN
+        # can correctly read them as sub-arguments for `--wasmArgs`
         bdn_args_unescaped += [
             '--anyCategories', 'Libraries', 'Runtime',
             '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
             '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle", "wasm-data"),
             '--wasmEngine', parsed_args.wasm_engine_path,
-            '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
+            '--wasmArgs', '\" --experimental-wasm-eh --expose_wasm --module\"',
             '--logBuildOutput',
             '--generateBinLog'
         ]
 
     elif specific_run_type == RunType.WasmAOT:
         benchmark_ci_args += ['--wasm']
+        # Ensure there is a space at the beginning of `--wasmArgs` argument, so BDN
+        # can correctly read them as sub-arguments for `--wasmArgs`
         bdn_args_unescaped += [
             '--anyCategories', 'Libraries', 'Runtime',
             '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
             '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle", "wasm-data"),
             '--wasmEngine', parsed_args.wasm_engine_path,
-            '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
+            '--wasmArgs', '\" --experimental-wasm-eh --expose_wasm --module\"',
             '--aotcompilermode', 'wasm',
             '--logBuildOutput',
             '--generateBinLog'
