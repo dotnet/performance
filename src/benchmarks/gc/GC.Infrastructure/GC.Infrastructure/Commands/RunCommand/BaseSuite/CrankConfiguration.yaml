@@ -6,7 +6,7 @@ jobs:
     source:
       repository: https://github.com/dotnet/performance
       branchOrCommit: main
-      project: src/benchmarks/gc/src/exec/GCPerfSim/GCPerfSim.csproj
+      project: src/benchmarks/gc/GCPerfSim/GCPerfSim.csproj
     readyStateText: "GCPerfSim"
     waitForExit: true
     variables:
@@ -26,9 +26,14 @@ jobs:
       sohfi: 0
       lohfi: 0
       pohfi: 0
+      ramb: 0
+      rlmb: 0
+      rsohsi: 3 # Defaults from GCPerfSim
+      rlohsi: 2 # Defaults from GCPerfSim
+      rpohsi: 0 # Defaults from GCPerfSim
       allocType: reference
       testKind: time
-    arguments: "-tc {{ tc }} -tagb {{ tagb }} -tlgb {{ tlgb }} -lohar {{ lohar }} -lohsr {{ lohsr }} -sohsi {{ sohsi }} -lohsi {{ lohsi }} -sohpi {{ sohpi }} -lohpi {{ lohpi }} -sohfi {{ sohfi }} -lohfi {{ lohfi }} -allocType {{ allocType }} -testKind {{ testKind }}"
+    arguments: "-tc {{ tc }} -tagb {{ tagb }} -tlgb {{ tlgb }} -lohar {{ lohar }} -lohsr {{ lohsr }} -sohsi {{ sohsi }} -lohsi {{ lohsi }} -sohpi {{ sohpi }} -lohpi {{ lohpi }} -sohfi {{ sohfi }} -lohfi {{ lohfi }} -ramb {{ ramb }} -rlmb {{ rlmb }} -rsohsi {{ rsohsi }} -rlohsi {{ rlohsi }} -rpohsi {{ rpohsi }} -allocType {{ allocType }} -testKind {{ testKind }}"
 
 scenarios:
   gcperfsim:

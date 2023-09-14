@@ -13,15 +13,15 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         {
             [Description("Path to Baseline Trace")]
             [CommandOption("-b|--baseline")]
-            public string BaselinePath { get; set; }
+            public required string BaselinePath { get; set; }
 
             [Description("Path to Comparand Trace")]
             [CommandOption("-c|--comparand")]
-            public string ComparandPath { get; set; }
+            public required string ComparandPath { get; set; }
 
             [Description("Path to Output")]
             [CommandOption("-o|--output")]
-            public string OutputPath { get; set; }
+            public required string OutputPath { get; set; }
 
         }
 

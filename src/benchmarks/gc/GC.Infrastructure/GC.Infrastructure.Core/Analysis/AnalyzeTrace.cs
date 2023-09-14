@@ -9,9 +9,9 @@ namespace GC.Infrastructure.Core.Analysis
     {
         public static string GetExecutionDetailKeyForGCPerfSim (string runName, string corerunName) => $"{runName}.{corerunName}.0";
 
-        public static GCProcessData GetGCProcessDataForGCPerfSim(Analyzer analyzer)
+        public static GCProcessData? GetGCProcessDataForGCPerfSim(Analyzer analyzer)
         {
-            GCProcessData p = null;
+            GCProcessData? p = null;
 
             // The crank traces are targeted to the particular process.
             if (analyzer.TraceLogPath.EndsWith("nettrace"))
@@ -27,7 +27,7 @@ namespace GC.Infrastructure.Core.Analysis
                     p = analyzer.GetProcessGCData("GCPerfSim").FirstOrDefault();
                     if (p == null)
                     {
-                        throw new ArgumentException($"{nameof(Markdown)}: Process: GCPerfSim nor corerun found in trace: {analyzer.TraceLogPath}");
+                        return p;
                     }
                 }
             }
@@ -63,8 +63,19 @@ namespace GC.Infrastructure.Core.Analysis
 
                         if (!d.TryGetValue(corerunName, out var processData))
                         {
-                            var p = GetGCProcessDataForGCPerfSim(analyzer.Value);
-                            d[corerunName] = processData = new ResultItem(p, run.Key, Path.GetFileNameWithoutExtension(configuration.Output.Path));
+                            GCProcessData? p = GetGCProcessDataForGCPerfSim(analyzer.Value);
+                            string corerun = Path.GetFileNameWithoutExtension(configuration.Output.Path);
+
+                            // If the process isn't found in the trace, substitute a null ResultItem.
+                            if (p == null)
+                            {
+                                d[corerunName] = processData = ResultItem.GetNullItem(run.Key, corerun);
+                            }
+
+                            else
+                            {
+                                d[corerunName] = processData = new ResultItem(p, run.Key, corerun); 
+                            }
                         }
                     }
                 }
@@ -132,12 +143,16 @@ namespace GC.Infrastructure.Core.Analysis
         public static Dictionary<string, ComparisonResult> GetComparisons(string baselinePath, string runPath)
         {
             Analyzer baselineAnalyzer = AnalyzerManager.GetAnalyzer(baselinePath);
-            GCProcessData baselineProcessData =  GetGCProcessDataForGCPerfSim(baselineAnalyzer);
-            ResultItem baselineResultItem = new ResultItem(baselineProcessData, baselinePath, baselinePath);
+            GCProcessData? baselineProcessData =  GetGCProcessDataForGCPerfSim(baselineAnalyzer);
+            ResultItem baselineResultItem = (baselineProcessData != null)
+                                             ? new ResultItem(baselineProcessData, baselinePath, baselinePath)
+                                             : ResultItem.GetNullItem(baselinePath, baselinePath);
 
             Analyzer runAnalyzer         = AnalyzerManager.GetAnalyzer(runPath);
-            GCProcessData runProcessData =  GetGCProcessDataForGCPerfSim(runAnalyzer);
-            ResultItem runResultItem = new ResultItem(runProcessData, runPath, runPath);
+            GCProcessData? runProcessData =  GetGCProcessDataForGCPerfSim(runAnalyzer);
+            ResultItem runResultItem = (runProcessData != null) 
+                                       ? new ResultItem(runProcessData, runPath, runPath)
+                                       : ResultItem.GetNullItem(runPath, runPath);
 
             Dictionary<string, ComparisonResult> allComparisonResults = new();
             foreach (var property in typeof(ResultItem).GetProperties())

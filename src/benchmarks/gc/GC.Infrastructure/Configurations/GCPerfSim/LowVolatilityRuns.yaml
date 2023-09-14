@@ -1,31 +1,36 @@
 runs:
-  0gb:
+  normal:
     override_parameters:
-      tlgb: 0
-    environment_variables: 
-  2gb:
+      sohsi: 50 
+    environment_variables: {}
+
+  soh_pinning:
     override_parameters:
-      tlgb: 2
+      sohsi: 50 
+      sohpi: 100 
+    environment_variables: {}
+
+  poh:
+    override_parameters:
       sohsi: 50
-    environment_variables: 
-  2gb_pinning:
+      pohsi: 100
+      pohar: 100
+      rpohsi: 50
+    environment_variables: {}
+
+  loh:
     override_parameters:
-      tlgb: 2
       sohsi: 50
-      sohpi: 50
-    environment_variables: 
-  20gb:
-    override_parameters:
-      tagb: 300
-      tlgb: 20
-      sohsi: 50
-      allocType: simple
-    environment_variables: 
+      lohar: 100
+      rlohsi: 50
+      lohsi: 50
+    environment_variables: {}
+
 gcperfsim_configurations:
   parameters:
     tc: 36
     tagb: 540
-    tlgb: 0
+    tlgb: 2 
     lohar: 0
     pohar: 0
     sohsr: 100-4000
@@ -39,6 +44,8 @@ gcperfsim_configurations:
     sohfi: 0
     lohfi: 0
     pohfi: 0
+    ramb: 20 
+    rlmb: 2
     allocType: reference
     testKind: time
   gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
@@ -59,7 +66,7 @@ coreruns:
       COMPlus_GCName: clrgc.dll
 linux_coreruns: 
 output:
-  path: C:\InfraRuns\RunNew_All\GCPerfSim\Normal_Server_
+  path: C:\InfraRuns\GCPerfSim\
   columns:
   - Count
   - total allocated (mb)
