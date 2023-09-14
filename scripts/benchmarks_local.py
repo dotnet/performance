@@ -388,6 +388,8 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
     elif specific_run_type == RunType.WasmInterpreter:
         benchmark_ci_args += ['--wasm']
+        # Ensure there is a space at the beginning of `--wasmArgs` argument, so BDN
+        # can correctly read them as sub-arguments for `--wasmArgs`
         bdn_args_unescaped += [
             '--anyCategories', 'Libraries', 'Runtime',
             '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
@@ -400,6 +402,8 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
 
     elif specific_run_type == RunType.WasmAOT:
         benchmark_ci_args += ['--wasm']
+        # Ensure there is a space at the beginning of `--wasmArgs` argument, so BDN
+        # can correctly read them as sub-arguments for `--wasmArgs`
         bdn_args_unescaped += [
             '--anyCategories', 'Libraries', 'Runtime',
             '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
