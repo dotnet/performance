@@ -18,7 +18,9 @@
 # Prereqs:
 # Normal prereqs for building the target runtime: https://github.com/dotnet/runtime/blob/main/docs/workflow/README.md#Build_Requirements
 # Python 3
-# gitpython (pip install gitpython)
+# gitpython (pip install --global gitpython)
+# Ubuntu Version 22.04 if using Ubuntu
+# May need llvm+clang 16 for MonoAOTLLVM (https://apt.llvm.org/)
 # Wasm need jsvu installed and setup (No need to setup EMSDK, the tool does that automatically when building)
 
 
@@ -571,7 +573,7 @@ def add_arguments(parser):
     # Arguments specifically for dependency generation and BDN
     parser.add_argument('--bdn-arguments', type=str, default="", help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes')
     parser.add_argument('--architecture', choices=['x64', 'x86', 'arm64', 'arm'], default=get_machine_architecture(), help='Specifies the SDK processor architecture')
-    parser.add_argument('--os', choices=['windows', 'linux', 'osx'], default=get_default_os(), help='Specifies the operating system of the system')
+    parser.add_argument('--os', choices=['windows', 'linux', 'osx'], default=get_default_os(), help='Specifies the operating system of the system. Darwin is OSX.')
     parser.add_argument('--filter', type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
     parser.add_argument('-f', '--framework', choices=ChannelMap.get_supported_frameworks(), default='net8.0', help='The target framework used to build the microbenchmarks.') # Can and should this accept multiple frameworks?
     parser.add_argument('--csproj', type=str, default=os.path.join("..", "src", "benchmarks", "micro", "MicroBenchmarks.csproj"), help='The path to the csproj file to run benchmarks against.')   
@@ -582,7 +584,7 @@ def get_default_os():
     system = platform.system().lower()
     if system == 'darwin':
         return 'osx'
-    elif system in ['windows', 'linux']:
+    elif system in ['windows', 'linux', 'osx']:
         return system
     else:
         raise Exception("Unsupported operating system: {system}.")
