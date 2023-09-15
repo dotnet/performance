@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 {
@@ -64,7 +65,27 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
                 string[] line = lines[lineIdx].Split(',', StringSplitOptions.TrimEntries);
                 Debug.Assert(line.Length == 2);
-                benchmarkNameToCommand[line[0]] = line[1];
+
+                string benchmarkName     = line[0];
+                string benchmarkCommands = line[1];
+
+                // If the filters are empty. Include all.
+                if (configuration.benchmark_settings.benchmarkFilters == null || configuration.benchmark_settings.benchmarkFilters.Count == 0)
+                {
+                    benchmarkNameToCommand[benchmarkName] = benchmarkCommands; 
+                }
+
+                // Else, do a regex match on the filters.
+                else
+                {
+                    foreach (var filter in configuration.benchmark_settings.benchmarkFilters!)
+                    {
+                        if (Regex.IsMatch(benchmarkName, filter))
+                        {
+                            benchmarkNameToCommand[benchmarkName] = benchmarkCommands; 
+                        }
+                    }
+                }
             }
 
             // For each benchmark, iterate over all specified runs.

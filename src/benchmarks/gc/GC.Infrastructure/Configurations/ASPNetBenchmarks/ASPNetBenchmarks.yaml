@@ -17,6 +17,9 @@ benchmark_settings:
   # To take a dump: --application.options.dumpType full --application.options.dumpOutput <filename>
   # To fetch the build artifacts: --application.options.fetch true
   additional_arguments: --chart --chart-type hex 
+  # Can optionally filter for specific benchmarks with a list of regexes.
+  # benchmark_filters:
+  # - Platform*
 output:
   path: C:\InfraRuns\RunNew_All\ASPNetBenchmarks
   columns: 
