@@ -116,6 +116,14 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                         crankProcess.BeginErrorReadLine();
 
                         bool exited = crankProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+
+                        // If the process still hasn't exited, it has timed out from the crank side of things and we'll need to rerun this benchmark.
+                        if (!crankProcess.HasExited)
+                        {
+                            AnsiConsole.MarkupLine($"[red bold] ASP.NET Benchmark timed out for: {configuration.Name} {run.Key} {c.Key} [/]");
+                            continue;
+                        }
+
                         exitCode = crankProcess.ExitCode;
                     }
 
