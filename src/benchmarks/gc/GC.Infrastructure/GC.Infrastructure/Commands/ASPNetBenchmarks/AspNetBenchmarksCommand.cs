@@ -31,7 +31,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
         {
             [Description("Path to Configuration.")]
             [CommandOption("-c|--configuration")]
-            public string? ConfigurationPath { get; init; }
+            public required string ConfigurationPath { get; init; }
         }
 
         public override int Execute([NotNull] CommandContext context, [NotNull] AspNetBenchmarkSettings settings)
@@ -88,6 +88,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
                     // Launch new crank process.
                     int exitCode = -1;
+                    string logfileOutput = Path.Combine(outputPath, $"{GetKey(c.Key, run.Key)}.log");
                     StringBuilder output = new();
                     StringBuilder error = new();
 
@@ -104,23 +105,24 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
                         crankProcess.OutputDataReceived += (s, d) =>
                         {
-                            output.AppendLine(d.Data);
+                            output.AppendLine(d?.Data);
                         };
                         crankProcess.ErrorDataReceived += (s, d) =>
                         {
-                            error.Append(d.Data);
+                            error.AppendLine(d?.Data);
                         };
 
                         crankProcess.Start();
                         crankProcess.BeginOutputReadLine();
                         crankProcess.BeginErrorReadLine();
 
-                        bool exited = crankProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                        bool exited = crankProcess.WaitForExit((int)configuration.Environment!.default_max_seconds * 1000);
 
                         // If the process still hasn't exited, it has timed out from the crank side of things and we'll need to rerun this benchmark.
                         if (!crankProcess.HasExited)
                         {
-                            AnsiConsole.MarkupLine($"[red bold] ASP.NET Benchmark timed out for: {configuration.Name} {run.Key} {c.Key} [/]");
+                            AnsiConsole.MarkupLine($"[red bold] ASP.NET Benchmark timed out for: {configuration.Name} {run.Key} {c.Key} - skipping the results but writing stdout and stderror to {logfileOutput} [/]");
+                            File.WriteAllText(logfileOutput, "Output: \n" + output.ToString() + "\n Errors: \n" + error.ToString());
                             continue;
                         }
 
@@ -155,7 +157,6 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                         error.AppendLine(outputDetails);
                     }
 
-                    string logfileOutput = Path.Combine(outputPath, $"{GetKey(c.Key, run.Key)}.log");
                     if (exitCode != 0)
                     {
                         string[] outputLines = outputDetails.Split("\n");
