@@ -17,7 +17,7 @@ sealed class LTTngForwardingEventListener : EventListener
     {
         if (PerfLabValues.StartupEventName.Equals(eventData.EventName, StringComparison.Ordinal))
         {
-            if (!OperatingSystem.IsLinux())
+            if (!HasNative())
             {
                 return;
             }
@@ -25,11 +25,16 @@ sealed class LTTngForwardingEventListener : EventListener
         }
         else if (PerfLabValues.OnMainEventName.Equals(eventData.EventName, StringComparison.Ordinal))
         {
-            if (!OperatingSystem.IsLinux())
+            if (!HasNative())
             {
                 return;
             }
             Native.EmitOnMain();
         }
+    }
+
+    static bool HasNative()
+    {
+        return PerfLabValues.SharedHelpers.IsUbuntu22Queue();
     }
 }

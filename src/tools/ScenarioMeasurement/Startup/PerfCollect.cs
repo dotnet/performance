@@ -130,7 +130,7 @@ public class PerfCollect : IDisposable
 
         void InstallImpl()
         {
-            if (IsUbuntu22())
+            if (PerfLabValues.SharedHelpers.IsUbuntu22Queue())
             {
                 Console.WriteLine("Installing for Ubuntu 22.");
                 InstallUbuntu22Manual();
@@ -171,17 +171,6 @@ public class PerfCollect : IDisposable
             RootAccess = true,
         };
         p.Run();
-    }
-
-    private static bool IsUbuntu22()
-    {
-        var queue = Environment.GetEnvironmentVariable("PERFLAB_QUEUE");
-        if (string.IsNullOrWhiteSpace(queue))
-        {
-            return false;
-        }
-        return queue.Contains("ubuntu", StringComparison.OrdinalIgnoreCase)
-            && queue.Contains("22", StringComparison.Ordinal);
     }
 
     private static bool LttngInstalled()
