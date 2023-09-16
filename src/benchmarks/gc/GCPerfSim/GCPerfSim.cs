@@ -160,6 +160,8 @@ induces an exception at the end so you can do some post mortem debugging.
 
 -compute/-c: Do some extra computation between allocations, 1000 will reduce the allocation rate by a factor of 2-4
 
+-finishWithFullCollect: Do collections until all allocated finalizable objects have been finalized
+
 The default for these args are specified in "Default parameters".
 
 ---
@@ -1321,6 +1323,7 @@ class ArgsParser
         uint printEveryNthIter = 0;
         uint threadCount = 1;
         uint compute = 0;
+        bool finishWithFullCollect = false;
         text.SkipBlankLines();
         while (true)
         {
@@ -1343,7 +1346,7 @@ class ArgsParser
                         verifyLiveSize: verifyLiveSize,
                         printEveryNthIter: printEveryNthIter,
                         phases: phases),
-                    finishWithFullCollect: false,
+                    finishWithFullCollect: finishWithFullCollect,
                     endException: false);
             }
             CharSpan word = text.TakeWord();
@@ -1363,6 +1366,10 @@ class ArgsParser
             else if (word == "compute")
             {
                 compute = text.TakeUInt();
+            }
+            else if (word == "finishWithFullCollect")
+            {
+                finishWithFullCollect = true;
             }
             else
             {
@@ -2751,6 +2758,7 @@ class MemoryAlloc
     public static TestResult MainInner(Args args)
     {
         Console.WriteLine($"Running 64-bit? {Environment.Is64BitProcess}");
+        Console.WriteLine($"Running SVR GC? {System.Runtime.GCSettings.IsServerGC}");
 
         int currentPid = Process.GetCurrentProcess().Id;
         Console.WriteLine("PID: {0}", currentPid);
