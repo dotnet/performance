@@ -69,27 +69,46 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 string benchmarkName     = line[0];
                 string benchmarkCommands = line[1];
 
-                // If the filters are empty. Include all.
-                if (configuration.benchmark_settings.benchmarkFilters == null || configuration.benchmark_settings.benchmarkFilters.Count == 0)
-                {
-                    benchmarkNameToCommand[benchmarkName] = benchmarkCommands; 
-                }
+                benchmarkNameToCommand[benchmarkName] = benchmarkCommands; 
+            }
 
-                // Else, do a regex match on the filters.
-                else
+            List<KeyValuePair<string, string>> benchmarkToNameCommandAsKvpList = new();
+            bool noBenchmarkFilters =
+                (configuration.benchmark_settings.benchmarkFilters == null || configuration.benchmark_settings.benchmarkFilters.Count == 0);
+
+            // If the user has specified benchmark filters, retrieve them in that order.
+            if (!noBenchmarkFilters)
+            {
+                foreach (var filter in configuration.benchmark_settings.benchmarkFilters!)
                 {
-                    foreach (var filter in configuration.benchmark_settings.benchmarkFilters!)
+                    foreach (var kvp in benchmarkNameToCommand)
                     {
-                        if (Regex.IsMatch(benchmarkName, filter))
+                        // Check if we simply end with a "*", if so, match.
+                        if (filter.EndsWith("*") && kvp.Key.StartsWith(filter.Replace("*", "")))
                         {
-                            benchmarkNameToCommand[benchmarkName] = benchmarkCommands; 
+                            benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
+                        }
+
+                        // Regular Regex check.
+                        else if (Regex.IsMatch(kvp.Key, $"^{filter}$"))
+                        {
+                            benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
                         }
                     }
                 }
             }
 
+            // Else, add all the benchmarks.
+            else
+            {
+                foreach (var kvp in benchmarkNameToCommand)
+                {
+                    benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
+                }
+            }
+
             // For each benchmark, iterate over all specified runs.
-            foreach (var c in benchmarkNameToCommand)
+            foreach (var c in benchmarkToNameCommandAsKvpList)
             {
                 foreach (var run in configuration.Runs)
                 {
