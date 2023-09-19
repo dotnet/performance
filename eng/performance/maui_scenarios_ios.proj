@@ -77,7 +77,7 @@
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
     <!-- Tracking issue: https://github.com/dotnet/performance/issues/3148 -->
-    <XHarnessAppBundleToTest Condition="'$(RuntimeFlavor)' == 'mono'" Include="Device Startup - iOS Xamarin Default $(RunConfigsString)">
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Xamarin Default $(RunConfigsString)">
       <AppBundlePath>$(ScenariosDir)xamarinios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
@@ -106,7 +106,7 @@
         </CustomCommands>
     </XHarnessAppBundleToTest>
     <!-- Tracking issue: https://github.com/dotnet/performance/issues/3148 -->
-    <XHarnessAppBundleToTest Condition="'$(RuntimeFlavor)' == 'mono'" Include="Device Startup - iOS Maui Default $(RunConfigsString)">
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Default $(RunConfigsString)">
       <AppBundlePath>$(ScenariosDir)mauiios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
@@ -135,7 +135,7 @@
         </CustomCommands>
     </XHarnessAppBundleToTest>
     <!-- Tracking issue: https://github.com/dotnet/performance/issues/3148 -->
-    <XHarnessAppBundleToTest Condition="'$(RuntimeFlavor)' == 'mono'" Include="Device Startup - iOS Maui Blazor Default $(RunConfigsString)">
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Blazor Default $(RunConfigsString)">
       <AppBundlePath>$(ScenariosDir)mauiblazorios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
