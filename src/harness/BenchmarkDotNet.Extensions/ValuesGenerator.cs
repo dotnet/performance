@@ -162,6 +162,21 @@ namespace BenchmarkDotNet.Extensions
             return strings;
         }
 
+        public static string[] ArrayOfUniqueStrings(int count, int minLength, int maxLength)
+        {
+            string[] strings = new string[count];
+
+            HashSet<string> unique = new ();
+            Random random = new (Seed);
+            
+            while (unique.Count != count)
+            {
+                unique.Add(GenerateRandomString(random, minLength, maxLength));
+            }
+            unique.CopyTo(strings);
+            return strings;
+        }
+
         /// <summary>
         /// Returns a random of the type requested
         /// For strings, it will be a random assortment of the letters 'a'..'z', 'A'..'Z', or '0'..'9' that is 1 to 50 characters long

@@ -35,19 +35,19 @@
       <ScenarioDirectoryName>emptyvbconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
-    <UIScenario Include="WinForms Large" Condition="'$(TargetsWindows)' == 'true'">
+    <UIScenario Include="WinForms Large" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT'">
       <ScenarioDirectoryName>windowsformslarge</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </UIScenario>
-    <UIScenario Include="WPF Template" Condition="'$(TargetsWindows)' == 'true'">
+    <UIScenario Include="WPF Template" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT'">
       <ScenarioDirectoryName>wpf</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </UIScenario>
-    <UIScenario Include="WPF SFC" Condition="'$(TargetsWindows)' == 'true'">
+    <UIScenario Include="WPF SFC" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT'">
       <ScenarioDirectoryName>wpfsfc</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </UIScenario>
-    <UIScenario Include="PaintDotNet" Condition="'$(TargetsWindows)' == 'true' And $(BUILD_REPOSITORY_PROVIDER) == 'TfsGit'">
+    <UIScenario Include="PaintDotNet" Condition="'$(TargetsWindows)' == 'true' And $(BUILD_REPOSITORY_PROVIDER) == 'TfsGit' And '$(Architecture)' != 'x86'">
       <ScenarioDirectoryName>paintdotnet</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ExplicitPrepareCommand>$(Python) pre.py extract -p $(CorrelationPayloadDirectory)PDN\PDN.zip -o $(PreparePayloadWorkItemBaseDirectory)%(ScenarioDirectoryName)_fdd</ExplicitPrepareCommand>

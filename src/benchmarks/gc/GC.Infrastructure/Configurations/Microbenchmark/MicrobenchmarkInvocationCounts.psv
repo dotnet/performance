@@ -1,0 +1,22 @@
+Benchmark|InvocationCount
+System.Numerics.Tests.Perf_BigInteger.Add(arguments: 65536*|135392
+System.Tests.Perf_GC<Byte>.AllocateArray(length: 1000, *|4382544
+System.Tests.Perf_GC<Char>.AllocateArray(length: 1000, *|2700576
+System.Tests.Perf_GC<Byte>.AllocateArray(length: 10000, *|684624
+System.Tests.Perf_GC<Char>.AllocateArray(length: 10000, *|351776
+System.Tests.Perf_GC<Byte>.AllocateUninitializedArray(length: 1000, *|5893744
+System.Tests.Perf_GC<Char>.AllocateUninitializedArray(length: 1000, *|3048192
+System.Tests.Perf_GC<Byte>.AllocateUninitializedArray(length: 10000, *|1798928
+System.Tests.Perf_GC<Char>.AllocateUninitializedArray(length: 10000, *|1190720
+System.Tests.Perf_GC<Byte>.NewOperator_Array(length: 1000)|6059024
+System.Tests.Perf_GC<Byte>.NewOperator_Array(length: 10000)| 655952
+System.Tests.Perf_GC<Char>.NewOperator_Array(length: 1000)|3107216
+System.Tests.Perf_GC<Char>.NewOperator_Array(length: 10000)|354832
+System.IO.Tests.Perf_File.ReadAllBytesAsync(size: 104857600)|7
+System.Numerics.Tests.Perf_BigInteger.Subtract(arguments: 65536*| 139680
+System.Collections.CtorGivenSize<String>.Array(size: 512)|1498288
+ByteMark.BenchBitOps|1
+System.IO.Tests.Perf_File.ReadAllBytes(size: 104857600)|7
+System.IO.Tests.Perf_File.ReadAllBytesAsync(size: 104857600)|7
+System.Linq.Tests.Perf_Enumerable.ToArray*|7041296
+System.Collections.Tests.Perf_BitArray.BitArrayByteArrayCtor(size: 512)|2020160

@@ -10,7 +10,7 @@ from performance.common import RunCommand
 def _get_gcinfra_path() -> str:
     return os.path.join(get_repo_root_path(), "src", "benchmarks", "gc")
 
-def __main(args: list) -> int:
+def __main(args: list[str]) -> int:
     infra_base_path = _get_gcinfra_path()
     with push_dir(infra_base_path):
         gcperfsim_path = os.path.join(infra_base_path, "src", "exec", "GCPerfSim")

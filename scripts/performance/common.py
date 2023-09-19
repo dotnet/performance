@@ -18,6 +18,7 @@ from platform import machine
 import os
 import sys
 import time
+from typing import Callable, List, Optional, Tuple, Type, TypeVar
 
 
 def get_machine_architecture():
@@ -77,7 +78,7 @@ def remove_directory(path: str) -> None:
         raise TypeError('Invalid type.')
 
     if os.path.isdir(path):
-        def handle_rmtree_errors(func, path, excinfo):
+        def handle_rmtree_errors(func: Callable[[str], None], path: str, excinfo: Exception):
             """
             Helper function to handle long path errors on Windows.
             """
@@ -140,7 +141,7 @@ def get_packages_directory() -> str:
     return os.path.join(get_artifacts_directory(), 'packages')
 
 @contextmanager
-def push_dir(path: str = None) -> None:
+def push_dir(path: Optional[str] = None):
     '''
     Adds the specified location to the top of a location stack, then changes to
     the specified directory.
@@ -158,7 +159,14 @@ def push_dir(path: str = None) -> None:
     else:
         yield
 
-def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multiplier=1, retry_on_exception=Exception):
+TRet = TypeVar('TRet')
+def retry_on_exception(
+        function: Callable[[], TRet],
+        retry_count = 3,
+        retry_delay = 5,
+        retry_delay_multiplier = 1,
+        retry_exceptions: List[Type[Exception]]=[Exception], 
+        raise_exceptions: List[Type[Exception]]=[]) -> Optional[TRet]:
     '''
     Retries the specified function if it throws an exception.
 
@@ -166,7 +174,8 @@ def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multi
     :param retry_count: The number of times to retry the function.
     :param retry_delay: The delay between retries (seconds).
     :param retry_delay_multiplier: The multiplier to apply to the retry delay after failure.
-    :param retry_on_exception: The exception to retry on (Defaults to Exception).
+    :param retry_exceptions: The exception to retry on (Defaults to Exception). (Cannot be used with raise_exceptions)
+    :param raise_exceptions: The exceptions to ignore (Defaults to no exceptions ignored). (Cannot be used with retry_exceptions)
     '''
     if retry_count < 0:
         raise ValueError('retry_count must be >= 0')
@@ -174,17 +183,39 @@ def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multi
         raise ValueError('retry_delay must be >= 0')
     if retry_delay_multiplier < 1:
         raise ValueError('retry_delay_multiplier must be >= 1')
+    if len(raise_exceptions) > 0 and retry_exceptions != [Exception]:
+        raise ValueError('retry_exceptions and raise_exceptions are mutually exclusive')
 
     for i in range(retry_count):
         try:
             return function()
-        except retry_on_exception as e:
+        except Exception as e:
+            # If using the raise_exceptions list, raise those exceptions no matter what
+            if len(raise_exceptions) > 0 and type(e) in raise_exceptions:
+                raise
+            # If use retry_exceptions list, only retry on those exceptions (or all if Exception is in the list)
+            elif Exception not in retry_exceptions and type(e) not in retry_exceptions:
+                raise
             if i == retry_count - 1:
                 raise
-            getLogger().info('Exception caught: %s', e)
+            getLogger().info(f'Exception caught {type(e)}: {str(e)}')
             getLogger().info('Retrying in %d seconds...', retry_delay)
             time.sleep(retry_delay)
             retry_delay *= retry_delay_multiplier
+
+def __write_pipeline_variable(name: str, value: str):
+    # Create a variable in the build pipeline
+    getLogger().info("Writing pipeline variable %s with value %s" % (name, value))
+    print('##vso[task.setvariable variable=%s]%s' % (name, value))
+
+def set_environment_variable(name: str, value: str, save_to_pipeline: bool = True):
+    """
+    Sets an environment variable, both in the python process and to the CI pipeline.
+    Saving it to the CI pipeline can be disabled using the save_to_pipeline parameter.    
+    """
+    if save_to_pipeline:
+        __write_pipeline_variable(name, value)
+    os.environ[name] = value
 
 class RunCommand:
     '''
@@ -194,8 +225,8 @@ class RunCommand:
 
     def __init__(
             self,
-            cmdline: list,
-            success_exit_codes: list = None,
+            cmdline: List[str],
+            success_exit_codes: Optional[List[int]] = None,
             verbose: bool = False,
             retry: int = 0):
         if cmdline is None:
@@ -213,12 +244,12 @@ class RunCommand:
             self.__success_exit_codes = success_exit_codes
 
     @property
-    def cmdline(self) -> str:
+    def cmdline(self) -> List[str]:
         '''Command-line to use when starting the application.'''
         return self.__cmdline
 
     @property
-    def success_exit_codes(self) -> list:
+    def success_exit_codes(self) -> List[int]:
         '''
         The successful exit codes that the associated process specifies when it
         terminated.
@@ -234,7 +265,7 @@ class RunCommand:
     def stdout(self) -> str:
         return self.__stdout.getvalue()
 
-    def __runinternal(self, working_directory: str = None) -> tuple:
+    def __runinternal(self, working_directory: Optional[str] = None) -> Tuple[int, str]:
         should_pipe = self.verbose
         with push_dir(working_directory):
             quoted_cmdline = '$ '
@@ -265,12 +296,12 @@ class RunCommand:
                 return (proc.returncode, quoted_cmdline)
 
 
-    def run(self, working_directory: str = None) -> int:
+    def run(self, working_directory: Optional[str] = None) -> int:
         '''Executes specified shell command.'''
 
         retrycount = 0
         (returncode, quoted_cmdline) = self.__runinternal(working_directory)
-        while returncode not in self.success_exit_codes and self.__retry != 0 and retrycount <= self.__retry:
+        while returncode not in self.success_exit_codes and self.__retry != 0 and retrycount < self.__retry:
             (returncode, _) = self.__runinternal(working_directory)
             retrycount += 1
 

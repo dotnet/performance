@@ -33,6 +33,12 @@
       <ApkName>com.companyname.mauiandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.mauiandroiddefault</PackageName>
     </MAUIAndroidScenario>
+    <MAUIAndroidScenario Include=".NET Android Default">
+      <ScenarioDirectoryName>netandroid</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <ApkName>com.companyname.netandroiddefault-Signed</ApkName>
+      <PackageName>com.companyname.NetAndroidDefault</PackageName>
+    </MAUIAndroidScenario>
     <!-- MessagingCenter was removed: https://github.com/dotnet/maui/pull/12582, needs to be replaced likely with something like: https://github.com/dotnet/maui/commit/762e07e04d1fdf8fca3edd948bab294c8762cd2c -->
     <!-- <MAUIAndroidScenario Include="Maui Android Podcast">
       <ScenarioDirectoryName>mauiandroidpodcast</ScenarioDirectoryName>
@@ -51,7 +57,7 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIAndroidScenario)">
-      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-android --no-self-contained -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-android -r android-arm64 --self-contained -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>

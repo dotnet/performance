@@ -45,6 +45,7 @@ namespace System.Collections
         private ImmutableSortedDictionary<T, T> _immutablesorteddictionary;
         private ImmutableSortedSet<T> _immutablesortedset;
         private FrozenDictionary<T, T> _frozenDictionary;
+        private FrozenSet<T> _frozenset;
 
         [GlobalSetup(Targets = new [] { nameof(Array), nameof(Span), nameof(ReadOnlySpan)})]
         public void SetupArray() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
@@ -380,6 +381,19 @@ namespace System.Collections
             var collection = _frozenDictionary;
             foreach (var item in collection)
                 result = item.Value;
+            return result;
+        }
+
+        [GlobalSetup(Target = nameof(FrozenSet))]
+        public void SetupFrozenSet() => _frozenset = ValuesGenerator.ArrayOfUniqueValues<T>(Size).ToFrozenSet();
+
+        [Benchmark]
+        public T FrozenSet()
+        {
+            T result = default;
+            var collection = _frozenset;
+            foreach (var item in collection)
+                result = item;
             return result;
         }
     }

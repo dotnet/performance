@@ -1,0 +1,18 @@
+runs:
+
+environment:
+  default_max_seconds: 300
+  
+benchmark_settings:
+
+# Configurations that involve capturing a trace.
+trace_configurations:
+  type: gc # Choices: gc, verbose, cpu, threadtime, none
+
+output:
+  path: 
+  percentage_disk_remaining_to_stop_per_run: 0
+  formats:
+    - markdown
+  columns:
+  all_columns:

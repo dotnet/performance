@@ -10,14 +10,14 @@ def remove_aab_files(output_dir="."):
         if file.endswith(".aab"):
             os.remove(os.path.join(output_dir, file))
 
-def install_versioned_maui(precommands):
+def install_versioned_maui(precommands: PreCommands):
     target_framework_wo_platform = precommands.framework.split('-')[0]
 
     # Download what we need
     with open ("MauiNuGet.config", "wb") as f:
         f.write(requests.get(f'https://raw.githubusercontent.com/dotnet/maui/{target_framework_wo_platform}/NuGet.config', allow_redirects=True).content)
 
-    workload_install_args = ['--configfile', 'MauiNuGet.config']
+    workload_install_args = ['--configfile', 'MauiNuGet.config', '--skip-sign-check']
     if int(target_framework_wo_platform.split('.')[0][3:]) > 7: # Use the rollback file for versions greater than 7
         workload_install_args += ['--from-rollback-file', f'https://aka.ms/dotnet/maui/{target_framework_wo_platform}.json']
 

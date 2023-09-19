@@ -1,0 +1,23 @@
+output_path: C:\InfraRuns\RunNew
+gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
+microbenchmark_path: C:\performance\src\benchmarks\micro
+
+coreruns:
+    baseline: 
+      path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
+      environment_variables:
+          COMPlus_GCName: clrgc.dll
+    run:
+      path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
+      environment_variables:
+          COMPlus_GCName: clrgc.dll
+
+trace_configuration_type: gc # Choose between: none, gc, verbose, cpu, cpu_managed, threadtime, join.
+
+# Optional fields: the contents of both the symbol_path and the source_path will be copied over to the output path.
+symbol_path:
+  baseline: C:\CoreRuns\EmitEvent_Core_Root\PDB
+  run: C:\CoreRuns\EmitEvent_Core_Root\PDB
+source_path:
+  baseline: C:\runtime\src\coreclr\gc
+  run: C:\runtime-2\src\coreclr\gc

@@ -1,0 +1,136 @@
+runs:
+
+  server:
+    override_parameters:
+      tc: 16
+      tagb: 350
+      tlgb: 0.45
+
+  workstation:
+    override_parameters:
+      tc: 2 
+      tlgb: 0.5
+    environment_variables:
+      COMPlus_GCServer: 0
+      COMPlus_GCHeapCount: 1 
+      
+# Top level microbenchmark configuration.
+gcperfsim_configurations:
+  parameters:
+    tc: 16
+    tagb: 100
+    tlgb: 0.1
+    lohar: 0
+    pohar: 0
+    sohsr: 100-4000
+    lohsr: 102400-204800
+    pohsr: 100-204800
+    sohsi: 50 
+    lohsi: 0
+    pohsi: 0
+    sohpi: 0
+    lohpi: 0
+    sohfi: 0
+    lohfi: 0
+    pohfi: 0
+    allocType: reference
+    testKind: time
+  gcperfsim_path: "C:\\performance\\artifacts\\bin\\GCPerfSim\\release\\net7.0\\GCPerfSim.dll"
+
+coreruns:
+  baseline:
+    path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
+    environment_variables:
+      COMPlus_GCName: clrgc.dll
+  run:
+    path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
+    environment_variables:
+      COMPlus_GCName: clrgc.dll
+
+environment:
+  environment_variables:
+    COMPlus_GCServer: 1
+    COMPlus_GCHeapCount: 4 
+    COMPlus_GCHeapHardLimit: "0x23C34600"
+    COMPlus_GCTotalPhysicalMemory: "0x23C34600"
+  default_max_seconds: 300 
+  iterations: 1 
+
+# Configurations that involve capturing a trace.
+trace_configurations:
+  type: gc # Choices: gc, verbose, cpu, threadtime, none
+
+output:
+  path: C:\InfraRuns\RunNew_All\GCPerfSim\LowMemoryContainer
+  columns:
+  - Count
+  - total allocated (mb)
+  - total pause time (msec)
+  - PctTimePausedInGC
+  - FirstToLastGCSeconds
+  - HeapSizeAfter_Mean
+  - HeapSizeBeforeMB_Mean
+  - PauseDurationMSec_95PWhereIsGen0
+  - PauseDurationMSec_95PWhereIsGen1
+  - PauseDurationMSec_95PWhereIsBackground
+  - PauseDurationMSec_95PWhereIsBlockingGen2
+  - CountIsBlockingGen2
+  - HeapCount
+  - TotalNumberGCs
+  - TotalAllocatedMB
+  - Speed
+  - PauseDurationMSec_MeanWhereIsEphemeral
+  - PauseDurationMSec_MeanWhereIsBackground
+  - PauseDurationMSec_MeanWhereIsBlockingGen2
+  - PauseDurationSeconds_SumWhereIsGen1
+  - PauseDurationSeconds_Sum
+  - CountIsGen1
+  - ExecutionTimeMSec
+  percentage_disk_remaining_to_stop_per_run: 0
+  all_columns:
+  - Count
+  - total allocated (mb)
+  - total pause time (msec)
+  - PctTimePausedInGC
+  - FirstToLastGCSeconds
+  - HeapSizeAfter_Mean
+  - HeapSizeBeforeMB_Mean
+  - PauseDurationMSec_95PWhereIsGen0
+  - PauseDurationMSec_95PWhereIsGen1
+  - PauseDurationMSec_95PWhereIsBackground
+  - PauseDurationMSec_95PWhereIsBlockingGen2
+  - CountIsBlockingGen2
+  - HeapCount
+  - TotalNumberGCs
+  - TotalAllocatedMB
+  - Speed
+  - PauseDurationMSec_MeanWhereIsEphemeral
+  - PauseDurationMSec_MeanWhereIsBackground
+  - PauseDurationMSec_MeanWhereIsBlockingGen2
+  - PauseDurationSeconds_SumWhereIsGen1
+  - PauseDurationSeconds_Sum
+  - CountIsGen1
+  - ExecutionTimeMSec
+  - Count
+  - PctTimePausedInGC
+  - FirstToLastGCSeconds
+  - HeapSizeAfter_Mean
+  - HeapSizeBeforeMB_Mean
+  - PauseDurationMSec_95PWhereIsGen0
+  - PauseDurationMSec_95PWhereIsGen1
+  - PauseDurationMSec_95PWhereIsBackground
+  - PauseDurationMSec_95PWhereIsBlockingGen2
+  - CountIsBlockingGen2
+  - HeapCount
+  - TotalNumberGCs
+  - TotalAllocatedMB
+  - Speed
+  - PauseDurationMSec_MeanWhereIsEphemeral
+  - PauseDurationSeconds_SumWhereIsGen1
+  - PauseDurationSeconds_Sum
+  - CountIsGen1
+  - ExecutionTimeMSec
+  formats:
+  - markdown
+  - json
+name: LowMemoryContainer 
