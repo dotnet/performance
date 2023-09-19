@@ -216,7 +216,10 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         if force_regenerate or not os.path.exists(artifact_mono_aot_llvm):
             build_args = ['/p:BuildMonoAOTCrossCompiler=true', f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}']
             if parsed_args.mono_libclang_path:
-                build_args.append(f'/p:MonoLibClang={parsed_args.mono_libclang_path}') 
+                build_args.append(f'/p:MonoLibClang={parsed_args.mono_libclang_path}')
+            if parsed_args.architecture == "arm64":
+                build_args.append('/p:MonoAOTEnableLLVM=true')
+                build_args.append('/p:MonoBundleLLVMOptimizer=true')
             build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=build_args)
             
             # Move to the bin/aot location
