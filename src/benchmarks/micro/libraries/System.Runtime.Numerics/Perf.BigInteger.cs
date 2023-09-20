@@ -26,12 +26,12 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(NumberStrings))]
-        public byte[] ToByteArray(BigIntegerData numberString) 
+        public byte[] ToByteArray(BigIntegerData numberString)
             => numberString.Value.ToByteArray();
 
         [Benchmark]
         [ArgumentsSource(nameof(NumberStrings))]
-        public BigInteger Parse(BigIntegerData numberString) 
+        public BigInteger Parse(BigIntegerData numberString)
             => BigInteger.Parse(numberString.Text);
 
         [Benchmark]
@@ -63,11 +63,6 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ValuesSameSize))]
-        public BigInteger Multiply(BigIntegers arguments)
-            => BigInteger.Multiply(arguments.Left, arguments.Right);
-
-        [Benchmark]
-        [ArgumentsSource(nameof(ValuesSameSize))]
         public BigInteger GreatestCommonDivisor(BigIntegers arguments)
             => BigInteger.GreatestCommonDivisor(arguments.Left, arguments.Right);
 
@@ -77,6 +72,17 @@ namespace System.Numerics.Tests
             yield return new BigIntegers(new[] { 1024, 1024 / 2 });
             yield return new BigIntegers(new[] { 65536, 65536 / 2 });
         }
+
+        public IEnumerable<object> ValuesSameOrHalfSize()
+        {
+            foreach (var item in ValuesSameSize()) yield return item;
+            foreach (var item in ValuesHalfSize()) yield return item;
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(ValuesSameOrHalfSize))]
+        public BigInteger Multiply(BigIntegers arguments)
+            => BigInteger.Multiply(arguments.Left, arguments.Right);
 
         [Benchmark]
         [ArgumentsSource(nameof(ValuesHalfSize))]
@@ -115,11 +121,11 @@ namespace System.Numerics.Tests
 
             public override string ToString() => Text;
         }
-        
+
         public class BigIntegers
         {
             private readonly int[] _bitCounts;
-            
+
             public BigInteger Left { get; }
             public BigInteger Right { get; }
             public BigInteger Other { get; }
@@ -159,7 +165,7 @@ namespace System.Numerics.Tests
 
                     // ensure actual bit count (remaining bits not set)
                     // ensure positive value (highest-order bit not set)
-                    value[value.Length - 1] &= (byte) (0xFF >> 8 - bits % 8);
+                    value[value.Length - 1] &= (byte)(0xFF >> 8 - bits % 8);
 
                     result = new BigInteger(value);
                 }
