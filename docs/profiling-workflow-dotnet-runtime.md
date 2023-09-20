@@ -1,8 +1,8 @@
-# Profiling workflow for [dotnet/runtime](https://github.com/dotnet/runtime) repository
+# Profiling workflow for [dotnet/runtime](https://github.com/dotnet/runtime) repository {#top}
 
 ## Table of Contents
 
-- [Profiling workflow for dotnet/runtime repository](#profiling-workflow-for-dotnetruntime-repository)
+- [Profiling workflow for dotnet/runtime repository](#top)
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
   - [Prerequisites](#prerequisites)
