@@ -24,7 +24,7 @@ Once you have the baseline set you can close the fly-out by clicking on the red 
 
 ![image](https://github.com/dotnet/runtime/assets/9439069/be7b5d01-a1ac-4caf-94e3-ad0542e4f74f)
 
-Now, click the compare point, in this case you want to click the point that is closest to the baseline point that shows the regression. 
+Now, click the compare point, in this case you want to click the point that is closest to the baseline point that shows the regression.
 
 ![image](https://github.com/dotnet/runtime/assets/9439069/dd86cd1a-6079-4022-af04-1f46df3c595f)
 
