@@ -7,11 +7,11 @@
   </PropertyGroup>
   <!--Package versions-->
   <PropertyGroup>
-    <MicrosoftNETILLinkTasksVersion>8.0.0-rc.2.23466.4</MicrosoftNETILLinkTasksVersion>
-    <MicrosoftNETILLinkPackageVersion>8.0.0-rc.2.23466.4</MicrosoftNETILLinkPackageVersion>
+    <MicrosoftNETILLinkTasksVersion>8.0.0-rc.2.23469.9</MicrosoftNETILLinkTasksVersion>
+    <MicrosoftNETILLinkPackageVersion>8.0.0-rc.2.23469.9</MicrosoftNETILLinkPackageVersion>
     <BenchmarkDotNetVersion>0.13.9-nightly.20230908.70</BenchmarkDotNetVersion>
-    <SystemThreadingChannelsPackageVersion>8.0.0-rc.2.23466.4</SystemThreadingChannelsPackageVersion>
-    <MicrosoftExtensionsLoggingPackageVersion>8.0.0-rc.2.23466.4</MicrosoftExtensionsLoggingPackageVersion>
+    <SystemThreadingChannelsPackageVersion>8.0.0-rc.2.23469.9</SystemThreadingChannelsPackageVersion>
+    <MicrosoftExtensionsLoggingPackageVersion>8.0.0-rc.2.23469.9</MicrosoftExtensionsLoggingPackageVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
