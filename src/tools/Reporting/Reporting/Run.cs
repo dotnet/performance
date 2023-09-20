@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Reporting;
 
@@ -21,5 +20,6 @@ public class Run
     public string Queue { get; set; }
 
     public string WorkItemName { get; set; }
-    public IDictionary<string, string> Configurations { get; set; } = new Dictionary<string, string>();
+
+    public IDictionary<string, string> Configurations { get; set; } = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 }

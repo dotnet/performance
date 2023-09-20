@@ -67,7 +67,7 @@ public class Reporter
             foreach (var kvp in configs.Split(';'))
             {
                 var split = kvp.Split('=');
-                run.Configurations.Add(split[0], split[1]);
+                run.Configurations.Add(split[0], split[1].ToLower());
             } 
         }
 
