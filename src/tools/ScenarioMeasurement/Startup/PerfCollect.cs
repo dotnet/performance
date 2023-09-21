@@ -56,7 +56,7 @@ public class PerfCollect : IDisposable
 
         if (Install() != Result.Success)
         {
-            throw new Exception("Lttng installation failed. Please try manual install.");
+            throw new Exception("PerfCollect installation failed. Please try manual install.");
         }
     }
 
@@ -105,38 +105,32 @@ public class PerfCollect : IDisposable
 
     public Result Install()
     {
-        if (LttngInstalled())
+        if (InstallImpl())
         {
-            Console.WriteLine("Lttng is already installed.");
             return Result.Success;
         }
-        InstallImpl();
 
         var retry = 10;
         for (var i = 0; i < retry; i++)
         {
-            if (!LttngInstalled())
-            {
-                Console.WriteLine($"Lttng not installed. Retry {i}...");
-                InstallImpl();
-            }
-            else
+            Console.WriteLine($"PerfCollect install retry {i}...");
+            if (InstallImpl())
             {
                 return Result.Success;
             }
         }
-        return Result.CloseFailed;
 
+        return Result.ExitedWithError;
 
-        void InstallImpl()
+        bool InstallImpl()
         {
-            if (IsUbuntu22())
+            if (PerfLabValues.SharedHelpers.IsUbuntu22Queue())
             {
                 Console.WriteLine("Installing for Ubuntu 22.");
                 InstallUbuntu22Manual();
             }
             perfCollectProcess.Arguments = "install -force";
-            perfCollectProcess.Run();
+            return perfCollectProcess.Run().Result == Result.Success;
         }
     }
 
@@ -171,29 +165,6 @@ public class PerfCollect : IDisposable
             RootAccess = true,
         };
         p.Run();
-    }
-
-    private static bool IsUbuntu22()
-    {
-        var queue = Environment.GetEnvironmentVariable("PERFLAB_QUEUE");
-        if (string.IsNullOrWhiteSpace(queue))
-        {
-            return false;
-        }
-        return queue.Contains("ubuntu", StringComparison.OrdinalIgnoreCase)
-            && queue.Contains("22", StringComparison.Ordinal);
-    }
-
-    private static bool LttngInstalled()
-    {
-        var procStartInfo = new ProcessStartInfo("modinfo", "lttng_probe_writeback");
-        var proc = new Process() { StartInfo = procStartInfo, };
-        proc.StartInfo.RedirectStandardOutput = true;
-        proc.Start();
-        var result = proc.StandardOutput.ReadToEnd();
-        proc.WaitForExit();
-        // If the lttng_probe_writeback module is installed, the modinfo output will include the filename field
-        return result.Contains("filename:");
     }
 
     public enum KernelKeyword

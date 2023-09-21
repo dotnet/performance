@@ -73,11 +73,7 @@ public class TimeToMain2Parser : IParser
                 {
                     if (pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                     {
-                        results.Add(evt.TimeStampRelativeMSec - start);
-                        threadTimes.Add(threadTime);
-                        pid = null;
-                        threadTime = 0;
-                        start = 0;
+                        ProcessOnMainEvent(evt, results, threadTimes, ref pid, ref threadTime, ref start);
                     }
                 });
             }
@@ -88,11 +84,14 @@ public class TimeToMain2Parser : IParser
                 {
                     if (pid.HasValue && evt.ProcessID == pid)
                     {
-                        results.Add(evt.TimeStampRelativeMSec - start);
-                        threadTimes.Add(threadTime);
-                        pid = null;
-                        threadTime = 0;
-                        start = 0;
+                        ProcessOnMainEvent(evt, results, threadTimes, ref pid, ref threadTime, ref start);
+                    }
+                };
+                source.Source.Clr.EventSourceEvent += evt =>
+                {
+                    if (pid.HasValue && evt.ProcessID == pid && evt.EventID == PerfLabValues.OnMainEventId)
+                    {
+                        ProcessOnMainEvent(evt, results, threadTimes, ref pid, ref threadTime, ref start);
                     }
                 };
             }
@@ -108,5 +107,15 @@ public class TimeToMain2Parser : IParser
             result.Add(new Counter() { Name = "Time on Thread", MetricName = "ms", TopCounter = true, Results = threadTimes.ToArray() });
         };
         return result;
+    }
+
+    private static void ProcessOnMainEvent(TraceEvent evt, List<double> results, List<double> threadTimes,
+        ref int? pid, ref double threadTime, ref double start)
+    {
+        results.Add(evt.TimeStampRelativeMSec - start);
+        threadTimes.Add(threadTime);
+        pid = null;
+        threadTime = 0;
+        start = 0;
     }
 }

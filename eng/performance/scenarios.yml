@@ -257,6 +257,7 @@ jobs:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
           - script: $(Build.SourcesDirectory)/src/tools/PerfLabGenericEventSourceLTTngProvider/build.sh -o $(CorrelationStaging)PerfLabGenericEventSourceForwarder
             displayName: Build PerfLabGenericEventSourceLTTngProvider tool
+            condition: and(succeeded(), contains(variables['System.JobDisplayName'], '2204'))
           - script: |
               $(Python) -m pip install --user --upgrade pip
               $(Python) -m pip install --user urllib3==1.26.15
