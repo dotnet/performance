@@ -161,7 +161,7 @@
       </CustomCommands>
     </XHarnessAppBundleToTest>
     <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Podcast $(RunConfigsString)">
-      <AppBundlePath>$(WorkItemDirectory).zip</AppBundlePath>
+      <AppBundlePath>$(ScenariosDir)mauiiospodcast.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
       <CustomCommands>
