@@ -51,13 +51,12 @@
       <IPAName>MauiBlazoriOSDefault</IPAName>
       <PackageName>net.dot.mauiblazortesting</PackageName>
     </MAUIiOSScenario>
-    <!-- MessagingCenter was removed: https://github.com/dotnet/maui/pull/12582, needs to be replaced likely with something like: https://github.com/dotnet/maui/commit/762e07e04d1fdf8fca3edd948bab294c8762cd2c -->
-    <!-- <MAUIiOSScenario Include="Maui iOS Podcast">
+    <MAUIiOSScenario Include="Maui iOS Podcast">
       <ScenarioDirectoryName>mauiiospodcast</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiiOSPodcast</IPAName>
       <PackageName>net.dot.net.dot.netconf2021.maui</PackageName>
-    </MAUIiOSScenario> -->
+    </MAUIiOSScenario>
   </ItemGroup>
 
   <ItemGroup>
@@ -161,7 +160,7 @@
         ]]>
       </CustomCommands>
     </XHarnessAppBundleToTest>
-    <!-- <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Podcast" Condition="'$(iOSLlvmBuild)' == 'False'">
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Podcast $(RunConfigsString)">
       <AppBundlePath>$(WorkItemDirectory).zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
@@ -186,7 +185,7 @@
           exit $result
         ]]>
       </CustomCommands>
-    </XHarnessAppBundleToTest> -->
+    </XHarnessAppBundleToTest>
   </ItemGroup>
 
 
