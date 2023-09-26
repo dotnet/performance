@@ -15,6 +15,7 @@ namespace System.Net.Sockets.Tests
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class SocketSendReceivePerfTest
     {
+        const int MaximumWait = 1000;
         private const int InnerIterationCount = 10_000;
 
         private Socket _listener, _client, _server;
@@ -125,13 +126,37 @@ namespace System.Net.Sockets.Tests
 
             EndPoint ep = new IPEndPoint(IPAddress.None, 0);
 
+            var ct = new CancellationTokenSource(MaximumWait * InnerIterationCount);
+
             for (int i = 0; i < InnerIterationCount; i++)
             {
-                ValueTask<SocketReceiveFromResult> r = _udpServer.ReceiveFromAsync(serverBuffer, SocketFlags.None, ep);
+                ValueTask<SocketReceiveFromResult> r = _udpServer.ReceiveFromAsync(serverBuffer, SocketFlags.None, ep, ct.Token);
                 await _udpClient1.SendToAsync(clientBuffer, SocketFlags.None, _udpServer.LocalEndPoint);
                 await r;
-                r = _udpServer.ReceiveFromAsync(serverBuffer, SocketFlags.None, ep);
+                r = _udpServer.ReceiveFromAsync(serverBuffer, SocketFlags.None, ep, ct.Token);
                 await _udpClient2.SendToAsync(clientBuffer, SocketFlags.None, _udpServer.LocalEndPoint);
+                await r;
+            }
+        }
+
+        [Benchmark]
+        public async Task ReceiveFromAsyncThenSendToAsync_SocketAddress()
+        {
+            ReadOnlyMemory<byte> clientBuffer = new byte[1];
+            Memory<byte> serverBuffer = new byte[1];
+
+            SocketAddress serverSa = _udpServer.LocalEndPoint.Serialize();
+            SocketAddress receivedSa = new SocketAddress(_udpServer.AddressFamily);
+
+            var ct = new CancellationTokenSource(MaximumWait * InnerIterationCount);
+
+            for (int i = 0; i < InnerIterationCount; i++)
+            {
+                ValueTask<int> r = _udpServer.ReceiveFromAsync(serverBuffer, SocketFlags.None, receivedSa, ct.Token);
+                await _udpClient1.SendToAsync(clientBuffer, SocketFlags.None, serverSa);
+                await r;
+                r = _udpServer.ReceiveFromAsync(serverBuffer, SocketFlags.None, receivedSa, ct.Token);
+                await _udpClient2.SendToAsync(clientBuffer, SocketFlags.None, serverSa);
                 await r;
             }
         }
@@ -177,6 +202,7 @@ namespace System.Net.Sockets.Tests
             _udpClient2.Bind(new IPEndPoint(IPAddress.Loopback, 0));
             _udpServer = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             _udpServer.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+            _udpServer.ReceiveTimeout = MaximumWait;
         }
 
         [GlobalCleanup]
