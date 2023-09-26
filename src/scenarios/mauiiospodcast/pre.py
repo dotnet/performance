@@ -13,8 +13,7 @@ setup_loggers(True)
 precommands = PreCommands()
 install_versioned_maui(precommands)
 
-branch = f'{precommands.framework[:6]}'
-subprocess.run(['git', 'clone', 'https://github.com/microsoft/dotnet-podcasts.git', '-b', branch, '--single-branch', '--depth', '1'])
+subprocess.run(['git', 'clone', 'https://github.com/microsoft/dotnet-podcasts.git', '-b', precommands.framework, '--single-branch', '--depth', '1'])
 subprocess.run(['powershell', '-Command', r'Remove-Item -Path .\\dotnet-podcasts\\.git -Recurse -Force']) # Git files have permission issues, do their deletion separately
 
 precommands.existing(projectdir='./dotnet-podcasts', projectfile='./src/Mobile/Microsoft.NetConf2021.Maui.csproj')
