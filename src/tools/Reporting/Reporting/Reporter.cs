@@ -124,28 +124,28 @@ public class Reporter
 
         (string installerHash, string sdkVersion) GetDotNetVersionInfo(string dotnetRoot)
         {
-            if (Path.Combine(dotnetRoot, "sdk") is not string sdkRootPath || !Directory.Exists(sdkRootPath))
-                return (null, null);
-
-            try
+            if (Path.Combine(dotnetRoot, "sdk") is string sdkRootPath && Directory.Exists(sdkRootPath))
             {
-                string versionFile = Directory
-                                        .EnumerateFiles(sdkRootPath, ".version", SearchOption.AllDirectories)
-                                        .FirstOrDefault();
-                if (versionFile is not null && File.Exists(versionFile))
+                try
                 {
-                    string[] lines = File.ReadAllLines(versionFile);
-                    string installerHash = lines.Length > 0 ? lines[0] : null;
-                    string sdkVersion = lines.Length > 1 ? lines[1] : null;
+                    string versionFile = Directory
+                                            .EnumerateFiles(sdkRootPath, ".version", SearchOption.AllDirectories)
+                                            .FirstOrDefault();
+                    if (versionFile is not null)
+                    {
+                        string[] lines = File.ReadAllLines(versionFile);
+                        string installerHash = lines.Length > 0 ? lines[0] : null;
+                        string sdkVersion = lines.Length > 1 ? lines[1] : null;
 
-                    return (installerHash, sdkVersion);
+                        return (installerHash, sdkVersion);
+                    }
+                    else
+                    {
+                        Console.WriteLine ($"Failed to find .version file in {sdkRootPath} - {versionFile}");
+                    }
+                } catch (Exception ex) {
+                    Console.WriteLine($"Failed to extract dotnet versions from {sdkRootPath}: {ex.Message}");
                 }
-                else
-                {
-                    Console.WriteLine ($"Failed to find .version file in {sdkRootPath} - {versionFile}");
-                }
-            } catch (Exception ex) {
-                Console.WriteLine($"Failed to extract dotnet versions from {sdkRootPath}: {ex.Message}");
             }
 
             return (null, null);
