@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -107,11 +108,48 @@ public class Reporter
                     build.AdditionalData[entry.Key.ToString()] = entry.Value.ToString();
                 }
             }
+            else if(entry.Key.ToString().Equals("DOTNET_ROOT", StringComparison.InvariantCultureIgnoreCase))
+            {
+                (string installerHash, string sdkVersion) = GetDotNetVersionInfo(entry.Value.ToString());
+                if (installerHash is not null)
+                    build.AdditionalData["installerHash"] = installerHash;
+                if (sdkVersion is not null)
+                    build.AdditionalData["sdkVersion"] = sdkVersion;
+            }
             else if(entry.Key.ToString().StartsWith("PERFLAB_DATA_", true, CultureInfo.InvariantCulture))
             {
                 build.AdditionalData[entry.Key.ToString().Substring("PERFLAB_DATA_".Length)] = entry.Value.ToString();
             }
-        }            
+        }
+
+        (string installerHash, string sdkVersion) GetDotNetVersionInfo(string dotnetRoot)
+        {
+            if (Path.Combine(dotnetRoot, "sdk") is not string sdkRootPath || !Directory.Exists(sdkRootPath))
+                return (null, null);
+
+            try
+            {
+                string versionFile = Directory
+                                        .EnumerateFiles(sdkRootPath, ".version", SearchOption.AllDirectories)
+                                        .FirstOrDefault();
+                if (versionFile is not null && File.Exists(versionFile))
+                {
+                    string[] lines = File.ReadAllLines(versionFile);
+                    string installerHash = lines.Length > 0 ? lines[0] : null;
+                    string sdkVersion = lines.Length > 1 ? lines[1] : null;
+
+                    return (installerHash, sdkVersion);
+                }
+                else
+                {
+                    Console.WriteLine ($"Failed to find .version file in {sdkRootPath} - {versionFile}");
+                }
+            } catch (Exception ex) {
+                Console.WriteLine($"Failed to extract dotnet versions from {sdkRootPath}: {ex.Message}");
+            }
+
+            return (null, null);
+        }
     }
     public string GetJson()
     {
