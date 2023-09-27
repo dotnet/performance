@@ -46,7 +46,7 @@ public class Reporter
         {
             ret.Init();
         }
-                    
+
         return ret;
     }
 
@@ -69,7 +69,7 @@ public class Reporter
             {
                 var split = kvp.Split('=');
                 run.Configurations.Add(split[0], split[1]);
-            } 
+            }
         }
 
         os = new Os()
@@ -93,7 +93,7 @@ public class Reporter
 
         foreach (DictionaryEntry entry in environment.GetEnvironmentVariables())
         {
-            if (entry.Key.ToString().Equals("PERFLAB_TARGET_FRAMEWORKS", StringComparison.InvariantCultureIgnoreCase)) 
+            if (entry.Key.ToString().Equals("PERFLAB_TARGET_FRAMEWORKS", StringComparison.InvariantCultureIgnoreCase))
             {
                 build.AdditionalData["targetFrameworks"] = entry.Value.ToString();
             }
@@ -104,7 +104,7 @@ public class Reporter
                     build.AdditionalData["productVersion"] = entry.Value.ToString();
                 } else if(entry.Key.ToString().Equals("MAUI_VERSION", StringComparison.InvariantCultureIgnoreCase)){
                     build.AdditionalData["mauiVersion"] = entry.Value.ToString();
-                } else { 
+                } else {
                     build.AdditionalData[entry.Key.ToString()] = entry.Value.ToString();
                 }
             }
@@ -154,7 +154,7 @@ public class Reporter
     public string GetJson()
     {
         if (!InLab)
-        { 
+        {
             return null;
         }
         var jsonobj = new
@@ -185,7 +185,6 @@ public class Reporter
             ret.AppendLine($"{LeftJustify("Metric", counterWidth)}|{LeftJustify("Average",resultWidth)}|{LeftJustify("Min", resultWidth)}|{LeftJustify("Max",resultWidth)}");
             ret.AppendLine($"{new string('-', counterWidth)}|{new string('-', resultWidth)}|{new string('-', resultWidth)}|{new string('-', resultWidth)}");
 
-       
             ret.AppendLine(Print(defaultCounter, counterWidth, resultWidth));
             foreach(var counter in topCounters)
             {
