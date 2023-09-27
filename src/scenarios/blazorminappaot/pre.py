@@ -26,6 +26,7 @@ for line in f.readlines():
         outFileText += "    <BlazorEnableTimeZoneSupport>false</BlazorEnableTimeZoneSupport>" + os.linesep
         outFileText += "    <InvariantGlobalization>true</InvariantGlobalization>" + os.linesep
         outFileText += "    <RunAOTCompilation>true</RunAOTCompilation>" + os.linesep
+        outFileText += "    <MetricsSupport>false</MetricsSupport>" + os.linesep
     else:
         outFileText += line
 f.close()
