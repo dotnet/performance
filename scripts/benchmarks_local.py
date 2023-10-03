@@ -18,7 +18,9 @@
 # Prereqs:
 # Normal prereqs for building the target runtime: https://github.com/dotnet/runtime/blob/main/docs/workflow/README.md#Build_Requirements
 # Python 3
-# gitpython (pip install gitpython)
+# gitpython (pip install --global gitpython)
+# Ubuntu Version 22.04 if using Ubuntu
+# May need llvm+clang 16 for MonoAOTLLVM (https://apt.llvm.org/)
 # Wasm need jsvu installed and setup (No need to setup EMSDK, the tool does that automatically when building)
 
 
@@ -61,6 +63,18 @@ class RunType(Enum):
 
 def is_windows(parsed_args: Namespace):
     return parsed_args.os == "windows"
+
+def get_os_short_name(os_name: str):
+    if os_name == "windows":
+        return "win"
+    elif os_name == "linux":
+        return "linux"
+    elif os_name == "osx":
+        return "osx"
+    elif os_name == "browser":
+        return "browser"
+    else:
+        raise ValueError(f"Unknown OS {os_name}")
 
 def is_running_as_admin(parsed_args: Namespace):
     if is_windows(parsed_args):
@@ -118,7 +132,6 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
                 "-configuration", configuration, 
                 "-os", os_override if os_override else parsed_args.os,
                 "-arch", arch_override if arch_override else parsed_args.architecture,  
-                "-framework", parsed_args.framework,
                 "-bl"
             ] + additional_args
     RunCommand(build_libs_and_corerun_command, verbose=True).run(os.path.join(repo_path, "eng"))
@@ -138,7 +151,7 @@ def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: lis
     RunCommand(generate_layout_command, verbose=True).run(os.path.join(repo_path, "src", "tests"))
 
 def get_run_artifact_path(parsed_args: Namespace, run_type: RunType, commit: str) -> str:
-    return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commit}-{parsed_args.os}-{parsed_args.architecture}-{parsed_args.framework}")
+    return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commit}-{parsed_args.os}-{parsed_args.architecture}")
 
 # Try to generate all of a single runs dependencies at once to save time
 def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, commit: str, force_regenerate: bool = False):
@@ -199,8 +212,26 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             getLogger().info(f"dotnet_mono already exists in {artifact_mono_interpreter} and {artifact_mono_jit}. Skipping generation.")
 
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOTLLVM]):
-        raise NotImplementedError("MonoAOTLLVM is not yet implemented.") # TODO: Finish MonoAOTLLVM Build stuff
-        build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false'])
+        artifact_mono_aot_llvm = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoAOTLLVM, commit), "monoaot")
+        if force_regenerate or not os.path.exists(artifact_mono_aot_llvm):
+            build_args = ['/p:MonoEnableLLVM=True', '/p:MonoAOTEnableLLVM=true', '/p:BuildMonoAOTCrossCompiler=true', f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}']
+            if parsed_args.mono_libclang_path:
+                build_args.append(f'/p:MonoLibClang={parsed_args.mono_libclang_path}')
+            build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=build_args)
+            
+            # Move to the bin/aot location
+            src_dir_aot = os.path.join(repo_path, "artifacts", "bin", "mono", f"{parsed_args.os}.{parsed_args.architecture}.Release", "cross", f"{get_os_short_name(parsed_args.os)}-{parsed_args.architecture}")
+            dest_dir_aot = os.path.join(repo_path, "artifacts", "bin", "aot")
+            copy_directory_contents(src_dir_aot, dest_dir_aot)
+            src_dir_aot_pack = os.path.join(repo_path, "artifacts", "bin", f"microsoft.netcore.app.runtime.{get_os_short_name(parsed_args.os)}-{parsed_args.architecture}", "Release")
+            dest_dir_aot_pack = os.path.join(repo_path, "artifacts", "bin", "aot", "pack")
+            copy_directory_contents(src_dir_aot_pack, dest_dir_aot_pack)
+            
+            src_dir_aot_final = os.path.join(repo_path, "artifacts", "bin", "aot")
+            shutil.rmtree(artifact_mono_aot_llvm, ignore_errors=True)
+            copy_directory_contents(src_dir_aot_final, artifact_mono_aot_llvm)
+        else:
+            getLogger().info(f"dotnet_mono already exists in {artifact_mono_aot_llvm}. Skipping generation.")
 
     if check_for_runtype_specified(parsed_args, [RunType.WasmInterpreter, RunType.WasmAOT]):
         # Must have jsvu installed also
@@ -266,9 +297,6 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
         bdn_args_unescaped += ['--corerun']
         for commit in all_commits:
             bdn_args_unescaped += [os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if is_windows(parsed_args) else ""}')]
-
-    elif specific_run_type == RunType.MonoAOTLLVM:
-        raise NotImplementedError("MonoAOTLLVM is not yet implemented.")
     
     elif specific_run_type == RunType.MonoInterpreter:
         bdn_args_unescaped += [
@@ -310,11 +338,14 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
             bdn_args_unescaped += [corerun_path]
 
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
+    elif specific_run_type == RunType.MonoAOTLLVM:
+        raise TypeError("MonoAOTLLVM does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
+
     elif specific_run_type == RunType.WasmInterpreter:
         raise TypeError("WasmInterpreter does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
 
     elif specific_run_type == RunType.WasmAOT:
-        raise TypeError("WasmInterpreter does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
+        raise TypeError("WasmAOT does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
 
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
@@ -344,7 +375,16 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         ]
 
     elif specific_run_type == RunType.MonoAOTLLVM:
-        raise NotImplementedError("MonoAOTLLVM is not yet implemented.")
+        bdn_args_unescaped += [
+            '--anyCategories', 'Libraries', 'Runtime',
+            '--category-exclusion-filter', 'NoAOT', 'NoWASM',
+            '--runtimes', "monoaotllvm",
+            '--aotcompilerpath', os.path.join(get_run_artifact_path(parsed_args, RunType.MonoAOTLLVM, commit), "monoaot", f"mono-aot-cross{'.exe' if is_windows(parsed_args) else ''}"),
+            '--customruntimepack', os.path.join(get_run_artifact_path(parsed_args, RunType.MonoAOTLLVM, commit), "monoaot", "pack"),
+            '--aotcompilermode', 'llvm',
+            '--logBuildOutput',
+            '--generateBinLog'
+        ]
     
     elif specific_run_type == RunType.MonoInterpreter:
         bdn_args_unescaped += [
@@ -354,7 +394,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
             '--generateBinLog'
         ]
         
-        # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
+        # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from. There should only ever be 1 core run so this is just a check.
         corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
         if len(corerun_capture) == 0:
             raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
@@ -457,7 +497,7 @@ def run_benchmarks(parsed_args: Namespace, commits: list) -> None:
                 getLogger().info(f"Running benchmarks_ci.py for {run_type} at {commits} with arguments \"{' '.join(benchmark_ci_args)}\".")
                 kill_dotnet_processes(parsed_args)
                 benchmarks_ci.__main(benchmark_ci_args) # Build the runtime includes a download of dotnet at this location
-            elif run_type in [RunType.WasmInterpreter, RunType.WasmAOT]:
+            elif run_type in [RunType.MonoAOTLLVM, RunType.WasmInterpreter, RunType.WasmAOT]:
                 for commit in commits:
                     benchmark_ci_args = generate_single_benchmark_ci_args(parsed_args, run_type, commit)
                     getLogger().info(f"Running single benchmarks_ci.py for {run_type} at {commit} with arguments \"{' '.join(benchmark_ci_args)}\".")
@@ -533,17 +573,18 @@ def add_arguments(parser):
     # Arguments specifically for dependency generation and BDN
     parser.add_argument('--bdn-arguments', type=str, default="", help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes')
     parser.add_argument('--architecture', choices=['x64', 'x86', 'arm64', 'arm'], default=get_machine_architecture(), help='Specifies the SDK processor architecture')
-    parser.add_argument('--os', choices=['windows', 'linux', 'osx'], default=get_default_os(), help='Specifies the operating system of the system')
+    parser.add_argument('--os', choices=['windows', 'linux', 'osx'], default=get_default_os(), help='Specifies the operating system of the system. Darwin is OSX.')
     parser.add_argument('--filter', type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
-    parser.add_argument('-f', '--framework', choices=ChannelMap.get_supported_frameworks(), default='net8.0', help='The target framework to run the benchmarks against.') # Can and should this accept multiple frameworks?
+    parser.add_argument('-f', '--framework', choices=ChannelMap.get_supported_frameworks(), default='net8.0', help='The target framework used to build the microbenchmarks.') # Can and should this accept multiple frameworks?
     parser.add_argument('--csproj', type=str, default=os.path.join("..", "src", "benchmarks", "micro", "MicroBenchmarks.csproj"), help='The path to the csproj file to run benchmarks against.')   
-    parser.add_argument('--wasm-engine-path', type=str, help='The full path to the wasm engine to use for the benchmarks. e.g. /usr/local/bin/v8') 
+    parser.add_argument('--mono-libclang-path', type=str, help='The full path to the clang compiler to use for the benchmarks. e.g. "/usr/local/lib/libclang.so.16", used for "MonoLibClang" build property.')
+    parser.add_argument('--wasm-engine-path', type=str, help='The full path to the wasm engine to use for the benchmarks. e.g. /usr/local/bin/v8') # TODO: Setup required arguments
 
 def get_default_os():
     system = platform.system().lower()
     if system == 'darwin':
         return 'osx'
-    elif system in ['windows', 'linux']:
+    elif system in ['windows', 'linux', 'osx']:
         return system
     else:
         raise Exception("Unsupported operating system: {system}.")
