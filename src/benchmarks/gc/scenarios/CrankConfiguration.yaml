@@ -6,7 +6,7 @@ jobs:
     source:
       repository: https://github.com/dotnet/performance
       branchOrCommit: main
-      project: src/benchmarks/gc/src/exec/GCPerfSim/GCPerfSim.csproj
+      project: src/benchmarks/gc/GCPerfSim/GCPerfSim.csproj
     waitForExit: true
     readyStateText: GCPerfSim
     variables:
