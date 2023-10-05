@@ -80,7 +80,7 @@ def is_running_as_admin(parsed_args: Namespace) -> bool:
         import ctypes
         return ctypes.windll.shell32.IsUserAnAdmin()
     else:
-        return os.getuid() == 0 # type: ignore os.getuid() returns an int on Unix-like systems
+        return os.getuid() == 0 # type: ignore We know that os.getuid() is a method on Unix-like systems, ignore the pylance unknown type error for getuid.
 
 def kill_dotnet_processes(parsed_args: Namespace):
     if is_windows(parsed_args):
