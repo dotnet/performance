@@ -241,7 +241,7 @@ def __process_arguments(args: List[str]):
     add_arguments(parser)
     return parser.parse_args(args)
 
-def __main(argv: List[str]):
+def main(argv: List[str]):
     validate_supported_runtime()
     args = __process_arguments(argv)
     verbose = not args.quiet
@@ -358,4 +358,4 @@ def __main(argv: List[str]):
             sys.exit(1)
 
 if __name__ == "__main__":
-    __main(sys.argv[1:])
+    main(sys.argv[1:])

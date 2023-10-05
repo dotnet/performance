@@ -24,7 +24,6 @@
 # Wasm need jsvu installed and setup (No need to setup EMSDK, the tool does that automatically when building)
 
 
-import ctypes
 import glob
 import os
 import platform
@@ -33,7 +32,7 @@ import sys
 import xml.etree.ElementTree as xmlTree
 from argparse import ArgumentParser, ArgumentTypeError, Namespace
 from datetime import datetime
-from enum import Enum
+from enum import Enum, EnumMeta
 from logging import getLogger
 from subprocess import CalledProcessError
 
@@ -76,11 +75,12 @@ def get_os_short_name(os_name: str):
     else:
         raise ValueError(f"Unknown OS {os_name}")
 
-def is_running_as_admin(parsed_args: Namespace):
+def is_running_as_admin(parsed_args: Namespace) -> bool:
     if is_windows(parsed_args):
+        import ctypes
         return ctypes.windll.shell32.IsUserAnAdmin()
     else:
-        return os.getuid() == 0
+        return os.getuid() == 0 # type: ignore We know that os.getuid() is a method on Unix-like systems, ignore the pylance unknown type error for getuid.
 
 def kill_dotnet_processes(parsed_args: Namespace):
     if is_windows(parsed_args):
@@ -88,16 +88,17 @@ def kill_dotnet_processes(parsed_args: Namespace):
     else:
         os.system('killall -9 dotnet 2> /dev/null || killall -9 VSTest.Console 2> /dev/null || killall -9 msbuild 2> /dev/null || killall -9 ".NET Host" 2> /dev/null') # Always kill dotnet so it isn't left with handles on its files
 
-def enum_name_to_enum(EnumType, enum_name: str):
-    for enum in EnumType:
-        if enum.name == enum_name:
-            return enum
-    raise ValueError(f"Enum name {enum_name} not found in {EnumType}.")
+# Use EnumMeta until set to using python 3.11 or greater, where the name is switched to EnumType (although EnumMeta should still work as an alias)
+def enum_name_to_enum(enum_type: EnumMeta, enum_name: str):
+    try:
+        return enum_type[enum_name]
+    except KeyError:
+        raise ArgumentTypeError(f"Invalid run type name {enum_name}.")
 
-def enum_name_list_to_enum_list(EnumType, enum_name_list: list):
-    return [enum_name_to_enum(EnumType, enum_name) for enum_name in enum_name_list]
+def enum_name_list_to_enum_list(enum_type: EnumMeta, enum_name_list: list[str]):
+    return [enum_name_to_enum(enum_type, enum_name) for enum_name in enum_name_list]
 
-def check_for_runtype_specified(parsed_args: Namespace, run_types_to_check: list) -> bool:
+def check_for_runtype_specified(parsed_args: Namespace, run_types_to_check: list[RunType]) -> bool:
     for run_type in run_types_to_check:
         if run_type.name in parsed_args.run_type_names:
             return True
@@ -105,7 +106,7 @@ def check_for_runtype_specified(parsed_args: Namespace, run_types_to_check: list
 
 # Uses python copy, to copy the contents of a directory to another directory while overwriting any existing files
 def copy_directory_contents(src_dir: str, dest_dir: str):
-    for src_dirpath, src_dirnames, src_filenames in os.walk(src_dir):
+    for src_dirpath, _, src_filenames in os.walk(src_dir):
         dest_dirpath = os.path.join(dest_dir, os.path.relpath(src_dirpath, src_dir))
         if not os.path.exists(dest_dirpath):
             os.makedirs(dest_dirpath)
@@ -115,7 +116,7 @@ def copy_directory_contents(src_dir: str, dest_dir: str):
             shutil.copy2(os.path.join(src_dirpath, src_filename), dest_dirpath)
         
 # Builds libs and corerun by default
-def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs", configuration: str = "Release", os_override = "", arch_override = "", additional_args: list = []):    
+def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs", configuration: str = "Release", os_override = "", arch_override = "", additional_args: list[str] = []):    
     if is_windows(parsed_args):
         build_libs_and_corerun_command = [
                 "powershell",
@@ -136,7 +137,7 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
             ] + additional_args
     RunCommand(build_libs_and_corerun_command, verbose=True).run(os.path.join(repo_path, "eng"))
 
-def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: list = []):
+def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: list[str] = []):
     # Run the command
     if is_windows(parsed_args):
         generate_layout_command = ["build.cmd"]
@@ -275,9 +276,9 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
 
     getLogger().info(f"Finished generating dependencies for {' '.join(map(str, parsed_args.run_type_names))} run types in {repo_path} and stored in {parsed_args.artifact_storage_path}.")
 
-def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commits: list[str]) -> list:
+def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commits: list[str]) -> list[str]:
     getLogger().info(f"Generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
-    bdn_args_unescaped = []
+    bdn_args_unescaped: list[str] = []
     benchmark_ci_args = [
         '--architecture', parsed_args.architecture,
         '--frameworks', parsed_args.framework,
@@ -353,9 +354,9 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
     getLogger().info(f"Finished generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
     return benchmark_ci_args
 
-def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, commit: str) -> list:
+def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, commit: str) -> list[str]:
     getLogger().info(f"Generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
-    bdn_args_unescaped = []
+    bdn_args_unescaped: list[str] = []
     benchmark_ci_args = [
         '--architecture', parsed_args.architecture,
         '--frameworks', parsed_args.framework,
@@ -473,8 +474,7 @@ def generate_artifacts_for_commit(parsed_args: Namespace, repo_url: str, repo_di
         getLogger().info(f"Running for {repo_path} at {commit}.")
 
         if not os.path.exists(repo_path):
-            Repo.clone_from(repo_url, repo_path)
-            repo = Repo(repo_path)
+            repo = Repo.clone_from(repo_url, repo_path) # type: ignore 'Type of "clone_from" is partially unknown', we know it is a method and returns a Repo
             repo.git.checkout(commit)
             repo.git.show('HEAD')
         else:
@@ -487,22 +487,23 @@ def generate_artifacts_for_commit(parsed_args: Namespace, repo_url: str, repo_di
     generate_all_runtype_dependencies(parsed_args, repo_path, commit, (is_local and not parsed_args.skip_local_rebuild) or parsed_args.rebuild_artifacts)
 
 # Run tests on the local machine
-def run_benchmarks(parsed_args: Namespace, commits: list) -> None:
+def run_benchmarks(parsed_args: Namespace, commits: list[str]) -> None:
     # Generate the correct benchmarks_ci.py arguments for the run type
-    for run_type in enum_name_list_to_enum_list(RunType, parsed_args.run_type_names):
+    for run_type_meta in enum_name_list_to_enum_list(RunType, parsed_args.run_type_names):
         # Run the benchmarks_ci.py test and save results
+        run_type = RunType(run_type_meta)
         try:
             if run_type in [RunType.CoreRun, RunType.MonoInterpreter, RunType.MonoJIT]:
                 benchmark_ci_args = generate_combined_benchmark_ci_args(parsed_args, run_type, commits)
                 getLogger().info(f"Running benchmarks_ci.py for {run_type} at {commits} with arguments \"{' '.join(benchmark_ci_args)}\".")
                 kill_dotnet_processes(parsed_args)
-                benchmarks_ci.__main(benchmark_ci_args) # Build the runtime includes a download of dotnet at this location
+                benchmarks_ci.main(benchmark_ci_args) # Build the runtime includes a download of dotnet at this location
             elif run_type in [RunType.MonoAOTLLVM, RunType.WasmInterpreter, RunType.WasmAOT]:
                 for commit in commits:
                     benchmark_ci_args = generate_single_benchmark_ci_args(parsed_args, run_type, commit)
                     getLogger().info(f"Running single benchmarks_ci.py for {run_type} at {commit} with arguments \"{' '.join(benchmark_ci_args)}\".")
                     kill_dotnet_processes(parsed_args)
-                    benchmarks_ci.__main(benchmark_ci_args)
+                    benchmarks_ci.main(benchmark_ci_args)
             else:
                 raise TypeError(f"Run type {run_type} is not supported. Please check the run type and try again.")
         except CalledProcessError:
@@ -526,14 +527,14 @@ def install_dotnet(parsed_args: Namespace) -> None:
 # - repo_dir (str): The name of the directory where the cloned repository is stored.
 #
 # Returns: None
-def check_references_exist_and_add_branch_commits(repo_url: str, references: list, repo_storage_path: str, repo_dir: str):
+def check_references_exist_and_add_branch_commits(repo_url: str, references: list[str], repo_storage_path: str, repo_dir: str):
     getLogger().debug(f"Inside check_references_exist_and_add_branch_commits: Checking if references {references} exist in {repo_url}.")
     
     # Initialize a new Git repository in the specified directory
     repo_combined_path = os.path.join(repo_storage_path, repo_dir)
     if not os.path.exists(repo_combined_path):
         getLogger().debug(f"Cloning {repo_url} to {repo_combined_path}.")
-        repo = Repo.clone_from(repo_url, repo_combined_path)
+        repo = Repo.clone_from(repo_url, repo_combined_path) # type: ignore 'Type of "clone_from" is partially unknown', we know it is a method and returns a Repo
     else:
         repo = Repo(repo_combined_path)
         repo.remotes.origin.fetch()
@@ -545,7 +546,7 @@ def check_references_exist_and_add_branch_commits(repo_url: str, references: lis
         except GitCommandError:
             raise Exception(f"Reference {reference} does not exist in {repo_url}.")
 
-def add_arguments(parser):
+def add_arguments(parser: ArgumentParser):
     dotnet.add_arguments(parser)
 
     # Arguments for the local runner script
@@ -561,7 +562,7 @@ def add_arguments(parser):
     parser.add_argument('--build-only', action='store_true', help='Whether to only build the artifacts for the specified commits and not run the benchmarks.')
     parser.add_argument('--skip-local-rebuild', action='store_true', help='Whether to skip rebuilding the local repo and use the already built version (if already built). Useful if you need to run against local changes again.')
     parser.add_argument('--allow-non-admin-execution', action='store_true', help='Whether to allow non-admin execution of the script. Admin execution is highly recommended as it minimizes the chance of encountering errors, but may not be possible in all cases.')
-    def __is_valid_run_type(value):
+    def __is_valid_run_type(value: str):
         try:
             RunType[value]
         except KeyError:
@@ -589,7 +590,7 @@ def get_default_os():
     else:
         raise Exception("Unsupported operating system: {system}.")
 
-def __main(args: list):
+def __main(args: list[str]):
     # Define the ArgumentParser
     parser = ArgumentParser(description='Run local benchmarks for the Performance repo.', conflict_handler='resolve')
     add_arguments(parser)
@@ -607,9 +608,9 @@ def __main(args: list):
 
     # If list cached builds is specified, list the cached builds and exit
     if parsed_args.list_cached_builds:
-        for folder in os.listdir(parsed_args.artifact_storage_path):
-            if any([run_type.name in folder for run_type in RunType]):
-                getLogger().info(folder)
+        for folder in os.listdir(parsed_args.artifact_storage_path): # type: ignore warning about folder type being unknown, we know it is a string
+            if any([run_type.name in folder for run_type in RunType]): 
+                getLogger().info(folder) # type: ignore We know folder is a string
         return
 
     # Check to make sure we have something specified to test
@@ -623,7 +624,7 @@ def __main(args: list):
 
     getLogger().debug(f"Input arguments: {parsed_args}")
 
-    repo_dirs = []
+    repo_dirs: list[str] = []
     repo_url = parsed_args.repo_url
     if parsed_args.commits:
         getLogger().info(f"Checking if references {parsed_args.commits} exist in {repo_url}.")
@@ -653,7 +654,7 @@ def __main(args: list):
 
         if not parsed_args.build_only:
             # Run the benchmarks
-            commitsToRun = []
+            commitsToRun: list[str] = []
             if parsed_args.commits:
                 commitsToRun = parsed_args.commits
             if parsed_args.local_test_repo:
