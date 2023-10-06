@@ -198,13 +198,13 @@ namespace System.Net.Security.Tests
         }
 
         private const int ReadWriteIterations = 50_000;
+        private const int ReadWriteIterationsLarge = 500;
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
         public Task WriteReadAsync() => WriteReadAsync(_clientBuffer, _serverBuffer);
 
-
-        [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
+        [Benchmark(OperationsPerInvoke = ReadWriteIterationsLarge)]
         [BenchmarkCategory(Categories.NoAOT)]
         public Task LargeWriteReadAsync() => WriteReadAsync(_largeClientBuffer, _largeServerBuffer);
 
@@ -223,7 +223,7 @@ namespace System.Net.Security.Tests
         [BenchmarkCategory(Categories.NoAOT)]
         public Task ReadWriteAsync() => ReadWriteAsync(_clientBuffer, _serverBuffer);
 
-        [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
+        [Benchmark(OperationsPerInvoke = ReadWriteIterationsLarge)]
         [BenchmarkCategory(Categories.NoAOT)]
         public Task LargeReadWriteAsync() => ReadWriteAsync(_largeClientBuffer, _largeServerBuffer);
 
