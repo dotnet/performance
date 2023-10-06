@@ -200,11 +200,9 @@ namespace System.Net.Security.Tests
         private const int ReadWriteIterations = 50_000;
         private const int ReadWriteIterationsLarge = 500;
 
-
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
         public Task WriteReadAsync() => WriteReadAsync(_clientBuffer, _serverBuffer);
-
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterationsLarge)]
         [BenchmarkCategory(Categories.NoAOT)]
