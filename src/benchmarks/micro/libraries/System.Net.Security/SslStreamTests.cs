@@ -205,6 +205,7 @@ namespace System.Net.Security.Tests
         public Task WriteReadAsync() => WriteReadAsync(_clientBuffer, _serverBuffer);
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterationsLarge)]
+        [OperatingSystemsFilter(allowed: false, platforms: OS.Linux)] // Currently timing out on Linux: https://github.com/dotnet/performance/issues/3387
         [BenchmarkCategory(Categories.NoAOT)]
         public Task LargeWriteReadAsync() => WriteReadAsync(_largeClientBuffer, _largeServerBuffer);
 
@@ -224,6 +225,7 @@ namespace System.Net.Security.Tests
         public Task ReadWriteAsync() => ReadWriteAsync(_clientBuffer, _serverBuffer);
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterationsLarge)]
+        [OperatingSystemsFilter(allowed: false, platforms: OS.Linux)] // Currently timing out on Linux: https://github.com/dotnet/performance/issues/3387
         [BenchmarkCategory(Categories.NoAOT)]
         public Task LargeReadWriteAsync() => ReadWriteAsync(_largeClientBuffer, _largeServerBuffer);
 
