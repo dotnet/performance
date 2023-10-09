@@ -198,7 +198,7 @@ namespace System.Net.Security.Tests
         }
 
         private const int ReadWriteIterations = 50_000;
-        private const int ReadWriteIterationsLarge = 5;
+        private const int ReadWriteIterationsLarge = 50;
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
