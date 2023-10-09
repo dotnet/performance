@@ -198,22 +198,21 @@ namespace System.Net.Security.Tests
         }
 
         private const int ReadWriteIterations = 50_000;
-        private const int ReadWriteIterationsLarge = 500;
+        private const int ReadWriteIterationsLarge = 5;
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
-        public Task WriteReadAsync() => WriteReadAsync(_clientBuffer, _serverBuffer);
+        public Task WriteReadAsync() => WriteReadAsync(_clientBuffer, _serverBuffer, ReadWriteIterations);
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterationsLarge)]
-        [OperatingSystemsFilter(allowed: false, platforms: OS.Linux)] // Currently timing out on Linux: https://github.com/dotnet/performance/issues/3387
         [BenchmarkCategory(Categories.NoAOT)]
-        public Task LargeWriteReadAsync() => WriteReadAsync(_largeClientBuffer, _largeServerBuffer);
+        public Task LargeWriteReadAsync() => WriteReadAsync(_largeClientBuffer, _largeServerBuffer, ReadWriteIterationsLarge);
 
-        private async Task WriteReadAsync(byte[] clientArray, byte[] serverArray)
+        private async Task WriteReadAsync(byte[] clientArray, byte[] serverArray, int iterations)
         {
             Memory<byte> clientBuffer = clientArray;
             Memory<byte> serverBuffer = serverArray;
-            for (int i = 0; i < ReadWriteIterations; i++)
+            for (int i = 0; i < iterations; i++)
             {
                 await _sslClient.WriteAsync(clientBuffer, default);
                 await _sslServer.ReadAsync(serverBuffer, default);
@@ -222,18 +221,17 @@ namespace System.Net.Security.Tests
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
-        public Task ReadWriteAsync() => ReadWriteAsync(_clientBuffer, _serverBuffer);
+        public Task ReadWriteAsync() => ReadWriteAsync(_clientBuffer, _serverBuffer, ReadWriteIterations);
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterationsLarge)]
-        [OperatingSystemsFilter(allowed: false, platforms: OS.Linux)] // Currently timing out on Linux: https://github.com/dotnet/performance/issues/3387
         [BenchmarkCategory(Categories.NoAOT)]
-        public Task LargeReadWriteAsync() => ReadWriteAsync(_largeClientBuffer, _largeServerBuffer);
+        public Task LargeReadWriteAsync() => ReadWriteAsync(_largeClientBuffer, _largeServerBuffer, ReadWriteIterationsLarge);
 
-        private async Task ReadWriteAsync(byte[] clientArray, byte[] serverArray)
+        private async Task ReadWriteAsync(byte[] clientArray, byte[] serverArray, int iterations)
         {
             Memory<byte> clientBuffer = clientArray;
             Memory<byte> serverBuffer = serverArray;
-            for (int i = 0; i < ReadWriteIterations; i++)
+            for (int i = 0; i < iterations; i++)
             {
                 ValueTask<int> read = _sslServer.ReadAsync(serverBuffer, default);
                 await _sslClient.WriteAsync(clientBuffer, default);
