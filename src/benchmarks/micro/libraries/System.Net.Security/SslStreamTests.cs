@@ -201,7 +201,7 @@ namespace System.Net.Security.Tests
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
-        private async Task WriteReadAsync()
+        public async Task WriteReadAsync()
         {
             Memory<byte> clientBuffer = _clientBuffer;
             Memory<byte> serverBuffer = _serverBuffer;
@@ -224,7 +224,7 @@ namespace System.Net.Security.Tests
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
-        private async Task ReadWriteAsync()
+        public async Task ReadWriteAsync()
         {
             Memory<byte> clientBuffer = _clientBuffer;
             Memory<byte> serverBuffer = _serverBuffer;
