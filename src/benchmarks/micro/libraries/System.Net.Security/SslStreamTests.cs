@@ -217,7 +217,7 @@ namespace System.Net.Security.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
-        public Task LargeWriteReadAsync()
+        public async Task LargeWriteReadAsync()
         {
             Memory<byte> clientBuffer = _largeClientBuffer;
             Memory<byte> serverBuffer = _largeServerBuffer;
@@ -243,7 +243,7 @@ namespace System.Net.Security.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
-        public Task LargeReadWriteAsync()
+        public async Task LargeReadWriteAsync()
         {
             Memory<byte> clientBuffer = _largeClientBuffer;
             Memory<byte> serverBuffer = _largeServerBuffer;
