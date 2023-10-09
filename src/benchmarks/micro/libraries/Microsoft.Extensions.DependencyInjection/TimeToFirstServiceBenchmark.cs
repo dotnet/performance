@@ -114,12 +114,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             Assembly asm = typeof(ServiceProvider).Assembly;
 
-            Type serviceProviderEngineType = asm.GetType("Microsoft.Extensions.DependencyInjection.ServiceLookup.ServiceProviderEngine", throwOnError: true, ignoreCase: false);
-            if (serviceProviderEngineType == null)
-            {
-                throw new Exception($"Unable to find ServiceProviderEngine type.");
-            }
-
             ServiceProvider provider = services.BuildServiceProvider(new ServiceProviderOptions());
 
             return _mode switch
@@ -131,10 +125,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 _ => throw new NotSupportedException()
             };
 
-            ServiceProvider CreateInstance(string typeName)
+            ServiceProvider CreateInstance(string engineTypeName)
             {
                 // Create the engine
-                Type engineType = asm.GetType(typeName);
+                Type engineType = asm.GetType(engineTypeName);
                 if (engineType == null)
                 {
                     throw new Exception($"Unable to find {engineType} type.");
@@ -162,7 +156,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     if (serviceProviderEngineCtor == null)
                     {
-                        throw new Exception($"Unable to find ctor for {typeName}.");
+                        throw new Exception($"Unable to find ctor for {engineTypeName}.");
                     }
 
                     serviceProviderEngine = serviceProviderEngineCtor.Invoke(null);
