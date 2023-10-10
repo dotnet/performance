@@ -264,6 +264,21 @@ jobs:
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
 
+  # Powershell benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: powershell
+        csproj: src\benchmarks\real-world\PowerShell.Benchmarks\PowerShell.Benchmarks.csproj
+        runCategories: 'Public'
+        channels:
+          - main
+
 ###########################################
 # Private Jobs
 ###########################################
@@ -556,6 +571,23 @@ jobs:
         csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
         runCategories: 'illink'
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
+
+  # Powershell benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+        - ubuntu-arm64
+      isPublic: false
+      jobParameters:
+        kind: powershell
+        csproj: src\benchmarks\real-world\PowerShell.Benchmarks\PowerShell.Benchmarks.csproj
+        runCategories: 'Public Internal'
+        channels:
           - main
 
   # Secret Sync
