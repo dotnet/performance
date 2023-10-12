@@ -181,7 +181,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                             // Not checking Linux here since the local run only allows for Windows.
                             if (!File.Exists(Path.Combine(outputPath, traceName + ".etl.zip")))
                             {
-                                AnsiConsole.MarkupLine($"[yellow bold] ({DateTime.Now}) The trace for the run wasn't successfully captured. Please check the log file for more details: {output} Full run details: {Path.GetFileNameWithoutExtension(configuration.Name)}: {runInfo.CorerunDetails.Key} for {runInfo.RunDetails.Key} [/]");
+                                AnsiConsole.MarkupLine($"[yellow bold] ({DateTime.Now}) The trace for the run wasn't successfully captured. Please check the log file for more details: {Markup.Escape(output)} Full run details: {Path.GetFileNameWithoutExtension(configuration.Name)}: {runInfo.CorerunDetails.Key} for {runInfo.RunDetails.Key} [/]");
                             }
                         }
                         

@@ -21,7 +21,7 @@
 # gitpython (pip install --global gitpython)
 # Ubuntu Version 22.04 if using Ubuntu
 # May need llvm+clang 16 for MonoAOTLLVM (https://apt.llvm.org/)
-# Wasm need jsvu installed and setup (No need to setup EMSDK, the tool does that automatically when building)
+# Wasm runs need jsvu/v8 installed and setup. Latest v8 preferred, must be post --experimental-wasm-eh removal/enabled by default. (No need to setup EMSDK, the tool does that automatically when building)
 
 
 import glob
@@ -436,7 +436,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
             '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
             '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle", "wasm-data"),
             '--wasmEngine', parsed_args.wasm_engine_path,
-            '--wasmArgs', '\" --experimental-wasm-eh --expose_wasm --module\"',
+            '--wasmArgs', '\" --expose_wasm --module\"',
             '--logBuildOutput',
             '--generateBinLog'
         ]
@@ -450,7 +450,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
             '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
             '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle", "wasm-data"),
             '--wasmEngine', parsed_args.wasm_engine_path,
-            '--wasmArgs', '\" --experimental-wasm-eh --expose_wasm --module\"',
+            '--wasmArgs', '\" --expose_wasm --module\"',
             '--aotcompilermode', 'wasm',
             '--logBuildOutput',
             '--generateBinLog'
