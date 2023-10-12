@@ -118,7 +118,8 @@ public class LinqBenchmarks
     public const int IterationsWhere01 = 250000;
     public const int IterationsCount00 = 1000000;
     public const int IterationsOrder00 = 25000;
-    
+    public const int IterationsCountBy00 = 1000000;
+
     #region Where00
 
     [Benchmark]
@@ -354,6 +355,56 @@ public class LinqBenchmarks
         }
 
         return (medianPricedProduct.ProductID == 57);
+    }
+    #endregion
+
+    #region CountBy00
+
+#if NET9_0_OR_GREATER
+    [Benchmark]
+    public bool CountBy00LinqMethodX()
+    {
+        List<Product> products = Product.GetProductList();
+        int count = 0;
+        for (int i = 0; i < IterationsCount00; i++)
+        {
+            count += products.CountBy(p => p.Category).Count();
+        }
+
+        return (count == 5 * IterationsCountBy00);
+    }
+#endif
+
+    [Benchmark]
+    public bool CountBy00GroupByX()
+    {
+        List<Product> products = Product.GetProductList();
+        int count = 0;
+        for (int i = 0; i < IterationsCount00; i++)
+        {
+            count += products
+                .GroupBy(p => p.Category)
+                .ToDictionary(c => c, g => g.Count())
+                .Count();
+        }
+
+        return (count == 5 * IterationsCountBy00);
+    }
+
+    [Benchmark]
+    public bool CountBy00LookupX()
+    {
+        List<Product> products = Product.GetProductList();
+        int count = 0;
+        for (int i = 0; i < IterationsCount00; i++)
+        {
+            count += products
+                .ToLookup(p => p.Category)
+                .ToDictionary(c => c, g => g.Count())
+                .Count();
+        }
+
+        return (count == 5 * IterationsCountBy00);
     }
     #endregion
 }
