@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilerBenchmarks", "Rosly
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BenchmarkDotNet.Extensions", "..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj", "{190CB2D7-5D02-42F3-85C4-4175C4EF1D81}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Akade.IndexedSet.Benchmarks", "Akade.IndexedSet.Benchmarks\Akade.IndexedSet.Benchmarks.csproj", "{01DCA2D1-918C-4ED6-A7E7-7E7B375FE679}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{190CB2D7-5D02-42F3-85C4-4175C4EF1D81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{190CB2D7-5D02-42F3-85C4-4175C4EF1D81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{190CB2D7-5D02-42F3-85C4-4175C4EF1D81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01DCA2D1-918C-4ED6-A7E7-7E7B375FE679}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01DCA2D1-918C-4ED6-A7E7-7E7B375FE679}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01DCA2D1-918C-4ED6-A7E7-7E7B375FE679}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01DCA2D1-918C-4ED6-A7E7-7E7B375FE679}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
