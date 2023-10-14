@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 {
@@ -31,12 +32,12 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
         {
             [Description("Path to Configuration.")]
             [CommandOption("-c|--configuration")]
-            public string? ConfigurationPath { get; init; }
+            public required string ConfigurationPath { get; init; }
         }
 
         public override int Execute([NotNull] CommandContext context, [NotNull] AspNetBenchmarkSettings settings)
         {
-            AnsiConsole.Write(new Rule("ASPNet Benchmarks Orchestrator"));
+            AnsiConsole.Write(new Rule("ASP.NET Benchmarks Orchestrator"));
             AnsiConsole.WriteLine();
 
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(AspNetBenchmarksCommand));
@@ -53,7 +54,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
             // Parse the CSV file for the information.
             string[] lines = File.ReadAllLines(configuration.benchmark_settings.benchmark_file);
-            Dictionary<string, string> configurationToCommand = new(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, string> benchmarkNameToCommand = new(StringComparer.OrdinalIgnoreCase);
 
             for (int lineIdx = 0; lineIdx < lines.Length; lineIdx++)
             {
@@ -64,15 +65,54 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
                 string[] line = lines[lineIdx].Split(',', StringSplitOptions.TrimEntries);
                 Debug.Assert(line.Length == 2);
-                configurationToCommand[line[0]] = line[1];
+
+                string benchmarkName     = line[0];
+                string benchmarkCommands = line[1];
+
+                benchmarkNameToCommand[benchmarkName] = benchmarkCommands; 
             }
 
-            foreach (var c in configurationToCommand)
+            List<KeyValuePair<string, string>> benchmarkToNameCommandAsKvpList = new();
+            bool noBenchmarkFilters =
+                (configuration.benchmark_settings.benchmarkFilters == null || configuration.benchmark_settings.benchmarkFilters.Count == 0);
+
+            // If the user has specified benchmark filters, retrieve them in that order.
+            if (!noBenchmarkFilters)
+            {
+                foreach (var filter in configuration.benchmark_settings.benchmarkFilters!)
+                {
+                    foreach (var kvp in benchmarkNameToCommand)
+                    {
+                        // Check if we simply end with a "*", if so, match.
+                        if (filter.EndsWith("*") && kvp.Key.StartsWith(filter.Replace("*", "")))
+                        {
+                            benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
+                        }
+
+                        // Regular Regex check.
+                        else if (Regex.IsMatch(kvp.Key, $"^{filter}$"))
+                        {
+                            benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
+                        }
+                    }
+                }
+            }
+
+            // Else, add all the benchmarks.
+            else
+            {
+                foreach (var kvp in benchmarkNameToCommand)
+                {
+                    benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
+                }
+            }
+
+            // For each benchmark, iterate over all specified runs.
+            foreach (var c in benchmarkToNameCommandAsKvpList)
             {
                 foreach (var run in configuration.Runs)
                 {
                     OS os = !c.Key.Contains("Win") ? OS.Linux : OS.Windows; 
-                    // Build Commandline.
                     (string, string) commandLine = ASPNetBenchmarksCommandBuilder.Build(configuration, run, c, os);
 
                     string outputPath = Path.Combine(configuration.Output.Path, run.Key);
@@ -81,7 +121,14 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                         Directory.CreateDirectory(outputPath);
                     }
 
-                    // Launch new process.
+                    // There are 3 main ASP.NET errors:
+                    // 1. The server is unavailable - this could be because you aren't connected to CorpNet or the machine is down.
+                    // 2. The crank commands are incorrect.
+                    // 3. Test fails because of a test error.
+
+                    // Launch new crank process.
+                    int exitCode = -1;
+                    string logfileOutput = Path.Combine(outputPath, $"{GetKey(c.Key, run.Key)}.log");
                     StringBuilder output = new();
                     StringBuilder error = new();
 
@@ -94,32 +141,42 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                         crankProcess.StartInfo.RedirectStandardOutput = true;
                         crankProcess.StartInfo.CreateNoWindow = true;
 
-                        AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Running ASPNetBenchmark for Configuration {configuration.Name} {run.Key} {c.Key} [/]");
+                        AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Running ASP.NET Benchmark for Configuration {configuration.Name} {run.Key} {c.Key} [/]");
 
                         crankProcess.OutputDataReceived += (s, d) =>
                         {
-                            output.AppendLine(d.Data);
+                            output.AppendLine(d?.Data);
                         };
                         crankProcess.ErrorDataReceived += (s, d) =>
                         {
-                            error.Append(d.Data);
+                            error.AppendLine(d?.Data);
                         };
 
                         crankProcess.Start();
                         crankProcess.BeginOutputReadLine();
                         crankProcess.BeginErrorReadLine();
 
-                        bool exited = crankProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                        bool exited = crankProcess.WaitForExit((int)configuration.Environment!.default_max_seconds * 1000);
+
+                        // If the process still hasn't exited, it has timed out from the crank side of things and we'll need to rerun this benchmark.
+                        if (!crankProcess.HasExited)
+                        {
+                            AnsiConsole.MarkupLine($"[red bold] ASP.NET Benchmark timed out for: {configuration.Name} {run.Key} {c.Key} - skipping the results but writing stdout and stderror to {logfileOutput} [/]");
+                            File.WriteAllText(logfileOutput, "Output: \n" + output.ToString() + "\n Errors: \n" + error.ToString());
+                            continue;
+                        }
+
+                        exitCode = crankProcess.ExitCode;
                     }
 
-                    int exitCode = -1;
-
                     string outputFile = Path.Combine(configuration.Output.Path, run.Key, $"{c.Key}_{run.Key}.json");
+                    string outputDetails = output.ToString();
+
                     if (File.Exists(outputFile))
                     {
                         string[] outputLines =  File.ReadAllLines(outputFile);
 
-                        // In a quick and dirty way check the returnCode from the file.
+                        // In a quick and dirty way, check the returnCode from the file that'll tell us if the test failed.
                         foreach (var o in outputLines)
                         {
                             if (o.Contains("returnCode"))
@@ -132,27 +189,31 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                         }
                     }
 
-                    string outputDetails = output.ToString();
-                    File.WriteAllText(Path.Combine(outputPath, $"{GetKey(c.Key, run.Key)}.log"), "Output: \n" + outputDetails + "\n Errors: \n" + error.ToString());
+                    else
+                    {
+                        // For the case where the output file doesn't exist implies that was an issue connecting to the asp.net machines or error number 1.
+                        // This case also applies for incorrect crank arguments or error number 2.
+                        // Move the standard out to the standard error as the process failed.
+                        error.AppendLine(outputDetails);
+                    }
 
                     if (exitCode != 0)
                     {
-                        StringBuilder errorLines = new();
-
-                        errorLines.AppendLine(error.ToString());
                         string[] outputLines = outputDetails.Split("\n");
                         foreach (var o in outputLines)
                         {
                             // Crank provides the standard error from the test itself by this mechanism.
+                            // Error #3: Issues with test run.
                             if (o.StartsWith("[STDERR]"))
                             {
-                                errorLines.AppendLine(o);
+                                error.AppendLine(o.Replace("[STDERR]", ""));
                             }
                         }
 
-                        AnsiConsole.Markup($"[red bold] Failed with the following errors:\n {Markup.Escape(errorLines.ToString())} [/]");
+                        AnsiConsole.Markup($"[red bold] Failed with the following errors:\n {Markup.Escape(error.ToString())} Check the log file for more information: {logfileOutput} \n[/]");
                     }
 
+                    File.WriteAllText(logfileOutput, "Output: \n" + outputDetails + "\n Errors: \n" + error.ToString());
                     executionDetails[GetKey(c.Key, run.Key)] = new ProcessExecutionDetails(key: GetKey(c.Key, run.Key),
                                                                                           commandlineArgs: commandLine.Item1 + " " + commandLine.Item2,
                                                                                           environmentVariables: new(),
@@ -162,7 +223,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 }
             }
 
-            Dictionary<string, List<MetricResult>> results = AspNetBenchmarksAnalyzeCommand.ExecuteAnalysis(configuration, configurationToCommand, executionDetails);
+            Dictionary<string, List<MetricResult>> results = AspNetBenchmarksAnalyzeCommand.ExecuteAnalysis(configuration, benchmarkNameToCommand, executionDetails);
             return new AspNetBenchmarkResults(executionDetails, results);
         }
     }

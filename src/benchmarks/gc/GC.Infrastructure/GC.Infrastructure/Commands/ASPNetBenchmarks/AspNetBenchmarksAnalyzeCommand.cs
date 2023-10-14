@@ -21,6 +21,9 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
         public override int Execute([NotNull] CommandContext context, [NotNull] AspNetBenchmarkAnalyzeSettings settings)
         {
+            AnsiConsole.Write(new Rule("ASP.NET Benchmarks Analyzer"));
+            AnsiConsole.WriteLine();
+
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(AspNetBenchmarksCommand));
             ASPNetBenchmarksConfiguration configuration = ASPNetBenchmarksConfigurationParser.Parse(settings.ConfigurationPath);
             // Parse the CSV file for the information.
@@ -38,7 +41,17 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 configurationToCommand[line[0]] = line[1];
             }
 
-            Dictionary<string, List<MetricResult>> results = ExecuteAnalysis(configuration, configurationToCommand, new());
+            Dictionary<string, List<MetricResult>> result = ExecuteAnalysis(configuration, configurationToCommand, new());
+            if (result.Count == 0)
+            {
+                AnsiConsole.MarkupLine($"[bold green] No report generated since there were no results to compare. [/]");
+            }
+
+            else
+            {
+                AnsiConsole.MarkupLine($"[bold green] Report generated at: {Path.Combine(configuration.Output.Path, "Results.md")} [/]");
+            }
+
             return 0;
         }
 
@@ -46,6 +59,13 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
         {
             // Benchmark to Run to Path. 
             Dictionary<string, List<string>> benchmarkToRunToPaths = new();
+
+            bool singleRun = configuration.Runs.Count == 1;
+            // Don't generate a report in case of a single report.
+            if (singleRun)
+            {
+                return new();
+            }
 
             // For each Run, grab the paths of each of the benchmarks.
             string outputPath = configuration.Output.Path;
@@ -64,7 +84,6 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 }
             }
 
-            // Launch new process.
             Dictionary<string, string> benchmarkToComparisons = new();
             Dictionary<string, List<MetricResult>> metricResults = new();
 
@@ -102,6 +121,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
             using (StreamWriter sw = new StreamWriter(Path.Combine(configuration.Output.Path, "Results.md")))
             {
+                // Ignore the summary section in case there is only one run.
                 sw.WriteLine("# Summary");
 
                 var topLevelSummarySet = new HashSet<string>(new List<string> { "Working Set (MB)", "Private Memory (MB)", "Requests/sec", "Mean Latency (MSec)", "Latency 50th (MSec)", "Latency 75th (MSec)", "Latency 90th (MSec)", "Latency 99th (MSec)" });
@@ -142,7 +162,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
                 foreach (var benchmark in benchmarkToComparisons)
                 {
-                    sw.WriteLine($"- [{benchmark.Key}](##{benchmark.Key})");
+                    sw.WriteLine($"- [{benchmark.Key}](#{benchmark.Key.ToLower().Replace(" ", "-")})");
                 }
 
                 sw.WriteLine();
