@@ -282,12 +282,14 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
     benchmark_ci_args = [
         '--architecture', parsed_args.architecture,
         '--frameworks', parsed_args.framework,
-        '--filter', parsed_args.filter,
         '--dotnet-path', parsed_args.dotnet_dir_path,
         '--csproj', parsed_args.csproj,
         '--incremental', "no",
         '--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{start_time.strftime('%y%m%d_%H%M%S')}") # We don't include the commit hash in the artifact path because we are combining multiple runs into on
     ]
+
+    if parsed_args.filter:
+        benchmark_ci_args += ['--filter'] + parsed_args.filter 
 
     if specific_run_type == RunType.CoreRun:
         bdn_args_unescaped += [
@@ -360,12 +362,14 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
     benchmark_ci_args = [
         '--architecture', parsed_args.architecture,
         '--frameworks', parsed_args.framework,
-        '--filter', parsed_args.filter,
         '--dotnet-path', parsed_args.dotnet_dir_path,
         '--csproj', parsed_args.csproj,
         '--incremental', "no",
         '--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{commit}.{start_time.strftime('%y%m%d_%H%M%S')}") # We add the commit hash to the artifact path because we are only running one commit at a time and they would clobber if running more than one commit perf type
     ]
+
+    if parsed_args.filter:
+        benchmark_ci_args += ['--filter'] + parsed_args.filter 
 
     if specific_run_type == RunType.CoreRun:
         bdn_args_unescaped += [
@@ -575,7 +579,7 @@ def add_arguments(parser: ArgumentParser):
     parser.add_argument('--bdn-arguments', type=str, default="", help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes')
     parser.add_argument('--architecture', choices=['x64', 'x86', 'arm64', 'arm'], default=get_machine_architecture(), help='Specifies the SDK processor architecture')
     parser.add_argument('--os', choices=['windows', 'linux', 'osx'], default=get_default_os(), help='Specifies the operating system of the system. Darwin is OSX.')
-    parser.add_argument('--filter', type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
+    parser.add_argument('--filter', type=str, nargs='+', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
     parser.add_argument('-f', '--framework', choices=ChannelMap.get_supported_frameworks(), default='net8.0', help='The target framework used to build the microbenchmarks.') # Can and should this accept multiple frameworks?
     parser.add_argument('--csproj', type=str, default=os.path.join("..", "src", "benchmarks", "micro", "MicroBenchmarks.csproj"), help='The path to the csproj file to run benchmarks against.')   
     parser.add_argument('--mono-libclang-path', type=str, help='The full path to the clang compiler to use for the benchmarks. e.g. "/usr/local/lib/libclang.so.16", used for "MonoLibClang" build property.')
