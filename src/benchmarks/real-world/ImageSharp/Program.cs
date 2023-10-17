@@ -20,6 +20,6 @@ namespace SixLabors.ImageSharp.Benchmarks
             .FromAssembly(typeof(Program).Assembly)
             .Run(args, RecommendedConfig.Create(
                     artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "BenchmarkDotNet.Artifacts")),
-                    mandatoryCategories: ImmutableHashSet.Create("ImageSharp")));
+                    mandatoryCategories: ImmutableHashSet.Create(Categories.ImageSharp)));
     }
 }
