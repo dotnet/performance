@@ -268,6 +268,10 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> List[str]:
             run_args += ['--runtimes', 'wasmnet70']
         elif framework == "net8.0":
             run_args += ['--runtimes', 'wasmnet80']
+        elif framework == "net9.0":
+            run_args += ['--runtimes', 'wasmnet90']
+        else:
+            raise ArgumentTypeError('Framework {} is not supported for wasm'.format(framework))
 
     # Increase default 2 min build timeout to accommodate slow (or even very slow) hardware
     if not args.bdn_arguments or '--buildTimeout' not in args.bdn_arguments:
