@@ -83,6 +83,11 @@ def is_running_as_admin(parsed_args: Namespace) -> bool:
         return os.getuid() == 0 # type: ignore We know that os.getuid() is a method on Unix-like systems, ignore the pylance unknown type error for getuid.
 
 def kill_dotnet_processes(parsed_args: Namespace):
+    if parsed_args.dont_kill_dotnet_processes:
+        getLogger().info("Skipping killing of any running dotnet, vstest, or msbuild processes as --dont-kill-dotnet-processes was specified.")
+        return
+    
+    getLogger().info("Killing any running dotnet, vstest, or msbuild processes... (ignore system cannot find path specified)")
     if is_windows(parsed_args):
         os.system('TASKKILL /F /T /IM dotnet.exe 2> nul || TASKKILL /F /T /IM VSTest.Console.exe 2> nul || TASKKILL /F /T /IM msbuild.exe 2> nul || TASKKILL /F /T /IM ".NET Host" 2> nul')
     else:
@@ -566,6 +571,7 @@ def add_arguments(parser: ArgumentParser):
     parser.add_argument('--build-only', action='store_true', help='Whether to only build the artifacts for the specified commits and not run the benchmarks.')
     parser.add_argument('--skip-local-rebuild', action='store_true', help='Whether to skip rebuilding the local repo and use the already built version (if already built). Useful if you need to run against local changes again.')
     parser.add_argument('--allow-non-admin-execution', action='store_true', help='Whether to allow non-admin execution of the script. Admin execution is highly recommended as it minimizes the chance of encountering errors, but may not be possible in all cases.')
+    parser.add_argument('--dont-kill-dotnet-processes', action='store_true', help='Whether to not kill any dotnet processes throughout the script. This is useful if you want to have other dotnet processes running while running the script, though not killing dotnet and related process may lead to access errors while running or impact performance results.')
     def __is_valid_run_type(value: str):
         try:
             RunType[value]
@@ -637,7 +643,6 @@ def __main(args: list[str]):
             repo_dirs.append(f"runtime-{commit.replace('/', '-')}")
 
     try:
-        getLogger().info("Killing any running dotnet, vstest, or msbuild processes... (ignore system cannot find path specified)")
         kill_dotnet_processes(parsed_args)
 
         # Install Dotnet so we can add tools
