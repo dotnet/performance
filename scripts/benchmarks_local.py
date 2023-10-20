@@ -582,7 +582,7 @@ def add_arguments(parser: ArgumentParser):
     parser.add_argument('--quiet', dest='verbose', action='store_false', help='Whether to not print verbose output.')
 
     # Arguments specifically for dependency generation and BDN
-    parser.add_argument('--bdn-arguments', type=str, default="", help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes')
+    parser.add_argument('--bdn-arguments', type=str, help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes. Must be passed like --bdn-arguments="--arg1 --arg2..."')
     parser.add_argument('--architecture', choices=['x64', 'x86', 'arm64', 'arm'], default=get_machine_architecture(), help='Specifies the SDK processor architecture')
     parser.add_argument('--os', choices=['windows', 'linux', 'osx'], default=get_default_os(), help='Specifies the operating system of the system. Darwin is OSX.')
     parser.add_argument('--filter', type=str, nargs='+', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
