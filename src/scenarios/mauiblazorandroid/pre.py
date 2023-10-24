@@ -23,32 +23,40 @@ precommands.new(template='maui-blazor',
                 no_restore=False)
 
 # Add the index.razor.cs file
-with open(f"{const.APPDIR}/Pages/Index.razor.cs", "w") as indexCSFile:
-    indexCSFile.write('''
-    using Microsoft.AspNetCore.Components;
-    #if ANDROID
-        using Android.App;
-    #endif\n\n''' 
-    + f"    namespace {EXENAME}.Pages" + 
+with open(f"{const.APPDIR}/Components/Pages/Home.razor", "w") as indexCSFile:
+    indexCSFile.write(
 '''
+@page "/"
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+@code {
+    protected override void OnAfterRender(bool firstRender)
     {
-        public partial class Index
+        if (firstRender)
         {
-            protected override void OnAfterRender(bool firstRender)
-            {
-                if (firstRender)
-                {
-                    #if ANDROID
-                        var activity = MainActivity.Context as Activity;
-                        activity.ReportFullyDrawn();
-                    #else
-                        System.Console.WriteLine(\"__MAUI_Blazor_WebView_OnAfterRender__\");
-                    #endif
-                }
-            }
+            #if ANDROID
+                var activity = MainActivity.Context as Activity;
+                activity.ReportFullyDrawn();
+            #else
+                System.Console.WriteLine("__MAUI_Blazor_WebView_OnAfterRender__");
+            #endif
         }
     }
+}
 ''')
+    
+# Open the _Imports.razor file for appending
+with open(f"{const.APPDIR}/_Imports.razor", "a") as importsFile:
+    importsFile.write(
+'''
+#if ANDROID
+@using Android.App;
+#endif
+''')
+
 
 # Replace line in the Android MainActivity.cs file
 with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "r") as mainActivityFile:

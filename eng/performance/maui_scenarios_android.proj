@@ -51,6 +51,7 @@
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiblazorandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.mauiblazorandroiddefault</PackageName>
+      <StartupAdditionalArguments>--use-fully-drawn-time</StartupAdditionalArguments>
     </MAUIAndroidScenario>
   </ItemGroup>
 
@@ -75,11 +76,11 @@
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity)')">
       <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
-      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; $(StartupAdditionalArguments)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity) NoAnimation')">
       <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
-      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --disable-animations</Command>
+      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --disable-animations $(StartupAdditionalArguments)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Memory Consumption - %(Identity)')" Condition="'$(HelixTargetQueue)' != 'Windows.10.Amd64.Galaxy.Perf'">
       <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
