@@ -76,11 +76,11 @@
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity)')">
       <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
-      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; $(StartupAdditionalArguments)</Command>
+      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; %(HelixWorkItem.StartupAdditionalArguments)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity) NoAnimation')">
       <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
-      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --disable-animations $(StartupAdditionalArguments)</Command>
+      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --disable-animations %(HelixWorkItem.StartupAdditionalArguments)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Memory Consumption - %(Identity)')" Condition="'$(HelixTargetQueue)' != 'Windows.10.Amd64.Galaxy.Perf'">
       <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
