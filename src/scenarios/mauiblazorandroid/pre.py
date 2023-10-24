@@ -22,27 +22,17 @@ precommands.new(template='maui-blazor',
                 working_directory=sys.path[0],
                 no_restore=False)
 
-# Add the index.razor.cs file
-with open(f"{const.APPDIR}/Components/Pages/Home.razor", "w") as indexCSFile:
-    indexCSFile.write(
+# Update the home.razor file with the code
+with open(f"{const.APPDIR}/Components/Pages/Home.razor", "a") as homeRazorFile:
+    homeRazorFile.write(
 '''
-@page "/"
-
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
 @code {
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
         {
-            #if ANDROID
-                var activity = MainActivity.Context as Activity;
-                activity.ReportFullyDrawn();
-            #else
-                System.Console.WriteLine("__MAUI_Blazor_WebView_OnAfterRender__");
-            #endif
+            var activity = MainActivity.Context as Activity;
+            activity.ReportFullyDrawn();
         }
     }
 }
@@ -50,13 +40,7 @@ Welcome to your new app.
     
 # Open the _Imports.razor file for appending
 with open(f"{const.APPDIR}/_Imports.razor", "a") as importsFile:
-    importsFile.write(
-'''
-#if ANDROID
-@using Android.App;
-#endif
-''')
-
+    importsFile.write("@using Android.App;")
 
 # Replace line in the Android MainActivity.cs file
 with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "r") as mainActivityFile:

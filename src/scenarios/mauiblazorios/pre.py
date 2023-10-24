@@ -22,46 +22,22 @@ precommands.new(template='maui-blazor',
                 working_directory=sys.path[0],
                 no_restore=False)
 
-# Add the index.razor.cs file
-with open(f"{const.APPDIR}/Pages/Index.razor.cs", "w") as indexCSFile:
-    indexCSFile.write('''
-    using Microsoft.AspNetCore.Components;
-    #if ANDROID
-        using Android.App;
-    #endif\n\n''' 
-    + f"    namespace {EXENAME}.Pages" + 
+# Update the home.razor file with the code
+with open(f"{const.APPDIR}/Components/Pages/Home.razor", "a") as homeRazorFile:
+    homeRazorFile.write(
 '''
+@code {
+    protected override void OnAfterRender(bool firstRender)
     {
-        public partial class Index
+        if (firstRender)
         {
-            protected override void OnAfterRender(bool firstRender)
-            {
-                if (firstRender)
-                {
-                    #if ANDROID
-                        var activity = MainActivity.Context as Activity;
-                        activity.ReportFullyDrawn();
-                    #else
-                        System.Console.WriteLine(\"__MAUI_Blazor_WebView_OnAfterRender__\");
-                    #endif
-                }
-            }
+            System.Console.WriteLine("__MAUI_Blazor_WebView_OnAfterRender__");
         }
     }
+}
 ''')
 
-# Replace line in the Android MainActivity.cs file
-with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "r") as mainActivityFile:
-    mainActivityFileLines = mainActivityFile.readlines()
-
-with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "w") as mainActivityFile:
-    for line in mainActivityFileLines:
-        if line.startswith("{"):
-            mainActivityFile.write("{\npublic static Android.Content.Context Context { get; private set; }\npublic MainActivity() { Context = this; }")
-        else:
-            mainActivityFile.write(line)
-
-# Build the APK
+# Build the IPA
 # NuGet.config file cannot be in the build directory currently due to https://github.com/dotnet/aspnetcore/issues/41397
 # shutil.copy('./MauiNuGet.config', './app/Nuget.config')
 precommands.execute(['/p:_RequireCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting'])
