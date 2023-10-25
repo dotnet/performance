@@ -43,7 +43,7 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
         private static readonly IDeserializer _deserializer = 
             new DeserializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build();
 
-        public static GCPerfSimConfiguration Parse(string path)
+        public static GCPerfSimConfiguration Parse(string path, bool isIncompleteConfiguration = false)
         {
             // Preconditions.
             ConfigurationChecker.VerifyFile(path, nameof(GCPerfSimConfigurationParser)); 
@@ -72,6 +72,12 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
             if (configuration.gcperfsim_configurations == null)
             {
                 throw new ArgumentException($"{nameof(GCPerfSimConfigurationParser)}: The configuration is missing the `gcperfsim_configuration` field in the yaml. Please add it following the example: Configuration/GCPerfSim/*.yaml.");
+            }
+
+            // The rest of the items aren't filled for the incomplete configuration that's programmatically filled by the infrastructure.
+            if (isIncompleteConfiguration)
+            {
+                return configuration;
             }
 
             // Check to ensure the GCPerfSim configuration binaries exist.
