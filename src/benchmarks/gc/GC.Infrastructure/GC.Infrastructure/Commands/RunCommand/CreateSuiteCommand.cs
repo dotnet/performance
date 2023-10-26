@@ -119,11 +119,26 @@ namespace GC.Infrastructure.Commands.RunCommand
 
             foreach (var r in inputConfiguration.coreruns)
             {
-                configuration.Runs.Add(r.Key, new Core.Configurations.ASPNetBenchmarks.Run
+                Core.Configurations.ASPNetBenchmarks.Run run = new Core.Configurations.ASPNetBenchmarks.Run()
                 {
-                    corerun = Directory.GetParent(r.Value.Path).FullName,
-                    environment_variables = r.Value.environment_variables,
-                });
+                    environment_variables = r.Value.environment_variables
+                };
+
+                run.corerun = r.Value.Path;
+
+                // If just the GCName env var is passed, use that as the "corerun" - the corerun in the context of
+                // ASPNET benchmarks is any file that gets uploaded to the servers
+                foreach (var envVars in r.Value.environment_variables)
+                {
+                    if (string.CompareOrdinal(envVars.Key, "COMPlus_GCName") == 0 ||
+                        string.CompareOrdinal(envVars.Key, "DOTNET_GCName") == 0 )
+                    {
+                        run.corerun = envVars.Value;
+                        break;
+                    }
+                }
+
+                configuration.Runs[r.Key] = run;
             }
 
             // Add benchmark_file.
