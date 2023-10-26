@@ -116,8 +116,11 @@ namespace GC.Infrastructure.Core.CommandBuilders
             commandStringBuilder.Append(" --application.options.downloadBuildLog true ");
             commandStringBuilder.Append($" --application.options.downloadBuildLogOutput {Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkNameToCommand.Key}_{run.Key}.build.log")} ");
 
-
             commandStringBuilder.Append($" --json {Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkNameToCommand.Key}_{run.Key}.json")}");
+
+            // Add the extra metrics by including the configuration.
+            commandStringBuilder.Append($" --config {Path.Combine("Commands", "RunCommand", "BaseSuite", "PercentileBasedMetricsConfiguration.yml")} ");
+
             return (processName, commandStringBuilder.ToString());
         }
     }
