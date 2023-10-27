@@ -51,13 +51,12 @@
       <IPAName>MauiBlazoriOSDefault</IPAName>
       <PackageName>net.dot.mauiblazortesting</PackageName>
     </MAUIiOSScenario>
-    <!-- MessagingCenter was removed: https://github.com/dotnet/maui/pull/12582, needs to be replaced likely with something like: https://github.com/dotnet/maui/commit/762e07e04d1fdf8fca3edd948bab294c8762cd2c -->
-    <!-- <MAUIiOSScenario Include="Maui iOS Podcast">
+    <MAUIiOSScenario Include="Maui iOS Podcast $(RunConfigsString)">
       <ScenarioDirectoryName>mauiiospodcast</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiiOSPodcast</IPAName>
-      <PackageName>net.dot.net.dot.netconf2021.maui</PackageName>
-    </MAUIiOSScenario> -->
+      <PackageName>net.dot.netconf2021.maui</PackageName>
+    </MAUIiOSScenario>
   </ItemGroup>
 
   <ItemGroup>
@@ -161,8 +160,8 @@
         ]]>
       </CustomCommands>
     </XHarnessAppBundleToTest>
-    <!-- <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Podcast" Condition="'$(iOSLlvmBuild)' == 'False'">
-      <AppBundlePath>$(WorkItemDirectory).zip</AppBundlePath>
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Podcast $(RunConfigsString)">
+      <AppBundlePath>$(ScenariosDir)mauiiospodcast.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
       <CustomCommands>
@@ -170,23 +169,25 @@
           # PreCommands
           export XHARNESSPATH=$XHARNESS_CLI_PATH
 
-          cp -r $HELIX_CORRELATION_PAYLOAD/Microsoft.NetConf2021.Maui.app $(ScenarioDirectory)mauiios/Microsoft.NetConf2021.Maui.app
-          cp -f embedded.mobileprovision $(ScenarioDirectory)mauiios/Microsoft.NetConf2021.Maui.app
-          cd $(ScenarioDirectory)mauiios
+          cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiiospodcast/Microsoft.NetConf2021.Maui.ipa $HELIX_WORKITEM_ROOT/mauiiospodcast/Microsoft.NetConf2021.Maui.zip
+          mkdir $HELIX_WORKITEM_ROOT/mauiiospodcast/pub
+          cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiiospodcast/versions.json $HELIX_WORKITEM_ROOT/mauiiospodcast/pub/versions.json
+          unzip -d $HELIX_WORKITEM_ROOT/mauiiospodcast $HELIX_WORKITEM_ROOT/mauiiospodcast/Microsoft.NetConf2021.Maui.zip
+          mv $HELIX_WORKITEM_ROOT/mauiiospodcast/Payload/Microsoft.NetConf2021.Maui.app $HELIX_WORKITEM_ROOT/mauiiospodcast/Microsoft.NetConf2021.Maui.app
+          cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/mauiiospodcast/Microsoft.NetConf2021.Maui.app
+          cd $HELIX_WORKITEM_ROOT/mauiiospodcast
           sign Microsoft.NetConf2021.Maui.app
 
-          $(Python) pre.py -1-name Microsoft.NetConf2021.Maui.app
-
           # Testing commands
-          $(Python) test.py devicestartup -1-device-type ios -1-package-path Microsoft.NetConf2021.Maui.app -1-package-name net.dot.netconf2021.maui -1-scenario-name "%(Identity)"
+          $(Python) test.py devicestartup --device-type ios --package-path Microsoft.NetConf2021.Maui.app --package-name net.dot.netconf2021.maui --scenario-name "%(Identity)"
           ((result=$?))
-          
+
           # Post commands
           $(Python) post.py
           exit $result
         ]]>
       </CustomCommands>
-    </XHarnessAppBundleToTest> -->
+    </XHarnessAppBundleToTest>
   </ItemGroup>
 
 
