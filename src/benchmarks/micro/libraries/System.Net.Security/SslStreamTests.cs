@@ -212,6 +212,16 @@ namespace System.Net.Security.Tests
             }
         }
 
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
+        public async Task LargeWriteReadAsync()
+        {
+            Memory<byte> clientBuffer = _largeClientBuffer;
+            Memory<byte> serverBuffer = _largeServerBuffer;
+            await _sslClient.WriteAsync(clientBuffer, default);
+            await _sslServer.ReadAsync(serverBuffer, default);
+        }
+
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
         public async Task ReadWriteAsync()
@@ -224,6 +234,17 @@ namespace System.Net.Security.Tests
                 await _sslClient.WriteAsync(clientBuffer, default);
                 await read;
             }
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
+        public async Task LargeReadWriteAsync()
+        {
+            Memory<byte> clientBuffer = _largeClientBuffer;
+            Memory<byte> serverBuffer = _largeServerBuffer;
+            ValueTask<int> read = _sslServer.ReadAsync(serverBuffer, default);
+            await _sslClient.WriteAsync(clientBuffer, default);
+            await read;
         }
 
         private const int ConcurrentReadWriteIterations = 50_000;

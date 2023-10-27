@@ -3,6 +3,7 @@ runs:
     corerun: C:\CoreRuns\Empty\
     environment_variables:
       COMPlus_GCServer: 1
+    framework_version: net6.0
   run:
     corerun: C:\CoreRuns\Empty\
     environment_variables:
@@ -10,8 +11,15 @@ runs:
 environment:
   environment_variables: {}
   default_max_seconds: 300
+  framework_version: net8.0
 benchmark_settings:
   benchmark_file: C:\InfraRuns\RunNew_All\Suites\ASPNETBenchmarks\ASPNetBenchmarks.csv
+  # To take a dump: --application.options.dumpType full --application.options.dumpOutput <filename>
+  # To fetch the build artifacts: --application.options.fetch true
+  additional_arguments: --chart --chart-type hex 
+  # Can optionally filter for specific benchmarks with a list of regexes.
+  # benchmark_filters:
+  # - Platform*
 output:
   path: C:\InfraRuns\RunNew_All\ASPNetBenchmarks
   columns: 

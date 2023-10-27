@@ -17,3 +17,4 @@ Each of these examples assume you have cloned the performance repository to C:\p
 ## Notebooks
 
 1. [Volatility Reporting](./VolatilityReport.ipynb).
+2. [ASP.NET Benchmark Analysis](./ASPNetBenchmarkAnalysis.ipynb)

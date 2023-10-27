@@ -1,4 +1,9 @@
 <Project>
+    <PropertyGroup Condition="$(TargetFrameworks.Contains('net9.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '9.0')))">
+        <AspNetCoreVersion>9.0.0-*</AspNetCoreVersion>
+        <BlazorVersion>9.0.0-*</BlazorVersion>
+        <SystemNetHttpJsonVersion>9.0.0-*</SystemNetHttpJsonVersion>
+    </PropertyGroup>
     <PropertyGroup Condition="$(TargetFrameworks.Contains('net8.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '8.0')))">
         <AspNetCoreVersion>8.0.0-*</AspNetCoreVersion>
         <BlazorVersion>8.0.0-*</BlazorVersion>

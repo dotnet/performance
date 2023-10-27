@@ -13,7 +13,9 @@ namespace GC.Infrastructure.Commands.RunCommand
     public sealed class CreateSuitesCommand : Command<CreateSuitesCommand.CreateSuitesSettings>
     {
         private static readonly string _baseSuitePath      = Path.Combine("Commands", "RunCommand", "BaseSuite"); 
-        private static readonly string _gcPerfSimBase      = Path.Combine(_baseSuitePath, "GCPerfSim_Normal_Workstation.yaml");
+        // Removed the high volatility configuration.  
+        //private static readonly string _gcPerfSimBase      = Path.Combine(_baseSuitePath, "GCPerfSim_Normal_Workstation.yaml");
+        private static readonly string _gcPerfSimBaseLowVolatility = Path.Combine(_baseSuitePath, "LowVolatilityRuns.yaml");
         private static readonly string _microbenchmarkBase = Path.Combine(_baseSuitePath, "Microbenchmarks.yaml");
         private static readonly string _aspNetBase         = Path.Combine(_baseSuitePath, "ASPNetBenchmarks.yaml");
         private static readonly ISerializer _serializer    = Common.Serializer;
@@ -119,7 +121,7 @@ namespace GC.Infrastructure.Commands.RunCommand
             {
                 configuration.Runs.Add(r.Key, new Core.Configurations.ASPNetBenchmarks.Run
                 {
-                    corerun = r.Value.Path,
+                    corerun = Directory.GetParent(r.Value.Path).FullName,
                     environment_variables = r.Value.environment_variables,
                 });
             }
@@ -236,14 +238,18 @@ namespace GC.Infrastructure.Commands.RunCommand
 
             string gcPerfSimOutputPath = Path.Combine(inputConfiguration.output_path, "GCPerfSim");
             Core.Utilities.TryCreateDirectory(gcPerfSimOutputPath);
+            SaveConfiguration(GetBaseConfiguration(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "LowVolatilityRun")), gcPerfSimSuitePath, "LowVolatilityRun.yaml");
 
             // Base Configuration = Workstation.
+            /*
+            These old configurations are commented out because of high volatility in results.
             SaveConfiguration(GetBaseConfiguration(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "Normal_Workstation")), gcPerfSimSuitePath, "Normal_Workstation.yaml");
             SaveConfiguration(CreateNormalServerCase(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "Normal_Server")), gcPerfSimSuitePath, "Normal_Server.yaml");
             SaveConfiguration(CreateLargePagesWithWorkstation(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "LargePages_Workstation")), gcPerfSimSuitePath, "LargePages_Workstation.yaml");
             SaveConfiguration(CreateLargePagesWithServer(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "LargePages_Server")), gcPerfSimSuitePath, "LargePages_Server.yaml");
             SaveConfiguration(CreateHighMemoryCase(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "HighMemory")), gcPerfSimSuitePath, "HighMemory.yaml");
             SaveConfiguration(CreateLowMemoryContainerCase(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "LowMemoryContainer")), gcPerfSimSuitePath, "LowMemoryContainer.yaml");
+            */
 
             return gcPerfSimSuitePath;
         }
@@ -256,7 +262,7 @@ namespace GC.Infrastructure.Commands.RunCommand
 
         internal static GCPerfSimConfiguration GetBaseConfiguration(InputConfiguration inputConfiguration, string name)
         {
-            GCPerfSimConfiguration baseConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBase);
+            GCPerfSimConfiguration baseConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBaseLowVolatility, isIncompleteConfiguration: true);
             baseConfiguration.Output.Path = Path.Combine(inputConfiguration.output_path, name); 
             baseConfiguration.TraceConfigurations.Type = inputConfiguration.trace_configuration_type.ToLower();
             baseConfiguration.gcperfsim_configurations.gcperfsim_path = inputConfiguration.gcperfsim_path;

@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -45,7 +46,7 @@ public class Reporter
         {
             ret.Init();
         }
-                    
+
         return ret;
     }
 
@@ -68,7 +69,7 @@ public class Reporter
             {
                 var split = kvp.Split('=');
                 run.Configurations.Add(split[0], split[1]);
-            } 
+            }
         }
 
         os = new Os()
@@ -92,7 +93,7 @@ public class Reporter
 
         foreach (DictionaryEntry entry in environment.GetEnvironmentVariables())
         {
-            if (entry.Key.ToString().Equals("PERFLAB_TARGET_FRAMEWORKS", StringComparison.InvariantCultureIgnoreCase)) 
+            if (entry.Key.ToString().Equals("PERFLAB_TARGET_FRAMEWORKS", StringComparison.InvariantCultureIgnoreCase))
             {
                 build.AdditionalData["targetFrameworks"] = entry.Value.ToString();
             }
@@ -103,20 +104,57 @@ public class Reporter
                     build.AdditionalData["productVersion"] = entry.Value.ToString();
                 } else if(entry.Key.ToString().Equals("MAUI_VERSION", StringComparison.InvariantCultureIgnoreCase)){
                     build.AdditionalData["mauiVersion"] = entry.Value.ToString();
-                } else { 
+                } else {
                     build.AdditionalData[entry.Key.ToString()] = entry.Value.ToString();
                 }
+            }
+            else if(entry.Key.ToString().Equals("DOTNET_ROOT", StringComparison.InvariantCultureIgnoreCase))
+            {
+                (string installerHash, string sdkVersion) = GetDotNetVersionInfo(entry.Value.ToString());
+                if (installerHash is not null)
+                    build.AdditionalData["installerHash"] = installerHash;
+                if (sdkVersion is not null)
+                    build.AdditionalData["sdkVersion"] = sdkVersion;
             }
             else if(entry.Key.ToString().StartsWith("PERFLAB_DATA_", true, CultureInfo.InvariantCulture))
             {
                 build.AdditionalData[entry.Key.ToString().Substring("PERFLAB_DATA_".Length)] = entry.Value.ToString();
             }
-        }            
+        }
+
+        (string installerHash, string sdkVersion) GetDotNetVersionInfo(string dotnetRoot)
+        {
+            if (Path.Combine(dotnetRoot, "sdk") is string sdkRootPath && Directory.Exists(sdkRootPath))
+            {
+                try
+                {
+                    string versionFile = Directory
+                                            .EnumerateFiles(sdkRootPath, ".version", SearchOption.AllDirectories)
+                                            .FirstOrDefault();
+                    if (versionFile is not null)
+                    {
+                        string[] lines = File.ReadAllLines(versionFile);
+                        string installerHash = lines.Length > 0 ? lines[0] : null;
+                        string sdkVersion = lines.Length > 1 ? lines[1] : null;
+
+                        return (installerHash, sdkVersion);
+                    }
+                    else
+                    {
+                        Console.WriteLine ($"Failed to find .version file in {sdkRootPath} - {versionFile}");
+                    }
+                } catch (Exception ex) {
+                    Console.WriteLine($"Failed to extract dotnet versions from {sdkRootPath}: {ex.Message}");
+                }
+            }
+
+            return (null, null);
+        }
     }
     public string GetJson()
     {
         if (!InLab)
-        { 
+        {
             return null;
         }
         var jsonobj = new
@@ -147,7 +185,6 @@ public class Reporter
             ret.AppendLine($"{LeftJustify("Metric", counterWidth)}|{LeftJustify("Average",resultWidth)}|{LeftJustify("Min", resultWidth)}|{LeftJustify("Max",resultWidth)}");
             ret.AppendLine($"{new string('-', counterWidth)}|{new string('-', resultWidth)}|{new string('-', resultWidth)}|{new string('-', resultWidth)}");
 
-       
             ret.AppendLine(Print(defaultCounter, counterWidth, resultWidth));
             foreach(var counter in topCounters)
             {
