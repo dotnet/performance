@@ -41,6 +41,7 @@ namespace Interop
         }
 
         [Benchmark]
+        [OperatingSystemsArchitectureFilter(allowed: false, Architecture.ARM64)]
         public async Task ParallelRCWLookUp()
         {
             await Task.WhenAll(
