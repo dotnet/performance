@@ -54,7 +54,7 @@
     <MAUIiOSScenario Include="Maui iOS Podcast $(RunConfigsString)">
       <ScenarioDirectoryName>mauiiospodcast</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <IPAName>MauiiOSPodcast</IPAName>
+      <IPAName>Microsoft.NetConf2021.Maui</IPAName>
       <PackageName>net.dot.netconf2021.maui</PackageName>
     </MAUIiOSScenario>
   </ItemGroup>
