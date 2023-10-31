@@ -41,7 +41,6 @@ namespace Interop
         }
 
         [Benchmark]
-        [OperatingSystemsArchitectureFilter(allowed: false, Architecture.Arm64)]
         public async Task ParallelRCWLookUp()
         {
             var iterationsPerTask = 3_000_000/Environment.ProcessorCount;
