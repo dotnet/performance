@@ -65,6 +65,9 @@
     <None Update="Commands\RunCommand\BaseSuite\MicrobenchmarksToRun.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Commands\RunCommand\BaseSuite\PercentileBasedMetricsConfiguration.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
