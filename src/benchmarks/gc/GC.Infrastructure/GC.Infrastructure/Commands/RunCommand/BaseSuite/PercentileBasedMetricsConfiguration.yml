@@ -45,7 +45,7 @@ results:
 onResultsCreating:
   - |
 
-    function steadyState(measurement, reduce) {
+    function mapReduce(measurement, reduce) {
       // Calculates the result of the 'reduce' operation on the 'measurement' property of the application job.
       // example: 
       //   const result = steadyState('benchmarks/working-set', percentile90);
@@ -70,13 +70,13 @@ onResultsCreating:
 
 onResultsCreated:
   - |
-    benchmarks.jobs.application.results["benchmarks/working-set/P99"] = steadyState('benchmarks/working-set', percentile99);
-    benchmarks.jobs.application.results["benchmarks/working-set/P95"] = steadyState('benchmarks/working-set', percentile95);
-    benchmarks.jobs.application.results["benchmarks/working-set/P90"] = steadyState('benchmarks/working-set', percentile90);
-    benchmarks.jobs.application.results["benchmarks/working-set/P75"] = steadyState('benchmarks/working-set', percentile75);
-    benchmarks.jobs.application.results["benchmarks/working-set/P50"] = steadyState('benchmarks/working-set', percentile50);
-    benchmarks.jobs.application.results["benchmarks/private-memory/P99"] = steadyState('benchmarks/private-memory', percentile99);
-    benchmarks.jobs.application.results["benchmarks/private-memory/P95"] = steadyState('benchmarks/private-memory', percentile95);
-    benchmarks.jobs.application.results["benchmarks/private-memory/P90"] = steadyState('benchmarks/private-memory', percentile90);
-    benchmarks.jobs.application.results["benchmarks/private-memory/P50"] = steadyState('benchmarks/private-memory', percentile50);
-    benchmarks.jobs.application.results["benchmarks/private-memory/P75"] = steadyState('benchmarks/private-memory', percentile75);
+    benchmarks.jobs.application.results["benchmarks/working-set/P99"] = mapReduce('benchmarks/working-set', percentile99);
+    benchmarks.jobs.application.results["benchmarks/working-set/P95"] = mapReduce('benchmarks/working-set', percentile95);
+    benchmarks.jobs.application.results["benchmarks/working-set/P90"] = mapReduce('benchmarks/working-set', percentile90);
+    benchmarks.jobs.application.results["benchmarks/working-set/P75"] = mapReduce('benchmarks/working-set', percentile75);
+    benchmarks.jobs.application.results["benchmarks/working-set/P50"] = mapReduce('benchmarks/working-set', percentile50);
+    benchmarks.jobs.application.results["benchmarks/private-memory/P99"] = mapReduce('benchmarks/private-memory', percentile99);
+    benchmarks.jobs.application.results["benchmarks/private-memory/P95"] = mapReduce('benchmarks/private-memory', percentile95);
+    benchmarks.jobs.application.results["benchmarks/private-memory/P90"] = mapReduce('benchmarks/private-memory', percentile90);
+    benchmarks.jobs.application.results["benchmarks/private-memory/P50"] = mapReduce('benchmarks/private-memory', percentile50);
+    benchmarks.jobs.application.results["benchmarks/private-memory/P75"] = mapReduce('benchmarks/private-memory', percentile75);
