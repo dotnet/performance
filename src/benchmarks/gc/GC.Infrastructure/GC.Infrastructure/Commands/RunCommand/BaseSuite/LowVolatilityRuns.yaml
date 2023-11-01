@@ -51,7 +51,6 @@ gcperfsim_configurations:
 environment:
   environment_variables:
     COMPlus_GCServer: 1
-    COMPlus_GCHeapCount: 12
   default_max_seconds: 300
   iterations: 1
 
