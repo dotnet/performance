@@ -33,11 +33,11 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <MAUIiOSScenario Include="Xamarin iOS Default $(RunConfigsString)">
-      <ScenarioDirectoryName>xamarinios</ScenarioDirectoryName>
+    <MAUIiOSScenario Include=".NET iOS Default $(RunConfigsString)">
+      <ScenarioDirectoryName>netios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <IPAName>XamariniOSDefault</IPAName>
-      <PackageName>com.companyname.XamariniOSDefault</PackageName>
+      <IPAName>NetiOSDefault</IPAName>
+      <PackageName>com.companyname.NetiOSDefault</PackageName>
     </MAUIiOSScenario>
     <MAUIiOSScenario Include="Maui iOS Default $(RunConfigsString)">
       <ScenarioDirectoryName>mauiios</ScenarioDirectoryName>
@@ -75,8 +75,8 @@
       <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub; mv $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; unzip -d $HELIX_WORKITEM_ROOT/pub $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; rm $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-    <XHarnessAppBundleToTest Include="Device Startup - iOS Xamarin Default $(RunConfigsString)">
-      <AppBundlePath>$(ScenariosDir)xamarinios.zip</AppBundlePath>
+    <XHarnessAppBundleToTest Include="Device Startup - iOS .NET Default $(RunConfigsString)">
+      <AppBundlePath>$(ScenariosDir)netios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
       <CustomCommands>
@@ -84,17 +84,17 @@
             # PreCommands
             export XHARNESSPATH=$XHARNESS_CLI_PATH
 
-            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/xamarinios/XamariniOSDefault.ipa $HELIX_WORKITEM_ROOT/xamarinios/XamariniOSDefault.zip
-            mkdir $HELIX_WORKITEM_ROOT/xamarinios/pub
-            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/xamarinios/versions.json $HELIX_WORKITEM_ROOT/xamarinios/pub/versions.json
-            unzip -d $HELIX_WORKITEM_ROOT/xamarinios $HELIX_WORKITEM_ROOT/xamarinios/XamariniOSDefault.zip
-            mv $HELIX_WORKITEM_ROOT/xamarinios/Payload/XamariniOSDefault.app $HELIX_WORKITEM_ROOT/xamarinios/XamariniOSDefault.app
-            cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/xamarinios/XamariniOSDefault.app
-            cd $HELIX_WORKITEM_ROOT/xamarinios
-            sign XamariniOSDefault.app
+            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/netios/NetiOSDefault.ipa $HELIX_WORKITEM_ROOT/netios/NetiOSDefault.zip
+            mkdir $HELIX_WORKITEM_ROOT/netios/pub
+            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/netios/versions.json $HELIX_WORKITEM_ROOT/netios/pub/versions.json
+            unzip -d $HELIX_WORKITEM_ROOT/netios $HELIX_WORKITEM_ROOT/netios/NetiOSDefault.zip
+            mv $HELIX_WORKITEM_ROOT/netios/Payload/NetiOSDefault.app $HELIX_WORKITEM_ROOT/netios/NetiOSDefault.app
+            cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/netios/NetiOSDefault.app
+            cd $HELIX_WORKITEM_ROOT/netios
+            sign NetiOSDefault.app
 
             # Testing commands
-            $(Python) test.py devicestartup --device-type ios --package-path XamariniOSDefault.app --package-name com.companyname.XamariniOSDefault --scenario-name "%(Identity)"
+            $(Python) test.py devicestartup --device-type ios --package-path NetiOSDefault.app --package-name com.companyname.NetiOSDefault --scenario-name "%(Identity)"
             ((result=$?))
 
             # Post commands
