@@ -133,7 +133,8 @@ namespace GC.Infrastructure.Commands.RunCommand
                     if (string.CompareOrdinal(envVars.Key, "COMPlus_GCName") == 0 ||
                         string.CompareOrdinal(envVars.Key, "DOTNET_GCName") == 0 )
                     {
-                        run.corerun = envVars.Value;
+                        string directoryOfCorerun = Path.GetDirectoryName(r.Value.Path)!;
+                        run.corerun = Path.Combine(directoryOfCorerun, envVars.Value);
                         break;
                     }
                 }
