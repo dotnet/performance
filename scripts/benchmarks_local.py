@@ -586,7 +586,7 @@ def add_arguments(parser: ArgumentParser):
     parser.add_argument('--architecture', choices=['x64', 'x86', 'arm64', 'arm'], default=get_machine_architecture(), help='Specifies the SDK processor architecture')
     parser.add_argument('--os', choices=['windows', 'linux', 'osx'], default=get_default_os(), help='Specifies the operating system of the system. Darwin is OSX.')
     parser.add_argument('--filter', type=str, nargs='+', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
-    parser.add_argument('-f', '--framework', choices=ChannelMap.get_supported_frameworks(), default='net8.0', help='The target framework used to build the microbenchmarks.') # Can and should this accept multiple frameworks?
+    parser.add_argument('-f', '--framework', choices=ChannelMap.get_supported_frameworks(), default='net9.0', help='The target framework used to build the microbenchmarks.') # Can and should this accept multiple frameworks?
     parser.add_argument('--csproj', type=str, default=os.path.join("..", "src", "benchmarks", "micro", "MicroBenchmarks.csproj"), help='The path to the csproj file to run benchmarks against.')   
     parser.add_argument('--mono-libclang-path', type=str, help='The full path to the clang compiler to use for the benchmarks. e.g. "/usr/local/lib/libclang.so.16", used for "MonoLibClang" build property.')
     parser.add_argument('--wasm-engine-path', type=str, help='The full path to the wasm engine to use for the benchmarks. e.g. /usr/local/bin/v8') # TODO: Setup required arguments
