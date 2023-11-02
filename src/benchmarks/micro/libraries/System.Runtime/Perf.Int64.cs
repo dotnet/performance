@@ -48,5 +48,11 @@ namespace System.Tests
         [ArgumentsSource(nameof(StringValues))]
         public bool TryParseSpan(string value) => long.TryParse(value.AsSpan(), out _);
 #endif
+
+#if NET7_0_OR_GREATER
+        [Benchmark]
+        [Arguments(1, -1)]
+        public long CopySign(long value, long sign) => long.CopySign(value, sign);
+#endif
     }
 }

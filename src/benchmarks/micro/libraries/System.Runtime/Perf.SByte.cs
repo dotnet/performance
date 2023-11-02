@@ -31,5 +31,11 @@ namespace System.Tests
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
         public string ToString(sbyte value) => value.ToString();
+
+#if NET7_0_OR_GREATER
+        [Benchmark]
+        [Arguments(1, -1)]
+        public sbyte CopySign(sbyte value, sbyte sign) => sbyte.CopySign(value, sign);
+#endif
     }
 }
