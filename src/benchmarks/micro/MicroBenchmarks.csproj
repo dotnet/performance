@@ -200,6 +200,7 @@
     <Compile Remove="runtime\Math\Functions\Single\TanPi.cs" />
     <Compile Remove="libraries\System.Formats.Tar\*.cs" />
     <Compile Remove="libraries\System.Runtime.Intrinsics\*.cs" />
+    <Compile Remove="libraries\System.Runtime\Perf.Int128.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0')">
