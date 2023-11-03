@@ -291,6 +291,9 @@ namespace GC.Infrastructure.Commands.RunCommand
             {
                 baseConfiguration.Environment.environment_variables = inputConfiguration.environment_variables;
             }
+            int logicalProcessors = GetAppropriateLogicalProcessors();
+            baseConfiguration.Environment.environment_variables["DOTNET_GCHeapCount"] = logicalProcessors.ToString("X");
+            baseConfiguration.gcperfsim_configurations.Parameters["tc"] = (2 * logicalProcessors).ToString();
 
             return baseConfiguration;
         }
