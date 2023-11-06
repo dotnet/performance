@@ -389,7 +389,7 @@ def main(args: Any):
     showenv = 'set' if args.target_windows else 'printenv'
 
     if args.pgo_status == 'nodynamicpgo':
-        pgo_config = variable_format % ('COMPlus_TieredPGO', '0')
+        pgo_config = variable_format % ('DOTNET_TieredPGO', '0')
 
     if args.r2r_status == 'nor2r':
         r2r_config = variable_format % ('DOTNET_ReadyToRun', '0')
