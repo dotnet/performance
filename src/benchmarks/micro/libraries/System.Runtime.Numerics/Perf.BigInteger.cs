@@ -110,22 +110,23 @@ namespace System.Numerics.Tests
         {
             Random rnd = new Random(123456);
 
-            foreach (int byteCount in new[] { 5, 19, 67, 259 })
+            foreach (int byteCount in new[] { 67, 259 })
             {
                 byte[] bytes = new byte[byteCount];
+                int lastByte = bytes.Length - 1;
 
                 do
                 {
                     rnd.NextBytes(bytes);
-                } while (bytes[^1] is not (> 0 and < 128));
+                } while (bytes[lastByte] is not (> 0 and < 128));
 
                 BigInteger b1 = new(bytes);
                 yield return new BigIntegers(b1, new BigInteger(bytes), $"{byteCount} bytes, Same");
 
-                byte copy = bytes[^1];
-                bytes[^1] = (byte)(~bytes[^1] & 0x7F);
+                byte copy = bytes[lastByte];
+                bytes[lastByte] = (byte)(~bytes[lastByte] & 0x7F);
                 yield return new BigIntegers(b1, new BigInteger(bytes), $"{byteCount} bytes, DiffLastByte");
-                bytes[^1] = copy;
+                bytes[lastByte] = copy;
 
                 copy = bytes[0];
                 bytes[0] = (byte)(~bytes[0] & 0x7F);
