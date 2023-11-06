@@ -106,6 +106,45 @@ namespace System.Numerics.Tests
         public BigInteger ModPow(BigIntegers arguments)
             => BigInteger.ModPow(arguments.Left, arguments.Right, arguments.Other);
 
+        public IEnumerable<object> EqualsValues()
+        {
+            Random rnd = new Random(123456);
+
+            foreach (int byteCount in new[] { 67, 259 })
+            {
+                byte[] bytes = new byte[byteCount];
+                int lastByte = bytes.Length - 1;
+
+                do
+                {
+                    rnd.NextBytes(bytes);
+                } while (bytes[lastByte] is not (> 0 and < 128));
+
+                BigInteger b1 = new(bytes);
+                yield return new BigIntegers(b1, new BigInteger(bytes), $"{byteCount} bytes, Same");
+
+                byte copy = bytes[lastByte];
+                bytes[lastByte] = (byte)(~bytes[lastByte] & 0x7F);
+                yield return new BigIntegers(b1, new BigInteger(bytes), $"{byteCount} bytes, DiffLastByte");
+                bytes[lastByte] = copy;
+
+                copy = bytes[0];
+                bytes[0] = (byte)(~bytes[0] & 0x7F);
+                yield return new BigIntegers(b1, new BigInteger(bytes), $"{byteCount} bytes, DiffFirstByte");
+                bytes[0] = copy;
+
+                copy = bytes[byteCount / 2];
+                bytes[byteCount / 2] = (byte)(~bytes[byteCount / 2] & 0x7F);
+                yield return new BigIntegers(b1, new BigInteger(bytes), $"{byteCount} bytes, DiffMiddleByte");
+                bytes[byteCount / 2] = copy;
+            }
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(EqualsValues))]
+        public bool Equals(BigIntegers arguments)
+            => arguments.Left == arguments.Right;
+
         public class BigIntegerData
         {
             public string Text { get; }
@@ -125,6 +164,7 @@ namespace System.Numerics.Tests
         public class BigIntegers
         {
             private readonly int[] _bitCounts;
+            private readonly string _description;
 
             public BigInteger Left { get; }
             public BigInteger Right { get; }
@@ -133,6 +173,7 @@ namespace System.Numerics.Tests
             public BigIntegers(int[] bitCounts)
             {
                 _bitCounts = bitCounts;
+                _description = $"{string.Join(",", _bitCounts)} bits";
                 var values = GenerateBigIntegers(bitCounts);
 
                 Left = values[0];
@@ -140,9 +181,16 @@ namespace System.Numerics.Tests
                 Other = values.Length == 3 ? values[2] : BigInteger.Zero;
             }
 
-            public override string ToString() => $"{string.Join(",", _bitCounts)} bits";
+            public BigIntegers(BigInteger left, BigInteger right, string description)
+            {
+                Left = left;
+                Right = right;
+                _description = description;
+            }
 
-            private BigInteger[] GenerateBigIntegers(int[] bitCounts)
+            public override string ToString() => _description;
+
+            private static BigInteger[] GenerateBigIntegers(int[] bitCounts)
             {
                 Random random = new Random(1138); // we always use the same seed to have repeatable results!
 
