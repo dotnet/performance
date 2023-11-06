@@ -1,0 +1,71 @@
+@using System.Globalization
+@inject NavigationManager NavManager
+@page "/"
+
+<PageTitle>Available locales</PageTitle>
+
+<h1>Locales</h1>
+
+<p>This component generates the list of locales available on your machine. Choose a locale to check its calendar keywords translation, string comparison tools and many more </p>
+
+@if (cultures == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Culture Code</th>
+                <th>English Culture Name</th>
+                <th>Culture Name</th>
+                <th>First Day of Week</th>
+                <th>First Week of Year</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var culture in cultures)
+            {
+                <tr>
+                    <td>@culture.Name</td>
+                    <td>@culture.EnglishName</td>
+                    <td>@culture.DisplayName</td>
+                    <td>@culture.DateTimeFormat.FirstDayOfWeek</td>
+                    <td>@culture.DateTimeFormat.CalendarWeekRule</td>
+                    <td><button class="btn btn-primary" @onclick="(() => RedirectCalendar(culture.Name))">Calendar keywords</button></td>
+                    <td><button class="btn btn-primary" @onclick="(() => RedirectFormatDate(culture.Name))">Date formatting</button></td>
+                    <td><button class="btn btn-primary" @onclick="(() => RedirectStringOperations(culture.Name))">String operations</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private CultureInfo[]? cultures;
+
+    protected override Task OnInitializedAsync()
+    {
+        cultures = CultureInfo.GetCultures(CultureTypes.AllCultures);
+        return Task.FromResult(0);
+    }
+    private void RedirectCalendar(string cultureName)
+    {
+        if (cultureName == "")
+            cultureName = "invariant";
+        NavManager.NavigateTo($"/calendar/{cultureName}");
+    }
+    private void RedirectFormatDate(string cultureName)
+    {
+        if (cultureName == "")
+            cultureName = "invariant";
+        NavManager.NavigateTo($"/format-date/{cultureName}");
+    }
+    private void RedirectStringOperations(string cultureName)
+    {
+        if (cultureName == "")
+            cultureName = "invariant";
+        NavManager.NavigateTo($"/string-operations/{cultureName}");
+    }
+}

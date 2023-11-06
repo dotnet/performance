@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+  <SystemNetHttpJsonVersion>7.0.0</SystemNetHttpJsonVersion>
+  <AspNetCoreVersion>7.0.0</AspNetCoreVersion>
+  <BlazorVersion>7.0.0</BlazorVersion>
+    <BuildCommonPath>$(MSBuildThisFileDirectory)..\build-common\</BuildCommonPath>
+    <BuildCommonPath Condition="!Exists($(BuildCommonPath)) and '$(HELIX_CORRELATION_PAYLOAD)' != ''">$(HELIX_CORRELATION_PAYLOAD)\build-common\</BuildCommonPath>
+  </PropertyGroup>
+</Project>
