@@ -41,16 +41,16 @@ namespace Interop
         }
 
         [Benchmark]
-        [OperatingSystemsArchitectureFilter(allowed: false, Architecture.Arm64)]
         public async Task ParallelRCWLookUp()
         {
+            var iterationsPerTask = 3_000_000/Environment.ProcessorCount;
             await Task.WhenAll(
                 Enumerable.Range(0, Environment.ProcessorCount)
                     .Select(_ =>
                         Task.Run(delegate
                         {
                             // Define a large number of iterations for parallel action.
-                            for (int i = 0; i < 3_000_000; i++)
+                            for (int i = 0; i < iterationsPerTask; i++)
                             {
                                 s_instance.GetOrCreateObjectForComInstance(_ptr, CreateObjectFlags.None);
                             }
