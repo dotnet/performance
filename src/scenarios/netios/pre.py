@@ -3,8 +3,7 @@ pre-command
 '''
 import shutil
 import sys
-import subprocess
-from performance.logger import setup_loggers, getLogger
+from performance.logger import setup_loggers
 from shared import const
 from shared.mauisharedpython import remove_aab_files, install_versioned_maui
 from shared.precommands import PreCommands
@@ -16,7 +15,7 @@ setup_loggers(True)
 precommands = PreCommands()
 install_versioned_maui(precommands)
 
-# Setup the Xamarin folder
+# Setup the .NET iOS folder
 precommands.new(template='ios',
                 output_dir=const.APPDIR,
                 bin_dir=const.BINDIR,
@@ -35,7 +34,7 @@ if precommands.output:
 remove_aab_files(output_dir)
 
 # Copy the XamarinVersion to a file so we have it on the machine
-xamarin_version = get_version_from_dll_powershell_ios(rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked/Microsoft.iOS.dll")
-version_dict = { "xamarinVersion": xamarin_version }
+net_ios_version = get_version_from_dll_powershell_ios(rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked/Microsoft.iOS.dll")
+version_dict = { "netIosVersion": net_ios_version }
 versions_write_json(version_dict, rf"{output_dir}/versions.json")
 print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked/Microsoft.iOS.dll")
