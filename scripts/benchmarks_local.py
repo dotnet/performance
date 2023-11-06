@@ -1,29 +1,3 @@
-# This is a script for testing the performance of the different dotnet/runtime build types locally. It is assumed that prereqs for the build type are already installed.
-# Example usage from the performance/scripts folder: 
-# python .\benchmarks_local.py --local-test-repo "<absolute path to runtime folder>/runtime" --run-type MonoJIT --filter "*Span.IndexerBench.CoveredIndex2*"
-# or if you want remotes:
-# python .\benchmarks_local.py --commits dd079f53b95519c8398d8b0c6e796aaf7686b99a --repo-storage-path "<absolute path to where you want to store runtime clones>" --run-types MonoInterpreter MonoJIT --filter "*Span.IndexerBench.CoveredIndex2*"
-
-# The general flow as it stands is:
-# * For each commit single or pair value specified:
-#   * Get the repo to the proper commit
-#   * Build the dependencies for the run types specified and copy them to the artifact storage path
-# * Run the benchmarks:
-#   * For each run type specified with the artifacts all passed as coreruns to take advantage of BDN's comparisons
-# * Adding a new run type:
-#   * Add the run type to the RunType enum
-#   * Add the build instructions to the generate_all_runtime_artifacts function
-#   * Add the BDN run arguments to the generate_combined_benchmark_ci_args function
-#
-# Prereqs:
-# Normal prereqs for building the target runtime: https://github.com/dotnet/runtime/blob/main/docs/workflow/README.md#Build_Requirements
-# Python 3
-# gitpython (pip install --global gitpython)
-# Ubuntu Version 22.04 if using Ubuntu
-# May need llvm+clang 16 for MonoAOTLLVM (https://apt.llvm.org/)
-# Wasm runs need jsvu/v8 installed and setup. Latest v8 preferred, must be post --experimental-wasm-eh removal/enabled by default. (No need to setup EMSDK, the tool does that automatically when building)
-
-
 import glob
 import os
 import platform
