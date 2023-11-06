@@ -10,49 +10,45 @@ using MicroBenchmarks;
 namespace System.Tests
 {
     [BenchmarkCategory(Categories.Libraries)]
-    public class Perf_Int64
+    public class Perf_Int128
     {
-        private char[] _destination = new char[long.MinValue.ToString().Length];
+        private char[] _destination = new char[Int128.MinValue.ToString().Length];
 
         public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
 
         public static IEnumerable<object> Values => new object[]
         {
-            long.MinValue,
-            (long)12345, // same value used by other tests to compare the perf
-            long.MaxValue,
+            Int128.MinValue,
+            (Int128)12345, // same value used by other tests to compare the perf
+            Int128.MaxValue,
         };
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
-        public string ToString(long value) => value.ToString();
+        public string ToString(Int128 value) => value.ToString();
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
-        public long Parse(string value) => long.Parse(value);
+        public Int128 Parse(string value) => Int128.Parse(value);
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
-        public bool TryParse(string value) => long.TryParse(value, out _);
+        public bool TryParse(string value) => Int128.TryParse(value, out _);
 
-#if !NETFRAMEWORK // API added in .NET Core 2.1
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
-        public bool TryFormat(long value) => value.TryFormat(new Span<char>(_destination), out _);
+        public bool TryFormat(Int128 value) => value.TryFormat(new Span<char>(_destination), out _);
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
-        public long ParseSpan(string value) => long.Parse(value.AsSpan());
+        public Int128 ParseSpan(string value) => Int128.Parse(value.AsSpan());
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
-        public bool TryParseSpan(string value) => long.TryParse(value.AsSpan(), out _);
-#endif
+        public bool TryParseSpan(string value) => Int128.TryParse(value.AsSpan(), out _);
 
-#if NET7_0_OR_GREATER
         [Benchmark]
         [Arguments(1, -1)]
-        public long CopySign(long value, long sign) => long.CopySign(value, sign);
-#endif
+        public Int128 CopySign(Int128 value, Int128 sign) => Int128.CopySign(value, sign);
     }
 }
