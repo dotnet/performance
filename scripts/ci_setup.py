@@ -65,6 +65,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         const='nodynamicpgo'
     )
     parser.add_argument(
+        '--no-r2r',
+        dest='r2r_status',
+        required=False,
+        action='store_const',
+        const='nor2r'
+    )
+    parser.add_argument(
         '--physical-promotion',
         dest='physical_promotion',
         required=False,
@@ -295,7 +302,8 @@ class CiSetupArgs:
             affinity: Optional[str] = None,
             run_env_vars: Optional[List[str]] = None,
             target_windows: bool = True,
-            physical_promotion: Optional[str] = None):
+            physical_promotion: Optional[str] = None,
+            r2r_status: Optional[str] = None):
         self.channel = channel
         self.quiet = quiet
         self.commit_sha = commit_sha
@@ -322,6 +330,7 @@ class CiSetupArgs:
         self.run_env_vars = run_env_vars
         self.target_windows = target_windows
         self.physical_promotion = physical_promotion
+        self.r2r_status = r2r_status
 
 def main(args: Any):
     verbose = not args.quiet
@@ -375,11 +384,15 @@ def main(args: Any):
     owner, repo = ('dotnet', 'core-sdk') if repo_url is None else (dotnet.get_repository(repo_url))
     config_string = ';'.join(args.build_configs) if args.target_windows else "%s" % ';'.join(args.build_configs)
     pgo_config = ''
+    r2r_config = ''
     physical_promotion_config = ''
     showenv = 'set' if args.target_windows else 'printenv'
 
     if args.pgo_status == 'nodynamicpgo':
         pgo_config = variable_format % ('COMPlus_TieredPGO', '0')
+
+    if args.r2r_status == 'nor2r':
+        r2r_config = variable_format % ('DOTNET_ReadyToRun', '0')
 
     if args.physical_promotion == 'physicalpromotion':
         physical_promotion_config = variable_format % ('DOTNET_JitEnablePhysicalPromotion', '1')
@@ -436,6 +449,7 @@ def main(args: Any):
         with open(output_file, 'w') as out_file:
             out_file.write(which)
             out_file.write(pgo_config)
+            out_file.write(r2r_config)
             out_file.write(physical_promotion_config)
             out_file.write(variable_format % ('PERFLAB_INLAB', '0' if args.not_in_lab else '1'))
             out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
