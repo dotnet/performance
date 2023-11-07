@@ -73,7 +73,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     )
     parser.add_argument(
         '--physical-promotion',
-        dest='physical_promotion',
+        dest='physical_promotion_status',
         required=False,
         action='store_const',
         const='physicalpromotion'
@@ -302,7 +302,7 @@ class CiSetupArgs:
             affinity: Optional[str] = None,
             run_env_vars: Optional[List[str]] = None,
             target_windows: bool = True,
-            physical_promotion: Optional[str] = None,
+            physical_promotion_status: Optional[str] = None,
             r2r_status: Optional[str] = None):
         self.channel = channel
         self.quiet = quiet
@@ -329,7 +329,7 @@ class CiSetupArgs:
         self.affinity = affinity
         self.run_env_vars = run_env_vars
         self.target_windows = target_windows
-        self.physical_promotion = physical_promotion
+        self.physical_promotion_status = physical_promotion_status
         self.r2r_status = r2r_status
 
 def main(args: Any):
@@ -389,12 +389,12 @@ def main(args: Any):
     showenv = 'set' if args.target_windows else 'printenv'
 
     if args.pgo_status == 'nodynamicpgo':
-        pgo_config = variable_format % ('COMPlus_TieredPGO', '0')
+        pgo_config = variable_format % ('DOTNET_TieredPGO', '0')
 
     if args.r2r_status == 'nor2r':
         r2r_config = variable_format % ('DOTNET_ReadyToRun', '0')
 
-    if args.physical_promotion == 'physicalpromotion':
+    if args.physical_promotion_status == 'physicalpromotion':
         physical_promotion_config = variable_format % ('DOTNET_JitEnablePhysicalPromotion', '1')
 
     output = ''
