@@ -277,7 +277,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                     bool nonResponsive = result.StandardOut.Contains(NON_RESPONSIVE) || result.StandardError.Contains(NON_RESPONSIVE);
                     bool timeoutOrNonResponsive = timeout || nonResponsive;
 
-                    // Wait 5 minutes and then retry if the run timed out or the host was non-responsive (post corp-net connection check).
+                    // Wait 2 minutes and then retry if the run timed out or the host was non-responsive (post corp-net connection check).
                     if (result.HasFailed && timeoutOrNonResponsive)
                     {
                         string retryReason = timeout ? "the run timed out" : "the server was non-responsive";
