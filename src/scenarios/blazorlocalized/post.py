@@ -10,8 +10,7 @@ from shared import const
 from performance.common import runninginlab
 from test import EXENAME
 
-
-if runninginlab():   
+if runninginlab():
     with zipfile.ZipFile(join(environ["HELIX_WORKITEM_UPLOAD_ROOT"], "Publish-{}.zip".format(EXENAME)), 'x') as publish:
         f = []
         for (dirpath, dirnames, filenames) in walk(const.PUBDIR):
