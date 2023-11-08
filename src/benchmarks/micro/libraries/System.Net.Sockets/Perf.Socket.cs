@@ -139,6 +139,7 @@ namespace System.Net.Sockets.Tests
             }
         }
 
+#if NET8_0_OR_GREATER // APIs introduced in .NET 8: https://github.com/dotnet/runtime/issues/30797
         [Benchmark]
         public async Task ReceiveFromAsyncThenSendToAsync_SocketAddress()
         {
@@ -160,6 +161,7 @@ namespace System.Net.Sockets.Tests
                 await r;
             }
         }
+#endif
 
         [Benchmark]
         public void SendToThenReceiveFrom()
