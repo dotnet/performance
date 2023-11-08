@@ -40,6 +40,7 @@ with open(f"{const.APPDIR}/Components/Pages/Home.razor", "a") as homeRazorFile:
 # Build the IPA
 # NuGet.config file cannot be in the build directory currently due to https://github.com/dotnet/aspnetcore/issues/41397
 # shutil.copy('./MauiNuGet.config', './app/Nuget.config')
+shutil.copy('./MauiNuGet.config', './app/Nuget.config')
 precommands.execute(['/p:_RequireCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting'])
 
 output_dir = const.PUBDIR
