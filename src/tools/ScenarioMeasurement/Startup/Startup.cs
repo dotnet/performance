@@ -144,7 +144,7 @@ class Startup
             var currentProcessAffinity = Process.GetCurrentProcess().ProcessorAffinity;
             if (affinity > currentProcessAffinity.ToInt64())
             {
-                throw new ArgumentException(nameof(affinity) + " cannot be greater than the number of processors available to this process!");
+                throw new ArgumentException(nameof(affinity) + " cannot be greater than the number of processors available to this process! (Current process affinity: " + currentProcessAffinity.ToInt64() + " Target affinity: " + affinity + ")");
             }
             currentProcessAffinity = (IntPtr)affinity;
             logger.Log($"Process Affinity: {currentProcessAffinity}, mask: {Convert.ToString((int)currentProcessAffinity, 2)}");
