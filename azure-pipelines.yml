@@ -285,29 +285,29 @@ jobs:
 
 - ${{ if or(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest', 'Manual')), parameters.runPrivateJobs) }}:
 
-  # Scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-        - win-arm64
-        - ubuntu-arm64-ampere
-      isPublic: false
-      jobParameters:
-        kind: scenarios
-        projectFile: scenarios.proj
-        channels:
-          - main
+  # # Scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #       - win-arm64
+  #       - ubuntu-arm64-ampere
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: scenarios
+  #       projectFile: scenarios.proj
+  #       channels:
+  #         - main
 
   # Affinitized Scenario benchmarks (Initially just PDN)
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
-        - win-x64
-        - win-arm64
+        # - win-x64
+        # - win-arm64
         - win-arm64-ampere
       isPublic: false
       jobParameters:
@@ -322,108 +322,108 @@ jobs:
           - DOTNET_GCHeapCount=4
           - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
 
-  # Maui Android scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        kind: maui_scenarios_android
-        projectFile: maui_scenarios_android.proj
-        dotnetVersionsLinks:
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
+  # # Maui Android scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - win-x64-android-arm64-pixel
+  #       - win-x64-android-arm64-galaxy
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: maui_scenarios_android
+  #       projectFile: maui_scenarios_android.proj
+  #       dotnetVersionsLinks:
+  #         8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
 
-  # Maui iOS Mono scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        kind: maui_scenarios_ios
-        projectFile: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
-        runtimeFlavor: mono
+  # # Maui iOS Mono scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - osx-x64-ios-arm64
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: maui_scenarios_ios
+  #       projectFile: maui_scenarios_ios.proj
+  #       dotnetVersionsLinks:
+  #         8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
+  #       runtimeFlavor: mono
 
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        kind: maui_scenarios_ios
-        projectFile: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
-        runtimeFlavor: mono
-        hybridGlobalization: true
-        additionalJobIdentifier: 'HybridGlobalization_True'
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - osx-x64-ios-arm64
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: maui_scenarios_ios
+  #       projectFile: maui_scenarios_ios.proj
+  #       dotnetVersionsLinks:
+  #         8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
+  #       runtimeFlavor: mono
+  #       hybridGlobalization: true
+  #       additionalJobIdentifier: 'HybridGlobalization_True'
 
-  # Maui iOS Native AOT scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        kind: maui_scenarios_ios
-        projectFile: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
-        runtimeFlavor: coreclr
+  # # Maui iOS Native AOT scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - osx-x64-ios-arm64
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: maui_scenarios_ios
+  #       projectFile: maui_scenarios_ios.proj
+  #       dotnetVersionsLinks:
+  #         8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
+  #       runtimeFlavor: coreclr
 
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        kind: maui_scenarios_ios
-        projectFile: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
-        runtimeFlavor: coreclr
-        hybridGlobalization: true
-        additionalJobIdentifier: 'HybridGlobalization_True'
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - osx-x64-ios-arm64
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: maui_scenarios_ios
+  #       projectFile: maui_scenarios_ios.proj
+  #       dotnetVersionsLinks:
+  #         8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
+  #       runtimeFlavor: coreclr
+  #       hybridGlobalization: true
+  #       additionalJobIdentifier: 'HybridGlobalization_True'
 
-  ## Maui scenario benchmarks
-  #- template: /eng/performance/build_machine_matrix.yml
-  #  parameters:
-  #    jobTemplate: /eng/performance/scenarios.yml
-  #    buildMachines:
-  #      - win-x64
-  #      - ubuntu-x64
-  #      - win-arm64
-  #      - ubuntu-arm64-ampere
-  #    isPublic: false
-  #    jobParameters:
-  #      kind: maui_scenarios
-  #      projectFile: maui_scenarios.proj
-  #      channels:
-  #        - main
+  # ## Maui scenario benchmarks
+  # #- template: /eng/performance/build_machine_matrix.yml
+  # #  parameters:
+  # #    jobTemplate: /eng/performance/scenarios.yml
+  # #    buildMachines:
+  # #      - win-x64
+  # #      - ubuntu-x64
+  # #      - win-arm64
+  # #      - ubuntu-arm64-ampere
+  # #    isPublic: false
+  # #    jobParameters:
+  # #      kind: maui_scenarios
+  # #      projectFile: maui_scenarios.proj
+  # #      channels:
+  # #        - main
 
-  # NativeAOT scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-        - win-arm64
-      isPublic: false
-      jobParameters:
-        kind: nativeaot_scenarios
-        projectFile: nativeaot_scenarios.proj
-        channels:
-          - main
+  # # NativeAOT scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #       - win-arm64
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: nativeaot_scenarios
+  #       projectFile: nativeaot_scenarios.proj
+  #       channels:
+  #         - main
 
 ################################################
 # Scheduled Private jobs
