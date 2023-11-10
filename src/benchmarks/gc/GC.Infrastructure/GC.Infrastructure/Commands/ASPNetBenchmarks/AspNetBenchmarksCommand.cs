@@ -71,16 +71,16 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
             DateTime pstNow = TimeZoneInfo.ConvertTimeFromUtc(now, pstZone);
 
-            // Check if the current time is between 12:00 AM and 12:08 AM.
+            // Check if the current time is between 12:00 AM and 12:09 AM.
             DateTime start = pstNow.Date; // 12:00 AM today.
-            DateTime end = start.AddMinutes(8); // 12:08 AM today.
+            DateTime end = start.AddMinutes(9); // 12:09 AM today.
 
             if (pstNow >= start && pstNow < end)
             {
                 TimeSpan timeUntilEnd = end - pstNow;
-                int secondsLeft = (int)timeUntilEnd.TotalSeconds + 60;
+                int secondsLeft = (int)timeUntilEnd.TotalSeconds;
 
-                // If we are between 12:00 AM and 12:08 AM PST, sleep for 
+                // If we are between 12:00 AM and 12:09 AM PST, sleep for 
                 AnsiConsole.MarkupLine($"[yellow bold] ({DateTime.Now}) ASP.NET Benchmarks Sleeping for {secondsLeft} seconds since the host machines are rebooting. [/]");
                 Thread.Sleep((secondsLeft) * 1000);
             }
