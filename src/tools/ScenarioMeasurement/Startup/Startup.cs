@@ -142,7 +142,7 @@ class Startup
         if (affinity > 0 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
         {
             var currentProcessAffinity = Process.GetCurrentProcess().ProcessorAffinity;
-            if (affinity > currentProcessAffinity && currentProcessAffinity != -1) // -1 means all processors TODO: Check what this is on systems with more than 64 processors
+            if (affinity > currentProcessAffinity && currentProcessAffinity != -1) // -1 means all processors TODO: Check if there is a more proper way to deal with affinity for systems with more than 64 processors
             {
                 throw new ArgumentException(nameof(affinity) + " cannot be greater than the number of processors available to this process! (Current process affinity: " + currentProcessAffinity + " Target affinity: " + affinity + ")");
             }
