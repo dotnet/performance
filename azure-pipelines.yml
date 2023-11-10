@@ -285,29 +285,29 @@ jobs:
 
 - ${{ if or(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest', 'Manual')), parameters.runPrivateJobs) }}:
 
-  # Scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-        - win-arm64
-        - ubuntu-arm64-ampere
-      isPublic: false
-      jobParameters:
-        kind: scenarios
-        projectFile: scenarios.proj
-        channels:
-          - main
+  # # Scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #       - win-arm64
+  #       - ubuntu-arm64-ampere
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: scenarios
+  #       projectFile: scenarios.proj
+  #       channels:
+  #         - main
 
   # Affinitized Scenario benchmarks (Initially just PDN)
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
-        - win-x64
-        - win-arm64
+        # - win-x64
+        # - win-arm64
         - win-arm64-ampere
       isPublic: false
       jobParameters:
