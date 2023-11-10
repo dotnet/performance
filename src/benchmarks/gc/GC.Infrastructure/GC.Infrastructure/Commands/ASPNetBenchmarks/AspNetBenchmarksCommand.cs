@@ -88,6 +88,10 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
         private static ProcessExecutionDetails ExecuteBenchmarkForRun(ASPNetBenchmarksConfiguration configuration, KeyValuePair<string, Run> run, KeyValuePair<string, string> benchmarkToCommand)
         {
+            // At the start of a run, if we are at a point in time where we are between the time where we deterministically know the host machines need to restart,
+            // sleep for the remaining time until the machines are back up.
+            SleepUntilHostsHaveRestarted();
+
             OS os = !benchmarkToCommand.Key.Contains("Win") ? OS.Linux : OS.Windows;
             (string, string) commandLine = ASPNetBenchmarksCommandBuilder.Build(configuration, run, benchmarkToCommand, os);
 
