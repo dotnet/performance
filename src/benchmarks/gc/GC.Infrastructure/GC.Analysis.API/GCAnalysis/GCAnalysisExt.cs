@@ -122,20 +122,20 @@ namespace GC.Analysis.API
             AddStr("Mean Size After MB", gcs.EagerAverage(gc => gc.HeapSizeAfterMB));
 
             // Speeds
-            AddStr("Gen0 EagerAverage Speed (MB/MSec)", gen0AvgSpeed);
-            AddStr("Gen1 EagerAverage Speed (MB/MSec)", gen1AvgSpeed);
+            AddStr("Gen0 Average Speed (MB/MSec)", gen0AvgSpeed);
+            AddStr("Gen1 Average Speed (MB/MSec)", gen1AvgSpeed);
 
-            AddStr("Gen0 EagerAverage Pause Time (ms)", gen0AvgPauseTime);
-            AddStr("Gen1 EagerAverage Pause Time (ms)", gen1AvgPauseTime);
+            AddStr("Gen0 Average Pause Time (ms)", gen0AvgPauseTime);
+            AddStr("Gen1 Average Pause Time (ms)", gen1AvgPauseTime);
 
-            AddStr("Gen0 EagerAverage Promoted (mb)", gen0AvgPromoted);
-            AddStr("Gen1 EagerAverage Promoted (mb)", gen1AvgPromoted);
+            AddStr("Gen0 Average Promoted (mb)", gen0AvgPromoted);
+            AddStr("Gen1 Average Promoted (mb)", gen1AvgPromoted);
 
-            AddStr("Gen0 EagerAverage Promoted (mb) / heap", gen0AvgPromotedPerHeap);
-            AddStr("Gen1 EagerAverage Promoted (mb) / heap", gen1AvgPromotedPerHeap);
+            AddStr("Gen0 Average Promoted (mb) / heap", gen0AvgPromotedPerHeap);
+            AddStr("Gen1 Average Promoted (mb) / heap", gen1AvgPromotedPerHeap);
 
-            AddStr("Gen0 EagerAverage Speed (mb/ms) / heap", gen0AvgSpeedPerHeap);
-            AddStr("Gen1 EagerAverage Speed (mb/ms) / heap", gen1AvgSpeedPerHeap); 
+            AddStr("Gen0 Average Speed (mb/ms) / heap", gen0AvgSpeedPerHeap);
+            AddStr("Gen1 Average Speed (mb/ms) / heap", gen1AvgSpeedPerHeap); 
 
             return new DataFrame(criteria, value);
         }

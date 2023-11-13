@@ -103,8 +103,8 @@ namespace GC.Analysis.API
 
             // Speeds
             AddStr("Ephemeral EagerAverage Speed (MB/MSec)", (processData.Generations[0].TotalPromotedMB + processData.Generations[1].TotalPromotedMB) / (processData.Generations[0].TotalPauseTimeMSec + processData.Generations[1].TotalPauseTimeMSec));
-            AddStr("Gen0 EagerAverage Speed (MB/MSec)", processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec);
-            AddStr("Gen1 EagerAverage Speed (MB/MSec)", processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec);
+            AddStr("Gen0 Average Speed (MB/MSec)", processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec);
+            AddStr("Gen1 Average Speed (MB/MSec)", processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec);
 
             IEnumerable<TraceGC> gen0 = processData.GCs.EagerWhere(gc => gc.Generation == 0);
             IEnumerable<TraceGC> gen1 = processData.GCs.EagerWhere(gc => gc.Generation == 1);
