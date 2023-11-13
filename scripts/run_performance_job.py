@@ -73,7 +73,8 @@ class RunPerformanceJobArgs:
     build_number: str = os.environ.get("BUILD_BUILDNUMBER", "local")
     internal: bool = True
     pgo_run_type: str | None = None
-    physical_promotion_run_type: bool = False
+    physical_promotion_run_type: str | None = None
+    r2r_run_type: str | None = None
     codegen_type: str = "JIT"
     runtime_type: str = "coreclr"
     affinity: str | None = "0"
@@ -249,7 +250,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         queue=args.queue,
         kind=args.run_kind,
         no_dynamic_pgo=args.pgo_run_type == "nodynamicpgo",
-        physical_promotion=args.physical_promotion_run_type,
+        physical_promotion=args.physical_promotion_run_type == "physicalpromotion",
+        no_r2r=args.r2r_run_type == "nor2r",
         internal=args.internal,
         mono_interpreter=mono_interpreter,
         framework=args.framework,
