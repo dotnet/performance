@@ -144,7 +144,7 @@ class Startup
             var currentProcessAffinity = Process.GetCurrentProcess().ProcessorAffinity;
             if (affinity > currentProcessAffinity && currentProcessAffinity != -1) // -1 means all processors TODO: Check if there is a more proper way to deal with affinity for systems with more than 64 processors
             {
-                throw new ArgumentException(nameof(affinity) + " cannot be greater than the number of processors available to this process! (Current process affinity: " + currentProcessAffinity + " Target affinity: " + affinity + ")");
+                throw new ArgumentException($"{nameof(affinity)} cannot be greater than the number of processors available to this process! (Current process affinity: {currentProcessAffinity}; Target affinity: {affinity})");
             }
             Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)affinity;
             currentProcessAffinity = Process.GetCurrentProcess().ProcessorAffinity;
@@ -152,11 +152,11 @@ class Startup
         }
         else if (affinity != 0 && !(OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
         {
-            throw new ArgumentException(nameof(affinity) + " not supported on non-windows and non-linux platforms!");
+            throw new ArgumentException($"{nameof(affinity)} not supported on non-windows and non-linux platforms!");
         }
         else if (affinity < 0)
         {
-            throw new ArgumentException(nameof(affinity) + " cannot be negative!");
+            throw new ArgumentException($"{nameof(affinity)} cannot be negative!");
         }
 
         if (runWithoutExit)
