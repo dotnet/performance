@@ -88,7 +88,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
                 sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta > 20)))
+                foreach (var r in comparisonResults.EagerWhere(c => c.PercentageDelta > 20))
                 {
                     sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
                 }
@@ -99,7 +99,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
                 sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta < -20)))
+                foreach (var r in comparisonResults.EagerWhere(c => c.PercentageDelta < -20 ))
                 {
                     sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
                 }
@@ -109,7 +109,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 sb.AppendLine();
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
                 sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta > 5 && c.PercentageDelta < 20)))
+                foreach (var r in comparisonResults.EagerWhere(c => c.PercentageDelta > 5 && c.PercentageDelta < 20))
                 {
                     sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
                 }
@@ -119,7 +119,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 sb.AppendLine();
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
                 sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta < -5 && c.PercentageDelta > -20)))
+                foreach (var r in comparisonResults.EagerWhere(c => c.PercentageDelta < -5 && c.PercentageDelta > -20))
                 {
                     sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
                 }
@@ -129,7 +129,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 sb.AppendLine();
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
                 sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta >= 0 && c.PercentageDelta < 5)))
+                foreach (var r in comparisonResults.EagerWhere(c => c.PercentageDelta >= 0 && c.PercentageDelta < 5))
                 {
                     sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
                 }
@@ -139,7 +139,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 sb.AppendLine();
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
                 sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta < 0 && c.PercentageDelta > -5)))
+                foreach (var r in comparisonResults.EagerWhere(c => c.PercentageDelta < 0 && c.PercentageDelta > -5))
                 {
                     sb.AppendLine($"|{r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
                 }
@@ -351,7 +351,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                         ResultItem comparandRunItem = runToCorerunData.TryGetResultItemFromDictionary(run.Key, corerun.Key);
                         var resultItemComparison = new ResultItemComparison(baseRunItem, comparandRunItem);
 
-                        HashSet<string> requestedPropertyNames = new HashSet<string>(GoodLinq.Select(configuration.Output.Columns, (c => c.ToLowerInvariant().Replace(" ", "").Replace("(", ")").Replace(")", ""))));
+                        HashSet<string> requestedPropertyNames = new HashSet<string>(configuration.Output.Columns.EagerSelect(c => c.ToLowerInvariant().Replace(" ", "").Replace("(", ")").Replace(")", "")));
 
                         foreach (var property in typeof(ResultItem).GetProperties())
                         {
@@ -381,7 +381,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
                     sb.AppendLine($" | Metric | Base | {run.Key} | Δ%  |  Δ |");
                     sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                    foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta > 20)))
+                    foreach (var r in comparisonResults.EagerWhere(c => c.PercentageDelta > 20))
                     {
                         sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
                     }
@@ -392,7 +392,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
                     sb.AppendLine($" | Metric | Base | {run.Key} | Δ%  |  Δ |");
                     sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                    foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta < -20)))
+                    foreach (var r in comparisonResults.EagerWhere(c => c.PercentageDelta < -20))
                     {
                         sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
                     }
@@ -402,7 +402,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                     sb.AppendLine();
                     sb.AppendLine($" | Metric | Base | {run.Key} | Δ%  |  Δ |");
                     sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                    foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta > 5 && c.PercentageDelta < 20)))
+                    foreach (var r in comparisonResults.EagerWhere(c => c.PercentageDelta > 5 && c.PercentageDelta < 20))
                     {
                         sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
                     }
@@ -412,7 +412,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                     sb.AppendLine();
                     sb.AppendLine($" | Metric | Base | {run.Key} | Δ%  |  Δ |");
                     sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                    foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta < -5 && c.PercentageDelta > -20)))
+                    foreach (var r in comparisonResults.EagerWhere(c => c.PercentageDelta < -5 && c.PercentageDelta > -20))
                     {
                         sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
                     }
@@ -422,7 +422,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                     sb.AppendLine();
                     sb.AppendLine($" | Metric | Base | {run.Key} | Δ%  |  Δ |");
                     sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                    foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta >= 0 && c.PercentageDelta < 5)))
+                    foreach (var r in comparisonResults.EagerWhere(c => c.PercentageDelta >= 0 && c.PercentageDelta < 5))
                     {
                         sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
                     }
@@ -432,7 +432,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                     sb.AppendLine();
                     sb.AppendLine($" | Metric | Base | {run.Key} | Δ%  |  Δ |");
                     sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                    foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta < 0 && c.PercentageDelta > -5)))
+                    foreach (var r in comparisonResults.EagerWhere(c => c.PercentageDelta < 0 && c.PercentageDelta > -5))
                     {
                         sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
                     }

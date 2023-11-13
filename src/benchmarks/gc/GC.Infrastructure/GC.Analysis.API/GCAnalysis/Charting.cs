@@ -116,7 +116,7 @@ namespace GC.Analysis.API
                                               ChartInfo? chartInfo = null)
         {
             Layout.Layout layout = ChartingHelpers.ConstructLayout(title      : title,
-                                                                   fieldNames : fields.Select(f => f.fieldName),
+                                                                   fieldNames : fields.EagerSelect(f => f.fieldName),
                                                                    xAxis      : xAxis,
                                                                    chartInfo  : chartInfo);
 
@@ -147,7 +147,7 @@ namespace GC.Analysis.API
                                               string xAxis, 
                                               ChartInfo? chartInfo = null)
         {
-            Layout.Layout layout = ChartingHelpers.ConstructLayout(title: title, fieldNames: fields.Select(f => f.fieldName), xAxis: xAxis, chartInfo: chartInfo);
+            Layout.Layout layout = ChartingHelpers.ConstructLayout(title: title, fieldNames: fields.EagerSelect(f => f.fieldName), xAxis: xAxis, chartInfo: chartInfo);
             List<Scatter> scatters = new List<Scatter>();
 
             var customData = gcData as object[]; 
@@ -192,7 +192,7 @@ namespace GC.Analysis.API
                 if (xAxis == nameof(TraceGC.Number))
                 {
                     int maxNumberOfGCs   = gcData.Max(gc => gc.gcs.Count);
-                    relativeGCIndex      = Enumerable.Range(0, maxNumberOfGCs).Select(r => (double)r);
+                    relativeGCIndex      = Enumerable.Range(0, maxNumberOfGCs).EagerSelect(r => (double)r);
                 }
             }
 
@@ -239,7 +239,7 @@ namespace GC.Analysis.API
 
             foreach(var filter in filters)
             {
-                var filtered = gcs.Where(gc => filter.filter(gc));
+                var filtered = gcs.EagerWhere(gc => filter.filter(gc));
                 IEnumerable<double> y = ReflectionHelpers.GetDoubleValueForGCField(filtered, fieldName);
                 IEnumerable<double> x = ReflectionHelpers.GetDoubleValueForGCField(filtered, xAxis);
 
