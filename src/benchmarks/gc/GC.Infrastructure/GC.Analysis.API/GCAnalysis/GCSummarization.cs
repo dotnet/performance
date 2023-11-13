@@ -102,7 +102,7 @@ namespace GC.Analysis.API
             AddStr("Mean Size After MB", processData.Stats.MeanSizeAfterMB);
 
             // Speeds
-            AddStr("Ephemeral EagerAverage Speed (MB/MSec)", (processData.Generations[0].TotalPromotedMB + processData.Generations[1].TotalPromotedMB) / (processData.Generations[0].TotalPauseTimeMSec + processData.Generations[1].TotalPauseTimeMSec));
+            AddStr("Ephemeral Average Speed (MB/MSec)", (processData.Generations[0].TotalPromotedMB + processData.Generations[1].TotalPromotedMB) / (processData.Generations[0].TotalPauseTimeMSec + processData.Generations[1].TotalPauseTimeMSec));
             AddStr("Gen0 Average Speed (MB/MSec)", processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec);
             AddStr("Gen1 Average Speed (MB/MSec)", processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec);
 
