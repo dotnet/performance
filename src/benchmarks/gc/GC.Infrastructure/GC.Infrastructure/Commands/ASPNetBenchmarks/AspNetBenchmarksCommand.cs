@@ -26,7 +26,8 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
     public sealed class AspNetBenchmarksCommand : Command<AspNetBenchmarksCommand.AspNetBenchmarkSettings>
     {
-        public static string GetKey(string configuration, string run) => $"{configuration}.{run}";
+        public static string GetKey(string benchmark, string run) => $"{benchmark}.{run}";
+        public static string? ExtractBenchmarkFromKey(string key) => key?.Split(".", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
 
         public sealed class AspNetBenchmarkSettings : CommandSettings
         {
@@ -95,7 +96,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             OS os = !benchmarkToCommand.Key.Contains("Win") ? OS.Linux : OS.Windows;
             (string, string) commandLine = ASPNetBenchmarksCommandBuilder.Build(configuration, run, benchmarkToCommand, os);
 
-            string outputPath = Path.Combine(configuration.Output.Path, run.Key);
+            string outputPath = Path.Combine(configuration.Output!.Path, run.Key);
             if (!Directory.Exists(outputPath))
             {
                 Directory.CreateDirectory(outputPath);
@@ -209,6 +210,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
         public static AspNetBenchmarkResults RunASPNetBenchmarks(ASPNetBenchmarksConfiguration configuration)
         {
+            List<(string run, string benchmark, string reason)> retryMessages = new();
             Dictionary<string, ProcessExecutionDetails> executionDetails = new();
             Core.Utilities.TryCreateDirectory(configuration.Output.Path);
 
@@ -281,11 +283,13 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                     bool nonResponsive = result.StandardOut.Contains(NON_RESPONSIVE) || result.StandardError.Contains(NON_RESPONSIVE);
                     bool timeoutOrNonResponsive = timeout || nonResponsive;
 
-                    // Wait 2 minutes and then retry if the run timed out or the host was non-responsive (post corp-net connection check).
+                    // Wait 2 minutes and then retry if the run timed out or the host was non-responsive (post corp-net connection and check).
                     if (result.HasFailed && timeoutOrNonResponsive)
                     {
                         string retryReason = timeout ? "the run timed out" : "the server was non-responsive";
-                        AnsiConsole.MarkupLine($"[red bold] ASP.NET Run: {run.Key} for {c.Key} failed as {retryReason}. Sleeping for 2 minutes and retrying [/]");
+                        string retryDetails = $"{run.Key} for {c.Key} failed as {retryReason}. Sleeping for 2 minutes and retrying";
+                        AnsiConsole.MarkupLine($"[red bold] {Markup.Escape(retryDetails)} [/]");
+                        retryMessages.Add((run.Key, c.Key, retryReason));
                         Thread.Sleep(60 * 2 * 1000);
                         result = ExecuteBenchmarkForRun(configuration, run, c);
                         executionDetails[key] = result;
@@ -298,7 +302,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 }
             }
 
-            Dictionary<string, List<MetricResult>> results = AspNetBenchmarksAnalyzeCommand.ExecuteAnalysis(configuration, benchmarkNameToCommand, executionDetails);
+            Dictionary<string, List<MetricResult>> results = AspNetBenchmarksAnalyzeCommand.ExecuteAnalysis(configuration, benchmarkNameToCommand, executionDetails, retryMessages);
             return new AspNetBenchmarkResults(executionDetails, results);
         }
     }
