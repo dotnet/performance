@@ -102,7 +102,7 @@ namespace GC.Analysis.API
 
             var layout = new Layout.Layout
             {
-                title = $"EagerAverage Mark Promoted Bytes for Gen{generation}",
+                title = $"Average Mark Promoted Bytes for Gen{generation}",
                 xaxis = new Xaxis { title = "GC #" },
                 yaxis = new Yaxis { title = "Bytes" },
                 showlegend = true,
