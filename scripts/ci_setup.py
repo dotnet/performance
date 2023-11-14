@@ -406,6 +406,9 @@ def main(args: Any):
     if args.r2r_status == 'nor2r':
         r2r_config = variable_format % ('DOTNET_ReadyToRun', '0')
 
+    if args.experiment_name == "crossblocklocalassertionprop":
+        experiment_config = variable_format % ('DOTNET_JitEnableCrossBlockLocalAssertionProp', '1')
+
     output = ''
 
     with push_dir(get_repo_root_path()):
