@@ -41,7 +41,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 configurationToCommand[line[0]] = line[1];
             }
 
-            Dictionary<string, List<MetricResult>> result = ExecuteAnalysis(configuration, configurationToCommand, new());
+            Dictionary<string, List<MetricResult>> result = ExecuteAnalysis(configuration, configurationToCommand, new(), new());
             if (result.Count == 0)
             {
                 AnsiConsole.MarkupLine($"[bold green] No report generated since there were no results to compare. [/]");
@@ -55,12 +55,12 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             return 0;
         }
 
-        public static Dictionary<string, List<MetricResult>> ExecuteAnalysis(ASPNetBenchmarksConfiguration configuration, Dictionary<string, string> configurationToCommand, Dictionary<string, ProcessExecutionDetails> executionDetails)
+        public static Dictionary<string, List<MetricResult>> ExecuteAnalysis(ASPNetBenchmarksConfiguration configuration, Dictionary<string, string> configurationToCommand, Dictionary<string, ProcessExecutionDetails> executionDetails, List<(string run, string benchmark, string reason)> retryDetails)
         {
             // Benchmark to Run to Path. 
             Dictionary<string, List<string>> benchmarkToRunToPaths = new();
 
-            bool singleRun = configuration.Runs.Count == 1;
+            bool singleRun = configuration.Runs!.Count == 1;
             // Don't generate a report in case of a single report.
             if (singleRun)
             {
@@ -68,7 +68,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             }
 
             // For each Run, grab the paths of each of the benchmarks.
-            string outputPath = configuration.Output.Path;
+            string outputPath = configuration.Output!.Path;
             foreach (var c in configuration.Runs)
             {
                 string runName = c.Key;
@@ -103,7 +103,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                     crankCompareProcess.Start();
 
                     string output = crankCompareProcess.StandardOutput.ReadToEnd();
-                    crankCompareProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                    crankCompareProcess.WaitForExit((int)configuration.Environment!.default_max_seconds * 1000);
 
                     if (crankCompareProcess.ExitCode == 0)
                     {
@@ -155,6 +155,59 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
                     sw.WriteLine($"{r.Key} | {workingSet}% | {privateMemory}% | {rps}% | {meanLatency}% | {latency50}% | {latency75}% | {latency90}% | {latency99}% |");
                 }
+
+                sw.WriteLine("# Retry Notes");
+                foreach (var retryDetail in retryDetails)
+                {
+                    sw.WriteLine($" - {retryDetail.run} for {retryDetail.benchmark} failed as {retryDetail.reason}.");
+                }
+
+                // Best way to deep-copy a configuration is to serialize and then deserialize.
+                string configurationSerialized =  Common.Serializer.Serialize(configuration);
+
+                // We want to be able to rerun the failed tests in an easy manner. For this, we take any failed runs and create a 
+                // new configuration based on the run configuration and then add these failed runs to filter on.
+                // The process of creating a deep copy of the old configuration involves serializing and deserializing the current configuration.
+                // We then iterate over all the failed runs, add them as items in the benchmark filters and persist the new configuration in the output path.
+                List<KeyValuePair<string, ProcessExecutionDetails>> failedRuns = executionDetails.Where(exec => exec.Value.HasFailed).ToList();
+                
+                // This path is only valid if we have failed runs.
+                if (failedRuns.Count > 0)
+                { 
+                    try
+                    {
+                        configuration = Common.Deserializer.Deserialize<ASPNetBenchmarksConfiguration>(configurationSerialized);
+                        Debug.Assert(configuration.benchmark_settings!.benchmarkFilters != null);
+
+                        // Iterate over the failed runs.
+                        foreach (var failureKvp in failedRuns)
+                        {
+                            // Extract the benchmark.
+                            string? failedBenchmark = AspNetBenchmarksCommand.ExtractBenchmarkFromKey(failureKvp.Key);
+                            if (string.IsNullOrEmpty(failedBenchmark))
+                            {
+                                continue;
+                            }
+
+                            configuration.benchmark_settings.benchmarkFilters.Add(failedBenchmark);
+                        }
+
+                        // Persist the new configuration in the output path.
+                        string reserializedConfiguration = Common.Serializer.Serialize(configuration);
+                        string failureOutputPath = Path.Combine(outputPath, $"{configuration.Name}_Failed.yaml");
+                        File.WriteAllText(failureOutputPath, reserializedConfiguration);
+
+                        sw.WriteLine($"\n Note: A new configuration yaml file with the failures are added: {failureOutputPath}. Simply reinvoke the 'aspnetbenchmark' command with the new configuration.");
+                        AnsiConsole.MarkupLine($"[green bold] A new configuration yaml file with the failures are added: {Markup.Escape(failureOutputPath)}. Simply reinvoke the 'aspnetbenchmark' command with the new configuration. [/]");
+                    }
+
+                    catch (Exception ex)
+                    {
+                        // Don't throw an exception since the analysis must go on. 
+                        AnsiConsole.MarkupLine($"[red bold] {nameof(AspNetBenchmarksAnalyzeCommand)}: Unable to persist a new configuration with the failed runs. Reason: {Markup.Escape(ex.Message)} Call Stack: {Markup.Escape(ex.StackTrace)} [/]");
+                    }
+                }
+                sw.WriteLine();
 
                 sw.AddIncompleteTestsSection(executionDetails);
 
