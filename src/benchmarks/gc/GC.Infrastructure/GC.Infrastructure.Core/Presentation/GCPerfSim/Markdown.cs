@@ -62,7 +62,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 metric1_Comparand = comparandResultItem.PauseDurationMSec_95PWhereIsBackground;
                 metric2_Comparand = comparandResultItem.PauseDurationMSec_95PWhereIsBlockingGen2;
 
-                sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {((metric1_Comparand - metric1_Comparand) / metric1_Base) * 100:N2} | {metric2_Base} |  {metric2_Comparand:N2} | {((metric2_Comparand - metric2_Base) / metric2_Base * 100):N2}| ");
+                sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {((metric1_Comparand - metric1_Comparand) / metric1_Base) * 100:N2} | {metric2_Base:N2} |  {metric2_Comparand:N2} | {((metric2_Comparand - metric2_Base) / metric2_Base * 100):N2}| ");
                 sb.AppendLine();
 
                 sb.AppendLine("# Individual Results");
@@ -296,7 +296,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                         metric2_Comparand = Math.Round(comparandResultItem.PauseDurationMSec_MeanWhereIsBlockingGen2, 2);
                     }
 
-                    sw.WriteLine($"| {runName} | {metric1_Base:N2} | {metric1_Comparand:N2} | {((metric1_Comparand - metric1_Comparand) / metric1_Base) * 100:N2} | {metric2_Base} |  {metric2_Comparand:N2} | {((metric1_Comparand - metric1_Base) / metric1_Base * 100):N2}| ");
+                    sw.WriteLine($"| {runName} | {metric1_Base:N2} | {metric1_Comparand:N2} | {((metric1_Comparand - metric1_Base) / metric1_Base) * 100:N2} | {metric2_Base} |  {metric2_Comparand:N2} | {((metric2_Comparand - metric2_Base) / metric2_Base * 100):N2}| ");
                 }
                 sb.AppendLine();
 
@@ -340,7 +340,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                         string runKey = GetExecutionDetailKey(run.Key, corerun.Key);
                         if (executionDetails.TryGetValue(runKey, out var bped))
                         {
-                            ProcessExecutionDetails runDetails = executionDetails[$"{run.Key}.{baseCoreRun}.0"];
+                            ProcessExecutionDetails runDetails = executionDetails[$"{run.Key}.{corerun.Key}.0"];
                             foreach (var env in runDetails.EnvironmentVariables)
                             {
                                 sb.AppendLine($" ```set {env.Key}={env.Value}```\n");

@@ -12,6 +12,7 @@ public interface ITraceSession : IDisposable
     void EnableKernelProvider(params TraceSessionManager.KernelKeyword[] keywords);
     void EnableUserProvider(params TraceSessionManager.ClrKeyword[] keywords);
     void EnableUserProvider(string provider, TraceEventLevel verboseLevel);
+    void AddRawEvent(string name);
 }
 
 public static class TraceSessionManager

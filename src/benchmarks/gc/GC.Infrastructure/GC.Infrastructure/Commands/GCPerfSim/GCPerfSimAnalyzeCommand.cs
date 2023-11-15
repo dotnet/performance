@@ -15,7 +15,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         {
             [Description("Path to Configuration.")]
             [CommandOption("-c|--configuration")]
-            public string? ConfigurationPath { get; init; }
+            public required string ConfigurationPath { get; init; }
         }
 
         public override int Execute([NotNull] CommandContext context, [NotNull] GCPerfSimAnalyzeSettings settings)
@@ -26,15 +26,16 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(GCPerfSimAnalyzeSettings));
             GCPerfSimConfiguration configuration = GCPerfSimConfigurationParser.Parse(settings.ConfigurationPath);
 
-            Core.Utilities.TryCreateDirectory(configuration.Output.Path);
+            Core.Utilities.TryCreateDirectory(configuration.Output!.Path);
 
+            // TODO: Fill in at least the repro steps if you are simply analyzing the results.
             ExecuteAnalysis(configuration, new Dictionary<string, ProcessExecutionDetails>());
             return 0;
         }
 
         public static IReadOnlyList<ComparisonResult> ExecuteAnalysis(GCPerfSimConfiguration configuration, Dictionary<string, ProcessExecutionDetails> executionDetails)
         {
-            string outputPath = Path.Combine(configuration.Output.Path, "Results.md");
+            string outputPath = Path.Combine(configuration.Output!.Path, "Results.md");
             IReadOnlyList<ComparisonResult> results = Markdown.GenerateTable(configuration, executionDetails, outputPath); 
             AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to {outputPath} [/]");
             return results;

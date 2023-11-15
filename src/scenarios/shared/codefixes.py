@@ -7,15 +7,16 @@ routines for fixing up code in templates
 '''
 
 from re import sub
+from typing import List
 
-def readfile(file: str) -> []:
-    ret = []
+def readfile(file: str) -> List[str]:
+    ret: List[str] = []
     with open(file, "r") as opened:
         for line in opened:
             ret.append(line)
     return ret
 
-def writefile(file: str, lines: []):
+def writefile(file: str, lines: List[str]):
     with open(file, "w") as opened:
         opened.writelines(lines)
 
@@ -29,7 +30,7 @@ def insert_after(file: str, search: str, insert: str):
     writefile(file, lines)
 
 def replace_line(file: str, search: str, replace: str):
-    lines = []
+    lines: List[str] = []
     for line in readfile(file):
         lines.append(sub(search, replace, line))
     writefile(file, lines)

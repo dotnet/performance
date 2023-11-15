@@ -26,7 +26,7 @@ namespace GC.Infrastructure.Core.Configurations
             // Parse configuration + Precondition checks.
             if (string.IsNullOrEmpty(configurationPath) || !File.Exists(configurationPath))
             {
-                throw new ArgumentNullException($"{prefix}: The provided path to yaml file {nameof(configurationPath)} is null or empty or doesn't exist.");
+                throw new ArgumentNullException($"{prefix}: The provided path to yaml file {nameof(configurationPath)} doesn't exist or is empty - please ensure you are passing in a valid .yaml file.");
             }
 
             if (Path.GetExtension(configurationPath) != ".yaml")

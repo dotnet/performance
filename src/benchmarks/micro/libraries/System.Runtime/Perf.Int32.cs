@@ -59,5 +59,11 @@ namespace System.Tests
         [ArgumentsSource(nameof(StringValuesDecimal))]
         public bool TryParseSpan(string value) => int.TryParse(value.AsSpan(), out _);
 #endif
+
+#if NET7_0_OR_GREATER
+        [Benchmark]
+        [Arguments(1, -1)]
+        public int CopySign(int value, int sign) => int.CopySign(value, sign);
+#endif
     }
 }

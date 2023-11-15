@@ -12,7 +12,7 @@ parameters:
 resources:
   containers:
     - container: ubuntu_x64_build_container
-      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04
 
 # CI Trigger on main branch
 trigger:
@@ -42,7 +42,7 @@ schedules:
   branches:
     include:
     - main
-    - release/7.0
+    #- release/7.0 #Removing release 7.0 while we wait for the queue to empty
   always: true
 - cron: "0 21 * * THU"
   displayName: Weekly Build
@@ -108,7 +108,7 @@ jobs:
       buildMachines:
         - win-x64
         - win-x86
-        - ubuntu-x64
+        - ubuntu-x64-1804
       isPublic: true
       jobParameters:
         kind: sdk_scenarios
@@ -264,6 +264,21 @@ jobs:
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
 
+  # Powershell benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: powershell
+        csproj: src\benchmarks\real-world\PowerShell.Benchmarks\PowerShell.Benchmarks.csproj
+        runCategories: 'Public'
+        channels:
+          - main
+
 ###########################################
 # Private Jobs
 ###########################################
@@ -319,9 +334,9 @@ jobs:
         kind: maui_scenarios_android
         projectFile: maui_scenarios_android.proj
         dotnetVersionsLinks:
-          main: https://aka.ms/dotnet/sdk/maui/net8.0.json
+          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
 
-  # Maui iOS scenario benchmarks
+  # Maui iOS Mono scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
@@ -332,7 +347,52 @@ jobs:
         kind: maui_scenarios_ios
         projectFile: maui_scenarios_ios.proj
         dotnetVersionsLinks:
-          main: https://aka.ms/dotnet/sdk/maui/net8.0.json
+          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
+        runtimeFlavor: mono
+
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_ios
+        projectFile: maui_scenarios_ios.proj
+        dotnetVersionsLinks:
+          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
+        runtimeFlavor: mono
+        hybridGlobalization: true
+        additionalJobIdentifier: 'HybridGlobalization_True'
+
+  # Maui iOS Native AOT scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_ios
+        projectFile: maui_scenarios_ios.proj
+        dotnetVersionsLinks:
+          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
+        runtimeFlavor: coreclr
+
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_ios
+        projectFile: maui_scenarios_ios.proj
+        dotnetVersionsLinks:
+          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
+        runtimeFlavor: coreclr
+        hybridGlobalization: true
+        additionalJobIdentifier: 'HybridGlobalization_True'
 
   ## Maui scenario benchmarks
   #- template: /eng/performance/build_machine_matrix.yml
@@ -379,7 +439,7 @@ jobs:
       buildMachines:
         - win-x64
         - win-x86
-        - ubuntu-x64
+        - ubuntu-x64-1804
       isPublic: false
       jobParameters:
         kind: sdk_scenarios
@@ -511,6 +571,23 @@ jobs:
         csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
         runCategories: 'illink'
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
+
+  # Powershell benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+        - ubuntu-arm64
+      isPublic: false
+      jobParameters:
+        kind: powershell
+        csproj: src\benchmarks\real-world\PowerShell.Benchmarks\PowerShell.Benchmarks.csproj
+        runCategories: 'Public Internal'
+        channels:
           - main
 
   # Secret Sync

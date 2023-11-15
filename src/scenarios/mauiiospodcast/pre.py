@@ -1,11 +1,12 @@
 '''
 pre-command
 '''
+import shutil
 import subprocess
 from performance.logger import setup_loggers, getLogger
 from shared.precommands import PreCommands
 from shared.mauisharedpython import remove_aab_files, install_versioned_maui
-from shared.versionmanager import versions_write_json, get_version_from_dll_powershell
+from shared.versionmanager import versions_write_json, get_version_from_dll_powershell_ios
 from shared import const
 
 setup_loggers(True)
@@ -19,6 +20,7 @@ subprocess.run(['powershell', '-Command', r'Remove-Item -Path .\\dotnet-podcasts
 precommands.existing(projectdir='./dotnet-podcasts', projectfile='./src/Mobile/Microsoft.NetConf2021.Maui.csproj')
 
 # Build the APK
+shutil.copy('./MauiNuGet.config', './app/Nuget.config')
 precommands.execute(['/p:_RequireCodeSigning=false', '/p:ApplicationId=net.dot.netconf2021.maui'])
 
 # Remove the aab files as we don't need them, this saves space
@@ -27,8 +29,9 @@ if precommands.output:
     output_dir = precommands.output
 remove_aab_files(output_dir)
 
+
 # Copy the MauiVersion to a file so we have it on the machine
-# maui_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Microsoft.Maui.dll")
-# version_dict = { "mauiVersion": maui_version }
-# versions_write_json(version_dict, rf"{output_dir}\versions.json")
-# print(f"Versions: {version_dict}")
+maui_version = get_version_from_dll_powershell_ios(rf"./{const.APPDIR}/src/Mobile/obj/Release/{precommands.framework}/ios-arm64/linked/Microsoft.Maui.dll")
+version_dict = { "mauiVersion": maui_version }
+versions_write_json(version_dict, rf"{output_dir}/versions.json")
+print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/src/Mobile/obj/Release/{precommands.framework}/ios-arm64/linked/Microsoft.Maui.dll")

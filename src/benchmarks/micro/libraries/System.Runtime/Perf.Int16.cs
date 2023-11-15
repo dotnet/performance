@@ -32,5 +32,11 @@ namespace System.Tests
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
         public string ToString(short value) => value.ToString();
+
+#if NET7_0_OR_GREATER
+        [Benchmark]
+        [Arguments(1, -1)]
+        public short CopySign(short value, short sign) => short.CopySign(value, sign);
+#endif
     }
 }

@@ -60,7 +60,7 @@ def setup_loggers(verbose: bool):
             timestamp, script_name, getpid())
         return path.join(log_dir, log_file_name)
 
-    def __get_console_handler(verbose: bool) -> StreamHandler:
+    def __get_console_handler(verbose: bool):
         console_handler = StreamHandler()
         level = INFO if verbose else WARNING
         console_handler.setLevel(level)

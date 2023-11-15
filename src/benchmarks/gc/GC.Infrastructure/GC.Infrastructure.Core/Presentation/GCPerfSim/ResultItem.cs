@@ -9,7 +9,9 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
             new ResultItem(runName, corerun);
 
         private ResultItem(string runName, string corerun) 
-        { 
+        {
+            ConfigurationName                         = corerun;
+            RunName                                   = runName;
             PctTimePausedInGC                         = double.NaN;
             FirstToLastGCSeconds                      = double.NaN;
             HeapSizeBeforeMB_Mean                     = double.NaN;
@@ -38,7 +40,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
         {
             RunName = runName;
             ConfigurationName = configurationName;
-            ExecutionTimeMSec = processData.DurationMSec;
+            ExecutionTimeMSec = processData.DurationMSec; 
 
             PctTimePausedInGC = processData.Stats.GetGCPauseTimePercentage();
             FirstToLastGCSeconds = ( processData.GCs.Last().StartRelativeMSec - processData.GCs.First().StartRelativeMSec ) / 1000;
@@ -54,7 +56,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 }
 
                 string propertyName = property.Name;
-                double propertyValue = (double)property.GetValue(processData.Stats);
+                double propertyValue = (double)(property.GetValue(processData.Stats) ?? double.NaN);
                 StatsData[propertyName] = propertyValue;
             }
 
@@ -67,7 +69,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 }
 
                 string name = field.Name;
-                double value = (double)field.GetValue(processData.Stats);
+                double value = (double)(field.GetValue(processData.Stats) ?? double.NaN);
                 StatsData[name] = value;
             }
 

@@ -25,3 +25,5 @@ The .NET Core SDK contains both the .NET Core runtime and CLI tools. .NET Perfor
 - [Downloads](https://github.com/dotnet/core-sdk#installers-and-binaries)
 
 Optionally, you could use [dotnet.py](../scripts/dotnet.py) to to download the DotNet Cli locally.
+
+**NOTE:** If you see strange build breaks, consider waiting a few hours for Maestro to flow updates to this repo. If that doesn't fix it, file an issue in dotnet/performance and consider emailing dotnetperf.

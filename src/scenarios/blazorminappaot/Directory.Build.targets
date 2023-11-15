@@ -1,21 +1,3 @@
 <Project>
- <Target Name="UpdateTargetingAndRuntimePack"
-         AfterTargets="ResolveFrameworkReferences"
-         Condition="Exists('$(HELIX_CORRELATION_PAYLOAD)/microsoft.netcore.app.ref')">
-    <PropertyGroup>
-        <MicrosoftNetCoreAppRefPackDir>$(HELIX_CORRELATION_PAYLOAD)/microsoft.netcore.app.ref</MicrosoftNetCoreAppRefPackDir>
-        <MicrosoftNetCoreAppRuntimePackDir>$(HELIX_CORRELATION_PAYLOAD)/microsoft.netcore.app.runtime.browser-wasm/$(Configuration)</MicrosoftNetCoreAppRuntimePackDir>
-    </PropertyGroup>
-    <ItemGroup>
-      <ResolvedTargetingPack Path="$(MicrosoftNetCoreAppRefPackDir.TrimEnd('/\'))"
-                             NuGetPackageVersion="$(ProductVersion)"
-                             PackageDirectory="$(MicrosoftNetCoreAppRefPackDir.TrimEnd('/\'))"
-                            />
-      <ResolvedRuntimePack PackageDirectory="$(MicrosoftNetCoreAppRuntimePackDir)"
-                            />
-      <ResolvedFrameworkReference TargetingPackPath="$(MicrosoftNetCoreAppRefPackDir.TrimEnd('/\'))"
-                                  TargetingPackVersion="$(ProductVersion)"
-                                   />
-    </ItemGroup>
-  </Target>
+  <Import Project="$(BuildCommonPath)\WasmOverridePacks.targets" Condition="'$(WasmNativeWorkload)' == 'true'" />
 </Project>

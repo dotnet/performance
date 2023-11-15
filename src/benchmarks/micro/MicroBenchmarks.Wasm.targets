@@ -28,4 +28,6 @@
   <Target Name="Validate" BeforeTargets="Build">
     <Error Text="Cannot find WasmMainJSPath: $(WasmMainJSPath)" Condition="'$(WasmMainJSPath)' == '' or !Exists('$(WasmMainJSPath)')" />
   </Target>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\scenarios\build-common\WasmOverridePacks.targets" />
 </Project>

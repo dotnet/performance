@@ -47,7 +47,6 @@ namespace GC.Infrastructure.Core.CommandBuilders
             return (processName, commandArgs);
         }
 
-        // TODO: FIX for the Linux side of things.
         public static (string, string) BuildForServer(GCPerfSimConfiguration configuration, KeyValuePair<string, Run> run, int iterationIdx, KeyValuePair<string, CoreRunInfo> corerunOverride, string serverName, OS os)
         {
             string processName = "crank";
@@ -81,7 +80,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
 
             // GCPerfSim Configurations.
             Dictionary<string, string> parameters = new();
-            foreach(var p in configuration.gcperfsim_configurations.Parameters)
+            foreach(var p in configuration.gcperfsim_configurations!.Parameters)
             {
                 parameters[p.Key] = p.Value;
             }
@@ -110,8 +109,6 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 collectionCommand = collectionCommand.Replace(" ", ";").Replace("/", "");
 
                 // Add specific commands.
-                // TODO: Removing these.
-
                 if (os == OS.Windows)
                 {
                     commandStringBuilder.Append(" --application.collect true ");
@@ -121,6 +118,11 @@ namespace GC.Infrastructure.Core.CommandBuilders
 
                 else
                 {
+                    if (!string.Equals(configuration.TraceConfigurations.Type, "gc", StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new ArgumentException($"{nameof(GCPerfSimCommandBuilder)}: Currently only GCCollectOnly traces are allowed for Linux.");
+                    }
+
                     commandStringBuilder.Append(" --application.dotnetTrace true ");
                     commandStringBuilder.Append(" --application.dotnetTraceProviders gc-collect ");
                 }
@@ -128,31 +130,19 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 commandStringBuilder.Append($" --application.framework net8.0 ");
 
                 // Add name of output.
-                string outputExtenstion = os == OS.Windows ? "etl.zip" : "nettrace";
-                commandStringBuilder.Append($" --application.options.traceOutput {Path.Combine(configuration.Output.Path, run.Key, run.Key + "." + corerunOverride.Key + "." +  iterationIdx + "." + collectType + "." + outputExtenstion)} ");
+                string extension = os == OS.Windows ? "etl.zip" : "nettrace";
+                commandStringBuilder.Append($" --application.options.traceOutput {Path.Combine(configuration.Output!.Path, run.Key, run.Key + "." + corerunOverride.Key + "." +  iterationIdx + "." + collectType + "." + extension)} ");
             }
 
             if (corerunOverride.Value.environment_variables != null)
             {
                 foreach (var env in corerunOverride.Value.environment_variables)
                 {
-                    if (os == OS.Windows)
-                    {
-                        commandStringBuilder.Append($" --application.environmentVariables {env.Key}={env.Value} ");
-                    }
+                    commandStringBuilder.Append($" --application.environmentVariables {env.Key}={env.Value} ");
                 }
             }
 
-            if (os == OS.Windows)
-            {
-               commandStringBuilder.Append($" --application.options.outputFiles {Path.Combine(Path.GetDirectoryName(corerunOverride.Value.Path), "*")}");
-            }
-
-            else
-            {
-                // TODO: Fix this..
-                commandStringBuilder.Append($" --application.options.outputFiles {Path.Combine(Path.GetDirectoryName(corerunOverride.Value.Path), "*")}");
-            }
+            commandStringBuilder.Append($" --application.options.outputFiles {Path.Combine(Path.GetDirectoryName(corerunOverride.Value.Path), "*")} ");
 
             commandStringBuilder.Append($" --profile {serverName} ");
             return (processName, commandStringBuilder.ToString());

@@ -17,6 +17,7 @@ DOTNETWATCH = "dotnetwatch"
 DEVICESTARTUP = "devicestartup"
 DEVICEMEMORYCONSUMPTION = "devicememoryconsumption"
 ANDROIDINSTRUMENTATION = "androidinstrumentation"
+DEVICEPOWERCONSUMPTION = "devicepowerconsumption"
 
 SCENARIO_NAMES = {STARTUP: 'Startup',
                   SDK: 'SDK',
@@ -52,5 +53,7 @@ STARTUP_CROSSGEN2 = "Crossgen2"
 STARTUP_DEVICETIMETOMAIN = "DeviceTimeToMain"
 
 MEMORYCONSUMPTION_ANDROID = "AndroidMemoryConsumption"
+
+POWERCONSUMPTION_ANDROID = "AndroidPowerConsumption"
 
 MINUTE = 60

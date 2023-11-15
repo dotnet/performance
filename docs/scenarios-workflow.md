@@ -17,6 +17,12 @@ This is a general guideline on how the scenario tests are arranged in this repo.
 ### Prerequisites
 
 - python3 or newer
+  - some of the scenarios require `requests` python module to be installed. To install the required module run:
+
+    ```bash
+    python3 -m pip install requests
+    ```
+
 - dotnet runtime 3.0 or newer
 - terminal/command prompt **in Admin Mode** (for collecting kernel traces)
 - clean state of the test machine (anti-virus scan is off and no other user program's running -- to minimize the influence of environment on the test)

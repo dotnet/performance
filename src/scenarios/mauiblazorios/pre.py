@@ -22,48 +22,24 @@ precommands.new(template='maui-blazor',
                 working_directory=sys.path[0],
                 no_restore=False)
 
-# Add the index.razor.cs file
-with open(f"{const.APPDIR}/Pages/Index.razor.cs", "w") as indexCSFile:
-    indexCSFile.write('''
-    using Microsoft.AspNetCore.Components;
-    #if ANDROID
-        using Android.App;
-    #endif\n\n''' 
-    + f"    namespace {EXENAME}.Pages" + 
+# Update the home.razor file with the code
+with open(f"{const.APPDIR}/Components/Pages/Home.razor", "a") as homeRazorFile:
+    homeRazorFile.write(
 '''
+@code {
+    protected override void OnAfterRender(bool firstRender)
     {
-        public partial class Index
+        if (firstRender)
         {
-            protected override void OnAfterRender(bool firstRender)
-            {
-                if (firstRender)
-                {
-                    #if ANDROID
-                        var activity = MainActivity.Context as Activity;
-                        activity.ReportFullyDrawn();
-                    #else
-                        System.Console.WriteLine(\"__MAUI_Blazor_WebView_OnAfterRender__\");
-                    #endif
-                }
-            }
+            System.Console.WriteLine("__MAUI_Blazor_WebView_OnAfterRender__");
         }
     }
+}
 ''')
 
-# Replace line in the Android MainActivity.cs file
-with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "r") as mainActivityFile:
-    mainActivityFileLines = mainActivityFile.readlines()
-
-with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "w") as mainActivityFile:
-    for line in mainActivityFileLines:
-        if line.startswith("{"):
-            mainActivityFile.write("{\npublic static Android.Content.Context Context { get; private set; }\npublic MainActivity() { Context = this; }")
-        else:
-            mainActivityFile.write(line)
-
-# Build the APK
-# NuGet.config file cannot be in the build directory currently due to https://github.com/dotnet/aspnetcore/issues/41397
-# shutil.copy('./MauiNuGet.config', './app/Nuget.config')
+# Build the IPA
+# NuGet.config file cannot be in the build directory due same cause as to https://github.com/dotnet/aspnetcore/issues/41397
+shutil.copy('./MauiNuGet.config', './Nuget.config')
 precommands.execute(['/p:_RequireCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting'])
 
 output_dir = const.PUBDIR
@@ -72,8 +48,8 @@ if precommands.output:
 remove_aab_files(output_dir)
 
 # Copy the MauiVersion to a file so we have it on the machine
-maui_version = get_version_from_dll_powershell_ios(rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/ipa/Payload/{EXENAME}.app/Microsoft.Maui.dll")
+maui_version = get_version_from_dll_powershell_ios(rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked/Microsoft.Maui.dll")
 version_dict = { "mauiVersion": maui_version }
 versions_write_json(version_dict, rf"{output_dir}/versions.json")
-print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/ipa/Payload/{EXENAME}.app/Microsoft.Maui.dll")
+print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked/Microsoft.Maui.dll")
 

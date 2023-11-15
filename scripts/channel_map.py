@@ -1,10 +1,15 @@
-from argparse import ArgumentParser
+from typing import List, Optional, Set
 
 class ChannelMap():
     channel_map = {
         'main': {
-            'tfm': 'net8.0',
-            'branch': '8.0',
+            'tfm': 'net9.0',
+            'branch': '9.0',
+            'quality': 'daily'
+        },
+        '9.0': {
+            'tfm': 'net9.0',
+            'branch': '9.0',
             'quality': 'daily'
         },
         '8.0': {
@@ -15,6 +20,16 @@ class ChannelMap():
         'release/8.0': {
             'tfm': 'net8.0',
             'branch': '8.0',
+            'quality': 'daily'
+        },
+        'release/8.0-rc2': {
+            'tfm': 'net8.0',
+            'branch': '8.0-rc2',
+            'quality': 'daily'
+        },
+        'release/8.0-rc1': {
+            'tfm': 'net8.0',
+            'branch': '8.0-rc1',
             'quality': 'daily'
         },
         '8.0-preview': {
@@ -133,12 +148,12 @@ class ChannelMap():
         }
     }
     @staticmethod
-    def get_supported_channels() -> list:
+    def get_supported_channels() -> List[str]:
         '''List of supported channels.'''
         return list(ChannelMap.channel_map.keys())
 
     @staticmethod
-    def get_supported_frameworks() -> list:
+    def get_supported_frameworks() -> Set[str]:
         '''List of supported frameworks'''
         frameworks = [ChannelMap.channel_map[channel]['tfm'] for channel in ChannelMap.channel_map]
         return set(frameworks)
@@ -151,7 +166,7 @@ class ChannelMap():
             raise Exception('Channel %s is not supported. Supported channels %s' % (channel, ChannelMap.get_supported_channels()))
 
     @staticmethod
-    def get_target_framework_monikers(channels: list) -> list:
+    def get_target_framework_monikers(channels: List[str]) -> List[str]:
         '''
         Translates channel names to Target Framework Monikers (TFMs).
         '''
@@ -172,7 +187,7 @@ class ChannelMap():
             raise Exception('Channel %s is not supported. Supported channels %s' % (channel, ChannelMap.get_supported_channels()))
 
     @staticmethod
-    def get_quality_from_channel(channel: str) -> str:
+    def get_quality_from_channel(channel: str) -> Optional[str]:
         '''Translate Target Framework Moniker (TFM) to channel name'''
         if 'quality' in ChannelMap.channel_map[channel]:
             return ChannelMap.channel_map[channel]['quality']

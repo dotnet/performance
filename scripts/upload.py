@@ -1,3 +1,5 @@
+from random import randint
+import uuid
 from azure.storage.blob import BlobClient, ContentSettings
 from azure.storage.queue import QueueClient, TextBase64EncodePolicy
 from azure.core.exceptions import ResourceExistsError
@@ -5,20 +7,17 @@ from traceback import format_exc
 from glob import glob
 from performance.common import retry_on_exception
 import os
-import time
 
 from logging import getLogger
 
-def get_unique_name(filename, unique_id) -> str:
-    newname = "{0}-{1}".format(unique_id,
-                                os.path.basename(filename))
+def get_unique_name(filename: str, unique_id: str) -> str:
+    newname = "{0}-{1}".format(unique_id, os.path.basename(filename))
     if len(newname) > 1024:
         newname = "{0}-perf-lab-report.json".format(randint(1000, 9999))
     return newname
 
-def upload(globpath, container, queue, sas_token_env, storage_account_uri):
+def upload(globpath: str, container: str, queue: str, sas_token_env: str, storage_account_uri: str):
     try:
-        sas_token_env = sas_token_env
         sas_token = os.getenv(sas_token_env)
         if sas_token is None:
             getLogger().error("Sas token environment variable {} was not defined.".format(sas_token_env))
@@ -27,7 +26,7 @@ def upload(globpath, container, queue, sas_token_env, storage_account_uri):
         files = glob(globpath, recursive=True)
         any_upload_or_queue_failed = False
         for infile in files:
-            blob_name = get_unique_name(infile, os.getenv('HELIX_WORKITEM_ID'))
+            blob_name = get_unique_name(infile, os.getenv('HELIX_WORKITEM_ID') or str(uuid.uuid4()))
 
             getLogger().info("uploading {}".format(infile))
 

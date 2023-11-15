@@ -1,8 +1,8 @@
-# Benchmarking workflow for [dotnet/runtime](https://github.com/dotnet/runtime) repository
+# Benchmarking workflow for [dotnet/runtime](https://github.com/dotnet/runtime) repository {#top}
 
 ## Table of Contents
 
-- [Benchmarking workflow for dotnet/runtime repository](#benchmarking-workflow-for-dotnetruntime-repository)
+- [Benchmarking workflow for dotnet/runtime repository](#top)
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
     - [Code Organization](#code-organization)

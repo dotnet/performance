@@ -1,4 +1,5 @@
 ﻿using GC.Infrastructure.Core.Analysis;
+using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.ASPNetBenchmarks;
 using GC.Infrastructure.Core.Presentation;
 using Spectre.Console;
@@ -14,50 +15,60 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
         public sealed class AspNetBenchmarkAnalyzeSettings : CommandSettings
         {
             [Description("Path to Configuration.")]
-            [CommandOption("-o|--output")]
-            public string? OutputPath { get; init; } = "";
-
-            [Description("Path to Baseline Json.")]
-            [CommandOption("-b|--baseline")]
-            public string? BaselineJson { get; init; }
-
-            [Description("Path to Comparand Json.")]
-            [CommandOption("-p|--comparand")]
-            public string? ComparandJson { get; init; }
+            [CommandOption("-c|--configuration")]
+            public string? ConfigurationPath { get; init; }
         }
 
         public override int Execute([NotNull] CommandContext context, [NotNull] AspNetBenchmarkAnalyzeSettings settings)
         {
-            string output = null;
-            using (Process crankCompareProcess = new())
+            AnsiConsole.Write(new Rule("ASP.NET Benchmarks Analyzer"));
+            AnsiConsole.WriteLine();
+
+            ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(AspNetBenchmarksCommand));
+            ASPNetBenchmarksConfiguration configuration = ASPNetBenchmarksConfigurationParser.Parse(settings.ConfigurationPath);
+            // Parse the CSV file for the information.
+            string[] lines = File.ReadAllLines(configuration.benchmark_settings.benchmark_file);
+            Dictionary<string, string> configurationToCommand = new(StringComparer.OrdinalIgnoreCase);
+            for (int lineIdx = 0; lineIdx < lines.Length; lineIdx++)
             {
-                crankCompareProcess.StartInfo.UseShellExecute = false;
-                crankCompareProcess.StartInfo.FileName = "crank";
-                crankCompareProcess.StartInfo.Arguments = $"compare {settings.BaselineJson} {settings.ComparandJson}";
-                crankCompareProcess.StartInfo.RedirectStandardOutput = true;
-                crankCompareProcess.StartInfo.RedirectStandardError = true;
-                crankCompareProcess.StartInfo.CreateNoWindow = true;
+                if (lineIdx == 0)
+                {
+                    continue;
+                }
 
-                // Grab the output and save it.
-                crankCompareProcess.Start();
-
-                output = crankCompareProcess.StandardOutput.ReadToEnd();
-                List<MetricResult> results = GetMetricResults(output, settings.OutputPath);
-
-                crankCompareProcess.WaitForExit();
+                string[] line = lines[lineIdx].Split(',', StringSplitOptions.TrimEntries);
+                Debug.Assert(line.Length == 2);
+                configurationToCommand[line[0]] = line[1];
             }
 
-            File.WriteAllText(Path.Combine(settings.OutputPath, "Results.md"), output);
+            Dictionary<string, List<MetricResult>> result = ExecuteAnalysis(configuration, configurationToCommand, new(), new());
+            if (result.Count == 0)
+            {
+                AnsiConsole.MarkupLine($"[bold green] No report generated since there were no results to compare. [/]");
+            }
+
+            else
+            {
+                AnsiConsole.MarkupLine($"[bold green] Report generated at: {Path.Combine(configuration.Output.Path, "Results.md")} [/]");
+            }
+
             return 0;
         }
 
-        public static Dictionary<string, List<MetricResult>> ExecuteAnalysis(ASPNetBenchmarksConfiguration configuration, Dictionary<string, string> configurationToCommand, Dictionary<string, ProcessExecutionDetails> executionDetails)
+        public static Dictionary<string, List<MetricResult>> ExecuteAnalysis(ASPNetBenchmarksConfiguration configuration, Dictionary<string, string> configurationToCommand, Dictionary<string, ProcessExecutionDetails> executionDetails, List<(string run, string benchmark, string reason)> retryDetails)
         {
             // Benchmark to Run to Path. 
             Dictionary<string, List<string>> benchmarkToRunToPaths = new();
 
+            bool singleRun = configuration.Runs!.Count == 1;
+            // Don't generate a report in case of a single report.
+            if (singleRun)
+            {
+                return new();
+            }
+
             // For each Run, grab the paths of each of the benchmarks.
-            string outputPath = configuration.Output.Path;
+            string outputPath = configuration.Output!.Path;
             foreach (var c in configuration.Runs)
             {
                 string runName = c.Key;
@@ -73,7 +84,6 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 }
             }
 
-            // Launch new process.
             Dictionary<string, string> benchmarkToComparisons = new();
             Dictionary<string, List<MetricResult>> metricResults = new();
 
@@ -93,7 +103,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                     crankCompareProcess.Start();
 
                     string output = crankCompareProcess.StandardOutput.ReadToEnd();
-                    crankCompareProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                    crankCompareProcess.WaitForExit((int)configuration.Environment!.default_max_seconds * 1000);
 
                     if (crankCompareProcess.ExitCode == 0)
                     {
@@ -111,20 +121,93 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
             using (StreamWriter sw = new StreamWriter(Path.Combine(configuration.Output.Path, "Results.md")))
             {
+                // Ignore the summary section in case there is only one run.
                 sw.WriteLine("# Summary");
 
-                var topLevelASP = new HashSet<string>(new List<string> { "Working Set (MB)", "Private Memory (MB)", "Requests/sec" });
-                sw.WriteLine($"|  | {string.Join("|", topLevelASP)}");
-                sw.WriteLine($"|--- | {string.Join( "", Enumerable.Repeat("---|", topLevelASP.Count ))}");
+                var topLevelSummarySet = new HashSet<string>(new List<string> { "Working Set (MB)", "Private Memory (MB)", "Requests/sec", "Mean Latency (MSec)", "Latency 50th (MSec)", "Latency 75th (MSec)", "Latency 90th (MSec)", "Latency 99th (MSec)" });
+                sw.WriteLine($"|  | {string.Join("|", topLevelSummarySet)}");
+                sw.WriteLine($"|--- | {string.Join( "", Enumerable.Repeat("---|", topLevelSummarySet.Count ))}");
 
                 foreach (var r in metricResults)
                 {
-                    double workingSet    = r.Value.FirstOrDefault(m => m.MetricName == "application_Working Set (MB)")?.DeltaPercent ?? double.NaN;
-                    double privateMemory = r.Value.FirstOrDefault(m => m.MetricName == "application_Private Memory (MB)")?.DeltaPercent ?? double.NaN;
-                    double rps           = r.Value.FirstOrDefault(m => m.MetricName == "load_Requests/sec")?.DeltaPercent ?? double.NaN;
+                    double workingSet = r.Value.FirstOrDefault(m => m.MetricName.Contains("Working Set (MB)") && m.MetricName.Contains("application"))?.DeltaPercent ?? double.NaN;
+                    workingSet = Math.Round(workingSet, 2);
+                    double privateMemory = r.Value.FirstOrDefault(m => m.MetricName.Contains("Private Memory (MB)") && m.MetricName.Contains("application"))?.DeltaPercent ?? double.NaN;
+                    privateMemory = Math.Round(privateMemory, 2);
 
-                    sw.WriteLine($"{r.Key} | {workingSet}% | {privateMemory}% | {rps}%");
+                    double rps = r.Value.FirstOrDefault(m => m.MetricName == "load_Requests/sec")?.DeltaPercent ?? double.NaN;
+                    rps = Math.Round(rps, 2);
+
+                    double meanLatency = r.Value.FirstOrDefault(m => m.MetricName.Contains("load_Mean latency"))?.DeltaPercent ?? double.NaN;
+                    meanLatency = Math.Round(meanLatency, 2);
+
+                    double latency50 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 50th (ms)")?.DeltaPercent ?? double.NaN;
+                    latency50 = Math.Round(latency50, 2);
+
+                    double latency75 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 75th (ms)")?.DeltaPercent ?? double.NaN;
+                    latency75 = Math.Round(latency75, 2);
+
+                    double latency90 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 90th (ms)")?.DeltaPercent ?? double.NaN;
+                    latency90 = Math.Round(latency90, 2);
+
+                    double latency99 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 99th (ms)")?.DeltaPercent ?? double.NaN;
+                    latency99 = Math.Round(latency99, 2);
+
+                    sw.WriteLine($"{r.Key} | {workingSet}% | {privateMemory}% | {rps}% | {meanLatency}% | {latency50}% | {latency75}% | {latency90}% | {latency99}% |");
                 }
+
+                sw.WriteLine("# Retry Notes");
+                foreach (var retryDetail in retryDetails)
+                {
+                    sw.WriteLine($" - {retryDetail.run} for {retryDetail.benchmark} failed as {retryDetail.reason}.");
+                }
+
+                // Best way to deep-copy a configuration is to serialize and then deserialize.
+                string configurationSerialized =  Common.Serializer.Serialize(configuration);
+
+                // We want to be able to rerun the failed tests in an easy manner. For this, we take any failed runs and create a 
+                // new configuration based on the run configuration and then add these failed runs to filter on.
+                // The process of creating a deep copy of the old configuration involves serializing and deserializing the current configuration.
+                // We then iterate over all the failed runs, add them as items in the benchmark filters and persist the new configuration in the output path.
+                List<KeyValuePair<string, ProcessExecutionDetails>> failedRuns = executionDetails.Where(exec => exec.Value.HasFailed).ToList();
+                
+                // This path is only valid if we have failed runs.
+                if (failedRuns.Count > 0)
+                { 
+                    try
+                    {
+                        configuration = Common.Deserializer.Deserialize<ASPNetBenchmarksConfiguration>(configurationSerialized);
+                        Debug.Assert(configuration.benchmark_settings!.benchmarkFilters != null);
+
+                        // Iterate over the failed runs.
+                        foreach (var failureKvp in failedRuns)
+                        {
+                            // Extract the benchmark.
+                            string? failedBenchmark = AspNetBenchmarksCommand.ExtractBenchmarkFromKey(failureKvp.Key);
+                            if (string.IsNullOrEmpty(failedBenchmark))
+                            {
+                                continue;
+                            }
+
+                            configuration.benchmark_settings.benchmarkFilters.Add(failedBenchmark);
+                        }
+
+                        // Persist the new configuration in the output path.
+                        string reserializedConfiguration = Common.Serializer.Serialize(configuration);
+                        string failureOutputPath = Path.Combine(outputPath, $"{configuration.Name}_Failed.yaml");
+                        File.WriteAllText(failureOutputPath, reserializedConfiguration);
+
+                        sw.WriteLine($"\n Note: A new configuration yaml file with the failures are added: {failureOutputPath}. Simply reinvoke the 'aspnetbenchmark' command with the new configuration.");
+                        AnsiConsole.MarkupLine($"[green bold] A new configuration yaml file with the failures are added: {Markup.Escape(failureOutputPath)}. Simply reinvoke the 'aspnetbenchmark' command with the new configuration. [/]");
+                    }
+
+                    catch (Exception ex)
+                    {
+                        // Don't throw an exception since the analysis must go on. 
+                        AnsiConsole.MarkupLine($"[red bold] {nameof(AspNetBenchmarksAnalyzeCommand)}: Unable to persist a new configuration with the failed runs. Reason: {Markup.Escape(ex.Message)} Call Stack: {Markup.Escape(ex.StackTrace)} [/]");
+                    }
+                }
+                sw.WriteLine();
 
                 sw.AddIncompleteTestsSection(executionDetails);
 
@@ -132,7 +215,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
                 foreach (var benchmark in benchmarkToComparisons)
                 {
-                    sw.WriteLine($"- [{benchmark.Key}](##{benchmark.Key})");
+                    sw.WriteLine($"- [{benchmark.Key}](#{benchmark.Key.ToLower().Replace(" ", "-")})");
                 }
 
                 sw.WriteLine();
@@ -163,9 +246,9 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             {
                 // Split the two tables by "\r\n\r"
                 string[] splitTables = output.Split("\r\n\r", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                string applicationResults = splitTables[0];
+                string applicationResults = splitTables.FirstOrDefault(a => a.Contains("application"));
                 results.AddRange(GetMetricResultsFromTable(applicationResults, "application", configuration));
-                string loadResults = splitTables[1];
+                string loadResults = splitTables.FirstOrDefault(a => a.Contains("load"));
                 results.AddRange(GetMetricResultsFromTable(loadResults, "load", configuration));
             }
 
@@ -179,6 +262,11 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
         internal static List<MetricResult> GetMetricResultsFromTable(string table, string tableName, string configuration)
         {
+            if (string.IsNullOrEmpty(table))
+            {
+                return new();
+            }
+
             string[] resultsLineSplit = table.Split("\n", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             List<MetricResult> results = new();
             string[] firstLineSplit = resultsLineSplit[0].Split("|", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);

@@ -21,6 +21,7 @@ class TestTraits:
         self.guiapp = ''
         self.startupmetric = ''
         self.memoryconsumptionmetric = ''
+        self.powerconsumptionmetric = ''
         self.appargs = ''
         self.iterations = ''
         self.timeout = ''

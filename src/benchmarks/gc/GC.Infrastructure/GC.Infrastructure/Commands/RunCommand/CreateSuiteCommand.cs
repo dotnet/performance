@@ -13,7 +13,9 @@ namespace GC.Infrastructure.Commands.RunCommand
     public sealed class CreateSuitesCommand : Command<CreateSuitesCommand.CreateSuitesSettings>
     {
         private static readonly string _baseSuitePath      = Path.Combine("Commands", "RunCommand", "BaseSuite"); 
-        private static readonly string _gcPerfSimBase      = Path.Combine(_baseSuitePath, "GCPerfSim_Normal_Workstation.yaml");
+        // Removed the high volatility configuration.  
+        //private static readonly string _gcPerfSimBase      = Path.Combine(_baseSuitePath, "GCPerfSim_Normal_Workstation.yaml");
+        private static readonly string _gcPerfSimBaseLowVolatility = Path.Combine(_baseSuitePath, "LowVolatilityRuns.yaml");
         private static readonly string _microbenchmarkBase = Path.Combine(_baseSuitePath, "Microbenchmarks.yaml");
         private static readonly string _aspNetBase         = Path.Combine(_baseSuitePath, "ASPNetBenchmarks.yaml");
         private static readonly ISerializer _serializer    = Common.Serializer;
@@ -117,11 +119,27 @@ namespace GC.Infrastructure.Commands.RunCommand
 
             foreach (var r in inputConfiguration.coreruns)
             {
-                configuration.Runs.Add(r.Key, new Core.Configurations.ASPNetBenchmarks.Run
+                Core.Configurations.ASPNetBenchmarks.Run run = new Core.Configurations.ASPNetBenchmarks.Run()
                 {
-                    corerun = r.Value.Path,
-                    environment_variables = r.Value.environment_variables,
-                });
+                    environment_variables = r.Value.environment_variables
+                };
+
+                run.corerun = r.Value.Path;
+
+                // If just the GCName env var is passed, use that as the "corerun" - the corerun in the context of
+                // ASPNET benchmarks is any file that gets uploaded to the servers
+                foreach (var envVars in r.Value.environment_variables)
+                {
+                    if (string.CompareOrdinal(envVars.Key, "COMPlus_GCName") == 0 ||
+                        string.CompareOrdinal(envVars.Key, "DOTNET_GCName") == 0 )
+                    {
+                        string directoryOfCorerun = Path.GetDirectoryName(r.Value.Path)!;
+                        run.corerun = Path.Combine(directoryOfCorerun, envVars.Value);
+                        break;
+                    }
+                }
+
+                configuration.Runs[r.Key] = run;
             }
 
             // Add benchmark_file.
@@ -236,14 +254,18 @@ namespace GC.Infrastructure.Commands.RunCommand
 
             string gcPerfSimOutputPath = Path.Combine(inputConfiguration.output_path, "GCPerfSim");
             Core.Utilities.TryCreateDirectory(gcPerfSimOutputPath);
+            SaveConfiguration(GetBaseConfiguration(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "LowVolatilityRun")), gcPerfSimSuitePath, "LowVolatilityRun.yaml");
 
             // Base Configuration = Workstation.
+            /*
+            These old configurations are commented out because of high volatility in results.
             SaveConfiguration(GetBaseConfiguration(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "Normal_Workstation")), gcPerfSimSuitePath, "Normal_Workstation.yaml");
             SaveConfiguration(CreateNormalServerCase(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "Normal_Server")), gcPerfSimSuitePath, "Normal_Server.yaml");
             SaveConfiguration(CreateLargePagesWithWorkstation(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "LargePages_Workstation")), gcPerfSimSuitePath, "LargePages_Workstation.yaml");
             SaveConfiguration(CreateLargePagesWithServer(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "LargePages_Server")), gcPerfSimSuitePath, "LargePages_Server.yaml");
             SaveConfiguration(CreateHighMemoryCase(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "HighMemory")), gcPerfSimSuitePath, "HighMemory.yaml");
             SaveConfiguration(CreateLowMemoryContainerCase(inputConfiguration, Path.Combine(gcPerfSimOutputPath, "LowMemoryContainer")), gcPerfSimSuitePath, "LowMemoryContainer.yaml");
+            */
 
             return gcPerfSimSuitePath;
         }
@@ -256,7 +278,7 @@ namespace GC.Infrastructure.Commands.RunCommand
 
         internal static GCPerfSimConfiguration GetBaseConfiguration(InputConfiguration inputConfiguration, string name)
         {
-            GCPerfSimConfiguration baseConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBase);
+            GCPerfSimConfiguration baseConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBaseLowVolatility, isIncompleteConfiguration: true);
             baseConfiguration.Output.Path = Path.Combine(inputConfiguration.output_path, name); 
             baseConfiguration.TraceConfigurations.Type = inputConfiguration.trace_configuration_type.ToLower();
             baseConfiguration.gcperfsim_configurations.gcperfsim_path = inputConfiguration.gcperfsim_path;
@@ -269,6 +291,9 @@ namespace GC.Infrastructure.Commands.RunCommand
             {
                 baseConfiguration.Environment.environment_variables = inputConfiguration.environment_variables;
             }
+            int logicalProcessors = GetAppropriateLogicalProcessors();
+            baseConfiguration.Environment.environment_variables["DOTNET_GCHeapCount"] = logicalProcessors.ToString("X");
+            baseConfiguration.gcperfsim_configurations.Parameters["tc"] = (2 * logicalProcessors).ToString();
 
             return baseConfiguration;
         }
@@ -362,7 +387,8 @@ namespace GC.Infrastructure.Commands.RunCommand
         {
             GCPerfSimConfiguration largePagesServer = CreateNormalServerCase(inputConfiguration, name);
             largePagesServer.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
-            largePagesServer.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x100000000";
+            // This is a particularly memory intensive test that needs to be revisited. (~40 GB needed)
+            largePagesServer.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x960000000";
             largePagesServer.Name = name;
             return largePagesServer;
         }
@@ -371,7 +397,8 @@ namespace GC.Infrastructure.Commands.RunCommand
         {
             GCPerfSimConfiguration largePagesWorkstation = GetBaseConfiguration(inputConfiguration, name);
             largePagesWorkstation.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
-            largePagesWorkstation.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x100000000";
+            // This is a particularly memory intensive test that needs to be revisited. (~40 GB needed)
+            largePagesWorkstation.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x960000000";
             largePagesWorkstation.Name = name;
             return largePagesWorkstation;
         }

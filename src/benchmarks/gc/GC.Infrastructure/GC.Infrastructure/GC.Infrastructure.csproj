@@ -38,6 +38,9 @@
     <None Update="Commands\RunCommand\BaseSuite\ASPNetBenchmarks - All.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Commands\RunCommand\BaseSuite\LowVolatilityRuns.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Commands\RunCommand\BaseSuite\MicrobenchmarkInvocationCounts.psv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -60,6 +63,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Commands\RunCommand\BaseSuite\MicrobenchmarksToRun.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Commands\RunCommand\BaseSuite\PercentileBasedMetricsConfiguration.yml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
