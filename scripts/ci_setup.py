@@ -79,6 +79,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         const='nor2r'
     )
     parser.add_argument(
+        '--experiment-name',
+        dest='experiment_name',
+        required=False,
+        type=str
+    )
+    parser.add_argument(
         '--branch',
         dest='branch',
         required=False,
@@ -303,7 +309,8 @@ class CiSetupArgs:
             run_env_vars: Optional[List[str]] = None,
             target_windows: bool = True,
             physical_promotion_status: Optional[str] = None,
-            r2r_status: Optional[str] = None):
+            r2r_status: Optional[str] = None,
+            experiment_name: Optional[str] = None):
         self.channel = channel
         self.quiet = quiet
         self.commit_sha = commit_sha
@@ -331,6 +338,7 @@ class CiSetupArgs:
         self.target_windows = target_windows
         self.physical_promotion_status = physical_promotion_status
         self.r2r_status = r2r_status
+        self.experiment_name = experiment_name
 
 def main(args: Any):
     verbose = not args.quiet
@@ -386,6 +394,7 @@ def main(args: Any):
     pgo_config = ''
     physical_promotion_config = ''
     r2r_config = ''
+    experiment_config = ''
     showenv = 'set' if args.target_windows else 'printenv'
 
     if args.pgo_status == 'nodynamicpgo':
@@ -451,6 +460,7 @@ def main(args: Any):
             out_file.write(pgo_config)
             out_file.write(physical_promotion_config)
             out_file.write(r2r_config)
+            out_file.write(experiment_config)
             out_file.write(variable_format % ('PERFLAB_INLAB', '0' if args.not_in_lab else '1'))
             out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
             out_file.write(variable_format % ('PERFLAB_BRANCH', branch))

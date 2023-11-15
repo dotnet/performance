@@ -45,6 +45,7 @@ class PerformanceSetupArgs:
     no_dynamic_pgo: bool = False
     physical_promotion: bool = False
     no_r2r: bool = False
+    experiment_name: str | None = None
     ios_llvm_build: bool = False
     ios_strip_symbols: bool = False
     maui_version: str | None = None
@@ -197,6 +198,9 @@ def run(args: PerformanceSetupArgs):
     if args.no_r2r:
         args.configurations["R2RType"] = "nor2r"
 
+    if args.experiment_name:
+        args.configurations["ExperimentName"] = args.experiment_name
+
     runtime_type = ""
 
     if args.ios_mono:
@@ -291,6 +295,8 @@ def run(args: PerformanceSetupArgs):
 
     if args.no_r2r:
         setup_arguments.r2r_status = "nor2r"
+
+    setup_arguments.experiment_name = args.experiment_name
 
     if args.mono_aot:
         if args.mono_aot_path is None:
