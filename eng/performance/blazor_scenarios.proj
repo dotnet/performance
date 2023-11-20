@@ -85,10 +85,10 @@
     </HelixWorkItem>
 
     <HelixWorkItem Include="SOD - Localized App - Publish - AOT"> 
-      <_PublishCommandAOT>--msbuild &quot;$(_MSBuildArgs);/p:RunAOTCompilation=true&quot;</_PublishCommandAOT>
+      <_PublishArgsWithAOT>--msbuild &quot;$(_MSBuildArgs);/p:RunAOTCompilation=true&quot;</_PublishArgsWithAOT>
       <PayloadDirectory>$(ScenariosDir)blazorlocalized</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <Command>$(_PublishCommandAOT) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(PublishCommand) $(_PublishArgsWithAOT) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
   <Import Project="PreparePayloadWorkItems.targets" />
