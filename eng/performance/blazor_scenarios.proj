@@ -7,7 +7,7 @@
     <PerfLabTargetFrameworksEnvVar Condition="'$(TargetsWindows)' == 'true'">%PERFLAB_TARGET_FRAMEWORKS%</PerfLabTargetFrameworksEnvVar>
     <PerfLabTargetFrameworksEnvVar Condition="'$(TargetsWindows)' != 'true'">%24{PERFLAB_TARGET_FRAMEWORKS}</PerfLabTargetFrameworksEnvVar>
     <_MSBuildArgs>/p:_TrimmerDumpDependencies=true;/warnaserror:NU1602,NU1604</_MSBuildArgs>
-    <PublishArgs>--msbuild &quot;%24(_MSBuildArgs)&quot; --msbuild-static AdditionalMonoLinkerOptions=%27&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;%27 --binlog $(LogDirectory)blazor_publish.binlog</PublishArgs>
+    <PublishArgs>--msbuild &quot;$(_MSBuildArgs)&quot; --msbuild-static AdditionalMonoLinkerOptions=%27&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;%27 --binlog $(LogDirectory)blazor_publish.binlog</PublishArgs>
     <PublishCommand>$(Python) pre.py publish $(PublishArgs)</PublishCommand>
 
     <PizzaAppPubLocation Condition="'$(TargetsWindows)' == 'true'">pub\wwwroot</PizzaAppPubLocation>
