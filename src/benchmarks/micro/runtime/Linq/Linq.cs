@@ -434,33 +434,33 @@ public class LinqBenchmarks
     public bool AggregateBy00LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
-        int sum = 0;
+        decimal sum = 0;
         for (int i = 0; i < IterationsAggregateBy00; i++)
         {
             sum += products
-                .AggregateBy(p => p.Category, 0, (total, p) => total + p.UnitsInStock * p.UnitPrice)
-                .Sum();
+                .AggregateBy(p => p.Category, decimal.Zero, (total, p) => total + p.UnitsInStock * p.UnitPrice)
+                .Sum(kvp => kvp.Value);
         }
 
         return (sum == 5 * IterationsAggregateBy00);
     }
+#endif
 
     [Benchmark]
     public bool AggregateBy00GroupByX()
     {
         List<Product> products = Product.GetProductList();
-        int count = 0;
+        decimal count = 0;
         for (int i = 0; i < IterationsAggregateBy00; i++)
         {
             count += products
                 .GroupBy(p => p.Category)
-                .ToDictionary(c => c, g => g.Aggregate(0, (total, p) => total + p.UnitsInStock * p.UnitPrice)
-                .Sum();
+                .ToDictionary(c => c, g => g.Aggregate(decimal.Zero, (total, p) => total + p.UnitsInStock * p.UnitPrice))
+                .Sum(kvp => kvp.Value);
         }
 
         return (count == 5 * IterationsAggregateBy00);
     }
-#endif
 
     #endregion
 
@@ -490,7 +490,7 @@ public class LinqBenchmarks
         for (int i = 0; i < IterationsGroupBy00; i++)
         {
             count += products
-                .AggregateBy(p => p.Category, _ => new List<string>(), (group, element) => { group.Add(element); return group;})
+                .AggregateBy(p => p.Category, _ => new List<Product>(), (group, element) => { group.Add(element); return group;})
                 .Count();
         }
 
