@@ -6,7 +6,8 @@
 
     <PerfLabTargetFrameworksEnvVar Condition="'$(TargetsWindows)' == 'true'">%PERFLAB_TARGET_FRAMEWORKS%</PerfLabTargetFrameworksEnvVar>
     <PerfLabTargetFrameworksEnvVar Condition="'$(TargetsWindows)' != 'true'">%24{PERFLAB_TARGET_FRAMEWORKS}</PerfLabTargetFrameworksEnvVar>
-    <PublishArgs>--msbuild "/p:_TrimmerDumpDependencies=true" --msbuild /warnaserror:NU1602,NU1604 --msbuild-static AdditionalMonoLinkerOptions=%27&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;%27 --binlog $(LogDirectory)blazor_publish.binlog</PublishArgs>
+    <_MSBuildArgs>/p:_TrimmerDumpDependencies=true;/warnaserror:NU1602,NU1604</_MSBuildArgs>
+    <PublishArgs>--msbuild &quot;$(_MSBuildArgs)&quot; --msbuild-static AdditionalMonoLinkerOptions=%27&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;%27 --binlog $(LogDirectory)blazor_publish.binlog</PublishArgs>
     <PublishCommand>$(Python) pre.py publish $(PublishArgs)</PublishCommand>
 
     <PizzaAppPubLocation Condition="'$(TargetsWindows)' == 'true'">pub\wwwroot</PizzaAppPubLocation>
@@ -75,6 +76,19 @@
       <PayloadDirectory>$(ScenariosDir)blazorpizzaaot</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
       <Command>$(PublishCommand) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation)</Command>
+    </HelixWorkItem>
+        
+    <HelixWorkItem Include="SOD - Localized App - Publish">
+      <PayloadDirectory>$(ScenariosDir)blazorlocalized</PayloadDirectory>
+      <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
+      <Command>$(PublishCommand) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation)</Command>
+    </HelixWorkItem>
+
+    <HelixWorkItem Include="SOD - Localized App - Publish - AOT"> 
+      <_PublishArgsWithAOT>--msbuild &quot;$(_MSBuildArgs);/p:RunAOTCompilation=true&quot;</_PublishArgsWithAOT>
+      <PayloadDirectory>$(ScenariosDir)blazorlocalized</PayloadDirectory>
+      <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
+      <Command>$(PublishCommand) $(_PublishArgsWithAOT) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation)</Command>
     </HelixWorkItem>
   </ItemGroup>
   <Import Project="PreparePayloadWorkItems.targets" />
