@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>exe</OutputType>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
+		<TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net9.0</TargetFrameworks>
 		<PublishTrimmed>false</PublishTrimmed>
 		<TrimMode>partial</TrimMode>
 		<SelfContained>true</SelfContained>

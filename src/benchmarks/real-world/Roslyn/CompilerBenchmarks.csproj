@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net7.0</TargetFrameworks>
+    <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net9.0</TargetFrameworks>
     <IsShipping>false</IsShipping>
     <!-- this app is using internal Roslyn API and needs to be signed -->
