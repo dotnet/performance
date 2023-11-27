@@ -23,10 +23,6 @@
       <ScenarioDirectoryName>staticfsconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
-    <!-- <Scenario Include="Static Winforms Template" Condition="'$(PERFLAB_Framework)' != 'netcoreapp5.0'">
-      <ScenarioDirectoryName>staticwinformstemplate</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-    </Scenario> -->
     <Scenario Include="New Console Template">
       <ScenarioDirectoryName>emptyconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
@@ -35,6 +31,10 @@
       <ScenarioDirectoryName>emptyvbconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
+    <UIScenario Include="Static Winforms Template" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT'">
+      <ScenarioDirectoryName>staticwinformstemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </UIScenario>
     <UIScenario Include="WinForms Large" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT'">
       <ScenarioDirectoryName>windowsformslarge</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
