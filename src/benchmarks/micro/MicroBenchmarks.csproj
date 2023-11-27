@@ -39,7 +39,7 @@
     </When>
     <When Condition="'$(TargetFramework)' == 'net8.0'">
         <PropertyGroup>
-            <LangVersion>preview</LangVersion>
+            <LangVersion>12.0</LangVersion>
             <ExtensionsVersion>8.0.0</ExtensionsVersion>
             <SystemVersion>8.0.0</SystemVersion>
         </PropertyGroup>
