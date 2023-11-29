@@ -118,7 +118,10 @@ public class LinqBenchmarks
     public const int IterationsWhere01 = 250000;
     public const int IterationsCount00 = 1000000;
     public const int IterationsOrder00 = 25000;
-    
+    public const int IterationsCountBy00 = 1000000;
+    public const int IterationsAggregateBy00 = 1000000;
+    public const int IterationsGroupBy00 = 1000000;
+
     #region Where00
 
     [Benchmark]
@@ -355,5 +358,145 @@ public class LinqBenchmarks
 
         return (medianPricedProduct.ProductID == 57);
     }
+    #endregion
+
+    #region CountBy00
+
+#if NET9_0_OR_GREATER
+    [Benchmark]
+    public bool CountBy00LinqMethodX()
+    {
+        List<Product> products = Product.GetProductList();
+        int count = 0;
+        for (int i = 0; i < IterationsCountBy00; i++)
+        {
+            count += products
+                .CountBy(p => p.Category)
+                .Count();
+        }
+
+        return (count == 5 * IterationsCountBy00);
+    }
+
+    [Benchmark]
+    public bool CountBy00AggregateByX()
+    {
+        List<Product> products = Product.GetProductList();
+        int count = 0;
+        for (int i = 0; i < IterationsCountBy00; i++)
+        {
+            count += products
+                .AggregateBy(p => p.Category, 0, (count, _) => ++count)
+                .Count();
+        }
+
+        return (count == 5 * IterationsCountBy00);
+    }
+#endif
+
+    [Benchmark]
+    public bool CountBy00GroupByX()
+    {
+        List<Product> products = Product.GetProductList();
+        int count = 0;
+        for (int i = 0; i < IterationsCountBy00; i++)
+        {
+            count += products
+                .GroupBy(p => p.Category)
+                .ToDictionary(c => c, g => g.Count())
+                .Count();
+        }
+
+        return (count == 5 * IterationsCountBy00);
+    }
+
+    [Benchmark]
+    public bool CountBy00LookupX()
+    {
+        List<Product> products = Product.GetProductList();
+        int count = 0;
+        for (int i = 0; i < IterationsCountBy00; i++)
+        {
+            count += products
+                .ToLookup(p => p.Category)
+                .ToDictionary(c => c, g => g.Count())
+                .Count();
+        }
+
+        return (count == 5 * IterationsCountBy00);
+    }
+    #endregion
+
+    #region AggregateBy00
+
+#if NET9_0_OR_GREATER
+    [Benchmark]
+    public bool AggregateBy00LinqMethodX()
+    {
+        List<Product> products = Product.GetProductList();
+        decimal sum = 0;
+        for (int i = 0; i < IterationsAggregateBy00; i++)
+        {
+            sum += products
+                .AggregateBy(p => p.Category, decimal.Zero, (total, p) => total + p.UnitsInStock * p.UnitPrice)
+                .Sum(kvp => kvp.Value);
+        }
+
+        return (sum == 5 * IterationsAggregateBy00);
+    }
+#endif
+
+    [Benchmark]
+    public bool AggregateBy00GroupByX()
+    {
+        List<Product> products = Product.GetProductList();
+        decimal count = 0;
+        for (int i = 0; i < IterationsAggregateBy00; i++)
+        {
+            count += products
+                .GroupBy(p => p.Category)
+                .ToDictionary(c => c, g => g.Aggregate(decimal.Zero, (total, p) => total + p.UnitsInStock * p.UnitPrice))
+                .Sum(kvp => kvp.Value);
+        }
+
+        return (count == 5 * IterationsAggregateBy00);
+    }
+
+    #endregion
+
+    #region GroupBy00
+
+    [Benchmark]
+    public bool GroupBy00LinqMethodX()
+    {
+        List<Product> products = Product.GetProductList();
+        int count = 0;
+        for (int i = 0; i < IterationsGroupBy00; i++)
+        {
+            count += products
+                .GroupBy(p => p.Category)
+                .Count();
+        }
+
+        return (count == 5 * IterationsGroupBy00);
+    }
+
+#if NET9_0_OR_GREATER
+    [Benchmark]
+    public bool GroupBy00AggregateByX()
+    {
+        List<Product> products = Product.GetProductList();
+        int count = 0;
+        for (int i = 0; i < IterationsGroupBy00; i++)
+        {
+            count += products
+                .AggregateBy(p => p.Category, _ => new List<Product>(), (group, element) => { group.Add(element); return group;})
+                .Count();
+        }
+
+        return (count == 5 * IterationsGroupBy00);
+    }
+#endif
+
     #endregion
 }
