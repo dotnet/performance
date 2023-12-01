@@ -33,26 +33,26 @@
       <ApkName>com.companyname.mauiandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.mauiandroiddefault</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include=".NET Android Default">
+    <!-- <MAUIAndroidScenario Include=".NET Android Default">
       <ScenarioDirectoryName>netandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.netandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.NetAndroidDefault</PackageName>
     </MAUIAndroidScenario>
-    <!-- MessagingCenter was removed: https://github.com/dotnet/maui/pull/12582, needs to be replaced likely with something like: https://github.com/dotnet/maui/commit/762e07e04d1fdf8fca3edd948bab294c8762cd2c -->
-    <!-- <MAUIAndroidScenario Include="Maui Android Podcast">
+    <!-1- MessagingCenter was removed: https://github.com/dotnet/maui/pull/12582, needs to be replaced likely with something like: https://github.com/dotnet/maui/commit/762e07e04d1fdf8fca3edd948bab294c8762cd2c -1->
+    <!-1- <MAUIAndroidScenario Include="Maui Android Podcast">
       <ScenarioDirectoryName>mauiandroidpodcast</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.Microsoft.NetConf2021.Maui-Signed</ApkName>
       <PackageName>com.Microsoft.NetConf2021.Maui</PackageName>
-    </MAUIAndroidScenario> -->
+    </MAUIAndroidScenario> -1->
     <MAUIAndroidScenario Include="Maui Blazor Android Default">
       <ScenarioDirectoryName>mauiblazorandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiblazorandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.mauiblazorandroiddefault</PackageName>
-      <StartupAdditionalArguments>--use-fully-drawn-time</StartupAdditionalArguments>
-    </MAUIAndroidScenario>
+      <StartupAdditionalArguments>-1-use-fully-drawn-time</StartupAdditionalArguments>
+    </MAUIAndroidScenario> -->
   </ItemGroup>
 
 
@@ -70,18 +70,18 @@
       <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) Extracted Size')">
+    <!-- <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) Extracted Size')">
       <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y; ren %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).apk %(HelixWorkItem.ApkName).zip; powershell.exe -nologo -noprofile -command "&amp; {Expand-Archive %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip -DestinationPath %HELIX_WORKITEM_ROOT%\pub\}"; del %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py sod -1-scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity)')">
       <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
-      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; %(HelixWorkItem.StartupAdditionalArguments)</Command>
+      <Command>$(Python) test.py devicestartup -1-device-type android -1-package-path pub\%(HelixWorkItem.ApkName).apk -1-package-name %(HelixWorkItem.PackageName) -1-scenario-name &quot;%(Identity)&quot; %(HelixWorkItem.StartupAdditionalArguments)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity) NoAnimation')">
       <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
-      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --disable-animations %(HelixWorkItem.StartupAdditionalArguments)</Command>
-    </HelixWorkItem>
+      <Command>$(Python) test.py devicestartup -1-device-type android -1-package-path pub\%(HelixWorkItem.ApkName).apk -1-package-name %(HelixWorkItem.PackageName) -1-scenario-name &quot;%(Identity)&quot; -1-disable-animations %(HelixWorkItem.StartupAdditionalArguments)</Command>
+    </HelixWorkItem> -->
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Memory Consumption - %(Identity)')" Condition="!$('$(HelixTargetQueue)'.ToLowerInvarient().Contains('galaxy'))">
       <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
       <Command>$(Python) test.py devicememoryconsumption --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --runtime 30 --test-iteration 2</Command>
