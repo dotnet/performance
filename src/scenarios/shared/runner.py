@@ -370,7 +370,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.traits.add_traits(overwrite=False,
                                    scenarioname='Crossgen Throughput - %s' % scenario_filename,
                                    scenariotypename='%s - %s' % (const.SCENARIO_NAMES[const.CROSSGEN], scenario_filename),
-                                   apptorun='%s\%s' % (coreroot, crossgenexe),
+                                   apptorun='%s\\%s' % (coreroot, crossgenexe),
                                   ) 
             startup.runtests(self.traits)
            
@@ -508,7 +508,7 @@ ex: C:\repos\performance;C:\repos\runtime
             #    Complete
             # Saves: [Intent { cmp=net.dot.HelloAndroid/net.dot.MainActivity }, ok, COLD, net.dot.HelloAndroid/net.dot.MainActivity, 241, 242]
             # Split results (start at 0) (List is Starting (Intent activity), Status (ok...), LaunchState ([HOT, COLD, WARM]), Activity (started activity name), TotalTime(toFrameOne), WaitTime(toFullLoad)) 
-            runSplitRegex = ":\s(.+)" 
+            runSplitRegex = r":\s(.+)"
             screenWasOff = False
             getLogger().info("Clearing potential previous run nettraces")
             for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'runoutput.trace')):
@@ -557,7 +557,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     else:
                         retrieveTimeCmd = RunCommand(basicStartupRetrieveCmd, verbose=True)
                     retrieveTimeCmd.run()
-                    dirtyCapture = re.search("\+(\d*s?\d+)ms", retrieveTimeCmd.stdout)
+                    dirtyCapture = re.search(r"\+(\d*s?\d+)ms", retrieveTimeCmd.stdout)
                     if not dirtyCapture:
                         raise Exception("Failed to capture the reported start time!")
                     captureList = dirtyCapture.group(1).split('s')
@@ -667,7 +667,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     getLogger().error("App launch failed, please rerun the script to start a new measurement.")
                     raise
 
-                app_pid_search = re.search("Launched application.*with pid (?P<app_pid>\d+)", runCmdCommand.stdout)
+                app_pid_search = re.search(r"Launched application.*with pid (?P<app_pid>\d+)", runCmdCommand.stdout)
                 app_pid = int(app_pid_search.group('app_pid'))
 
                 logarchive_filename = os.path.join(const.TMPDIR, f'iteration{i}.logarchive')

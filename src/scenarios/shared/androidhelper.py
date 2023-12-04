@@ -19,7 +19,7 @@ class AndroidHelper:
         self.startscreenofftimeout = None
 
     def setup_device(self, packagename: str, packagepath: str, animationsdisabled: bool, forcewaitstart: bool = True):
-        runSplitRegex = ":\s(.+)" 
+        runSplitRegex = r":\s(.+)" 
         self.screenwasoff = False
         self.packagename = packagename
         cmdline = xharnesscommand() + ['android', 'state', '--adb']
