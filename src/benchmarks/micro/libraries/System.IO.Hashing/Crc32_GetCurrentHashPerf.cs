@@ -8,5 +8,12 @@ namespace System.IO.Hashing.Tests
 {
     public class Crc32_GetCurrentHashPerf : Crc_GetCurrentHashPerf<Crc32>
     {
+#if NET8_0_OR_GREATER
+        [Benchmark]
+        public uint GetCurrentHashAsUInt32()
+        {
+            return Crc.GetCurrentHashAsUInt32();
+        }
+#endif
     }
 }
