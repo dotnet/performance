@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// Define INTERNAL_DI on platforms that support emit.
-#define INTERNAL_DI
+// Define INTERNAL_DI on platforms that support emit. This will measure all of the various engines.
+// #define INTERNAL_DI
 
 using System;
 using System.Reflection;
