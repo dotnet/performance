@@ -150,6 +150,14 @@ namespace ResultsComparer
                 return "nativeaot8.0-preview" + key[key.IndexOf("nativeaot8.0-preview") + "nativeaot8.0-preview".Length];
             if (key.Contains("net8.0"))
                 return "net8.0";
+            if (key.Contains("net9.0-preview"))
+                return "net9.0-preview" + key[key.IndexOf("net9.0-preview") + "net9.0-preview".Length];
+            if (key.Contains("net9.0-rc"))
+                return "net9.0-rc" + key[key.IndexOf("net9.0-rc") + "net9.0-rc".Length];
+            if (key.Contains("nativeaot9.0-preview"))
+                return "nativeaot9.0-preview" + key[key.IndexOf("nativeaot9.0-preview") + "nativeaot9.0-preview".Length];
+            if (key.Contains("net9.0"))
+                return "net9.0";
 
             return null;
         }
@@ -167,7 +175,7 @@ namespace ResultsComparer
                 if (segment[0] == 'i' || segment[0] == 'E') // things like i7-8700 or E5530
                     return segment.Replace("-", "");
                 if (segment.EndsWith("CL")
-                    || segment.EndsWith("X") // things like AMD 3945WX or 5900X 
+                    || segment.EndsWith("X") // things like AMD 3945WX or 5900X
                     || segment.StartsWith("SQ") // things like SQ1
                     || segment.StartsWith("M1")
                     || segment.StartsWith("ARM")) // things like ARMv7
