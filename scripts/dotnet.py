@@ -10,7 +10,7 @@ from argparse import Action, ArgumentParser, ArgumentTypeError
 from glob import iglob
 from logging import getLogger
 from os import chmod, environ, listdir, makedirs, path, pathsep, system
-from re import match, search, MULTILINE
+from re import search, MULTILINE
 from shutil import rmtree
 from stat import S_IRWXU
 from subprocess import CalledProcessError, check_output
@@ -78,10 +78,14 @@ class FrameworkAction(Action):
         To run NativeAOT benchmarks we need to run the host BDN process as latest
         .NET the host process will build and run AOT benchmarks
         '''
-        pattern = r'^nativeaot(\d+)\.0$'
-        match_found = match(pattern, framework)
-        if match_found:
-            return f"net{match_found.group(1)}.0"
+        if framework == 'nativeaot6.0':
+            return 'net6.0'
+        if framework == 'nativeaot7.0':
+            return 'net7.0'
+        if framework == 'nativeaot8.0':
+            return 'net8.0'
+        if framework == 'nativeaot9.0':
+            return 'net9.0'
         else:
             return framework
 
