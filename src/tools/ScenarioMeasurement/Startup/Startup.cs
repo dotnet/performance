@@ -100,7 +100,7 @@ class Startup
                     bool skipMeasurementIteration = false,
                     bool parseOnly = false,
                     bool runWithDotnet = false,
-                    int affinity = 0
+                    long affinity = 0
                     )
     {
         var logger = new Logger(string.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
@@ -141,13 +141,13 @@ class Startup
 
         if (affinity > 0 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
         {
-            var currentProcessAffinity = Process.GetCurrentProcess().ProcessorAffinity;
+            var currentProcessAffinity = (long)Process.GetCurrentProcess().ProcessorAffinity;
             if (affinity > currentProcessAffinity && currentProcessAffinity != -1) // -1 means all processors TODO: Check if there is a more proper way to deal with affinity for systems with more than 64 processors
             {
                 throw new ArgumentException($"{nameof(affinity)} cannot be greater than the number of processors available to this process! (Current process affinity: {currentProcessAffinity}; Target affinity: {affinity})");
             }
             Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)affinity;
-            currentProcessAffinity = Process.GetCurrentProcess().ProcessorAffinity;
+            currentProcessAffinity = (long)Process.GetCurrentProcess().ProcessorAffinity;
             logger.Log($"Process Affinity: {currentProcessAffinity}, mask: {Convert.ToString(currentProcessAffinity, 2)}");
         }
         else if (affinity != 0 && !(OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
