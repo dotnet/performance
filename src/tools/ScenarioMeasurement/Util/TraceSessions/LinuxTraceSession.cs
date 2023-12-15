@@ -1,4 +1,5 @@
 ﻿using Microsoft.Diagnostics.Tracing;
+using System;
 using System.Collections.Generic;
 
 namespace ScenarioMeasurement;
@@ -10,12 +11,14 @@ public class LinuxTraceSession : ITraceSession
         get { return perfCollect?.TraceFilePath; }
     }
     private readonly PerfCollect perfCollect;
+    private readonly Action<string, string> environmentVariableSetter;
     private Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword> kernelKeywords;
     private Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword> clrKeywords;
 
-    public LinuxTraceSession(string sessionName, string traceName, string traceDirectory, Logger logger)
+    public LinuxTraceSession(string sessionName, string traceName, string traceDirectory, Logger logger, Action<string, string> environmentVariableSetter)
     {
         perfCollect = new PerfCollect(traceName, traceDirectory, logger);
+        this.environmentVariableSetter = environmentVariableSetter;
         InitLinuxKeywordMaps();
     }
 
@@ -66,11 +69,11 @@ public class LinuxTraceSession : ITraceSession
         clrKeywords[TraceSessionManager.ClrKeyword.Startup] = PerfCollect.ClrKeyword.DotNETRuntimePrivate_StartupKeyword;
     }
 
-    public void EnableUserProvider(string provider, TraceEventLevel verboseLevel = TraceEventLevel.Verbose)
+    public void EnableUserProvider(string provider, TraceEventLevel verboseLevel)
     {
         // Enable all EventSource events on Linux
         perfCollect.AddClrKeyword(PerfCollect.ClrKeyword.EventSource);
         // Filter events from the provider
-        Startup.AddTestProcessEnvironmentVariable("COMPlus_EventSourceFilter", provider);
+        environmentVariableSetter?.Invoke("COMPlus_EventSourceFilter", provider);
     }
 }

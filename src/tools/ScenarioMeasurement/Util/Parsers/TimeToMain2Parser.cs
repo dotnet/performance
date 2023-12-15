@@ -10,6 +10,13 @@ namespace ScenarioMeasurement;
 
 public class TimeToMain2Parser : IParser
 {
+    private readonly Action<string, string> environmentVariableSetter;
+
+    public TimeToMain2Parser(Action<string, string> environmentVariableSetter)
+    {
+        this.environmentVariableSetter = environmentVariableSetter;
+    }
+
     public void EnableKernelProvider(ITraceSession kernel)
     {
         kernel.EnableKernelProvider(TraceSessionManager.KernelKeyword.Process, TraceSessionManager.KernelKeyword.Thread, TraceSessionManager.KernelKeyword.ContextSwitch);
@@ -23,7 +30,7 @@ public class TimeToMain2Parser : IParser
             user.AddRawEvent($"{PerfLabValues.LTTngProviderName}:{PerfLabValues.OnMainEventName}");
         }
         var baseDir = Environment.GetEnvironmentVariable("HELIX_CORRELATION_PAYLOAD") ?? Path.GetFullPath("..");
-        Startup.AddTestProcessEnvironmentVariable("DOTNET_STARTUP_HOOKS", Path.Join(baseDir, PerfLabValues.ForwarderName, $"{PerfLabValues.ForwarderName}.dll"));
+        environmentVariableSetter?.Invoke("DOTNET_STARTUP_HOOKS", Path.Join(baseDir, PerfLabValues.ForwarderName, $"{PerfLabValues.ForwarderName}.dll"));
     }
 
     public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
