@@ -18,7 +18,7 @@ public interface ITraceSession : IDisposable
 public static class TraceSessionManager
 {
     public static bool IsWindows { get { return Util.IsWindows(); } }
-    public static ITraceSession CreateSession(string sessionName, string traceName, string traceDirectory, Logger logger)
+    public static ITraceSession CreateSession(string sessionName, string traceName, string traceDirectory, Logger logger, Action<string, string> environmentVariableSetter)
     {
 
         if (IsWindows)
@@ -27,7 +27,7 @@ public static class TraceSessionManager
         }
         else
         {
-            return new LinuxTraceSession(sessionName, traceName, traceDirectory, logger);
+            return new LinuxTraceSession(sessionName, traceName, traceDirectory, logger, environmentVariableSetter);
         }
     }
 

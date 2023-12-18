@@ -31,7 +31,7 @@ public class StartupTests
     {
         var sessionName = "test-linux-session";
         var traceName = "test-linux-trace";
-        var session = new LinuxTraceSession(sessionName, traceName, traceDirectory, logger);
+        var session = new LinuxTraceSession(sessionName, traceName, traceDirectory, logger, ScenarioMeasurement.Startup.AddTestProcessEnvironmentVariable);
         var parser = new TimeToMainParser();
         TestSession(session, parser);
     }
@@ -43,7 +43,7 @@ public class StartupTests
         var traceName = "test-profile-iteration-trace";
         var timeToMainParser = new TimeToMainParser();
         var profileParser = new ProfileParser(timeToMainParser);
-        var profileSession = TraceSessionManager.CreateSession(sessionName, traceName, traceDirectory, logger);
+        var profileSession = TraceSessionManager.CreateSession(sessionName, traceName, traceDirectory, logger, ScenarioMeasurement.Startup.AddTestProcessEnvironmentVariable);
         TestSession(profileSession, profileParser);
     }
 

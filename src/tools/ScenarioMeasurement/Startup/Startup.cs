@@ -35,7 +35,7 @@ public class InnerLoopMarkerEventSource : EventSource
     public void DroppedFile() => WriteEvent(3);
 }
 
-class Startup
+public class Startup
 {
     private static IProcessHelper TestProcess { get; set; }
     /// <summary>
@@ -287,7 +287,7 @@ class Startup
             MetricType.PDN => new PDNStartupParser(),
             MetricType.WinUI => new WinUIParser(),
             MetricType.WinUIBlazor => new WinUIBlazorParser(),
-            MetricType.TimeToMain2 => new TimeToMain2Parser(),
+            MetricType.TimeToMain2 => new TimeToMain2Parser(AddTestProcessEnvironmentVariable),
             _ => throw new ArgumentOutOfRangeException(),
         };
 
@@ -297,7 +297,7 @@ class Startup
         if (!skipMeasurementIteration)
         {
             // Run trace session
-            using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceName, traceDirectory, logger))
+            using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceName, traceDirectory, logger, AddTestProcessEnvironmentVariable))
             {
                 traceSession.EnableProviders(parser);
                 for (var i = 0; i < iterations; i++)
@@ -360,7 +360,7 @@ class Startup
             logger.LogIterationHeader("Profile Iteration");
             var profiler = new ProfileParser(parser);
             (bool Success, List<int> Pids) iterationResult;
-            using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_" + traceName, traceDirectory, logger))
+            using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_" + traceName, traceDirectory, logger, AddTestProcessEnvironmentVariable))
             {
                 profileSession.EnableProviders(profiler);
                 iterationResult = RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger, hotReloadIters);
