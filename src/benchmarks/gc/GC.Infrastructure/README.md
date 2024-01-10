@@ -1,7 +1,5 @@
 # GC.Infrastructure
 
-__NOTE__: We will be deleting the python infrastructure soon. Please switch over to this new infrastructure for running tests.
-
 This repository contains the code to invoke the GC Infrastructure that currently runs the following types of test suites for a specific baseline and a run for which you want to test the performance for:
 
 1. GCPerfSim
@@ -147,7 +145,7 @@ The path to this file can be passed in as an optional argument for the ``microbe
 To run the infrastructure on a specific set of ASP.NET Benchmarks, do the following:
 
 1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
-2. ``.\GC.Infrastructure.exe aspnetbenchmarks --configuration C:\performance\src\benchmarks\gc\GC.Infrastructure\Configurations\ASPNetBenchmarks\ASPNetBenchmarks.csv``.
+2. ``.\GC.Infrastructure.exe aspnetbenchmarks --configuration C:\performance\src\benchmarks\gc\GC.Infrastructure\Configurations\ASPNetBenchmarks\ASPNetBenchmarks.yaml``.
 
 More details about running and troubleshooting ASP.NET benchmarks can be found [here](./docs/ASPNETBenchmarks.md).
 
