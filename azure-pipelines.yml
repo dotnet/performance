@@ -382,36 +382,10 @@ jobs:
         dotnetVersionsLinks:
           8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
         runtimeFlavor: mono
-
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        kind: maui_scenarios_ios
-        projectFile: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
-        runtimeFlavor: mono
         hybridGlobalization: true
         additionalJobIdentifier: 'HybridGlobalization_True'
 
   # Maui iOS Native AOT scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        kind: maui_scenarios_ios
-        projectFile: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
-        runtimeFlavor: coreclr
-
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
