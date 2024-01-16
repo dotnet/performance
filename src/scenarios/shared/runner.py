@@ -698,7 +698,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'log',
                     'collect',
                     '--device',
-                    '--start', runCmdTimestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                    '--start', runCmdTimestamp.strftime("%Y-%m-%d %H:%M:%S%z"),
                     '--output', logarchive_filename,
                 ]
                 RunCommand(collectCmd, verbose=True).run()
