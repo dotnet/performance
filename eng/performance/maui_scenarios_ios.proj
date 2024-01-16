@@ -161,7 +161,8 @@
         ]]>
       </CustomCommands>
     </XHarnessAppBundleToTest>
-    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Podcast $(RunConfigsString)">
+    <!-- Temporarily disabled per: https://github.com/dotnet/performance/issues/3767 -->
+    <!-- <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Podcast $(RunConfigsString)">
       <AppBundlePath>$(ScenariosDir)mauiiospodcast.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
@@ -180,7 +181,7 @@
           sign Microsoft.NetConf2021.Maui.app
 
           # Testing commands
-          $(Python) test.py devicestartup --device-type ios --package-path Microsoft.NetConf2021.Maui.app --package-name net.dot.netconf2021.maui --scenario-name "%(Identity)"
+          $(Python) test.py devicestartup -1-device-type ios -1-package-path Microsoft.NetConf2021.Maui.app -1-package-name net.dot.netconf2021.maui -1-scenario-name "%(Identity)"
           ((result=$?))
 
           # Post commands
@@ -188,7 +189,7 @@
           exit $result
         ]]>
       </CustomCommands>
-    </XHarnessAppBundleToTest>
+    </XHarnessAppBundleToTest> -->
   </ItemGroup>
 
 
