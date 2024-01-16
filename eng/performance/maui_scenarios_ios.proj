@@ -51,12 +51,13 @@
       <IPAName>MauiBlazoriOSDefault</IPAName>
       <PackageName>net.dot.mauiblazortesting</PackageName>
     </MAUIiOSScenario>
-    <MAUIiOSScenario Include="Maui iOS Podcast $(RunConfigsString)">
+    <!-- Temporarily disabled per: https://github.com/dotnet/performance/issues/3767 -->
+    <!-- <MAUIiOSScenario Include="Maui iOS Podcast $(RunConfigsString)">
       <ScenarioDirectoryName>mauiiospodcast</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>Microsoft.NetConf2021.Maui</IPAName>
       <PackageName>net.dot.netconf2021.maui</PackageName>
-    </MAUIiOSScenario>
+    </MAUIiOSScenario> -->
   </ItemGroup>
 
   <ItemGroup>
