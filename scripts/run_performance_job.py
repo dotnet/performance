@@ -131,7 +131,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 "set PYTHONPATH=",
                 "py -3 -m pip install azure.storage.blob==12.0.0",
                 "py -3 -m pip install azure.storage.queue==12.0.0",
-                "py -3 -m pip install urllib3==1.26.15 --force-reinstall",
+                "py -3 -m pip install urllib3==1.26.18 --force-reinstall",
                 f"set \"PERFLAB_UPLOAD_TOKEN={args.perflab_upload_token}\"",
                 *additional_helix_pre_commands
             ]
@@ -146,7 +146,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 "python3 -m pip install -U pip",
                 "pip3 install azure.storage.blob==12.0.0",
                 "pip3 install azure.storage.queue==12.0.0",
-                "pip3 install urllib3==1.26.15 --force-reinstall",
+                "pip3 install urllib3==1.26.18 --force-reinstall",
                 f"export PERFLAB_UPLOAD_TOKEN=\"{args.perflab_upload_token}\"",
                 *additional_helix_pre_commands
             ]
@@ -159,7 +159,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 "call %HELIX_WORKITEM_PAYLOAD%\\.venv\\Scripts\\activate.bat",
                 "set PYTHONPATH=",
                 "py -3 -m pip install -U pip",
-                "py -3 -m pip install --user urllib3==1.26.15 --force-reinstall",
+                "py -3 -m pip install --user urllib3==1.26.18 --force-reinstall",
                 "py -3 -m pip install --user azure.storage.blob==12.0.0 --force-reinstall",
                 "py -3 -m pip install --user azure.storage.queue==12.0.0 --force-reinstall",
                 f'set "PERFLAB_UPLOAD_TOKEN={args.perflab_upload_token}"'
@@ -173,7 +173,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 "source $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate",
                 "export PYTHONPATH=",
                 "python3 -m pip install -U pip",
-                "pip3 install --user urllib3==1.26.15 --force-reinstall",
+                "pip3 install --user urllib3==1.26.18 --force-reinstall",
                 "pip3 install --user azure.storage.blob==12.7.1 --force-reinstall",
                 "pip3 install --user azure.storage.queue==12.1.5 --force-reinstall",
                 f'export PERFLAB_UPLOAD_TOKEN="{args.perflab_upload_token}"'
@@ -201,7 +201,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 "ls -l $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate && "
                 "export PYTHONPATH= && "
                 "python3 -m pip install --user -U pip && "
-                "pip3 install --user urllib3==1.26.15 && "
+                "pip3 install --user urllib3==1.26.18 && "
                 "pip3 install --user azure.storage.blob==12.0.0 && "
                 "pip3 install --user azure.storage.queue==12.0.0 && "
                 "sudo apt-get update && "
@@ -365,7 +365,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         os.environ["Python"] = python
 
         RunCommand([*(python.split(" ")), "-m", "pip", "install", "--upgrade", "pip"]).run()
-        RunCommand([*(python.split(" ")), "-m", "pip", "install", "urllib3==1.26.15"]).run()
+        RunCommand([*(python.split(" ")), "-m", "pip", "install", "urllib3==1.26.18"]).run()
         RunCommand([*(python.split(" ")), "-m", "pip", "install", "requests"]).run()
 
         scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
