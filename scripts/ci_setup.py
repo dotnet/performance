@@ -408,6 +408,8 @@ def main(args: Any):
 
     if args.experiment_name == "crossblocklocalassertionprop":
         experiment_config = variable_format % ('DOTNET_JitEnableCrossBlockLocalAssertionProp', '1')
+    elif args.experiment_name == "gdv3":
+        experiment_config = variable_format % ('DOTNET_JitGuardedDevirtualizationMaxTypeChecks', '3')
 
     output = ''
 
