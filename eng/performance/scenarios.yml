@@ -96,10 +96,10 @@ jobs:
             value: ''
           - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: '$(PreservePythonPath);py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\.venv;call %HELIX_WORKITEM_PAYLOAD%\.venv\Scripts\activate.bat;set PYTHONPATH=;py -3 -m pip install azure.storage.blob==12.0.0;py -3 -m pip install azure.storage.queue==12.0.0;py -3 -m pip install urllib3==1.26.15 --force-reinstall;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
+              value: '$(PreservePythonPath);py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\.venv;call %HELIX_WORKITEM_PAYLOAD%\.venv\Scripts\activate.bat;set PYTHONPATH=;py -3 -m pip install azure.storage.blob==12.0.0;py -3 -m pip install azure.storage.queue==12.0.0;py -3 -m pip install urllib3==1.26.18 --force-reinstall;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
           - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: '$(PreservePythonPath);$(SetAllowOpenSsl102);sudo apt-get -y install python3-venv;python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv;. $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate;export PYTHONPATH=;python3 -m pip install -U pip;pip3 install azure.storage.blob==12.0.0;pip3 install azure.storage.queue==12.0.0;pip3 install urllib3==1.26.15 --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
+              value: '$(PreservePythonPath);$(SetAllowOpenSsl102);sudo apt-get -y install python3-venv;python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv;. $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate;export PYTHONPATH=;python3 -m pip install -U pip;pip3 install azure.storage.blob==12.0.0;pip3 install azure.storage.queue==12.0.0;pip3 install urllib3==1.26.18 --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
           - group: DotNet-HelixApi-Access
           - group: dotnet-benchview
         workspace:
@@ -186,7 +186,7 @@ jobs:
               condition: ne('${{ parameters.architecture }}', 'x86')
           - powershell: |
               $(Python) -m pip install --upgrade pip
-              $(Python) -m pip install urllib3==1.26.15
+              $(Python) -m pip install urllib3==1.26.18
               $(Python) -m pip install requests
               .\src\scenarios\init.ps1 -DotnetDirectory $(CorrelationStaging)dotnet
               dotnet msbuild .\eng\performance\${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /p:HybridGlobalization=${{ parameters.hybridGlobalization }} /bl:.\artifacts\log\$(_BuildConfig)\PrepareWorkItemPayloads.binlog
@@ -225,7 +225,7 @@ jobs:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
           - script: |
               $(Python) -m pip install --user --upgrade pip
-              $(Python) -m pip install --user urllib3==1.26.15
+              $(Python) -m pip install --user urllib3==1.26.18
               $(Python) -m pip install --user requests
               . ./src/scenarios/init.sh -dotnetdir $(CorrelationStaging)dotnet
               dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /p:HybridGlobalization=${{ parameters.hybridGlobalization }} /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
@@ -260,7 +260,7 @@ jobs:
             condition: and(succeeded(), contains(variables['System.JobDisplayName'], '2204'))
           - script: |
               $(Python) -m pip install --user --upgrade pip
-              $(Python) -m pip install --user urllib3==1.26.15
+              $(Python) -m pip install --user urllib3==1.26.18
               $(Python) -m pip install --user requests
               . ./src/scenarios/init.sh -dotnetdir $(CorrelationStaging)dotnet
               dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /p:HybridGlobalization=${{ parameters.hybridGlobalization }} /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
