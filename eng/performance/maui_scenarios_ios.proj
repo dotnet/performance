@@ -13,12 +13,9 @@
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
     
     <NativeAOTCommandProps Condition="'$(RuntimeFlavor)' == 'coreclr'">--nativeaot true</NativeAOTCommandProps>
-    <HybridGlobalizationCommandProps Condition="'$(HybridGlobalization)' == 'true'">--hybrid-globalization true</HybridGlobalizationCommandProps>
     <!-- For non-default configurations, add the configuration to the name of the test (in the matching format), otherwise didn't add anything.
     This will ensure that PowerBI's using the test name rather than the run configuration for the data continue to work properly and defaults are connected -->
-    <HybridGlobalizationString></HybridGlobalizationString>
-    <HybridGlobalizationString Condition="'$(HybridGlobalization)' == 'true'"> HybridGlobalization</HybridGlobalizationString>
-    <RunConfigsString>$(RuntimeFlavor)$(HybridGlobalizationString)</RunConfigsString>
+    <RunConfigsString>$(RuntimeFlavor)</RunConfigsString>
   </PropertyGroup>
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
@@ -51,17 +48,18 @@
       <IPAName>MauiBlazoriOSDefault</IPAName>
       <PackageName>net.dot.mauiblazortesting</PackageName>
     </MAUIiOSScenario>
-    <MAUIiOSScenario Include="Maui iOS Podcast $(RunConfigsString)">
+    <!-- Temporarily disabled per: https://github.com/dotnet/performance/issues/3767 -->
+    <!-- <MAUIiOSScenario Include="Maui iOS Podcast $(RunConfigsString)">
       <ScenarioDirectoryName>mauiiospodcast</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>Microsoft.NetConf2021.Maui</IPAName>
       <PackageName>net.dot.netconf2021.maui</PackageName>
-    </MAUIiOSScenario>
+    </MAUIiOSScenario> -->
   </ItemGroup>
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <Command>sudo xcode-select -s /Applications/Xcode_15.0.app; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(NativeAOTCommandProps) $(HybridGlobalizationCommandProps) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <Command>sudo xcode-select -s /Applications/Xcode_15.0.app; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(NativeAOTCommandProps) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
@@ -131,8 +129,8 @@
           ]]>
         </CustomCommands>
     </XHarnessAppBundleToTest>
-    <!-- Tracking issue: https://github.com/dotnet/performance/issues/3148 -->
-    <XHarnessAppBundleToTest Condition="'$(RuntimeFlavor)' == 'mono'" Include="Device Startup - iOS Maui Blazor Default $(RunConfigsString)">
+    <!-- Now also disabled for normal mono runs. (Reenable for mono and native aot once fixed). Tracking issue: https://github.com/dotnet/performance/issues/3148 -->
+    <!-- <XHarnessAppBundleToTest Condition="'$(RuntimeFlavor)' == 'mono'" Include="Device Startup - iOS Maui Blazor Default $(RunConfigsString)">
       <AppBundlePath>$(ScenariosDir)mauiblazorios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
@@ -151,7 +149,7 @@
           sign MauiBlazoriOSDefault.app
 
           # Testing commands
-          $(Python) test.py devicestartup --device-type ios --package-path MauiBlazoriOSDefault.app --package-name net.dot.mauiblazortesting --scenario-name "%(Identity)" --use-fully-drawn-time --fully-drawn-magic-string __MAUI_Blazor_WebView_OnAfterRender__ --startup-iterations 5
+          $(Python) test.py devicestartup -1-device-type ios -1-package-path MauiBlazoriOSDefault.app -1-package-name net.dot.mauiblazortesting -1-scenario-name "%(Identity)" -1-use-fully-drawn-time -1-fully-drawn-magic-string __MAUI_Blazor_WebView_OnAfterRender__ -1-startup-iterations 5
           ((result=$?))
 
           # Post commands
@@ -159,8 +157,9 @@
           exit $result
         ]]>
       </CustomCommands>
-    </XHarnessAppBundleToTest>
-    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Podcast $(RunConfigsString)">
+    </XHarnessAppBundleToTest> -->
+    <!-- Temporarily disabled per: https://github.com/dotnet/performance/issues/3767 -->
+    <!-- <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Podcast $(RunConfigsString)">
       <AppBundlePath>$(ScenariosDir)mauiiospodcast.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
@@ -179,7 +178,7 @@
           sign Microsoft.NetConf2021.Maui.app
 
           # Testing commands
-          $(Python) test.py devicestartup --device-type ios --package-path Microsoft.NetConf2021.Maui.app --package-name net.dot.netconf2021.maui --scenario-name "%(Identity)"
+          $(Python) test.py devicestartup -1-device-type ios -1-package-path Microsoft.NetConf2021.Maui.app -1-package-name net.dot.netconf2021.maui -1-scenario-name "%(Identity)"
           ((result=$?))
 
           # Post commands
@@ -187,7 +186,7 @@
           exit $result
         ]]>
       </CustomCommands>
-    </XHarnessAppBundleToTest>
+    </XHarnessAppBundleToTest> -->
   </ItemGroup>
 
 

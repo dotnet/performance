@@ -367,7 +367,8 @@ jobs:
         kind: maui_scenarios_android
         projectFile: maui_scenarios_android.proj
         dotnetVersionsLinks:
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
+          9.0: https://maui.blob.core.windows.net/metadata/sdks/net9.0.json
+          # 8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # 8.0 build flow is failing, disable temporarily https://github.com/dotnet/performance/issues/3655
 
   # Maui iOS Mono scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -380,23 +381,9 @@ jobs:
         kind: maui_scenarios_ios
         projectFile: maui_scenarios_ios.proj
         dotnetVersionsLinks:
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
+          9.0: https://maui.blob.core.windows.net/metadata/sdks/net9.0.json
+          # 8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # 8.0 build flow is failing, disable temporarily https://github.com/dotnet/performance/issues/3655
         runtimeFlavor: mono
-
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        kind: maui_scenarios_ios
-        projectFile: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
-        runtimeFlavor: mono
-        hybridGlobalization: true
-        additionalJobIdentifier: 'HybridGlobalization_True'
 
   # Maui iOS Native AOT scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -409,23 +396,9 @@ jobs:
         kind: maui_scenarios_ios
         projectFile: maui_scenarios_ios.proj
         dotnetVersionsLinks:
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
+          9.0: https://maui.blob.core.windows.net/metadata/sdks/net9.0.json
+          # 8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # 8.0 build flow is failing, disable temporarily https://github.com/dotnet/performance/issues/3655
         runtimeFlavor: coreclr
-
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        kind: maui_scenarios_ios
-        projectFile: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # Use 8.0 key and net8.0 link until Maui is ready for net9.0
-        runtimeFlavor: coreclr
-        hybridGlobalization: true
-        additionalJobIdentifier: 'HybridGlobalization_True'
 
   ## Maui scenario benchmarks
   #- template: /eng/performance/build_machine_matrix.yml
