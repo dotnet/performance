@@ -635,6 +635,7 @@ jobs:
       displayName: Install Correct .NET Version
       inputs:
         useGlobalJson: true
+        includePreviewVersions: true
 
     - script: dotnet tool restore
 
@@ -661,6 +662,7 @@ jobs:
       displayName: Install Correct .NET Version
       inputs:
         useGlobalJson: true
+        includePreviewVersions: true
 
     - script: dotnet tool restore
 
@@ -687,6 +689,7 @@ jobs:
       displayName: Install Correct .NET Version
       inputs:
         useGlobalJson: true
+        includePreviewVersions: true
 
     - script: dotnet tool restore
 
