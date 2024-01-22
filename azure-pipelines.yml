@@ -632,9 +632,9 @@ jobs:
       demands: ImageOverride -equals 1es-windows-2019
     steps:
     - task: UseDotNet@2
-        displayName: Install Correct .NET Version
-        inputs:
-          useGlobalJson: true
+      displayName: Install Correct .NET Version
+      inputs:
+        useGlobalJson: true
 
     - script: dotnet tool restore
 
@@ -658,9 +658,9 @@ jobs:
       demands: ImageOverride -equals 1es-windows-2019
     steps:
     - task: UseDotNet@2
-        displayName: Install Correct .NET Version
-        inputs:
-          useGlobalJson: true
+      displayName: Install Correct .NET Version
+      inputs:
+        useGlobalJson: true
 
     - script: dotnet tool restore
 
@@ -684,9 +684,9 @@ jobs:
       demands: ImageOverride -equals 1es-windows-2019
     steps:
     - task: UseDotNet@2
-        displayName: Install Correct .NET Version
-        inputs:
-          useGlobalJson: true
+      displayName: Install Correct .NET Version
+      inputs:
+        useGlobalJson: true
 
     - script: dotnet tool restore
 
