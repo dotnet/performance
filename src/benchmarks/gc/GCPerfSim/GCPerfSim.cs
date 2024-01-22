@@ -158,7 +158,7 @@ TODO: The longest pauses are interesting but we should also include all pauses b
 -endException/-ee: endException
 induces an exception at the end so you can do some post mortem debugging.
 
--compute/-c: Do some extra computation between allocations
+-compute/-c: Do some extra computation between allocations, 1000 will reduce the allocation rate by a factor of 2-4
 
 The default for these args are specified in "Default parameters".
 
@@ -341,7 +341,7 @@ static class Util
         }
     }
 
-    unsafe static uint GetPointerSize() => (uint)sizeof(IntPtr);
+    static uint GetPointerSize() => (uint)IntPtr.Size;
 
     public static readonly uint POINTER_SIZE = GetPointerSize();
 
@@ -1655,9 +1655,7 @@ class ArgsParser
             {
                 case "-compute":
                 case "-c":
-                    // add some computation - the magic number below
-                    // will reduce the allocation rate by a factor of 2-4
-                    compute = 1000;
+                    compute = ParseUInt32(args[++i]);
                     break;
                 case "-finishWithFullCollect":
                     finishWithFullCollect = true;
