@@ -27,12 +27,16 @@ jobs:
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.runtimeFlavor }} ${{ parameters.machinePool }} ${{ parameters.additionalJobIdentifier }}'
         timeoutInMinutes: 320
         variables:
-        - ${{ if eq(parameters.hybridGlobalization, 'true')}}:
-          - name: hybridGlobalizationParam
+        - name: hybridGlobalizationParam
+          ${{ if eq(parameters.hybridGlobalization, 'true')}}:
             value: '--hybrid-globalization'
-        - ${{ if ne(length(parameters.runEnvVars), 0)}}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
-          - name: runEnvVarsParam
+          ${{ if ne(parameters.hybridGlobalization, 'true')}}:
+            value: ''
+        - name: runEnvVarsParam
+          ${{ if ne(length(parameters.runEnvVars), 0)}}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
             value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
+          ${{ if eq(length(parameters.runEnvVars), 0)}}:
+            value: ''
         - name: Python
           ${{ if eq(parameters.osName, 'windows') }}:
             value: 'py -3'
@@ -45,6 +49,9 @@ jobs:
             value: --download-pdn
           - group: DotNet-HelixApi-Access
           - group: dotnet-benchview
+        - ${{ if not(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'))) }}:
+          - name: internalParam
+            value: ''
         workspace:
           clean: all
         pool: ${{ parameters.pool }}
@@ -55,6 +62,7 @@ jobs:
               ${{ each channel in parameters.channels }}:
                 ${{ channel }}:
                   _Channel: ${{ channel }}
+                  _DotnetVersionParam: ''
             ${{ if ne(length(parameters.dotnetVersionsLinks), 0) }}:
               ${{ each versionPair in parameters.dotnetVersionsLinks }}:
                 ${{ versionPair.key }}_Link:

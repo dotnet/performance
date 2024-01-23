@@ -24,9 +24,11 @@ jobs:
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }}'
         timeoutInMinutes: 320
         variables:
-        - ${{ if ne(length(parameters.runEnvVars), 0)}}:
-          - name: runEnvVarsParam
+        - name: runEnvVarsParam
+          ${{ if ne(length(parameters.runEnvVars), 0)}}:
             value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
+          ${{ if eq(length(parameters.runEnvVars), 0)}}:
+            value: ''
         - name: Python
           ${{ if eq(parameters.osName, 'windows') }}:
             value: 'py -3'
@@ -39,6 +41,9 @@ jobs:
           - group: DotNet-HelixApi-Access
           # perflab upload tokens still exist in this variable group
           - group: dotnet-benchview
+        - ${{ if not(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'))) }}:
+          - name: internalParam
+            value: ''
         workspace:
           clean: all
         pool: ${{ parameters.pool }}
