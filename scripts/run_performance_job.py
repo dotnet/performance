@@ -644,11 +644,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         set_environment_variable("PATH", new_path, save_to_pipeline=True)
         print(f"Set PATH to {new_path}")
 
-        shutil.copy(os.path.join(args.performance_repo_dir, "NuGet.config"), root_payload_dir)
-        shutil.copytree(os.path.join(args.performance_repo_dir, "scripts"), os.path.join(payload_dir, "scripts"))
-        shutil.copytree(os.path.join(args.performance_repo_dir, "src", "scenarios", "shared"), os.path.join(payload_dir, "shared"))
-        shutil.copytree(os.path.join(args.performance_repo_dir, "src", "scenarios", "staticdeps"), os.path.join(payload_dir, "staticdeps"))
-
         framework = os.environ["PERFLAB_Framework"]
         os.environ["PERFLAB_TARGET_FRAMEWORKS"] = framework
         if args.os_group == "windows":
@@ -728,7 +723,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         os.environ["CorrelationPayloadDirectory"] = payload_dir
         os.environ["Architecture"] = args.architecture
         os.environ["TargetsWindows"] = "true" if args.os_group == "windows" else "false"
-        os.environ["WorkItemDirectory"] = args.performance_repo_dir
         os.environ["HelixTargetQueues"] = args.queue
         os.environ["Python"] = python
         os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
@@ -761,6 +755,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
         # restore env vars
         os.environ.update(environ_copy)
+
+        shutil.copy(os.path.join(performance_payload_dir, "NuGet.config"), root_payload_dir)
+        shutil.copytree(os.path.join(performance_payload_dir, "scripts"), os.path.join(payload_dir, "scripts"))
+        shutil.copytree(os.path.join(performance_payload_dir, "src", "scenarios", "shared"), os.path.join(payload_dir, "shared"))
+        shutil.copytree(os.path.join(performance_payload_dir, "src", "scenarios", "staticdeps"), os.path.join(payload_dir, "staticdeps"))
         
         if args.architecture == "arm64":
             dotnet_dir = os.path.join(ci_setup_arguments.install_dir, "")
