@@ -965,9 +965,10 @@ def main(argv: List[str]):
             while i < len(argv):
                 i += 1
                 arg = argv[i]
-                if not arg.startswith("--"):
-                    k, v = arg.split("=")
-                    val[k] = v
+                if arg.startswith("--"):
+                    break
+                k, v = arg.split("=")
+                val[k] = v
             args["run_env_vars"] = val
             continue
         else:
