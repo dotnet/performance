@@ -759,7 +759,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         os.environ.update(environ_copy)
         
         if args.architecture == "arm64":
-            dotnet_dir = ci_setup_arguments.install_dir
+            dotnet_dir = os.path.join(ci_setup_arguments.install_dir, "")
             arm64_dotnet_dir = os.path.join(args.performance_repo_dir, "tools", "dotnet", "arm64")
 
             # Not sure why this isn't needed on osx
