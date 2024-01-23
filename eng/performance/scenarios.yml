@@ -63,7 +63,9 @@ jobs:
         steps:
         - checkout: self
           clean: true
-        - script: $(Python) scripts/run_performance_job.py --performance-repo-ci --is-scenario --queue ${{ parameters.queue }} --channel $(_Channel) --architecture ${{ parameters.architecture }} --run-kind ${{ parameters.kind }} $--affinity ${{ parameters.affinity }} $(runEnvVarsParam) --os-group ${{ parameters.osName }} --runtime-flavor ${{ parameters.runtimeFlavor }} $(hybridGlobalizationParam) $(DownloadPdnParameter) --os-version ${{ parameters.osVersion }} $(_DotnetVersionParam) $(internalParam)
+        - script: $(Python) scripts/run_performance_job.py --performance-repo-ci --is-scenario --queue ${{ parameters.queue }} --channel $(_Channel) --architecture ${{ parameters.architecture }} --run-kind ${{ parameters.kind }} --affinity ${{ parameters.affinity }} $(runEnvVarsParam) --os-group ${{ parameters.osName }} --runtime-flavor ${{ parameters.runtimeFlavor }} $(hybridGlobalizationParam) $(DownloadPdnParameter) --os-version ${{ parameters.osVersion }} $(_DotnetVersionParam) $(internalParam)
+          env:
+            HelixAccessToken: $(HelixApiAccessToken)
         - template: /eng/performance/send-to-helix.yml
           parameters:
             ProjectFile: ${{ parameters.projectFile }}
