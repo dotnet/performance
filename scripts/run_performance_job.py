@@ -328,6 +328,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     work_item_dir = os.path.join(working_dir, "workitem") # Folder in which the work item commands will be run in
     payload_dir = os.path.join(working_dir, "payload") # Uploaded folder containing everything needed to run the performance test
     root_payload_dir = os.path.join(payload_dir, "root") # folder that will get copied into the root of the payload directory
+    os.makedirs(root_payload_dir, exist_ok=True)
 
     # clear payload directory
     if os.path.exists(working_dir):
