@@ -325,8 +325,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             alpine = True
 
     working_dir = os.path.join(args.performance_repo_dir, "CorrelationStaging") # folder in which the payload and workitem directories will be made
-    work_item_dir = os.path.join(working_dir, "workitem") # Folder in which the work item commands will be run in
-    payload_dir = os.path.join(working_dir, "payload") # Uploaded folder containing everything needed to run the performance test
+    work_item_dir = os.path.join(working_dir, "workitem", "") # Folder in which the work item commands will be run in
+    payload_dir = os.path.join(working_dir, "payload", "") # Uploaded folder containing everything needed to run the performance test
     root_payload_dir = os.path.join(payload_dir, "root") # folder that will get copied into the root of the payload directory
     os.makedirs(root_payload_dir, exist_ok=True)
 
@@ -731,9 +731,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
         os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
         os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
 
-        RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
-        RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.18"]).run()
-        RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
+        # TODO: Are these needed? They don't seem to have ever been working as pip is not installed on the CI agent machines
+        # RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
+        # RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.18"]).run()
+        # RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
 
         scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
         script_path = os.path.join(args.performance_repo_dir, "scripts")
