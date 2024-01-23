@@ -643,7 +643,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         set_environment_variable("PATH", new_path, save_to_pipeline=True)
         print(f"Set PATH to {new_path}")
 
-        shutil.copyfile(os.path.join(args.performance_repo_dir, "NuGet.config"), root_payload_dir)
+        shutil.copy(os.path.join(args.performance_repo_dir, "NuGet.config"), root_payload_dir)
         shutil.copytree(os.path.join(args.performance_repo_dir, "scripts"), os.path.join(payload_dir, "scripts"))
         shutil.copytree(os.path.join(args.performance_repo_dir, "src", "scenarios", "shared"), os.path.join(payload_dir, "shared"))
         shutil.copytree(os.path.join(args.performance_repo_dir, "src", "scenarios", "staticdeps"), os.path.join(payload_dir, "staticdeps"))
