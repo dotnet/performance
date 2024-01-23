@@ -59,4 +59,6 @@ jobs:
         - script: $(Python) scripts/run_performance_job.py --performance-repo-ci --queue ${{ parameters.queue }} --channel $(_Channel) --architecture ${{ parameters.architecture }} --run-kind ${{ parameters.kind }} --affinity ${{ parameters.affinity }} $(runEnvVarsParam) --os-group ${{ parameters.osName }} $(internalParam)
           env:
             HelixAccessToken: $(HelixApiAccessToken)
+            PerfCommandUploadToken: $(PerfCommandUploadToken)
+            PerfCommandUploadTokenLinux: $(PerfCommandUploadTokenLinux)
         - template: /eng/performance/send-to-helix.yml
