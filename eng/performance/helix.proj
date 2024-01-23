@@ -2,7 +2,8 @@
   <!-- Add a correlation payload for every subdirectory -->
   <ItemGroup>
     <HelixCorrelationPayload Include="$([System.IO.Directory]::GetDirectories(`$(CorrelationPayloadDirectory)`))">
-      <PayloadDirectory>$([System.IO.Path]::GetFileName(`%(Identity)`))</PayloadDirectory>
+      <PayloadDirectory>%(Identity)</PayloadDirectory>
+      <Destination>$([System.IO.Path]::GetFileName(`%(Identity)`))</Destination>
     </HelixCorrelationPayload>
   </ItemGroup>
 

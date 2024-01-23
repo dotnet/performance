@@ -141,16 +141,16 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
         # Run inside a python venv
         if args.os_group == "windows":
             install_prerequisites += [
-                "py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\\.venv",
-                "call %HELIX_WORKITEM_PAYLOAD%\\.venv\\Scripts\\activate.bat",
+                "py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv",
+                "call %HELIX_WORKITEM_ROOT%\\.venv\\Scripts\\activate.bat",
             ]
         else:
             if args.os_sub_group != "_musl":
                 install_prerequisites += ["sudo apt-get -y install python3-pip python3-venv"]
 
             install_prerequisites += [
-                "python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv",
-                ". $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate"
+                "python3 -m venv $HELIX_WORKITEM_ROOT/.venv",
+                ". $HELIX_WORKITEM_ROOT/.venv/bin/activate"
             ]
 
         # Clear the PYTHONPATH first so that modules installed elsewhere are not used
@@ -191,8 +191,8 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             "sudo apt-get update",
             "sudo apt-get install nodejs -y",
             f"test -n \"{v8_version}\"",
-            "npm install --prefix $HELIX_WORKITEM_PAYLOAD jsvu -g",
-            f"$HELIX_WORKITEM_PAYLOAD/bin/jsvu --os=linux64 v8@{v8_version}",
+            "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
+            f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
             f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
             "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
         ]
@@ -229,32 +229,30 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     else:
         helix_pre_commands += ["export MSBUILDDEBUGCOMM=1", 'export "MSBUILDDEBUGPATH=$HELIX_WORKITEM_UPLOAD_ROOT"']
 
-    # Copy the performance repo
+    # Copy the performance repo and root directory to the work item directory
     if args.os_group == "windows":
-        helix_pre_commands += [ "robocopy /np /nfl /e %HELIX_CORRELATION_PAYLOAD%\\performance %HELIX_WORKITEM_ROOT%\\performance /XD %HELIX_CORRELATION_PAYLOAD%\\performance\\.git"]
+        helix_pre_commands += [ 
+            "robocopy /np /nfl /e %HELIX_CORRELATION_PAYLOAD%\\performance %HELIX_WORKITEM_ROOT%\\performance",
+            "robocopy /np /nfl /e %HELIX_CORRELATION_PAYLOAD%\\root %HELIX_WORKITEM_ROOT%" ]
     else:
-        helix_pre_commands += [ "cp -R $HELIX_CORRELATION_PAYLOAD/performance $HELIX_WORKITEM_ROOT/performance" ]
+        helix_pre_commands += [ 
+            "cp -R $HELIX_CORRELATION_PAYLOAD/performance $HELIX_WORKITEM_ROOT/performance",
+            "cp -R $HELIX_CORRELATION_PAYLOAD/root $HELIX_WORKITEM_ROOT" ]
 
     # invoke the machine-setup
     if args.os_group == "windows":
-        helix_pre_commands += ["call %HELIX_WORKITEM_PAYLOAD%\\machine-setup.cmd"]
+        helix_pre_commands += ["call %HELIX_WORKITEM_ROOT%\\machine-setup.cmd"]
     else:
         helix_pre_commands += [
-            "chmod +x $HELIX_WORKITEM_PAYLOAD/machine-setup.sh",
-            ". $HELIX_WORKITEM_PAYLOAD/machine-setup.sh",
+            "chmod +x $HELIX_WORKITEM_ROOT/machine-setup.sh",
+            ". $HELIX_WORKITEM_ROOT/machine-setup.sh",
         ]
 
     # ensure that the PYTHONPATH is set to the scripts directory
     if args.os_group == "windows":
-        helix_pre_commands += ["set PYTHONPATH=%HELIX_WORKITEM_PAYLOAD%\\scripts%3B%HELIX_WORKITEM_PAYLOAD%"]
+        helix_pre_commands += ["set PYTHONPATH=%HELIX_WORKITEM_ROOT%\\scripts%3B%HELIX_WORKITEM_ROOT%"]
     else:
-        helix_pre_commands += ["export PYTHONPATH=$HELIX_WORKITEM_PAYLOAD/scripts:$HELIX_WORKITEM_PAYLOAD"]
-
-    # Ensure NuGet.config gets copied to the work item root
-    if args.os_group == "windows":
-        helix_pre_commands += ["xcopy %HELIX_CORRELATION_PAYLOAD%\\NuGet.config %HELIX_WORKITEM_ROOT% /Y" ]
-    else:
-        helix_pre_commands += ["cp $HELIX_CORRELATION_PAYLOAD/NuGet.config $HELIX_WORKITEM_ROOT"]
+        helix_pre_commands += ["export PYTHONPATH=$HELIX_WORKITEM_ROOT/scripts:$HELIX_WORKITEM_ROOT"]
         
     return helix_pre_commands
 
@@ -329,14 +327,18 @@ def run_performance_job(args: RunPerformanceJobArgs):
     working_dir = os.path.join(args.performance_repo_dir, "CorrelationStaging") # folder in which the payload and workitem directories will be made
     work_item_dir = os.path.join(working_dir, "workitem") # Folder in which the work item commands will be run in
     payload_dir = os.path.join(working_dir, "payload") # Uploaded folder containing everything needed to run the performance test
+    root_payload_dir = os.path.join(payload_dir, "root") # folder that will get copied into the root of the payload directory
 
     # clear payload directory
     if os.path.exists(working_dir):
+        print("Clearing existing payload directory")
         shutil.rmtree(working_dir)
 
     # Include a copy of the whole performance in the payload directory
     performance_payload_dir = os.path.join(payload_dir, "performance")
-    shutil.copytree(args.performance_repo_dir, performance_payload_dir, ignore=shutil.ignore_patterns("CorrelationStaging", ".git", "artifacts"))
+    print("Copying performance repository to payload directory")
+    shutil.copytree(args.performance_repo_dir, performance_payload_dir, ignore=shutil.ignore_patterns("CorrelationStaging", ".git", "artifacts", ".dotnet", ".venv"))
+    print("Finished copying performance repository to payload directory")
 
     bdn_arguments = ["--anyCategories", args.run_categories]
 
@@ -580,8 +582,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.built_app_dir is None:
             raise Exception("Built apps directory must be present for Android Mono benchmarks")
         os.makedirs(work_item_dir, exist_ok=True)
-        shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), payload_dir)
-        shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorld", "HelloAndroid.apk"), payload_dir)
+        shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), root_payload_dir)
+        shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorld", "HelloAndroid.apk"), root_payload_dir)
         ci_setup_arguments.architecture = "arm64"
 
     if ios_mono or ios_nativeaot:
@@ -617,12 +619,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     ci_setup_arguments.target_windows = args.os_group == "windows"
 
+    ci_setup_arguments.output_file = os.path.join(root_payload_dir, "machine-setup")
     if args.is_scenario:
-        ci_setup_arguments.output_file = os.path.join(payload_dir, "machine-setup")
         ci_setup_arguments.install_dir = os.path.join(payload_dir, "dotnet")
     else:
         tools_dir = os.path.join(performance_payload_dir, "tools")
-        ci_setup_arguments.output_file = os.path.join(tools_dir, "machine-setup")
         ci_setup_arguments.install_dir = os.path.join(tools_dir, "dotnet", args.architecture)
 
     if args.channel is not None:
@@ -634,8 +635,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     ci_setup.main(ci_setup_arguments)
 
     if args.is_scenario:
-        payload_dir += os.path.sep
-
         set_environment_variable("DOTNET_ROOT", ci_setup_arguments.install_dir, save_to_pipeline=True)
         print(f"Set DOTNET_ROOT to {ci_setup_arguments.install_dir}")
 
@@ -643,7 +642,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         set_environment_variable("PATH", new_path, save_to_pipeline=True)
         print(f"Set PATH to {new_path}")
 
-        shutil.copyfile(os.path.join(args.performance_repo_dir, "NuGet.config"), payload_dir)
+        shutil.copyfile(os.path.join(args.performance_repo_dir, "NuGet.config"), root_payload_dir)
         shutil.copytree(os.path.join(args.performance_repo_dir, "scripts"), os.path.join(payload_dir, "scripts"))
         shutil.copytree(os.path.join(args.performance_repo_dir, "src", "scenarios", "shared"), os.path.join(payload_dir, "shared"))
         shutil.copytree(os.path.join(args.performance_repo_dir, "src", "scenarios", "staticdeps"), os.path.join(payload_dir, "staticdeps"))
@@ -849,8 +848,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         work_item_timeout = timedelta(hours=1.5)
 
     helix_results_destination_dir=os.path.join(args.performance_repo_dir, "artifacts", "helix-results")
-
-    # TODO: support Compare with BaselineCoreRun
 
     perf_send_to_helix_args = PerfSendToHelixArgs(
         helix_source=f"{helix_source_prefix}/{args.build_repository_name}/{args.build_source_branch}",
