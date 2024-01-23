@@ -24,7 +24,7 @@ jobs:
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }}'
         timeoutInMinutes: 320
         variables:
-        ${{ if ne(length(parameters.runEnvVars), 0)}}:
+        - ${{ if ne(length(parameters.runEnvVars), 0)}}:
           - name: runEnvVarsParam
             value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
         - name: Python
