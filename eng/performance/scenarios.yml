@@ -27,79 +27,22 @@ jobs:
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.runtimeFlavor }} ${{ parameters.machinePool }} ${{ parameters.additionalJobIdentifier }}'
         timeoutInMinutes: 320
         variables:
-        - name: AffinityValue # Make the affinity value available to the csproj generation
-          value: ${{ parameters.affinity }}
-        - name: AffinityParam
-          ${{ if ne(parameters.affinity, '0')}}:
-            value: '--affinity ${{ parameters.affinity }}'
-          ${{ else }}: # Affinity of 0 seems to cause problems with BDN, so don't set it if we don't need to
-            value: ''
-        - name: HybridGlobalizationConfig
-          ${{ if eq(parameters.hybridGlobalization, 'true')}}:
-            value: ' HybridGlobalization=True'
-          ${{ else }}: # Only include hybridGlobalization if explicitly set to true
-            value: ''
-        - name: runEnvVarsParam
-          ${{ if ne(length(parameters.runEnvVars), 0)}}:
+        - ${{ if eq(parameters.hybridGlobalization, 'true')}}:
+          - name: hybridGlobalizationParam
+            value: '--hybrid-globalization'
+        - ${{ if ne(length(parameters.runEnvVars), 0)}}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
+          - name: runEnvVarsParam
             value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
-          ${{ else }}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
-            value: ''
-        - ${{ if eq(parameters.osName, 'windows') }}:
-          - name: ScriptExtension
-            value: .cmd
-          - name: CorrelationStaging
-            value: $(Build.SourcesDirectory)\CorrelationStaging\
-          - name: AdditionalHelixPreCommands
-            value: 'call %HELIX_CORRELATION_PAYLOAD%\machine-setup$(ScriptExtension);xcopy %HELIX_CORRELATION_PAYLOAD%\NuGet.config %HELIX_WORKITEM_ROOT% /Y'
-          - name: PreservePythonPath
-            value: 'set ORIGPYPATH=%PYTHONPATH%'
-          - name: HelixPostCommand
-            value: 'set PYTHONPATH=%ORIGPYPATH%'
-          - name: Python
+        - name: Python
+          ${{ if eq(parameters.osName, 'windows') }}:
             value: 'py -3'
-          - name: ArtifactsDirectory
-            value: '%HELIX_WORKITEM_UPLOAD_ROOT%\Scenarios'
-          - name: TargetsWindowsParam
-            value: '--target-windows'
-        - ${{ if ne(parameters.osName, 'windows') }}:
-          - name: ScriptExtension
-            value: .sh
-          - name: CorrelationStaging
-            value: $(Build.SourcesDirectory)/CorrelationStaging/
-          - name: AdditionalHelixPreCommands
-            value: 'chmod +x $HELIX_CORRELATION_PAYLOAD/machine-setup.sh;. $HELIX_CORRELATION_PAYLOAD/machine-setup$(ScriptExtension);cp $HELIX_CORRELATION_PAYLOAD/NuGet.config $HELIX_WORKITEM_ROOT'
-          - name: PreservePythonPath
-            value: 'export ORIGPYPATH=$PYTHONPATH'
-          - name: SetAllowOpenSsl102
-            value: 'export CRYPTOGRAPHY_ALLOW_OPENSSL_102=true'
-          - name: HelixPostCommand
-            value: 'export PYTHONPATH=$ORIGPYPATH'
-          - name: Python
-            value: python3
-          - name: ArtifactsDirectory
-            value: '$HELIX_WORKITEM_UPLOAD_ROOT/Scenarios'
-          - name: TargetsWindowsParam
-            value: ''
-        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          - name: HelixApiAccessToken
-            value: ''
-          - name: HelixPreCommand
-            value: '$(PreservePythonPath);$(AdditionalHelixPreCommands)'
-          - name: HelixSourcePrefix
-            value: "pr"
-          - name: Creator
-            value: dotnet-performance
+          ${{ if ne(parameters.osName, 'windows') }}:
+            value: 'python3'
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          - name: HelixSourcePrefix
-            value: 'official'
-          - name: Creator
-            value: ''
-          - ${{ if eq(parameters.osName, 'windows') }}:
-            - name: HelixPreCommand
-              value: '$(PreservePythonPath);py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\.venv;call %HELIX_WORKITEM_PAYLOAD%\.venv\Scripts\activate.bat;set PYTHONPATH=;py -3 -m pip install azure.storage.blob==12.0.0;py -3 -m pip install azure.storage.queue==12.0.0;py -3 -m pip install urllib3==1.26.15 --force-reinstall;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
-          - ${{ if ne(parameters.osName, 'windows') }}:
-            - name: HelixPreCommand
-              value: '$(PreservePythonPath);$(SetAllowOpenSsl102);sudo apt-get -y install python3-venv;python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv;. $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate;export PYTHONPATH=;python3 -m pip install -U pip;pip3 install azure.storage.blob==12.0.0;pip3 install azure.storage.queue==12.0.0;pip3 install urllib3==1.26.15 --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
+          - name: internalParam
+            value: "--internal"
+          - name: DownloadPdnParameter
+            value: --download-pdn
           - group: DotNet-HelixApi-Access
           - group: dotnet-benchview
         workspace:
@@ -112,186 +55,15 @@ jobs:
               ${{ each channel in parameters.channels }}:
                 ${{ channel }}:
                   _Channel: ${{ channel }}
-                  _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
-                  _BuildConfig: ${{ parameters.architecture }}_$(_Channel)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
             ${{ if ne(length(parameters.dotnetVersionsLinks), 0) }}:
               ${{ each versionPair in parameters.dotnetVersionsLinks }}:
                 ${{ versionPair.key }}_Link:
                   _Channel: ${{ versionPair.key }}
-                  _DotnetVersionLink: ${{ versionPair.value }}
-                  _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
-                  _BuildConfig: ${{ parameters.architecture }}_$(_Channel)_Linked_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
+                  _DotnetVersionParam: --dotnet-version-link ${{ versionPair.value }}
         steps:
         - checkout: self
           clean: true
-        - ${{ if ne(length(parameters.channels), 0) }}:
-          - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)$(HybridGlobalizationConfig) --output-file $(CorrelationStaging)machine-setup --install-dir $(CorrelationStaging)dotnet $(runEnvVarsParam) $(AffinityParam) $(TargetsWindowsParam)
-            displayName: Run ci_setup.py
-        - ${{ elseif ne(length(parameters.dotnetVersionsLinks), 0) }}:
-          - powershell: |
-              $data = Invoke-WebRequest -Uri "$(_DotnetVersionLink)"
-              $values = ConvertFrom-Json $data.content
-              $dotnet_version_check = $values.dotnet_version
-              $version_check = $values.version
-              $dotnet_version = if ($dotnet_version_check) {$dotnet_version_check} Else {$version_check}
-              Write-Host "##vso[task.setvariable variable=DotnetVersion;]$dotnet_version"
-              Write-Host "Found dotnet version $dotnet_version"
-            displayName: Get dotnetVersion to use
-          - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --dotnet-versions $(DotnetVersion) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)$(HybridGlobalizationConfig) --output-file $(CorrelationStaging)machine-setup --install-dir $(CorrelationStaging)dotnet $(runEnvVarsParam) $(AffinityParam) $(TargetsWindowsParam)
-            displayName: Run ci_setup.py with dotnetVersionsLinks
-        - powershell: |
-            Write-Host "##vso[task.setvariable variable=DOTNET_ROOT;]$(CorrelationStaging)dotnet"
-            Write-Host "Set DOTNET_ROOT to $(CorrelationStaging)dotnet"
-          displayName: Explicitly set DOTNET_ROOT (Windows)
-          condition: and(succeeded(), eq(variables['Agent.Os'], 'Windows_NT'))
-        - script: |
-            echo "##vso[task.setvariable variable=DOTNET_ROOT;]$(CorrelationStaging)dotnet"
-            echo "Set DOTNET_ROOT to $(CorrelationStaging)dotnet"
-          displayName: Explicitly set DOTNET_ROOT (Non-Windows)
-          condition: and(succeeded(), ne(variables['Agent.Os'], 'Windows_NT'))
-        - powershell: |
-            Write-Host "##vso[task.setvariable variable=PATH;]$(DOTNET_ROOT);$(PATH)"
-            Write-Host "Set PATH to $(DOTNET_ROOT);$(PATH)"
-          displayName: Explicitly set PATH (Windows)
-          condition: and(succeeded(), eq(variables['Agent.Os'], 'Windows_NT'))
-        - script: |
-            echo "##vso[task.setvariable variable=PATH;]$(DOTNET_ROOT):$(PATH)"
-            echo "Set PATH to $(DOTNET_ROOT):$(PATH)"
-          displayName: Explicitly set PATH (Non-Windows)
-          condition: and(succeeded(), ne(variables['Agent.Os'], 'Windows_NT'))
-        - ${{ if eq(parameters.osName, 'windows') }}:
-          - script: xcopy .\NuGet.config $(CorrelationStaging) && xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e
-            displayName: Copy python libraries and NuGet.config
-          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)startup -f $(PERFLAB_Framework) -r win-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\Startup\Startup.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build startup tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(PERFLAB_Framework) -r win-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\SizeOnDisk\SizeOnDisk.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build SOD tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)MemoryConsumption -f $(PERFLAB_Framework) -r win-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\MemoryConsumption\MemoryConsumption.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build MemoryConsumption tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)PerfLabGenericEventSourceForwarder -f $(PERFLAB_Framework) -r win-${{parameters.architecture}} $(Build.SourcesDirectory)\src\tools\PerfLabGenericEventSourceForwarder\PerfLabGenericEventSourceForwarder\PerfLabGenericEventSourceForwarder.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build PerfLabGenericEventSourceForwarder tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-            - powershell: |
-                mkdir $(CorrelationStaging)PDN
-                curl "https://pvscmdupload.blob.core.windows.net/assets/paint.net.5.0.3.portable.${{parameters.architecture}}.zip$(PerfCommandUploadTokenNonEscaped)" -OutFile $(CorrelationStaging)PDN\PDN.zip
-              displayName: Download PDN
-              condition: ne('${{ parameters.architecture }}', 'x86')
-          - powershell: |
-              $(Python) -m pip install --upgrade pip
-              $(Python) -m pip install urllib3==1.26.15
-              $(Python) -m pip install requests
-              .\src\scenarios\init.ps1 -DotnetDirectory $(CorrelationStaging)dotnet
-              dotnet msbuild .\eng\performance\${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /p:HybridGlobalization=${{ parameters.hybridGlobalization }} /bl:.\artifacts\log\$(_BuildConfig)\PrepareWorkItemPayloads.binlog
-            displayName: Prepare scenarios
-            env:
-              CorrelationPayloadDirectory: $(CorrelationStaging)
-              Architecture: ${{ parameters.architecture }}
-              TargetsWindows: 'true'
-              WorkItemDirectory: $(Build.SourcesDirectory)
-              HelixTargetQueues: ${{ parameters.queue }}
-          - ${{ if eq(parameters.architecture, 'arm64') }}:
-            - script: taskkill /im dotnet.exe /f
-              displayName: Stop dotnet.exe
-            - script: del $(CorrelationStaging)dotnet\* /F /S /Q
-              displayName: Delete old dotnet
-            - script: xcopy tools\dotnet\arm64\* $(CorrelationStaging)dotnet\ /E /I /Y
-              displayName: Copy Arm64 Dotnet to Correlation Payload
-        - ${{ if eq(parameters.osName, 'osx') }}:
-          - script: cp ./NuGet.config $(CorrelationStaging);cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
-            displayName: Copy python libraries and NuGet.config
-          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)startup -f $(PERFLAB_Framework) -r osx-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build startup tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(PERFLAB_Framework) -r osx-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/SizeOnDisk/SizeOnDisk.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build SOD tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)MemoryConsumption -f $(PERFLAB_Framework) -r osx-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/MemoryConsumption/MemoryConsumption.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build MemoryConsumption tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)PerfLabGenericEventSourceForwarder -f $(PERFLAB_Framework) -r osx-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/PerfLabGenericEventSourceForwarder/PerfLabGenericEventSourceForwarder/PerfLabGenericEventSourceForwarder.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build PerfLabGenericEventSourceForwarder tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: |
-              $(Python) -m pip install --user --upgrade pip
-              $(Python) -m pip install --user urllib3==1.26.15
-              $(Python) -m pip install --user requests
-              . ./src/scenarios/init.sh -dotnetdir $(CorrelationStaging)dotnet
-              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /p:HybridGlobalization=${{ parameters.hybridGlobalization }} /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
-            displayName: Prepare scenarios
-            env:
-              CorrelationPayloadDirectory: $(CorrelationStaging)
-              Architecture: ${{ parameters.architecture }}
-              TargetsWindows: 'false'
-              WorkItemDirectory: $(Build.SourcesDirectory)
-              HelixTargetQueues: ${{ parameters.queue }}
-        - ${{ if and(ne(parameters.osName, 'windows'), ne(parameters.osName, 'osx')) }}:
-          - script: cp ./NuGet.config $(CorrelationStaging);cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
-            displayName: Copy python libraries and NuGet.config
-          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)startup -f $(PERFLAB_Framework) -r linux-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build startup tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(PERFLAB_Framework) -r linux-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/SizeOnDisk/SizeOnDisk.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build SOD tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)MemoryConsumption -f $(PERFLAB_Framework) -r linux-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/MemoryConsumption/MemoryConsumption.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build MemoryConsumption tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)PerfLabGenericEventSourceForwarder -f $(PERFLAB_Framework) -r linux-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/PerfLabGenericEventSourceForwarder/PerfLabGenericEventSourceForwarder/PerfLabGenericEventSourceForwarder.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build PerfLabGenericEventSourceForwarder tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(Build.SourcesDirectory)/src/tools/PerfLabGenericEventSourceLTTngProvider/build.sh -o $(CorrelationStaging)PerfLabGenericEventSourceForwarder
-            displayName: Build PerfLabGenericEventSourceLTTngProvider tool
-            condition: and(succeeded(), contains(variables['System.JobDisplayName'], '2204'))
-          - script: |
-              $(Python) -m pip install --user --upgrade pip
-              $(Python) -m pip install --user urllib3==1.26.15
-              $(Python) -m pip install --user requests
-              . ./src/scenarios/init.sh -dotnetdir $(CorrelationStaging)dotnet
-              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /p:HybridGlobalization=${{ parameters.hybridGlobalization }} /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
-            displayName: Prepare scenarios
-            env:
-              CorrelationPayloadDirectory: $(CorrelationStaging)
-              Architecture: ${{ parameters.architecture }}
-              TargetsWindows: 'false'
-              WorkItemDirectory: $(Build.SourcesDirectory)
-              HelixTargetQueues: ${{ parameters.queue }}
-          - ${{ if eq(parameters.architecture, 'arm64') }}:
-            - script: killall -9 dotnet
-              displayName: Stop dotnet
-            - script: rm -rf $(CorrelationStaging)dotnet/*
-              displayName: Delete old dotnet
-            - script: cp -r tools/dotnet/arm64/* $(CorrelationStaging)dotnet/
-              displayName: Copy Arm64 Dotnet to Correlation Payload
+        - script: $(Python) scripts/run_performance_job.py --performance-repo-ci --is-scenario --queue ${{ parameters.queue }} --channel $(_Channel) --architecture ${{ parameters.architecture }} --run-kind ${{ parameters.kind }} $--affinity ${{ parameters.affinity }} $(runEnvVarsParam) --os-group ${{ parameters.osName }} --runtime-flavor ${{ parameters.runtimeFlavor }} $(hybridGlobalizationParam) $(DownloadPdnParameter) --os-version ${{ parameters.osVersion }} $(_DotnetVersionParam) $(internalParam)
         - template: /eng/performance/send-to-helix.yml
           parameters:
-            HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
-            HelixType: 'test/performance_$(_BuildConfig)/'
-            HelixAccessToken: $(HelixApiAccessToken)
-            HelixTargetQueues: ${{ parameters.queue }}
-            HelixPreCommands: $(HelixPreCommand)
-            HelixPostCommands: $(HelixPostCommand)
-            CorrelationPayloadDirectory: $(CorrelationStaging)
             ProjectFile: ${{ parameters.projectFile }}
-            WorkItemDirectory: $(Build.SourcesDirectory)
-            Creator: $(Creator)
-            Architecture: ${{ parameters.architecture }}
-            WorkItemTimeout: 4:00 # 4 hours
-            Python: $(Python)
-            RuntimeFlavor: ${{ parameters.runtimeFlavor }}
-            HybridGlobalization: ${{ parameters.hybridGlobalization }}

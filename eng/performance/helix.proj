@@ -1,83 +1,8 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
-
-  <PropertyGroup Condition="'$(TargetsWindows)' == 'true' AND '$(UseCoreRun)' == 'true'">
-    <PerformanceDirectory>%HELIX_WORKITEM_ROOT%\performance</PerformanceDirectory>
-    <HelixPreCommands>$(HelixPreCommands) &amp;&amp; robocopy /np /nfl /e %HELIX_CORRELATION_PAYLOAD%\performance $(PerformanceDirectory) /XD %HELIX_CORRELATION_PAYLOAD%\performance\.git</HelixPreCommands>
-    <WorkItemCommand>$(PerformanceDirectory)\scripts\benchmarks_ci.py --csproj $(PerformanceDirectory)\$(TargetCsproj)</WorkItemCommand>
-    <Python>py -3</Python>
-    <CoreRun>%HELIX_CORRELATION_PAYLOAD%\Core_Root\CoreRun.exe</CoreRun>
-    <BaselineCoreRun>%HELIX_CORRELATION_PAYLOAD%\Baseline_Core_Root\CoreRun.exe</BaselineCoreRun>
-    <HelixPreCommands>$(HelixPreCommands);call $(PerformanceDirectory)\tools\machine-setup.cmd;set PYTHONPATH=%HELIX_WORKITEM_PAYLOAD%\scripts%3B%HELIX_WORKITEM_PAYLOAD%</HelixPreCommands>
-    <ArtifactsDirectory>%HELIX_WORKITEM_ROOT%\artifacts\BenchmarkDotNet.Artifacts</ArtifactsDirectory>
-    <BaselineArtifactsDirectory>%HELIX_WORKITEM_ROOT%\artifacts\BenchmarkDotNet.Artifacts_Baseline</BaselineArtifactsDirectory>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetsWindows)' != 'true' AND '$(UseCoreRun)' == 'true'">
-    <PerformanceDirectory>$HELIX_WORKITEM_ROOT/performance</PerformanceDirectory>
-    <HelixPreCommands>$(HelixPreCommands);cp -R $(BaseDirectory)/performance $(PerformanceDirectory)</HelixPreCommands>
-    <WorkItemCommand>$(PerformanceDirectory)/scripts/benchmarks_ci.py --csproj $(PerformanceDirectory)/$(TargetCsproj)</WorkItemCommand>
-    <Python>python3</Python>
-    <CoreRun>$HELIX_CORRELATION_PAYLOAD/Core_Root/corerun</CoreRun>
-    <BaselineCoreRun>$HELIX_CORRELATION_PAYLOAD/Baseline_Core_Root/corerun</BaselineCoreRun>
-    <HelixPreCommands>$(HelixPreCommands);cp -R $HELIX_CORRELATION_PAYLOAD/performance $(PerformanceDirectory);chmod +x $(PerformanceDirectory)/tools/machine-setup.sh;. $(PerformanceDirectory)/tools/machine-setup.sh</HelixPreCommands>
-    <ArtifactsDirectory>$HELIX_WORKITEM_ROOT/artifacts/BenchmarkDotNet.Artifacts</ArtifactsDirectory>
-    <BaselineArtifactsDirectory>$HELIX_WORKITEM_ROOT/artifacts/BenchmarkDotNet.Artifacts_Baseline</BaselineArtifactsDirectory>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetsWindows)' == 'true' AND '$(UseCoreRun)' != 'true'">
-    <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetsWindows)' != 'true' AND '$(UseCoreRun)' != 'true'">
-    <WorkItemCommand>scripts/benchmarks_ci.py --csproj $(TargetCsproj)</WorkItemCommand>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(WasmDotnet)' == 'true'">
-    <CliArguments>$(CliArguments) --run-isolated --wasm --dotnet-path %24HELIX_CORRELATION_PAYLOAD/dotnet/</CliArguments>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(MonoDotnet)' == 'true' and '$(AGENT_OS)' == 'Windows_NT'">
-    <CoreRunArgument>--corerun %HELIX_CORRELATION_PAYLOAD%\dotnet-mono\shared\Microsoft.NETCore.App\$(ProductVersion)\corerun.exe</CoreRunArgument>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(MonoDotnet)' == 'true' and '$(AGENT_OS)' != 'Windows_NT'">
-    <CoreRunArgument>--corerun $(BaseDirectory)/dotnet-mono/shared/Microsoft.NETCore.App/$(ProductVersion)/corerun</CoreRunArgument>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(UseCoreRun)' == 'true'">
-    <CoreRunArgument>--corerun $(CoreRun)</CoreRunArgument>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(UseBaselineCoreRun)' == 'true'">
-    <BaselineCoreRunArgument>--corerun $(BaselineCoreRun)</BaselineCoreRunArgument>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
-    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(PERFLAB_Framework) $(PerfLabArguments) --bdn-artifacts $(ArtifactsDirectory) </WorkItemCommand>
-  </PropertyGroup>
-
-  <!-- TODO: Check for net462 and net461 -->
-  <PropertyGroup Condition="'$(PERFLAB_Framework)' != 'net462'">
-    <WorkItemCommand>$(WorkItemCommand) $(CliArguments)</WorkItemCommand>
-  </PropertyGroup>
-
-  <!-- TODO: Take this property in using python-->
-  <PropertyGroup>
-    <WorkItemTimeout>6:00</WorkItemTimeout>
-    <WorkItemTimeout Condition="'$(OnlySanityCheck)' == 'true'">1:30</WorkItemTimeout>
-    <HelixResultsDestinationDir>$(CorrelationPayloadDirectory)/performance/artifacts/helix-results</HelixResultsDestinationDir>
-  </PropertyGroup>
-
+  <!-- Add a correlation payload for every subdirectory -->
   <ItemGroup>
-    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)/Core_Root" Condition="'$(UseCoreRun)' == 'true'">
-      <PayloadDirectory>%(Identity)</PayloadDirectory>
-      <Destination>Core_Root</Destination>
-    </HelixCorrelationPayload>
-    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)/performance" Condition="'$(UseCoreRun)' == 'true'">
-      <PayloadDirectory>%(Identity)</PayloadDirectory>
-      <Destination>performance</Destination>
-    </HelixCorrelationPayload>
-    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)" Condition="'$(UseCoreRun)' != 'true'">
-      <PayloadDirectory>%(Identity)</PayloadDirectory>
+    <HelixCorrelationPayload Include="$([System.IO.Directory]::GetDirectories(`$(CorrelationPayloadDirectory)`))">
+      <PayloadDirectory>$([System.IO.Path]::GetFileName(`%(Identity)`))</PayloadDirectory>
     </HelixCorrelationPayload>
   </ItemGroup>
 
@@ -117,14 +42,11 @@
     <Partition Include="Partition29" Index="29" Condition="$(PartitionCount) &gt; 29" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <BenchmarkDotNetArguments>$(BenchmarkDotNetArguments) $(ExtraBenchmarkDotNetArguments) $(CoreRunArgument)</BenchmarkDotNetArguments>
-  </PropertyGroup>
-
-  <!-- TODO: Support Compare from runtime repo -->
-
   <!-- 
     Partition the MicroBenchmarks project, but nothing else
+    TODO: Support Compare runs
+      This is achieved by doing a baseline corerun in a precommand, then running ResultsComparer in a postcommand
+    TODO: Check PERF_PREREQS_INSTALL_FAILED before running commands on non-windows
   -->
   <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
     <HelixWorkItem Include="@(Partition)">

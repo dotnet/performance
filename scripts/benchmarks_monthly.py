@@ -6,6 +6,7 @@ for a .NET preview release, making it easier to contribute to our
 monthly manual performance runs.
 '''
 
+from typing import Dict, List
 from performance.common import get_machine_architecture
 from performance.logger import setup_loggers
 from argparse import ArgumentParser
@@ -35,7 +36,7 @@ VERSIONS = {
     'net6.0': { 'tfm': 'net6.0' }
 }
 
-def get_version_from_name(name: str) -> dict[str, str]:
+def get_version_from_name(name: str) -> Dict[str, str]:
     if name in VERSIONS:
         return VERSIONS[name]
 
@@ -113,7 +114,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     return parser
 
-def __process_arguments(args: list[str]):
+def __process_arguments(args: List[str]):
     parser = ArgumentParser(
         description='Tool to execute the monthly manual micro benchmark performance runs',
         allow_abbrev=False
@@ -122,7 +123,7 @@ def __process_arguments(args: list[str]):
     add_arguments(parser)
     return parser.parse_args(args)
 
-def __main(argv: list[str]):
+def __main(argv: List[str]):
     setup_loggers(verbose=True)
 
     args = __process_arguments(argv)
@@ -195,7 +196,7 @@ def __main(argv: list[str]):
 
         if not args.dry_run:
             try:
-                benchmarks_ci.__main(benchmarkArgs)
+                benchmarks_ci.main(benchmarkArgs)
             except CalledProcessError:
                 log('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
                 # don't rethrow if some results were produced, as we want to create the tar file with results anyway

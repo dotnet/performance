@@ -2,6 +2,7 @@
 # Other folders to ignore
 **/logs/
 /tools/
+/CorrelationStaging/
 
 # Local perf run folders
 .dotnet/

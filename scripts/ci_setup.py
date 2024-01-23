@@ -346,7 +346,8 @@ def main(args: Any):
 
     # if repository is not set, then we are doing a core-sdk in performance repo run
     # if repository is set, user needs to supply the commit_sha
-    if not ((args.commit_sha is None) == (args.repository is None)):
+    use_core_sdk = args.repository is None or args.repository.endswith("dotnet/performance")
+    if not ((args.commit_sha is None) == use_core_sdk):
         raise ValueError('Either both commit_sha and repository should be set or neither')
     
     # for CI pipelines, use the agent OS
@@ -383,7 +384,7 @@ def main(args: Any):
 
     # When running on internal repos, the repository comes to us incorrectly
     # (ie https://github.com/dotnet-coreclr). Replace dashes with slashes in that case.
-    repo_url = None if args.repository is None else args.repository.replace('-','/')
+    repo_url = None if use_core_sdk else args.repository.replace('-','/')
 
     variable_format = 'set "%s=%s"\n' if args.target_windows else 'export %s="%s"\n'
     path_variable = 'set PATH=%s;%%PATH%%\n' if args.target_windows else 'export PATH=%s:$PATH\n'
