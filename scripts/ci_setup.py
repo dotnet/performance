@@ -346,7 +346,7 @@ def main(args: Any):
 
     # if repository is not set, then we are doing a core-sdk in performance repo run
     # if repository is set, user needs to supply the commit_sha
-    use_core_sdk = args.repository is None or args.repository.endswith("dotnet/performance")
+    use_core_sdk = args.repository is None
     if not ((args.commit_sha is None) == use_core_sdk):
         raise ValueError('Either both commit_sha and repository should be set or neither')
     
@@ -437,7 +437,7 @@ def main(args: Any):
     if not framework.startswith('net4'):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
-        commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
+        commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if use_core_sdk else args.commit_sha
 
         if args.local_build:
             source_timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')

@@ -464,22 +464,22 @@ def run_performance_job(args: RunPerformanceJobArgs):
         get_perf_hash=True)
 
     ci_setup_arguments.build_number = args.build_number
-    ci_setup_arguments.repository = f"https://github.com/{args.build_repository_name}"
 
     if branch is not None:
         ci_setup_arguments.branch = branch
 
-    if args.perf_repo_hash is not None:
+    if args.perf_repo_hash is not None and not args.performance_repo_ci:
+        ci_setup_arguments.repository = f"https://github.com/{args.build_repository_name}"
         ci_setup_arguments.commit_sha = args.perf_repo_hash
+
+        if args.use_local_commit_time:
+            get_commit_time_command = RunCommand(["git", "show", "-s", "--format=%ci", args.perf_repo_hash])
+            get_commit_time_command.run()
+            ci_setup_arguments.commit_time = f"\"{get_commit_time_command.stdout}\""
 
     if not args.internal:
         ci_setup_arguments.not_in_lab = True
 
-    if args.use_local_commit_time and args.perf_repo_hash is not None:
-        get_commit_time_command = RunCommand(["git", "show", "-s", "--format=%ci", args.perf_repo_hash])
-        get_commit_time_command.run()
-        ci_setup_arguments.commit_time = f"\"{get_commit_time_command.stdout}\""
-    
     if mono_dotnet is not None:
         mono_dotnet_path = os.path.join(payload_dir, "dotnet-mono")
         shutil.copytree(mono_dotnet, mono_dotnet_path)
