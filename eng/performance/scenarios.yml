@@ -32,6 +32,11 @@ jobs:
             value: '--hybrid-globalization'
           ${{ if ne(parameters.hybridGlobalization, 'true')}}:
             value: ''
+        - name: runtimeFlavorParam
+          ${{ if ne(parameters.runtimeFlavor, '')}}:
+            value: --runtime-flavor ${{ parameters.runtimeFlavor }}
+          ${{ if eq(parameters.runtimeFlavor, '')}}:
+            value: ''
         - name: runEnvVarsParam
           ${{ if ne(length(parameters.runEnvVars), 0)}}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
             value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
@@ -71,7 +76,7 @@ jobs:
         steps:
         - checkout: self
           clean: true
-        - script: $(Python) scripts/run_performance_job.py --performance-repo-ci --is-scenario --queue ${{ parameters.queue }} --channel $(_Channel) --architecture ${{ parameters.architecture }} --run-kind ${{ parameters.kind }} --affinity ${{ parameters.affinity }} $(runEnvVarsParam) --os-group ${{ parameters.osName }} --runtime-flavor ${{ parameters.runtimeFlavor }} $(hybridGlobalizationParam) $(DownloadPdnParameter) --os-version ${{ parameters.osVersion }} $(_DotnetVersionParam) $(internalParam) --project-file $(Build.SourcesDirectory)/eng/performance/${{ parameters.projectFile }}
+        - script: $(Python) scripts/run_performance_job.py --performance-repo-ci --is-scenario --queue ${{ parameters.queue }} --channel $(_Channel) --architecture ${{ parameters.architecture }} --run-kind ${{ parameters.kind }} --affinity ${{ parameters.affinity }} $(runEnvVarsParam) --os-group ${{ parameters.osName }} $(runtimeFlavorParam) $(hybridGlobalizationParam) $(DownloadPdnParameter) --os-version ${{ parameters.osVersion }} $(_DotnetVersionParam) $(internalParam) --project-file $(Build.SourcesDirectory)/eng/performance/${{ parameters.projectFile }}
           env:
             HelixAccessToken: $(HelixApiAccessToken)
         - template: /eng/performance/send-to-helix.yml

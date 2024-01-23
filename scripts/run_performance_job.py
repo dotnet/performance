@@ -711,13 +711,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
         
         # download PDN
         if args.os_group == "windows" and args.architecture != "x86" and args.download_pdn:
+            print("Downloading PDN")
             escaped_upload_token = str(os.environ.get("PerfCommandUploadTokenLinux")).replace("%25", "%")
             pdn_url = f"https://pvscmdupload.blob.core.windows.net/assets/paint.net.5.0.3.portable.{args.architecture}.zip{escaped_upload_token}"
-            pdn_dest = os.path.join(payload_dir, "PDN")
-            os.makedirs(pdn_dest)
-            with urllib.request.urlopen(pdn_url) as response, open(os.path.join(pdn_dest, "PDN.zip"), "wb") as f:
+            pdn_dest = os.path.join(payload_dir, "PDN", "PDN.zip")
+            os.makedirs(pdn_dest, exist_ok=True)
+            with urllib.request.urlopen(pdn_url) as response, open(pdn_dest, "wb") as f:
                 data = response.read()
                 f.write(data)
+            print(f"PDN downloaded to {pdn_dest}")
 
         # create a copy of the environment since we want these to only be set during the following invocation
         environ_copy = os.environ.copy()
@@ -731,8 +733,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
         os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
 
-        # TODO: See if these commands are needed for non-windows as they were being called before but were failing.
-        if args.os_group == "windows":
+        # TODO: See if these commands are needed for linux as they were being called before but were failing.
+        if args.os_group == "windows" or args.os_group == "osx":
             RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
             RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.18"]).run()
             RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
