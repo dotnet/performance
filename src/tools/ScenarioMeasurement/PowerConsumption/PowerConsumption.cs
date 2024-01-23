@@ -183,7 +183,7 @@ namespace ScenarioMeasurement
             if (!skipMeasurementIteration)
             {
                 // Run trace session
-                using (var traceSession = TraceSessionManager.CreateSession("PowerConsumptionSession", traceName, traceDirectory, logger))
+                using (var traceSession = TraceSessionManager.CreateSession("PowerConsumptionSession", traceName, traceDirectory, logger, default))
                 {
                     traceSession.EnableProviders(parser);
                     for (int i = 0; i < iterations; i++)
@@ -246,7 +246,7 @@ namespace ScenarioMeasurement
                 logger.LogIterationHeader("Profile Iteration");
                 ProfileParser profiler = new ProfileParser(parser);
                 (bool Success, List<int> Pids) iterationResult;
-                using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_" + traceName, traceDirectory, logger))
+                using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_" + traceName, traceDirectory, logger, default))
                 {
                     profileSession.EnableProviders(profiler);
                     iterationResult = RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger);

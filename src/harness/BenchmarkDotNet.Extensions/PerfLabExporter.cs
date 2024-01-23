@@ -83,7 +83,7 @@ namespace BenchmarkDotNet.Extensions
                     TopCounter = false,
                     DefaultCounter = false,
                     HigherIsBetter = false,
-                    MetricName = "ms",
+                    MetricName = "ns",
                     Results = (from result in results
                                select result.Nanoseconds).ToList()
                 });

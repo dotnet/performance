@@ -731,7 +731,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
 
         RunCommand([*(python.split(" ")), "-m", "pip", "install", "--upgrade", "pip"]).run()
-        RunCommand([*(python.split(" ")), "-m", "pip", "install", "urllib3==1.26.15"]).run()
+        RunCommand([*(python.split(" ")), "-m", "pip", "install", "urllib3==1.26.18"]).run()
         RunCommand([*(python.split(" ")), "-m", "pip", "install", "requests"]).run()
 
         scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")

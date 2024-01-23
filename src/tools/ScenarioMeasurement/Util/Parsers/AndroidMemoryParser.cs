@@ -12,7 +12,7 @@ namespace ScenarioMeasurement
     /// This is a custom parser that does not enable any profiling. Instead, it relies on being passed files collected
     /// off the test machine (usually on a device.) 
     /// </summary>
-    class AndroidMemoryParser : IParser
+    public class AndroidMemoryParser : IParser
     {
         public void EnableKernelProvider(ITraceSession kernel)
         {

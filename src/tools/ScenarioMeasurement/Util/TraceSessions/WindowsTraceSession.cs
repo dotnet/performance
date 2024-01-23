@@ -152,7 +152,7 @@ public class WindowsTraceSession : ITraceSession
         clrKeywords[TraceSessionManager.ClrKeyword.Startup] = ClrPrivateTraceEventParser.Keywords.Startup;
     }
 
-    public void EnableUserProvider(string provider, TraceEventLevel verboseLevel = TraceEventLevel.Verbose)
+    public void EnableUserProvider(string provider, TraceEventLevel verboseLevel)
     {
         UserSession.EnableProvider(provider, verboseLevel);
     }
