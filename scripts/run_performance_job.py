@@ -279,7 +279,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     
     if args.perflab_upload_token is None:
         env_var_name = "PerfCommandUploadToken" if args.os_group == "windows" else "PerfCommandUploadTokenLinux"
-        args.perflab_upload_token = os.environ.get("env_var_name")
+        args.perflab_upload_token = os.environ.get(env_var_name)
         if args.perflab_upload_token is None:
             print(f"WARNING: {env_var_name} is not set. Results will not be uploaded.")
     
@@ -731,10 +731,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
         os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
         os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
 
-        # TODO: Are these needed? They don't seem to have ever been working as pip is not installed on the CI agent machines
-        # RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
-        # RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.18"]).run()
-        # RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
+        # TODO: See if these commands are needed for non-windows as they were being called before but were failing.
+        if args.os_group == "windows":
+            RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
+            RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.18"]).run()
+            RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
 
         scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
         script_path = os.path.join(args.performance_repo_dir, "scripts")
