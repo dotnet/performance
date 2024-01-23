@@ -714,12 +714,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
             print("Downloading PDN")
             escaped_upload_token = str(os.environ.get("PerfCommandUploadTokenLinux")).replace("%25", "%")
             pdn_url = f"https://pvscmdupload.blob.core.windows.net/assets/paint.net.5.0.3.portable.{args.architecture}.zip{escaped_upload_token}"
-            pdn_dest = os.path.join(payload_dir, "PDN", "PDN.zip")
+            pdn_dest = os.path.join(payload_dir, "PDN")
             os.makedirs(pdn_dest, exist_ok=True)
-            with urllib.request.urlopen(pdn_url) as response, open(pdn_dest, "wb") as f:
+            pdn_file_path = os.path.join(pdn_dest, "PDN.zip")
+            with urllib.request.urlopen(pdn_url) as response, open(pdn_file_path, "wb") as f:
                 data = response.read()
                 f.write(data)
-            print(f"PDN downloaded to {pdn_dest}")
+            print(f"PDN downloaded to {pdn_file_path}")
 
         # create a copy of the environment since we want these to only be set during the following invocation
         environ_copy = os.environ.copy()
