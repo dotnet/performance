@@ -34,7 +34,7 @@ def init_tools(
 
     dotnet.install(
         architecture=architecture,
-        channels=[channel],
+        channels=["main"],
         versions=dotnet_versions,
         verbose=verbose,
         install_dir=install_dir
