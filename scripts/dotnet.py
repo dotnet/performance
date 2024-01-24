@@ -518,6 +518,15 @@ def get_framework_version(framework: str) -> FrameworkVersion:
 
     return version
 
+def get_framework_version_from_sdk_version(sdk_version: str) -> FrameworkVersion:
+    groups = search(r"^(\d+)\.(\d+).*", sdk_version)
+    if not groups:
+        raise ValueError(f"Unknown target framework for sdk_version: {sdk_version}")
+
+    version = FrameworkVersion(int(groups.group(1)), int(groups.group(2)))
+
+    return version
+
 
 def get_base_path(dotnet_path: Optional[str] = None) -> str:
     """Gets the dotnet Host version from the `dotnet --info` command."""
@@ -554,37 +563,39 @@ def get_dotnet_path() -> str:
     dotnet_path = path.abspath(path.join(base_path, '..', '..'))
     return dotnet_path
 
-
+SdkVersion = NamedTuple('SdkVersion', version=str, framework_version=FrameworkVersion, is_full_release=bool)
 def get_dotnet_version(
         framework: str,
         dotnet_path: Optional[str] = None,
         sdk_path: Optional[str] = None) -> str:
-    version = get_framework_version(framework)
+    version = get_framework_version(framework) 
 
     sdk_path = get_sdk_path(dotnet_path) if sdk_path is None else sdk_path
 
     sdks = [
-        d for d in listdir(sdk_path) if path.isdir(path.join(sdk_path, d))
+        SdkVersion(d, get_framework_version_from_sdk_version(d), "-" not in d) for d in listdir(sdk_path) if path.isdir(path.join(sdk_path, d))
     ]
-    sdks.sort(reverse=True)
+
+    # Sort sdks by major and minor version
+    sdks.sort(key=lambda sdk_version: (sdk_version.framework_version.major, sdk_version.framework_version.minor, sdk_version.is_full_release, sdk_version.version), reverse=True)
 
     # Determine the SDK being used.
     # Attempt 1: Try to use exact match.
-    sdk = next((f for f in sdks if f.startswith(
-        "{}.{}".format(version.major, version.minor))), None)
+    sdk = next((sdk_version for sdk_version in sdks if sdk_version.framework_version.major == version.major and sdk_version.framework_version.minor == version.minor), None)
     if not sdk:
         # Attempt 2: Increase the minor version by 1 and retry.
-        sdk = next((f for f in sdks if f.startswith(
-            "{}.{}".format(version.major, version.minor + 1))), None)
+        sdk = next((sdk_version for sdk_version in sdks if sdk_version.framework_version.major == version.major and sdk_version.framework_version.minor == version.minor), None)
     if not sdk:
-        sdk = next((f for f in sdks if f.startswith(
-            "{}.{}".format('6', '0'))), None)
+        # Attempt 3: Check for newer SDK (only need to check [0] as list is already sorted)
+        sdk_version = sdks[0]
+        if sdk_version.framework_version.major > version.major or (sdk_version.framework_version.major == version.major and sdk_version.framework_version.minor > version.minor):
+            sdk = sdk_version
     if not sdk:
         raise RuntimeError(
-            "Unable to determine the .NET SDK used for {}".format(framework)
+            f"Unable to determine the .NET SDK used for {framework}. Found SDKs: {sdks}"
         )
 
-    return sdk
+    return sdk.version
 
 
 def get_dotnet_sdk(
