@@ -1,28 +1,28 @@
 ﻿runs:
   heapcount_1:
     environment_variables:
-      COMPLUS_GCHeapCount: 1 
-      COMPLUS_GCServer: 0 
+      DOTNET_GCHeapCount: 1 
+      DOTNET_GCServer: 0 
 
   heapcount_2:
     environment_variables:
-      COMPLUS_GCHeapCount: 2 
-      COMPLUS_GCServer: 1 
+      DOTNET_GCHeapCount: 2 
+      DOTNET_GCServer: 1 
 
   heapcount_3:
     environment_variables:
-      COMPLUS_GCHeapCount: 3 
-      COMPLUS_GCServer: 1 
+      DOTNET_GCHeapCount: 3 
+      DOTNET_GCServer: 1 
 
   heapcount_4:
     environment_variables:
-      COMPLUS_GCHeapCount: 4 
-      COMPLUS_GCServer: 1 
+      DOTNET_GCHeapCount: 4 
+      DOTNET_GCServer: 1 
 
   heapcount_5:
     environment_variables:
-      COMPLUS_GCHeapCount: 5 
-      COMPLUS_GCServer: 1 
+      DOTNET_GCHeapCount: 5 
+      DOTNET_GCServer: 1 
 
 # Top level microbenchmark configuration.
 microbenchmark_configurations:

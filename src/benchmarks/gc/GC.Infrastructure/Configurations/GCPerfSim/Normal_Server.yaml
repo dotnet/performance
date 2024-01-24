@@ -44,19 +44,19 @@ gcperfsim_configurations:
   gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
 environment:
   environment_variables:
-    COMPlus_GCServer: 1
-    COMPlus_GCHeapCount: 12
+    DOTNET_GCServer: 1
+    DOTNET_GCHeapCount: 12
   default_max_seconds: 300
   iterations: 1
 coreruns:
   baseline:
     path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     environment_variables:
-      COMPlus_GCName: clrgc.dll
+      DOTNET_GCName: clrgc.dll
   run:
     path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     environment_variables:
-      COMPlus_GCName: clrgc.dll
+      DOTNET_GCName: clrgc.dll
 linux_coreruns: 
 output:
   path: C:\InfraRuns\RunNew_All\GCPerfSim\Normal_Server_

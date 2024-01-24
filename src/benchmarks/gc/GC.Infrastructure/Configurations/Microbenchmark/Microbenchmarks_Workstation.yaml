@@ -6,16 +6,16 @@ runs:
     corerun: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     is_baseline: true
     environment_variables:
-      COMPlus_GCName: clrgc.dll
-      COMPlus_GCServer: 0
+      DOTNET_GCName: clrgc.dll
+      DOTNET_GCServer: 0
   run:
     dotnet_installer: 
     name: run
     corerun: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     is_baseline: false
     environment_variables:
-      COMPlus_GCName: clrgc.dll
-      COMPlus_GCServer: 0
+      DOTNET_GCName: clrgc.dll
+      DOTNET_GCServer: 0
 microbenchmark_configurations:
   filter: 
   filter_path: C:\InfraRuns\RunNew_All\Suites\Microbenchmark\MicrobenchmarksToRun.txt

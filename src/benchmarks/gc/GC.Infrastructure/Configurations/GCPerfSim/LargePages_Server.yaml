@@ -44,23 +44,23 @@ gcperfsim_configurations:
   gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
 environment:
   environment_variables:
-    COMPlus_GCServer: 1
-    COMPlus_GCHeapCount: 12
-    COMPlus_GCLargePages: 1
-    COMPlus_GCHeapHardLimitSOH: 0x800000000
-    COMPlus_GCHeapHardLimitLOH: 0x400000000
-    COMPlus_GCHeapHardLimitPOH: 0x100000000
+    DOTNET_GCServer: 1
+    DOTNET_GCHeapCount: 12
+    DOTNET_GCLargePages: 1
+    DOTNET_GCHeapHardLimitSOH: 0x800000000
+    DOTNET_GCHeapHardLimitLOH: 0x400000000
+    DOTNET_GCHeapHardLimitPOH: 0x100000000
   default_max_seconds: 300
   iterations: 1
 coreruns:
   baseline:
     path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     environment_variables:
-      COMPlus_GCName: clrgc.dll
+      DOTNET_GCName: clrgc.dll
   run:
     path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     environment_variables:
-      COMPlus_GCName: clrgc.dll
+      DOTNET_GCName: clrgc.dll
 linux_coreruns: 
 output:
   path: C:\InfraRuns\RunNew_All\GCPerfSim\LargePages_Server

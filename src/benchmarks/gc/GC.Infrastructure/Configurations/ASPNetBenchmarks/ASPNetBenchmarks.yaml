@@ -2,12 +2,12 @@ runs:
   baseline:
     corerun: C:\CoreRuns\Empty\
     environment_variables:
-      COMPlus_GCServer: 1
+      DOTNET_GCServer: 1
     framework_version: net6.0
   run:
     corerun: C:\CoreRuns\Empty\
     environment_variables:
-      COMPlus_GCServer: 1
+      DOTNET_GCServer: 1
 environment:
   environment_variables: {}
   default_max_seconds: 300

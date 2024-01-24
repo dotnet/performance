@@ -10,7 +10,7 @@ runs:
       tlgb: 3 
       sohsi: 50
     environment_variables:
-      COMPlus_GCServer: 0
+      DOTNET_GCServer: 0
 
 # Top level microbenchmark configuration.
 gcperfsim_configurations:
@@ -39,19 +39,19 @@ coreruns:
   baseline:
     path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     environment_variables:
-      COMPlus_GCName: clrgc.dll
+      DOTNET_GCName: clrgc.dll
   run:
     path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     environment_variables:
-      COMPlus_GCName: clrgc.dll
+      DOTNET_GCName: clrgc.dll
 
 environment:
   environment_variables:
-    COMPlus_GCServer: 1
-    COMPlus_GCHeapCount: 18
-    COMPlus_GCName: clrgc.dll 
-    COMPlus_GCHeapHardLimit: "0x100000000"
-    COMPlus_GCTotalPhysicalMemory: "0x100000000"
+    DOTNET_GCServer: 1
+    DOTNET_GCHeapCount: 18
+    DOTNET_GCName: clrgc.dll 
+    DOTNET_GCHeapHardLimit: "0x100000000"
+    DOTNET_GCTotalPhysicalMemory: "0x100000000"
   default_max_seconds: 300 
   iterations: 1 
 

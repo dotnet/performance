@@ -50,7 +50,7 @@ gcperfsim_configurations:
     testKind: time
 environment:
   environment_variables:
-    COMPlus_GCServer: 1
+    DOTNET_GCServer: 1
   default_max_seconds: 300
   iterations: 1
 
