@@ -1,0 +1,51 @@
+@page "/format-date/{locale}"
+@using System.Globalization
+@using BlazorLocalized.Components
+
+<PageTitle>Format chosen date</PageTitle>
+
+<h1>Date formatting for @Locale culture</h1>
+
+<p>This component converts chosen date to a localized format </p>
+
+<div class="row">
+    <div class="col-md-6 col-lg-4">
+        <section>
+            <form @onsubmit="@LocalizeDate">
+                <div class="form-group">
+                    <label @ref="DateBox" for="Date">Date:</label>
+                    <InputDate id="Date" class="form-control" Type="InputDateType.DateTimeLocal" min="@DateTime.Today.ToString(culture?.DateTimeFormat?.ShortDatePattern)" @bind-Value="@date" @onchange="@LocalizeDate" />
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Refresh</button>
+                </div>
+                <div class="form-group">
+                    <label for="createdDate" class="col-sm-3">Localized date: @dateString</label>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string? Locale { get; set; }
+
+    private CultureInfo? culture;
+    private DateTime date;
+    private string? dateString;
+    protected ElementReference DateBox { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        culture = LocaleArgParser.ToCultureInfo(Locale);
+        date = DateTime.Today;
+        LocalizeDate();
+        await Task.FromResult(0);
+    }
+
+    private void LocalizeDate()
+    {
+        dateString = date.ToString(culture?.DateTimeFormat?.ShortDatePattern);
+    }
+}

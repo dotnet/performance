@@ -1,10 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <TargetFramework>$(LibrariesTargetFramework)</TargetFramework>
     <RootNamespace>ScenarioMeasurement</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Util.Windows.cs" Condition=" '$(OS)' != 'Windows_NT' "/>
+    <Compile Remove="Util.Windows.cs" Condition=" '$(OS)' != 'Windows_NT' " />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.7" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Reporting\Reporting\Reporting.csproj" />
   </ItemGroup>
 </Project>

@@ -2,15 +2,15 @@
 Module for running scenario tasks
 '''
 
-from genericpath import exists
 import sys
 import os
 import glob
 import re
 import time
-from datetime import datetime
 import json
 
+from genericpath import exists
+from datetime import datetime, timedelta
 from logging import exception, getLogger
 from collections import namedtuple
 from argparse import ArgumentParser
@@ -370,7 +370,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.traits.add_traits(overwrite=False,
                                    scenarioname='Crossgen Throughput - %s' % scenario_filename,
                                    scenariotypename='%s - %s' % (const.SCENARIO_NAMES[const.CROSSGEN], scenario_filename),
-                                   apptorun='%s\%s' % (coreroot, crossgenexe),
+                                   apptorun='%s\\%s' % (coreroot, crossgenexe),
                                   ) 
             startup.runtests(self.traits)
            
@@ -508,7 +508,7 @@ ex: C:\repos\performance;C:\repos\runtime
             #    Complete
             # Saves: [Intent { cmp=net.dot.HelloAndroid/net.dot.MainActivity }, ok, COLD, net.dot.HelloAndroid/net.dot.MainActivity, 241, 242]
             # Split results (start at 0) (List is Starting (Intent activity), Status (ok...), LaunchState ([HOT, COLD, WARM]), Activity (started activity name), TotalTime(toFrameOne), WaitTime(toFullLoad)) 
-            runSplitRegex = ":\s(.+)" 
+            runSplitRegex = r":\s(.+)"
             screenWasOff = False
             getLogger().info("Clearing potential previous run nettraces")
             for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'runoutput.trace')):
@@ -557,7 +557,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     else:
                         retrieveTimeCmd = RunCommand(basicStartupRetrieveCmd, verbose=True)
                     retrieveTimeCmd.run()
-                    dirtyCapture = re.search("\+(\d*s?\d+)ms", retrieveTimeCmd.stdout)
+                    dirtyCapture = re.search(r"\+(\d*s?\d+)ms", retrieveTimeCmd.stdout)
                     if not dirtyCapture:
                         raise Exception("Failed to capture the reported start time!")
                     captureList = dirtyCapture.group(1).split('s')
@@ -607,9 +607,22 @@ ex: C:\repos\performance;C:\repos\runtime
 
             getLogger().info("Checking device state.")
             cmdline = xharnesscommand() + ['apple', 'state']
-            adb = RunCommand(cmdline, verbose=True)
-            adb.run()
+            apple_state = RunCommand(cmdline, verbose=True)
+            apple_state.run()
 
+            # Get the name and version of the device from the output of apple_state above
+            # Example output expected (PERFIOS-01 is the device name, and 17.0.2 is the version):
+            #  Connected Devices:
+            #    PERFIOS-01 00008101-001A09223E08001E    17.0.2        iPhone iOS
+            deviceInfoMatch = re.search(r'Connected Devices:\s+(?P<deviceName>\S+)\s+\S+\s+(?P<deviceVersion>\S+)', apple_state.stdout)
+            if deviceInfoMatch:
+                deviceName = deviceInfoMatch.group('deviceName')
+                deviceVersion = deviceInfoMatch.group('deviceVersion')
+                getLogger().info(f"Device Name: {deviceName}")
+                getLogger().info(f"Device Version: {deviceVersion}")
+            else:
+                raise Exception("Device name or version not found in the output of apple_state command.")
+            
             getLogger().info("Installing app on device.")
             installCmd = xharnesscommand() + [
                 'apple',
@@ -624,17 +637,19 @@ ex: C:\repos\performance;C:\repos\runtime
             getLogger().info("Completed install.")
 
             allResults = []
+            timeToFirstDrawEventEndDateTime = datetime.now() # This is used to keep track of the latest time to draw end event, we use this to calculate time to draw and also as a reference point for the next iteration log time.
             for i in range(self.startupiterations + 1): # adding one iteration to account for the warmup iteration
                 getLogger().info("Waiting 10 secs to ensure we're not getting confused with previous app run.")
                 time.sleep(10)
 
                 getLogger().info(f"Collect startup data for iteration {i}.")
-                runCmdTimestamp = datetime.now()
+                runCmdTimestamp = timeToFirstDrawEventEndDateTime + timedelta(seconds=1)
                 runCmd = xharnesscommand() + [
                     'apple',
                     'mlaunch',
                     '--',
-                    f'--launchdevbundleid={self.packagename}',
+                    '--launchdev', self.packagepath,
+                    '--devname', deviceName
                 ]
                 runCmdCommand = RunCommand(runCmd, verbose=True)
 
@@ -667,7 +682,12 @@ ex: C:\repos\performance;C:\repos\runtime
                     getLogger().error("App launch failed, please rerun the script to start a new measurement.")
                     raise
 
-                app_pid_search = re.search("Launched application.*with pid (?P<app_pid>\d+)", runCmdCommand.stdout)
+                # If the device version is less than 17 we need to use the old pid search
+                # otherwise we use the new pid search
+                if deviceVersion < '17':
+                    app_pid_search = re.search(r"Launched application.*with pid (?P<app_pid>\d+)", runCmdCommand.stdout)
+                else:
+                    app_pid_search = re.search(r"The app.*launched with pid (?P<app_pid>\d+)", runCmdCommand.stdout)
                 app_pid = int(app_pid_search.group('app_pid'))
 
                 logarchive_filename = os.path.join(const.TMPDIR, f'iteration{i}.logarchive')
@@ -678,7 +698,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'log',
                     'collect',
                     '--device',
-                    '--start', runCmdTimestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                    '--start', runCmdTimestamp.strftime("%Y-%m-%d %H:%M:%S%z"),
                     '--output', logarchive_filename,
                 ]
                 RunCommand(collectCmd, verbose=True).run()
@@ -689,6 +709,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'mlaunch',
                     '--',
                     f'--killdev={app_pid}',
+                    '--devname', deviceName
                 ]
                 killCmdCommand = RunCommand(killCmd, verbose=True)
                 killCmdCommand.run()
@@ -724,7 +745,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     try:
                         lineData = json.loads(line)
                         if 'Now monitoring resource allowance' in lineData['eventMessage'] or 'Stopped monitoring' in lineData['eventMessage']:
-                            events.append (lineData)
+                            events.append(lineData)
                     except:
                         break
 
@@ -740,16 +761,16 @@ ex: C:\repos\performance;C:\repos\runtime
                 timeToFirstDrawEventStop = events[3]
 
                 # validate log messages
-                if f'application<{self.packagename}>:{app_pid}' not in timeToMainEventStart['eventMessage'] or 'Now monitoring resource allowance of 20.00s' not in timeToMainEventStart['eventMessage']:
+                if f'{self.packagename}' not in timeToMainEventStart['eventMessage'] or 'Now monitoring resource allowance of 20.00s' not in timeToMainEventStart['eventMessage']:
                     raise Exception(f"Invalid timeToMainEventStart: {timeToMainEventStart['eventMessage']}")
 
-                if f'application<{self.packagename}>:{app_pid}' not in timeToMainEventStop['eventMessage'] or 'Stopped monitoring' not in timeToMainEventStop['eventMessage']:
+                if f'{self.packagename}' not in timeToMainEventStop['eventMessage'] or 'Stopped monitoring' not in timeToMainEventStop['eventMessage']:
                     raise Exception(f"Invalid timeToMainEventStop: {timeToMainEventStop['eventMessage']}")
 
-                if f'application<{self.packagename}>:{app_pid}' not in timeToFirstDrawEventStart['eventMessage'] or 'Now monitoring resource allowance of' not in timeToFirstDrawEventStart['eventMessage']:
+                if f'{self.packagename}' not in timeToFirstDrawEventStart['eventMessage'] or 'Now monitoring resource allowance of' not in timeToFirstDrawEventStart['eventMessage']:
                     raise Exception(f"Invalid timeToFirstDrawEventStart: {timeToFirstDrawEventStart['eventMessage']}")
 
-                if f'application<{self.packagename}>:{app_pid}' not in timeToFirstDrawEventStop['eventMessage'] or 'Stopped monitoring' not in timeToFirstDrawEventStop['eventMessage']:
+                if f'{self.packagename}' not in timeToFirstDrawEventStop['eventMessage'] or 'Stopped monitoring' not in timeToFirstDrawEventStop['eventMessage']:
                     raise Exception(f"Invalid timeToFirstDrawEventStop: {timeToFirstDrawEventStop['eventMessage']}")
 
                 timeToMainEventStartDateTime = datetime.strptime(timeToMainEventStart['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')

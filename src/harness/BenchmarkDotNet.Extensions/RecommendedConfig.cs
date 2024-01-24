@@ -35,11 +35,7 @@ namespace BenchmarkDotNet.Extensions
                     .WithIterationTime(TimeInterval.FromMilliseconds(250)) // the default is 0.5s per iteration, which is slighlty too much for us
                     .WithMinIterationCount(15)
                     .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
-                    .DontEnforcePowerPlan() // make sure BDN does not try to enforce High Performance power plan on Windows
-                    .WithArguments(new Argument[]
-                    {
-                        new MsBuildArgument("/p:EnableUnsafeBinaryFormatterSerialization=true") // allow BinaryFormatter to keep benchmarking it for now
-                    });
+                    .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
             }
 
             var config = ManualConfig.CreateEmpty()

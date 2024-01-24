@@ -5,7 +5,7 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
-		<TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net8.0</TargetFrameworks>
+		<TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net9.0</TargetFrameworks>
 		<IsShipping>false</IsShipping>
 		<!-- ignore warning about BenchmarkDotNet.Extensions being not signed -->
 		<NoWarn>$(NoWarn);8002</NoWarn>

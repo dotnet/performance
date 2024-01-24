@@ -61,7 +61,7 @@ namespace ILLinkBenchmarks
         {
             string outputDirectory = GenerateTempFolder();
             Directory.CreateDirectory(outputDirectory);
-            ProcessStartInfo processStartInfo = new ProcessStartInfo("dotnet", $"publish {projectFilePath} -r {CurrentRID} --self-contained -o {outputDirectory} {extraArgs.Aggregate("", (agg, val) => agg + " " + val)}");
+            ProcessStartInfo processStartInfo = new ProcessStartInfo("dotnet", $"publish {projectFilePath} -f {Environment.GetEnvironmentVariable("PERFLAB_TARGET_FRAMEWORKS") ?? "net9.0"} -r {CurrentRID} --self-contained -o {outputDirectory} {extraArgs.Aggregate("", (agg, val) => agg + " " + val)}");
             processStartInfo.RedirectStandardError = false;
             processStartInfo.RedirectStandardOutput = true;
             var p = Process.Start(processStartInfo);

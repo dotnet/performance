@@ -4,8 +4,8 @@
     <!-- Used by Python script to narrow down the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <!-- Supported target frameworks -->
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net462;net6.0;net7.0;net8.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' != 'Windows_NT'">net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net462;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' != 'Windows_NT'">net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
     <NoWarn>$(NoWarn);CS8002</NoWarn>
     <!-- Suppress binaryformatter obsolete warning -->
     <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
@@ -39,6 +39,13 @@
     </When>
     <When Condition="'$(TargetFramework)' == 'net8.0'">
         <PropertyGroup>
+            <LangVersion>12.0</LangVersion>
+            <ExtensionsVersion>8.0.0</ExtensionsVersion>
+            <SystemVersion>8.0.0</SystemVersion>
+        </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net9.0'">
+        <PropertyGroup>
             <LangVersion>preview</LangVersion>
             <ExtensionsVersion>$(MicrosoftExtensionsLoggingPackageVersion)</ExtensionsVersion>
             <SystemVersion>$(SystemThreadingChannelsPackageVersion)</SystemVersion>
@@ -70,6 +77,7 @@
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="$(SystemVersion)" />
     <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0'" />
     <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt;= '5.0'" />
+    <PackageReference Include="System.IO.Hashing" Version="$(SystemVersion)" />
     <PackageReference Include="System.IO.Pipelines" Version="$(SystemVersion)" />
     <PackageReference Include="System.Threading.Channels" Version="$(SystemVersion)" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />

@@ -82,7 +82,7 @@
       <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
       <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --disable-animations %(HelixWorkItem.StartupAdditionalArguments)</Command>
     </HelixWorkItem>
-    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Memory Consumption - %(Identity)')" Condition="'$(HelixTargetQueue)' != 'Windows.10.Amd64.Galaxy.Perf'">
+    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Memory Consumption - %(Identity)')" Condition="!$(HelixTargetQueue.ToLowerInvariant().Contains('galaxy'))">
       <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
       <Command>$(Python) test.py devicememoryconsumption --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --runtime 30 --test-iteration 2</Command>
     </HelixWorkItem>

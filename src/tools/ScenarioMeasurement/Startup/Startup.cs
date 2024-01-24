@@ -35,7 +35,7 @@ public class InnerLoopMarkerEventSource : EventSource
     public void DroppedFile() => WriteEvent(3);
 }
 
-class Startup
+public class Startup
 {
     private static IProcessHelper TestProcess { get; set; }
     /// <summary>
@@ -100,7 +100,7 @@ class Startup
                     bool skipMeasurementIteration = false,
                     bool parseOnly = false,
                     bool runWithDotnet = false,
-                    int affinity = 0
+                    long affinity = 0
                     )
     {
         var logger = new Logger(string.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
@@ -141,21 +141,22 @@ class Startup
 
         if (affinity > 0 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
         {
-            var currentProcessAffinity = Process.GetCurrentProcess().ProcessorAffinity;
-            if (affinity > currentProcessAffinity.ToInt64())
+            var currentProcessAffinity = (long)Process.GetCurrentProcess().ProcessorAffinity;
+            if (affinity > currentProcessAffinity && currentProcessAffinity != -1) // -1 means all processors TODO: Check if there is a more proper way to deal with affinity for systems with more than 64 processors
             {
-                throw new ArgumentException(nameof(affinity) + " cannot be greater than the number of processors available to this process!");
+                throw new ArgumentException($"{nameof(affinity)} cannot be greater than the number of processors available to this process! (Current process affinity: {currentProcessAffinity}; Target affinity: {affinity})");
             }
-            currentProcessAffinity = (IntPtr)affinity;
-            logger.Log($"Process Affinity: {currentProcessAffinity}, mask: {Convert.ToString((int)currentProcessAffinity, 2)}");
+            Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)affinity;
+            currentProcessAffinity = (long)Process.GetCurrentProcess().ProcessorAffinity;
+            logger.Log($"Process Affinity: {currentProcessAffinity}, mask: {Convert.ToString(currentProcessAffinity, 2)}");
         }
         else if (affinity != 0 && !(OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
         {
-            throw new ArgumentException(nameof(affinity) + " not supported on non-windows and non-linux platforms!");
+            throw new ArgumentException($"{nameof(affinity)} not supported on non-windows and non-linux platforms!");
         }
         else if (affinity < 0)
         {
-            throw new ArgumentException(nameof(affinity) + " cannot be negative!");
+            throw new ArgumentException($"{nameof(affinity)} cannot be negative!");
         }
 
         if (runWithoutExit)
@@ -286,7 +287,7 @@ class Startup
             MetricType.PDN => new PDNStartupParser(),
             MetricType.WinUI => new WinUIParser(),
             MetricType.WinUIBlazor => new WinUIBlazorParser(),
-            MetricType.TimeToMain2 => new TimeToMain2Parser(),
+            MetricType.TimeToMain2 => new TimeToMain2Parser(AddTestProcessEnvironmentVariable),
             _ => throw new ArgumentOutOfRangeException(),
         };
 
@@ -296,7 +297,7 @@ class Startup
         if (!skipMeasurementIteration)
         {
             // Run trace session
-            using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceName, traceDirectory, logger))
+            using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceName, traceDirectory, logger, AddTestProcessEnvironmentVariable))
             {
                 traceSession.EnableProviders(parser);
                 for (var i = 0; i < iterations; i++)
@@ -359,7 +360,7 @@ class Startup
             logger.LogIterationHeader("Profile Iteration");
             var profiler = new ProfileParser(parser);
             (bool Success, List<int> Pids) iterationResult;
-            using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_" + traceName, traceDirectory, logger))
+            using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_" + traceName, traceDirectory, logger, AddTestProcessEnvironmentVariable))
             {
                 profileSession.EnableProviders(profiler);
                 iterationResult = RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger, hotReloadIters);

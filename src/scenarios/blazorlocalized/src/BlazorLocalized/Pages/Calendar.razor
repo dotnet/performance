@@ -1,0 +1,82 @@
+@page "/calendar/{locale}"
+@using System.Globalization
+@using BlazorLocalized.Components
+
+<PageTitle>Calendar translations</PageTitle>
+
+<h1>Calendar keywords translations for @Locale culture</h1>
+
+<p>This component generates the list of calendar keywords translated to the chosen language </p>
+
+@if (rows == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Keyword</th>
+                <th>Translation</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in rows)
+            {
+                <tr>
+                    <td>@row.Name</td>
+                    <td>@row.Value</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public string? Locale { get; set; }
+    private CultureInfo? culture;
+    private List<KeywordTranslation> rows = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        culture = LocaleArgParser.ToCultureInfo(Locale);
+        CultureInfo invariant = CultureInfo.InvariantCulture;
+        DateTime mondayDate = new DateTime(2023, 10, 23);
+        for (int i = 0; i < 7; i++)
+        {
+            DateTime weekday = mondayDate.AddDays(i);
+            rows.Add(new KeywordTranslation(
+                Name: GetDayNameForCulture(invariant, weekday),
+                Value: GetDayNameForCulture(culture, weekday)
+            ));
+        }
+        for (int i = 1; i <= 13; i++)
+        {
+            string localizedMonth = culture.DateTimeFormat.GetMonthName(i);
+            if (string.IsNullOrEmpty(localizedMonth))
+                continue;
+            rows.Add(new KeywordTranslation(
+                Name: invariant.DateTimeFormat.GetMonthName(i),
+                Value: culture.DateTimeFormat.GetMonthName(i)
+            ));
+        }
+        rows.Add(new KeywordTranslation(
+            Name: invariant.DateTimeFormat.AMDesignator,
+            Value: culture.DateTimeFormat.AMDesignator
+        ));
+        rows.Add(new KeywordTranslation(
+            Name: invariant.DateTimeFormat.PMDesignator,
+            Value: culture.DateTimeFormat.PMDesignator
+        ));
+        await Task.FromResult(0);
+    }
+
+    private string GetDayNameForCulture(CultureInfo culture, DateTime date)
+    {
+        return culture.DateTimeFormat.GetDayName(date.DayOfWeek);
+    }
+
+    private record KeywordTranslation(string Name, string Value);
+}

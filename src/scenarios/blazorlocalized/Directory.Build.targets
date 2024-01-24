@@ -1,0 +1,4 @@
+<Project>
+ <Import Project="$(BuildCommonPath)\Blazor.Directory.Build.targets" />
+ <Import Project="$(BuildCommonPath)\WasmOverridePacks.targets" Condition="'$(WasmNativeWorkload)' == 'true'" />
+</Project>
