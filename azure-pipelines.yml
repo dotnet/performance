@@ -60,82 +60,82 @@ jobs:
 
 - ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
 
-  # Scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: scenarios
-        projectFile: scenarios.proj
-        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  # # Scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: scenarios
+  #       projectFile: scenarios.proj
+  #       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
-  ## MAUI scenario benchmarks
-  #- template: /eng/performance/build_machine_matrix.yml
-  #  parameters:
-  #    jobTemplate: /eng/performance/scenarios.yml
-  #    buildMachines:
-  #      - win-x64
-  #      - ubuntu-x64
-  #    isPublic: true
-  #    jobParameters:
-  #      kind: maui_scenarios
-  #      projectFile: maui_scenarios.proj
-  #      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-  #        - main
-  # #        - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  # ## MAUI scenario benchmarks
+  # #- template: /eng/performance/build_machine_matrix.yml
+  # #  parameters:
+  # #    jobTemplate: /eng/performance/scenarios.yml
+  # #    buildMachines:
+  # #      - win-x64
+  # #      - ubuntu-x64
+  # #    isPublic: true
+  # #    jobParameters:
+  # #      kind: maui_scenarios
+  # #      projectFile: maui_scenarios.proj
+  # #      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  # #        - main
+  # # #        - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
-  # Blazor scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: blazor_scenarios
-        projectFile: blazor_scenarios.proj
-        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  # # Blazor scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: blazor_scenarios
+  #       projectFile: blazor_scenarios.proj
+  #       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
-  # SDK scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - win-x64
-        - win-x86
-        - ubuntu-x64-1804
-      isPublic: true
-      jobParameters:
-        kind: sdk_scenarios
-        projectFile: sdk_scenarios.proj
-        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  # # SDK scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - win-x86
+  #       - ubuntu-x64-1804
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: sdk_scenarios
+  #       projectFile: sdk_scenarios.proj
+  #       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
   
-  # micro benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - win-x86
-      isPublic: true
-      jobParameters:
-        kind: micro
-        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-        runCategories: 'runtime libraries' 
-        channels:
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  # # micro benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/benchmark_jobs.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - win-x86
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: micro
+  #       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #       runCategories: 'runtime libraries' 
+  #       channels:
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
   # Ubuntux64 Default and NativeAOT micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -143,129 +143,32 @@ jobs:
       jobTemplate: /eng/performance/benchmark_jobs.yml
       buildMachines:
         - ubuntu-x64
-      isPublic: true
+      isPublic: false
       jobParameters:
         kind: micro
         csproj: src\benchmarks\micro\MicroBenchmarks.csproj
         runCategories: 'runtime libraries' 
         channels:
-          - main
-          - nativeaot9.0
+          # - main
+          # - nativeaot9.0
           - nativeaot8.0
           # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
-  # net462 micro benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-rs5-x64
-      isPublic: true
-      jobParameters:
-        kind: micro_net462
-        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-        runCategories: 'runtime libraries'
-        channels:
-          - net462
+  # # net462 micro benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/benchmark_jobs.yml
+  #     buildMachines:
+  #       - win-rs5-x64
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: micro_net462
+  #       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #       runCategories: 'runtime libraries'
+  #       channels:
+  #         - net462
 
-  # ML.NET benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: mlnet
-        csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-        runCategories: 'mldotnet' 
-        channels:
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
-
-  # F# benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: fsharp
-        csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
-        runCategories: 'fsharp'
-        channels:
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
-
-  # bepuphysics benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: bepuphysics
-        csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
-        runCategories: 'BepuPhysics'
-        channels:
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
-
-  # ImageSharp benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: imagesharp
-        csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
-        runCategories: 'ImageSharp'
-        channels:
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
-
-  # Akade.IndexedSet benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: akadeindexedset
-        csproj: src\benchmarks\real-world\Akade.IndexedSet.Benchmarks\Akade.IndexedSet.Benchmarks.csproj
-        runCategories: 'AkadeIndexedSet'
-        channels:
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
-
-  # Roslyn benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: roslyn
-        csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-        runCategories: 'roslyn'
-        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
-
-  # ILLink benchmarks
-  # disabled because of: https://github.com/dotnet/performance/issues/3569
+  # # ML.NET benchmarks
   # - template: /eng/performance/build_machine_matrix.yml
   #   parameters:
   #     jobTemplate: /eng/performance/benchmark_jobs.yml
@@ -274,42 +177,139 @@ jobs:
   #       - ubuntu-x64
   #     isPublic: true
   #     jobParameters:
-  #       kind: illink
-  #       csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
-  #       runCategories: 'illink'
+  #       kind: mlnet
+  #       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+  #       runCategories: 'mldotnet' 
+  #       channels:
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+
+  # # F# benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/benchmark_jobs.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: fsharp
+  #       csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+  #       runCategories: 'fsharp'
+  #       channels:
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+
+  # # bepuphysics benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/benchmark_jobs.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: bepuphysics
+  #       csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
+  #       runCategories: 'BepuPhysics'
+  #       channels:
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+
+  # # ImageSharp benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/benchmark_jobs.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: imagesharp
+  #       csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
+  #       runCategories: 'ImageSharp'
+  #       channels:
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+
+  # # Akade.IndexedSet benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/benchmark_jobs.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: akadeindexedset
+  #       csproj: src\benchmarks\real-world\Akade.IndexedSet.Benchmarks\Akade.IndexedSet.Benchmarks.csproj
+  #       runCategories: 'AkadeIndexedSet'
+  #       channels:
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+
+  # # Roslyn benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/benchmark_jobs.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: roslyn
+  #       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+  #       runCategories: 'roslyn'
   #       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
   #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
-  # NativeAOT scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: nativeaot_scenarios
-        projectFile: nativeaot_scenarios.proj
-        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  # # ILLink benchmarks
+  # # disabled because of: https://github.com/dotnet/performance/issues/3569
+  # # - template: /eng/performance/build_machine_matrix.yml
+  # #   parameters:
+  # #     jobTemplate: /eng/performance/benchmark_jobs.yml
+  # #     buildMachines:
+  # #       - win-x64
+  # #       - ubuntu-x64
+  # #     isPublic: true
+  # #     jobParameters:
+  # #       kind: illink
+  # #       csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
+  # #       runCategories: 'illink'
+  # #       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+  # #         - main
 
-  # Powershell benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: powershell
-        csproj: src\benchmarks\real-world\PowerShell.Benchmarks\PowerShell.Benchmarks.csproj
-        runCategories: 'Public'
-        channels:
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  # # NativeAOT scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: nativeaot_scenarios
+  #       projectFile: nativeaot_scenarios.proj
+  #       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+
+  # # Powershell benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/benchmark_jobs.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: powershell
+  #       csproj: src\benchmarks\real-world\PowerShell.Benchmarks\PowerShell.Benchmarks.csproj
+  #       runCategories: 'Public'
+  #       channels:
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
 ###########################################
 # Private Jobs
