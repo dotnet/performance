@@ -637,6 +637,10 @@ jobs:
         useGlobalJson: true
         includePreviewVersions: true
 
+    - task: DeleteFiles@1
+      inputs:
+        Contents: global.json
+
     - script: dotnet tool restore
 
     - task: AzureCLI@2
@@ -664,6 +668,10 @@ jobs:
         useGlobalJson: true
         includePreviewVersions: true
 
+    - task: DeleteFiles@1
+      inputs:
+        Contents: global.json
+
     - script: dotnet tool restore
 
     - task: AzureCLI@2
@@ -688,8 +696,11 @@ jobs:
     - task: UseDotNet@2
       displayName: Install Correct .NET Version
       inputs:
-        useGlobalJson: true
-        includePreviewVersions: true
+        version: 6.x
+
+    - task: DeleteFiles@1
+      inputs:
+        Contents: global.json
 
     - script: dotnet tool restore
 
