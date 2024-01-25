@@ -481,7 +481,7 @@ def main(args: Any):
             out_file.write(variable_format % ('PERFLAB_LOCALE', args.locale))
             out_file.write(variable_format % ('PERFLAB_BUILDTIMESTAMP', source_timestamp))
             out_file.write(variable_format % ('PERFLAB_CONFIGS', config_string))
-            out_file.write(variable_format % ('DOTNET_VERSION', f"{target_dotnet_version}"))
+            out_file.write(variable_format % ('DOTNET_VERSION', target_dotnet_version))
             out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
             out_file.write(variable_format % ('DOTNET_CLI_TELEMETRY_OPTOUT', '1'))
             out_file.write(variable_format % ('DOTNET_MULTILEVEL_LOOKUP', '0'))
@@ -496,7 +496,7 @@ def main(args: Any):
             if args.affinity:
                 out_file.write(variable_format % ('PERFLAB_DATA_AFFINITY', args.affinity))
             if latest_dotnet_version != target_dotnet_version:
-                out_file.write(variable_format % ('GLOBAL_DOTNET_VERSION', f"{latest_dotnet_version}"))
+                out_file.write(variable_format % ('GLOBAL_DOTNET_VERSION', latest_dotnet_version))
             if args.run_env_vars:
                 for env_var in args.run_env_vars:
                     key, value = env_var.split('=', 1) 

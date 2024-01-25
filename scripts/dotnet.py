@@ -510,7 +510,7 @@ class CSharpProject:
 
 FrameworkVersion = NamedTuple('FrameworkVersion', major=int, minor=int)
 def get_framework_version(framework: str) -> FrameworkVersion:
-    groups = search(r".*(\d)\.(\d)$", framework)
+    groups = search(r".*(\d+)\.(\d+)$", framework)
     if not groups:
         raise ValueError("Unknown target framework: {}".format(framework))
 
@@ -568,7 +568,7 @@ def get_dotnet_version(
         framework: str,
         dotnet_path: Optional[str] = None,
         sdk_path: Optional[str] = None) -> str:
-    version = get_framework_version(framework) 
+    version = get_framework_version(framework)
 
     sdk_path = get_sdk_path(dotnet_path) if sdk_path is None else sdk_path
 
@@ -584,7 +584,7 @@ def get_dotnet_version(
     sdk = next((sdk_version for sdk_version in sdks if sdk_version.framework_version.major == version.major and sdk_version.framework_version.minor == version.minor), None)
     if not sdk:
         # Attempt 2: Increase the minor version by 1 and retry.
-        sdk = next((sdk_version for sdk_version in sdks if sdk_version.framework_version.major == version.major and sdk_version.framework_version.minor == version.minor), None)
+        sdk = next((sdk_version for sdk_version in sdks if sdk_version.framework_version.major == version.major and sdk_version.framework_version.minor == version.minor + 1), None)
     if not sdk:
         # Attempt 3: Check for newer SDK (only need to check [0] as list is already sorted)
         sdk_version = sdks[0]
