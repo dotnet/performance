@@ -36,7 +36,7 @@ jobs:
             value: ''
         - ${{ if eq(parameters.osName, 'windows') }}:
           - name: CliArguments
-            value: '--dotnet-versions %DOTNET_VERSION% --cli-source-info args --cli-branch %PERFLAB_BRANCH% --cli-commit-sha %PERFLAB_HASH% --cli-repository https://github.com/%PERFLAB_REPO% --cli-source-timestamp %PERFLAB_BUILDTIMESTAMP%'
+            value: '--dotnet-versions %DOTNET_VERSION% %GLOBAL_DOTNET_VERSION% --cli-source-info args --cli-branch %PERFLAB_BRANCH% --cli-commit-sha %PERFLAB_HASH% --cli-repository https://github.com/%PERFLAB_REPO% --cli-source-timestamp %PERFLAB_BUILDTIMESTAMP%'
           - name: AdditionalHelixPreCommands
             value: 'call %HELIX_CORRELATION_PAYLOAD%\tools\machine-setup.cmd'
           - name: PreservePythonPath
@@ -57,7 +57,7 @@ jobs:
             value: '--target-windows'
         - ${{ if ne(parameters.osName, 'windows') }}:
           - name: CliArguments
-            value: '--dotnet-versions $DOTNET_VERSION --cli-source-info args --cli-branch $PERFLAB_BRANCH --cli-commit-sha $PERFLAB_HASH --cli-repository https://github.com/$PERFLAB_REPO --cli-source-timestamp $PERFLAB_BUILDTIMESTAMP'
+            value: '--dotnet-versions $DOTNET_VERSION $GLOBAL_DOTNET_VERSION --cli-source-info args --cli-branch $PERFLAB_BRANCH --cli-commit-sha $PERFLAB_HASH --cli-repository https://github.com/$PERFLAB_REPO --cli-source-timestamp $PERFLAB_BUILDTIMESTAMP'
           - name: AdditionalHelixPreCommands
             value: 'chmod +x ./tools/machine-setup.sh;. ./tools/machine-setup.sh'
           - name: PreservePythonPath

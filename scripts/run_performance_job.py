@@ -404,7 +404,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         
     if args.os_group == "windows":
         cli_arguments = [
-            "--dotnet-versions", "%DOTNET_VERSION%", 
+            "--dotnet-versions", "%DOTNET_VERSION% %GLOBAL_DOTNET_VERSION%", 
             "--cli-source-info", "args", 
             "--cli-branch", "%PERFLAB_BRANCH%", 
             "--cli-commit-sha", "%PERFLAB_HASH%",
@@ -413,7 +413,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         ]
     else:
         cli_arguments = [
-            "--dotnet-versions", "$DOTNET_VERSION", 
+            "--dotnet-versions", "$DOTNET_VERSION $GLOBAL_DOTNET_VERSION", 
             "--cli-source-info", "args", 
             "--cli-branch", "$PERFLAB_BRANCH", 
             "--cli-commit-sha", "$PERFLAB_HASH",
