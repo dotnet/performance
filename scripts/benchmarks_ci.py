@@ -70,6 +70,16 @@ def init_tools(
         internal_build_key=internal_build_key
     )
 
+    if all(target_framework_moniker.startswith('net4') for target_framework_moniker in target_framework_monikers): # Special case net4 only tests to install main also as they are special cased in ci_setup.py
+        dotnet.install(
+            architecture=architecture,
+            channels=["main"],
+            versions=[],
+            verbose=verbose,
+            azure_feed_url=azure_feed_url,
+            internal_build_key=internal_build_key
+        )
+
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''Adds new arguments to the specified ArgumentParser object.'''
