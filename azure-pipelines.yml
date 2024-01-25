@@ -35,6 +35,7 @@ pr:
     - docs/
     - '**/*.md'
     - scripts/benchmarks_monthly.py
+    - src/benchmarks/gc/*
 
 schedules:
 - cron: "0 */12 * * *"
