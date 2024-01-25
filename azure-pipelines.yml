@@ -60,20 +60,20 @@ jobs:
 
 - ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
 
-  # Scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: scenarios
-        projectFile: scenarios.proj
-        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-          - main
-          - 8.0 # Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  # # Scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: scenarios
+  #       projectFile: scenarios.proj
+  #       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #         - main
+  #         - 8.0 # Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
   # ## MAUI scenario benchmarks
   # #- template: /eng/performance/build_machine_matrix.yml
@@ -137,22 +137,22 @@ jobs:
   #         - main
   #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
-  # Ubuntux64 Default and NativeAOT micro benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: micro
-        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-        runCategories: 'runtime libraries' 
-        channels:
-          - main
-          - nativeaot9.0
-          - nativeaot8.0
-          - 8.0 # Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  # # Ubuntux64 Default and NativeAOT micro benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/benchmark_jobs.yml
+  #     buildMachines:
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       kind: micro
+  #       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #       runCategories: 'runtime libraries' 
+  #       channels:
+  #         - main
+  #         - nativeaot9.0
+  #         - nativeaot8.0
+  #         - 8.0 # Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
   # net462 micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
