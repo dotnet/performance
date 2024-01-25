@@ -1,5 +1,4 @@
 import re
-import stat
 from dataclasses import dataclass, field
 from datetime import timedelta
 from glob import glob
@@ -146,7 +145,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
                 "call %HELIX_WORKITEM_ROOT%\\.venv\\Scripts\\activate.bat",
             ]
         else:
-            if args.os_sub_group != "_musl":
+            if args.os_group != "osx" and args.os_sub_group != "_musl":
                 install_prerequisites += ["sudo apt-get -y install python3-pip python3-venv"]
 
             install_prerequisites += [
@@ -170,7 +169,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
 
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
         # TODO: is this still needed? It seems like it was added to support wasm which is already setting up everything
-        if args.os_group != "windows" and args.os_sub_group != "_musl":
+        if args.os_group != "windows" and args.os_group != "osx" and args.os_sub_group != "_musl":
             install_prerequisites += [
                 "sudo apt-get update",
                 "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
