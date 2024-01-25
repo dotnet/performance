@@ -17,6 +17,16 @@ class ChannelMap():
             'branch': '9.0',
             'quality': 'daily'
         },
+        'net462': {
+            'tfm': 'net462',
+            'branch': '9.0', # Keep up to date with main for global.json, net4 is a special case
+            'quality': 'daily'
+        },
+        'net48': {
+            'tfm': 'net48',
+            'branch': '9.0', # Keep up to date with main for global.json, net4 is a special case
+            'quality': 'daily'
+        },
         '8.0': {
             'tfm': 'net8.0',
             'branch': '8.0',
@@ -138,14 +148,6 @@ class ChannelMap():
             'tfm': 'netcoreapp3.1',
             'branch': '3.1.4xx',
             'quality': 'daily'
-        },
-        'net462': {
-            'tfm': 'net462',
-            'branch': '8.0'
-        },
-        'net48': {
-            'tfm': 'net48', # For Full Framework download the LTS for dotnet cli.
-            'branch': 'LTS'
         },
         'master': {
             'tfm': 'net6.0',
