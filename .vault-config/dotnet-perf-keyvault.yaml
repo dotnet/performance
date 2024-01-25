@@ -53,3 +53,9 @@ secrets:
       connectionString: pvscmdupload-connection-string
       service: blob|queue
       permissions: rwdlacup
+  SASWithoutURI:
+    type: azure-storage-account-sas-token
+    parameters:
+      connectionString: pvscmdupload-connection-string
+      service: blob
+      permissions: rwdlacup

@@ -633,9 +633,13 @@ jobs:
       demands: ImageOverride -equals 1es-windows-2019
     steps:
     - task: UseDotNet@2
-      displayName: Install .NET 6.0 runtime
+      displayName: Install .NET 8.0 
       inputs:
-        version: 6.x
+        version: 8.x
+
+    - task: DeleteFiles@1
+      inputs:
+        Contents: global.json
 
     - script: dotnet tool restore
 
@@ -659,9 +663,13 @@ jobs:
       demands: ImageOverride -equals 1es-windows-2019
     steps:
     - task: UseDotNet@2
-      displayName: Install .NET 6.0 runtime
+      displayName: Install .NET 8.0 
       inputs:
-        version: 6.x
+        version: 8.x
+
+    - task: DeleteFiles@1
+      inputs:
+        Contents: global.json
 
     - script: dotnet tool restore
 
@@ -685,9 +693,13 @@ jobs:
       demands: ImageOverride -equals 1es-windows-2019
     steps:
     - task: UseDotNet@2
-      displayName: Install .NET 6.0 runtime
+      displayName: Install .NET 8.0 
       inputs:
-        version: 6.x
+        version: 8.x
+
+    - task: DeleteFiles@1
+      inputs:
+        Contents: global.json
 
     - script: dotnet tool restore
 
