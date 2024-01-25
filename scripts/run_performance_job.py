@@ -1,4 +1,5 @@
 import re
+import stat
 from dataclasses import dataclass, field
 from datetime import timedelta
 from glob import glob
@@ -236,8 +237,8 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             "robocopy /np /nfl /e %HELIX_CORRELATION_PAYLOAD%\\root %HELIX_WORKITEM_ROOT%" ]
     else:
         helix_pre_commands += [ 
-            "cp -Rv $HELIX_CORRELATION_PAYLOAD/performance $HELIX_WORKITEM_ROOT/performance",
-            "cp -Rv $HELIX_CORRELATION_PAYLOAD/root $HELIX_WORKITEM_ROOT" ]
+            "cp -R $HELIX_CORRELATION_PAYLOAD/performance/* $HELIX_WORKITEM_ROOT/performance",
+            "cp -R $HELIX_CORRELATION_PAYLOAD/root/* $HELIX_WORKITEM_ROOT" ]
 
     # invoke the machine-setup
     if args.os_group == "windows":
@@ -772,7 +773,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 else:
                     RunCommand(["killall", "-9", "dotnet"]).run()
 
-                shutil.rmtree(dotnet_dir)
+                # some files being deleted are readonly, so set up an error handler to give them write permission before deleting
+                shutil.rmtree('mypath', onerror=lambda func, path, _: (os.chmod(path, stat.S_IWRITE), func(path)))
                 shutil.copytree(arm64_dotnet_dir, dotnet_dir)
 
     if args.os_group == "windows":
