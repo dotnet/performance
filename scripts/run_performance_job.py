@@ -774,7 +774,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                     RunCommand(["killall", "-9", "dotnet"]).run()
 
                 # some files being deleted are readonly, so set up an error handler to give them write permission before deleting
-                shutil.rmtree('mypath', onerror=lambda func, path, _: (os.chmod(path, stat.S_IWRITE), func(path)))
+                shutil.rmtree(dotnet_dir, onerror=lambda func, path, _: (os.chmod(path, stat.S_IWRITE), func(path)))
                 shutil.copytree(arm64_dotnet_dir, dotnet_dir)
 
     if args.os_group == "windows":
