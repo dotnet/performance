@@ -236,8 +236,8 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             "robocopy /np /nfl /e %HELIX_CORRELATION_PAYLOAD%\\root %HELIX_WORKITEM_ROOT%" ]
     else:
         helix_pre_commands += [ 
-            "cp -R $HELIX_CORRELATION_PAYLOAD/performance $HELIX_WORKITEM_ROOT/performance",
-            "cp -R $HELIX_CORRELATION_PAYLOAD/root $HELIX_WORKITEM_ROOT" ]
+            "cp -Rv $HELIX_CORRELATION_PAYLOAD/performance $HELIX_WORKITEM_ROOT/performance",
+            "cp -Rv $HELIX_CORRELATION_PAYLOAD/root $HELIX_WORKITEM_ROOT" ]
 
     # invoke the machine-setup
     if args.os_group == "windows":
@@ -765,15 +765,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
             dotnet_dir = os.path.join(ci_setup_arguments.install_dir, "")
             arm64_dotnet_dir = os.path.join(args.performance_repo_dir, "tools", "dotnet", "arm64")
 
-            # Not sure why this isn't needed on osx
-            if args.os_group == "windows":
-                RunCommand(["taskkill", "/im", "dotnet.exe", "/f"]).run()
-                RunCommand(["del", os.path.join(dotnet_dir, "*"), "/F", "/S", "/Q"]).run()
-                RunCommand(["xcopy", os.path.join(arm64_dotnet_dir, "*"), dotnet_dir, "/E", "/I", "/Y"]).run()
-            elif args.os_group != "osx":
-                RunCommand(["killall", "-9", "dotnet"]).run()
-                RunCommand(["rm", "-rf", os.path.join(dotnet_dir, "*")]).run()
-                RunCommand(["cp", "-r", os.path.join(arm64_dotnet_dir, "*"), dotnet_dir]).run()
+            # TODO: Not sure why this isn't needed on osx
+            if args.os_group != "osx":
+                if args.os_group == "windows":
+                    RunCommand(["taskkill", "/im", "dotnet.exe", "/f"]).run()
+                else:
+                    RunCommand(["killall", "-9", "dotnet"]).run()
+
+                shutil.rmtree(dotnet_dir)
+                shutil.copytree(arm64_dotnet_dir, dotnet_dir)
 
     if args.os_group == "windows":
         cli_arguments = [
