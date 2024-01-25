@@ -656,6 +656,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
         dotnet_executable_path = os.path.join(ci_setup_arguments.install_dir, "dotnet")
 
+        os.environ["MSBUILDDISABLENODEREUSE"] = "1" # without this, MSbuild will be kept alive
+
         # build Startup
         RunCommand([
             dotnet_executable_path, "publish", 
@@ -765,17 +767,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.architecture == "arm64":
             dotnet_dir = os.path.join(ci_setup_arguments.install_dir, "")
             arm64_dotnet_dir = os.path.join(args.performance_repo_dir, "tools", "dotnet", "arm64")
-
-            # TODO: Not sure why this isn't needed on osx
-            if args.os_group != "osx":
-                if args.os_group == "windows":
-                    RunCommand(["taskkill", "/im", "dotnet.exe", "/f"]).run()
-                else:
-                    RunCommand(["killall", "-9", "dotnet"]).run()
-
-                # some files being deleted are readonly, so set up an error handler to give them write permission before deleting
-                shutil.rmtree(dotnet_dir, onerror=lambda func, path, _: (os.chmod(path, stat.S_IWRITE), func(path)))
-                shutil.copytree(arm64_dotnet_dir, dotnet_dir)
+            shutil.rmtree(dotnet_dir)
+            shutil.copytree(arm64_dotnet_dir, dotnet_dir)
 
     if args.os_group == "windows":
         cli_arguments = [
