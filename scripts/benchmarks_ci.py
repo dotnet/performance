@@ -54,9 +54,8 @@ def init_tools(
     '''
     getLogger().info('Installing tools.')
     channels = [
-        "main"
-        # ChannelMap.get_channel_from_target_framework_moniker(target_framework_moniker)
-        # for target_framework_moniker in target_framework_monikers
+        ChannelMap.get_channel_from_target_framework_moniker(target_framework_moniker)
+        for target_framework_moniker in target_framework_monikers
     ]
 
     dotnet.remove_dotnet(

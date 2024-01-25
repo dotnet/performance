@@ -19,6 +19,8 @@ from channel_map import ChannelMap
 
 import dotnet
 
+global_json_channel = "main"
+
 def init_tools(
         architecture: str,
         dotnet_versions: List[str],
@@ -34,7 +36,7 @@ def init_tools(
 
     dotnet.install(
         architecture=architecture,
-        channels=["main"],
+        channels=[channel] if channel == global_json_channel else [channel, global_json_channel],
         versions=dotnet_versions,
         verbose=verbose,
         install_dir=install_dir
@@ -436,6 +438,8 @@ def main(args: Any):
     if not framework.startswith('net4'):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
+        main_target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(ChannelMap.get_target_framework_moniker(global_json_channel))
+        latest_dotnet_version = dotnet.get_dotnet_version(main_target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
 
         if args.local_build:
@@ -477,7 +481,7 @@ def main(args: Any):
             out_file.write(variable_format % ('PERFLAB_LOCALE', args.locale))
             out_file.write(variable_format % ('PERFLAB_BUILDTIMESTAMP', source_timestamp))
             out_file.write(variable_format % ('PERFLAB_CONFIGS', config_string))
-            out_file.write(variable_format % ('DOTNET_VERSION', dotnet_version))
+            out_file.write(variable_format % ('DOTNET_VERSION', f"{dotnet_version} {latest_dotnet_version}" if latest_dotnet_version != dotnet_version else dotnet_version)) # TODO: Make Benchmark_ci smart to which SDK is being used
             out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
             out_file.write(variable_format % ('DOTNET_CLI_TELEMETRY_OPTOUT', '1'))
             out_file.write(variable_format % ('DOTNET_MULTILEVEL_LOOKUP', '0'))
