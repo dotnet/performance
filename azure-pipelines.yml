@@ -14,25 +14,24 @@ resources:
     - container: ubuntu_x64_build_container
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04
 
-# CI Trigger on main branch
 trigger:
   branches:
     include:
     - main
     - release/7.0
   paths:
-    include:
-    - eng/Version.Details.xml
+    exclude: # don't trigger if only docs and similar files changed
+    - docs/*
+    - '**/*.md'
 
-# Trigger builds for PR's targeting main
 pr:
   branches:
     include:
     - main
     - release/7.0
   paths:
-    exclude: # don't trigger the CI if only a doc file was changed
-    - docs/
+    exclude: # don't trigger if only docs and similar files changed
+    - docs/*
     - '**/*.md'
     - scripts/benchmarks_monthly.py
     - src/benchmarks/gc/*
