@@ -378,6 +378,13 @@ def main(args: Any):
             install_dir=args.install_dir
         )
     else:
+        init_tools(
+            architecture=architecture,
+            dotnet_versions=[],
+            channel=global_json_channel,
+            verbose=verbose,
+            install_dir=args.dotnet_path
+        )
         dotnet.setup_dotnet(args.dotnet_path)
 
     # dotnet --info
