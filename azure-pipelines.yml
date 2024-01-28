@@ -315,6 +315,22 @@ jobs:
 ###########################################
 
 - ${{ if or(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest', 'Manual')), parameters.runPrivateJobs) }}:
+    # Ubuntux64 Default and NativeAOT micro benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: micro
+        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+        runCategories: 'runtime libraries' 
+        channels:
+          - main
+          - nativeaot9.0
+          - nativeaot8.0
+          - 8.0 # Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
   # Scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -322,38 +338,38 @@ jobs:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
         - win-x64
-        - ubuntu-x64
-        - win-arm64
-        - ubuntu-arm64-ampere
+        #- ubuntu-x64
+        #- win-arm64
+        #- ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
         kind: scenarios
         projectFile: scenarios.proj
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0 # Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
-  # Affinitized Scenario benchmarks (Initially just PDN)
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - win-x64
-        - win-arm64
-        - win-arm64-ampere
-      isPublic: false
-      jobParameters:
-        kind: scenarios
-        projectFile: scenarios_affinitized.proj
-        channels:
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
-        additionalJobIdentifier: 'Affinity_85'
-        affinity: '85'  # (01010101) Enables alternating process threads to take hyperthreading into account
-        runEnvVars: 
-          - DOTNET_GCgen0size=410000 # ~4MB
-          - DOTNET_GCHeapCount=4
-          - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
+  # # Affinitized Scenario benchmarks (Initially just PDN)
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - win-arm64
+  #       #- win-arm64-ampere
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: scenarios
+  #       projectFile: scenarios_affinitized.proj
+  #       channels:
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  #       additionalJobIdentifier: 'Affinity_85'
+  #       affinity: '85'  # (01010101) Enables alternating process threads to take hyperthreading into account
+  #       runEnvVars: 
+  #         - DOTNET_GCgen0size=410000 # ~4MB
+  #         - DOTNET_GCHeapCount=4
+  #         - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
 
   # Maui Android scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -368,7 +384,7 @@ jobs:
         projectFile: maui_scenarios_android.proj
         dotnetVersionsLinks:
           9.0: https://maui.blob.core.windows.net/metadata/sdks/net9.0.json
-          # 8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # 8.0 build flow is failing, disable temporarily https://github.com/dotnet/performance/issues/3655
+          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # 8.0 build flow is failing, disable temporarily https://github.com/dotnet/performance/issues/3655
 
   # Maui iOS Mono scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -385,53 +401,53 @@ jobs:
           # 8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # 8.0 build flow is failing, disable temporarily https://github.com/dotnet/performance/issues/3655
         runtimeFlavor: mono
 
-  # Maui iOS Native AOT scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        kind: maui_scenarios_ios
-        projectFile: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          9.0: https://maui.blob.core.windows.net/metadata/sdks/net9.0.json
-          # 8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # 8.0 build flow is failing, disable temporarily https://github.com/dotnet/performance/issues/3655
-        runtimeFlavor: coreclr
+  # # Maui iOS Native AOT scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - osx-x64-ios-arm64
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: maui_scenarios_ios
+  #       projectFile: maui_scenarios_ios.proj
+  #       dotnetVersionsLinks:
+  #         9.0: https://maui.blob.core.windows.net/metadata/sdks/net9.0.json
+  #         # 8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json # 8.0 build flow is failing, disable temporarily https://github.com/dotnet/performance/issues/3655
+  #       runtimeFlavor: coreclr
 
-  ## Maui scenario benchmarks
-  #- template: /eng/performance/build_machine_matrix.yml
-  #  parameters:
-  #    jobTemplate: /eng/performance/scenarios.yml
-  #    buildMachines:
-  #      - win-x64
-  #      - ubuntu-x64
-  #      - win-arm64
-  #      - ubuntu-arm64-ampere
-  #    isPublic: false
-  #    jobParameters:
-  #      kind: maui_scenarios
-  #      projectFile: maui_scenarios.proj
-  #      channels:
-  #        - main
-  # #        - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  # ## Maui scenario benchmarks
+  # #- template: /eng/performance/build_machine_matrix.yml
+  # #  parameters:
+  # #    jobTemplate: /eng/performance/scenarios.yml
+  # #    buildMachines:
+  # #      - win-x64
+  # #      - ubuntu-x64
+  # #      - win-arm64
+  # #      - ubuntu-arm64-ampere
+  # #    isPublic: false
+  # #    jobParameters:
+  # #      kind: maui_scenarios
+  # #      projectFile: maui_scenarios.proj
+  # #      channels:
+  # #        - main
+  # # #        - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
-  # NativeAOT scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-        - win-arm64
-      isPublic: false
-      jobParameters:
-        kind: nativeaot_scenarios
-        projectFile: nativeaot_scenarios.proj
-        channels:
-          - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  # # NativeAOT scenario benchmarks
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/scenarios.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #       - win-arm64
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: nativeaot_scenarios
+  #       projectFile: nativeaot_scenarios.proj
+  #       channels:
+  #         - main
+  #         # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
 
 ################################################
 # Scheduled Private jobs
