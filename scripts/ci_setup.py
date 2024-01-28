@@ -433,10 +433,22 @@ def main(args: Any):
         extension = ".cmd" if args.target_windows else ".sh"
         output_file += extension
 
+    target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
+    dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
+    commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
+    # If there is a global.json file, update the version in the file to the version we are using
+    global_json_path = os.path.join(get_repo_root_path(), 'global.json')
+    if os.path.isfile(global_json_path):
+        # read the global.json file as json
+        import json
+        with open(global_json_path, 'r') as global_json_file:
+            global_json = json.load(global_json_file)
+            
+        global_json['sdk']['version'] = dotnet_version
+        with open(global_json_path, 'w') as global_json_file:
+            json.dump(global_json, global_json_file, indent=4)
+
     if not framework.startswith('net4'):
-        target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
-        dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
-        commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
 
         if args.local_build:
             source_timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
