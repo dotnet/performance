@@ -382,9 +382,10 @@ def main(args: Any):
     framework = ChannelMap.get_target_framework_moniker(args.channel)
     if framework == 'net8.0':
         # Copy the global.json file to global.bak.json
-        shutil.copy('global.json', 'global.net9.json')
+        global_json_path = os.path.join(get_repo_root_path(), 'global.json')
+        shutil.copy(global_json_path, os.path.join(get_repo_root_path(), 'global.net9.json'))
         print('Copied global.json to global.net9.json')
-        shutil.copy('global.net8.json', 'global.json')
+        shutil.copy(os.path.join(get_repo_root_path(), 'global.net8.json'), global_json_path)
         print('Copied global.net8.json to global.json')
               
     # dotnet --info
