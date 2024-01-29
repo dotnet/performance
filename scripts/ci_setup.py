@@ -18,6 +18,7 @@ from performance.logger import setup_loggers
 from channel_map import ChannelMap
 
 import dotnet
+import shutil
 
 def init_tools(
         architecture: str,
@@ -378,6 +379,14 @@ def main(args: Any):
     else:
         dotnet.setup_dotnet(args.dotnet_path)
 
+    framework = ChannelMap.get_target_framework_moniker(args.channel)
+    if framework == 'net8.0':
+        # Copy the global.json file to global.bak.json
+        shutil.copy('global.json', 'global.net9.json')
+        print('Copied global.json to global.net9.json')
+        shutil.copy('global.net8.json', 'global.json')
+        print('Copied global.net8.json to global.json')
+              
     # dotnet --info
     dotnet.info(verbose=verbose)
 
@@ -425,31 +434,16 @@ def main(args: Any):
 
     perfHash = decoded_output if args.get_perf_hash else args.perf_hash
 
-    framework = ChannelMap.get_target_framework_moniker(args.channel)
-
     # if the extension is already present, don't add it
     output_file = args.output_file
     if not output_file.endswith("cmd") and not output_file.endswith(".sh"):
         extension = ".cmd" if args.target_windows else ".sh"
         output_file += extension
 
-    target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
-    dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
-    commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
-    # If there is a global.json file, update the version in the file to the version we are using
-    global_json_path = os.path.join(get_repo_root_path(), 'global.json')
-    if os.path.isfile(global_json_path):
-        # read the global.json file as json
-        import json
-        with open(global_json_path, 'r') as global_json_file:
-            global_json = json.load(global_json_file)
-            
-        global_json['sdk']['version'] = dotnet_version
-        with open(global_json_path, 'w') as global_json_file:
-            json.dump(global_json, global_json_file, indent=4)
-
     if not framework.startswith('net4'):
-
+        target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
+        dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
+        commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
         if args.local_build:
             source_timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         elif(args.commit_time is not None):
