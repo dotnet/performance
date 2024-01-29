@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="9.0.0-preview.2.24074.10">
+    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="9.0.0-preview.2.24078.2">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>b47fdeac709e3643f3cdb058de1e4e753942c763</Sha>
+      <Sha>e5d59bd65f6cc9c0f00cc863542cfda91d6f8355</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="9.0.0-preview.2.24074.10">
+    <Dependency Name="Microsoft.NET.ILLink" Version="9.0.0-preview.2.24078.2">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>b47fdeac709e3643f3cdb058de1e4e753942c763</Sha>
+      <Sha>e5d59bd65f6cc9c0f00cc863542cfda91d6f8355</Sha>
     </Dependency>
-    <Dependency Name="System.Threading.Channels" Version="9.0.0-preview.2.24074.10">
+    <Dependency Name="System.Threading.Channels" Version="9.0.0-preview.2.24078.2">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>b47fdeac709e3643f3cdb058de1e4e753942c763</Sha>
+      <Sha>e5d59bd65f6cc9c0f00cc863542cfda91d6f8355</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.0-preview.2.24074.10">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.0-preview.2.24078.2">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>b47fdeac709e3643f3cdb058de1e4e753942c763</Sha>
+      <Sha>e5d59bd65f6cc9c0f00cc863542cfda91d6f8355</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="9.0.0-beta.24074.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="9.0.0-beta.24076.5">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>ac3bef13c5ab17858f69c12d015057a992f8da8a</Sha>
+      <Sha>66c9c5397d599af40f2a94989241944f5a73442a</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="9.0.0-beta.24074.1">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="9.0.0-beta.24076.5">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>ac3bef13c5ab17858f69c12d015057a992f8da8a</Sha>
+      <Sha>66c9c5397d599af40f2a94989241944f5a73442a</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
