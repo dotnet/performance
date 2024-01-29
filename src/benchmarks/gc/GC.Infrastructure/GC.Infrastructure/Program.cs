@@ -42,6 +42,7 @@ namespace GC.Infrastructure
                     configuration.AddCommand<GCPerfSimCommand>("gcperfsim");
                     configuration.AddCommand<GCPerfSimAnalyzeCommand>("gcperfsim-analyze");
                     configuration.AddCommand<GCPerfSimCompareCommand>("gcperfsim-compare");
+                    configuration.AddCommand<GCPerfSimFunctionalCommand>("gcperfsim-functional");
 
                     // Microbenchmarks
                     configuration.AddCommand<MicrobenchmarkCommand>("microbenchmarks");
