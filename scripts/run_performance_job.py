@@ -891,6 +891,9 @@ def run_performance_job(args: RunPerformanceJobArgs):
         # expose environment variables to CI for sending to helix
         perf_send_to_helix_args.set_environment_variables(save_to_pipeline=True)
 
+        # _BuildConfig is used by CI during log publishing
+        set_environment_variable("_BuildConfig", build_config, save_to_pipeline=True) 
+
         
 
 def main(argv: List[str]):
