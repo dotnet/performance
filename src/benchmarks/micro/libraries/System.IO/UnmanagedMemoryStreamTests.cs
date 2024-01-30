@@ -13,24 +13,24 @@ namespace System.IO.Tests
     public unsafe class UnmanagedMemoryStreamTests
     {
         private const int Length = 10000;
-        private byte* buffer;
+        private byte* _buffer;
 
         [GlobalSetup]
         public void Setup()
         {
-            buffer = (byte*)Marshal.AllocCoTaskMem(Length);
+            _buffer = (byte*)Marshal.AllocCoTaskMem(Length);
         }
 
         [GlobalCleanup]
         public void Cleanup()
         {
-            Marshal.FreeCoTaskMem((IntPtr)buffer);
+            Marshal.FreeCoTaskMem((IntPtr)_buffer);
         }
 
         [Benchmark]
         public void ReadAsBytes()
         {
-            using (var ums = new UnmanagedMemoryStream(buffer, Length))
+            using (var ums = new UnmanagedMemoryStream(_buffer, Length))
             {
                 while (ums.ReadByte() >= 0)
                 {
@@ -42,7 +42,7 @@ namespace System.IO.Tests
         public void ReadAsArrays()
         {
             var array = new byte[1];
-            using (var ums = new UnmanagedMemoryStream(buffer, Length))
+            using (var ums = new UnmanagedMemoryStream(_buffer, Length))
             {
                 while (ums.Read(array, 0, array.Length) != 0)
                 {
