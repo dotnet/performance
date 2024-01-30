@@ -445,7 +445,7 @@ def main(args: Any):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
-        
+
         if args.local_build:
             source_timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         elif(args.commit_time is not None):
