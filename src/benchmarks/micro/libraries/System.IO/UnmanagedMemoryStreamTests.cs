@@ -41,7 +41,7 @@ namespace System.IO.Tests
         [Benchmark]
         public void ReadAsArrays()
         {
-            var array = new byte[1];
+            var array = new byte[128];
             using (var ums = new UnmanagedMemoryStream(_buffer, Length))
             {
                 while (ums.Read(array, 0, array.Length) != 0)
