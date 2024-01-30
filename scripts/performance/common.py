@@ -207,10 +207,13 @@ def __write_pipeline_variable(name: str, value: str):
     # Create a variable in the build pipeline
     # See https://github.com/microsoft/azure-pipelines-agent/blob/master/docs/design/percentEncoding.md for escape rules
     # Reference code: https://github.com/microsoft/azure-pipelines-task-lib/blob/master/node/taskcommand.ts
-    def escape(s: str):
-        return s.replace("%", "%AZP25").replace("\r", "%0D").replace("\n", "%0A").replace("]", "%5D").replace(";", "%3B")
+    def escape(s: str, is_key: bool):
+        s = s.replace("%", "%AZP25").replace("\r", "%0D").replace("\n", "%0A")
+        if is_key:
+            s = s.replace("]", "%5D").replace(";", "%3B")
+        return s
     getLogger().info("Writing pipeline variable %s with value %s" % (name, value))
-    print('##vso[task.setvariable variable=%s]%s' % (escape(name), escape(value)))
+    print('##vso[task.setvariable variable=%s]%s' % (escape(name, True), escape(value, False)))
 
 def set_environment_variable(name: str, value: str, save_to_pipeline: bool = True):
     """

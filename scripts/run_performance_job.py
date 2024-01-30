@@ -200,7 +200,23 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     # Ensure that the upload token is set so that the results can be uploaded to the storage account
     if args.internal:
         if args.os_group == "windows":
-            install_prerequisites += [f"set \"PERFLAB_UPLOAD_TOKEN={args.perflab_upload_token}\""]
+            if args.perflab_upload_token:
+                if "%" in args.perflab_upload_token:
+                    print("Contains %")
+                if "%%" in args.perflab_upload_token:
+                    print("Contains %%")
+                if "%25" in args.perflab_upload_token:
+                    print("Contains %25")
+                if "%25%25" in args.perflab_upload_token:
+                    print("Contains %25%25")
+                if "552B" in args.perflab_upload_token:
+                    print("Contains 552B")
+                if "553D" in args.perflab_upload_token:
+                    print("Contains 553D")
+
+            install_prerequisites += [
+                f"set \"PERFLAB_UPLOAD_TOKEN_TEST=%%2B%%3Dabcde%25%252B%25%253D\"", # temporary test to see what happens with percent encoding
+                f"set \"PERFLAB_UPLOAD_TOKEN={args.perflab_upload_token}\""]
         else:
             install_prerequisites += [f"export PERFLAB_UPLOAD_TOKEN=\"{args.perflab_upload_token}\""]
 
