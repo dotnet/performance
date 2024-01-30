@@ -74,7 +74,7 @@ class RunPerformanceJobArgs:
     build_source_branch: str = os.environ.get("BUILD_SOURCEBRANCH", "main")
     build_number: str = os.environ.get("BUILD_BUILDNUMBER", "local")
     build_definition_name: Optional[str] = os.environ.get("BUILD_DEFINITIONNAME")
-    internal: bool = True
+    internal: bool = False
     pgo_run_type: Optional[str] = None
     physical_promotion_run_type: Optional[str] = None
     r2r_run_type: Optional[str] = None
