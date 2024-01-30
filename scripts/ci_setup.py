@@ -458,7 +458,6 @@ def main(args: Any):
         if not os.path.isdir(dir_path):
             os.mkdir(dir_path)
 
-        perflab_upload_token = os.environ.get('PerfCommandUploadToken' if args.target_windows else 'PerfCommandUploadTokenLinux')
         run_name = os.environ.get("PERFLAB_RUNNAME")
 
         with open(output_file, 'w') as out_file:
@@ -485,8 +484,6 @@ def main(args: Any):
             out_file.write(variable_format % ('UseSharedCompilation', 'false'))
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
             out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
-            if perflab_upload_token is not None:
-                out_file.write(variable_format % ('PERFLAB_UPLOAD_TOKEN', perflab_upload_token))
             if run_name is not None:
                 out_file.write(variable_format % ('PERFLAB_RUNNAME', run_name))
             out_file.write(path_variable % dotnet_path)
