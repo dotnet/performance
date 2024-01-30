@@ -209,12 +209,13 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
         # TODO: Should we also give Windows the same treatment as linux and ensure that each command succeeds?
         helix_pre_commands += install_prerequisites
     else:
-        combined_prequisites = " && ".join(install_prerequisites)
-        helix_pre_commands += [
-            'echo "** Installing prerequistes **"',
-            f"{combined_prequisites} || export PERF_PREREQS_INSTALL_FAILED=1",
-            'test "x$PERF_PREREQS_INSTALL_FAILED" = "x1" && echo "** Error: Failed to install prerequites **"'
-        ]
+        if install_prerequisites:
+            combined_prequisites = " && ".join(install_prerequisites)
+            helix_pre_commands += [
+                'echo "** Installing prerequistes **"',
+                f"{combined_prequisites} || export PERF_PREREQS_INSTALL_FAILED=1",
+                'test "x$PERF_PREREQS_INSTALL_FAILED" = "x1" && echo "** Error: Failed to install prerequites **"'
+            ]
 
     # Set MONO_ENV_OPTIONS with for Mono Interpreter runs
     if args.codegen_type == "Interpreter" and args.runtime_type == "mono":
