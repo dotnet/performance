@@ -380,7 +380,7 @@ def main(args: Any):
         dotnet.setup_dotnet(args.dotnet_path)
 
     framework = ChannelMap.get_target_framework_moniker(args.channel)
-    if framework == 'net8.0':
+    if framework == 'net8.0' or framework == 'nativeaot8.0':
         # Copy the global.json file to global.bak.json
         global_json_path = os.path.join(get_repo_root_path(), 'global.json')
         shutil.copy(global_json_path, os.path.join(get_repo_root_path(), 'global.net9.json'))
@@ -445,6 +445,7 @@ def main(args: Any):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
+        
         if args.local_build:
             source_timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         elif(args.commit_time is not None):
