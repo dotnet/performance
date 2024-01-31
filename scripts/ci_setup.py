@@ -349,7 +349,7 @@ def main(args: Any):
     # if repository is set, user needs to supply the commit_sha
     if not ((args.commit_sha is None) == (args.repository is None)):
         raise ValueError('Either both commit_sha and repository should be set or neither')
-    
+   
     # for CI pipelines, use the agent OS
     if not args.local_build:
         args.target_windows = sys.platform == 'win32'
@@ -368,7 +368,7 @@ def main(args: Any):
                 channel=args.channel,
                 verbose=verbose
             )
-            
+           
         init_tools(
             architecture=architecture,
             dotnet_versions=args.dotnet_versions,
@@ -380,14 +380,11 @@ def main(args: Any):
         dotnet.setup_dotnet(args.dotnet_path)
 
     framework = ChannelMap.get_target_framework_moniker(args.channel)
-    if framework == 'net8.0' or framework == 'nativeaot8.0':
-        # Copy the global.json file to global.bak.json
+    if framework in ('net8.0', 'nativeaot8.0'):
         global_json_path = os.path.join(get_repo_root_path(), 'global.json')
-        shutil.copy(global_json_path, os.path.join(get_repo_root_path(), 'global.net9.json'))
-        print('Copied global.json to global.net9.json')
         shutil.copy(os.path.join(get_repo_root_path(), 'global.net8.json'), global_json_path)
-        print('Copied global.net8.json to global.json')
-              
+        print('Overwrote global.json with global.net8.json')
+             
     # dotnet --info
     dotnet.info(verbose=verbose)
 
