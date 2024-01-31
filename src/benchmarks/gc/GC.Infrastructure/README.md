@@ -175,7 +175,7 @@ runs:
       DOTNET_GCName: clrgc.dll # This environment variable was set.
 ```
 
-NOTE: For this case, ensure the environment variable ``DOTNET_GCName`` or ``DOTNET_GCName`` is set to clrgc.dll.
+NOTE: For this case, ensure the environment variable ``DOTNET_GCName`` is set to clrgc.dll.
 
 On the other hand, if you want upload the entire directory, say ``C:\ASPNETUpload2``, simply set the path to the directory in the corerun of a corerun:
 
