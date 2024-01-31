@@ -703,7 +703,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
         
         # build PerfLabGenericEventSourceLTTngProvider
-        if args.os_group != "windows" and args.os_group != "linux" and args.os_version == "2204":
+        if args.os_group != "windows" and args.os_group != "osx" and args.os_version == "2204":
             RunCommand([
                 os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceLTTngProvider", "build.sh"),
                 "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")])
