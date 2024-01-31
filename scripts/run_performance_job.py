@@ -479,7 +479,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             get_commit_time_command.run()
             ci_setup_arguments.commit_time = f"\"{get_commit_time_command.stdout}\""
 
-    if not args.internal:
+    # not_in_lab should stay False for internal dotnet performance CI runs
+    if not args.internal and not args.performance_repo_ci:
         ci_setup_arguments.not_in_lab = True
 
     if mono_dotnet is not None:
