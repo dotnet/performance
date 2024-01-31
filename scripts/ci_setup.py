@@ -434,6 +434,10 @@ def main(args: Any):
         extension = ".cmd" if args.target_windows else ".sh"
         output_file += extension
 
+    dir_path = os.path.dirname(output_file)
+    if not os.path.isdir(dir_path):
+        os.mkdir(dir_path)
+
     if not framework.startswith('net4'):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
@@ -454,10 +458,7 @@ def main(args: Any):
         branch = ChannelMap.get_branch(args.channel) if not args.branch else args.branch
 
         getLogger().info("Writing script to %s" % output_file)
-        dir_path = os.path.dirname(output_file)
-        if not os.path.isdir(dir_path):
-            os.mkdir(dir_path)
-
+        
         run_name = os.environ.get("PERFLAB_RUNNAME")
 
         with open(output_file, 'w') as out_file:

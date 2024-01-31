@@ -57,6 +57,7 @@ jobs:
         - checkout: self
           clean: true
         - script: $(Python) scripts/run_performance_job.py --performance-repo-ci --queue ${{ parameters.queue }} --channel $(_Channel) --architecture ${{ parameters.architecture }} --run-kind ${{ parameters.kind }} --affinity ${{ parameters.affinity }} $(runEnvVarsParam) --os-group ${{ parameters.osName }} $(internalParam)
+          displayName: Run run_performance_job.py
           env:
             HelixAccessToken: '$(HelixApiAccessToken)'
             PerfCommandUploadToken: '$(PerfCommandUploadToken)'
