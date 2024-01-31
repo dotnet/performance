@@ -133,6 +133,11 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 }
 
                 resultWriter.Write(resultContent.ToString());
+
+                foreach (var yamlFileNameResultPair in yamlFileResultMap)
+                {
+                    resultWriter.AddIncompleteTestsSection(new (yamlFileNameResultPair.Value.ExecutionDetails));
+                }
             }
             
             return 0;
@@ -143,14 +148,16 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             GCPerfSimConfiguration gcPerfSimNormalServerConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBase, true);
 
             // modify gcperfsim_configurations
-            gcPerfSimNormalServerConfiguration.gcperfsim_configurations.Parameters["tc"] = "36";
-            gcPerfSimNormalServerConfiguration.gcperfsim_configurations.Parameters["tagb"] = "540";
+            int logicalProcessors = CreateSuitesCommand.GetAppropriateLogicalProcessors();
+            // Set tc = 2 * logicalProcessors
+            gcPerfSimNormalServerConfiguration.gcperfsim_configurations.Parameters["tc"] = (logicalProcessors * 2).ToString();
+            gcPerfSimNormalServerConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
             gcPerfSimNormalServerConfiguration.gcperfsim_configurations.gcperfsim_path =
                 configuration.gcperfsim_path;
 
             // modify environment
             gcPerfSimNormalServerConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
-            gcPerfSimNormalServerConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = "12";
+            gcPerfSimNormalServerConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = logicalProcessors.ToString();
 
             // modify coreruns
             gcPerfSimNormalServerConfiguration.coreruns = new Dictionary<string, CoreRunInfo>();
@@ -159,14 +166,14 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 
             // modify output
             gcPerfSimNormalServerConfiguration.Output.Path =
-                Path.Combine(configuration.output_path, "Normal_server");
+                Path.Combine(configuration.output_path, "Normal_Server");
             gcPerfSimNormalServerConfiguration.Output.percentage_disk_remaining_to_stop_per_run = 0;
 
             // modify name 
             gcPerfSimNormalServerConfiguration.Name = "Normal_Server";
 
             // modify trace_configurations
-            gcPerfSimNormalServerConfiguration.TraceConfigurations.Type = "gc";
+            gcPerfSimNormalServerConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
 
             SaveConfiguration(gcPerfSimNormalServerConfiguration, gcPerfSimSuitePath, "Normal_Server.yaml");
         }
@@ -186,14 +193,14 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 
             // modify output
             gcPerfSimNormalWorkstationConfiguration.Output.Path =
-                Path.Combine(configuration.output_path, "Normal_workstation");
+                Path.Combine(configuration.output_path, "Normal_Workstation");
             gcPerfSimNormalWorkstationConfiguration.Output.percentage_disk_remaining_to_stop_per_run = 0;
 
             // modify name 
             gcPerfSimNormalWorkstationConfiguration.Name = "Normal_Workstation";
 
             // modify trace_configurations
-            gcPerfSimNormalWorkstationConfiguration.TraceConfigurations.Type = "gc";
+            gcPerfSimNormalWorkstationConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
 
             SaveConfiguration(gcPerfSimNormalWorkstationConfiguration, gcPerfSimSuitePath, "Normal_Workstation.yaml");
         }
@@ -202,13 +209,15 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         {
             GCPerfSimConfiguration gcPerfSimLowMemoryContainerConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBase, true);
             // modify runs
+
+            int logicalProcessors = CreateSuitesCommand.GetAppropriateLogicalProcessors();
             gcPerfSimLowMemoryContainerConfiguration.Runs.Clear();
 
             gcPerfSimLowMemoryContainerConfiguration.Runs["server"] = new Run
             {
                 override_parameters = new Dictionary<string, string>()
                 {
-                    { "tc",  "16"},
+                    { "tc",  (2*logicalProcessors).ToString() },
                     { "tagb", "350" },
                     { "tlgb", "0.45"}
                 }
@@ -256,7 +265,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimLowMemoryContainerConfiguration.Name = "LowMemoryContainer";
 
             // modify trace_configurations
-            gcPerfSimLowMemoryContainerConfiguration.TraceConfigurations.Type = "gc";
+            gcPerfSimLowMemoryContainerConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
 
             SaveConfiguration(gcPerfSimLowMemoryContainerConfiguration, gcPerfSimSuitePath, "LowMemoryContainer.yaml");
         }
@@ -265,6 +274,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         {
             GCPerfSimConfiguration gcPerfSimHighMemoryLoadConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBase, true);
 
+            int logicalProcessors = CreateSuitesCommand.GetAppropriateLogicalProcessors();
             // modify runs
             gcPerfSimHighMemoryLoadConfiguration.Runs.Clear();
 
