@@ -130,8 +130,7 @@ namespace GC.Infrastructure.Commands.RunCommand
                 // ASPNET benchmarks is any file that gets uploaded to the servers
                 foreach (var envVars in r.Value.environment_variables)
                 {
-                    if (string.CompareOrdinal(envVars.Key, "DOTNET_GCName") == 0 ||
-                        string.CompareOrdinal(envVars.Key, "DOTNET_GCName") == 0 )
+                    if (string.CompareOrdinal(envVars.Key, "DOTNET_GCName") == 0 )
                     {
                         string directoryOfCorerun = Path.GetDirectoryName(r.Value.Path)!;
                         run.corerun = Path.Combine(directoryOfCorerun, envVars.Value);
@@ -182,7 +181,7 @@ namespace GC.Infrastructure.Commands.RunCommand
                     r.Value.environment_variables = new();
                 }
 
-                r.Value.environment_variables["DOTNET_GCServer"] = "0";
+                r.Value.environment_variables["DOTNET_gcServer"] = "0";
             }
 
             workstation.Name = "Workstation";
@@ -200,7 +199,7 @@ namespace GC.Infrastructure.Commands.RunCommand
                     r.Value.environment_variables = new();
                 }
 
-                r.Value.environment_variables["DOTNET_GCServer"] = "1";
+                r.Value.environment_variables["DOTNET_gcServer"] = "1";
             }
             server.microbenchmarks_path = inputConfiguration.microbenchmark_path;
             server.Output.Path = Path.Combine(microbenchmarkOutputPath, "Server");
@@ -309,7 +308,7 @@ namespace GC.Infrastructure.Commands.RunCommand
             normalServerCase.gcperfsim_configurations.Parameters["tagb"] = (30 * logicalProcessors).ToString();
 
             // Set the environment variables appropriately.
-            normalServerCase.Environment.environment_variables["DOTNET_GCServer"]    = "1";
+            normalServerCase.Environment.environment_variables["DOTNET_gcServer"]    = "1";
             normalServerCase.Environment.environment_variables["DOTNET_GCHeapCount"] = logicalProcessors.ToString("x");
             normalServerCase.Name = Path.GetFileNameWithoutExtension(name);
 
@@ -335,10 +334,10 @@ namespace GC.Infrastructure.Commands.RunCommand
             workstationRun.override_parameters["tlgb"] = "3";
             workstationRun.override_parameters["sohsi"] = "50";
             workstationRun.environment_variables = new();
-            workstationRun.environment_variables["DOTNET_GCServer"] = "0";
+            workstationRun.environment_variables["DOTNET_gcServer"] = "0";
             highMemoryConfiguration.Runs.Add("workstation", workstationRun);
 
-            highMemoryConfiguration.Environment.environment_variables["DOTNET_GCServer"] = "1";
+            highMemoryConfiguration.Environment.environment_variables["DOTNET_gcServer"] = "1";
             int logicalProcessors = GetAppropriateLogicalProcessors();
             highMemoryConfiguration.Environment.environment_variables["DOTNET_GCHeapCount"] = logicalProcessors.ToString("x");
 
@@ -370,10 +369,10 @@ namespace GC.Infrastructure.Commands.RunCommand
             workstationRun.override_parameters["tagb"] = "100";
             workstationRun.override_parameters["tlgb"] = "0.5";
             workstationRun.environment_variables = new();
-            workstationRun.environment_variables["DOTNET_GCServer"] = "0";
+            workstationRun.environment_variables["DOTNET_gcServer"] = "0";
             lowMemoryConfigurationCase.Runs.Add("workstation", workstationRun);
 
-            lowMemoryConfigurationCase.Environment.environment_variables["DOTNET_GCServer"] = "1";
+            lowMemoryConfigurationCase.Environment.environment_variables["DOTNET_gcServer"] = "1";
             lowMemoryConfigurationCase.Environment.environment_variables["DOTNET_GCHeapCount"] = "4";
 
             // Add the appropriate environment variables.

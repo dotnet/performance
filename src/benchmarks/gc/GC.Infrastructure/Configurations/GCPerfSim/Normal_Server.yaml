@@ -44,7 +44,7 @@ gcperfsim_configurations:
   gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
 environment:
   environment_variables:
-    DOTNET_GCServer: 1
+    DOTNET_gcServer: 1
     DOTNET_GCHeapCount: 12
   default_max_seconds: 300
   iterations: 1

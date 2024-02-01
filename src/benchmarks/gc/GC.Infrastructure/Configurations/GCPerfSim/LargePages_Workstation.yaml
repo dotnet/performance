@@ -44,7 +44,7 @@ gcperfsim_configurations:
   gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
 environment:
   environment_variables:
-    DOTNET_GCServer: 0
+    DOTNET_gcServer: 0
     DOTNET_GCLargePages: 1
     DOTNET_GCHeapHardLimitSOH: 0x800000000
     DOTNET_GCHeapHardLimitLOH: 0x400000000

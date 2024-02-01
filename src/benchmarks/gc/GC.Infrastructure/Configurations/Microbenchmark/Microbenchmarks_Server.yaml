@@ -7,7 +7,7 @@ runs:
     is_baseline: true
     environment_variables:
       DOTNET_GCName: clrgc.dll
-      DOTNET_GCServer: 1
+      DOTNET_gcServer: 1
   run:
     dotnet_installer: 
     name: run
@@ -15,7 +15,7 @@ runs:
     is_baseline: false
     environment_variables:
       DOTNET_GCName: clrgc.dll
-      DOTNET_GCServer: 1
+      DOTNET_gcServer: 1
 microbenchmark_configurations:
   filter: 
   filter_path: C:\InfraRuns\RunNew_All\Suites\Microbenchmark\MicrobenchmarksToRun.txt

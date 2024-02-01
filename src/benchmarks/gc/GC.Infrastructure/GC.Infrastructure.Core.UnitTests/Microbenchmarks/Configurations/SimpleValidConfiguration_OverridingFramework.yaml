@@ -2,31 +2,31 @@
   heapcount_1:
     environment_variables:
       DOTNET_GCHeapCount: 1 
-      DOTNET_GCServer: 0 
+      DOTNET_gcServer: 0 
     framework_version: net6.0
 
   heapcount_2:
     environment_variables:
       DOTNET_GCHeapCount: 2 
-      DOTNET_GCServer: 1 
+      DOTNET_gcServer: 1 
     framework_version: net6.0
 
   heapcount_3:
     environment_variables:
       DOTNET_GCHeapCount: 3 
-      DOTNET_GCServer: 1 
+      DOTNET_gcServer: 1 
     framework_version: net6.0
 
   heapcount_4:
     environment_variables:
       DOTNET_GCHeapCount: 4 
-      DOTNET_GCServer: 1 
+      DOTNET_gcServer: 1 
     framework_version: net6.0
 
   heapcount_5:
     environment_variables:
       DOTNET_GCHeapCount: 5 
-      DOTNET_GCServer: 1 
+      DOTNET_gcServer: 1 
     framework_version: net6.0
 
 # Top level microbenchmark configuration.

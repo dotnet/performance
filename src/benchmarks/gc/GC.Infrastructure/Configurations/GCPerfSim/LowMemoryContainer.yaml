@@ -11,7 +11,7 @@ runs:
       tc: 2 
       tlgb: 0.5
     environment_variables:
-      DOTNET_GCServer: 0
+      DOTNET_gcServer: 0
       DOTNET_GCHeapCount: 1 
       
 # Top level microbenchmark configuration.
@@ -49,7 +49,7 @@ coreruns:
 
 environment:
   environment_variables:
-    DOTNET_GCServer: 1
+    DOTNET_gcServer: 1
     DOTNET_GCHeapCount: 4 
     DOTNET_GCHeapHardLimit: "0x23C34600"
     DOTNET_GCTotalPhysicalMemory: "0x23C34600"

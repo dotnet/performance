@@ -10,7 +10,7 @@ runs:
       tlgb: 3 
       sohsi: 50
     environment_variables:
-      DOTNET_GCServer: 0
+      DOTNET_gcServer: 0
 
 # Top level microbenchmark configuration.
 gcperfsim_configurations:
@@ -47,7 +47,7 @@ coreruns:
 
 environment:
   environment_variables:
-    DOTNET_GCServer: 1
+    DOTNET_gcServer: 1
     DOTNET_GCHeapCount: 18
     DOTNET_GCName: clrgc.dll 
     DOTNET_GCHeapHardLimit: "0x100000000"

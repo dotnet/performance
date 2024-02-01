@@ -98,7 +98,7 @@ scenarios:
     application:
       job: gcperfsim
       environmentVariables:
-        DOTNET_GCServer: 1
+        DOTNET_gcServer: 1
       variables:
         threadCount: 1
 
@@ -116,6 +116,6 @@ scenarios:
     application:
       job: gcperfsim
       environmentVariables:
-        DOTNET_GCServer: 1
+        DOTNET_gcServer: 1
       variables:
         threadCount: 1

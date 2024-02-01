@@ -7,7 +7,7 @@ runs:
   run:
     corerun: C:\CoreRuns\Empty\
     environment_variables:
-      DOTNET_GCServer: 1
+      DOTNET_gcServer: 1
 environment:
   environment_variables: {}
   default_max_seconds: 300
