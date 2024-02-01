@@ -72,7 +72,7 @@ jobs:
         projectFile: scenarios.proj
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   ## MAUI scenario benchmarks
   #- template: /eng/performance/build_machine_matrix.yml
@@ -87,7 +87,7 @@ jobs:
   #      projectFile: maui_scenarios.proj
   #      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
   #        - main
-  # #        - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  #        - 8.0
 
   # Blazor scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -102,7 +102,7 @@ jobs:
         projectFile: blazor_scenarios.proj
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # SDK scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -118,7 +118,7 @@ jobs:
         projectFile: sdk_scenarios.proj
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
   
   # micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -134,7 +134,7 @@ jobs:
         runCategories: 'runtime libraries' 
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # Ubuntux64 Default and NativeAOT micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -151,7 +151,7 @@ jobs:
           - main
           - nativeaot9.0
           - nativeaot8.0
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # net462 micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -181,7 +181,7 @@ jobs:
         runCategories: 'mldotnet' 
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # F# benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -197,7 +197,7 @@ jobs:
         runCategories: 'fsharp'
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # bepuphysics benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -213,7 +213,7 @@ jobs:
         runCategories: 'BepuPhysics'
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # ImageSharp benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -229,7 +229,7 @@ jobs:
         runCategories: 'ImageSharp'
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # Akade.IndexedSet benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -245,7 +245,7 @@ jobs:
         runCategories: 'AkadeIndexedSet'
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # Roslyn benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -261,7 +261,7 @@ jobs:
         runCategories: 'roslyn'
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # ILLink benchmarks
   # disabled because of: https://github.com/dotnet/performance/issues/3569
@@ -292,7 +292,7 @@ jobs:
         projectFile: nativeaot_scenarios.proj
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # Powershell benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -308,7 +308,7 @@ jobs:
         runCategories: 'Public'
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
 ###########################################
 # Private Jobs
@@ -331,7 +331,7 @@ jobs:
         projectFile: scenarios.proj
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # Affinitized Scenario benchmarks (Initially just PDN)
   - template: /eng/performance/build_machine_matrix.yml
@@ -347,7 +347,7 @@ jobs:
         projectFile: scenarios_affinitized.proj
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
         additionalJobIdentifier: 'Affinity_85'
         affinity: '85'  # (01010101) Enables alternating process threads to take hyperthreading into account
         runEnvVars: 
@@ -415,7 +415,7 @@ jobs:
   #      projectFile: maui_scenarios.proj
   #      channels:
   #        - main
-  # #        - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  #        - 8.0
 
   # NativeAOT scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -431,7 +431,7 @@ jobs:
         projectFile: nativeaot_scenarios.proj
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
 ################################################
 # Scheduled Private jobs
@@ -454,7 +454,7 @@ jobs:
         projectFile: sdk_scenarios.proj
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # Blazor 3.2 scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -468,7 +468,7 @@ jobs:
         projectFile: blazor_scenarios.proj
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # F# benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -486,7 +486,7 @@ jobs:
         runCategories: 'fsharp'
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # bepuphysics benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -504,7 +504,7 @@ jobs:
         runCategories: 'BepuPhysics'
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # ImageSharp benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -522,7 +522,7 @@ jobs:
         runCategories: 'ImageSharp'
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # Akade.IndexedSet benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -558,7 +558,7 @@ jobs:
         runCategories: 'mldotnet'
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
         affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
         runEnvVars: 
           - DOTNET_GCgen0size=410000 # ~4MB
@@ -582,7 +582,7 @@ jobs:
         runCategories: 'roslyn'
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
         affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
         runEnvVars: 
           - DOTNET_GCgen0size=410000 # ~4MB
@@ -605,7 +605,7 @@ jobs:
   #       runCategories: 'illink'
   #       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
   #         - main
-  # #         - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+  #         - 8.0
 
   # Powershell benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -623,7 +623,7 @@ jobs:
         runCategories: 'Public Internal'
         channels:
           - main
-          # - 8.0 Temp disabled per (2023/12/18): https://github.com/dotnet/performance/issues/3655
+          - 8.0
 
   # Secret Sync
   - job: Synchronize
