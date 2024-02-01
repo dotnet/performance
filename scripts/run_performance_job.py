@@ -638,6 +638,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     ci_setup.main(ci_setup_arguments)
 
+    # ci_setup may modify global.json, so we should copy it across to the payload directory if that happens
+    # TODO: Refactor this when we eventually remove the dependency on ci_setup.py directly from the runtime repository.
+    shutil.copy(os.path.join(args.performance_repo_dir, 'global.json'), os.path.join(performance_payload_dir, 'global.json'))
+
     if args.is_scenario:
         set_environment_variable("DOTNET_ROOT", ci_setup_arguments.install_dir, save_to_pipeline=True)
         print(f"Set DOTNET_ROOT to {ci_setup_arguments.install_dir}")
