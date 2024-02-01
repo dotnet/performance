@@ -219,13 +219,16 @@ It's worth noting that if you have specified Linux based binaries in the corerun
 
 ###### How To Filter Benchmarks 
 
-You can specify a list of strings in the configuration to serve as filters for the `benchmark_file` to subset the runs you want to execute. These strings rely on Regex strings to 
-
-Example:
+You can filter benchmarks of interest from the entire set of benchmarks specified by the referenced `benchmarks_file` using a list of regex patterns such as the following in the `benchmark_settings` section:
 
 ```yaml
-
+benchmark_settings:
+  benchmark_filters:
+  - Stage1Aot_Windows*
+  - PlainText*
 ```
+
+If there is a match, these filters will run in the order specified in the yaml file.
 
 ## All Commands
 
