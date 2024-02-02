@@ -102,6 +102,7 @@ class RunPerformanceJobArgs:
     download_pdn: bool = False
     os_version: Optional[str] = None
     dotnet_version_link: Optional[str] = None
+    target_csproj: Optional[str] = None
 
 def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     helix_pre_commands: list[str] = []
@@ -288,7 +289,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     mono_interpreter = args.codegen_type == "Interpreter" and args.runtime_type == "mono"
 
-    target_csproj="src\\benchmarks\\micro\\MicroBenchmarks.csproj" if args.os_group == "windows" else "src/benchmarks/micro/MicroBenchmarks.csproj"
+    if args.target_csproj is None:
+        if args.os_group == "windows":
+            args.target_csproj="src\\benchmarks\\micro\\MicroBenchmarks.csproj"
+        else:
+            args.target_csproj="src/benchmarks/micro/MicroBenchmarks.csproj"
 
     llvm = False
     android_mono = False
@@ -830,12 +835,12 @@ def run_performance_job(args: RunPerformanceJobArgs):
         work_item_command = [
             python,
             "%HELIX_CORRELATION_PAYLOAD%\\performance\\scripts\\benchmarks_ci.py", 
-            "--csproj", f"%HELIX_CORRELATION_PAYLOAD%\\performance\\{target_csproj}"]
+            "--csproj", f"%HELIX_CORRELATION_PAYLOAD%\\performance\\{args.target_csproj}"]
     else:
         work_item_command = [
             python,
             "$HELIX_CORRELATION_PAYLOAD/performance/scripts/benchmarks_ci.py", 
-            "--csproj", f"$HELIX_CORRELATION_PAYLOAD/performance/{target_csproj}"]
+            "--csproj", f"$HELIX_CORRELATION_PAYLOAD/performance/{args.target_csproj}"]
         
     perf_lab_framework = os.environ['PERFLAB_Framework']
     work_item_command: List[str] = [
@@ -874,7 +879,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         partition_count=args.partition_count,
         runtime_flavor=args.runtime_flavor or "",
         hybrid_globalization=args.hybrid_globalization,
-        target_csproj=target_csproj,
+        target_csproj=args.target_csproj,
         work_item_command=work_item_command,
         bdn_arguments=bdn_arguments,
         download_files_from_helix=True,
@@ -960,7 +965,8 @@ def main(argv: List[str]):
             "--channel": "channel",
             "--perf-hash": "perf_hash",
             "--os-version": "os_version",
-            "--dotnet-version-link": "dotnet_version_link"
+            "--dotnet-version-link": "dotnet_version_link",
+            "--target-csproj": "target_csproj",
         }
 
         if key in simple_arg_map:
