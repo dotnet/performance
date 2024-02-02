@@ -293,7 +293,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.os_group == "windows":
             args.target_csproj="src\\benchmarks\\micro\\MicroBenchmarks.csproj"
         else:
-            args.target_csproj="src/benchmarks/micro/MicroBenchmarks.csproj"
+            args.target_csproj="src/benchmarks/micro/MicroBenchmarks.csproj"    
+    elif args.os_group != "windows":
+        args.target_csproj = args.target_csproj.replace("\\", "/")
+
 
     llvm = False
     android_mono = False
