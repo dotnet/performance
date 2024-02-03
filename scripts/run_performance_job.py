@@ -238,7 +238,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             "robocopy /np /nfl /e %HELIX_CORRELATION_PAYLOAD%\\root %HELIX_WORKITEM_ROOT%" ]
     else:
         helix_pre_commands += [ 
-            "cp -R $HELIX_CORRELATION_PAYLOAD/performance/* $HELIX_WORKITEM_ROOT/performance",
+            "mkdir -p $HELIX_WORKITEM_ROOT/performance && cp -R $HELIX_CORRELATION_PAYLOAD/performance/* $HELIX_WORKITEM_ROOT/performance",
             "cp -R $HELIX_CORRELATION_PAYLOAD/root/* $HELIX_WORKITEM_ROOT" ]
 
     # invoke the machine-setup
@@ -837,13 +837,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.os_group == "windows":
         work_item_command = [
             python,
-            "%HELIX_CORRELATION_PAYLOAD%\\performance\\scripts\\benchmarks_ci.py", 
-            "--csproj", f"%HELIX_CORRELATION_PAYLOAD%\\performance\\{args.target_csproj}"]
+            "%HELIX_WORKITEM_ROOT%\\performance\\scripts\\benchmarks_ci.py", 
+            "--csproj", f"%HELIX_WORKITEM_ROOT%\\performance\\{args.target_csproj}"]
     else:
         work_item_command = [
             python,
-            "$HELIX_CORRELATION_PAYLOAD/performance/scripts/benchmarks_ci.py", 
-            "--csproj", f"$HELIX_CORRELATION_PAYLOAD/performance/{args.target_csproj}"]
+            "$HELIX_WORKITEM_ROOT/performance/scripts/benchmarks_ci.py", 
+            "--csproj", f"$HELIX_WORKITEM_ROOT/performance/{args.target_csproj}"]
         
     perf_lab_framework = os.environ['PERFLAB_Framework']
     work_item_command: List[str] = [
