@@ -14,5 +14,6 @@ steps:
     displayName: ${{ parameters.DisplayNamePrefix }} (Unix)
     condition: and(${{ parameters.condition }}, ne(variables['Agent.Os'], 'Windows_NT'))
     continueOnError: ${{ parameters.continueOnError }}
-    env: # not sure why I need this
+    env: # not sure why I need to pass these through even though they already exist as environment variables
       BuildConfig: $(_BuildConfig)
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
