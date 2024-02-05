@@ -143,7 +143,7 @@ profiles:
         variables:
           osGroup: linux
           architecture: arm64
-          queue: Ubuntu.2004.Arm64.Perf
+          queue: Ubuntu.2204.Arm64.Perf
 
   osx-x64-ios-arm64:
     jobs:
