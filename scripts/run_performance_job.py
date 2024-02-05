@@ -680,6 +680,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-r", runtime_id,
             "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "Startup", "Startup.csproj"),
+            f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'Startup.binlog')}",
             "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
 
         # build SizeOnDisk
@@ -691,6 +692,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-r", runtime_id,
             "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "SizeOnDisk", "SizeOnDisk.csproj"),
+            f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'SizeOnDisk.binlog')}",
             "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
         
         # build MemoryConsumption
@@ -702,6 +704,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-r", runtime_id,
             "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"),
+            f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'MemoryConsumption.binlog')}",
             "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
         
         # build PerfLabGenericEventSourceForwarder
@@ -712,6 +715,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-f", framework,
             "-r", runtime_id,
             os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder.csproj"),
+            f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PerfLabGenericEventSourceForwarder.binlog')}",
             "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
         
         # build PerfLabGenericEventSourceLTTngProvider
