@@ -56,6 +56,18 @@ namespace System.Tests
         [ArgumentsSource(nameof(FullyQualifiedNamesArguments))]
         public Type GetType_FullyQualifiedNames(Type input) => Type.GetType(input.FullName);
 
+        public IEnumerable<object> ResolverArguments()
+        {
+            yield return typeof(int); // elemental type
+            yield return typeof(int[]); // SZArray
+            yield return typeof(Nested); // nested type
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(ResolverArguments))]
+        public Type GetType_Resolvers(Type input)
+            => Type.GetType(input.FullName, assemblyName => input.Assembly, (assembly, name, ignoreCase) => input);
+
         [Benchmark]
         public Type GetType_InvalidName() => Type.GetType("Wrong.Syntax[[]]", throwOnError: false);
 
