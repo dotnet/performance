@@ -234,8 +234,8 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     # Copy the performance repo and root directory to the work item directory
     if args.os_group == "windows":
         helix_pre_commands += [ 
-            "robocopy /np /nfl /e %HELIX_CORRELATION_PAYLOAD%\\performance %HELIX_WORKITEM_ROOT%\\performance",
-            "robocopy /np /nfl /e %HELIX_CORRELATION_PAYLOAD%\\root %HELIX_WORKITEM_ROOT%" ]
+            "robocopy /np /nfl /ndl /e %HELIX_CORRELATION_PAYLOAD%\\performance %HELIX_WORKITEM_ROOT%\\performance",
+            "robocopy /np /nfl /ndl /e %HELIX_CORRELATION_PAYLOAD%\\root %HELIX_WORKITEM_ROOT%" ]
     else:
         helix_pre_commands += [ 
             "mkdir -p $HELIX_WORKITEM_ROOT/performance && cp -R $HELIX_CORRELATION_PAYLOAD/performance/* $HELIX_WORKITEM_ROOT/performance",
