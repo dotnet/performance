@@ -141,7 +141,8 @@ class ChannelMap():
         },
         'net462': {
             'tfm': 'net462',
-            'branch': '8.0'
+            'branch': '9.0',
+            'quality': 'daily'
         },
         'net48': {
             'tfm': 'net48', # For Full Framework download the LTS for dotnet cli.

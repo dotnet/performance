@@ -18,6 +18,7 @@ from performance.logger import setup_loggers
 from channel_map import ChannelMap
 
 import dotnet
+import shutil
 
 def init_tools(
         architecture: str,
@@ -348,7 +349,7 @@ def main(args: Any):
     # if repository is set, user needs to supply the commit_sha
     if not ((args.commit_sha is None) == (args.repository is None)):
         raise ValueError('Either both commit_sha and repository should be set or neither')
-    
+   
     # for CI pipelines, use the agent OS
     if not args.local_build:
         args.target_windows = sys.platform == 'win32'
@@ -367,7 +368,7 @@ def main(args: Any):
                 channel=args.channel,
                 verbose=verbose
             )
-            
+           
         init_tools(
             architecture=architecture,
             dotnet_versions=args.dotnet_versions,
@@ -378,6 +379,12 @@ def main(args: Any):
     else:
         dotnet.setup_dotnet(args.dotnet_path)
 
+    framework = ChannelMap.get_target_framework_moniker(args.channel)
+    if framework in ('net8.0', 'nativeaot8.0'):
+        global_json_path = os.path.join(get_repo_root_path(), 'global.json')
+        shutil.copy(os.path.join(get_repo_root_path(), 'global.net8.json'), global_json_path)
+        print('Overwrote global.json with global.net8.json')
+             
     # dotnet --info
     dotnet.info(verbose=verbose)
 
@@ -424,8 +431,6 @@ def main(args: Any):
     decoded_output = ''.join(decoded_lines)
 
     perfHash = decoded_output if args.get_perf_hash else args.perf_hash
-
-    framework = ChannelMap.get_target_framework_moniker(args.channel)
 
     # if the extension is already present, don't add it
     output_file = args.output_file
