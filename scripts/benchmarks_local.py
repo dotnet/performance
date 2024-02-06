@@ -3,6 +3,7 @@ import os
 import platform
 import shutil
 import sys
+from typing import List
 import xml.etree.ElementTree as xmlTree
 from argparse import ArgumentParser, ArgumentTypeError, Namespace
 from datetime import datetime
@@ -74,10 +75,10 @@ def enum_name_to_enum(enum_type: EnumMeta, enum_name: str):
     except KeyError:
         raise ArgumentTypeError(f"Invalid run type name {enum_name}.")
 
-def enum_name_list_to_enum_list(enum_type: EnumMeta, enum_name_list: list[str]):
+def enum_name_list_to_enum_list(enum_type: EnumMeta, enum_name_list: List[str]):
     return [enum_name_to_enum(enum_type, enum_name) for enum_name in enum_name_list]
 
-def check_for_runtype_specified(parsed_args: Namespace, run_types_to_check: list[RunType]) -> bool:
+def check_for_runtype_specified(parsed_args: Namespace, run_types_to_check: List[RunType]) -> bool:
     for run_type in run_types_to_check:
         if run_type.name in parsed_args.run_type_names:
             return True
@@ -95,7 +96,7 @@ def copy_directory_contents(src_dir: str, dest_dir: str):
             shutil.copy2(os.path.join(src_dirpath, src_filename), dest_dirpath)
         
 # Builds libs and corerun by default
-def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs", configuration: str = "Release", os_override = "", arch_override = "", additional_args: list[str] = []):    
+def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs", configuration: str = "Release", os_override = "", arch_override = "", additional_args: List[str] = []):    
     if is_windows(parsed_args):
         build_libs_and_corerun_command = [
                 "powershell",
@@ -116,7 +117,7 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
             ] + additional_args
     RunCommand(build_libs_and_corerun_command, verbose=True).run(os.path.join(repo_path, "eng"))
 
-def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: list[str] = []):
+def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: List[str] = []):
     # Run the command
     if is_windows(parsed_args):
         generate_layout_command = ["build.cmd"]
@@ -255,7 +256,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
 
     getLogger().info(f"Finished generating dependencies for {' '.join(map(str, parsed_args.run_type_names))} run types in {repo_path} and stored in {parsed_args.artifact_storage_path}.")
 
-def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commits: list[str]) -> list[str]:
+def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commits: List[str]) -> List[str]:
     getLogger().info(f"Generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
     bdn_args_unescaped: list[str] = []
     benchmark_ci_args = [
@@ -335,7 +336,7 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
     getLogger().info(f"Finished generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
     return benchmark_ci_args
 
-def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, commit: str) -> list[str]:
+def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, commit: str) -> List[str]:
     getLogger().info(f"Generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
     bdn_args_unescaped: list[str] = []
     benchmark_ci_args = [
@@ -470,7 +471,7 @@ def generate_artifacts_for_commit(parsed_args: Namespace, repo_url: str, repo_di
     generate_all_runtype_dependencies(parsed_args, repo_path, commit, (is_local and not parsed_args.skip_local_rebuild) or parsed_args.rebuild_artifacts)
 
 # Run tests on the local machine
-def run_benchmarks(parsed_args: Namespace, commits: list[str]) -> None:
+def run_benchmarks(parsed_args: Namespace, commits: List[str]) -> None:
     # Generate the correct benchmarks_ci.py arguments for the run type
     for run_type_meta in enum_name_list_to_enum_list(RunType, parsed_args.run_type_names):
         # Run the benchmarks_ci.py test and save results
@@ -574,7 +575,7 @@ def get_default_os():
     else:
         raise Exception("Unsupported operating system: {system}.")
 
-def __main(args: list[str]):
+def __main(args: List[str]):
     # Define the ArgumentParser
     parser = ArgumentParser(description='Run local benchmarks for the Performance repo.', conflict_handler='resolve')
     add_arguments(parser)

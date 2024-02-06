@@ -347,7 +347,8 @@ def main(args: Any):
 
     # if repository is not set, then we are doing a core-sdk in performance repo run
     # if repository is set, user needs to supply the commit_sha
-    if not ((args.commit_sha is None) == (args.repository is None)):
+    use_core_sdk = args.repository is None
+    if not ((args.commit_sha is None) == use_core_sdk):
         raise ValueError('Either both commit_sha and repository should be set or neither')
    
     # for CI pipelines, use the agent OS
@@ -390,7 +391,7 @@ def main(args: Any):
 
     # When running on internal repos, the repository comes to us incorrectly
     # (ie https://github.com/dotnet-coreclr). Replace dashes with slashes in that case.
-    repo_url = None if args.repository is None else args.repository.replace('-','/')
+    repo_url = None if use_core_sdk else args.repository.replace('-','/')
 
     variable_format = 'set "%s=%s"\n' if args.target_windows else 'export %s="%s"\n'
     path_variable = 'set PATH=%s;%%PATH%%\n' if args.target_windows else 'export PATH=%s:$PATH\n'
@@ -438,10 +439,14 @@ def main(args: Any):
         extension = ".cmd" if args.target_windows else ".sh"
         output_file += extension
 
+    dir_path = os.path.dirname(output_file)
+    if not os.path.isdir(dir_path):
+        os.mkdir(dir_path)
+
     if not framework.startswith('net4'):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
-        commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
+        commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if use_core_sdk else args.commit_sha
 
         if args.local_build:
             source_timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -458,11 +463,7 @@ def main(args: Any):
         branch = ChannelMap.get_branch(args.channel) if not args.branch else args.branch
 
         getLogger().info("Writing script to %s" % output_file)
-        dir_path = os.path.dirname(output_file)
-        if not os.path.isdir(dir_path):
-            os.mkdir(dir_path)
-
-        perflab_upload_token = os.environ.get('PerfCommandUploadToken' if args.target_windows else 'PerfCommandUploadTokenLinux')
+        
         run_name = os.environ.get("PERFLAB_RUNNAME")
 
         with open(output_file, 'w') as out_file:
@@ -489,8 +490,6 @@ def main(args: Any):
             out_file.write(variable_format % ('UseSharedCompilation', 'false'))
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
             out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
-            if perflab_upload_token is not None:
-                out_file.write(variable_format % ('PERFLAB_UPLOAD_TOKEN', perflab_upload_token))
             if run_name is not None:
                 out_file.write(variable_format % ('PERFLAB_RUNNAME', run_name))
             out_file.write(path_variable % dotnet_path)

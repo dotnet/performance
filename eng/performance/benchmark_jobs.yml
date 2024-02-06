@@ -24,99 +24,26 @@ jobs:
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }}'
         timeoutInMinutes: 320
         variables:
-        - name: AffinityParam
-          ${{ if ne(parameters.affinity, '0')}}:
-            value: '--affinity ${{ parameters.affinity }}'
-          ${{ else }}: # Affinity of 0 seems to cause problems with BDN, so don't set it if we don't need to
-            value: ''
         - name: runEnvVarsParam
           ${{ if ne(length(parameters.runEnvVars), 0)}}:
             value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
-          ${{ else }}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
+          ${{ if eq(length(parameters.runEnvVars), 0)}}:
             value: ''
-        - ${{ if eq(parameters.osName, 'windows') }}:
-          - name: CliArguments
-            value: '--dotnet-versions %DOTNET_VERSION% --cli-source-info args --cli-branch %PERFLAB_BRANCH% --cli-commit-sha %PERFLAB_HASH% --cli-repository https://github.com/%PERFLAB_REPO% --cli-source-timestamp %PERFLAB_BUILDTIMESTAMP%'
-          - name: AdditionalHelixPreCommands
-            value: 'call %HELIX_CORRELATION_PAYLOAD%\tools\machine-setup.cmd'
-          - name: PreservePythonPath
-            value: 'set ORIGPYPATH=%PYTHONPATH%'
-          - name: HelixPostCommand
-            value: 'set PYTHONPATH=%ORIGPYPATH%'
-          - name: Python
+        - name: Python
+          ${{ if eq(parameters.osName, 'windows') }}:
             value: 'py -3'
-          - ${{ if ne(parameters.osVersion, 'RS1')}}:
-            - name: ArtifactsDirectory
-              value: '%HELIX_WORKITEM_UPLOAD_ROOT%\BenchmarkDotNet.Artifacts'
-          - ${{ if eq(parameters.osVersion, 'RS1')}}:
-            - name: ArtifactsDirectory
-              value: '%HELIX_CORRELATION_PAYLOAD%\artifacts\BenchmarkDotNet.Artifacts'
-          - name: InstallPrerequisites
-            value: ''
-          - name: TargetsWindowsParam
-            value: '--target-windows'
-        - ${{ if ne(parameters.osName, 'windows') }}:
-          - name: CliArguments
-            value: '--dotnet-versions $DOTNET_VERSION --cli-source-info args --cli-branch $PERFLAB_BRANCH --cli-commit-sha $PERFLAB_HASH --cli-repository https://github.com/$PERFLAB_REPO --cli-source-timestamp $PERFLAB_BUILDTIMESTAMP'
-          - name: AdditionalHelixPreCommands
-            value: 'chmod +x ./tools/machine-setup.sh;. ./tools/machine-setup.sh'
-          - name: PreservePythonPath
-            value: 'export ORIGPYPATH=$PYTHONPATH'
-          - name: SetAllowOpenSsl102
-            value: 'export CRYPTOGRAPHY_ALLOW_OPENSSL_102=true'
-          - name: HelixPostCommand
-            value: 'export PYTHONPATH=$ORIGPYPATH'
-          - name: Python
-            value: python3
-          - ${{ if eq(parameters.osVersion, '2204')}}:
-            - name: ArtifactsDirectory
-              value: '$HELIX_WORKITEM_UPLOAD_ROOT/BenchmarkDotNet.Artifacts'
-          - ${{ if or(eq(parameters.osVersion, '1604'), eq(parameters.architecture, 'arm64'))}}:
-            - name: ArtifactsDirectory
-              value: '$HELIX_WORKITEM_PAYLOAD/artifacts/BenchmarkDotNet.Artifacts'
-          - ${{ if eq(parameters.osName, 'ubuntu')}}:
-            - name: InstallPrerequisites
-              value: 'sudo apt-get -y install python3-venv'
-          - ${{ if ne(parameters.osName, 'ubuntu')}}:
-            - name: InstallPrerequisites
-              value: ''
-          - name: TargetsWindowsParam
-            value: ''
-        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          # for public runs, we do not want to upload perflab data
-          - name: PerfLabArguments
-            value: ''
-          - name: Creator
-            value: dotnet-performance
-          # for public runs we want to run the benchmarks exactly once, no warmup, no pilot, no overhead
-          - name: BenchmarkDotNetArguments
-            value: '--anyCategories ${{ parameters.runCategories }} --iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true $(AffinityParam)'
-          - name: HelixApiAccessToken
-            value: ''
-          - name: HelixPreCommand
-            value: '$(PreservePythonPath);$(AdditionalHelixPreCommands);$(InstallPrerequisites);'
-          - name: HelixSourcePrefix
-            value: "pr"
+          ${{ if ne(parameters.osName, 'windows') }}:
+            value: 'python3'
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+          - name: internalParam
+            value: --internal
           # for private runs, we want to upload perflab data
-          - name: PerfLabArguments
-            value: '--upload-to-perflab-container'
-          # for private runs we don't provide any custom BDN arguments (the ones from Program.Main are used)
-          - name: BenchmarkDotNetArguments
-            value: '--anyCategories ${{ parameters.runCategories }} $(AffinityParam)'
-          - name: Creator
-            value: ''
-          - name: HelixSourcePrefix
-            value: 'official'
-          - ${{ if eq(parameters.osName, 'windows') }}:
-            - name: HelixPreCommand
-              value: '$(PreservePythonPath);py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\.venv;call %HELIX_WORKITEM_PAYLOAD%\.venv\Scripts\activate.bat;set PYTHONPATH=;py -3 -m pip install azure.storage.blob==12.0.0 --force-reinstall;py -3 -m pip install azure.storage.queue==12.0.0 --force-reinstall;py -3 -m pip install urllib3==1.26.18 --force-reinstall;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
-          - ${{ if ne(parameters.osName, 'windows') }}:
-            - name: HelixPreCommand
-              value: '$(PreservePythonPath);$(SetAllowOpenSsl102);$(InstallPrerequisites);python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv;. $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate;export PYTHONPATH=;python3 -m pip install -U pip;pip3 install azure.storage.blob==12.0.0 --force-reinstall;pip3 install azure.storage.queue==12.0.0 --force-reinstall;pip3 install urllib3==1.26.18 --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
           - group: DotNet-HelixApi-Access
           # perflab upload tokens still exist in this variable group
           - group: dotnet-benchview
+        - ${{ if not(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'))) }}:
+          - name: internalParam
+            value: ''
         workspace:
           clean: all
         pool: ${{ parameters.pool }}
@@ -126,31 +53,13 @@ jobs:
             ${{ each channel in parameters.channels }}:
               ${{ channel }}:
                 _Channel: ${{ channel }}
-                _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
-                _BuildConfig: ${{ parameters.architecture }}_$(_Channel)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
         steps:
         - checkout: self
           clean: true
-        - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) $(AffinityParam) $(runEnvVarsParam) $(TargetsWindowsParam)
-          displayName: Run ci_setup.py
-        - ${{ if eq(parameters.osName, 'windows') }}:
-          - script: (robocopy $(Build.SourcesDirectory) $(Build.SourcesDirectory)\notLocked /E /XD $(Build.SourcesDirectory)\notLocked $(Build.SourcesDirectory)\artifacts $(Build.SourcesDirectory)\.git) ^& IF %ERRORLEVEL% LEQ 1 exit 0
-            displayName: Workaround to avoid locked file # https://github.com/dotnet/arcade/issues/2125
+        - script: $(Python) scripts/run_performance_job.py --performance-repo-ci --queue ${{ parameters.queue }} --channel $(_Channel) --architecture ${{ parameters.architecture }} --run-kind ${{ parameters.kind }} --affinity ${{ parameters.affinity }} $(runEnvVarsParam) --os-group ${{ parameters.osName }} $(internalParam) --target-csproj "${{ parameters.csproj }}" --run-categories "${{ parameters.runCategories }}"
+          displayName: Run run_performance_job.py
+          env:
+            HelixAccessToken: '$(HelixApiAccessToken)'
+            PerfCommandUploadToken: '$(PerfCommandUploadToken)'
+            PerfCommandUploadTokenLinux: '$(PerfCommandUploadTokenLinux)'
         - template: /eng/performance/send-to-helix.yml
-          parameters:
-            HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
-            HelixType: 'test/performance_$(_BuildConfig)/'
-            HelixAccessToken: $(HelixApiAccessToken)
-            HelixTargetQueues: ${{ parameters.queue }}
-            HelixPreCommands: $(HelixPreCommand)
-            HelixPostCommands: $(HelixPostCommand)
-            Creator: $(Creator)
-            Architecture: ${{ parameters.architecture }}
-            TargetCsproj: ${{ parameters.csproj }}
-            WorkItemTimeout: 4:00 # 4 hours
-            Python: $(Python)
-            ${{ if eq(parameters.osName, 'windows') }}:
-              WorkItemDirectory: '$(Build.SourcesDirectory)\docs' # WorkItemDirectory can not be empty, so we send it some docs to keep it happy
-              CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\notLocked' # it gets checked out to a folder with shorter path than WorkItemDirectory so we can avoid file name too long exceptions
-            ${{ if ne(parameters.osName, 'windows') }}:
-              WorkItemDirectory: '$(Build.SourcesDirectory)'
