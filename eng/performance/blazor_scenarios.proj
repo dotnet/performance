@@ -15,13 +15,13 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
-    <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
+    <ScenariosDir>$(CorrelationPayloadDirectory)performance\src\scenarios\</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
     <RID>win-$(Architecture)</RID>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
-    <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
+    <ScenariosDir>$(CorrelationPayloadDirectory)performance/src/scenarios/</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
     <RID>linux-$(Architecture)</RID>
   </PropertyGroup>
