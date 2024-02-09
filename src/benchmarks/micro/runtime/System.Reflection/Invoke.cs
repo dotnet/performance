@@ -259,7 +259,7 @@ namespace System.Reflection
         {
             for (int i = 0; i < Iterations; i++)
             {
-                s_int = (int)s_staticField_int.GetValue(s_MyClass);
+                s_int = (int)s_staticField_int.GetValue(null);
             }
         }
 
@@ -278,7 +278,7 @@ namespace System.Reflection
         {
             for (int i = 0; i < Iterations; i++)
             {
-                s_class = s_staticField_class.GetValue(s_MyClass);
+                s_class = s_staticField_class.GetValue(null);
             }
         }
 
@@ -296,7 +296,7 @@ namespace System.Reflection
         {
             for (int i = 0; i < Iterations; i++)
             {
-                s_struct = (MyBlittableStruct)s_staticField_struct.GetValue(s_MyClass);
+                s_struct = (MyBlittableStruct)s_staticField_struct.GetValue(null);
             }
         }
 
@@ -314,7 +314,7 @@ namespace System.Reflection
         {
             for (int i = 0; i < Iterations; i++)
             {
-                s_staticField_int.SetValue(s_MyClass, 42);
+                s_staticField_int.SetValue(null, 42);
             }
         }
 
@@ -332,7 +332,7 @@ namespace System.Reflection
         {
             for (int i = 0; i < Iterations; i++)
             {
-                s_staticField_class.SetValue(s_MyClass, 42);
+                s_staticField_class.SetValue(null, 42);
             }
         }
 
@@ -350,7 +350,7 @@ namespace System.Reflection
         {
             for (int i = 0; i < Iterations; i++)
             {
-                s_staticField_struct.SetValue(s_MyClass, default(MyBlittableStruct));
+                s_staticField_struct.SetValue(null, default(MyBlittableStruct));
             }
         }
 
