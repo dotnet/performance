@@ -131,7 +131,15 @@ def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: Lis
     RunCommand(generate_layout_command, verbose=True).run(os.path.join(repo_path, "src", "tests"))
 
 def get_run_artifact_path(parsed_args: Namespace, run_type: RunType, commit: str) -> str:
-    return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commit}-{parsed_args.os}-{parsed_args.architecture}")
+    return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commit}-{parsed_args.os}-{parsed_args.architecture}-{parsed_args.framework}")
+
+def get_mono_corerun(parsed_args: Namespace, run_type: RunType, commit: str) -> str:
+    corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, run_type, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", f"{parsed_args.framework[3:-2]}.?.?", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
+    if len(corerun_capture) == 0:
+        raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, run_type, commit)}")
+    if len(corerun_capture) > 1:
+        raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, run_type, commit)}")
+    return corerun_capture[0]
 
 # Try to generate all of a single runs dependencies at once to save time
 def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, commit: str, force_regenerate: bool = False):
@@ -290,13 +298,7 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
         bdn_args_unescaped += ['--corerun']
         for commit in all_commits:
             # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
-            corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
-            if len(corerun_capture) == 0:
-                raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
-            elif len(corerun_capture) > 1:
-                raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
-            else:
-                corerun_path = corerun_capture[0]
+            corerun_path = get_mono_corerun(parsed_args, RunType.MonoInterpreter, commit)
             bdn_args_unescaped += [corerun_path]
         bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS:--interpreter']
 
@@ -310,13 +312,7 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
         bdn_args_unescaped += ['--corerun']
         for commit in all_commits:
             # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
-            corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
-            if len(corerun_capture) == 0:
-                raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
-            elif len(corerun_capture) > 1:
-                raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
-            else:
-                corerun_path = corerun_capture[0]
+            corerun_path = get_mono_corerun(parsed_args, RunType.MonoJIT, commit)
             bdn_args_unescaped += [corerun_path]
 
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
@@ -379,13 +375,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         ]
         
         # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from. There should only ever be 1 core run so this is just a check.
-        corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
-        if len(corerun_capture) == 0:
-            raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
-        elif len(corerun_capture) > 1:
-            raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
-        else:
-            corerun_path = corerun_capture[0]
+        corerun_path = get_mono_corerun(parsed_args, RunType.MonoInterpreter, commit)
         bdn_args_unescaped += [
             '--corerun', corerun_path,
             '--envVars', 'MONO_ENV_OPTIONS:--interpreter'
@@ -400,13 +390,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         ]
         
         # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
-        corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
-        if len(corerun_capture) == 0:
-            raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
-        elif len(corerun_capture) > 1:
-            raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
-        else:
-            corerun_path = corerun_capture[0]
+        corerun_path = get_mono_corerun(parsed_args, RunType.MonoJIT, commit)
         bdn_args_unescaped += ['--corerun', corerun_path]
 
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
