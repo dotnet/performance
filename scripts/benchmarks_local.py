@@ -134,7 +134,7 @@ def get_run_artifact_path(parsed_args: Namespace, run_type: RunType, commit: str
     return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commit}-{parsed_args.os}-{parsed_args.architecture}-{parsed_args.framework}")
 
 def get_mono_corerun(parsed_args: Namespace, run_type: RunType, commit: str) -> str:
-    corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, run_type, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", f"{parsed_args.framework[3:-2]}.?.?", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
+    corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, run_type, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", f"*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
     if len(corerun_capture) == 0:
         raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, run_type, commit)}")
     if len(corerun_capture) > 1:
@@ -184,6 +184,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             copy_directory_contents(src_dir_runtime, dest_dir_testhost_product)
             src_dir_testhost = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net{major_version}.0-{parsed_args.os}-Release-{parsed_args.architecture}")
             dest_dir_dotnet_mono = os.path.join(repo_path, "artifacts", "dotnet_mono")
+            shutil.rmtree(dest_dir_dotnet_mono, ignore_errors=True)
             copy_directory_contents(src_dir_testhost, dest_dir_dotnet_mono)
             src_file_corerun = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if is_windows(parsed_args) else ''}")
             dest_dir_dotnet_mono_shared = os.path.join(repo_path, "artifacts", "dotnet_mono", "shared", "Microsoft.NETCore.App", f"{product_version}") # Wrap product_version to force string type, otherwise we get warning: Argument of type "str | Any | None" cannot be assigned to parameter "paths" of type "BytesPath" in function "join"
@@ -249,7 +250,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
                 os.makedirs(dest_dir_wasm_data)
             shutil.copy2(src_file_test_main, dest_file_test_main)
 
-            # Store the dotnet_mono in the artifact storage path
+            # Store the artifact in the artifact storage path
             src_dir_dotnet_wasm = os.path.join(repo_path, "artifacts", "bin", "wasm")
             shutil.rmtree(artifact_wasm_wasm, ignore_errors=True)
             copy_directory_contents(src_dir_dotnet_wasm, artifact_wasm_wasm)
