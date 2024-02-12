@@ -3,7 +3,7 @@ flask==1.1.1
 gitignore_parser==0.0.5
 ipython==8.0.1
 jupyter==1.0.0
-jupyterlab==1.2.21
+jupyterlab==3.6.7
 matplotlib==3.1.2
 mypy==0.750
 overrides==2.5
