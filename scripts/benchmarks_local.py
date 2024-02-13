@@ -240,11 +240,11 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             shutil.rmtree(artifact_wasm_aot, ignore_errors=True)
             copy_directory_contents(src_dir_dotnet_wasm, artifact_wasm_aot)
 
-            # Add wasm-tools to dotnet instance # TODO: Add check for wasm-tools separate from the runtype generation
-            RunCommand([os.path.join(parsed_args.dotnet_dir_path, f'dotnet{".exe" if is_windows(parsed_args) else ""}'), "workload", "install", "wasm-tools"], verbose=True).run()
         else:
             getLogger().info(f"wasm_bundle already exists in {artifact_wasm_wasm} and {artifact_wasm_aot}. Skipping generation.")
 
+    # Add wasm-tools to dotnet instance, will not reinstall if already installed
+    RunCommand([os.path.join(parsed_args.dotnet_dir_path, f'dotnet{".exe" if is_windows(parsed_args) else ""}'), "workload", "install", "wasm-tools"], verbose=True).run()
     getLogger().info(f"Finished generating dependencies for {' '.join(map(str, parsed_args.run_type_names))} run types in {repo_path} and stored in {parsed_args.artifact_storage_path}.")
 
 def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commits: List[str]) -> List[str]:
