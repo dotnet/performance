@@ -219,15 +219,6 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         artifact_wasm_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle")
         artifact_wasm_aot = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle")
         if force_regenerate or not os.path.exists(artifact_wasm_wasm) or not os.path.exists(artifact_wasm_aot):
-            provision_wasm_command = [
-                "make",
-                "-C",
-                os.path.join("src", "mono", "wasm"),
-                "provision-wasm"
-            ]
-            RunCommand(provision_wasm_command, verbose=True).run(os.path.join(repo_path))
-            os.environ["EMSDK_PATH"] = os.path.join(repo_path, 'src', 'mono', 'wasm', 'emsdk')
-
             build_runtime_dependency(parsed_args, repo_path, "mono+libs", os_override="browser", arch_override="wasm", additional_args=[f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
             src_dir_dotnet_latest = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "dotnet-latest")
             dest_dir_wasm_dotnet = os.path.join(repo_path, "artifacts", "bin", "wasm", "dotnet")
@@ -235,7 +226,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             src_dir_built_nugets = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "built-nugets")
             dest_dir_bin_wasm = os.path.join(repo_path, "artifacts", "bin", "wasm")
             copy_directory_contents(src_dir_built_nugets, dest_dir_bin_wasm)
-            src_file_test_main = os.path.join(repo_path, "src", "mono", "wasm", "test-main.js")
+            src_file_test_main = os.path.join(repo_path, "src", "mono", "browser", "test-main.js")
             dest_dir_wasm_data = os.path.join(repo_path, "artifacts", "bin", "wasm", "wasm-data")
             dest_file_test_main = os.path.join(dest_dir_wasm_data, "test-main.js")
             if not os.path.exists(dest_dir_wasm_data):
@@ -249,7 +240,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             shutil.rmtree(artifact_wasm_aot, ignore_errors=True)
             copy_directory_contents(src_dir_dotnet_wasm, artifact_wasm_aot)
 
-            # Add wasm-tools to dotnet instance
+            # Add wasm-tools to dotnet instance # TODO: Add check for wasm-tools separate from the runtype generation
             RunCommand([os.path.join(parsed_args.dotnet_dir_path, f'dotnet{".exe" if is_windows(parsed_args) else ""}'), "workload", "install", "wasm-tools"], verbose=True).run()
         else:
             getLogger().info(f"wasm_bundle already exists in {artifact_wasm_wasm} and {artifact_wasm_aot}. Skipping generation.")
