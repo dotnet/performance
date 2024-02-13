@@ -2,7 +2,7 @@ black==19.3b0
 flask==1.1.1
 gitignore_parser==0.0.5
 jupyter==1.0.0
-jupyterlab==1.2.21
+jupyterlab==3.6.7
 matplotlib==3.1.2
 mypy==0.750
 overrides==2.5
@@ -14,7 +14,7 @@ pylint==2.4.4
 # which we import lazily and only if the OS is Windows
 pywin32==301; sys_platform == "win32"
 result==0.4.0
-ruamel.yaml==0.16.5
+ruamel.yaml==0.16.10
 termcolor==1.1.0
 vulture==1.2
 xlsxwriter==1.2.6
