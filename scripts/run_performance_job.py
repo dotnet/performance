@@ -275,6 +275,23 @@ def run_performance_job(args: RunPerformanceJobArgs):
             helix_type_suffix = "/wasm/aot"
         else:
             helix_type_suffix = "/wasm"
+
+    if args.performance_repo_ci:
+        # needs to be unique to avoid logs overwriting in mc.dot.net
+        build_config = f"{args.architecture}_{args.channel}_{args.run_kind}"
+        if args.dotnet_version_link is not None:
+            build_config = f"{args.architecture}_{args.channel}_Linked_{args.run_kind}"
+        helix_type = f"test/performance_{build_config}/"
+    else:
+        if args.framework is None:
+            raise Exception("Framework not configured")
+        
+        build_config = f"{args.architecture}.{args.run_kind}.{args.framework}"
+        helix_type = f"test/performance/{args.run_kind}/{args.framework}/{args.architecture}/{helix_type_suffix}"
+
+    if not args.send_to_helix:
+        # _BuildConfig is used by CI during log publishing
+        set_environment_variable("_BuildConfig", build_config, save_to_pipeline=True) 
     
     if args.project_file is None:
         args.project_file = os.path.join(args.performance_repo_dir, "eng", "performance", "helix.proj")
@@ -378,19 +395,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
             creator = "dotnet-performance"
         perf_lab_arguments = []
         helix_source_prefix = "pr"
-
-    if args.performance_repo_ci:
-        # needs to be unique to avoid logs overwriting in mc.dot.net
-        build_config = f"{args.architecture}_{args.channel}_{args.run_kind}"
-        if args.dotnet_version_link is not None:
-            build_config = f"{args.architecture}_{args.channel}_Linked_{args.run_kind}"
-        helix_type = f"test/performance_{build_config}/"
-    else:
-        if args.framework is None:
-            raise Exception("Framework not configured")
-        
-        build_config = f"{args.architecture}.{args.run_kind}.{args.framework}"
-        helix_type = f"test/performance/{args.run_kind}/{args.framework}/{args.architecture}/{helix_type_suffix}"
 
     category_exclusions: list[str] = []
 
@@ -908,9 +912,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     else:
         # expose environment variables to CI for sending to helix
         perf_send_to_helix_args.set_environment_variables(save_to_pipeline=True)
-
-        # _BuildConfig is used by CI during log publishing
-        set_environment_variable("_BuildConfig", build_config, save_to_pipeline=True) 
 
         
 
