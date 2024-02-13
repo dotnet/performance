@@ -219,6 +219,19 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         artifact_wasm_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle")
         artifact_wasm_aot = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle")
         if force_regenerate or not os.path.exists(artifact_wasm_wasm) or not os.path.exists(artifact_wasm_aot):
+            # browser folder was extracted from wasm folder here: https://github.com/dotnet/runtime/pull/95940, so we need to check both locations for which to use (Dec, 2023)
+            wasm_mono_folder = "browser"
+            if not os.path.exists(os.path.join(repo_path, "src", "mono", wasm_mono_folder)):
+                wasm_mono_folder = "wasm"
+            provision_wasm_command = [
+                "make",
+                "-C",
+                os.path.join("src", "mono", wasm_mono_folder),
+                "provision-wasm"
+            ]
+            RunCommand(provision_wasm_command, verbose=True).run(os.path.join(repo_path))
+            os.environ["EMSDK_PATH"] = os.path.join(repo_path, 'src', 'mono', wasm_mono_folder, 'emsdk')
+
             build_runtime_dependency(parsed_args, repo_path, "mono+libs", os_override="browser", arch_override="wasm", additional_args=[f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
             src_dir_dotnet_latest = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "dotnet-latest")
             dest_dir_wasm_dotnet = os.path.join(repo_path, "artifacts", "bin", "wasm", "dotnet")
@@ -226,7 +239,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             src_dir_built_nugets = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "built-nugets")
             dest_dir_bin_wasm = os.path.join(repo_path, "artifacts", "bin", "wasm")
             copy_directory_contents(src_dir_built_nugets, dest_dir_bin_wasm)
-            src_file_test_main = os.path.join(repo_path, "src", "mono", "browser", "test-main.js")
+            src_file_test_main = os.path.join(repo_path, "src", "mono", wasm_mono_folder, "test-main.js")
             dest_dir_wasm_data = os.path.join(repo_path, "artifacts", "bin", "wasm", "wasm-data")
             dest_file_test_main = os.path.join(dest_dir_wasm_data, "test-main.js")
             if not os.path.exists(dest_dir_wasm_data):
