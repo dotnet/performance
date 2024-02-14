@@ -131,7 +131,7 @@ def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: Lis
     RunCommand(generate_layout_command, verbose=True).run(os.path.join(repo_path, "src", "tests"))
 
 def get_run_artifact_path(parsed_args: Namespace, run_type: RunType, commit: str) -> str:
-    return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commit}-{parsed_args.os}-{parsed_args.architecture}-{parsed_args.framework}")
+    return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commit}-{parsed_args.os}-{parsed_args.architecture}")
 
 def get_mono_corerun(parsed_args: Namespace, run_type: RunType, commit: str) -> str:
     corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, run_type, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", f"*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
