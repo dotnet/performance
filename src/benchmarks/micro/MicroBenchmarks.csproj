@@ -91,6 +91,10 @@
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt;= '8.0'">
+    <!-- we want both net8.0 and net9.0 targets to use the 9.0.0 version of the NuGet package (since this is where the generic math APIs were first added) -->
+    <PackageReference Include="System.Numerics.Tensors" Version="$(SystemThreadingChannelsPackageVersion)" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
@@ -215,9 +219,10 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0')">
-  <Compile Remove="libraries\System.Buffers\SearchValuesByteTests.cs" />
-  <Compile Remove="libraries\System.Buffers\SearchValuesCharTests.cs" />
-  <Compile Remove="libraries\System.Text.Encoding\Perf.Ascii.cs" />
+    <Compile Remove="libraries\System.Buffers\SearchValuesByteTests.cs" />
+    <Compile Remove="libraries\System.Buffers\SearchValuesCharTests.cs" />
+    <Compile Remove="libraries\System.Text.Encoding\Perf.Ascii.cs" />
+    <Compile Remove="libraries\System.Numerics.Tensors\*.cs" />
   </ItemGroup>
 
   <!-- This is not removing things from older Net versions, it is removing from newer Net versions -->
