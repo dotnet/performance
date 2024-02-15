@@ -1,6 +1,7 @@
 '''
 Helper/Runner for Android Instrumentation Scenarios tool.
 '''
+import time
 import sys
 import os
 import json
@@ -75,6 +76,7 @@ class AndroidInstrumentationHelper(object):
 
                 getLogger().info("Waiting for device to come back online")
                 RunCommand(waitForDeviceCmd, verbose=True).run()
+                time.sleep(30)
 
                 getLogger().info("Installing APK")
                 RunCommand(installCmd, verbose=True).run()
