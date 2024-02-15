@@ -58,15 +58,14 @@ def is_running_as_admin(parsed_args: Namespace) -> bool:
         return os.getuid() == 0 # type: ignore We know that os.getuid() is a method on Unix-like systems, ignore the pylance unknown type error for getuid.
 
 def kill_dotnet_processes(parsed_args: Namespace):
-    if parsed_args.dont_kill_dotnet_processes:
-        getLogger().info("Skipping killing of any running dotnet, vstest, or msbuild processes as --dont-kill-dotnet-processes was specified.")
+    if not parsed_args.kill_dotnet_processes:
         return
     
-    getLogger().info("Killing any running dotnet, vstest, or msbuild processes... (ignore system cannot find path specified)")
+    getLogger().info("Killing any running dotnet, vstest, or msbuild processes as kill_dotnet_processes was set... (ignore system cannot find path specified)")
     if is_windows(parsed_args):
         os.system('TASKKILL /F /T /IM dotnet.exe 2> nul || TASKKILL /F /T /IM VSTest.Console.exe 2> nul || TASKKILL /F /T /IM msbuild.exe 2> nul || TASKKILL /F /T /IM ".NET Host" 2> nul')
     else:
-        os.system('killall -9 dotnet 2> /dev/null || killall -9 VSTest.Console 2> /dev/null || killall -9 msbuild 2> /dev/null || killall -9 ".NET Host" 2> /dev/null') # Always kill dotnet so it isn't left with handles on its files
+        os.system('killall -9 dotnet 2> /dev/null || killall -9 VSTest.Console 2> /dev/null || killall -9 msbuild 2> /dev/null || killall -9 ".NET Host" 2> /dev/null')
 
 # Use EnumMeta until set to using python 3.11 or greater, where the name is switched to EnumType (although EnumMeta should still work as an alias)
 def enum_name_to_enum(enum_type: EnumMeta, enum_name: str):
@@ -134,6 +133,14 @@ def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: Lis
 def get_run_artifact_path(parsed_args: Namespace, run_type: RunType, commit: str) -> str:
     return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commit}-{parsed_args.os}-{parsed_args.architecture}")
 
+def get_mono_corerun(parsed_args: Namespace, run_type: RunType, commit: str) -> str:
+    corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, run_type, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", f"*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
+    if len(corerun_capture) == 0:
+        raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, run_type, commit)}")
+    if len(corerun_capture) > 1:
+        raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, run_type, commit)}")
+    return corerun_capture[0]
+
 # Try to generate all of a single runs dependencies at once to save time
 def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, commit: str, force_regenerate: bool = False):
     getLogger().info(f"Generating dependencies for {' '.join(map(str, parsed_args.run_type_names))} run types in {repo_path} and storing in {parsed_args.artifact_storage_path}.")
@@ -177,6 +184,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             copy_directory_contents(src_dir_runtime, dest_dir_testhost_product)
             src_dir_testhost = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net{major_version}.0-{parsed_args.os}-Release-{parsed_args.architecture}")
             dest_dir_dotnet_mono = os.path.join(repo_path, "artifacts", "dotnet_mono")
+            shutil.rmtree(dest_dir_dotnet_mono, ignore_errors=True)
             copy_directory_contents(src_dir_testhost, dest_dir_dotnet_mono)
             src_file_corerun = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if is_windows(parsed_args) else ''}")
             dest_dir_dotnet_mono_shared = os.path.join(repo_path, "artifacts", "dotnet_mono", "shared", "Microsoft.NETCore.App", f"{product_version}") # Wrap product_version to force string type, otherwise we get warning: Argument of type "str | Any | None" cannot be assigned to parameter "paths" of type "BytesPath" in function "join"
@@ -234,7 +242,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
                 os.makedirs(dest_dir_wasm_data)
             shutil.copy2(src_file_test_main, dest_file_test_main)
 
-            # Store the dotnet_mono in the artifact storage path
+            # Store the artifact in the artifact storage path
             src_dir_dotnet_wasm = os.path.join(repo_path, "artifacts", "bin", "wasm")
             shutil.rmtree(artifact_wasm_wasm, ignore_errors=True)
             copy_directory_contents(src_dir_dotnet_wasm, artifact_wasm_wasm)
@@ -283,13 +291,7 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
         bdn_args_unescaped += ['--corerun']
         for commit in all_commits:
             # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
-            corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
-            if len(corerun_capture) == 0:
-                raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
-            elif len(corerun_capture) > 1:
-                raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
-            else:
-                corerun_path = corerun_capture[0]
+            corerun_path = get_mono_corerun(parsed_args, RunType.MonoInterpreter, commit)
             bdn_args_unescaped += [corerun_path]
         bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS:--interpreter']
 
@@ -303,13 +305,7 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
         bdn_args_unescaped += ['--corerun']
         for commit in all_commits:
             # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
-            corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
-            if len(corerun_capture) == 0:
-                raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
-            elif len(corerun_capture) > 1:
-                raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
-            else:
-                corerun_path = corerun_capture[0]
+            corerun_path = get_mono_corerun(parsed_args, RunType.MonoJIT, commit)
             bdn_args_unescaped += [corerun_path]
 
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
@@ -372,13 +368,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         ]
         
         # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from. There should only ever be 1 core run so this is just a check.
-        corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
-        if len(corerun_capture) == 0:
-            raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
-        elif len(corerun_capture) > 1:
-            raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
-        else:
-            corerun_path = corerun_capture[0]
+        corerun_path = get_mono_corerun(parsed_args, RunType.MonoInterpreter, commit)
         bdn_args_unescaped += [
             '--corerun', corerun_path,
             '--envVars', 'MONO_ENV_OPTIONS:--interpreter'
@@ -393,13 +383,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         ]
         
         # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
-        corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
-        if len(corerun_capture) == 0:
-            raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
-        elif len(corerun_capture) > 1:
-            raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
-        else:
-            corerun_path = corerun_capture[0]
+        corerun_path = get_mono_corerun(parsed_args, RunType.MonoJIT, commit)
         bdn_args_unescaped += ['--corerun', corerun_path]
 
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
@@ -538,7 +522,9 @@ def add_arguments(parser: ArgumentParser):
     parser.add_argument('--build-only', action='store_true', help='Whether to only build the artifacts for the specified commits and not run the benchmarks.')
     parser.add_argument('--skip-local-rebuild', action='store_true', help='Whether to skip rebuilding the local repo and use the already built version (if already built). Useful if you need to run against local changes again.')
     parser.add_argument('--allow-non-admin-execution', action='store_true', help='Whether to allow non-admin execution of the script. Admin execution is highly recommended as it minimizes the chance of encountering errors, but may not be possible in all cases.')
-    parser.add_argument('--dont-kill-dotnet-processes', action='store_true', help='Whether to not kill any dotnet processes throughout the script. This is useful if you want to have other dotnet processes running while running the script, though not killing dotnet and related process may lead to access errors while running or impact performance results.')
+    parser.add_argument('--dont-kill-dotnet-processes', action='store_true', help='This is now the default and is no longer needed. It is kept for backwards compatibility.')
+    parser.add_argument('--kill-dotnet-processes', action='store_true', help='Whether to kill any dotnet processes throughout the script. This is useful for solving certain issues during builds due to mbsuild node reuse but kills all machine dotnet processes. (Note: This indirectly conflicts with --enable-msbuild-node-reuse as this should kill the nodes.)')
+    parser.add_argument('--enable-msbuild-node-reuse', action='store_true', help='Whether to enable MSBuild node reuse. This is useful for speeding up builds, but may cause issues with some builds, especially between different commits. (Note: This indirectly conflicts with --kill-dotnet-processes as killing the processes should kill the nodes.)')
     def __is_valid_run_type(value: str):
         try:
             RunType[value]
@@ -575,6 +561,11 @@ def __main(args: List[str]):
     parsed_args.dotnet_dir_path = os.path.join(parsed_args.artifact_storage_path, "dotnet")
     
     setup_loggers(verbose=parsed_args.verbose)
+
+    if parsed_args.dont_kill_dotnet_processes:
+        getLogger().warning("--dont-kill-dotnet-processes is no longer needed and is now the default. It is kept for backwards compatibility.")
+        
+    os.environ['MSBUILDDISABLENODEREUSE'] = '1' if not parsed_args.enable_msbuild_node_reuse else '0'
 
     # Ensure we are running as admin
     if not is_running_as_admin(parsed_args):
