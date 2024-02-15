@@ -67,11 +67,11 @@ namespace BenchmarkDotNet.Extensions
         /// For byte and sbyte values are built from Random.NextBytes, for other types GenerateValue is used
         /// to generate a random value in the appropriate range
         /// </summary>
-        public static T[] Array<T>(int count)
+        public static T[] Array<T>(int count, int? seed = null)
         {
             var result = new T[count];
 
-            var random = new Random(Seed);
+            var random = new Random(seed ?? Seed);
 
             if (typeof(T) == typeof(byte) || typeof(T) == typeof(sbyte))
             {
@@ -86,6 +86,12 @@ namespace BenchmarkDotNet.Extensions
             }
 
             return result;
+        }
+
+        public static T Value<T>(int? seed = null)
+        {
+            var random = new Random(seed ?? Seed);
+            return GenerateValue<T>(random);
         }
 
         public static readonly byte[] s_encodingMap = {
