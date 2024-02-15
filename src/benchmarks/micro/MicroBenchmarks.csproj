@@ -19,6 +19,7 @@
 
     <!-- Allow building with one major version, and running using a sdk with a higher major version -->
     <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
+    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
   <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->
@@ -60,6 +61,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet.TestAdapter" Version="$(BenchmarkDotNetVersion)" />
     <PackageReference Include="Jil" Version="3.0.0-alpha2" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <PackageReference Include="MessagePackAnalyzer" Version="1.7.3.7" />
@@ -73,6 +75,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageReference Include="protobuf-net" Version="3.0.73" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="$(SystemVersion)" />
     <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0'" />
@@ -212,9 +215,9 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0')">
-	<Compile Remove="libraries\System.Buffers\SearchValuesByteTests.cs" />
-	<Compile Remove="libraries\System.Buffers\SearchValuesCharTests.cs" />
-	<Compile Remove="libraries\System.Text.Encoding\Perf.Ascii.cs" />
+  <Compile Remove="libraries\System.Buffers\SearchValuesByteTests.cs" />
+  <Compile Remove="libraries\System.Buffers\SearchValuesCharTests.cs" />
+  <Compile Remove="libraries\System.Text.Encoding\Perf.Ascii.cs" />
   </ItemGroup>
 
   <!-- This is not removing things from older Net versions, it is removing from newer Net versions -->
