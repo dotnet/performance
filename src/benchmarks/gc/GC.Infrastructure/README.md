@@ -209,6 +209,19 @@ It's worth noting that if you have specified Linux based binaries in the corerun
    1. Remove the ``crank`` prefix from the command line.
    2. Remove the ``--application.aspNetCoreVersion``, ``--application.runtimeVersion`` and ``--application.sdkVersion`` command args from the command line that you paste in the CSV as the versions are set by the infrastructure itself.
 
+###### How To Filter Benchmarks
+
+You can filter benchmarks of interest from the entire set of benchmarks specified by the referenced `benchmarks_file` using a list of regex patterns such as the following in the `benchmark_settings` section:
+
+```yaml
+benchmark_settings:
+  benchmark_filters:
+  - Stage1Aot_Windows*
+  - PlainText*
+```
+
+If there is a match, these filters will run in the order specified in the yaml file.
+
 ## All Commands
 
 The infrastructure can be run in modular manner. What this means is that you can invoke a particular command that runs some part of the infrastructure. A list of all the commands can be found here:
