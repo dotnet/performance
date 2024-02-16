@@ -9,6 +9,10 @@ from logging import INFO, WARNING
 from os import getpid, makedirs, path
 from time import time
 
+from opentelemetry._logs import set_logger_provider
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, ConsoleLogExporter
+
 import sys
 import __main__
 
@@ -28,6 +32,15 @@ def setup_loggers(verbose: bool):
         launch_datetime = datetime.fromtimestamp(time())
 
         getLogger().setLevel(INFO)
+
+        logger_provider = LoggerProvider()
+        set_logger_provider(logger_provider)
+        logger_provider.add_log_record_processor(BatchLogRecordProcessor(ConsoleLogExporter()))
+        handler = LoggingHandler(level=INFO, logger_provider=logger_provider)
+        handler.setFormatter(__formatter())
+
+        # Attach OTel handler to logger
+        getLogger().addHandler(handler)
 
         # Log console handler
         getLogger().addHandler(__get_console_handler(verbose))
