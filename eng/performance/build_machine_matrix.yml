@@ -114,12 +114,12 @@ jobs:
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osName: ubuntu
-      osVersion: 2004
+      osVersion: 2204
       architecture: arm64
       pool:
-        vmImage: ubuntu-20.04
+        vmImage: ubuntu-22.04
       machinePool: Ampere
-      queue: Ubuntu.2004.Arm64.Perf
+      queue: Ubuntu.2204.Arm64.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-pixel'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently

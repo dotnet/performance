@@ -28,9 +28,13 @@ namespace System.Reflection
         private static PropertyInfo s_property_class;
         private static FieldInfo s_field_int;
         private static FieldInfo s_field_class;
-
+        private static FieldInfo s_field_struct;
+        private static FieldInfo s_staticField_int;
+        private static FieldInfo s_staticField_class;
+        private static FieldInfo s_staticField_struct;
         public static int s_int;
         public static object s_class;
+        public static MyBlittableStruct s_struct;
 
         [GlobalSetup]
         public void Setup()
@@ -68,8 +72,20 @@ namespace System.Reflection
             s_field_int = typeof(MyClass).
                 GetField(nameof(MyClass.i));
 
+            s_staticField_int = typeof(MyClass).
+                GetField(nameof(MyClass.s_i));
+
             s_field_class = typeof(MyClass).
                 GetField(nameof(MyClass.o));
+
+            s_staticField_class = typeof(MyClass).
+                GetField(nameof(MyClass.s_o));
+
+            s_field_struct = typeof(MyClass).
+                GetField(nameof(MyClass.blittableStruct));
+
+            s_staticField_struct = typeof(MyClass).
+                GetField(nameof(MyClass.s_blittableStruct));
         }
 
         public static void Method_int_string_struct_class(int i, string s, MyBlittableStruct myStruct, MyClass myClass)
@@ -239,11 +255,48 @@ namespace System.Reflection
         }
 
         [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Field_GetStatic_int()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_int = (int)s_staticField_int.GetValue(null);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Field_Get_class()
         {
             for (int i = 0; i < Iterations; i++)
             {
                 s_class = s_field_class.GetValue(s_MyClass);
+            }
+        }
+
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Field_GetStatic_class()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_class = s_staticField_class.GetValue(null);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Field_Get_struct()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_struct = (MyBlittableStruct)s_field_struct.GetValue(s_MyClass);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Field_GetStatic_struct()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_struct = (MyBlittableStruct)s_staticField_struct.GetValue(null);
             }
         }
 
@@ -257,11 +310,47 @@ namespace System.Reflection
         }
 
         [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Field_SetStatic_int()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_staticField_int.SetValue(null, 42);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Field_Set_class()
         {
             for (int i = 0; i < Iterations; i++)
             {
                 s_field_class.SetValue(s_MyClass, 42);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Field_SetStatic_class()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_staticField_class.SetValue(null, 42);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Field_Set_struct()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_field_struct.SetValue(s_MyClass, default(MyBlittableStruct));
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Field_SetStatic_struct()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_staticField_struct.SetValue(null, default(MyBlittableStruct));
             }
         }
 
@@ -279,9 +368,13 @@ namespace System.Reflection
             public void MyMethod() { }
 
             public int i = 0;
+            public static int s_i = 0;
             public bool b = false;
             public string s = null;
             public object o = null;
+            public static object s_o = null;
+            public MyBlittableStruct blittableStruct = default;
+            public static MyBlittableStruct s_blittableStruct = default;
 
             public int I { get; set; } = 0;
             public object O { get; set; } = null;

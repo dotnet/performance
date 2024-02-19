@@ -258,6 +258,11 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                         }
                     }
                 }
+
+                if (benchmarkToNameCommandAsKvpList.Count == 0)
+                {
+                    throw new ArgumentException($"{nameof(AspNetBenchmarksCommand)}: No benchmark filters found. Please ensure you have added the wildcard character to do the regex matching. Benchmark Filter: {configuration.benchmark_settings.benchmarkFilters}");
+                }
             }
 
             // Else, add all the benchmarks.
