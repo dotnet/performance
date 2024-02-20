@@ -50,7 +50,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             // Parse out the yaml file -> Memory as a C# object make use of that.
             // Precondition checks.
             ConfigurationChecker.VerifyFile(configurationPath, $"{nameof(GCPerfSimFunctionalCommand)}");
-            GCPerfSimFunctionalConfiguration configuration = GCPerfSimFunctionalConfigurationParser.Parse(configurationPath, true);
+            GCPerfSimFunctionalConfiguration configuration = GCPerfSimFunctionalConfigurationParser.Parse(configurationPath, false);
 
             // II. Create the test suite for gcperfsim functional tests.
             string gcPerfSimOutputPath = Path.Combine(configuration.output_path, "GCPerfSim");
@@ -65,7 +65,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             // a. Add the coreruns. 
             // b. Add the gcperfsim parameters that are pertinent to that run.
             // c. Add any environment variables that will be related to that run.
-            foreach(string configurationName in [])
+
             // 1. Normal Server
             CreateNormalServerSuite(gcPerfSimSuitePath, configuration);
 
@@ -79,7 +79,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             CreateHighMemoryLoadSuite(gcPerfSimSuitePath, configuration);
 
             // III. Execute all the functional tests.
-
+            
             string[] gcperfsimConfigurationFileNames = Directory.GetFiles(gcPerfSimSuitePath, "*.yaml");
 
             Dictionary<string, GCPerfSimResults> yamlFileResultMap = new Dictionary<string, GCPerfSimResults>();
@@ -88,8 +88,8 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             {
                 try
                 {
-                    GCPerfSimConfiguration gcperfsimConfiguration =
-                                        GCPerfSimConfigurationParser.Parse(gcperfsimConfigurationFileName);
+                    GCPerfSimConfiguration gcperfsimConfiguration = 
+                        GCPerfSimConfigurationParser.Parse(gcperfsimConfigurationFileName);
 
                     Stopwatch sw = new();
                     sw.Start();
@@ -254,7 +254,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 
         private void CreateHighMemoryLoadSuite(string gcPerfSimSuitePath, GCPerfSimFunctionalConfiguration configuration)
         {
-            GCPerfSimConfiguration gcPerfSimHighMemoryLoadConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBase, true);
+            GCPerfSimConfiguration gcPerfSimHighMemoryLoadConfiguration = CreateBasicGCPerfSimConfiguration(configuration);
 
             // modify runs
             gcPerfSimHighMemoryLoadConfiguration.Runs.Clear();
@@ -293,7 +293,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = _logicalProcessors.ToString("X");
 
             // TODO: add environment variables in GCPerfSimFunctionalRun.yaml
-            gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCName"] = configuration.environment_variables["COMPlus_GCName"];
+            gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCName"] = configuration.Environment.environment_variables["COMPlus_GCName"];
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x100000000";
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCTotalPhysicalMemory"] = "0x100000000";
 

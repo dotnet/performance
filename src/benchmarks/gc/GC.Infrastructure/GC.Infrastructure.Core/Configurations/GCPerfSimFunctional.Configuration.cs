@@ -1,3 +1,4 @@
+using GC.Infrastructure.Core.Configurations.GCPerfSim;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +12,12 @@ namespace GC.Infrastructure.Core.Configurations
         public string output_path { get; set; }
         public string gcperfsim_path { get; set; }
         public Dictionary<string, CoreRunInfo> coreruns { get; set; }
-        public Dictionary<string, string>? environment_variables { get; set; }
+        public Environment Environment { get; set; } = new();
         public string trace_configuration_type { get; set; } = "gc";
+    }
+    public class Environment
+    {
+        public Dictionary<string, string> environment_variables { get; set; } = new();
     }
 
     public static class GCPerfSimFunctionalConfigurationParser
@@ -20,7 +25,17 @@ namespace GC.Infrastructure.Core.Configurations
         public static GCPerfSimFunctionalConfiguration Parse(string path, bool isIncompleteConfiguration = false)
         {
             string serializedConfiguration = File.ReadAllText(path);
-            GCPerfSimFunctionalConfiguration configuration = Common.Deserializer.Deserialize<GCPerfSimFunctionalConfiguration>(serializedConfiguration);
+
+            GCPerfSimFunctionalConfiguration? configuration = null;
+
+            try
+            {
+                configuration = Common.Deserializer.Deserialize<GCPerfSimFunctionalConfiguration>(serializedConfiguration);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"{nameof(GCPerfSimFunctionalConfigurationParser)}: Unable to parse the yaml file because of an error in the syntax. Please use the configurations under: Configuration/GCPerfSim/*.yaml in as example to ensure the file is formatted correctly. Exception: {ex.Message} \n Call Stack: {ex.StackTrace}");
+            }
 
             // Preconditions.
             if (configuration.coreruns == null)
