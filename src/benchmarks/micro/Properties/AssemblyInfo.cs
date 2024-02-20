@@ -16,7 +16,7 @@ namespace MicroBenchmarks
         {
             // We only want to set an assembly-level config when it isn't being set by the entry point
             // We check for this by seeing if the calling assembly is the same as the executing assembly
-            Config = Assembly.GetCallingAssembly() == Assembly.GetExecutingAssembly()
+            Config = Assembly.GetEntryAssembly() == Assembly.GetExecutingAssembly()
                 ? ManualConfig.CreateEmpty()
                 : RecommendedConfig.Create(
                     artifactsPath: new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "BenchmarkDotNet.Artifacts")),
