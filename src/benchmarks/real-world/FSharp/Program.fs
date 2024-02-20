@@ -117,29 +117,6 @@ type FsToolkitBenchmarks () =
     [<Benchmark>]
     member _.ParseAllFilesInProjectParallel() =
         parseAllFiles |> Async.Parallel |> Async.RunSynchronously
-        
-    // [<Benchmark>]
-    // How to avoid cache?
-    member _.GetTooltip() =
-        let file, contents = sourceFiles |> List.find (fun (file, _) -> file.EndsWith "AsyncResult.fs")
-        let _parseResults, typeCheckAnswer = checker.ParseAndCheckFileInProject(file, 0, contents, projectOptions) |> Async.RunSynchronously        
-        match typeCheckAnswer with
-        | FSharpCheckFileAnswer.Succeeded checkFileResults ->
-            let result = checkFileResults.GetToolTip(173, 47, "        values |> Async.map (Result.requireHead error)", ["Result"; "requireHead"], FSharpTokenTag.Identifier)
-            // printfn $"%A{result}"
-            result
-        | _ -> failwith "Type checking failed"
-        
-    // [<Benchmark>]
-    member _.GetAutocompleteList() =
-        let file, contents = sourceFiles |> List.find (fun (file, _) -> file.EndsWith "AsyncResult.fs")
-        let parseResults, typeCheckAnswer = checker.ParseAndCheckFileInProject(file, 0, contents, projectOptions) |> Async.RunSynchronously        
-        match typeCheckAnswer with
-        | FSharpCheckFileAnswer.Succeeded checkFileResults ->
-            let result = checkFileResults.GetDeclarationListInfo(Some parseResults, 9, "    let inline retn (value: 'ok) : Async<Result<'ok, 'error>> = Ok value |> Async.", PartialLongName.Empty 82, (fun () -> []))
-            // Doesn't work, dunno why...
-            result
-        | _ -> failwith "Type checking failed"
 
 
 [<EntryPoint>]
