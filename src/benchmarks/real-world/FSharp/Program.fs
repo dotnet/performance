@@ -89,22 +89,6 @@ let typeCheckFileInProject projectDir projectOptions (checker: FSharpChecker) fi
 
 
 [<BenchmarkCategory(FSharpCategory)>]
-type FsPlusBenchmarks () =
-    
-    let projectDir, projectOptions, checker = prepareProject "FSharpPlus" |> parseAndTypeCheckProject
-   
-    [<Benchmark>]
-    member this.TypeCheckControlMonoid () =
-        let filename = "Control" ++ "Monoid.fs"
-        typeCheckFileInProject projectDir projectOptions checker filename
-        
-    [<Benchmark>]
-    member this.TypeCheckDataFree () =
-        let filename = "Data" ++ "Free.fs"
-        typeCheckFileInProject projectDir projectOptions checker filename
-
-
-[<BenchmarkCategory(FSharpCategory)>]
 type FsToolkitBenchmarks () =
     
     let projectDir, projectOptions, checker = prepareProject "FsToolkit.ErrorHandling"
