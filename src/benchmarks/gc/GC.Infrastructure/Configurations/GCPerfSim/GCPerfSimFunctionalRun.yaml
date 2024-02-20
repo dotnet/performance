@@ -11,4 +11,8 @@ coreruns:
     environment_variables:
         COMPlus_GCName: clrgc.dll
 
+environment:
+  environment_variables:
+    COMPlus_GCName: clrgc.dll 
+
 trace_configuration_type: gc # Choose between: none, gc, verbose, cpu, cpu_managed, threadtime, join.

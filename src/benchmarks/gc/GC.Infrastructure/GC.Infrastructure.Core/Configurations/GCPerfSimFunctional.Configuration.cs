@@ -33,12 +33,6 @@ namespace GC.Infrastructure.Core.Configurations
                 throw new ArgumentException($"{nameof(GCPerfSimFunctionalConfigurationParser)}: Provide an output path.");
             }
 
-            // The rest of the items aren't filled for the incomplete configuration that's programmatically filled by the infrastructure.
-            if (isIncompleteConfiguration)
-            {
-                return configuration;
-            }
-
             if (string.IsNullOrEmpty(configuration.gcperfsim_path) || !File.Exists(configuration.gcperfsim_path))
             {
                 throw new ArgumentException($"{nameof(GCPerfSimFunctionalConfigurationParser)}: A path to the gcperfsim dll must be provided or exist.");
