@@ -6,14 +6,11 @@ open System.Collections.Immutable
 
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Diagnostics
-open FSharp.Compiler.EditorServices
 open FSharp.Compiler.Text
-open FSharp.Compiler.Tokenization
 
 open BenchmarkDotNet.Attributes
 open BenchmarkDotNet.Running
 open BenchmarkDotNet.Extensions
-
 
 [<Literal>]
 let FSharpCategory = "fsharp"
@@ -102,7 +99,7 @@ type FsToolkitBenchmarks () =
             checker.ParseFile(file, contents, parsingOptions, cache=false)]
     
     [<Benchmark>]
-    member this.ParseAndTypeCheckProject() =
+    member _.ParseAndTypeCheckProject() =
         parseAndTypeCheckProject (projectDir, projectOptions, checker)
     
     [<IterationCleanup(Target = "ParseAndTypeCheckProject")>]
