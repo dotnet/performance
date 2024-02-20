@@ -29,11 +29,6 @@ class AndroidInstrumentationHelper(object):
             getLogger().info("Preparing ADB")
             adbpath = adb.stdout.strip()
             try:
-                rebootCmd = [
-                    adbpath,
-                    'reboot'
-                ]
-
                 installCmd = [
                     adbpath,
                     'install',
@@ -65,9 +60,6 @@ class AndroidInstrumentationHelper(object):
                     '-s',
                     '"DOTNET,MAUI"'
                 ]
-
-                getLogger().info("Rebooting device to ensure we don't hit issue with being unable to install APK")
-                RunCommand(rebootCmd, verbose=True).run()
 
                 getLogger().info("Installing APK")
                 RunCommand(installCmd, verbose=True).run()
