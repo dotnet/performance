@@ -65,7 +65,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             // a. Add the coreruns. 
             // b. Add the gcperfsim parameters that are pertinent to that run.
             // c. Add any environment variables that will be related to that run.
-
+            foreach(string configurationName in [])
             // 1. Normal Server
             CreateNormalServerSuite(gcPerfSimSuitePath, configuration);
 
@@ -163,24 +163,15 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 
         private void CreateNormalServerSuite(string gcPerfSimSuitePath, GCPerfSimFunctionalConfiguration configuration)
         {
-            GCPerfSimConfiguration gcPerfSimNormalServerConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBase, true);
+            GCPerfSimConfiguration gcPerfSimNormalServerConfiguration = CreateBasicGCPerfSimConfiguration(configuration);
 
-            // modify gcperfsim_configurations
-            
             // Set tc = 2 * logicalProcessors
             gcPerfSimNormalServerConfiguration.gcperfsim_configurations.Parameters["tc"] = (_logicalProcessors * 2).ToString();
             gcPerfSimNormalServerConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
-            gcPerfSimNormalServerConfiguration.gcperfsim_configurations.gcperfsim_path =
-                configuration.gcperfsim_path;
 
             // modify environment
             gcPerfSimNormalServerConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
             gcPerfSimNormalServerConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = _logicalProcessors.ToString("X");
-
-            // modify coreruns
-            gcPerfSimNormalServerConfiguration.coreruns = new Dictionary<string, CoreRunInfo>();
-            gcPerfSimNormalServerConfiguration.coreruns["segments"] = configuration.coreruns["segments"];
-            gcPerfSimNormalServerConfiguration.coreruns["regions"] = configuration.coreruns["regions"];
 
             // modify output
             gcPerfSimNormalServerConfiguration.Output.Path =
@@ -189,24 +180,12 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             // modify name 
             gcPerfSimNormalServerConfiguration.Name = "Normal_Server";
 
-            // modify trace_configurations
-            gcPerfSimNormalServerConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
-
             SaveConfiguration(gcPerfSimNormalServerConfiguration, gcPerfSimSuitePath, "Normal_Server.yaml");
         }
 
         private void CreateNormalWorkstationSuite(string gcPerfSimSuitePath, GCPerfSimFunctionalConfiguration configuration)
         {
-            GCPerfSimConfiguration gcPerfSimNormalWorkstationConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBase, true);
-
-            // modify gcperfsim_configurations
-            gcPerfSimNormalWorkstationConfiguration.gcperfsim_configurations.gcperfsim_path =
-                configuration.gcperfsim_path;
-
-            // modify coreruns
-            gcPerfSimNormalWorkstationConfiguration.coreruns = new Dictionary<string, CoreRunInfo>();
-            gcPerfSimNormalWorkstationConfiguration.coreruns["segments"] = configuration.coreruns["segments"];
-            gcPerfSimNormalWorkstationConfiguration.coreruns["regions"] = configuration.coreruns["regions"];
+            GCPerfSimConfiguration gcPerfSimNormalWorkstationConfiguration = CreateBasicGCPerfSimConfiguration(configuration);
 
             // modify output
             gcPerfSimNormalWorkstationConfiguration.Output.Path =
@@ -215,15 +194,12 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             // modify name 
             gcPerfSimNormalWorkstationConfiguration.Name = "Normal_Workstation";
 
-            // modify trace_configurations
-            gcPerfSimNormalWorkstationConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
-
             SaveConfiguration(gcPerfSimNormalWorkstationConfiguration, gcPerfSimSuitePath, "Normal_Workstation.yaml");
         }
 
         private void CreateLowMemoryContainerSuite(string gcPerfSimSuitePath, GCPerfSimFunctionalConfiguration configuration)
         {
-            GCPerfSimConfiguration gcPerfSimLowMemoryContainerConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBase, true);
+            GCPerfSimConfiguration gcPerfSimLowMemoryContainerConfiguration = CreateBasicGCPerfSimConfiguration(configuration);
             // modify runs
 
             gcPerfSimLowMemoryContainerConfiguration.Runs.Clear();
@@ -266,20 +242,12 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimLowMemoryContainerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x23C34600";
             gcPerfSimLowMemoryContainerConfiguration.Environment.environment_variables["COMPlus_GCTotalPhysicalMemory"] = "0x23C34600";
 
-            // modify coreruns
-            gcPerfSimLowMemoryContainerConfiguration.coreruns = new Dictionary<string, CoreRunInfo>();
-            gcPerfSimLowMemoryContainerConfiguration.coreruns["segments"] = configuration.coreruns["segments"];
-            gcPerfSimLowMemoryContainerConfiguration.coreruns["regions"] = configuration.coreruns["regions"];
-
             // modify output
             gcPerfSimLowMemoryContainerConfiguration.Output.Path =
                 Path.Combine(configuration.output_path, "LowMemoryContainer");
 
             // modify name 
             gcPerfSimLowMemoryContainerConfiguration.Name = "LowMemoryContainer";
-
-            // modify trace_configurations
-            gcPerfSimLowMemoryContainerConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
 
             SaveConfiguration(gcPerfSimLowMemoryContainerConfiguration, gcPerfSimSuitePath, "LowMemoryContainer.yaml");
         }
@@ -329,11 +297,6 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x100000000";
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCTotalPhysicalMemory"] = "0x100000000";
 
-            // modify coreruns
-            gcPerfSimHighMemoryLoadConfiguration.coreruns = new Dictionary<string, CoreRunInfo>();
-            gcPerfSimHighMemoryLoadConfiguration.coreruns["segments"] = configuration.coreruns["segments"];
-            gcPerfSimHighMemoryLoadConfiguration.coreruns["regions"] = configuration.coreruns["regions"];
-
             // modify output
             gcPerfSimHighMemoryLoadConfiguration.Output.Path =
                 Path.Combine(configuration.output_path, "HighMemoryLoad");
@@ -341,10 +304,26 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             // modify name 
             gcPerfSimHighMemoryLoadConfiguration.Name = "HighMemory_NormalServer";
 
-            // modify trace_configurations
-            gcPerfSimHighMemoryLoadConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
-
             SaveConfiguration(gcPerfSimHighMemoryLoadConfiguration, gcPerfSimSuitePath, "HighMemoryLoad.yaml");
+        }
+
+        private GCPerfSimConfiguration CreateBasicGCPerfSimConfiguration(GCPerfSimFunctionalConfiguration configuration)
+        {
+            GCPerfSimConfiguration gcPerfSimNormalWorkstationConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBase, true);
+
+            // modify gcperfsim_configurations
+            gcPerfSimNormalWorkstationConfiguration.gcperfsim_configurations.gcperfsim_path =
+                configuration.gcperfsim_path;
+
+            // modify coreruns
+            gcPerfSimNormalWorkstationConfiguration.coreruns = new Dictionary<string, CoreRunInfo>();
+            gcPerfSimNormalWorkstationConfiguration.coreruns["segments"] = configuration.coreruns["segments"];
+            gcPerfSimNormalWorkstationConfiguration.coreruns["regions"] = configuration.coreruns["regions"];
+
+            // modify trace_configurations
+            gcPerfSimNormalWorkstationConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
+
+            return gcPerfSimNormalWorkstationConfiguration;
         }
     }
 }
