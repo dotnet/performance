@@ -56,20 +56,29 @@ if args.restart_device:
     # Do not remove, XHarness install seems to fail without an adb command called before the xharness command
     getLogger().info("Preparing ADB")
     adbpath = adb.stdout.strip()
-    waitForDeviceCmd = [
+
+    reboot_cmd = [
+        adbpath,
+        'reboot'
+    ]
+
+    wait_for_device_cmd = [
         adbpath,
         'wait-for-device'
     ]
 
-    checkDeviceBootCmd = [
+    check_device_boot_cmd = [
         adbpath,
         'shell',
         'getprop',
         'sys.boot_completed'
     ]
 
+    getLogger().info("Rebooting device to ensure we don't hit issue with being unable to install APK")
+    RunCommand(reboot_cmd, verbose=True).run()
+
     getLogger().info("Waiting for device to come back online")
-    RunCommand(waitForDeviceCmd, verbose=True).run()
+    RunCommand(wait_for_device_cmd, verbose=True).run()
     
     # Wait for the device to boot
     getLogger().info("Waiting for device to boot")
@@ -77,7 +86,7 @@ if args.restart_device:
     boot_attempts = 0
     while not boot_completed and boot_attempts < 10:
         time.sleep(5)
-        boot_check = RunCommand(checkDeviceBootCmd, verbose=True)
+        boot_check = RunCommand(check_device_boot_cmd, verbose=True)
         boot_check.run()
         boot_completed = boot_check.stdout.strip() == '1'
         boot_attempts += 1
@@ -86,4 +95,3 @@ if args.restart_device:
     if not boot_completed:
         getLogger().error("Android device did not boot in a reasonable time")
         raise TimeoutError("Android device did not boot in a reasonable time")
-
