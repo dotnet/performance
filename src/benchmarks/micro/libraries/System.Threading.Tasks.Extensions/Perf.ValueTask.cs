@@ -74,6 +74,7 @@ namespace System.Threading.Tasks
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task CreateAndAwait_FromCompletedValueTaskSource_ConfigureAwait()
         {
             await new ValueTask<int>(_completedValueTaskSource, 0).ConfigureAwait(false);

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -26,9 +26,11 @@ namespace System.Numerics.Tests
         public Vector3 UnitXBenchmark() => Vector3.UnitX;
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector3 UnitYBenchmark() => Vector3.UnitY;
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector3 UnitZBenchmark() => Vector3.UnitZ;
 
         [Benchmark]

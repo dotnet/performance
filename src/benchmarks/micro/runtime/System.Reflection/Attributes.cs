@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -67,11 +67,13 @@ namespace System.Reflection
         [Benchmark(Description = "GetCustomAttributes - Method Base: Hit (inherit)")]
         public object[] GetCustomAttributesMethodBaseHitInherit() => AttributedBase.GetCustomAttributes(typeof(MyAttribute), true);
         [Benchmark(Description = "GetCustomAttributes - Method Base: Miss (inherit)")]
+[MemoryRandomization]
         public object[] GetCustomAttributesMethodBaseMissInherit() => NonAttributedBase.GetCustomAttributes(typeof(MyAttribute), true);
 
         [Benchmark(Description = "GetCustomAttributes - Method Base: Hit (no inherit)")]
         public object[] GetCustomAttributesMethodBaseHit() => AttributedBase.GetCustomAttributes(typeof(MyAttribute), false);
         [Benchmark(Description = "GetCustomAttributes - Method Base: Miss (no inherit)")]
+[MemoryRandomization]
         public object[] GetCustomAttributesMethodBaseMiss() => NonAttributedBase.GetCustomAttributes(typeof(MyAttribute), false);
 
         // IsDefined

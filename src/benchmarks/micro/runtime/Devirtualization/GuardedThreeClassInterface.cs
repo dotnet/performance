@@ -38,6 +38,8 @@ namespace GuardedDevirtualization
   
         [Benchmark(OperationsPerInvoke=TestInput.N)]
         [ArgumentsSource(nameof(GetInput))]
+
+        [MemoryRandomization]
         public long Call(TestInput testInput)
         {
             long sum = 0;

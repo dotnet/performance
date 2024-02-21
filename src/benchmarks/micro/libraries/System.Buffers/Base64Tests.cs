@@ -67,6 +67,7 @@ namespace System.Buffers.Text.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public OperationStatus Base64DecodeDestinationTooSmall() => Base64.DecodeFromUtf8(_encodedBytes, _decodedBytes, out _, out _);
 
 #if !NETFRAMEWORK // API added in .NET Core 2.1
@@ -107,12 +108,14 @@ namespace System.Buffers.Text.Tests
         public void SetupBase64EncodeInPlace() => Array.Copy(_source, _destination, _source.Length);
 
         [Benchmark]
+        [MemoryRandomization]
         public OperationStatus Base64EncodeInPlace() => Base64.EncodeToUtf8InPlace(_destination, _source.Length, out _);
 
         [IterationSetup(Target = nameof(Base64DecodeInPlace))]
         public void SetupBase64DecodeInPlace() => Base64.EncodeToUtf8(_source, _destination, out _, out _);
 
         [Benchmark]
+        [MemoryRandomization]
         public OperationStatus Base64DecodeInPlace() => Base64.DecodeFromUtf8InPlace(_destination, out _);
     }
 }

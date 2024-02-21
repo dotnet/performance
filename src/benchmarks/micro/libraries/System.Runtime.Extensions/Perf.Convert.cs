@@ -27,6 +27,7 @@ namespace System
         public void SetupGetTypeCode() => _stringValue = "Hello World!";
 
         [Benchmark]
+        [MemoryRandomization]
         public TypeCode GetTypeCode() => Convert.GetTypeCode(_stringValue);
 
         [GlobalSetup(Target = nameof(ChangeType))]
@@ -47,6 +48,8 @@ namespace System
         [Benchmark]
         [Arguments(Size, Base64FormattingOptions.InsertLineBreaks)]
         [Arguments(Size, Base64FormattingOptions.None)]
+
+        [MemoryRandomization]
         public int ToBase64CharArray(int binaryDataSize, Base64FormattingOptions formattingOptions)
             => Convert.ToBase64CharArray(_binaryData, 0, binaryDataSize, _base64CharArray, 0, formattingOptions);
 
@@ -56,6 +59,7 @@ namespace System
         [Benchmark]
         [Arguments(Base64FormattingOptions.InsertLineBreaks)]
         [Arguments(Base64FormattingOptions.None)]
+        [MemoryRandomization]
         public string ToBase64String(Base64FormattingOptions formattingOptions)
             => Convert.ToBase64String(_binaryData, formattingOptions);
 

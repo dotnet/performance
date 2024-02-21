@@ -22,6 +22,7 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ReadLine()
         {
             using (StreamReader reader = new StreamReader(new MemoryStream(_bytes)))
@@ -32,6 +33,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public async Task ReadLineAsync()
         {
             using (StreamReader reader = new StreamReader(new MemoryStream(_bytes)))

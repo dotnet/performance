@@ -19,6 +19,7 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public BinaryWriter DefaultCtor() => new BinaryWriter(Stream.Null);
 
         [Benchmark]

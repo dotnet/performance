@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,6 +14,8 @@ namespace System.Threading.Tests
         private double _newValue = 1;
         
         [Benchmark]
+
+        [MemoryRandomization]
         public double Read_double() => Volatile.Read(ref _location);
 
         [Benchmark]
