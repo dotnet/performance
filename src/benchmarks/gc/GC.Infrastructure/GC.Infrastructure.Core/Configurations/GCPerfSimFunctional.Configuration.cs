@@ -22,7 +22,7 @@ namespace GC.Infrastructure.Core.Configurations
 
     public static class GCPerfSimFunctionalConfigurationParser
     {
-        public static GCPerfSimFunctionalConfiguration Parse(string path, bool isIncompleteConfiguration = false)
+        public static GCPerfSimFunctionalConfiguration Parse(string path)
         {
             string serializedConfiguration = File.ReadAllText(path);
 
