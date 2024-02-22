@@ -50,7 +50,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             // Parse out the yaml file -> Memory as a C# object make use of that.
             // Precondition checks.
             ConfigurationChecker.VerifyFile(configurationPath, $"{nameof(GCPerfSimFunctionalCommand)}");
-            GCPerfSimFunctionalConfiguration configuration = GCPerfSimFunctionalConfigurationParser.Parse(configurationPath, false);
+            GCPerfSimFunctionalConfiguration configuration = GCPerfSimFunctionalConfigurationParser.Parse(configurationPath);
 
             // II. Create the test suite for gcperfsim functional tests.
             string gcPerfSimOutputPath = Path.Combine(configuration.output_path, "GCPerfSim");
