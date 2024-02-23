@@ -54,7 +54,7 @@ let prepareProject projectDirName =
         
     projectDir, projectOptions, checker
     
-let parseAndTypeCheckProject (projectDir, projectOptions, checker: FSharpChecker)  =    
+let parseAndTypeCheckProject (projectDir, projectOptions: FSharpProjectOptions, checker: FSharpChecker)  =    
 
     let result = checker.ParseAndCheckProject(projectOptions) |> Async.RunSynchronously
     
