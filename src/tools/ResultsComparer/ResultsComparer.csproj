@@ -6,11 +6,11 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MarkdownLog.NS20" Version="0.10.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.10" />
-    <PackageReference Include="Perfolizer" Version="0.2.1" />
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
-    <PackageReference Include="SharpCompress" Version="0.31.0" />
+    <PackageReference Include="MarkdownLog.NS20" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="Perfolizer" />
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="SharpCompress" />
   </ItemGroup>
 </Project>
