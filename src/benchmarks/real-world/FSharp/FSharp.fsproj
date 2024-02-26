@@ -5,6 +5,7 @@
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net9.0</TargetFrameworks>
     <ServerGarbageCollection>true</ServerGarbageCollection>
+    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
   </PropertyGroup>
      
   <ItemGroup>
@@ -16,8 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FSharp.Compiler.Service" Version="41.0.5" />
-    <PackageReference Update="FSharp.Core" Version="6.0.5" />
+    <PackageReference Include="FSharp.Compiler.Service" Version="43.*-*" />
   </ItemGroup>
 
 </Project>
