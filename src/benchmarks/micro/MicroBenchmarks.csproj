@@ -75,7 +75,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageReference Include="protobuf-net" Version="3.0.73" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="$(SystemVersion)" />
     <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0'" />
