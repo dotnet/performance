@@ -61,7 +61,6 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet.TestAdapter" Version="$(BenchmarkDotNetVersion)" />
     <PackageReference Include="Jil" Version="3.0.0-alpha2" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <PackageReference Include="MessagePackAnalyzer" Version="1.7.3.7" />
