@@ -78,6 +78,12 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             // 4. HighMemoryLoad.
             CreateHighMemoryLoadSuite(gcPerfSimSuitePath, configuration);
 
+            // 5. LargePage_Server
+            CreateLargePages_ServerSuite(gcPerfSimSuitePath, configuration);
+
+            // 6. LargePage_Workstation
+            CreateLargePages_WorkstationSuite(gcPerfSimSuitePath, configuration);
+
             // III. Execute all the functional tests.
             
             string[] gcperfsimConfigurationFileNames = Directory.GetFiles(gcPerfSimSuitePath, "*.yaml");
@@ -187,6 +193,10 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         {
             GCPerfSimConfiguration gcPerfSimNormalWorkstationConfiguration = CreateBasicGCPerfSimConfiguration(configuration);
 
+            // TODO: uncomment if it's necessary to set tc & tagb
+            // gcPerfSimNormalWorkstationConfiguration.gcperfsim_configurations.Parameters["tc"] = (_logicalProcessors * 2).ToString();
+            // gcPerfSimNormalWorkstationConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
+            
             // modify output
             gcPerfSimNormalWorkstationConfiguration.Output.Path =
                 Path.Combine(configuration.output_path, "Normal_Workstation");
@@ -200,6 +210,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         private void CreateLowMemoryContainerSuite(string gcPerfSimSuitePath, GCPerfSimFunctionalConfiguration configuration)
         {
             GCPerfSimConfiguration gcPerfSimLowMemoryContainerConfiguration = CreateBasicGCPerfSimConfiguration(configuration);
+
             // modify runs
 
             gcPerfSimLowMemoryContainerConfiguration.Runs.Clear();
@@ -229,7 +240,8 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             };
 
             // modify gcperfsim_configurations
-            gcPerfSimLowMemoryContainerConfiguration.gcperfsim_configurations.Parameters["tc"] = "16";
+            // TODO: (_logicalProcessors * 2).ToString() ?
+            gcPerfSimLowMemoryContainerConfiguration.gcperfsim_configurations.Parameters["tc"] = "16"; 
             gcPerfSimLowMemoryContainerConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
             gcPerfSimLowMemoryContainerConfiguration.gcperfsim_configurations.Parameters["tlgb"] = "0.1";
             gcPerfSimLowMemoryContainerConfiguration.gcperfsim_configurations.Parameters["sohsi"] = "50";
@@ -292,7 +304,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = _logicalProcessors.ToString("X");
 
-            // TODO: add environment variables in GCPerfSimFunctionalRun.yaml
+            // add environment variables in GCPerfSimFunctionalRun.yaml
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCName"] = configuration.Environment.environment_variables["COMPlus_GCName"];
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x100000000";
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCTotalPhysicalMemory"] = "0x100000000";
@@ -305,6 +317,58 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimHighMemoryLoadConfiguration.Name = "HighMemory_NormalServer";
 
             SaveConfiguration(gcPerfSimHighMemoryLoadConfiguration, gcPerfSimSuitePath, "HighMemoryLoad.yaml");
+        }
+
+        private void CreateLargePages_ServerSuite(string gcPerfSimSuitePath, GCPerfSimFunctionalConfiguration configuration)
+        {
+            GCPerfSimConfiguration gcPerfSimLargePages_ServerConfiguration = CreateBasicGCPerfSimConfiguration(configuration);
+
+            // Set tc = 2 * logicalProcessors
+            gcPerfSimLargePages_ServerConfiguration.gcperfsim_configurations.Parameters["tc"] = (_logicalProcessors * 2).ToString();
+            gcPerfSimLargePages_ServerConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
+
+            // modify environment
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = _logicalProcessors.ToString("X");
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitSOH"] = "0x800000000";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitLOH"] = "0x400000000";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitPOH"] = "0x100000000";
+
+            // modify output
+            gcPerfSimLargePages_ServerConfiguration.Output.Path =
+                Path.Combine(configuration.output_path, "LargePages_Server");
+
+            // modify name 
+            gcPerfSimLargePages_ServerConfiguration.Name = "LargePages_Server";
+
+            SaveConfiguration(gcPerfSimLargePages_ServerConfiguration, gcPerfSimSuitePath, "LargePages_Server.yaml");
+        }
+
+        private void CreateLargePages_WorkstationSuite(string gcPerfSimSuitePath, GCPerfSimFunctionalConfiguration configuration)
+        {
+            GCPerfSimConfiguration gcPerfSimLargePages_WorkstationConfiguration = CreateBasicGCPerfSimConfiguration(configuration);
+
+            // Set tc = 2 * logicalProcessors
+            gcPerfSimLargePages_WorkstationConfiguration.gcperfsim_configurations.Parameters["tc"] = (_logicalProcessors * 2).ToString();
+            gcPerfSimLargePages_WorkstationConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
+
+            // modify environment
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = _logicalProcessors.ToString("X");
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitSOH"] = "0x800000000";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitLOH"] = "0x400000000";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitPOH"] = "0x100000000";
+
+            // modify output
+            gcPerfSimLargePages_WorkstationConfiguration.Output.Path =
+                Path.Combine(configuration.output_path, "LargePages_Workstation");
+
+            // modify name 
+            gcPerfSimLargePages_WorkstationConfiguration.Name = "LargePages_Workstation";
+
+            SaveConfiguration(gcPerfSimLargePages_WorkstationConfiguration, gcPerfSimSuitePath, "LargePages_Workstation.yaml");
         }
 
         private GCPerfSimConfiguration CreateBasicGCPerfSimConfiguration(GCPerfSimFunctionalConfiguration configuration)
