@@ -8,8 +8,8 @@
     <RootNamespace>ScenarioMeasurement</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Mono.Cecil" Version="0.11.4" />
-    <PackageReference Include="System.CommandLine.DragonFruit" Version="0.4.0-alpha.22272.1" />
+    <PackageReference Include="Mono.Cecil" />
+    <PackageReference Include="System.CommandLine.DragonFruit" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Util\Util.csproj" />

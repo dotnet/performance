@@ -491,7 +491,8 @@ def main(args: Any):
             out_file.write(variable_format % ('DOTNET_MULTILEVEL_LOOKUP', '0'))
             out_file.write(variable_format % ('UseSharedCompilation', 'false'))
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
-            out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
+            if args.maui_version:
+                out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
             if run_name is not None:
                 out_file.write(variable_format % ('PERFLAB_RUNNAME', run_name))
             out_file.write(path_variable % dotnet_path)
