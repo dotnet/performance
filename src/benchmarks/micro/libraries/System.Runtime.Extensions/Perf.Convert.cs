@@ -48,7 +48,6 @@ namespace System
         [Benchmark]
         [Arguments(Size, Base64FormattingOptions.InsertLineBreaks)]
         [Arguments(Size, Base64FormattingOptions.None)]
-
         [MemoryRandomization]
         public int ToBase64CharArray(int binaryDataSize, Base64FormattingOptions formattingOptions)
             => Convert.ToBase64CharArray(_binaryData, 0, binaryDataSize, _base64CharArray, 0, formattingOptions);

@@ -193,10 +193,6 @@ public class LinqBenchmarks
     #region Where01
 
     [Benchmark]
-#endregion
-
-    #region Where01
-
     [MemoryRandomization]
     public bool Where01LinqQueryX()
     {

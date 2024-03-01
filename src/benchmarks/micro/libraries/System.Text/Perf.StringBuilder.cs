@@ -236,7 +236,6 @@ namespace System.Text.Tests
 #endif
 
         [Benchmark]
-
         [MemoryRandomization]
         public StringBuilder Insert_Primitives()
         {

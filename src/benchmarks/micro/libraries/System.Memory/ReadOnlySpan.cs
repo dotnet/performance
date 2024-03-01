@@ -44,7 +44,6 @@ namespace System.Memory
         
         [Benchmark(OperationsPerInvoke = 16)]
         [ArgumentsSource(nameof(IndexOfStringArguments))]
-
         [MemoryRandomization]
         public int IndexOfString(string input, string value, StringComparison comparisonType)
         {

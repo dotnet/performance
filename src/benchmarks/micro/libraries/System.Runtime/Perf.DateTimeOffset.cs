@@ -16,7 +16,6 @@ namespace System.Tests
         DateTimeOffset date2 = new DateTimeOffset(new DateTime(1996, 12, 6, 13, 2, 0), new TimeSpan(5, 0, 0));
         
         [Benchmark]
-
         [MemoryRandomization]
         public DateTimeOffset GetNow() => DateTimeOffset.Now;
 

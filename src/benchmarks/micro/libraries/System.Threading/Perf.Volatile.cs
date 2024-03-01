@@ -14,7 +14,6 @@ namespace System.Threading.Tests
         private double _newValue = 1;
         
         [Benchmark]
-
         [MemoryRandomization]
         public double Read_double() => Volatile.Read(ref _location);
 

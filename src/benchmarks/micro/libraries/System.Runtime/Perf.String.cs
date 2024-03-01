@@ -115,7 +115,6 @@ namespace System.Tests
         [Arguments("A B C D E F G H I J K L M N O P Q R S T U V W X Y Z", new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)]
         [Arguments("ABCDEFGHIJKLMNOPQRSTUVWXYZ", new char[]{' '}, StringSplitOptions.None)]
         [Arguments("ABCDEFGHIJKLMNOPQRSTUVWXYZ", new char[]{' '}, StringSplitOptions.RemoveEmptyEntries)]
-
         [MemoryRandomization]
         public string[] Split(string s, char[] arr, StringSplitOptions options)
             => s.Split(arr, options);
@@ -147,7 +146,6 @@ namespace System.Tests
         [Arguments(" Test", new [] {' ', (char) 8197})]
         [Arguments("Test ", new [] {' ', (char) 8197})]
         [Arguments(" Te st  ", new [] {' ', (char) 8197})]
-
         [MemoryRandomization]
         public string Trim_CharArr(string s, char[] c)
             => s.Trim(c);

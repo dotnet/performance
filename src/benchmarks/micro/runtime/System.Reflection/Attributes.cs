@@ -46,65 +46,77 @@ namespace System.Reflection
 
         [Benchmark(Description = "GetCustomAttributes - Class: Hit (inherit)")]
         public object[] GetCustomAttributesClassHitInherit() => typeof(AttributedClass).GetCustomAttributes(typeof(MyAttribute), true);
+
         [Benchmark(Description = "GetCustomAttributes - Class: Miss (inherit)")]
         public object[] GetCustomAttributesClassMissInherit() => typeof(NonAttributedClass).GetCustomAttributes(typeof(MyAttribute), true);
 
         [Benchmark(Description = "GetCustomAttributes - Class: Hit (no inherit)")]
         public object[] GetCustomAttributesClassHit() => typeof(AttributedClass).GetCustomAttributes(typeof(MyAttribute), false);
+
         [Benchmark(Description = "GetCustomAttributes - Class: Miss (no inherit)")]
         public object[] GetCustomAttributesClassMiss() => typeof(NonAttributedClass).GetCustomAttributes(typeof(MyAttribute), false);
 
         [Benchmark(Description = "GetCustomAttributes - Method Override: Hit (inherit)")]
         public object[] GetCustomAttributesMethodOverrideHitInherit() => AttributedOverride.GetCustomAttributes(typeof(MyAttribute), true);
+
         [Benchmark(Description = "GetCustomAttributes - Method Override: Miss (inherit)")]
         public object[] GetCustomAttributesMethodOverrideMissInherit() => NonAttributedOverride.GetCustomAttributes(typeof(MyAttribute), true);
 
         [Benchmark(Description = "GetCustomAttributes - Method Override: Hit (no inherit)")]
         public object[] GetCustomAttributesMethodOverrideHit() => AttributedOverride.GetCustomAttributes(typeof(MyAttribute), false);
+
         [Benchmark(Description = "GetCustomAttributes - Method Override: Miss (no inherit)")]
         public object[] GetCustomAttributesMethodOverrideMiss() => NonAttributedOverride.GetCustomAttributes(typeof(MyAttribute), false);
 
         [Benchmark(Description = "GetCustomAttributes - Method Base: Hit (inherit)")]
         public object[] GetCustomAttributesMethodBaseHitInherit() => AttributedBase.GetCustomAttributes(typeof(MyAttribute), true);
+
         [Benchmark(Description = "GetCustomAttributes - Method Base: Miss (inherit)")]
-[MemoryRandomization]
+        [MemoryRandomization]
         public object[] GetCustomAttributesMethodBaseMissInherit() => NonAttributedBase.GetCustomAttributes(typeof(MyAttribute), true);
 
         [Benchmark(Description = "GetCustomAttributes - Method Base: Hit (no inherit)")]
         public object[] GetCustomAttributesMethodBaseHit() => AttributedBase.GetCustomAttributes(typeof(MyAttribute), false);
+
         [Benchmark(Description = "GetCustomAttributes - Method Base: Miss (no inherit)")]
-[MemoryRandomization]
+        [MemoryRandomization]
         public object[] GetCustomAttributesMethodBaseMiss() => NonAttributedBase.GetCustomAttributes(typeof(MyAttribute), false);
 
         // IsDefined
 
         [Benchmark(Description = "IsDefined - Class: Hit (inherit)")]
         public bool IsDefinedClassHitInherit() => typeof(AttributedClass).IsDefined(typeof(MyAttribute), true);
+
         [Benchmark(Description = "IsDefined - Class: Miss (inherit)")]
         public bool IsDefinedClassMissInherit() => typeof(NonAttributedClass).IsDefined(typeof(MyAttribute), true);
 
         [Benchmark(Description = "IsDefined - Class: Hit (no inherit)")]
         public bool IsDefinedClassHit() => typeof(AttributedClass).IsDefined(typeof(MyAttribute), false);
+
         [Benchmark(Description = "IsDefined - Class: Miss (no inherit)")]
         public bool IsDefinedClassMiss() => typeof(NonAttributedClass).IsDefined(typeof(MyAttribute), false);
 
         [Benchmark(Description = "IsDefined - Method Override: Hit (inherit)")]
         public bool IsDefinedMethodOverrideHitInherit() => AttributedOverride.IsDefined(typeof(MyAttribute), true);
+
         [Benchmark(Description = "IsDefined - Method Override: Miss (inherit)")]
         public bool IsDefinedMethodOverrideMissInherit() => NonAttributedOverride.IsDefined(typeof(MyAttribute), true);
 
         [Benchmark(Description = "IsDefined - Method Override: Hit (no inherit)")]
         public bool IsDefinedMethodOverrideHit() => AttributedOverride.IsDefined(typeof(MyAttribute), false);
+
         [Benchmark(Description = "IsDefined - Method Override: Miss (no inherit)")]
         public bool IsDefinedMethodOverrideMiss() => NonAttributedOverride.IsDefined(typeof(MyAttribute), false);
 
         [Benchmark(Description = "IsDefined - Method Base: Hit (inherit)")]
         public bool IsDefinedMethodBaseHitInherit() => AttributedBase.IsDefined(typeof(MyAttribute), true);
+
         [Benchmark(Description = "IsDefined - Method Base: Miss (inherit)")]
         public bool IsDefinedMethodBaseMissInherit() => NonAttributedBase.IsDefined(typeof(MyAttribute), true);
 
         [Benchmark(Description = "IsDefined - Method Base: Hit (no inherit)")]
         public bool IsDefinedMethodBaseHit() => AttributedBase.IsDefined(typeof(MyAttribute), false);
+        
         [Benchmark(Description = "IsDefined - Method Base: Miss (no inherit)")]
         public bool IsDefinedMethodBaseMiss() => NonAttributedBase.IsDefined(typeof(MyAttribute), false);
     }
