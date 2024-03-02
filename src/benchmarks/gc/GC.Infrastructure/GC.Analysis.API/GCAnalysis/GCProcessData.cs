@@ -15,8 +15,8 @@ namespace GC.Analysis.API
             {  "max size peak (mb)", (gc) => gc.Stats.MaxSizePeakMB }, 
             {  "total pause time (msec)", (gc) => gc.Stats.TotalPauseTimeMSec },
             {  "gc pause time %", (gc) => gc.Stats.GetGCPauseTimePercentage() },
-            {  "avg. heap size (mb)", (gc) => gc.GCs.Average(g => g.HeapSizeBeforeMB) },
-            {  "avg. heap size after (mb)", (gc) => gc.GCs.Average(g => g.HeapSizeAfterMB) },
+            {  "avg. heap size (mb)", (gc) => gc.GCs.EagerAverage(g => g.HeapSizeBeforeMB) },
+            {  "avg. heap size after (mb)", (gc) => gc.GCs.EagerAverage(g => g.HeapSizeAfterMB) },
         };
 
         private readonly Lazy<JoinAnalysis> _joinAnalysis;
@@ -30,8 +30,8 @@ namespace GC.Analysis.API
             DurationMSec = durationMSec; 
             Stats = managedProcess.GC.Stats();
             Generations = managedProcess.GC.Generations();
-            Gen2Blocking = GCs.Where(gc => gc.Generation == 2 && gc.Type != GCType.BackgroundGC);
-            BGCs = GCs.Where(gc => gc.Generation == 2 && gc.Type == GCType.BackgroundGC);
+            Gen2Blocking = GCs.EagerWhere(gc => gc.Generation == 2 && gc.Type != GCType.BackgroundGC);
+            BGCs = GCs.EagerWhere(gc => gc.Generation == 2 && gc.Type == GCType.BackgroundGC);
             Parent = parent;
 
             // Check if the process was running as SRV. 

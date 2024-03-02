@@ -61,7 +61,7 @@ namespace GC.Analysis.API
             };
             eventSource.Process();
 
-            IEnumerable<IntermediateJoinData> lastJoins = joinEvents.Where(e => e.Type == GcJoinType.LastJoin && e.Time == GcJoinTime.Start);
+            IEnumerable<IntermediateJoinData> lastJoins = joinEvents.EagerWhere(e => e.Type == GcJoinType.LastJoin && e.Time == GcJoinTime.Start);
 
             foreach(var j in lastJoins)
             {
@@ -77,7 +77,7 @@ namespace GC.Analysis.API
                                                                           e.Type == GcJoinType.Restart);
 
                 // Find all the other join ends from other threads for this join id.
-                IEnumerable<IntermediateJoinData> otherJoins = joinEvents.Where(j => j.JoinID == lastJoin.JoinID && 
+                IEnumerable<IntermediateJoinData> otherJoins = joinEvents.EagerWhere(j => j.JoinID == lastJoin.JoinID && 
                                                                                 j.ThreadID != lastJoin.ThreadID  && 
                                                                                 j.Time == GcJoinTime.End         &&
                                                                                 j.Type == GcJoinType.Join        && 
