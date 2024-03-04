@@ -381,7 +381,11 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 
             // modify coreruns
             gcPerfSimNormalWorkstationConfiguration.coreruns = new Dictionary<string, CoreRunInfo>();
-            gcPerfSimNormalWorkstationConfiguration.coreruns["segments"] = configuration.coreruns["segments"];
+            // No segments in stress mode testing
+            if (configuration.coreruns.ContainsKey("segments"))
+            {
+                gcPerfSimNormalWorkstationConfiguration.coreruns["segments"] = configuration.coreruns["segments"];
+            }
             gcPerfSimNormalWorkstationConfiguration.coreruns["regions"] = configuration.coreruns["regions"];
 
             // modify trace_configurations
