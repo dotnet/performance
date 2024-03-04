@@ -111,7 +111,7 @@ namespace System.Text.RegularExpressions.Tests
 
         [Benchmark]
         [MinIterationCount(3)] // each iteration takes several seconds
-        [MemoryRandomization]
+        //[MemoryRandomization] Currently causing OOMs in CI https://github.com/dotnet/performance/issues/4025
         public int Count()
         {
             int found = 0;
