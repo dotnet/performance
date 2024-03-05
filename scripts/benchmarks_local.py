@@ -231,27 +231,26 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         artifact_wasm_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle")
         artifact_wasm_aot = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle")
         if force_regenerate or not os.path.exists(artifact_wasm_wasm) or not os.path.exists(artifact_wasm_aot):
+            dir_bin_wasm = os.path.join(repo_path, "artifacts", "bin", "wasm")
             build_runtime_dependency(parsed_args, repo_path, "mono+libs", os_override="browser", arch_override="wasm", additional_args=[f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
-            src_dir_dotnet_latest = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "dotnet-latest")
-            dest_dir_wasm_dotnet = os.path.join(repo_path, "artifacts", "bin", "wasm", "dotnet")
+            src_dir_dotnet_latest = os.path.join(repo_path, "artifacts", "bin", "dotnet-latest")
+            dest_dir_wasm_dotnet = os.path.join(dir_bin_wasm, "dotnet")
             copy_directory_contents(src_dir_dotnet_latest, dest_dir_wasm_dotnet)
-            src_dir_built_nugets = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "built-nugets")
-            dest_dir_bin_wasm = os.path.join(repo_path, "artifacts", "bin", "wasm")
-            copy_directory_contents(src_dir_built_nugets, dest_dir_bin_wasm)
+            src_dir_built_nugets = os.path.join(repo_path, "artifacts", "packages", "Release", "Shipping") # Goal is to copy Microsoft.NET.Sdk.WebAssembly.Pack*, Microsoft.NETCore.App.Ref*, either need to do the shipping folder or glob
+            copy_directory_contents(src_dir_built_nugets, dir_bin_wasm)
             # browser folder was extracted from wasm folder here: https://github.com/dotnet/runtime/pull/95940, so we need to check both locations for which to use (Dec, 2023)
             src_file_test_main = glob.glob(os.path.join(repo_path, "src", "mono", "*", "test-main.js"))[0]
-            dest_dir_wasm_data = os.path.join(repo_path, "artifacts", "bin", "wasm", "wasm-data")
+            dest_dir_wasm_data = os.path.join(dir_bin_wasm, "wasm-data")
             dest_file_test_main = os.path.join(dest_dir_wasm_data, "test-main.js")
             if not os.path.exists(dest_dir_wasm_data):
                 os.makedirs(dest_dir_wasm_data)
             shutil.copy2(src_file_test_main, dest_file_test_main)
 
             # Store the artifact in the artifact storage path
-            src_dir_dotnet_wasm = os.path.join(repo_path, "artifacts", "bin", "wasm")
             shutil.rmtree(artifact_wasm_wasm, ignore_errors=True)
-            copy_directory_contents(src_dir_dotnet_wasm, artifact_wasm_wasm)
+            copy_directory_contents(dir_bin_wasm, artifact_wasm_wasm)
             shutil.rmtree(artifact_wasm_aot, ignore_errors=True)
-            copy_directory_contents(src_dir_dotnet_wasm, artifact_wasm_aot)
+            copy_directory_contents(dir_bin_wasm, artifact_wasm_aot)
 
         else:
             getLogger().info("wasm_bundle already exists in %s and %s. Skipping generation.", artifact_wasm_wasm, artifact_wasm_aot)
