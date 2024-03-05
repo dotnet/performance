@@ -331,9 +331,9 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
             gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = _logicalProcessors.ToString("X");
             gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
-            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitSOH"] = "0x800000000";
-            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitLOH"] = "0x400000000";
-            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitPOH"] = "0x100000000";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitSOH"] = "0x000080000";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitLOH"] = "0x000040000";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitPOH"] = "0x000010000";
 
             // modify output
             gcPerfSimLargePages_ServerConfiguration.Output.Path =
@@ -357,9 +357,9 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
             gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = _logicalProcessors.ToString("X");
             gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitSOH"] = "0x800000000";
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitLOH"] = "0x400000000";
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitPOH"] = "0x100000000";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitSOH"] = "0x000080000";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitLOH"] = "0x000040000";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitPOH"] = "0x000010000";
 
             // modify output
             gcPerfSimLargePages_WorkstationConfiguration.Output.Path =
@@ -390,6 +390,9 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 
             // modify trace_configurations
             gcPerfSimNormalWorkstationConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
+
+            // load environment variables
+            gcPerfSimNormalWorkstationConfiguration.Environment.environment_variables = configuration.Environment.environment_variables;
 
             return gcPerfSimNormalWorkstationConfiguration;
         }
