@@ -77,6 +77,7 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Count() => Perf_Regex_Industry.Count(_regex, _input);
     }
 
@@ -110,6 +111,7 @@ namespace System.Text.RegularExpressions.Tests
 
         [Benchmark]
         [MinIterationCount(3)] // each iteration takes several seconds
+        //[MemoryRandomization] Currently causing OOMs in CI https://github.com/dotnet/performance/issues/4025
         public int Count()
         {
             int found = 0;
@@ -189,6 +191,7 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Count() => Perf_Regex_Industry.Count(_regex, _sherlock);
     }
 
@@ -237,6 +240,7 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Count() => Perf_Regex_Industry.Count(_regex, _3200);
     }
 
@@ -300,6 +304,7 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public bool IsMatch() => _regex.IsMatch(_input);
     }
 }

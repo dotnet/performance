@@ -33,6 +33,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
+        [MemoryRandomization]
         public bool TryParse(string value) => long.TryParse(value, out _);
 
 #if !NETFRAMEWORK // API added in .NET Core 2.1

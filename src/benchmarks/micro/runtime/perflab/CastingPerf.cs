@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -384,30 +384,35 @@ namespace PerfLabTests
         public void SetupMyObj() => myObj = new MyClass2[5];
 
         [Benchmark]
+        [MemoryRandomization]
         public bool CheckArrayIsNonvariantGenericInterface()
         {
             return myObj is ICollection<MyClass2>;
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public bool CheckArrayIsNonvariantGenericInterfaceNo()
         {
             return myObj is ICollection<Exception>;
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public bool CheckArrayIsArrayByVariance()
         {
             return myObj is IMyInterface2[];
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public bool CheckListIsVariantGenericInterface()
         {
             return myObj is IReadOnlyCollection<object>;
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public bool CheckArrayIsVariantGenericInterfaceNo()
         {
             return myObj is IReadOnlyCollection<Exception>;

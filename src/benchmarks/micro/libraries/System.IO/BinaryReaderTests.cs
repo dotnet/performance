@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -42,9 +42,11 @@ namespace System.IO.Tests
         public BinaryReader DefaultCtor() => new BinaryReader(Stream.Null);
 
         [Benchmark]
+        [MemoryRandomization]
         public bool ReadBool() => _dummyReader.ReadBoolean();
 
         [Benchmark]
+        [MemoryRandomization]
         public char ReadAsciiChar()
         {
             _asciiChar.Position = 0;
@@ -59,6 +61,7 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ushort ReadUInt16() => _dummyReader.ReadUInt16();
 
         [Benchmark]
@@ -69,16 +72,19 @@ namespace System.IO.Tests
 
 #if NET5_0_OR_GREATER
         [Benchmark]
+        [MemoryRandomization]
         public Half ReadHalf() => _dummyReader.ReadHalf();
 #endif
 
         [Benchmark]
+        [MemoryRandomization]
         public float ReadSingle() => _dummyReader.ReadSingle();
 
         [Benchmark]
         public double ReadDouble() => _dummyReader.ReadDouble();
 
         [Benchmark]
+        [MemoryRandomization]
         public string ReadSmallString()
         {
             _smallString.Position = 0;

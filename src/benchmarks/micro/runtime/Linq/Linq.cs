@@ -193,6 +193,7 @@ public class LinqBenchmarks
     #region Where01
 
     [Benchmark]
+    [MemoryRandomization]
     public bool Where01LinqQueryX()
     {
         List<Product> products = Product.GetProductList();
@@ -214,6 +215,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool Where01LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
@@ -250,6 +252,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool Where01ForX()
     {
         List<Product> products = Product.GetProductList();
@@ -292,6 +295,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool Count00ForX()
     {
         List<Product> products = Product.GetProductList();

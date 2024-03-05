@@ -81,6 +81,7 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ValuesSameOrHalfSize))]
+        [MemoryRandomization]
         public BigInteger Multiply(BigIntegers arguments)
             => BigInteger.Multiply(arguments.Left, arguments.Right);
 
