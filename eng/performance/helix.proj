@@ -11,56 +11,76 @@
     <PartitionCount Condition="'$(PartitionCount)' == ''">15</PartitionCount>
   </PropertyGroup>
   <ItemGroup>
-    <Partition Include="Partition0" Index="0" Condition="$(PartitionCount) &gt; 0" />
-    <Partition Include="Partition1" Index="1" Condition="$(PartitionCount) &gt; 1" />
-    <Partition Include="Partition2" Index="2" Condition="$(PartitionCount) &gt; 2" />
-    <Partition Include="Partition3" Index="3" Condition="$(PartitionCount) &gt; 3" />
-    <Partition Include="Partition4" Index="4" Condition="$(PartitionCount) &gt; 4" />
-    <Partition Include="Partition5" Index="5" Condition="$(PartitionCount) &gt; 5" />
-    <Partition Include="Partition6" Index="6" Condition="$(PartitionCount) &gt; 6" />
-    <Partition Include="Partition7" Index="7" Condition="$(PartitionCount) &gt; 7" />
-    <Partition Include="Partition8" Index="8" Condition="$(PartitionCount) &gt; 8" />
-    <Partition Include="Partition9" Index="9" Condition="$(PartitionCount) &gt; 9" />
-    <Partition Include="Partition10" Index="10" Condition="$(PartitionCount) &gt; 10" />
-    <Partition Include="Partition11" Index="11" Condition="$(PartitionCount) &gt; 11" />
-    <Partition Include="Partition12" Index="12" Condition="$(PartitionCount) &gt; 12" />
-    <Partition Include="Partition13" Index="13" Condition="$(PartitionCount) &gt; 13" />
-    <Partition Include="Partition14" Index="14" Condition="$(PartitionCount) &gt; 14" />
-    <Partition Include="Partition15" Index="15" Condition="$(PartitionCount) &gt; 15" />
-    <Partition Include="Partition16" Index="16" Condition="$(PartitionCount) &gt; 16" />
-    <Partition Include="Partition17" Index="17" Condition="$(PartitionCount) &gt; 17" />
-    <Partition Include="Partition18" Index="18" Condition="$(PartitionCount) &gt; 18" />
-    <Partition Include="Partition19" Index="19" Condition="$(PartitionCount) &gt; 19" />
-    <Partition Include="Partition20" Index="20" Condition="$(PartitionCount) &gt; 20" />
-    <Partition Include="Partition21" Index="21" Condition="$(PartitionCount) &gt; 21" />
-    <Partition Include="Partition22" Index="22" Condition="$(PartitionCount) &gt; 22" />
-    <Partition Include="Partition23" Index="23" Condition="$(PartitionCount) &gt; 23" />
-    <Partition Include="Partition24" Index="24" Condition="$(PartitionCount) &gt; 24" />
-    <Partition Include="Partition25" Index="25" Condition="$(PartitionCount) &gt; 25" />
-    <Partition Include="Partition26" Index="26" Condition="$(PartitionCount) &gt; 26" />
-    <Partition Include="Partition27" Index="27" Condition="$(PartitionCount) &gt; 27" />
-    <Partition Include="Partition28" Index="28" Condition="$(PartitionCount) &gt; 28" />
-    <Partition Include="Partition29" Index="29" Condition="$(PartitionCount) &gt; 29" />
+    <Partition Include="$(BuildConfig).Partition0" Index="0" Condition="$(PartitionCount) &gt; 0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(OnlySanityCheck)' != 'true'">
+    <Partition Include="$(BuildConfig).Partition1" Index="1" Condition="$(PartitionCount) &gt; 1" />
+    <Partition Include="$(BuildConfig).Partition2" Index="2" Condition="$(PartitionCount) &gt; 2" />
+    <Partition Include="$(BuildConfig).Partition3" Index="3" Condition="$(PartitionCount) &gt; 3" />
+    <Partition Include="$(BuildConfig).Partition4" Index="4" Condition="$(PartitionCount) &gt; 4" />
+    <Partition Include="$(BuildConfig).Partition5" Index="5" Condition="$(PartitionCount) &gt; 5" />
+    <Partition Include="$(BuildConfig).Partition6" Index="6" Condition="$(PartitionCount) &gt; 6" />
+    <Partition Include="$(BuildConfig).Partition7" Index="7" Condition="$(PartitionCount) &gt; 7" />
+    <Partition Include="$(BuildConfig).Partition8" Index="8" Condition="$(PartitionCount) &gt; 8" />
+    <Partition Include="$(BuildConfig).Partition9" Index="9" Condition="$(PartitionCount) &gt; 9" />
+    <Partition Include="$(BuildConfig).Partition10" Index="10" Condition="$(PartitionCount) &gt; 10" />
+    <Partition Include="$(BuildConfig).Partition11" Index="11" Condition="$(PartitionCount) &gt; 11" />
+    <Partition Include="$(BuildConfig).Partition12" Index="12" Condition="$(PartitionCount) &gt; 12" />
+    <Partition Include="$(BuildConfig).Partition13" Index="13" Condition="$(PartitionCount) &gt; 13" />
+    <Partition Include="$(BuildConfig).Partition14" Index="14" Condition="$(PartitionCount) &gt; 14" />
+    <Partition Include="$(BuildConfig).Partition15" Index="15" Condition="$(PartitionCount) &gt; 15" />
+    <Partition Include="$(BuildConfig).Partition16" Index="16" Condition="$(PartitionCount) &gt; 16" />
+    <Partition Include="$(BuildConfig).Partition17" Index="17" Condition="$(PartitionCount) &gt; 17" />
+    <Partition Include="$(BuildConfig).Partition18" Index="18" Condition="$(PartitionCount) &gt; 18" />
+    <Partition Include="$(BuildConfig).Partition19" Index="19" Condition="$(PartitionCount) &gt; 19" />
+    <Partition Include="$(BuildConfig).Partition20" Index="20" Condition="$(PartitionCount) &gt; 20" />
+    <Partition Include="$(BuildConfig).Partition21" Index="21" Condition="$(PartitionCount) &gt; 21" />
+    <Partition Include="$(BuildConfig).Partition22" Index="22" Condition="$(PartitionCount) &gt; 22" />
+    <Partition Include="$(BuildConfig).Partition23" Index="23" Condition="$(PartitionCount) &gt; 23" />
+    <Partition Include="$(BuildConfig).Partition24" Index="24" Condition="$(PartitionCount) &gt; 24" />
+    <Partition Include="$(BuildConfig).Partition25" Index="25" Condition="$(PartitionCount) &gt; 25" />
+    <Partition Include="$(BuildConfig).Partition26" Index="26" Condition="$(PartitionCount) &gt; 26" />
+    <Partition Include="$(BuildConfig).Partition27" Index="27" Condition="$(PartitionCount) &gt; 27" />
+    <Partition Include="$(BuildConfig).Partition28" Index="28" Condition="$(PartitionCount) &gt; 28" />
+    <Partition Include="$(BuildConfig).Partition29" Index="29" Condition="$(PartitionCount) &gt; 29" />
   </ItemGroup>
 
   <!-- 
     Partition the MicroBenchmarks project, but nothing else
     TODO: Support Compare runs
       This is achieved by doing a baseline corerun in a precommand, then running ResultsComparer in a postcommand
-    TODO: Check PERF_PREREQS_INSTALL_FAILED before running commands on non-windows
   -->
   <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
     <HelixWorkItem Include="@(Partition)">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
+      <PreCommands Condition="'$(Compare)' == 'true'">$(BaselineWorkItemCommand) --partition=%(HelixWorkItem.Index) --bdn-arguments="$(BaselineBenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</PreCommands>
       <Command>$(WorkItemCommand) --partition=%(HelixWorkItem.Index) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</Command>
+      <Command Condition="'$(TargetsWindows)' != 'true'">
+        if [ "x$PERF_PREREQS_INSTALL_FAILED" = "x1" ]; then
+          echo "\n\n** Error: Failed to install prerequisites **\n\n"; (exit 1);
+        else
+          $(Command);
+        fi
+      </Command>
+      <PostCommands Condition="'$(Compare)' == 'true'">$(CompareCommand)</PostCommands>
       <Timeout>$(WorkItemTimeout)</Timeout>
       <DownloadFilesFromResults Condition="'$(DownloadFilesFromHelix)' == 'true'">Partition%(HelixWorkItem.Index)-combined-perf-lab-report.json</DownloadFilesFromResults>
     </HelixWorkItem>
   </ItemGroup>
   <ItemGroup Condition="!$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
-    <HelixWorkItem Include="WorkItem">
+    <HelixWorkItem Include="$(BuildConfig).WorkItem">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
+      <PreCommands Condition="'$(Compare)' == 'true'">$(BaselineWorkItemCommand) --bdn-arguments="$(BaselineBenchmarkDotNetArguments)"</PreCommands>
       <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments)"</Command>
+      <Command Condition="'$(TargetsWindows)' != 'true'">
+        if [ "x$PERF_PREREQS_INSTALL_FAILED" = "x1" ]; then
+          echo "\n\n** Error: Failed to install prerequisites **\n\n"; (exit 1);
+        else
+          $(Command);
+        fi
+      </Command>
+      <PostCommands Condition="'$(Compare)' == 'true'">$(CompareCommand)</PostCommands>
       <Timeout>$(WorkItemTimeout)</Timeout>
       <DownloadFilesFromResults Condition="'$(DownloadFilesFromHelix)' == 'true'">combined-perf-lab-report.json</DownloadFilesFromResults>
     </HelixWorkItem>
