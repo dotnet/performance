@@ -381,6 +381,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
     elif args.os_group != "windows":
         args.target_csproj = args.target_csproj.replace("\\", "/")
 
+    if args.libraries_download_dir is None and not args.performance_repo_ci and args.runtime_repo_dir is not None:
+        args.libraries_download_dir = os.path.join(args.runtime_repo_dir, "artifacts")
 
     llvm = False
     android_mono = False
@@ -406,6 +408,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
             mono_aot_path = os.path.join(args.libraries_download_dir, "bin", "aot")
         else:
             mono_dotnet = args.mono_dotnet_dir
+            if mono_dotnet is None:
+                if args.runtime_repo_dir is None:
+                    raise Exception("Mono directory must be passed in for mono runs")
+                mono_dotnet = os.path.join(args.runtime_repo_dir, ".dotnet-mono")
     elif args.runtime_type == "wasm":
         if args.libraries_download_dir is None:
                 raise Exception("Libraries not downloaded for WASM")
@@ -655,19 +661,28 @@ def run_performance_job(args: RunPerformanceJobArgs):
     baseline_bdn_arguments = bdn_arguments[:]
     
     use_core_run = False
-    if args.core_root_dir is not None:
+    use_baseline_core_run = False
+    if not args.performance_repo_ci:
         use_core_run = True
+        if args.core_root_dir is None:
+            if args.runtime_repo_dir is None:
+                raise Exception("Core_Root directory must be specified for non-performance CI runs")
+            args.core_root_dir = os.path.join(args.runtime_repo_dir, "artifacts", "tests", "coreclr", f"{args.os_group}.{args.architecture}.Release", "Tests", "Core_Root")
         coreroot_payload_dir = os.path.join(payload_dir, "Core_Root")
         shutil.copytree(args.core_root_dir, coreroot_payload_dir, ignore=shutil.ignore_patterns("*.pdb"))
 
-    use_baseline_core_run = False
-    if args.baseline_core_root_dir is not None:
-        use_baseline_core_run = True
-        baseline_coreroot_payload_dir = os.path.join(payload_dir, "Baseline_Core_Root")
-        shutil.copytree(args.baseline_core_root_dir, baseline_coreroot_payload_dir)
+        if args.baseline_core_root_dir is not None:
+            use_baseline_core_run = True
+            baseline_coreroot_payload_dir = os.path.join(payload_dir, "Baseline_Core_Root")
+            shutil.copytree(args.baseline_core_root_dir, baseline_coreroot_payload_dir)
     
     if args.maui_version is not None:
         ci_setup_arguments.maui_version = args.maui_version
+
+    if args.built_app_dir is None:
+        if args.runtime_repo_dir is not None:
+            args.built_app_dir = args.runtime_repo_dir
+
     
     if android_mono:
         if args.built_app_dir is None:
@@ -1091,7 +1106,8 @@ def main(argv: List[str]):
             "--os-version": "os_version",
             "--dotnet-version-link": "dotnet_version_link",
             "--target-csproj": "target_csproj",
-            "--runtime-repo-dir": "runtime_repo_dir"
+            "--runtime-repo-dir": "runtime_repo_dir",
+            "--logical-machine": "logical_machine"
         }
 
         if key in simple_arg_map:
