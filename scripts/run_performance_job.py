@@ -105,7 +105,6 @@ class RunPerformanceJobArgs:
     os_version: Optional[str] = None
     dotnet_version_link: Optional[str] = None
     target_csproj: Optional[str] = None
-    alpine: bool = False
 
 def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     helix_pre_commands: list[str] = []
@@ -338,10 +337,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
         else:
             helix_type_suffix = "/wasm"
 
+    alpine = args.runtime_type == "coreclr" and args.os_sub_group == "_musl"
     if args.queue is None:
         if args.logical_machine is None:
             raise Exception("Either queue or logical machine must be specifed")
-        args.queue = logical_machine_to_queue(args.logical_machine, args.internal, args.os_group, args.architecture, args.alpine)
+        args.queue = logical_machine_to_queue(args.logical_machine, args.internal, args.os_group, args.architecture, alpine)
 
     if args.performance_repo_ci:
         # needs to be unique to avoid logs overwriting in mc.dot.net
@@ -384,22 +384,16 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.libraries_download_dir is None and not args.performance_repo_ci and args.runtime_repo_dir is not None:
         args.libraries_download_dir = os.path.join(args.runtime_repo_dir, "artifacts")
 
-    llvm = False
-    android_mono = False
-    mono_dotnet = None
+    llvm = args.codegen_type == "AOT" and args.runtime_type != "wasm"
+    android_mono = args.runtime_type == "AndroidMono"
+    ios_mono = args.runtime_type == "iOSMono"
+    ios_nativeaot = args.runtime_type == "iOSNativeAOT"
     mono_aot = False
-    ios_mono = False
+    mono_aot_path = None
+    mono_dotnet = None
     wasm_bundle_dir = None
     wasm_aot = False
-    ios_nativeaot = False
-    mono_aot_path = None
-    if args.runtime_type == "AndroidMono":
-        android_mono = True
-    elif args.runtime_type == "iOSMono":
-        ios_mono = True
-    elif args.runtime_type == "iOSNativeAOT":
-        ios_nativeaot = True
-    elif args.runtime_type == "mono":
+    if args.runtime_type == "mono":
         if args.codegen_type == "AOT":
             if args.libraries_download_dir is None:
                 raise Exception("Libraries not downloaded for MonoAOT")
@@ -419,9 +413,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         wasm_bundle_dir = os.path.join(args.libraries_download_dir, "bin", "wasm")
         if args.codegen_type == "AOT":
             wasm_aot = True
-    elif args.runtime_type == "coreclr":
-        if args.os_sub_group == "_musl":
-            alpine = True
 
     working_dir = os.path.join(args.performance_repo_dir, "CorrelationStaging") # folder in which the payload and workitem directories will be made
     work_item_dir = os.path.join(working_dir, "workitem", "") # Folder in which the work item commands will be run in
@@ -1063,7 +1054,6 @@ def main(argv: List[str]):
             "--performance-repo-ci": "performance_repo_ci",
             "--download-pdn": "download_pdn",
             "--only-sanity-check": "only_sanity_check",
-            "--alpine": "alpine"
         }
 
         if key in bool_args:
