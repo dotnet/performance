@@ -85,7 +85,6 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             CreateLargePages_WorkstationSuite(gcPerfSimSuitePath, configuration);
 
             // III. Execute all the functional tests.
-            
             string[] gcperfsimConfigurationFileNames = Directory.GetFiles(gcPerfSimSuitePath, "*.yaml");
 
             Dictionary<string, GCPerfSimResults> yamlFileResultMap = new Dictionary<string, GCPerfSimResults>();
@@ -163,7 +162,6 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                     }
                 }
             }
-            
             return 0;
         }
 
@@ -305,7 +303,6 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = _logicalProcessors.ToString("X");
 
             // add environment variables in GCPerfSimFunctionalRun.yaml
-            gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCName"] = configuration.Environment.environment_variables["COMPlus_GCName"];
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x100000000";
             gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCTotalPhysicalMemory"] = "0x100000000";
 
@@ -381,12 +378,10 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 
             // modify coreruns
             gcPerfSimNormalWorkstationConfiguration.coreruns = new Dictionary<string, CoreRunInfo>();
-            // No segments in stress mode testing
-            if (configuration.coreruns.ContainsKey("segments"))
+            foreach (var keyValuePair in configuration.coreruns)
             {
-                gcPerfSimNormalWorkstationConfiguration.coreruns["segments"] = configuration.coreruns["segments"];
+                gcPerfSimNormalWorkstationConfiguration.coreruns[keyValuePair.Key] = keyValuePair.Value;
             }
-            gcPerfSimNormalWorkstationConfiguration.coreruns["regions"] = configuration.coreruns["regions"];
 
             // modify trace_configurations
             gcPerfSimNormalWorkstationConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
