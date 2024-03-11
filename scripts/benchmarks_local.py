@@ -233,6 +233,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         if force_regenerate or not os.path.exists(artifact_wasm_wasm) or not os.path.exists(artifact_wasm_aot):
             dir_bin_wasm = os.path.join(repo_path, "artifacts", "bin", "wasm")
             build_runtime_dependency(parsed_args, repo_path, "mono+libs", os_override="browser", arch_override="wasm", additional_args=[f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
+            build_runtime_dependency(parsed_args, repo_path, subset="", os_override="browser", arch_override="wasm", additional_args=['/t:InstallWorkloadUsingArtifacts', os.path.join(repo_path, "src", "mono", "wasm", "Wasm.Build.Tests", "Wasm.Build.Tests.csproj")])
             src_dir_dotnet_latest = os.path.join(repo_path, "artifacts", "bin", "dotnet-latest")
             dest_dir_wasm_dotnet = os.path.join(dir_bin_wasm, "dotnet")
             copy_directory_contents(src_dir_dotnet_latest, dest_dir_wasm_dotnet)
@@ -256,8 +257,8 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             getLogger().info("wasm_bundle already exists in %s and %s. Skipping generation.", artifact_wasm_wasm, artifact_wasm_aot)
 
     # Add wasm-tools to dotnet instance, will not reinstall if already installed
-    RunCommand([os.path.join(parsed_args.dotnet_dir_path, f'dotnet{".exe" if is_windows(parsed_args) else ""}'), "workload", "install", "wasm-tools"], verbose=True).run()
-    getLogger().info("Finished generating dependencies for %s run types in %s and stored in %s.", ' '.join(map(str, parsed_args.run_type_names)), repo_path, parsed_args.artifact_storage_path)
+    # RunCommand([os.path.join(parsed_args.dotnet_dir_path, f'dotnet{".exe" if is_windows(parsed_args) else ""}'), "workload", "install", "wasm-tools"], verbose=True).run()
+    # getLogger().info("Finished generating dependencies for %s run types in %s and stored in %s.", ' '.join(map(str, parsed_args.run_type_names)), repo_path, parsed_args.artifact_storage_path)
 
 def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commits: List[str]) -> List[str]:
     getLogger().info("Generating benchmark_ci.py arguments for %s run type using artifacts in %s.", specific_run_type.name, parsed_args.artifact_storage_path)
@@ -387,12 +388,13 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
 
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
     elif specific_run_type == RunType.WasmInterpreter:
-        benchmark_ci_args += ['--wasm']
+        benchmark_ci_args += ['--wasm', '--dotnet-path', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle", "dotnet")]
         # Ensure there is a space at the beginning of `--wasmArgs` argument, so BDN
         # can correctly read them as sub-arguments for `--wasmArgs`
         bdn_args_unescaped += [
             '--anyCategories', 'Libraries', 'Runtime',
             '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
+            '--cli', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle", "dotnet", "dotnet"),
             '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle", "wasm-data"),
             '--wasmEngine', parsed_args.wasm_engine_path,
             '--wasmArgs', '\" --expose_wasm --module\"',
