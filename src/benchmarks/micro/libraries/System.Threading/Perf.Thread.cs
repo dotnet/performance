@@ -15,6 +15,7 @@ namespace System.Threading.Tests
 
 #if !NETFRAMEWORK
         [Benchmark]
+        [MemoryRandomization]
         public int GetCurrentProcessorId() => Thread.GetCurrentProcessorId();
 #endif
     }

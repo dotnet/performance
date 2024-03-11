@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -22,6 +22,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
+        [MemoryRandomization]
         public string ToString(decimal value) => value.ToString();
 
         [Benchmark]
@@ -48,6 +49,7 @@ namespace System.Tests
         public decimal Divide() => _a / _b;
 
         [Benchmark]
+        [MemoryRandomization]
         public decimal Mod() => _a % _b;
 
         [Benchmark]

@@ -36,6 +36,7 @@ namespace System.Tests
         [Arguments(Colors.Red | Colors.Orange | Colors.Yellow | Colors.Green | Colors.Blue)]
         [Arguments(Colors.Yellow | (Colors)0x20)]
         [Arguments(0x20)]
+        [MemoryRandomization]
         public string ToString_Flags(Colors value) => value.ToString();
 
         [Benchmark]
@@ -50,6 +51,7 @@ namespace System.Tests
         [Arguments(UnicodeCategory.Format)]
         [Arguments(UnicodeCategory.OtherNotAssigned)]
         [Arguments((UnicodeCategory)42)]
+        [MemoryRandomization]
         public string ToString_NonFlags_Large(UnicodeCategory value) => value.ToString();
 
         [Benchmark]
@@ -62,6 +64,7 @@ namespace System.Tests
         [Arguments(DayOfWeek.Saturday, "D")]
         [Arguments((DayOfWeek)7, "G")]
         [Arguments((DayOfWeek)8, "F")]
+        [MemoryRandomization]
         public string ToString_Format_NonFlags(DayOfWeek value, string format) => value.ToString(format);
 
         [Benchmark]
@@ -70,6 +73,7 @@ namespace System.Tests
         [Arguments(AttributeTargets.All, "d")]
         [Arguments(AttributeTargets.All, "x")]
         [Arguments(AttributeTargets.All, "f")]
+        [MemoryRandomization]
         public string ToString_Format_Flags_Large(AttributeTargets value, string format) => value.ToString(format);
 
         [Benchmark]
@@ -80,6 +84,7 @@ namespace System.Tests
         [Benchmark]
         [Arguments("Red")]
         [Arguments("Red, Orange, Yellow, Green, Blue")]
+        [MemoryRandomization]
         public bool TryParseGeneric_Flags(string text) => Enum.TryParse<Colors>(text, out _);
 
         private Colors _greenAndRed = Colors.Green | Colors.Red;
@@ -99,6 +104,7 @@ namespace System.Tests
         [Arguments(Colors.Red)]
         [Arguments(Colors.Red | Colors.Green)]
         [Arguments(0x20)]
+        [MemoryRandomization]
         public string StringFormat(Colors value) =>
             string.Format("{0} {0:d} {0:f} {0:g} {0:x}", value);
 

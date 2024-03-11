@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Reflection;
@@ -61,6 +61,7 @@ namespace PerfLabTests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void GetField()
         {
             for (int i = 0; i < InnerIterationCount; i++)
@@ -72,6 +73,7 @@ namespace PerfLabTests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void GetMethod1()
         {
             for (int i = 0; i < InnerIterationCount; i++)
@@ -83,6 +85,7 @@ namespace PerfLabTests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void GetMethod2()
         {
             for (int i = 0; i < InnerIterationCount; i++)
@@ -97,6 +100,7 @@ namespace PerfLabTests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void GetMethod3()
         {
             for (int i = 0; i < InnerIterationCount; i++)
@@ -114,6 +118,7 @@ namespace PerfLabTests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void GetMethod4()
         {
             for (int i = 0; i < InnerIterationCount; i++)
@@ -134,6 +139,7 @@ namespace PerfLabTests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void GetMethod5()
         {
             for (int i = 0; i < InnerIterationCount; i++)
@@ -196,6 +202,7 @@ namespace PerfLabTests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void GetMethod12()
         {
             for (int i = 0; i < InnerIterationCount; i++)
@@ -242,6 +249,7 @@ namespace PerfLabTests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void GetMethod15()
         {
             for (int i = 0; i < InnerIterationCount; i++)
@@ -297,6 +305,7 @@ namespace PerfLabTests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void GetMethod20()
         {
             for (int i = 0; i < InnerIterationCount; i++)

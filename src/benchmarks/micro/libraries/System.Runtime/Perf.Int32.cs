@@ -32,10 +32,12 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
+        [MemoryRandomization]
         public string ToStringHex(int value) => value.ToString("X");
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValuesDecimal))]
+        [MemoryRandomization]
         public int Parse(string value) => int.Parse(value);
 
         [Benchmark]
@@ -44,6 +46,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValuesDecimal))]
+        [MemoryRandomization]
         public bool TryParse(string value) => int.TryParse(value, out _);
 
 #if !NETFRAMEWORK // API added in .NET Core 2.1
@@ -53,10 +56,12 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
+        [MemoryRandomization]
         public bool TryFormat(int value) => value.TryFormat(new Span<char>(_destination), out _);
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValuesDecimal))]
+        [MemoryRandomization]
         public bool TryParseSpan(string value) => int.TryParse(value.AsSpan(), out _);
 #endif
 

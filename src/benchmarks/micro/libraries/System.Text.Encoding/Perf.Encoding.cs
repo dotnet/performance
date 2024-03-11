@@ -31,18 +31,23 @@ namespace System.Text.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public byte[] GetBytes() => _enc.GetBytes(_toEncode);
 
         [Benchmark]
+        [MemoryRandomization]
         public string GetString() => _enc.GetString(_bytes);
 
         [Benchmark]
+        [MemoryRandomization]
         public char[] GetChars() => _enc.GetChars(_bytes);
 
         [Benchmark]
+        [MemoryRandomization]
         public Encoder GetEncoder() => _enc.GetEncoder();
 
         [Benchmark]
+        [MemoryRandomization]
         public int GetByteCount() => _enc.GetByteCount(_chars);
     }
 }

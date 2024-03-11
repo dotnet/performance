@@ -80,6 +80,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ReadWrite_MultipleBuffers_Arguments))]
+        [MemoryRandomization]
         public async Task<long> ReadScatterAsync(long fileSize, int count)
         {
             CancellationToken cancellationToken = CancellationToken.None;
