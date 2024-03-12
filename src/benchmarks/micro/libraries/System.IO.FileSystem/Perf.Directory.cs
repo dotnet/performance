@@ -26,6 +26,7 @@ namespace System.IO.Tests
         private bool _flag;
 
         [Benchmark]
+        [MemoryRandomization]
         public string GetCurrentDirectory() => Directory.GetCurrentDirectory();
         
         [GlobalSetup(Target = nameof(CreateDirectory))]

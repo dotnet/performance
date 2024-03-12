@@ -127,6 +127,7 @@ namespace System.IO.Tests
         [Arguments(SixteenKibibytes)]
         [Arguments(OneMibibyte)]
         [Arguments(HundredMibibytes)]
+        [MemoryRandomization]
         public byte[] ReadAllBytes(int size) => File.ReadAllBytes(_filesToRead[size]);
 
 #if !NETFRAMEWORK
@@ -146,6 +147,7 @@ namespace System.IO.Tests
         [Arguments(SixteenKibibytes)]
         [Arguments(OneMibibyte)]
         [Arguments(HundredMibibytes)]
+        [MemoryRandomization]
         public Task<byte[]> ReadAllBytesAsync(int size) => File.ReadAllBytesAsync(_filesToRead[size]);
 #endif
 

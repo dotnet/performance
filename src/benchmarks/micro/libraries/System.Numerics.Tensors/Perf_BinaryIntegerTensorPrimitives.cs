@@ -9,6 +9,7 @@ using MicroBenchmarks;
 namespace System.Numerics.Tensors.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.SIMD, Categories.JIT)]
+    [GenericTypeArguments(typeof(byte))]
     [GenericTypeArguments(typeof(int))]
     public class Perf_BinaryIntegerTensorPrimitives<T>
         where T : unmanaged, IBinaryInteger<T>

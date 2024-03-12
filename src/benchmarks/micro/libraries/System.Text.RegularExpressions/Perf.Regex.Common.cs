@@ -37,31 +37,70 @@ namespace System.Text.RegularExpressions.Tests
             _loremIpsum = LoremIpsum.ToString();
         }
 
-        [Benchmark] public void Backtracking() => _notOneLoopNodeBacktracking.Match("Essential services are provided by regular exprs.");
-        [Benchmark] public void OneNodeBacktracking() => _oneNodeBacktracking.Match("This regex has the potential to be optimized further");
-        [Benchmark] public void Email_IsMatch() => _email.IsMatch("yay.performance@dot.net");
-        [Benchmark] public void Email_IsNotMatch() => _email.IsMatch("yay.performance@dot.net#");
+        [Benchmark]
+        public void Backtracking() => _notOneLoopNodeBacktracking.Match("Essential services are provided by regular exprs.");
+        
+        [Benchmark]
+        [MemoryRandomization]
+        public void OneNodeBacktracking() => _oneNodeBacktracking.Match("This regex has the potential to be optimized further");
 
-        [Benchmark] public void Date_IsMatch() => _date.IsMatch("Today is 11/18/2019");
-        [Benchmark] public void Date_IsNotMatch() => _date.IsMatch("Today is 11/18/201A");
+        [Benchmark]
+        [MemoryRandomization]
+        public void Email_IsMatch() => _email.IsMatch("yay.performance@dot.net");
 
-        [Benchmark] public void IP_IsMatch() => _ip.IsMatch("012.345.678.910");
-        [Benchmark] public void IP_IsNotMatch() => _ip.IsMatch("012.345.678.91A");
+        [Benchmark]
+        [MemoryRandomization]
+        public void Email_IsNotMatch() => _email.IsMatch("yay.performance@dot.net#");
 
-        [Benchmark] public void Uri_IsMatch() => _uri.IsMatch("http://example.org");
-        [Benchmark] public void Uri_IsNotMatch() => _uri.IsMatch("http://a http://b");
+        [Benchmark]
+        [MemoryRandomization]
+        public void Date_IsMatch() => _date.IsMatch("Today is 11/18/2019");
 
-        [Benchmark] public int MatchesSet() => _searchSet.Matches(_loremIpsum).Count;
-        [Benchmark] public int MatchesBoundary() => _searchBoundary.Matches(_loremIpsum).Count;
-        [Benchmark] public int MatchesWord() => _searchWord.Matches(_loremIpsum).Count;
-        [Benchmark] public int MatchesWords() => _searchWords.Matches(_loremIpsum).Count;
+        [Benchmark]
+        public void Date_IsNotMatch() => _date.IsMatch("Today is 11/18/201A");
 
-        [Benchmark] public Match MatchWord() => _searchWords.Match(_loremIpsum);
-        [Benchmark] public string ReplaceWords() => _searchWords.Replace(_loremIpsum, "amoveatur");
-        [Benchmark] public string[] SplitWords() => _searchWords.Split(_loremIpsum);
+        [Benchmark]
+        [MemoryRandomization]
+        public void IP_IsMatch() => _ip.IsMatch("012.345.678.910");
 
-        [Benchmark] public void Ctor() => new Regex(WarningPattern, Options);
-        [Benchmark] public void CtorInvoke() => new Regex(WarningPattern, Options).IsMatch(@"(1");
+        [Benchmark]
+        public void IP_IsNotMatch() => _ip.IsMatch("012.345.678.91A");
+
+        [Benchmark]
+        public void Uri_IsMatch() => _uri.IsMatch("http://example.org");
+
+        [Benchmark]
+        public void Uri_IsNotMatch() => _uri.IsMatch("http://a http://b");
+
+        [Benchmark]
+        public int MatchesSet() => _searchSet.Matches(_loremIpsum).Count;
+
+        [Benchmark]
+        public int MatchesBoundary() => _searchBoundary.Matches(_loremIpsum).Count;
+
+        [Benchmark]
+        public int MatchesWord() => _searchWord.Matches(_loremIpsum).Count;
+
+        [Benchmark]
+        public int MatchesWords() => _searchWords.Matches(_loremIpsum).Count;
+
+        [Benchmark]
+        [MemoryRandomization]
+        public Match MatchWord() => _searchWords.Match(_loremIpsum);
+
+        [Benchmark]
+        public string ReplaceWords() => _searchWords.Replace(_loremIpsum, "amoveatur");
+
+        [Benchmark]
+        public string[] SplitWords() => _searchWords.Split(_loremIpsum);
+
+        [Benchmark]
+        [MemoryRandomization]
+        public void Ctor() => new Regex(WarningPattern, Options);
+
+        [Benchmark]
+        [MemoryRandomization]
+        public void CtorInvoke() => new Regex(WarningPattern, Options).IsMatch(@"(1");
 
         private const string WarningPattern = @"(^(.*)(\(([0-9]+),([0-9]+)\)): )(error|warning) ([A-Z]+[0-9]+) ?: (.*)";
 

@@ -26,6 +26,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
+        [MemoryRandomization]
         public string ToString(ulong value) => value.ToString();
 
 #if !NETFRAMEWORK // API added in .NET Core 2.1

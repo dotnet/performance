@@ -479,7 +479,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     ci_setup_arguments.build_number = args.build_number
 
-    if branch is not None:
+    if branch is not None and not args.performance_repo_ci:
         ci_setup_arguments.branch = branch
 
     if args.perf_repo_hash is not None and not args.performance_repo_ci:

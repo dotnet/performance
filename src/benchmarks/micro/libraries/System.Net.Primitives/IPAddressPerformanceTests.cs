@@ -34,6 +34,7 @@ namespace System.Net.Primitives.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ByteAddresses))]
+        [MemoryRandomization]
         public IPAddress Ctor_Bytes(byte[] address)
             => new IPAddress(address);
 

@@ -14,12 +14,15 @@ namespace System.Xml.Tests
         private TimeSpan _testTimeSpan = new TimeSpan(1, 2, 3, 4, 56);
 
         [Benchmark]
+        [MemoryRandomization]
         public string DateTime_ToString() => XmlConvert.ToString(_testDateTime, XmlDateTimeSerializationMode.Utc);
 
         [Benchmark]
+        [MemoryRandomization]
         public string DateTime_ToString_Local() => XmlConvert.ToString(_testDateTime, XmlDateTimeSerializationMode.Local);
 
         [Benchmark]
+        [MemoryRandomization]
         public string DateTime_ToString_Unspecified() => XmlConvert.ToString(_testDateTime, XmlDateTimeSerializationMode.Unspecified);
 
         [Benchmark]
