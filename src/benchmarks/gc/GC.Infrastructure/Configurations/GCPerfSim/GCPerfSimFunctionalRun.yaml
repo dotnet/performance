@@ -1,0 +1,18 @@
+output_path: C:\Outputs\GCPerfsimFunctionalTest
+gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
+
+coreruns:
+  segments: 
+    path: C:\runtime_rc2\artifacts\tests\coreclr\windows.x64.Release\Tests\Core_Root\corerun.exe
+    environment_variables:
+        COMPlus_GCName: clrgc.dll
+  regions:
+    path: C:\runtime_ga\artifacts\tests\coreclr\windows.x64.Release\Tests\Core_Root\corerun.exe
+    environment_variables:
+        COMPlus_GCName: clrgc.dll
+
+environment:
+  environment_variables:
+    COMPlus_GCName: clrgc.dll 
+
+trace_configuration_type: gc # Choose between: none, gc, verbose, cpu, cpu_managed, threadtime, join.
