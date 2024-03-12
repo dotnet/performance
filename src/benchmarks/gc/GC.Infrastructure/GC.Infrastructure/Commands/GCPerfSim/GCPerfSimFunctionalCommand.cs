@@ -1,19 +1,13 @@
-﻿using GC.Analysis.API;
-using GC.Infrastructure.Commands.RunCommand;
+﻿using GC.Infrastructure.Commands.RunCommand;
 using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.GCPerfSim;
 using GC.Infrastructure.Core.Presentation;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Configuration;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 
 namespace GC.Infrastructure.Commands.GCPerfSim
@@ -53,9 +47,6 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             GCPerfSimFunctionalConfiguration configuration = GCPerfSimFunctionalConfigurationParser.Parse(configurationPath);
 
             // II. Create the test suite for gcperfsim functional tests.
-            string gcPerfSimOutputPath = Path.Combine(configuration.output_path, "GCPerfSim");
-            Core.Utilities.TryCreateDirectory(gcPerfSimOutputPath);
-
             string suitePath = Path.Combine(configuration.output_path, "Suites");
             string gcPerfSimSuitePath = Path.Combine(suitePath, "GCPerfSim_Functional");
 
@@ -108,8 +99,8 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                     yamlFileResultMap[yamlFileName] = gcperfsimResult;
 
                     sw.Stop();
-                    AnsiConsole.WriteLine($"Time to execute Msec: {sw.ElapsedMilliseconds}");
                 }
+
                 catch (Exception e)
                 {
                     Console.WriteLine(e.ToString());
@@ -152,16 +143,17 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                     string yamlFileName = yamlFileNameResultPair.Key;
                     GCPerfSimResults gcperfsimResult = yamlFileNameResultPair.Value;
 
-                    bool hasFailedTests = gcperfsimResult.ExecutionDetails.Any(
-                        executionDetail => executionDetail.Value.HasFailed == true);
+                    bool hasFailedTests = gcperfsimResult.ExecutionDetails.Any(executionDetail => executionDetail.Value.HasFailed);
 
-                    if (hasFailedTests == true)
+                    if (hasFailedTests)
                     {
                         resultWriter.AddIncompleteTestsSectionWithYamlFileName(
                             yamlFileName, new(gcperfsimResult.ExecutionDetails));
                     }
                 }
             }
+
+            AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to: {markdownPath} [/]");
             return 0;
         }
 
