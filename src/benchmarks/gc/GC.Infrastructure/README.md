@@ -234,7 +234,7 @@ The infrastructure can be run in modular manner. What this means is that you can
 | gcperfsim                | Runs a GCPerfSim Configuration - both orchestration and analysis.                             | ``gcperfsim --configuration Configuration.yaml [--server nameOfMachine]``                |
 | gcperfsim-analyze        | Runs just the analysis portion of the GCPerfSim run assuming the traces are available.        | ``gcperfsim-analyze --configuration Configuration.yaml``        |
 | gcperfsim-compare        | Runs the comparison between two traces and generates a report for GCPerfSim runs. The acceptable file types are: ``.etl, .nettrace, .etl.zip``            | ``gcperfsim-compare --baseline Trace1Path  --comparand Trace2Path --output PathToOutput.md``        |
-| gcperfsim-functional | Runs the functional portion of the GCPerfSim Tests. | ``gcperfsim-functional --configuration Configuration.yaml`` | 
+| gcperfsim-functional | Runs the functional portion of the GCPerfSim Tests. | ``gcperfsim-functional --configuration Configuration.yaml`` |
 | microbenchmarks          | Runs a Microbenchmark Configuration - both orchestration and analysis.                        | ``microbenchmarks --configuration Configuration.yaml``           |
 | microbenchmarks-analyze  | Runs just the analysis portion of the Microbenchmark run assuming the traces are available.   | ``microbenchmarks-analyze --configuration Configuration.yaml``   |
 | aspnetbenchmarks         | Runs the ASPNet Benchmarks - both orchestration and analysis.                                 | ``aspnetbenchmarks --configuration Configuration.yaml``         |
