@@ -117,6 +117,12 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
             ] + additional_args
     RunCommand(build_libs_and_corerun_command, verbose=True).run(os.path.join(repo_path, "eng"))
 
+def run_runtime_dotnet(repo_path: str, args: Optional[List[str]] = None):
+    if args is None:
+        args = []
+    dotnet_command = ["dotnet.sh"] + args
+    RunCommand(dotnet_command, verbose=True).run(repo_path)
+
 def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: Optional[List[str]] = None):
     if additional_args is None:
         additional_args = []
@@ -233,7 +239,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         if force_regenerate or not os.path.exists(artifact_wasm_wasm) or not os.path.exists(artifact_wasm_aot):
             dir_bin_wasm = os.path.join(repo_path, "artifacts", "bin", "wasm")
             build_runtime_dependency(parsed_args, repo_path, "mono+libs", os_override="browser", arch_override="wasm", additional_args=[f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
-            build_runtime_dependency(parsed_args, repo_path, subset="", os_override="browser", arch_override="wasm", additional_args=['/t:InstallWorkloadUsingArtifacts', os.path.join(repo_path, "src", "mono", "wasm", "Wasm.Build.Tests", "Wasm.Build.Tests.csproj")])
+            run_runtime_dotnet(repo_path, [ 'build', '-p:TargetOS=browser', '-p:TargetArchitecture=wasm', '/nr:false', '/p:TreatWarningsAsErrors=true', '/p:Configuration=Release', '-bl', '/t:InstallWorkloadUsingArtifacts', os.path.join(repo_path, "src", "mono", "wasm", "Wasm.Build.Tests", "Wasm.Build.Tests.csproj")])
             src_dir_dotnet_latest = os.path.join(repo_path, "artifacts", "bin", "dotnet-latest")
             dest_dir_wasm_dotnet = os.path.join(dir_bin_wasm, "dotnet")
             copy_directory_contents(src_dir_dotnet_latest, dest_dir_wasm_dotnet)
