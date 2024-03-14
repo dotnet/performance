@@ -31,7 +31,8 @@ import sys
 from typing import Any, List, Optional
 
 from performance.common import validate_supported_runtime, get_artifacts_directory, helixuploadroot
-from performance.logger import setup_loggers, setup_trace_provider
+from performance.logger import setup_loggers
+from performance.tracer import setup_trace_provider, enable_trace_console_exporter
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
 from subprocess import CalledProcessError
@@ -241,6 +242,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Enables OpenTelemetry logging',
     )
 
+    parser.add_argument(
+        '--enable-open-telemetry-tracer_console',
+        dest='enable_open_telemetry_tracer_console',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Enables OpenTelemetry tracing',
+    )
+
     return parser
 
 
@@ -262,6 +272,8 @@ def main(argv: List[str]):
 
     if not args.skip_logger_setup:
         setup_loggers(verbose=verbose, enable_open_telemetry_logger=args.enable_open_telemetry_logger)
+        if args.enable_open_telemetry_tracer_console:
+            enable_trace_console_exporter()
 
     if not args.frameworks:
         raise Exception("Framework version (-f) must be specified.")

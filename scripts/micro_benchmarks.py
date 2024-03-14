@@ -23,7 +23,8 @@ from performance.common import get_artifacts_directory
 from performance.common import get_packages_directory
 from performance.common import remove_directory
 from performance.common import validate_supported_runtime
-from performance.logger import setup_loggers, setup_trace_provider
+from performance.logger import setup_loggers
+from performance.tracer import setup_trace_provider
 from channel_map import ChannelMap
 
 import dotnet
