@@ -256,10 +256,6 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         else:
             getLogger().info("wasm_bundle already exists in %s and %s. Skipping generation.", artifact_wasm_wasm, artifact_wasm_aot)
 
-    # Add wasm-tools to dotnet instance, will not reinstall if already installed
-    # RunCommand([os.path.join(parsed_args.dotnet_dir_path, f'dotnet{".exe" if is_windows(parsed_args) else ""}'), "workload", "install", "wasm-tools"], verbose=True).run()
-    # getLogger().info("Finished generating dependencies for %s run types in %s and stored in %s.", ' '.join(map(str, parsed_args.run_type_names)), repo_path, parsed_args.artifact_storage_path)
-
 def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commits: List[str]) -> List[str]:
     getLogger().info("Generating benchmark_ci.py arguments for %s run type using artifacts in %s.", specific_run_type.name, parsed_args.artifact_storage_path)
     bdn_args_unescaped: list[str] = []
@@ -403,12 +399,13 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         ]
 
     elif specific_run_type == RunType.WasmAOT:
-        benchmark_ci_args += ['--wasm']
+        benchmark_ci_args += ['--wasm', '--dotnet-path', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle", "dotnet")]
         # Ensure there is a space at the beginning of `--wasmArgs` argument, so BDN
         # can correctly read them as sub-arguments for `--wasmArgs`
         bdn_args_unescaped += [
             '--anyCategories', 'Libraries', 'Runtime',
             '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
+            '--cli', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle", "dotnet", "dotnet"),
             '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle", "wasm-data"),
             '--wasmEngine', parsed_args.wasm_engine_path,
             '--wasmArgs', '\" --expose_wasm --module\"',
