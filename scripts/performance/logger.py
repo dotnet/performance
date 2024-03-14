@@ -9,6 +9,9 @@ from logging import INFO, WARNING
 from os import getpid, makedirs, path
 from time import time
 
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, ConsoleLogExporter
@@ -19,8 +22,20 @@ import __main__
 from .common import get_repo_root_path
 
 __initialized = False
+__trace_provider_initialized = False
 
-def setup_loggers(verbose: bool):
+def setup_trace_provider():
+    '''Set up the OpenTelemetry trace provider.'''
+    global __trace_provider_initialized
+    if __trace_provider_initialized:
+        return
+    provider = TracerProvider()
+    trace.set_tracer_provider(provider)
+    processor = BatchSpanProcessor(ConsoleSpanExporter())
+    provider.add_span_processor(processor)
+    __trace_provider_initialized = True
+
+def setup_loggers(verbose: bool, enable_open_telemetry_logger: bool = False):
     '''Setup the root logger for the performance scripts.'''
     def __formatter() -> Formatter:
         fmt = '[%(asctime)s][%(levelname)s] %(message)s'
@@ -33,14 +48,14 @@ def setup_loggers(verbose: bool):
 
         getLogger().setLevel(INFO)
 
-        logger_provider = LoggerProvider()
-        set_logger_provider(logger_provider)
-        logger_provider.add_log_record_processor(BatchLogRecordProcessor(ConsoleLogExporter()))
-        handler = LoggingHandler(level=INFO, logger_provider=logger_provider)
-        handler.setFormatter(__formatter())
+        if enable_open_telemetry_logger:
+            logger_provider = LoggerProvider()
+            set_logger_provider(logger_provider)
+            logger_provider.add_log_record_processor(BatchLogRecordProcessor(ConsoleLogExporter()))
+            handler = LoggingHandler(level=INFO, logger_provider=logger_provider)
 
-        # Attach OTel handler to logger
-        getLogger().addHandler(handler)
+            # Attach OTel handler to logger
+            getLogger().addHandler(handler)
 
         # Log console handler
         getLogger().addHandler(__get_console_handler(verbose))

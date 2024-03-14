@@ -21,16 +21,20 @@ from urllib.parse import urlparse
 from urllib.request import urlopen
 from time import sleep
 
+from channel_map import ChannelMap
+from opentelemetry import trace
 from performance.common import get_machine_architecture
 from performance.common import get_repo_root_path
 from performance.common import get_tools_directory
 from performance.common import push_dir
 from performance.common import RunCommand
 from performance.common import validate_supported_runtime
-from performance.logger import setup_loggers
-from channel_map import ChannelMap
+from performance.logger import setup_loggers, setup_trace_provider
 
+setup_trace_provider()
+tracer = trace.get_tracer("dotnet.performance")
 
+@tracer.start_as_current_span(name="info")
 def info(verbose: bool) -> None:
     """
     Executes `dotnet --info` in order to get the .NET Core information from the
@@ -39,6 +43,7 @@ def info(verbose: bool) -> None:
     cmdline = ['dotnet', '--info']
     RunCommand(cmdline, verbose=verbose).run()
 
+@tracer.start_as_current_span(name="exec")
 def exec(asm_path: str, success_exit_codes: List[int], verbose: bool, *args: str) -> int:
     """
     Executes `dotnet exec` which can be used to execute assemblies
