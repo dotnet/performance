@@ -45,7 +45,7 @@ import micro_benchmarks
 setup_trace_provider()
 tracer = trace.get_tracer("dotnet.performance")
 
-@tracer.start_as_current_span(name="init_tools")
+@tracer.start_as_current_span(name="benchmarks_ci_init_tools")
 def init_tools(
         architecture: str,
         dotnet_versions: List[str],
@@ -243,7 +243,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     )
 
     parser.add_argument(
-        '--enable-open-telemetry-tracer_console',
+        '--enable-open-telemetry-tracer-console',
         dest='enable_open_telemetry_tracer_console',
         required=False,
         default=False,

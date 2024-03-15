@@ -7,6 +7,7 @@ import os
 import sys
 import datetime
 
+from opentelemetry import trace
 from subprocess import check_output
 from typing import Any, Optional, List
 
@@ -15,11 +16,16 @@ from performance.common import get_tools_directory
 from performance.common import push_dir
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
+from performance.tracer import setup_trace_provider
 from channel_map import ChannelMap
 
 import dotnet
 import shutil
 
+setup_trace_provider()
+tracer = trace.get_tracer("dotnet.performance")
+
+@tracer.start_as_current_span("ci_setup_init_tools")
 def init_tools(
         architecture: str,
         dotnet_versions: List[str],
@@ -341,6 +347,7 @@ class CiSetupArgs:
         self.r2r_status = r2r_status
         self.experiment_name = experiment_name
 
+@tracer.start_as_current_span("ci_setup_main")
 def main(args: Any):
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
@@ -384,7 +391,7 @@ def main(args: Any):
     if framework in ('net8.0', 'nativeaot8.0'):
         global_json_path = os.path.join(get_repo_root_path(), 'global.json')
         shutil.copy(os.path.join(get_repo_root_path(), 'global.net8.json'), global_json_path)
-        print('Overwrote global.json with global.net8.json')
+        getLogger().info('Overwrote global.json with global.net8.json')
              
     # dotnet --info
     dotnet.info(verbose=verbose)

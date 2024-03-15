@@ -32,7 +32,7 @@ import dotnet
 setup_trace_provider()
 tracer = trace.get_tracer("dotnet.performance")
 
-@tracer.start_as_current_span(name="get_supported_configurations")
+@tracer.start_as_current_span(name="micro_benchmarks_get_supported_configurations")
 def get_supported_configurations() -> List[str]:
     '''
     The configuration to use for building the project. The default for most
@@ -284,7 +284,7 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> List[str]:
 
     return run_args
 
-@tracer.start_as_current_span(name="get_bin_dir_to_use")
+@tracer.start_as_current_span(name="micro_benchmarks_get_bin_dir_to_use")
 def get_bin_dir_to_use(csprojfile: dotnet.CSharpProjFile, bin_directory: str, run_isolated: bool) -> str:
     '''
     Gets the bin_directory, which might be different if run_isolate=True
@@ -294,7 +294,7 @@ def get_bin_dir_to_use(csprojfile: dotnet.CSharpProjFile, bin_directory: str, ru
     else:
         return bin_directory
 
-@tracer.start_as_current_span(name="build")
+@tracer.start_as_current_span(name="micro_benchmarks_build")
 def build(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
@@ -343,7 +343,7 @@ def build(
         objDir = path.join(get_artifacts_directory(), 'obj', BENCHMARKS_CSPROJ.project_name)
         remove_directory(objDir)
 
-@tracer.start_as_current_span(name="run")
+@tracer.start_as_current_span(name="micro_benchmarks_run")
 def run(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
@@ -387,7 +387,7 @@ def __log_script_header(message: str):
     getLogger().info(message)
     getLogger().info('-' * len(message))
 
-@tracer.start_as_current_span("microbenchmarks.__main")
+@tracer.start_as_current_span("micro_benchmarks_main")
 def __main(argv: List[str]) -> int:
     try:
         validate_supported_runtime()
