@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
+    <ProjectReference Include="..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
   </ItemGroup>
 
 </Project>

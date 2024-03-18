@@ -137,12 +137,6 @@
     <Compile Remove="runtime\Math\Functions\Single\**\*.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="FSharpMicro\**">
-      <Visible>false</Visible>
-    </None>
-  </ItemGroup>
-
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.1')">
     <Compile Remove="runtime\Math\Functions\Double\CopySign.cs" />
     <Compile Remove="runtime\Math\Functions\Double\FusedMultiplyAdd.cs" />
