@@ -7,7 +7,6 @@ import os
 import sys
 import datetime
 
-from opentelemetry import trace
 from subprocess import check_output
 from typing import Any, Optional, List
 
@@ -22,10 +21,7 @@ from channel_map import ChannelMap
 import dotnet
 import shutil
 
-setup_trace_provider()
-tracer = trace.get_tracer("dotnet.performance")
 
-@tracer.start_as_current_span("ci_setup_init_tools")
 def init_tools(
         architecture: str,
         dotnet_versions: List[str],
@@ -347,7 +343,6 @@ class CiSetupArgs:
         self.r2r_status = r2r_status
         self.experiment_name = experiment_name
 
-@tracer.start_as_current_span("ci_setup_main")
 def main(args: Any):
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
