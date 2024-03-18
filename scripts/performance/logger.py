@@ -9,16 +9,18 @@ from logging import INFO, WARNING
 from os import getpid, makedirs, path
 from time import time
 
-from opentelemetry._logs import set_logger_provider
-from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
-from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, ConsoleLogExporter
-
 import sys
 import __main__
 
 from .common import get_repo_root_path
 
 __initialized = False
+try:
+    from opentelemetry._logs import set_logger_provider
+    from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+    from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, ConsoleLogExporter
+except ImportError:
+    pass
 
 def setup_loggers(verbose: bool, enable_open_telemetry_logger: bool = False):
     '''Setup the root logger for the performance scripts.'''
