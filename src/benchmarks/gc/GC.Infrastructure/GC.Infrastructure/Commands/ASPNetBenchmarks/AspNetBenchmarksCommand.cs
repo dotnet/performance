@@ -63,7 +63,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 }
             }
 
-            catch (PingException _)
+            catch (PingException exp)
             {
             }
 
@@ -74,14 +74,15 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             }
 
             // Check 2.
-            SleepUntilHostsHaveRestarted();
+            // We don't care about the output from the following method here since this is at a point before the tests have even started to run.
+            bool _ = TrySleepUntilHostsHaveRestarted();
 
             RunASPNetBenchmarks(configuration);
             AnsiConsole.MarkupLine($"[bold green] Report generated at: {configuration.Output.Path} [/]");
             return 0;
         }
 
-        private static void SleepUntilHostsHaveRestarted()
+        private static bool TrySleepUntilHostsHaveRestarted()
         {
             DateTime now = DateTime.UtcNow;
 
@@ -98,18 +99,17 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 TimeSpan timeUntilEnd = end - pstNow;
                 int secondsLeft = (int)timeUntilEnd.TotalSeconds;
 
-                // If we are between 12:00 AM and 12:09 AM PST, sleep for 
+                // If we are between 12:00 AM and 12:09 AM PST, sleep for the seconds left.
                 AnsiConsole.MarkupLine($"[yellow bold] ({DateTime.Now}) ASP.NET Benchmarks Sleeping for {secondsLeft} seconds since the host machines are rebooting. [/]");
                 Thread.Sleep((secondsLeft) * 1000);
+                return true;
             }
+
+            return false;
         }
 
         private static ProcessExecutionDetails ExecuteBenchmarkForRun(ASPNetBenchmarksConfiguration configuration, KeyValuePair<string, Run> run, KeyValuePair<string, string> benchmarkToCommand)
         {
-            // At the start of a run, if we are at a point in time where we are between the time where we deterministically know the host machines need to restart,
-            // sleep for the remaining time until the machines are back up.
-            SleepUntilHostsHaveRestarted();
-
             OS os = !benchmarkToCommand.Key.Contains("Win") ? OS.Linux : OS.Windows;
             (string, string) commandLine = ASPNetBenchmarksCommandBuilder.Build(configuration, run, benchmarkToCommand, os);
 
@@ -140,6 +140,9 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 crankProcess.StartInfo.CreateNoWindow = true;
 
                 AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Running ASP.NET Benchmark for Configuration {configuration.Name} {run.Key} {benchmarkToCommand.Key} [/]");
+
+                // Add the command line to the top of the output file.
+                output.AppendLine($"Command: {commandLine.Item1} {commandLine.Item2}");
 
                 crankProcess.OutputDataReceived += (s, d) =>
                 {
@@ -301,6 +304,15 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 {
                     const string NON_RESPONSIVE = @"for 'application' is invalid or not responsive: ""No such host is known";
                     const string TIME_OUT = "[Time Out]";
+                    
+                    // At the start of a run, if we are at a point in time where we are between the time where we deterministically know the host machines need to restart,
+                    // sleep for the remaining time until the machines are back up. This may seem like an infinite recursion but we only restart if the hosts have been restarted.
+                    if (TrySleepUntilHostsHaveRestarted())
+                    {
+                        // If the machine went to sleep - restart the entire run.
+                        return RunASPNetBenchmarks(configuration);
+                    }
+
                     ProcessExecutionDetails result = ExecuteBenchmarkForRun(configuration, run, c);
                     string key = GetKey(c.Key, run.Key);
 
