@@ -25,6 +25,7 @@
     {
         public string? benchmark_file { get; set; }
         public string additional_arguments { get; set; } = "";
+        public string? override_arguments { get; set; } = "";
         public List<string> benchmarkFilters { get; set; } = new();
     }
 

@@ -1,5 +1,7 @@
 ﻿using GC.Infrastructure.Core.Configurations.ASPNetBenchmarks;
 using GC.Infrastructure.Core.TraceCollection;
+using Microsoft.Diagnostics.Tracing.Parsers.IIS_Trace;
+using System.Collections.Generic;
 using System.Text;
 
 namespace GC.Infrastructure.Core.CommandBuilders
@@ -121,7 +123,53 @@ namespace GC.Infrastructure.Core.CommandBuilders
             // Add the extra metrics by including the configuration.
             commandStringBuilder.Append($" --config {Path.Combine("Commands", "RunCommand", "BaseSuite", "PercentileBasedMetricsConfiguration.yml")} ");
 
-            return (processName, commandStringBuilder.ToString());
+            string commandString = commandStringBuilder.ToString();
+
+            // Apply overrides.
+            if (!string.IsNullOrEmpty(configuration.benchmark_settings.override_arguments))
+            {
+                List<KeyValuePair<string, string>> overrideCommands = GetCrankArgsAsList(configuration.benchmark_settings.override_arguments);
+                if (overrideCommands.Count > 0) 
+                {
+                    // Take the current commands and first replace all the keys that match the override commands.
+                    // Subsequently, add the new overrides and then convert the key-value pair list back to a string.
+                    List<KeyValuePair<string, string>> currentCommands = GetCrankArgsAsList(commandString);
+                    foreach (var item in overrideCommands)
+                    {
+                        var existing = currentCommands.Where(kv => kv.Key == item.Key).ToList();
+                        foreach (var kv in existing)
+                        {
+                            if (kv.Key != null)
+                            {
+                                currentCommands.Remove(kv);
+                            }
+                        }
+
+                        currentCommands.Add(item);
+                    }
+
+                    commandString = string.Join(" ", currentCommands.Select(c => $"--{c.Key} {c.Value}"));
+                }
+            }
+
+            return (processName, commandString);
+        }
+
+        internal static List<KeyValuePair<string, string>> GetCrankArgsAsList(string input)
+        {
+            var keyValuePairs = new List<KeyValuePair<string, string>>();
+            var splitStr = input.Split(new[] { "--" }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var item in splitStr)
+            {
+                var keyValue = item.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (keyValue.Length == 2)
+                {
+                    keyValuePairs.Add(new KeyValuePair<string, string>(keyValue[0], keyValue[1]));
+                }
+            }
+
+            return keyValuePairs;
         }
     }
 }
