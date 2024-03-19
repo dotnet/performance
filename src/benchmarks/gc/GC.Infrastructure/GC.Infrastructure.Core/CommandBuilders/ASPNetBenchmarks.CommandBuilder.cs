@@ -1,7 +1,5 @@
 ﻿using GC.Infrastructure.Core.Configurations.ASPNetBenchmarks;
 using GC.Infrastructure.Core.TraceCollection;
-using Microsoft.Diagnostics.Tracing.Parsers.IIS_Trace;
-using System.Collections.Generic;
 using System.Text;
 
 namespace GC.Infrastructure.Core.CommandBuilders
