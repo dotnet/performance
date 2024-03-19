@@ -7,6 +7,8 @@ using Spectre.Console.Cli;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.NetworkInformation;
+using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -45,14 +47,30 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             ASPNetBenchmarksConfiguration configuration = ASPNetBenchmarksConfigurationParser.Parse(settings.ConfigurationPath);
 
             // Before running the ASP.NET benchmarks, execute a few checks:
-            // Check 1. If you are connected to corpnet. These tests only run if you are connected to corp-net and therefore, preemptively, check this.
+            // Check 1. If the ASP.NET Machines are pingable. 
             // Check 2. The host machines reboot between 12:00 AM - 12:08 AM PST. Check if we are running during that time, and if so, delay running the infrastructure.
 
             // Check 1.
-            if (!Directory.Exists(@"\\clrmain\tools\"))
+            const string machineName = "aspnet-citrine-win";
+            bool success = false;
+            Ping ping = new Ping();
+            try
             {
-                // Not connected to corpnet if that folder is unavailable.
-                AnsiConsole.MarkupLine($"[red bold] Not connected to corpnet. Ensure you are connected before proceeding with the ASP.NET Benchmarks [/]");
+                PingReply reply = ping.Send(machineName);
+
+                if (reply.Status == IPStatus.Success)
+                {
+                    success = true;
+                }
+            }
+
+            catch (PingException _)
+            {
+            }
+
+            if (!success)
+            {
+                AnsiConsole.MarkupLine($"[red bold] Cannot ping the ASP.NET Machines. Ensure you are connected to corpnet or check if the machines are down before proceeding to run with the ASP.NET Benchmarks [/]");
                 return -1;
             }
 
