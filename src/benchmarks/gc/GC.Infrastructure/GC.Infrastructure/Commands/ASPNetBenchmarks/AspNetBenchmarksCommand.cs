@@ -8,7 +8,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.NetworkInformation;
-using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -291,6 +290,9 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                     benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
                 }
             }
+
+            // Overwrite the dictionary with the most up to date results of what will be run. 
+            benchmarkNameToCommand = benchmarkToNameCommandAsKvpList.ToDictionary(pair =>  pair.Key, pair => pair.Value);
 
             // For each benchmark, iterate over all specified runs.
             foreach (var c in benchmarkToNameCommandAsKvpList)
