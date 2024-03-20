@@ -8,8 +8,11 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.RegularExpressions;
+using XPlot.Plotly;
 
 namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 {
@@ -108,7 +111,130 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             return false;
         }
 
-        private static ProcessExecutionDetails ExecuteBenchmarkForRun(ASPNetBenchmarksConfiguration configuration, KeyValuePair<string, Run> run, KeyValuePair<string, string> benchmarkToCommand)
+
+        public static AspNetBenchmarkResults RunASPNetBenchmarks(ASPNetBenchmarksConfiguration configuration)
+        {
+            List<(string run, string benchmark, string reason)> retryMessages = new();
+            Dictionary<string, ProcessExecutionDetails> executionDetails = new();
+            Core.Utilities.TryCreateDirectory(configuration.Output.Path);
+
+            // Parse the CSV file for the information.
+            string[] lines = File.ReadAllLines(configuration.benchmark_settings!.benchmark_file!);
+            Dictionary<string, string> benchmarkNameToCommand = new(StringComparer.OrdinalIgnoreCase);
+
+            for (int lineIdx = 0; lineIdx < lines.Length; lineIdx++)
+            {
+                if (lineIdx == 0)
+                {
+                    continue;
+                }
+
+                string[] line = lines[lineIdx].Split(',', StringSplitOptions.TrimEntries);
+                Debug.Assert(line.Length == 2);
+
+                string benchmarkName     = line[0];
+                string benchmarkCommands = line[1];
+
+                benchmarkNameToCommand[benchmarkName] = benchmarkCommands; 
+            }
+
+            List<KeyValuePair<string, string>> benchmarkToNameCommandAsKvpList = new();
+            bool noBenchmarkFilters =
+                (configuration.benchmark_settings.benchmarkFilters == null || configuration.benchmark_settings.benchmarkFilters.Count == 0);
+
+            // If the user has specified benchmark filters, retrieve them in that order.
+            if (!noBenchmarkFilters)
+            {
+                foreach (var filter in configuration.benchmark_settings.benchmarkFilters!)
+                {
+                    foreach (var kvp in benchmarkNameToCommand)
+                    {
+                        // Check if we simply end with a "*", if so, match.
+                        if (filter.EndsWith("*") && kvp.Key.StartsWith(filter.Replace("*", "")))
+                        {
+                            benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
+                        }
+
+                        // Regular Regex check.
+                        else if (Regex.IsMatch(kvp.Key, $"^{filter}$"))
+                        {
+                            benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
+                        }
+                    }
+                }
+
+                if (benchmarkToNameCommandAsKvpList.Count == 0)
+                {
+                    throw new ArgumentException($"{nameof(AspNetBenchmarksCommand)}: No benchmark filters found. Please ensure you have added the wildcard character to do the regex matching. Benchmark Filter: {configuration.benchmark_settings.benchmarkFilters}");
+                }
+            }
+
+            // Else, add all the benchmarks.
+            else
+            {
+                foreach (var kvp in benchmarkNameToCommand)
+                {
+                    benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
+                }
+            }
+
+            // Overwrite the dictionary with the most up to date results of what will be run. 
+            benchmarkNameToCommand = benchmarkToNameCommandAsKvpList.ToDictionary(pair =>  pair.Key, pair => pair.Value);
+
+            // For each benchmark, iterate over all specified runs.
+            foreach (var benchmarkToCommand in benchmarkToNameCommandAsKvpList)
+            {
+                ExecuteBenchmarkForRuns(configuration, benchmarkToCommand, executionDetails, retryMessages);
+            }
+
+            Dictionary<string, List<MetricResult>> results = AspNetBenchmarksAnalyzeCommand.ExecuteAnalysis(configuration, benchmarkNameToCommand, executionDetails, retryMessages);
+            return new AspNetBenchmarkResults(executionDetails, results);
+        }
+
+        internal static void ExecuteBenchmarkForRuns(ASPNetBenchmarksConfiguration configuration, 
+                                                   KeyValuePair<string, string> benchmarkToCommand, 
+                                                   Dictionary<string, ProcessExecutionDetails> executionDetails, 
+                                                   List<(string, string, string)> retryMessages)
+        {
+            foreach (var run in configuration.Runs!)
+            {
+                const string NON_RESPONSIVE = @"for 'application' is invalid or not responsive: ""No such host is known";
+                const string TIME_OUT = "[Time Out]";
+
+                // If the machines fall asleep, re-run all the runs for the specific benchmark.
+                if (TrySleepUntilHostsHaveRestarted())
+                {
+                    ExecuteBenchmarkForRuns(configuration, benchmarkToCommand, executionDetails, retryMessages);
+                    return; // Return here to prevent infinite looping.
+                }
+                
+                ProcessExecutionDetails result = ExecuteBenchmarkForRun(configuration, run, benchmarkToCommand);
+                string key = GetKey(benchmarkToCommand.Key, run.Key);
+
+                bool timeout = result.StandardError.Contains(TIME_OUT);
+                bool nonResponsive = result.StandardOut.Contains(NON_RESPONSIVE) || result.StandardError.Contains(NON_RESPONSIVE);
+                bool timeoutOrNonResponsive = timeout || nonResponsive;
+
+                // Wait 2 minutes and then retry if the run timed out or the host was non-responsive (post corp-net connection and check).
+                if (result.HasFailed && timeoutOrNonResponsive)
+                {
+                    string retryReason = timeout ? "the run timed out" : "the server was non-responsive";
+                    string retryDetails = $"{run.Key} for {benchmarkToCommand.Key} failed as {retryReason}. Sleeping for 2 minutes and retrying";
+                    AnsiConsole.MarkupLine($"[red bold] {Markup.Escape(retryDetails)} [/]");
+                    retryMessages.Add((run.Key, benchmarkToCommand.Key, retryReason));
+                    Thread.Sleep(60 * 2 * 1000);
+                    result = ExecuteBenchmarkForRun(configuration, run, benchmarkToCommand);
+                    executionDetails[key] = result;
+                }
+
+                else
+                {
+                    executionDetails[key] = result;
+                }
+            }
+        }
+
+        internal static ProcessExecutionDetails ExecuteBenchmarkForRun(ASPNetBenchmarksConfiguration configuration, KeyValuePair<string, Run> run, KeyValuePair<string, string> benchmarkToCommand)
         {
             OS os = !benchmarkToCommand.Key.Contains("Win") ? OS.Linux : OS.Windows;
             (string, string) commandLine = ASPNetBenchmarksCommandBuilder.Build(configuration, run, benchmarkToCommand, os);
@@ -175,12 +301,12 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 exitCode = crankProcess.ExitCode;
             }
 
-            string outputFile = Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkToCommand.Key}_{run.Key}.json");
+            string outputJson = Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkToCommand.Key}_{run.Key}.json");
             string outputDetails = output.ToString();
 
-            if (File.Exists(outputFile))
+            if (File.Exists(outputJson))
             {
-                string[] outputLines = File.ReadAllLines(outputFile);
+                string[] outputLines = File.ReadAllLines(outputJson);
 
                 // In a quick and dirty way, check the returnCode from the file that'll tell us if the test failed.
                 foreach (var o in outputLines)
@@ -216,8 +342,11 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                     }
                 }
 
-                AnsiConsole.Markup($"[red bold] Failed with the following errors:\n {Markup.Escape(error.ToString())} Check the log file for more information: {logfileOutput} \n[/]");
+                AnsiConsole.Markup($"[red bold] Failed with the following errors:\n {Markup.Escape(error.ToString())}. Check the log file for more information: {logfileOutput} \n[/]");
             }
+
+            // Check to see if we got back all the files regardless of the exit code.
+            CheckForMissingOutputs(configuration, run.Key, benchmarkToCommand.Key);
 
             File.WriteAllText(logfileOutput, "Output: \n" + outputDetails + "\n Errors: \n" + error.ToString());
             return new ProcessExecutionDetails(key: GetKey(benchmarkToCommand.Key, run.Key),
@@ -228,119 +357,80 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                                                exitCode: exitCode);
         }
 
-        public static AspNetBenchmarkResults RunASPNetBenchmarks(ASPNetBenchmarksConfiguration configuration)
+        internal static void CheckForMissingOutputs(ASPNetBenchmarksConfiguration configuration, string runName, string benchmarkName)
         {
-            List<(string run, string benchmark, string reason)> retryMessages = new();
-            Dictionary<string, ProcessExecutionDetails> executionDetails = new();
-            Core.Utilities.TryCreateDirectory(configuration.Output.Path);
+            HashSet<string> missingOutputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string basePath = Path.Combine(configuration.Output!.Path, runName);
 
-            // Parse the CSV file for the information.
-            string[] lines = File.ReadAllLines(configuration.benchmark_settings.benchmark_file);
-            Dictionary<string, string> benchmarkNameToCommand = new(StringComparer.OrdinalIgnoreCase);
-
-            for (int lineIdx = 0; lineIdx < lines.Length; lineIdx++)
+            // Files to expect always:
+            // 1. Run Output: BenchmarkName.RunName.log
+            string runOutput = Path.Combine(basePath, $"{benchmarkName}.{runName}.log");
+            if (!File.Exists(runOutput)) 
             {
-                if (lineIdx == 0)
-                {
-                    continue;
-                }
-
-                string[] line = lines[lineIdx].Split(',', StringSplitOptions.TrimEntries);
-                Debug.Assert(line.Length == 2);
-
-                string benchmarkName     = line[0];
-                string benchmarkCommands = line[1];
-
-                benchmarkNameToCommand[benchmarkName] = benchmarkCommands; 
+                missingOutputs.Add("Run Output");
             }
 
-            List<KeyValuePair<string, string>> benchmarkToNameCommandAsKvpList = new();
-            bool noBenchmarkFilters =
-                (configuration.benchmark_settings.benchmarkFilters == null || configuration.benchmark_settings.benchmarkFilters.Count == 0);
-
-            // If the user has specified benchmark filters, retrieve them in that order.
-            if (!noBenchmarkFilters)
+            // 2. Build Output: BenchmarkName_RunName.build.log
+            string buildOutput = Path.Combine(basePath, $"{benchmarkName}_{runName}.build.log");
+            if (!File.Exists(buildOutput)) 
             {
-                foreach (var filter in configuration.benchmark_settings.benchmarkFilters!)
-                {
-                    foreach (var kvp in benchmarkNameToCommand)
-                    {
-                        // Check if we simply end with a "*", if so, match.
-                        if (filter.EndsWith("*") && kvp.Key.StartsWith(filter.Replace("*", "")))
-                        {
-                            benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
-                        }
+                missingOutputs.Add("Build Output");
+            }
 
-                        // Regular Regex check.
-                        else if (Regex.IsMatch(kvp.Key, $"^{filter}$"))
-                        {
-                            benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
-                        }
-                    }
-                }
+            // 3. Application Output: BenchmarkName_RunName.output.log
+            string applicationOutput = Path.Combine(basePath, $"{benchmarkName}_{runName}.output.log");
+            if (!File.Exists(applicationOutput)) 
+            { 
+                missingOutputs.Add("Application Output");
+            }
 
-                if (benchmarkToNameCommandAsKvpList.Count == 0)
+            // 4. Json Output: BenchmarkName_RunName.json
+            string outputJson = Path.Combine(basePath, $"{benchmarkName}_{runName}.json");
+            if (!File.Exists(outputJson)) 
+            {
+                missingOutputs.Add("Output Json");
+            }
+
+            // Optionally Requested Files:
+            // 1. Trace: BenchmarkName.<Type>.etl.zip or BenchmarkName.<Type>.nettrace
+            if (configuration.TraceConfigurations?.Type != "none")
+            {
+                string etlFileName      = Path.Combine(basePath, $"{benchmarkName}.{configuration.TraceConfigurations!.Type}.etl.zip");
+                string nettraceFileName = Path.Combine(basePath, $"{benchmarkName}.{configuration.TraceConfigurations!.Type}.nettrace");
+                if (!File.Exists(etlFileName) && !File.Exists(nettraceFileName))
                 {
-                    throw new ArgumentException($"{nameof(AspNetBenchmarksCommand)}: No benchmark filters found. Please ensure you have added the wildcard character to do the regex matching. Benchmark Filter: {configuration.benchmark_settings.benchmarkFilters}");
+                    missingOutputs.Add("Traces");
                 }
             }
 
-            // Else, add all the benchmarks.
-            else
+            // 2. GCLog: BenchmarkName_GCLog/<LogName>.log
+            if (configuration.Environment!.environment_variables!.ContainsKey("DOTNET_GCLog")                       || 
+                configuration.Environment!.environment_variables!.ContainsKey("COMPlus_GCLog")                      || 
+                configuration.Runs!.Any(r => r.Value.environment_variables?.ContainsKey("DOTNET_GCLog") ?? false)   || 
+                configuration.Runs!.Any(r => r.Value.environment_variables?.ContainsKey("COMPlus_GCLog") ?? false) )
             {
-                foreach (var kvp in benchmarkNameToCommand)
+                string basePathForGCLog = Path.Combine(configuration.Output.Path, runName, $"{benchmarkName}_GCLog");
+
+                // If the directory is entirely missing.
+                if (!Directory.Exists(basePathForGCLog))
                 {
-                    benchmarkToNameCommandAsKvpList.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
+                    missingOutputs.Add("GCLog");
                 }
-            }
 
-            // Overwrite the dictionary with the most up to date results of what will be run. 
-            benchmarkNameToCommand = benchmarkToNameCommandAsKvpList.ToDictionary(pair =>  pair.Key, pair => pair.Value);
-
-            // For each benchmark, iterate over all specified runs.
-            foreach (var c in benchmarkToNameCommandAsKvpList)
-            {
-                foreach (var run in configuration.Runs!)
+                else // If the directory exists but somehow we didn't get back the gclog file.
                 {
-                    const string NON_RESPONSIVE = @"for 'application' is invalid or not responsive: ""No such host is known";
-                    const string TIME_OUT = "[Time Out]";
-                    
-                    // At the start of a run, if we are at a point in time where we are between the time where we deterministically know the host machines need to restart,
-                    // sleep for the remaining time until the machines are back up. This may seem like an infinite recursion but we only restart if the hosts have been restarted.
-                    if (TrySleepUntilHostsHaveRestarted())
+                    IEnumerable<string> gcLogFiles = Directory.EnumerateFiles(basePathForGCLog, "*.log");
+                    if (gcLogFiles.Count() == 0)
                     {
-                        // If the machine went to sleep - restart the entire run.
-                        return RunASPNetBenchmarks(configuration);
-                    }
-
-                    ProcessExecutionDetails result = ExecuteBenchmarkForRun(configuration, run, c);
-                    string key = GetKey(c.Key, run.Key);
-
-                    bool timeout = result.StandardError.Contains(TIME_OUT);
-                    bool nonResponsive = result.StandardOut.Contains(NON_RESPONSIVE) || result.StandardError.Contains(NON_RESPONSIVE);
-                    bool timeoutOrNonResponsive = timeout || nonResponsive;
-
-                    // Wait 2 minutes and then retry if the run timed out or the host was non-responsive (post corp-net connection and check).
-                    if (result.HasFailed && timeoutOrNonResponsive)
-                    {
-                        string retryReason = timeout ? "the run timed out" : "the server was non-responsive";
-                        string retryDetails = $"{run.Key} for {c.Key} failed as {retryReason}. Sleeping for 2 minutes and retrying";
-                        AnsiConsole.MarkupLine($"[red bold] {Markup.Escape(retryDetails)} [/]");
-                        retryMessages.Add((run.Key, c.Key, retryReason));
-                        Thread.Sleep(60 * 2 * 1000);
-                        result = ExecuteBenchmarkForRun(configuration, run, c);
-                        executionDetails[key] = result;
-                    }
-
-                    else
-                    {
-                        executionDetails[key] = result;
+                        missingOutputs.Add("GCLog");
                     }
                 }
             }
 
-            Dictionary<string, List<MetricResult>> results = AspNetBenchmarksAnalyzeCommand.ExecuteAnalysis(configuration, benchmarkNameToCommand, executionDetails, retryMessages);
-            return new AspNetBenchmarkResults(executionDetails, results);
+            if (missingOutputs.Any())
+            {
+                AnsiConsole.Markup($"[yellow bold] Missing the following files from the run: \n\t-{string.Join("\n\t-", missingOutputs)} \n[/]");
+            }
         }
     }
 }

@@ -3,7 +3,7 @@
     public sealed class ASPNetBenchmarksConfiguration : ConfigurationBase
     {
         public Dictionary<string, Run>? Runs { get; set; }
-        public Environment? Environment { get; set; }
+        public Environment Environment { get; set; }
         public BenchmarkSettings? benchmark_settings { get; set; }
         public Output? Output { get; set; }
     }

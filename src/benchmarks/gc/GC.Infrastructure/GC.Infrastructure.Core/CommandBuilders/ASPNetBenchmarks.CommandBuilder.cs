@@ -17,7 +17,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
             // Environment Variables.
             // Add the environment variables from the configuration.
             Dictionary<string, string> environmentVariables = new();
-            foreach (var env in configuration.Environment.environment_variables)
+            foreach (var env in configuration.Environment!.environment_variables)
             {
                 environmentVariables[env.Key] = env.Value;
             }
