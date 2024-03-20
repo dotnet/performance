@@ -42,8 +42,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 {
                     string fileNameOfLog = Path.GetFileName(env.Value);
                     commandStringBuilder.Append( $" --application.options.downloadFiles \"*{fileNameOfLog}.log\" " );
-                    string fileName = Path.GetFileNameWithoutExtension(env.Value);
-                    commandStringBuilder.Append( $" --application.options.downloadFilesOutput \"{Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkNameToCommand.Key}_GCLog")}\" " );
+                    commandStringBuilder.Append( $" --application.options.downloadFilesOutput \"{Path.Combine(configuration.Output!.Path, run.Key, $"{benchmarkNameToCommand.Key}_GCLog")}\" " );
                 }
 
                 commandStringBuilder.Append($" --application.environmentVariables {env.Key}={variable} ");
@@ -85,12 +84,6 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 commandStringBuilder.Append($" --application.options.traceOutput {Path.Combine(configuration.Output.Path, run.Key, (benchmarkNameToCommand.Key + "." + collectType)) + traceFileSuffix}");
             }
 
-            // Add any additional arguments specified.
-            if (!string.IsNullOrEmpty(configuration.benchmark_settings.additional_arguments))
-            {
-                commandStringBuilder.Append($" {configuration.benchmark_settings.additional_arguments} ");
-            }
-
             string frameworkVersion = configuration.Environment.framework_version;
             // Override the framework version if it's specified at the level of the run.
             if (!string.IsNullOrEmpty(run.Value.framework_version))
@@ -120,6 +113,23 @@ namespace GC.Infrastructure.Core.CommandBuilders
 
             // Add the extra metrics by including the configuration.
             commandStringBuilder.Append($" --config {Path.Combine("Commands", "RunCommand", "BaseSuite", "PercentileBasedMetricsConfiguration.yml")} ");
+
+            // Add the dump collection mechanism on a crash. 
+            // Add the 3 environment variables responsible for this.
+            string dumpFileName = $"{run.Key}_{benchmarkNameToCommand.Key}_Dump";
+            commandStringBuilder.Append($" --application.environmentVariables DOTNET_DbgEnableMiniDump=1 ");
+            commandStringBuilder.Append($" --application.environmentVariables DOTNET_DbgMiniDumpType=4 "); // We always want the full Dump (4).
+            commandStringBuilder.Append($" --application.environmentVariables DOTNET_DbgMiniDumpName={dumpFileName} ");
+            commandStringBuilder.Append($" --application.options.downloadFiles \"*{dumpFileName}*\" ");
+            commandStringBuilder.Append($" --application.options.downloadFilesOutput \"{Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkNameToCommand.Key}_Dump")}\" ");
+
+            // Add the ability to download the dump file.
+
+            // Add any additional arguments specified.
+            if (!string.IsNullOrEmpty(configuration.benchmark_settings.additional_arguments))
+            {
+                commandStringBuilder.Append($" {configuration.benchmark_settings.additional_arguments} ");
+            }
 
             return (processName, commandStringBuilder.ToString());
         }

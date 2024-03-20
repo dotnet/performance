@@ -45,7 +45,6 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             AnsiConsole.Write(new Rule("ASP.NET Benchmarks Orchestrator"));
             AnsiConsole.WriteLine();
 
-            ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(AspNetBenchmarksCommand));
             ASPNetBenchmarksConfiguration configuration = ASPNetBenchmarksConfigurationParser.Parse(settings.ConfigurationPath);
 
             // Before running the ASP.NET benchmarks, execute a few checks:
@@ -68,11 +67,12 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
             catch (PingException exp)
             {
+                // DO NOTHING but catch. We log this later.
             }
 
             if (!success)
             {
-                AnsiConsole.MarkupLine($"[red bold] Cannot ping the ASP.NET Machines. Ensure you are connected to corpnet or check if the machines are down before proceeding to run with the ASP.NET Benchmarks [/]");
+                AnsiConsole.MarkupLine($"[red bold]Cannot ping the ASP.NET Machines. Ensure you are connected to corpnet or check if the machines are down before proceeding to run with the ASP.NET Benchmarks [/]");
                 return -1;
             }
 
@@ -81,7 +81,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             bool _ = TrySleepUntilHostsHaveRestarted();
 
             RunASPNetBenchmarks(configuration);
-            AnsiConsole.MarkupLine($"[bold green] Report generated at: {configuration.Output.Path} [/]");
+            AnsiConsole.MarkupLine($"[bold green] Report generated at: {configuration.Output!.Path} [/]");
             return 0;
         }
 
@@ -116,7 +116,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
         {
             List<(string run, string benchmark, string reason)> retryMessages = new();
             Dictionary<string, ProcessExecutionDetails> executionDetails = new();
-            Core.Utilities.TryCreateDirectory(configuration.Output.Path);
+            Core.Utilities.TryCreateDirectory(configuration.Output!.Path);
 
             // Parse the CSV file for the information.
             string[] lines = File.ReadAllLines(configuration.benchmark_settings!.benchmark_file!);
