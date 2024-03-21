@@ -2,7 +2,7 @@ output_path: C:\Outputs\GCPerfsimFunctionalTest
 gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
 
 coreruns:
-  segments: 
+  segments:
     path: C:\runtime_rc2\artifacts\tests\coreclr\windows.x64.Release\Tests\Core_Root\corerun.exe
     environment_variables:
       COMPlus_GCName: clrgc.dll
