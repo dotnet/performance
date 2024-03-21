@@ -114,17 +114,6 @@ namespace GC.Infrastructure.Core.CommandBuilders
             // Add the extra metrics by including the configuration.
             commandStringBuilder.Append($" --config {Path.Combine("Commands", "RunCommand", "BaseSuite", "PercentileBasedMetricsConfiguration.yml")} ");
 
-            // Add the dump collection mechanism on a crash. 
-            // Add the 3 environment variables responsible for this.
-            string dumpFileName = $"{run.Key}_{benchmarkNameToCommand.Key}_Dump";
-            commandStringBuilder.Append($" --application.environmentVariables DOTNET_DbgEnableMiniDump=1 ");
-            commandStringBuilder.Append($" --application.environmentVariables DOTNET_DbgMiniDumpType=4 "); // We always want the full Dump (4).
-            commandStringBuilder.Append($" --application.environmentVariables DOTNET_DbgMiniDumpName={dumpFileName} ");
-            commandStringBuilder.Append($" --application.options.downloadFiles \"*{dumpFileName}*\" ");
-            commandStringBuilder.Append($" --application.options.downloadFilesOutput \"{Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkNameToCommand.Key}_Dump")}\" ");
-
-            // Add the ability to download the dump file.
-
             // Add any additional arguments specified.
             if (!string.IsNullOrEmpty(configuration.benchmark_settings.additional_arguments))
             {
