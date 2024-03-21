@@ -302,7 +302,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 Path.Combine(configuration.output_path, "HighMemoryLoad");
 
             // modify name 
-            gcPerfSimHighMemoryLoadConfiguration.Name = "HighMemory_NormalServer";
+            gcPerfSimHighMemoryLoadConfiguration.Name = "HighMemoryLoad";
 
             SaveConfiguration(gcPerfSimHighMemoryLoadConfiguration, gcPerfSimSuitePath, "HighMemoryLoad.yaml");
         }
