@@ -23,7 +23,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         {
             [Description("Path to Configuration.")]
             [CommandOption("-c|--configuration")]
-            public string? ConfigurationPath { get; init; }
+            public required string ConfigurationPath { get; init; }
 
             [Description("Crank Server to target.")]
             [CommandOption("-s|--server")]
@@ -377,8 +377,12 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             // modify trace_configurations
             gcPerfSimNormalWorkstationConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
 
-            // load environment variables
-            gcPerfSimNormalWorkstationConfiguration.Environment.environment_variables = configuration.Environment.environment_variables;
+            // load environment variables by deep copying them.
+            gcPerfSimNormalWorkstationConfiguration.Environment.environment_variables = new Dictionary<string, string>();
+            foreach (var c in configuration.Environment.environment_variables)
+            {
+                gcPerfSimNormalWorkstationConfiguration.Environment.environment_variables[c.Key] = c.Value;
+            }
 
             return gcPerfSimNormalWorkstationConfiguration;
         }
