@@ -232,7 +232,7 @@
   <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
     <!-- System.Drawing.Common only supported on Windows -->
     <Compile Remove="libraries\System.Drawing\*.cs" />
-	<Compile Remove="libraries\System.Net.Http\Perf.WinHttpHandler.cs" />
+    <Compile Remove="libraries\System.Net.Http\Perf.WinHttpHandler.cs" />
   </ItemGroup>
 
   <ItemGroup>
