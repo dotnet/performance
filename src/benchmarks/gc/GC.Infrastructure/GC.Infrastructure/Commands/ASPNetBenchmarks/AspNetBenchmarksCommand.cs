@@ -1,6 +1,5 @@
 ﻿using GC.Infrastructure.Core.Analysis;
 using GC.Infrastructure.Core.CommandBuilders;
-using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.ASPNetBenchmarks;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -8,11 +7,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.NetworkInformation;
-using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.RegularExpressions;
-using XPlot.Plotly;
 
 namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 {
@@ -362,29 +358,22 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             HashSet<string> missingOutputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             string basePath = Path.Combine(configuration.Output!.Path, runName);
 
-            // Files to expect always:
-            // 1. Run Output: BenchmarkName.RunName.log
-            string runOutput = Path.Combine(basePath, $"{benchmarkName}.{runName}.log");
-            if (!File.Exists(runOutput)) 
-            {
-                missingOutputs.Add("Run Output");
-            }
-
-            // 2. Build Output: BenchmarkName_RunName.build.log
+            // Files to expect always from crank:
+            // 1. Build Output: BenchmarkName_RunName.build.log
             string buildOutput = Path.Combine(basePath, $"{benchmarkName}_{runName}.build.log");
             if (!File.Exists(buildOutput)) 
             {
                 missingOutputs.Add("Build Output");
             }
 
-            // 3. Application Output: BenchmarkName_RunName.output.log
+            // 2. Application Output: BenchmarkName_RunName.output.log
             string applicationOutput = Path.Combine(basePath, $"{benchmarkName}_{runName}.output.log");
             if (!File.Exists(applicationOutput)) 
-            { 
+            {
                 missingOutputs.Add("Application Output");
             }
 
-            // 4. Json Output: BenchmarkName_RunName.json
+            // 3. Json Output: BenchmarkName_RunName.json
             string outputJson = Path.Combine(basePath, $"{benchmarkName}_{runName}.json");
             if (!File.Exists(outputJson)) 
             {
