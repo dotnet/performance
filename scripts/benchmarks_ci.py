@@ -32,20 +32,19 @@ from typing import Any, List, Optional
 
 from performance.common import validate_supported_runtime, get_artifacts_directory, helixuploadroot
 from performance.logger import setup_loggers
-from performance.tracer import setup_trace_provider, enable_trace_console_exporter
+from performance.tracer import setup_tracing, enable_trace_console_exporter, get_tracer
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
 from subprocess import CalledProcessError
 from glob import glob
-from opentelemetry import trace
 
 import dotnet
 import micro_benchmarks
 
-setup_trace_provider()
-tracer = trace.get_tracer("dotnet.performance")
+setup_tracing()
+tracer = get_tracer()
 
-@tracer.start_as_current_span(name="benchmarks_ci_init_tools")
+@tracer.start_as_current_span(name="benchmarks_ci_init_tools") # type: ignore
 def init_tools(
         architecture: str,
         dotnet_versions: List[str],
@@ -264,7 +263,7 @@ def __process_arguments(args: List[str]):
     add_arguments(parser)
     return parser.parse_args(args)
 
-@tracer.start_as_current_span("benchmarks_ci_main")
+@tracer.start_as_current_span("benchmarks_ci_main") # type: ignore
 def main(argv: List[str]):
     validate_supported_runtime()
     args = __process_arguments(argv)

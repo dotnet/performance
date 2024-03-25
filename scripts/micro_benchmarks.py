@@ -9,7 +9,6 @@ from argparse import ArgumentTypeError
 from argparse import SUPPRESS
 from io import StringIO
 from logging import getLogger
-from opentelemetry import trace
 from os import path
 from subprocess import CalledProcessError
 from traceback import format_exc
@@ -24,15 +23,15 @@ from performance.common import get_packages_directory
 from performance.common import remove_directory
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
-from performance.tracer import setup_trace_provider
+from performance.tracer import setup_tracing, get_tracer
 from channel_map import ChannelMap
 
 import dotnet
 
-setup_trace_provider()
-tracer = trace.get_tracer("dotnet.performance")
+setup_tracing()
+tracer = get_tracer()
 
-@tracer.start_as_current_span(name="micro_benchmarks_get_supported_configurations")
+@tracer.start_as_current_span(name="micro_benchmarks_get_supported_configurations") # type: ignore
 def get_supported_configurations() -> List[str]:
     '''
     The configuration to use for building the project. The default for most
@@ -284,7 +283,7 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> List[str]:
 
     return run_args
 
-@tracer.start_as_current_span(name="micro_benchmarks_get_bin_dir_to_use")
+@tracer.start_as_current_span(name="micro_benchmarks_get_bin_dir_to_use") # type: ignore
 def get_bin_dir_to_use(csprojfile: dotnet.CSharpProjFile, bin_directory: str, run_isolated: bool) -> str:
     '''
     Gets the bin_directory, which might be different if run_isolate=True
@@ -294,7 +293,7 @@ def get_bin_dir_to_use(csprojfile: dotnet.CSharpProjFile, bin_directory: str, ru
     else:
         return bin_directory
 
-@tracer.start_as_current_span(name="micro_benchmarks_build")
+@tracer.start_as_current_span(name="micro_benchmarks_build") # type: ignore
 def build(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
@@ -343,7 +342,7 @@ def build(
         objDir = path.join(get_artifacts_directory(), 'obj', BENCHMARKS_CSPROJ.project_name)
         remove_directory(objDir)
 
-@tracer.start_as_current_span(name="micro_benchmarks_run")
+@tracer.start_as_current_span(name="micro_benchmarks_run") # type: ignore
 def run(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
@@ -387,7 +386,7 @@ def __log_script_header(message: str):
     getLogger().info(message)
     getLogger().info('-' * len(message))
 
-@tracer.start_as_current_span("micro_benchmarks_main")
+@tracer.start_as_current_span("micro_benchmarks_main") # type: ignore
 def __main(argv: List[str]) -> int:
     try:
         validate_supported_runtime()
