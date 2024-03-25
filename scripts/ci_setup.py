@@ -20,7 +20,6 @@ from channel_map import ChannelMap
 import dotnet
 import shutil
 
-
 def init_tools(
         architecture: str,
         dotnet_versions: List[str],
