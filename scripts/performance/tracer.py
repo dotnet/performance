@@ -3,16 +3,16 @@ from logging import getLogger
 class TracingStateManager:
     '''A class to manage the state of tracing.'''
     def __init__(self):
-        self.__trace_provider_initialized = False
-        self.__trace_provider_console_exporter_enabled = False
-        self.__trace_opentelemetry_imported = False
+        self.trace_provider_initialized = False
+        self.trace_provider_console_exporter_enabled = False
+        self.trace_opentelemetry_imported = False
     
-    def set_initialized(self, value : bool): self.__trace_provider_initialized = value
-    def set_console_exporter_enabled(self, value : bool): self.__trace_provider_console_exporter_enabled = value
-    def set_opentelemetry_imported(self, value : bool): self.__trace_opentelemetry_imported = value
-    def get_initialized(self): return self.__trace_provider_initialized
-    def get_console_exporter_enabled(self): return self.__trace_provider_console_exporter_enabled
-    def get_opentelemetry_imported(self): return self.__trace_opentelemetry_imported
+    def set_initialized(self, value : bool): self.trace_provider_initialized = value
+    def set_console_exporter_enabled(self, value : bool): self.trace_provider_console_exporter_enabled = value
+    def set_opentelemetry_imported(self, value : bool): self.trace_opentelemetry_imported = value
+    def get_initialized(self): return self.trace_provider_initialized
+    def get_console_exporter_enabled(self): return self.trace_provider_console_exporter_enabled
+    def get_opentelemetry_imported(self): return self.trace_opentelemetry_imported
 
 tracing_state_manager = TracingStateManager()
 try:
@@ -24,7 +24,6 @@ try:
 except ImportError:
     pass
 
-
 def setup_tracing():
     '''Set up the OpenTelemetry trace provider.'''
     if tracing_state_manager.get_initialized() or not tracing_state_manager.get_opentelemetry_imported():
@@ -32,7 +31,6 @@ def setup_tracing():
     provider = TracerProvider()
     trace.set_tracer_provider(provider)
     tracing_state_manager.set_initialized(True)
-
 
 def enable_trace_console_exporter():
     '''Enable the console exporter for trace spans.'''
@@ -45,27 +43,21 @@ def enable_trace_console_exporter():
     provider.add_span_processor(processor)
     tracing_state_manager.set_console_exporter_enabled(True)
 
-
 def get_tracer(name="dotnet.performance"):
     '''Return a tracer with the specified name.'''
     return AwareTracer(name)
-
-
 
 def is_opentelemetry_imported() -> bool:
     '''Return whether OpenTelemetry has been imported.'''
     return tracing_state_manager.get_opentelemetry_imported()
 
-
 def is_provider_initialized() -> bool:
     '''Return whether the trace provider has been initialized.'''
     return tracing_state_manager.get_initialized()
 
-
 def is_console_exporter_enabled() -> bool:
     '''Return whether the console exporter has been enabled.'''
     return tracing_state_manager.get_console_exporter_enabled()
-
 
 class AwareTracer:
     """

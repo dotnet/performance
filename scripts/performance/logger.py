@@ -16,13 +16,13 @@ from .common import get_repo_root_path
 
 class LoggerStateManager:
     def __init__(self):
-        self.__logger_initialized = False
-        self.__logger_opentelemetry_imported = False
+        self.logger_initialized = False
+        self.logger_opentelemetry_imported = False
 
-    def set_initialized(self, value: bool): self.__logger_initialized = value
-    def set_opentelemetry_imported(self, value: bool): self.__logger_opentelemetry_imported = value
-    def get_initialized(self) -> bool: return self.__logger_initialized
-    def get_opentelemetry_imported(self) -> bool: return self.__logger_opentelemetry_imported
+    def set_initialized(self, value: bool): self.logger_initialized = value
+    def set_opentelemetry_imported(self, value: bool): self.logger_opentelemetry_imported = value
+    def get_initialized(self) -> bool: return self.logger_initialized
+    def get_opentelemetry_imported(self) -> bool: return self.logger_opentelemetry_imported
 
 logger_state_manager = LoggerStateManager()
 
