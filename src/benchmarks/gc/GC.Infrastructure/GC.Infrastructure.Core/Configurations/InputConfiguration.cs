@@ -45,6 +45,12 @@
                 throw new ArgumentException($"{nameof(InputConfigurationParser)}: A path to the microbenchmarks must be provided or exist.");
             }
 
+            ConfigurationChecker.VerifyEnvironmentVariables(configuration.environment_variables, $"{nameof(InputConfigurationParser)}");
+            foreach (var run in configuration.coreruns)
+            {
+                ConfigurationChecker.VerifyEnvironmentVariables(run.Value.environment_variables, $"{nameof(InputConfigurationParser)} with Run {run.Key}");
+            }
+
             return configuration;
         }
     }
