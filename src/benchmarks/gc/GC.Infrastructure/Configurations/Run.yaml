@@ -12,7 +12,7 @@ coreruns:
       environment_variables:
           COMPlus_GCName: clrgc.dll
 
-trace_configuration_type: gc # Choose between: none, gc, verbose, cpu, cpu_managed, threadtime, join.
+trace_configuration_type: gc # Choose between: none, gc, gc_benchmarks, verbose, cpu, cpu_benchmarks, cpu_managed, cpu_managed_benchmarks, threadtime, join.
 
 # Optional fields: the contents of both the symbol_path and the source_path will be copied over to the output path.
 symbol_path:

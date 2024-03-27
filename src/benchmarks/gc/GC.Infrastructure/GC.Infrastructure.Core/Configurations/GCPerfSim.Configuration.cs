@@ -116,7 +116,7 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
             // Trace Configurations if specified, must have a type specified.
             if (configuration.TraceConfigurations != null && string.IsNullOrEmpty(configuration.TraceConfigurations.Type))
             {
-                throw new ArgumentException($"{nameof(GCPerfSimConfigurationParser)}: Please ensure a trace configuration type is specified. If you don't want to collect a trace, simply don't include the trace_configuration type or choose either: gc, verbose, cpu, cpu_managed, threadtime, threadtime_managed.");
+                throw new ArgumentException($"{nameof(GCPerfSimConfigurationParser)}: Please ensure a trace configuration type is specified. If you don't want to collect a trace, simply don't include the trace_configuration type or choose either: gc, gc_benchmarks, verbose, cpu, cpu_benchmarks, cpu_managed, cpu_managed_benchmarks, threadtime, threadtime_managed.");
             }
 
             // If the user passes in a null output path, default to the current directory.

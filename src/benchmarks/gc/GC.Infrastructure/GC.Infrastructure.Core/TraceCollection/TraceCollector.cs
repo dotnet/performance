@@ -7,9 +7,12 @@ namespace GC.Infrastructure.Core.TraceCollection
     {
         none,
         gc,
+        gc_benchmarks,
         verbose,
         cpu,
+        cpu_benchmarks,
         cpu_managed,
+        cpu_managed_benchmarks,
         threadtime,
         threadtime_managed,
         join
@@ -28,9 +31,12 @@ namespace GC.Infrastructure.Core.TraceCollection
         internal static readonly Dictionary<CollectType, string> WindowsCollectTypeMap = new()
         {
             { CollectType.gc, "/GCCollectOnly" },
+            { CollectType.gc_benchmarks, "/GCCollectOnly /Providers:Benchmarks" },
             { CollectType.verbose, "/ClrEventLevel:Verbose /ClrEvents:GC+Stack" },
             { CollectType.cpu,  "/KernelEvents=Process+Thread+ImageLoad+Profile /ClrEventLevel:Informational /ClrEvents:GC+Stack /BufferSize:3000 /CircularMB:3000"  },
+            { CollectType.cpu_benchmarks,  "/KernelEvents=Process+Thread+ImageLoad+Profile /Providers:Benchmarks /ClrEventLevel:Informational /ClrEvents:GC+Stack /BufferSize:3000 /CircularMB:3000"  },
             { CollectType.cpu_managed,  "/KernelEvents=Process+Thread+ImageLoad+Profile /ClrEventLevel:Informational /ClrEvents:GC+Stack+Codesymbols+JitSymbols+Compilation+Type+GCHeapAndTypeNames /BufferSize:3000 /CircularMB:3000"  },
+            { CollectType.cpu_managed_benchmarks,  "/KernelEvents=Process+Thread+ImageLoad+Profile /Providers:Benchmarks /ClrEventLevel:Informational /ClrEvents:GC+Stack+Codesymbols+JitSymbols+Compilation+Type+GCHeapAndTypeNames /BufferSize:3000 /CircularMB:3000"  },
             { CollectType.threadtime_managed, "/KernelEvents=Process+Thread+ImageLoad+Profile+ContextSwitch+Dispatcher /ClrEvents:GC+Stack+Codesymbols+JitSymbols+Compilation+Type+GCHeapAndTypeNames /BufferSize:3000 /CircularMB:3000 /ClrEventLevel=Verbose" },
             { CollectType.threadtime, "/KernelEvents=Process+Thread+ImageLoad+Profile+ContextSwitch+Dispatcher /ClrEvents:GC /ClrEventLevel=Verbose /BufferSize:3000 /CircularMB:3000 " },
             { CollectType.join, " /BufferSizeMB:4096 /CircularMB:4096 /KernelEvents:Process+Thread+ImageLoad  /ClrEvents:GC+Threading /ClrEventLevel=Verbose " },
@@ -46,9 +52,12 @@ namespace GC.Infrastructure.Core.TraceCollection
         internal static readonly Dictionary<string, CollectType> StringToCollectTypeMap = new(StringComparer.OrdinalIgnoreCase)
         {
             { "gc", CollectType.gc },
+            { "gc_benchmarks", CollectType.gc_benchmarks },
             { "verbose", CollectType.verbose },
             { "cpu", CollectType.cpu },
+            { "cpu_benchmarks", CollectType.cpu_benchmarks },
             { "cpu_managed", CollectType.cpu_managed },
+            { "cpu_managed_benchmarks", CollectType.cpu_managed_benchmarks },
             { "threadtime", CollectType.threadtime },
             { "threadtime_managed", CollectType.threadtime_managed },
             { "join", CollectType.join },
