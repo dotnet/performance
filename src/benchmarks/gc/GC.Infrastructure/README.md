@@ -222,6 +222,19 @@ benchmark_settings:
 
 If there is a match, these filters will run in the order specified in the yaml file.
 
+###### How To Override Parameters
+
+You can override parameters specified in the benchmark csv file by replacing all instances of the command arg with values in the `override_arguments` field.
+
+```yaml
+benchmark_settings:
+  benchmark_file: C:\InfraRuns\RunNew_All\Suites\ASPNETBenchmarks\ASPNetBenchmarks.csv
+  additional_arguments: --chart --chart-type hex 
+  override_arguments: --profile aspnet-citrine-win
+```
+
+As an example based on the configuration immediately above, all `--profile` values will be replaces with `--profile aspnet-citrine-win`.
+
 ## All Commands
 
 The infrastructure can be run in modular manner. What this means is that you can invoke a particular command that runs some part of the infrastructure. A list of all the commands can be found here:

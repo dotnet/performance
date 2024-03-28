@@ -151,9 +151,11 @@ namespace System.Net.Security.Tests
                 {
                     // In Tls1.3 part of handshake happens with data exchange.
                     await sslClient.WriteAsync(_clientBuffer, cts.Token);
+#pragma warning disable CA2022 // Avoid inexact read
                     await sslServer.ReadAsync(_serverBuffer, cts.Token);
                     await sslServer.WriteAsync(_serverBuffer, cts.Token);
                     await sslClient.ReadAsync(_clientBuffer, cts.Token);
+#pragma warning restore CA2022
                 }
             }
         }
@@ -189,11 +191,12 @@ namespace System.Net.Security.Tests
                         sslServer.AuthenticateAsServerAsync(serverOptions, cts.Token));
 
                 byte[] clientBuffer = new byte[1], serverBuffer = new byte[1];
-
                 await sslClient.WriteAsync(clientBuffer, cts.Token);
+#pragma warning disable CA2022 // Avoid inexact read
                 await sslServer.ReadAsync(serverBuffer, cts.Token);
                 await sslServer.WriteAsync(serverBuffer, cts.Token);
                 await sslClient.ReadAsync(clientBuffer, cts.Token);
+#pragma warning restore CA2022
             }
         }
 
@@ -208,7 +211,9 @@ namespace System.Net.Security.Tests
             for (int i = 0; i < ReadWriteIterations; i++)
             {
                 await _sslClient.WriteAsync(clientBuffer, default);
+#pragma warning disable CA2022 // Avoid inexact read
                 await _sslServer.ReadAsync(serverBuffer, default);
+#pragma warning restore CA2022
             }
         }
 
@@ -219,7 +224,9 @@ namespace System.Net.Security.Tests
             Memory<byte> clientBuffer = _largeClientBuffer;
             Memory<byte> serverBuffer = _largeServerBuffer;
             await _sslClient.WriteAsync(clientBuffer, default);
+#pragma warning disable CA2022 // Avoid inexact read
             await _sslServer.ReadAsync(serverBuffer, default);
+#pragma warning restore CA2022
         }
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
@@ -256,6 +263,7 @@ namespace System.Net.Security.Tests
             Memory<byte> buffer1 = _clientBuffer;
             Memory<byte> buffer2 = _serverBuffer;
 
+#pragma warning disable CA2022 // Avoid inexact read
             Task other = Task.Run(async delegate
             {
                 _twoParticipantBarrier.SignalAndWait();
@@ -272,6 +280,7 @@ namespace System.Net.Security.Tests
                 await _sslClient.WriteAsync(buffer2, default);
                 await _sslServer.ReadAsync(buffer2, default);
             }
+#pragma warning restore CA2022 
 
             await other;
         }
