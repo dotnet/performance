@@ -36,8 +36,12 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             [Description("Crank Server to target.")]
             [CommandOption("-s|--server")]
             public string? Server { get; init; }
+            
+            [Description("loop count.")]
+            [CommandOption("-l|--loop")]
+            public int? Loop { get; init; }
         }
-
+        
         internal sealed class RunInfo
         {
             public RunInfo(KeyValuePair<string, Run> runDetails, KeyValuePair<string, CoreRunInfo> corerunDetails)
@@ -49,20 +53,46 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             public KeyValuePair<string, Run> RunDetails { get; set; }
             public KeyValuePair<string, CoreRunInfo> CorerunDetails { get; set; }
         }
-
+        
         public override int Execute([NotNull] CommandContext context, [NotNull] GCPerfSimSettings settings)
         {
-            Stopwatch sw = new();
-            sw.Start();
-
-            AnsiConsole.Write(new Rule("GCPerfSim Orchestrator"));
-            AnsiConsole.WriteLine();
-
             GCPerfSimConfiguration configuration = GCPerfSimConfigurationParser.Parse(settings.ConfigurationPath);
-            GCPerfSimResults _ = RunGCPerfSim(configuration, settings.Server);
+            
+            // run gcoerfsim several times
+            int loopCount = settings.Loop == null? 1 : settings.Loop.Value;
+            string outputRoot = configuration.Output.Path;
+            for (int i = 0; i < loopCount; i++)
+            {
+                try
+                {
+                    Stopwatch sw = new();
+                    sw.Start();
+                    
+                    AnsiConsole.Write(new Rule("GCPerfSim Orchestrator"));
+                    AnsiConsole.WriteLine();
 
-            sw.Stop();
-            AnsiConsole.WriteLine($"Time to execute Msec: {sw.ElapsedMilliseconds}");
+                    // create output path for each loop
+                    string outputDir = Path.Combine(outputRoot, "gcperfsim_" + i.ToString());
+                    Core.Utilities.TryCreateDirectory(outputDir);
+
+                    // create configuration for each loop
+                    GCPerfSimConfiguration gcperfsimConfiguration = new GCPerfSimConfiguration();
+                    gcperfsimConfiguration = configuration;
+                    gcperfsimConfiguration.Output.Path = outputDir;
+
+                    // run gcperfsim
+                    GCPerfSimResults _ = RunGCPerfSim(configuration, settings.Server);
+                    sw.Stop();
+                    AnsiConsole.WriteLine($"Time to execute Msec: {sw.ElapsedMilliseconds}");
+                }
+
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    continue;
+                }
+            }
+            
             return 0;
         }
 

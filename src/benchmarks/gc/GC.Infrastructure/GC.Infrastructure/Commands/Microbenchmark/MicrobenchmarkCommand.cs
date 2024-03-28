@@ -41,17 +41,44 @@ namespace GC.Infrastructure.Commands.Microbenchmark
             [Description("Path to Configuration.")]
             [CommandOption("-c|--configuration")]
             public string? ConfigurationPath { get; init; }
+
+            [Description("loop count.")]
+            [CommandOption("-l|--loop")]
+            public int? Loop { get; init; }
         }
 
         public override int Execute([NotNull] CommandContext context, [NotNull] MicrobenchmarkSettings settings)
         {
-            AnsiConsole.Write(new Rule("Microbenchmark Orchestrator"));
-            AnsiConsole.WriteLine();
-
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(MicrobenchmarkCommand));
             MicrobenchmarkConfiguration configuration = MicrobenchmarkConfigurationParser.Parse(settings.ConfigurationPath);
 
-            RunMicrobenchmarks(configuration);
+            // run gcoerfsim several times
+            int loopCount = settings.Loop == null ? 1 : settings.Loop.Value;
+            string outputRoot = configuration.Output.Path;
+            for (int i = 0; i < loopCount; i++)
+            {
+                try
+                {
+                    // create output path for each loop
+                    string outputDir = Path.Combine(outputRoot, "microbenchmark_" + i.ToString());
+                    Core.Utilities.TryCreateDirectory(outputDir);
+
+                    MicrobenchmarkConfiguration microbenchmarkConfiguration = new MicrobenchmarkConfiguration();
+                    microbenchmarkConfiguration = configuration;
+                    microbenchmarkConfiguration.Output.Path = outputDir;
+
+                    AnsiConsole.Write(new Rule("Microbenchmark Orchestrator"));
+                    AnsiConsole.WriteLine();
+                    RunMicrobenchmarks(configuration);
+                }
+
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    continue;
+                }
+            }
+                
             return 0;
         }
 
