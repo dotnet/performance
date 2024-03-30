@@ -106,46 +106,6 @@ namespace System.Net.Http.Tests
             }
         }
 
-        [Benchmark]
-        [BenchmarkCategory(Categories.NoAOT)]
-        public async Task Get_EnumerateHeaders_Validated()
-        {
-            HttpMessageInvoker invoker = _invoker;
-            HttpRequestMessage req = _request;
-
-            using (HttpResponseMessage resp = await invoker.SendAsync(req, CancellationToken.None))
-            {
-                foreach (var header in resp.Headers) { }
-                foreach (var header in resp.Content.Headers) { }
-
-                using (Stream respStream = await resp.Content.ReadAsStreamAsync())
-                {
-                    await respStream.CopyToAsync(Stream.Null);
-                }
-            }
-        }
-
-#if NET6_0_OR_GREATER
-        [Benchmark]
-        [BenchmarkCategory(Categories.NoAOT)]
-        public async Task Get_EnumerateHeaders_Unvalidated()
-        {
-            HttpMessageInvoker invoker = _invoker;
-            HttpRequestMessage req = _request;
-
-            using (HttpResponseMessage resp = await invoker.SendAsync(req, CancellationToken.None))
-            {
-                foreach (var header in resp.Headers.NonValidated) { }
-                foreach (var header in resp.Content.Headers.NonValidated) { }
-
-                using (Stream respStream = await resp.Content.ReadAsStreamAsync())
-                {
-                    await respStream.CopyToAsync(Stream.Null);
-                }
-            }
-        }
-#endif
-
         [GlobalCleanup]
         public void Cleanup()
         {
