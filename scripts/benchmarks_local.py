@@ -262,6 +262,8 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         else:
             getLogger().info("wasm_bundle already exists in %s and %s. Skipping generation.", artifact_wasm_wasm, artifact_wasm_aot)
 
+        getLogger().info("Finished generating dependencies for %s run types in %s and stored in %s.", ' '.join(map(str, parsed_args.run_type_names)), repo_path, parsed_args.artifact_storage_path)
+
 def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commits: List[str]) -> List[str]:
     getLogger().info("Generating benchmark_ci.py arguments for %s run type using artifacts in %s.", specific_run_type.name, parsed_args.artifact_storage_path)
     bdn_args_unescaped: list[str] = []
@@ -406,6 +408,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
             '--logBuildOutput',
             '--generateBinLog'
         ]
+        os.environ['RestoreAdditionalProjectSources'] = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle")
 
     elif specific_run_type == RunType.WasmAOT:
         benchmark_ci_args += ['--wasm', '--dotnet-path', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle", "dotnet")]
@@ -423,7 +426,6 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
             '--generateBinLog',
         ]
         os.environ['RestoreAdditionalProjectSources'] = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle")
-
 
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
