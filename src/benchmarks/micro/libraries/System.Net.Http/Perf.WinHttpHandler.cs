@@ -16,7 +16,7 @@ using MicroBenchmarks;
 namespace System.Net.Http.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
-    [SupportedOSPlatform("windows")]
+    [OperatingSystemsFilter(allowed: true, platforms: OS.Windows)]
     public class WinHttpHandlerPerfTest
     {
         // the field names start with lowercase to keep to benchmark ID! do not change it
@@ -43,7 +43,7 @@ namespace System.Net.Http.Tests
                 "HTTP/1.1 200 OK\r\n" + (chunkedResponse ?
                 $"Transfer-Encoding: chunked\r\n\r\n{responseLength.ToString("X")}\r\n{new string('a', responseLength)}\r\n0\r\n\r\n" :
                 $"Content-Length: {responseLength}\r\n\r\n{new string('a', responseLength)}");
-            ReadOnlyMemory<byte> responseBytes = Encoding.UTF8.GetBytes(responseText);
+            byte[] responseBytes = Encoding.UTF8.GetBytes(responseText);
 
             _serverTask = Task.Run(async () =>
             {
@@ -68,7 +68,7 @@ namespace System.Net.Http.Tests
                                     while (true)
                                     {
                                         while (!string.IsNullOrEmpty(await reader.ReadLineAsync())) ;
-                                        await stream.WriteAsync(responseBytes);
+                                        await stream.WriteAsync(responseBytes, 0, responseBytes.Length);
                                     }
                                 }
                             }
