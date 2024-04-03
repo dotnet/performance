@@ -17,6 +17,7 @@ namespace System.Net.Http.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     [SupportedOSPlatform("windows")]
+    [OperatingSystemsFilter(allowed: true, platforms: OS.Windows)]
     public class WinHttpHandlerPerfTest
     {
         // the field names start with lowercase to keep to benchmark ID! do not change it
