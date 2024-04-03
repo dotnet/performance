@@ -120,7 +120,7 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
 def run_runtime_dotnet(repo_path: str, args: Optional[List[str]] = None):
     if args is None:
         args = []
-    dotnet_command = ["dotnet.sh"] + args
+    dotnet_command = ["./dotnet.sh"] + args
     RunCommand(dotnet_command, verbose=True).run(repo_path)
 
 def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: Optional[List[str]] = None):
@@ -334,7 +334,6 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
     benchmark_ci_args = [
         '--architecture', parsed_args.architecture,
         '--frameworks', parsed_args.framework,
-        '--dotnet-path', parsed_args.dotnet_dir_path,
         '--csproj', parsed_args.csproj,
         '--incremental', "no",
         '--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{commit}.{start_time.strftime('%y%m%d_%H%M%S')}") # We add the commit hash to the artifact path because we are only running one commit at a time and they would clobber if running more than one commit perf type
@@ -344,6 +343,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         benchmark_ci_args += ['--filter'] + parsed_args.filter
 
     if specific_run_type == RunType.CoreRun:
+        benchmark_ci_args += [ '--dotnet-path', parsed_args.dotnet_dir_path ]
         bdn_args_unescaped += [
             '--anyCategories', 'Libraries', 'Runtime',
             '--logBuildOutput',
@@ -352,6 +352,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         ]
 
     elif specific_run_type == RunType.MonoAOTLLVM:
+        benchmark_ci_args += [ '--dotnet-path', parsed_args.dotnet_dir_path ]
         bdn_args_unescaped += [
             '--anyCategories', 'Libraries', 'Runtime',
             '--category-exclusion-filter', 'NoAOT', 'NoWASM',
@@ -364,6 +365,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         ]
 
     elif specific_run_type == RunType.MonoInterpreter:
+        benchmark_ci_args += [ '--dotnet-path', parsed_args.dotnet_dir_path ]
         bdn_args_unescaped += [
             '--anyCategories', 'Libraries', 'Runtime', 
             '--category-exclusion-filter', 'NoInterpreter', 'NoMono',
@@ -378,6 +380,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         ]
 
     elif specific_run_type == RunType.MonoJIT:
+        benchmark_ci_args += [ '--dotnet-path', parsed_args.dotnet_dir_path ]
         bdn_args_unescaped += [
             '--anyCategories', 'Libraries', 'Runtime', 
             '--category-exclusion-filter', 'NoInterpreter', 'NoMono',
@@ -417,8 +420,10 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
             '--wasmArgs', '\" --expose_wasm --module\"',
             '--aotcompilermode', 'wasm',
             '--logBuildOutput',
-            '--generateBinLog'
+            '--generateBinLog',
         ]
+        os.environ['RestoreAdditionalProjectSources'] = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle")
+
 
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
