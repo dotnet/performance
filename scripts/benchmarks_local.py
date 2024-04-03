@@ -423,7 +423,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
             '--wasmArgs', '\" --expose_wasm --module\"',
             '--aotcompilermode', 'wasm',
             '--logBuildOutput',
-            '--generateBinLog',
+            '--generateBinLog'
         ]
         os.environ['RestoreAdditionalProjectSources'] = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle")
 
