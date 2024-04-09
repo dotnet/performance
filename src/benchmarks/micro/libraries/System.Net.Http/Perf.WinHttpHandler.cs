@@ -37,6 +37,10 @@ namespace System.Net.Http.Tests
         [GlobalSetup]
         public void Setup()
         {
+#if DEBUG
+            System.Diagnostics.Debugger.Launch();
+#endif
+
             _serverCert = Test.Common.Configuration.Certificates.GetServerCertificate();
             _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -62,7 +66,7 @@ namespace System.Net.Http.Tests
                                 if (ssl)
                                 {
                                     var sslStream = new SslStream(stream, false, delegate { return true; });
-                                    await sslStream.AuthenticateAsServerAsync(_serverCert, false, SslProtocols.None, false);
+                                    await sslStream.AuthenticateAsServerAsync(_serverCert, false, SslProtocols.Tls12, false);
                                     stream = sslStream;
                                 }
 
