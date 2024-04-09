@@ -112,7 +112,7 @@ profiles:
         variables:
           osGroup: windows
           architecture: arm64
-          queue: Windows.11.Arm64.Perf.Surf
+          queue: Windows.11.Arm64.Surf.Perf
   
   win-arm64-ampere:
     jobs:
