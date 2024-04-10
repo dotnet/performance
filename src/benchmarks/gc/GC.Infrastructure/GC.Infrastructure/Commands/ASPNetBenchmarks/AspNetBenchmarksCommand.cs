@@ -244,13 +244,13 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             // There are 3 main ASP.NET errors:
             // 1. The server is unavailable - this could be because you aren't connected to CorpNet or the machine is down.
             // 2. The crank commands are incorrect.
-            // 3. Test fails because of a test error.
+            // 3. Test fails because of a test errors.
 
             // Launch new crank process.
             int exitCode = -1;
             string logfileOutput = Path.Combine(outputPath, $"{GetKey(benchmarkToCommand.Key, run.Key)}.log");
             StringBuilder output = new();
-            StringBuilder error = new();
+            StringBuilder errors = new();
 
             using (Process crankProcess = new())
             {
@@ -272,7 +272,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 };
                 crankProcess.ErrorDataReceived += (s, d) =>
                 {
-                    error.AppendLine(d?.Data);
+                    errors.AppendLine(d?.Data);
                 };
 
                 crankProcess.Start();
@@ -285,11 +285,12 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 if (!crankProcess.HasExited)
                 {
                     AnsiConsole.MarkupLine($"[red bold] ASP.NET Benchmark timed out for: {configuration.Name} {run.Key} {benchmarkToCommand.Key} - skipping the results but writing stdout and stderror to {logfileOutput} [/]");
-                    File.WriteAllText(logfileOutput, "Output: \n" + output.ToString() + "\n Errors: \n" + error.ToString());
+                    errors.AppendLine($"Run: {configuration.Name} {run.Key} {benchmarkToCommand.Key} timed out.");
+                    File.WriteAllText(logfileOutput, "Output: \n" + output.ToString() + "\n Errors: \n" + errors.ToString());
                     return new ProcessExecutionDetails(key: GetKey(benchmarkToCommand.Key, run.Key),
                                                        commandlineArgs: commandLine.Item1 + " " + commandLine.Item2,
                                                        environmentVariables: new(),
-                                                       standardError: "[Time Out]: " + error.ToString(),
+                                                       standardError: "[Time Out]: " + errors.ToString(),
                                                        standardOut: output.ToString(),
                                                        exitCode: exitCode);
                 }
@@ -319,10 +320,10 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
             else
             {
-                // For the case where the output file doesn't exist implies that was an issue connecting to the asp.net machines or error number 1.
-                // This case also applies for incorrect crank arguments or error number 2.
-                // Move the standard out to the standard error as the process failed.
-                error.AppendLine(outputDetails);
+                // For the case where the output file doesn't exist implies that was an issue connecting to the asp.net machines or errors number 1.
+                // This case also applies for incorrect crank arguments or errors number 2.
+                // Move the standard out to the standard errors as the process failed.
+                errors.AppendLine(outputDetails);
             }
 
             if (exitCode != 0)
@@ -330,25 +331,31 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 string[] outputLines = outputDetails.Split("\n");
                 foreach (var o in outputLines)
                 {
-                    // Crank provides the standard error from the test itself by this mechanism.
+                    // Crank provides the standard errors from the test itself by this mechanism.
                     // Error #3: Issues with test run.
                     if (o.StartsWith("[STDERR]"))
                     {
-                        error.AppendLine(o.Replace("[STDERR]", ""));
+                        errors.AppendLine(o.Replace("[STDERR]", ""));
+                    }
+
+                    // Highlight case where: Configuration 'https://github.com/aspnet/Benchmarks/blob/main/scenarios/aspnet.profiles.yml?raw=true' could not be loaded.
+                    else if (o.Contains("Configuration '") && o.Contains("could not be loaded"))
+                    {
+                        errors.AppendLine(o);
                     }
                 }
 
-                AnsiConsole.Markup($"[red bold] Failed with the following errors:\n {Markup.Escape(error.ToString())}. Check the log file for more information: {logfileOutput} \n[/]");
+                AnsiConsole.Markup($"[red bold] Failed with the following errors:\n {Markup.Escape(errors.ToString())}. Check the log file for more information: {logfileOutput} \n[/]");
             }
 
             // Check to see if we got back all the files regardless of the exit code.
             CheckForMissingOutputs(configuration, run.Key, benchmarkToCommand.Key);
 
-            File.WriteAllText(logfileOutput, "Output: \n" + outputDetails + "\n Errors: \n" + error.ToString());
+            File.WriteAllText(logfileOutput, "Output: \n" + outputDetails + "\n Errors: \n" + errors.ToString());
             return new ProcessExecutionDetails(key: GetKey(benchmarkToCommand.Key, run.Key),
                                                commandlineArgs: commandLine.Item1 + " " + commandLine.Item2,
                                                environmentVariables: new(),
-                                               standardError: error.ToString(),
+                                               standardError: errors.ToString(),
                                                standardOut: output.ToString(),
                                                exitCode: exitCode);
         }
