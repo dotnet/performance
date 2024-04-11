@@ -142,7 +142,16 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 }
             }
 
-            commandStringBuilder.Append($" --application.options.outputFiles {Path.Combine(Path.GetDirectoryName(corerunOverride.Value.Path), "*")} ");
+            // If Path is a file, upload single file.
+            if (File.Exists(corerunOverride.Value.Path))
+            {
+                commandStringBuilder.Append($" --application.options.outputFiles {corerunOverride.Value.Path}");
+            }
+            // If Path is a folder, upload entire folder.
+            if (Directory.Exists(corerunOverride.Value.Path))
+            {
+                commandStringBuilder.Append($" --application.options.outputFiles {Path.Combine(corerunOverride.Value.Path, "*")} ");
+            }
 
             commandStringBuilder.Append($" --profile {serverName} ");
             return (processName, commandStringBuilder.ToString());
