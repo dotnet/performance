@@ -19,6 +19,7 @@
 
     <!-- Allow building with one major version, and running using a sdk with a higher major version -->
     <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
+    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
   <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->

@@ -222,6 +222,19 @@ benchmark_settings:
 
 If there is a match, these filters will run in the order specified in the yaml file.
 
+###### How To Override Parameters
+
+You can override parameters specified in the benchmark csv file by replacing all instances of the command arg with values in the `override_arguments` field.
+
+```yaml
+benchmark_settings:
+  benchmark_file: C:\InfraRuns\RunNew_All\Suites\ASPNETBenchmarks\ASPNetBenchmarks.csv
+  additional_arguments: --chart --chart-type hex 
+  override_arguments: --profile aspnet-citrine-win
+```
+
+As an example based on the configuration immediately above, all `--profile` values will be replaces with `--profile aspnet-citrine-win`.
+
 ## All Commands
 
 The infrastructure can be run in modular manner. What this means is that you can invoke a particular command that runs some part of the infrastructure. A list of all the commands can be found here:
@@ -234,6 +247,7 @@ The infrastructure can be run in modular manner. What this means is that you can
 | gcperfsim                | Runs a GCPerfSim Configuration - both orchestration and analysis.                             | ``gcperfsim --configuration Configuration.yaml [--server nameOfMachine]``                |
 | gcperfsim-analyze        | Runs just the analysis portion of the GCPerfSim run assuming the traces are available.        | ``gcperfsim-analyze --configuration Configuration.yaml``        |
 | gcperfsim-compare        | Runs the comparison between two traces and generates a report for GCPerfSim runs. The acceptable file types are: ``.etl, .nettrace, .etl.zip``            | ``gcperfsim-compare --baseline Trace1Path  --comparand Trace2Path --output PathToOutput.md``        |
+| gcperfsim-functional | Runs the functional portion of the GCPerfSim Tests. | ``gcperfsim-functional --configuration Configuration.yaml`` |
 | microbenchmarks          | Runs a Microbenchmark Configuration - both orchestration and analysis.                        | ``microbenchmarks --configuration Configuration.yaml``           |
 | microbenchmarks-analyze  | Runs just the analysis portion of the Microbenchmark run assuming the traces are available.   | ``microbenchmarks-analyze --configuration Configuration.yaml``   |
 | aspnetbenchmarks         | Runs the ASPNet Benchmarks - both orchestration and analysis.                                 | ``aspnetbenchmarks --configuration Configuration.yaml``         |

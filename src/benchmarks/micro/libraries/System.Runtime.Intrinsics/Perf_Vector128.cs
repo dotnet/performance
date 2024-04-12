@@ -27,6 +27,7 @@ namespace System.Runtime.Intrinsics.Tests
         public Vector128<double> CeilingDoubleBenchmark() => Vector128.Ceiling(_vectorDouble);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<float> CeilingFloatBenchmark() => Vector128.Ceiling(_vectorFloat);
 
         [Benchmark]
@@ -134,6 +135,7 @@ namespace System.Runtime.Intrinsics.Tests
         public float DotBenchmark() => Vector128.Dot(Value1, Value2);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<float> EqualsStaticBenchmark() => Vector128.Equals(Value1, Value2);
 
         [Benchmark]
@@ -143,6 +145,7 @@ namespace System.Runtime.Intrinsics.Tests
         public bool EqualsAnyBenchmark() => Vector128.EqualsAny(Value1, Value2);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<float> GreaterThanBenchmark() => Vector128.GreaterThan(Value1, Value2);
 
         [Benchmark]
@@ -152,6 +155,7 @@ namespace System.Runtime.Intrinsics.Tests
         public bool GreaterThanAnyBenchmark() => Vector128.GreaterThanAny(Value1, Value2);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<float> GreaterThanOrEqualBenchmark() => Vector128.GreaterThanOrEqual(Value1, Value2);
 
         [Benchmark]
@@ -161,6 +165,7 @@ namespace System.Runtime.Intrinsics.Tests
         public bool GreaterThanOrEqualAnyBenchmark() => Vector128.GreaterThanOrEqualAny(Value1, Value2);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<float> LessThanBenchmark() => Vector128.LessThan(Value1, Value2);
 
         [Benchmark]
@@ -179,6 +184,7 @@ namespace System.Runtime.Intrinsics.Tests
         public bool LessThanOrEqualAnyBenchmark() => Vector128.LessThanOrEqualAny(Value1, Value2);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<float> MaxBenchmark() => Vector128.Max(Value1, Value2);
 
         [Benchmark]
@@ -194,6 +200,7 @@ namespace System.Runtime.Intrinsics.Tests
         public Vector128<float> OnesComplementBenchmark() => Vector128.OnesComplement(Value1);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<float> SquareRootBenchmark() => Vector128.Sqrt(Value1);
 
         [Benchmark]
@@ -229,9 +236,11 @@ namespace System.Runtime.Intrinsics.Tests
         public int GetHashCodeBenchmark() => Value1.GetHashCode();
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<int> AddOperatorBenchmark() => Value1 + Value2;
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<int> BitwiseAndOperatorBenchmark() => Value1 & Value2;
 
         [Benchmark]
@@ -244,12 +253,14 @@ namespace System.Runtime.Intrinsics.Tests
         public bool EqualityOperatorBenchmark() => Value1 == Value2;
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<int> ExclusiveOrOperatorBenchmark() => Value1 ^ Value2;
 
         [Benchmark]
         public bool InequalityOperatorBenchmark() => Value1 != Value2;
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<int> MultiplyOperatorBenchmark() => Value1 * Value2;
 
         [Benchmark]
@@ -277,6 +288,7 @@ namespace System.Runtime.Intrinsics.Tests
         public Vector128<int> BitwiseOrBenchmark() => Vector128.BitwiseOr(Value1, Value2);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<int> ConditionalSelectBenchmark() => Vector128.ConditionalSelect(Value1, Value2, Value3);
 
         [Benchmark]
@@ -286,6 +298,7 @@ namespace System.Runtime.Intrinsics.Tests
         public int DotBenchmark() => Vector128.Dot(Value1, Value2);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<int> EqualsStaticBenchmark() => Vector128.Equals(Value1, Value2);
 
         [Benchmark]
@@ -337,6 +350,7 @@ namespace System.Runtime.Intrinsics.Tests
         public Vector128<int> MinBenchmark() => Vector128.Min(Value1, Value2);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<int> MultiplyBenchmark() => Vector128.Multiply(Value1, Value2);
 
         [Benchmark]
@@ -346,6 +360,7 @@ namespace System.Runtime.Intrinsics.Tests
         public Vector128<int> OnesComplementBenchmark() => Vector128.OnesComplement(Value1);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector128<int> SquareRootBenchmark() => Vector128.Sqrt(Value1);
 
         [Benchmark]

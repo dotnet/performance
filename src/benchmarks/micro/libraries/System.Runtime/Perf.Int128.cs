@@ -25,6 +25,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
+        [MemoryRandomization]
         public string ToString(Int128 value) => value.ToString();
 
         [Benchmark]

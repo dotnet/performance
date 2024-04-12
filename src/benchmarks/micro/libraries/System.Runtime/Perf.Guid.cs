@@ -30,6 +30,7 @@ namespace System.Tests
         public Guid NewGuid() => Guid.NewGuid();
 
         [Benchmark]
+        [MemoryRandomization]
         public Guid ctor_str() => new Guid(guidStr);
 
         [Benchmark]
@@ -48,6 +49,7 @@ namespace System.Tests
         public bool NotEqualsOperator() => _guid != _same;
 
         [Benchmark]
+        [MemoryRandomization]
         public Guid Parse() => Guid.Parse(guidStr);
 
         [Benchmark]

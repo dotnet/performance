@@ -29,6 +29,7 @@ namespace System.Text.Tests
         [Benchmark]
         [Arguments(100)]
         [Arguments(LOHAllocatedStringSize)]
+        [MemoryRandomization]
         public StringBuilder ctor_string(int length) => new StringBuilder(length == 100 ? _string100 : _stringLOH);
 
         [Benchmark]
@@ -65,6 +66,7 @@ namespace System.Text.Tests
         [Benchmark]
         [Arguments(100)]
         [Arguments(LOHAllocatedStringSize)]
+        [MemoryRandomization]
         public StringBuilder Append_Char(int length)
         {
             StringBuilder builder = new StringBuilder();
@@ -180,6 +182,8 @@ namespace System.Text.Tests
 
         // on .NET 6+, interpolated string handlers make appending more efficient by avoiding boxing and using ISpanFormattable.
         [Benchmark]
+        // on .NET 6+, interpolated string handlers make appending more efficient by avoiding boxing and using ISpanFormattable.
+        [MemoryRandomization]
         public StringBuilder Append_ValueTypes_Interpolated()
         {
             var builder = new StringBuilder();
@@ -232,6 +236,7 @@ namespace System.Text.Tests
 #endif
 
         [Benchmark]
+        [MemoryRandomization]
         public StringBuilder Insert_Primitives()
         {
             StringBuilder builder = new StringBuilder();
@@ -256,6 +261,7 @@ namespace System.Text.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public StringBuilder Insert_Strings()
         {
             StringBuilder builder = new StringBuilder();

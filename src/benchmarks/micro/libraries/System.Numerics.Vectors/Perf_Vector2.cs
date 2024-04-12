@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -21,6 +21,7 @@ namespace System.Numerics.Tests
         public Vector2 OneBenchmark() => Vector2.One;
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector2 UnitXBenchmark() => Vector2.UnitX;
 
         [Benchmark]
@@ -108,6 +109,7 @@ namespace System.Numerics.Tests
         public Vector2 NegateBenchmark() => Vector2.Negate(VectorTests.Vector2Value);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector2 NormalizeBenchmark() => Vector2.Normalize(VectorTests.Vector2Value);
 
         [Benchmark]
@@ -126,6 +128,7 @@ namespace System.Numerics.Tests
         public Vector2 TransformByMatrix4x4Benchmark() => Vector2.Transform(VectorTests.Vector2Value, Matrix4x4.Identity);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector2 TransformByQuaternionBenchmark() => Vector2.Transform(VectorTests.Vector2Value, Quaternion.Identity);
 
         [Benchmark]

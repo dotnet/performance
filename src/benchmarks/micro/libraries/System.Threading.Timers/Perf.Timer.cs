@@ -17,15 +17,18 @@ namespace System.Threading.Tests
         private Task[] _tasks;
 
         [Benchmark]
+        [MemoryRandomization]
         public void ShortScheduleAndDispose() => new Timer(_ => { }, null, 50, -1).Dispose();
 
         [Benchmark]
+        [MemoryRandomization]
         public void LongScheduleAndDispose() => new Timer(_ => { }, null, int.MaxValue, -1).Dispose();
 
         [GlobalSetup(Target = nameof(ScheduleManyThenDisposeMany))]
         public void SetupScheduleManyThenDisposeMany() => _timers = new Timer[Count];
 
         [Benchmark]
+        [MemoryRandomization]
         public void ScheduleManyThenDisposeMany()
         {
             Timer[] timers = _timers;
@@ -95,6 +98,7 @@ namespace System.Threading.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ShortScheduleAndDisposeWithFiringTimers() => new Timer(_ => { }, 0, 100, 100).Dispose();
 
         [GlobalCleanup(Target = nameof(ShortScheduleAndDisposeWithFiringTimers))]

@@ -28,6 +28,7 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ReadSpanEmptyLoop()
         {
             var json = new Utf8JsonReader(_dataUtf8, 

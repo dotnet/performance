@@ -54,9 +54,11 @@ namespace System.Net.Security.Tests
                 // In Tls1.3 part of handshake happens with data exchange.
                 // To be consistent we do this extra step for all protocol versions
                 await sslClient.WriteAsync(_clientBuffer, default);
+#pragma warning disable CA2022 // Avoid inexact read
                 await sslServer.ReadAsync(_serverBuffer, default);
                 await sslServer.WriteAsync(_serverBuffer, default);
                 await sslClient.ReadAsync(_clientBuffer, default);
+#pragma warning restore CA2022
             }
         }
 

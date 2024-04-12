@@ -5,19 +5,21 @@ import json
 import os
 import subprocess
 
-def versions_write_json(versiondict: dict, outputfile = 'versions.json'):
-    with open(outputfile, 'w') as file:
+from typing import Dict
+
+def versions_write_json(versiondict: Dict[str, str], outputfile: str = 'versions.json'):
+    with open(outputfile, 'w', encoding='utf-8') as file:
         json.dump(versiondict, file)
 
-def versions_read_json(inputfile = 'versions.json'):
-    with open(inputfile, 'r') as file:
+def versions_read_json(inputfile: str = 'versions.json'):
+    with open(inputfile, 'r', encoding='utf-8') as file:
         return json.load(file)
 
-def versions_write_env(versiondict: dict):
+def versions_write_env(versiondict: Dict[str, str]):
     for key, value in versiondict.items():
-        os.environ[key] = value
+        os.environ[key.upper()] = value # Windows automatically converts environment variables to uppercase, match this behavior everywhere
 
-def versions_read_json_file_save_env(inputfile = 'versions.json'):
+def versions_read_json_file_save_env(inputfile: str = 'versions.json'):
     versions = versions_read_json(inputfile)
     print(f"Versions: {versions}")
     versions_write_env(versions)

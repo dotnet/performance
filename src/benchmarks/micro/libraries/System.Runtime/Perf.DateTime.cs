@@ -19,6 +19,7 @@ namespace System.Tests
         public void Setup() => date2Boxed = date2;
 
         [Benchmark]
+        [MemoryRandomization]
         public DateTime GetNow() => DateTime.Now;
 
         [Benchmark]
@@ -35,6 +36,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ToString_MemberData))]
+        [MemoryRandomization]
         public string ToString(string format) => date1.ToString(format);
         
         [Benchmark]

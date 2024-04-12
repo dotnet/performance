@@ -1,14 +1,16 @@
 '''
 pre-command
 '''
-import sys
 import os
-from zipfile import ZipFile
-from performance.logger import setup_loggers, getLogger
-from shutil import copyfile
-from shared.precommands import PreCommands
-from shared.const import PUBDIR
+import time
 from argparse import ArgumentParser
+from zipfile import ZipFile
+from shutil import copyfile
+from shared.const import PUBDIR
+from shared.util import xharnesscommand
+
+from performance.common import RunCommand
+from performance.logger import setup_loggers, getLogger
 
 setup_loggers(True)
 
@@ -20,6 +22,7 @@ parser.add_argument(
         required=True,
         type=str,
         help='Name of the APK to setup (with .apk)')
+parser.add_argument('--restart-device', help='Restart the device before running the tests', action='store_true', default=False)
 args = parser.parse_args()
 
 if not os.path.exists(PUBDIR):
@@ -45,3 +48,50 @@ if args.unzip:
 else:
     copyfile(apkname, os.path.join(PUBDIR, apkname))
 
+if args.restart_device:
+    cmdline = xharnesscommand() + ['android', 'state', '--adb']
+    adb = RunCommand(cmdline, verbose=True)
+    adb.run()
+
+    # Do not remove, XHarness install seems to fail without an adb command called before the xharness command
+    getLogger().info("Preparing ADB")
+    adbpath = adb.stdout.strip()
+
+    reboot_cmd = [
+        adbpath,
+        'reboot'
+    ]
+
+    wait_for_device_cmd = [
+        adbpath,
+        'wait-for-device'
+    ]
+
+    check_device_boot_cmd = [
+        adbpath,
+        'shell',
+        'getprop',
+        'sys.boot_completed'
+    ]
+
+    getLogger().info("Rebooting device to ensure we don't hit issue with being unable to install APK")
+    RunCommand(reboot_cmd, verbose=True).run()
+
+    getLogger().info("Waiting for device to come back online")
+    RunCommand(wait_for_device_cmd, verbose=True).run()
+    
+    # Wait for the device to boot
+    getLogger().info("Waiting for device to boot")
+    boot_completed = False
+    boot_attempts = 0
+    while not boot_completed and boot_attempts < 10:
+        time.sleep(5)
+        boot_check = RunCommand(check_device_boot_cmd, verbose=True)
+        boot_check.run()
+        boot_completed = boot_check.stdout.strip() == '1'
+        boot_attempts += 1
+        getLogger().info("Device not booted yet, waiting 5 seconds")
+
+    if not boot_completed:
+        getLogger().error("Android device did not boot in a reasonable time")
+        raise TimeoutError("Android device did not boot in a reasonable time")

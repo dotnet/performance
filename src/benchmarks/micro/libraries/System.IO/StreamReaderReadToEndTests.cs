@@ -28,6 +28,7 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public string ReadToEnd()
         {
             _reader.BaseStream.Position = 0;
@@ -37,6 +38,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public Task<string> ReadToEndAsync()
         {
             _reader.BaseStream.Position = 0;

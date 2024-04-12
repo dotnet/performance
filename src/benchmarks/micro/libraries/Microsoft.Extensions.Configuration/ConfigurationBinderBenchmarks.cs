@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -43,6 +43,7 @@ namespace Microsoft.Extensions.Configuration
 
         [Benchmark]
         [AotFilter("Not supported.")]  // System.NotSupportedException: This object cannot be invoked because no code was generated for it: 'System.Collections.Generic.IDictionary`2[System.String, System.String].Item'.
+        [MemoryRandomization]
         public MySettings Get() => _configuration.Get<MySettings>();
 
         public class MySettings
