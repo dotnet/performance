@@ -149,7 +149,11 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             ]
         else:
             if args.os_group != "osx" and args.os_sub_group != "_musl":
-                install_prerequisites += ["sudo apt-get -y install python3-pip python3-venv"]
+                install_prerequisites += [
+                    'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"'
+                    'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\''
+                    "sudo apt-get -y install python3-pip python3-venv"
+                ]
 
             install_prerequisites += [
                 "python3 -m venv $HELIX_WORKITEM_ROOT/.venv",
@@ -296,15 +300,16 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
             return"Windows.10.Amd64.ClientRS4.DevEx.15.8.Open"
         else:
             queue_map = {
-                "perftiger": "Windows.10.Amd64.19H1.Tiger.Perf",
-                "perftiger_crossgen": "Windows.10.Amd64.19H1.Tiger.Perf",
+                "perftiger": "Windows.11.Amd64.Tiger.Perf",
+                "perftiger_crossgen": "Windows.11.Amd64.Tiger.Perf",
                 "perfowl": "Windows.11.Amd64.Owl.Perf",
-                "perfsurf": "Windows.10.Arm64.Perf.Surf",
+                "perfsurf": "Windows.11.Arm64.Surf.Perf",
                 "perfpixel4a": "Windows.11.Amd64.Pixel.Perf",
                 "perfampere": "Windows.Server.Arm64.Perf",
+                "perfviper": "Windows.11.Amd64.Viper.Perf",
                 "cloudvm": "Windows.10.Amd64"
             }
-            return queue_map.get(logical_machine, "Windows.10.Amd64.19H1.Tiger.Perf")
+            return queue_map.get(logical_machine, "Windows.11.Amd64.Tiger.Perf")
     else:
         if alpine:
             # this is the same for both public and internal
@@ -325,6 +330,7 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
                     "perfiphone12mini": "OSX.13.Amd64.Iphone.Perf",
                     "perfowl": "Ubuntu.2204.Amd64.Owl.Perf",
                     "perftiger_crossgen": "Ubuntu.1804.Amd64.Tiger.Perf",
+                    "perfviper": "Ubuntu.2204.Amd64.Viper.Perf",
                     "cloudvm": "Ubuntu.2204.Amd64"
                 }
                 return queue_map.get(logical_machine, "Ubuntu.2204.Amd64.Tiger.Perf")
