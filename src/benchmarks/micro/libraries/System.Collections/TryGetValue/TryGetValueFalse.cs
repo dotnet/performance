@@ -15,7 +15,8 @@ using MicroBenchmarks;
 namespace System.Collections
 {
     [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
-    [GenericTypeArguments(typeof(int), typeof(int))] // value type
+    [GenericTypeArguments(typeof(int), typeof(int))] // primitive value type
+    [GenericTypeArguments(typeof(BigStruct), typeof(BigStruct))] // big value type
     [GenericTypeArguments(typeof(SmallClass), typeof(SmallClass))] // reference type
     [GenericTypeArguments(typeof(string), typeof(string))] // reference type
     public class TryGetValueFalse<TKey, TValue>
