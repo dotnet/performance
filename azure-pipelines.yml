@@ -276,13 +276,13 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
-      osVersion: 19H1
+      osVersion: Win11
       architecture: x64
       pool:
         vmImage: windows-2019
       kind: scenarios
       machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      queue: Windows.11.Amd64.Tiger.Perf
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
         - release/6.0
@@ -339,13 +339,13 @@ jobs:
   # - template: /eng/performance/benchmark_jobs.yml
   #   parameters:
   #     osName: windows
-  #     osVersion: 19H1
+  #     osVersion: Win11
   #     kind: micro
   #     architecture: x64
   #     pool:
   #       vmImage: windows-2019
   #     machinePool: Tiger
-  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     queue: Windows.11.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
   #     runCategories: 'runtime libraries'
   #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
@@ -375,13 +375,13 @@ jobs:
   # - template: /eng/performance/benchmark_jobs.yml
   #   parameters:
   #     osName: windows
-  #     osVersion: 19H1
+  #     osVersion: Win11
   #     kind: micro
   #     architecture: x86
   #     pool:
   #       vmImage: windows-2019
   #     machinePool: Tiger
-  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     queue: Windows.11.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
   #     runCategories: 'runtime libraries'
   #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
@@ -393,13 +393,13 @@ jobs:
   # - template: /eng/performance/benchmark_jobs.yml
   #   parameters:
   #     osName: windows
-  #     osVersion: 19H1
+  #     osVersion: Win11
   #     kind: mlnet
   #     architecture: x64
   #     pool:
   #       vmImage: windows-2019
   #     machinePool: Tiger
-  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     queue: Windows.11.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
   #     runCategories: 'mldotnet'
   #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
@@ -411,13 +411,13 @@ jobs:
   # - template: /eng/performance/benchmark_jobs.yml
   #   parameters:
   #     osName: windows
-  #     osVersion: 19H1
+  #     osVersion: Win11
   #     kind: roslyn
   #     architecture: x64
   #     pool:
   #       vmImage: windows-2019
   #     machinePool: Tiger
-  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
+  #     queue: Windows.11.Amd64.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
   #     csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
   #     runCategories: 'roslyn'
   #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
@@ -512,13 +512,13 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
-      osVersion: RS5
+      osVersion: Win11
       architecture: x64
       pool:
         vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      queue: Windows.11.Amd64.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
         - release/6.0
@@ -527,13 +527,13 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
-      osVersion: RS5
+      osVersion: Win11
       architecture: x86
       pool:
         vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      queue: Windows.11.Amd64.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
         - release/6.0
@@ -558,13 +558,13 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
-      osVersion: RS5
+      osVersion: Win11
       architecture: x64
       pool:
         vmImage: windows-2019
       kind: blazor_scenarios
       machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      queue: Windows.11.Amd64.Tiger.Perf
       projectFile: blazor_scenarios.proj
       channels:
         - release/6.0
@@ -580,13 +580,13 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
-      osVersion: RS5
+      osVersion: Win11
       architecture: x64
       pool:
         vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      queue: Windows.11.Amd64.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
         - $(channel) # for manual runs we can specify channel variable 
@@ -595,13 +595,13 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
-      osVersion: RS5
+      osVersion: Win11
       architecture: x86
       pool:
         vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      queue: Windows.11.Amd64.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
         - $(channel) # for manual runs we can specify channel variable 
