@@ -148,7 +148,7 @@ The ASP.NET benchmarks can be run without any of the users changes however, if t
 This can be accomplished by specifying either a file or a directory as the corerun path of a particular run:
 
 As an example, if I were to only update ``gc.cpp`` and build a standalone ``clrgc.dll``, specifically set the ``corerun`` field of the said run to the path of the ``clrgc.dll``.
-NOTE: the environment variable ``COMPlus_GCName`` must be set in this case:
+NOTE: the environment variable ``DOTNET_GCName`` must be set in this case:
 
 1. Assume your ``clrgc.dll`` is placed in ``C:\ASPNETUpload``:  
 
@@ -164,10 +164,10 @@ runs:
   run:
     corerun: C:\ASPNetUpload\clrgc.dll
     environment_variables:
-      COMPlus_GCName: clrgc.dll # This environment variable was set.
+      DOTNET_GCName: clrgc.dll # This environment variable was set.
 ```
 
-NOTE: For this case, ensure the environment variable ``COMPlus_GCName`` or ``DOTNET_GCName`` is set to clrgc.dll.
+NOTE: For this case, ensure the environment variable ``DOTNET_GCName`` or ``DOTNET_GCName`` is set to clrgc.dll.
 
 On the other hand, if you want upload the entire directory, say ``C:\ASPNETUpload2``, simply set the path to the directory in the corerun of a corerun:
 
@@ -176,7 +176,7 @@ runs:
   run:
     corerun: C:\ASPNetUpload2
     environment_variables:
-      COMPlus_GCName: clrgc.dll
+      DOTNET_GCName: clrgc.dll
 ```
 
 ###### Updating Which Benchmarks to Run
