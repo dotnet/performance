@@ -694,8 +694,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             raise Exception("Built apps directory must be present for IOS Mono or IOS Native AOT benchmarks")
         
         dest_zip_folder = os.path.join(payload_dir, "iosHelloWorldZip")
-        shutil.copy(os.path.join(args.built_app_dir, "iosHelloWorld"), os.path.join(payload_dir, "iosHelloWorld"))
-        shutil.copy(os.path.join(args.built_app_dir, "iosHelloWorldZip"), dest_zip_folder)
+        shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorld"), os.path.join(payload_dir, "iosHelloWorld"))
+        shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldZip"), dest_zip_folder)
 
         # rename all zips in the 2nd folder to iOSSampleApp.zip
         for file in glob(os.path.join(dest_zip_folder, "*.zip")):
