@@ -659,7 +659,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     
     use_core_run = False
     use_baseline_core_run = False
-    if not args.performance_repo_ci:
+    if not args.performance_repo_ci and args.runtime_type == "coreclr":
         use_core_run = True
         if args.core_root_dir is None:
             if args.runtime_repo_dir is None:
