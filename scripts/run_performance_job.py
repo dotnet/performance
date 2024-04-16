@@ -558,9 +558,9 @@ def run_performance_job(args: RunPerformanceJobArgs):
         ci_setup_arguments.commit_sha = args.perf_repo_hash
 
         if args.use_local_commit_time:
-            get_commit_time_command = RunCommand(["git", "show", "-s", "--format=%ci", args.perf_repo_hash])
-            get_commit_time_command.run()
-            ci_setup_arguments.commit_time = f"\"{get_commit_time_command.stdout}\""
+            get_commit_time_command = RunCommand(["git", "show", "-s", "--format=%ci", args.perf_repo_hash], verbose=True)
+            get_commit_time_command.run(args.runtime_repo_dir)
+            ci_setup_arguments.commit_time = f"{get_commit_time_command.stdout.strip()}"
 
     # not_in_lab should stay False for internal dotnet performance CI runs
     if not args.internal and not args.performance_repo_ci:
