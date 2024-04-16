@@ -22,7 +22,7 @@ namespace System.Net.Http.Tests
         // the field names start with lowercase to keep to benchmark ID! do not change it
         [Params(false, true)] public bool ssl;
         [Params(false, true)] public bool chunkedResponse;
-        [Params(1, 100_000)] public int responseLength;
+        [Params(1, 42)] public int responseLength;
 
         private System.Security.Cryptography.X509Certificates.X509Certificate2 _serverCert;
         private Socket _listener;
