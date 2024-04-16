@@ -48,10 +48,13 @@ namespace GC.Analysis.API
 
             if (tracePath.EndsWith(".nettrace"))
             {
-                var trace = new EventPipeEventSource(tracePath);
+                string pathToNettraceEtlx = Etlx.TraceLog.CreateFromEventTraceLogFile(tracePath);
+                var tracelog = Etlx.TraceLog.OpenOrConvert(pathToNettraceEtlx);
+                var trace = tracelog.Events.GetSource();
                 trace.NeedLoadedDotNetRuntimes();
                 trace.Process();
 
+                // Nettrace only has 1 process.
                 var process = trace.Processes().First();
                 var managed = process.LoadedDotNetRuntime();
 
