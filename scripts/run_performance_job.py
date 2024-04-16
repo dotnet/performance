@@ -610,7 +610,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
         extra_bdn_arguments += [
             "--wasmEngine", args.javascript_engine_path,
-            f"\"--wasmArgs={wasm_args}\""
+            f"\\\"--wasmArgs={wasm_args} \\\""
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
             "--wasmDataDir", "$HELIX_CORRELATION_PAYLOAD/wasm-data"
         ]
@@ -862,12 +862,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
         print("Current dotnet directory:", ci_setup_arguments.install_dir)
         print("If more than one version exist in this directory, usually the latest runtime and sdk will be used.")
 
-        RunCommand([
-            "dotnet", "msbuild", args.project_file, 
-            "/restore", 
-            "/t:PreparePayloadWorkItems",
-            f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PrepareWorkItemPayloads.binlog')}"],
-            verbose=True).run()
+        # PreparePayloadWorkItems is only available for scenarios runs defined inside the performance repo
+        if args.performance_repo_ci:
+            RunCommand([
+                "dotnet", "msbuild", args.project_file, 
+                "/restore", 
+                "/t:PreparePayloadWorkItems",
+                f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PrepareWorkItemPayloads.binlog')}"],
+                verbose=True).run()
 
         # restore env vars
         os.environ.update(environ_copy)
