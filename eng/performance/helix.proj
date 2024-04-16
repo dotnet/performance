@@ -55,12 +55,12 @@
     <HelixWorkItem Include="@(Partition)">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
       <PreCommands Condition="'$(Compare)' == 'true'">$(BaselineWorkItemCommand) --partition=%(HelixWorkItem.Index) --bdn-arguments="$(BaselineBenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</PreCommands>
-      <Command>$(WorkItemCommand) --partition=%(HelixWorkItem.Index) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</Command>
+      <Command Condition="'$(TargetsWindows)' == 'true'">$(WorkItemCommand) --partition=%(HelixWorkItem.Index) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</Command>
       <Command Condition="'$(TargetsWindows)' != 'true'">
         if [ "x$PERF_PREREQS_INSTALL_FAILED" = "x1" ]; then
           echo "\n\n** Error: Failed to install prerequisites **\n\n"; (exit 1);
         else
-          $(Command);
+          $(WorkItemCommand) --partition=%(HelixWorkItem.Index) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)";
         fi
       </Command>
       <PostCommands Condition="'$(Compare)' == 'true'">$(CompareCommand)</PostCommands>
@@ -72,12 +72,12 @@
     <HelixWorkItem Include="$(BuildConfig).WorkItem">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
       <PreCommands Condition="'$(Compare)' == 'true'">$(BaselineWorkItemCommand) --bdn-arguments="$(BaselineBenchmarkDotNetArguments)"</PreCommands>
-      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments)"</Command>
+      <Command Condition="'$(TargetsWindows)' == 'true'">$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments)"</Command>
       <Command Condition="'$(TargetsWindows)' != 'true'">
         if [ "x$PERF_PREREQS_INSTALL_FAILED" = "x1" ]; then
           echo "\n\n** Error: Failed to install prerequisites **\n\n"; (exit 1);
         else
-          $(Command);
+          $(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments)";
         fi
       </Command>
       <PostCommands Condition="'$(Compare)' == 'true'">$(CompareCommand)</PostCommands>

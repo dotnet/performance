@@ -573,7 +573,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
     v8_version = ""
     if wasm_bundle_dir is not None:
         wasm_bundle_dir_path = payload_dir
-        shutil.copytree(wasm_bundle_dir, wasm_bundle_dir_path)
+
+        # can't use shutil.copytree because it only works if the destination does not exist
+        # need to manually do first layer of traversal and call copytree on children
+        for dir_name in os.listdir(wasm_bundle_dir):
+            dir_path = os.path.join(wasm_bundle_dir, dir_name)
+            if os.path.isdir(dir_path):
+                shutil.copytree(dir_path, os.path.join(wasm_bundle_dir_path, dir_name))
 
         # Ensure there is a space at the beginning, so BDN can correctly read them as arguments to `--wasmArgs`
         wasm_args = " --expose_wasm"
@@ -684,7 +690,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if android_mono:
         if args.built_app_dir is None:
             raise Exception("Built apps directory must be present for Android Mono benchmarks")
-        os.makedirs(work_item_dir, exist_ok=True)
         shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), root_payload_dir)
         shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorld", "HelloAndroid.apk"), root_payload_dir)
         ci_setup_arguments.architecture = "arm64"
