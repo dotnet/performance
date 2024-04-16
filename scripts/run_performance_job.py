@@ -572,8 +572,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     v8_version = ""
     if wasm_bundle_dir is not None:
-        wasm_bundle_dir = payload_dir
-        shutil.copytree(wasm_bundle_dir, wasm_bundle_dir)
+        wasm_bundle_dir_path = payload_dir
+        shutil.copytree(wasm_bundle_dir, wasm_bundle_dir_path)
 
         # Ensure there is a space at the beginning, so BDN can correctly read them as arguments to `--wasmArgs`
         wasm_args = " --expose_wasm"
@@ -615,7 +615,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 "--buildTimeout", "3600"
             ]
 
-        ci_setup_arguments.dotnet_path = f"{wasm_bundle_dir}/dotnet"
+        ci_setup_arguments.dotnet_path = f"{wasm_bundle_dir_path}/dotnet"
 
     if args.dotnet_version_link is not None:
         with urllib.request.urlopen(args.dotnet_version_link) as response:
@@ -1060,6 +1060,7 @@ def main(argv: List[str]):
             "--performance-repo-ci": "performance_repo_ci",
             "--download-pdn": "download_pdn",
             "--only-sanity-check": "only_sanity_check",
+            "--use-local-commit-time": "use_local_commit_time",
         }
 
         if key in bool_args:
