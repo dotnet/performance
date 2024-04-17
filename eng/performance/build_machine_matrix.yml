@@ -55,18 +55,18 @@ jobs:
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osName: ubuntu
-      osVersion: 1804
+      osVersion: 2204
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
-      container: centos_x64_build_container
+      container: ubuntu_x64_build_container
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
         machinePool: Open
-        queue: Ubuntu.1804.Amd64.Open
+        queue: Ubuntu.2204.Amd64.Open
       ${{ else }}:
         machinePool: Tiger
-        queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+        queue: Ubuntu.2204.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
 
 - ${{ if and(containsValue(parameters.buildMachines, 'centos-x64'), eq(parameters.isPublic, true)) }}: # centos only used in public builds currently
   - template: ${{ parameters.jobTemplate }}
