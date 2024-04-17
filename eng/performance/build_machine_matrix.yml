@@ -18,9 +18,9 @@ jobs:
         machinePool: Open
         queue: Windows.10.Amd64.Client.Open
       ${{ else }}:
-        osVersion: 19H1
+        osVersion: Win11
         machinePool: Tiger
-        queue: Windows.10.Amd64.19H1.Tiger.Perf
+        queue: Windows.11.Amd64.Tiger.Perf
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-rs5-x64'), eq(parameters.isPublic, true)) }}: # RS5 only used in public builds currently
   - template: ${{ parameters.jobTemplate }}
@@ -47,26 +47,26 @@ jobs:
         machinePool: Open
         queue: Windows.10.Amd64.Client.Open
       ${{ else }}:
-        osVersion: 19H1
+        osVersion: Win11
         machinePool: Tiger
-        queue: Windows.10.Amd64.19H1.Tiger.Perf
+        queue: Windows.11.Amd64.Tiger.Perf
 
 - ${{ if containsValue(parameters.buildMachines, 'ubuntu-x64') }}:
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osName: ubuntu
-      osVersion: 1804
+      osVersion: 2204
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
-      container: centos_x64_build_container
+      container: ubuntu_x64_build_container
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
         machinePool: Open
-        queue: Ubuntu.1804.Amd64.Open
+        queue: Ubuntu.2204.Amd64.Open
       ${{ else }}:
         machinePool: Tiger
-        queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+        queue: Ubuntu.2204.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
 
 - ${{ if and(containsValue(parameters.buildMachines, 'centos-x64'), eq(parameters.isPublic, true)) }}: # centos only used in public builds currently
   - template: ${{ parameters.jobTemplate }}
@@ -90,7 +90,7 @@ jobs:
       pool:
         vmImage: windows-2019
       machinePool: Tiger
-      queue: Windows.10.Arm64.Perf.Surf
+      queue: Windows.11.Arm64.Surf.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently
