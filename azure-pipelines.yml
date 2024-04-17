@@ -58,17 +58,17 @@ jobs:
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - release/6.0
 
-  # Ubuntu 1804 x64 scenario benchmarks
+  # Ubuntu 2204 x64 scenario benchmarks
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: ubuntu
-      osVersion: 1804
+      osVersion: 2204
       kind: scenarios
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
       machinePool: Open
-      queue: Ubuntu.1804.Amd64.Open
+      queue: Ubuntu.2204.Amd64.Open
       container: ubuntu_x64_build_container
       projectFile: scenarios.proj
       channels:
@@ -104,17 +104,17 @@ jobs:
       channels:
         - release/6.0
   
-  # Ubuntu 1804 x64 SDK scenario benchmarks
+  # Ubuntu 2204 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: ubuntu
-      osVersion: 1804
+      osVersion: 2204
       kind: sdk_scenarios
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
       machinePool: Open
-      queue: Ubuntu.1804.Amd64.Open
+      queue: Ubuntu.2204.Amd64.Open
       container: ubuntu_x64_build_container
       projectFile: sdk_scenarios.proj
       channels:
@@ -215,51 +215,51 @@ jobs:
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - release/6.0
         
-  # Ubuntu 1804 x64 micro benchmarks
+  # Ubuntu 2204 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: ubuntu
-      osVersion: 1804
+      osVersion: 2204
       kind: micro
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
       machinePool: Open
-      queue: Ubuntu.1804.Amd64.Open
+      queue: Ubuntu.2204.Amd64.Open
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - release/6.0
 
-  # Ubuntu 1804 x64 ML.NET benchmarks
+  # Ubuntu 2204 x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: ubuntu
-      osVersion: 1804
+      osVersion: 2204
       kind: mlnet
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
       machinePool: Open
-      queue: Ubuntu.1804.Amd64.Open
+      queue: Ubuntu.2204.Amd64.Open
       container: ubuntu_x64_build_container
       runCategories: 'mldotnet'
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
         - release/6.0
 
-  # Ubuntu 1804 x64 Roslyn benchmarks
+  # Ubuntu 2204 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: ubuntu
-      osVersion: 1804
+      osVersion: 2204
       kind: roslyn
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
       machinePool: Open
-      queue: Ubuntu.1804.Amd64.Open
+      queue: Ubuntu.2204.Amd64.Open
       container: ubuntu_x64_build_container
       runCategories: 'roslyn'
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
@@ -287,17 +287,17 @@ jobs:
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
         - release/6.0
 
-  # Ubuntu 1804 x64 scenario benchmarks
+  # Ubuntu 2204 x64 scenario benchmarks
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: ubuntu
-      osVersion: 1804
+      osVersion: 2204
       kind: scenarios
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
       machinePool: Tiger
-      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+      queue: Ubuntu.2204.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
       projectFile: scenarios.proj
       channels:
@@ -425,17 +425,17 @@ jobs:
   #       - release/5.0.1xx
   #       #- release/3.1.2xx
 
-  # # Ubuntu 1804 x64 micro benchmarks
+  # # Ubuntu 2204 x64 micro benchmarks
   # - template: /eng/performance/benchmark_jobs.yml
   #   parameters:
   #     osName: ubuntu
-  #     osVersion: 1804
+  #     osVersion: 2204
   #     kind: micro
   #     architecture: x64
   #     pool: 
   #       vmImage: ubuntu-latest
   #     machinePool: Tiger
-  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     queue: Ubuntu.2204.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     container: ubuntu_x64_build_container
   #     csproj: src/benchmarks/micro/MicroBenchmarks.csproj
   #     runCategories: 'runtime libraries'
@@ -444,17 +444,17 @@ jobs:
   #       - release/5.0.1xx
   #       #- release/3.1.2xx
 
-  # # Ubuntu 1804 AMD64 specific micro benchmarks
+  # # Ubuntu 2204 AMD64 specific micro benchmarks
   # - template: /eng/performance/benchmark_jobs.yml
   #   parameters:
   #     osName: ubuntu
-  #     osVersion: 1804
+  #     osVersion: 2204
   #     kind: micro
   #     architecture: x64
   #     pool: 
   #       vmImage: ubuntu-latest
   #     machinePool: Owl
-  #     queue: Ubuntu.1804.Amd64.Owl.Perf # using a dedicated private Helix queue (perfowls)
+  #     queue: Ubuntu.2204.Amd64.Owl.Perf # using a dedicated private Helix queue (perfowls)
   #     container: ubuntu_x64_build_container
   #     csproj: src/benchmarks/micro/MicroBenchmarks.csproj
   #     runCategories: 'runtime libraries'
@@ -463,17 +463,17 @@ jobs:
   #       - release/5.0.1xx
   #       #- release/3.1.2xx
 
-  # # Ubuntu 1804 x64 ML.NET benchmarks
+  # # Ubuntu 2204 x64 ML.NET benchmarks
   # - template: /eng/performance/benchmark_jobs.yml
   #   parameters:
   #     osName: ubuntu
-  #     osVersion: 1804
+  #     osVersion: 2204
   #     kind: mlnet
   #     architecture: x64
   #     pool: 
   #       vmImage: ubuntu-latest
   #     machinePool: Tiger
-  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     queue: Ubuntu.2204.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     container: ubuntu_x64_build_container
   #     csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
   #     runCategories: 'mldotnet'
@@ -482,17 +482,17 @@ jobs:
   #       - release/5.0.1xx
   #       #- release/3.1.2xx
   
-  # # Ubuntu 1804 x64 Roslyn benchmarks
+  # # Ubuntu 2204 x64 Roslyn benchmarks
   # - template: /eng/performance/benchmark_jobs.yml
   #   parameters:
   #     osName: ubuntu
-  #     osVersion: 1804
+  #     osVersion: 2204
   #     kind: roslyn
   #     architecture: x64
   #     pool: 
   #       vmImage: ubuntu-latest
   #     machinePool: Tiger
-  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     queue: Ubuntu.2204.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     container: ubuntu_x64_build_container
   #     csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
   #     runCategories: 'roslyn'
@@ -538,17 +538,17 @@ jobs:
       channels:
         - release/6.0
 
-  # Ubuntu 1804 x64 SDK scenario benchmarks
+  # Ubuntu 2204 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: ubuntu
-      osVersion: 1804
+      osVersion: 2204
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
       kind: sdk_scenarios
       machinePool: Tiger
-      queue: Ubuntu.1804.Amd64.Tiger.Perf
+      queue: Ubuntu.2204.Amd64.Tiger.Perf
       container: ubuntu_x64_build_container
       projectFile: sdk_scenarios.proj
       channels:
@@ -606,17 +606,17 @@ jobs:
       channels:
         - $(channel) # for manual runs we can specify channel variable 
 
-  # Ubuntu 1804 x64 SDK scenario benchmarks
+  # Ubuntu 2204 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: ubuntu
-      osVersion: 1804
+      osVersion: 2204
       architecture: x64
       pool:
         vmImage: ubuntu-latest
       kind: sdk_scenarios
       machinePool: Tiger
-      queue: Ubuntu.1804.Amd64.Tiger.Perf
+      queue: Ubuntu.2204.Amd64.Tiger.Perf
       container: ubuntu_x64_build_container
       projectFile: sdk_scenarios.proj
       channels:
