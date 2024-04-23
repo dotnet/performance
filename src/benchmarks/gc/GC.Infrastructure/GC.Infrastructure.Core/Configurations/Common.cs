@@ -34,5 +34,25 @@ namespace GC.Infrastructure.Core.Configurations
                 throw new ArgumentNullException($"{prefix}: A yaml file wasn't provided as the configuration.");
             }
         }
+
+        public static void VerifyEnvironmentVariables(Dictionary<string, string>? environmentVariables, string prefix)
+        {
+            // If there are no environment variables set, ignore.
+            if (environmentVariables == null)
+            {
+                return;
+            }
+
+            else
+            {
+                foreach (var env in environmentVariables)
+                {
+                    if (env.Key.ToLower().StartsWith("complus_"))
+                    {
+                        throw new ArgumentException($"{prefix}: COMPlus Environment variables are disallowed. Please replace it with it's DOTNET equivalent.");
+                    }
+                }
+            }
+        }
     }
 }
