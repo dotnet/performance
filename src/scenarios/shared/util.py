@@ -57,16 +57,17 @@ def getruntimeidentifier():
     else:
         raise Exception('Platform %s not supported.' % sys.platform)
 
-    if 'aarch64' in platform.machine() or os.environ.get('PERFLAB_BUILDARCH') == 'arm64':
+    platformType = platform.machine().lower()
+    if 'aarch64' in platformType or 'arm64' in platformType or os.environ.get('PERFLAB_BUILDARCH') == 'arm64':
         rid += 'arm64'
-    elif platform.machine() == 's390x':
+    elif platformType == 's390x':
         rid += 's390x'
-    elif platform.machine().endswith('64'):
+    elif platformType.endswith('64'):
         rid += 'x64'
-    elif platform.machine().endswith('86'):
+    elif platformType.endswith('86'):
         rid += 'x86'
     else:
-        raise Exception('Machine %s not supported.' % platform.machine())
+        raise Exception('Machine %s not supported.' % platformType)
 
     return rid
 
