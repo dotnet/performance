@@ -37,8 +37,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
 
                 // Check if the log file is specified, also add the fact that we want to retrieve the log file back.
                 // This log file should be named in concordance with the name of the run and the benchmark.
-                if (string.CompareOrdinal(env.Key, "DOTNET_GCLogFile") == 0 ||
-                    string.CompareOrdinal(env.Key, "COMPlus_GCLogFile") == 0)
+                if (string.CompareOrdinal(env.Key, "DOTNET_GCLogFile") == 0)
                 {
                     string fileNameOfLog = Path.GetFileName(env.Value);
                     commandStringBuilder.Append( $" --application.options.downloadFiles \"*{fileNameOfLog}.log\" " );

@@ -420,6 +420,8 @@ def main(args: Any):
         experiment_config = variable_format % ('DOTNET_JitGuardedDevirtualizationMaxTypeChecks', '3')
     elif args.experiment_name == "rlcse":
         experiment_config = variable_format % ('DOTNET_JitRLCSEGreedy', '1')
+    elif args.experiment_name == "jitoptrepeat":
+        experiment_config = variable_format % ('DOTNET_JitOptRepeat', '*')
 
     output = ''
 

@@ -1,19 +1,13 @@
-﻿using GC.Analysis.API;
-using GC.Infrastructure.Commands.RunCommand;
+﻿using GC.Infrastructure.Commands.RunCommand;
 using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.GCPerfSim;
 using GC.Infrastructure.Core.Presentation;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Configuration;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 
 namespace GC.Infrastructure.Commands.GCPerfSim
@@ -29,7 +23,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         {
             [Description("Path to Configuration.")]
             [CommandOption("-c|--configuration")]
-            public string? ConfigurationPath { get; init; }
+            public required string ConfigurationPath { get; init; }
 
             [Description("Crank Server to target.")]
             [CommandOption("-s|--server")]
@@ -53,9 +47,6 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             GCPerfSimFunctionalConfiguration configuration = GCPerfSimFunctionalConfigurationParser.Parse(configurationPath);
 
             // II. Create the test suite for gcperfsim functional tests.
-            string gcPerfSimOutputPath = Path.Combine(configuration.output_path, "GCPerfSim");
-            Core.Utilities.TryCreateDirectory(gcPerfSimOutputPath);
-
             string suitePath = Path.Combine(configuration.output_path, "Suites");
             string gcPerfSimSuitePath = Path.Combine(suitePath, "GCPerfSim_Functional");
 
@@ -108,8 +99,8 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                     yamlFileResultMap[yamlFileName] = gcperfsimResult;
 
                     sw.Stop();
-                    AnsiConsole.WriteLine($"Time to execute Msec: {sw.ElapsedMilliseconds}");
                 }
+
                 catch (Exception e)
                 {
                     Console.WriteLine(e.ToString());
@@ -152,16 +143,17 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                     string yamlFileName = yamlFileNameResultPair.Key;
                     GCPerfSimResults gcperfsimResult = yamlFileNameResultPair.Value;
 
-                    bool hasFailedTests = gcperfsimResult.ExecutionDetails.Any(
-                        executionDetail => executionDetail.Value.HasFailed == true);
+                    bool hasFailedTests = gcperfsimResult.ExecutionDetails.Any(executionDetail => executionDetail.Value.HasFailed);
 
-                    if (hasFailedTests == true)
+                    if (hasFailedTests)
                     {
                         resultWriter.AddIncompleteTestsSectionWithYamlFileName(
                             yamlFileName, new(gcperfsimResult.ExecutionDetails));
                     }
                 }
             }
+
+            AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to: {markdownPath} [/]");
             return 0;
         }
 
@@ -174,8 +166,8 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimNormalServerConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
 
             // modify environment
-            gcPerfSimNormalServerConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
-            gcPerfSimNormalServerConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = _logicalProcessors.ToString("X");
+            gcPerfSimNormalServerConfiguration.Environment.environment_variables["DOTNET_gcServer"] = "1";
+            gcPerfSimNormalServerConfiguration.Environment.environment_variables["DOTNET_GCHeapCount"] = _logicalProcessors.ToString("X");
 
             // modify output
             gcPerfSimNormalServerConfiguration.Output.Path =
@@ -232,8 +224,8 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 },
                 environment_variables = new Dictionary<string, string>()
                 {
-                    {"COMPlus_GCServer", "0" },
-                    {"COMPlus_GCHeapCount", "1" },
+                    {"DOTNET_gcServer", "0" },
+                    {"DOTNET_GCHeapCount", "1" },
                 }
             };
 
@@ -246,10 +238,10 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 configuration.gcperfsim_path;
 
             // modify environment
-            gcPerfSimLowMemoryContainerConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
-            gcPerfSimLowMemoryContainerConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = "4";
-            gcPerfSimLowMemoryContainerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x23C34600";
-            gcPerfSimLowMemoryContainerConfiguration.Environment.environment_variables["COMPlus_GCTotalPhysicalMemory"] = "0x23C34600";
+            gcPerfSimLowMemoryContainerConfiguration.Environment.environment_variables["DOTNET_gcServer"] = "1";
+            gcPerfSimLowMemoryContainerConfiguration.Environment.environment_variables["DOTNET_GCHeapCount"] = "4";
+            gcPerfSimLowMemoryContainerConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimit"] = "0x23C34600";
+            gcPerfSimLowMemoryContainerConfiguration.Environment.environment_variables["DOTNET_GCTotalPhysicalMemory"] = "0x23C34600";
 
             // modify output
             gcPerfSimLowMemoryContainerConfiguration.Output.Path =
@@ -286,7 +278,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 },
                 environment_variables = new Dictionary<string, string>()
                 {
-                    {"COMPlus_GCServer", "0" },
+                    {"DOTNET_gcServer", "0" },
                 }
             };
 
@@ -298,19 +290,19 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 configuration.gcperfsim_path;
 
             // modify environment
-            gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
-            gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = _logicalProcessors.ToString("X");
+            gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["DOTNET_gcServer"] = "1";
+            gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["DOTNET_GCHeapCount"] = _logicalProcessors.ToString("X");
 
             // add environment variables in GCPerfSimFunctionalRun.yaml
-            gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x100000000";
-            gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["COMPlus_GCTotalPhysicalMemory"] = "0x100000000";
+            gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimit"] = "0x100000000";
+            gcPerfSimHighMemoryLoadConfiguration.Environment.environment_variables["DOTNET_GCTotalPhysicalMemory"] = "0x100000000";
 
             // modify output
             gcPerfSimHighMemoryLoadConfiguration.Output.Path =
                 Path.Combine(configuration.output_path, "HighMemoryLoad");
 
             // modify name 
-            gcPerfSimHighMemoryLoadConfiguration.Name = "HighMemory_NormalServer";
+            gcPerfSimHighMemoryLoadConfiguration.Name = "HighMemoryLoad";
 
             SaveConfiguration(gcPerfSimHighMemoryLoadConfiguration, gcPerfSimSuitePath, "HighMemoryLoad.yaml");
         }
@@ -324,12 +316,12 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimLargePages_ServerConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
 
             // modify environment
-            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
-            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = _logicalProcessors.ToString("X");
-            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
-            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitSOH"] = "0x800000000";
-            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitLOH"] = "0x400000000";
-            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitPOH"] = "0x100000000";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_gcServer"] = "1";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_GCHeapCount"] = _logicalProcessors.ToString("X");
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_GCLargePages"] = "1";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimitSOH"] = "0x800000000";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimitLOH"] = "0x400000000";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimitPOH"] = "0x100000000";
 
             // modify output
             gcPerfSimLargePages_ServerConfiguration.Output.Path =
@@ -350,12 +342,12 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimLargePages_WorkstationConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
 
             // modify environment
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = _logicalProcessors.ToString("X");
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitSOH"] = "0x800000000";
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitLOH"] = "0x400000000";
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimitPOH"] = "0x100000000";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_gcServer"] = "1";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_GCHeapCount"] = _logicalProcessors.ToString("X");
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_GCLargePages"] = "1";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimitSOH"] = "0x800000000";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimitLOH"] = "0x400000000";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimitPOH"] = "0x100000000";
 
             // modify output
             gcPerfSimLargePages_WorkstationConfiguration.Output.Path =
@@ -385,8 +377,12 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             // modify trace_configurations
             gcPerfSimNormalWorkstationConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
 
-            // load environment variables
-            gcPerfSimNormalWorkstationConfiguration.Environment.environment_variables = configuration.Environment.environment_variables;
+            // load environment variables by deep copying them.
+            gcPerfSimNormalWorkstationConfiguration.Environment.environment_variables = new Dictionary<string, string>();
+            foreach (var c in configuration.Environment.environment_variables)
+            {
+                gcPerfSimNormalWorkstationConfiguration.Environment.environment_variables[c.Key] = c.Value;
+            }
 
             return gcPerfSimNormalWorkstationConfiguration;
         }

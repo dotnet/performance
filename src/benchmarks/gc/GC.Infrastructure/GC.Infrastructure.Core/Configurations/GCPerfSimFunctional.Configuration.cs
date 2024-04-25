@@ -1,4 +1,5 @@
 using GC.Infrastructure.Core.Configurations.GCPerfSim;
+using GC.Infrastructure.Core.Configurations.Microbenchmarks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,6 +58,13 @@ namespace GC.Infrastructure.Core.Configurations
             {
                 throw new ArgumentException($"{nameof(GCPerfSimFunctionalConfigurationParser)}: Please provide the trace_configuration type");
             }
+
+            // Check if COMPlus_ environment variables.
+            foreach (var run in configuration.coreruns!)
+            {
+                ConfigurationChecker.VerifyEnvironmentVariables(run.Value.environment_variables, $"{nameof(GCPerfSimFunctionalConfigurationParser)} for Run: {run.Key}");
+            }
+            ConfigurationChecker.VerifyEnvironmentVariables(configuration.Environment.environment_variables, $"{nameof(GCPerfSimFunctionalConfigurationParser)}");  
 
             return configuration;
         }
