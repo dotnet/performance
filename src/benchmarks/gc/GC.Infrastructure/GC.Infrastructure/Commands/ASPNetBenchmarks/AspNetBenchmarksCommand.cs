@@ -48,7 +48,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             // Check 2. The host machines reboot between 12:00 AM - 12:08 AM PST. Check if we are running during that time, and if so, delay running the infrastructure.
 
             // Check 1.
-            const string machineName = "https://asp-citrine-win";
+            const string machineName = "asp-citrine-win";
             bool success = false;
             Ping ping = new Ping();
             try
