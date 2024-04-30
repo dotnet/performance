@@ -13,7 +13,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using System.Text;
 using System.Configuration;
-using static GC.Infrastructure.Commands.GCPerfSim.GCPerfSimCommand;
 
 namespace GC.Infrastructure.Commands.Microbenchmark
 {
