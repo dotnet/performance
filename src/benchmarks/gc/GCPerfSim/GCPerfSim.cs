@@ -387,6 +387,14 @@ sealed class Rand
 
 interface ITypeWithPayload
 {
+    class Totals
+    {
+        public static long NumCreatedWithFinalizers
+            => Item.NumCreatedWithFinalizers + ReferenceItemWithSize.NumCreatedWithFinalizers;
+        public static long NumFinalized
+            => Item.NumFinalized + ReferenceItemWithSize.NumFinalized;
+    }
+
     byte[] GetPayload();
     ulong TotalSize { get; }
     void Free();
@@ -414,12 +422,14 @@ enum ItemState
     WeakLong = 4
 };
 
-class Item : ITypeWithPayload
+abstract class Item : ITypeWithPayload
 {
 #if DEBUG
     public static long NumConstructed = 0;
     public static long NumFreed = 0;
 #endif
+    public static long NumCreatedWithFinalizers = 0;
+    public static long NumFinalized = 0;
 
     public byte[]? payload; // Only null if this item has been freed
     public ItemState state;
@@ -433,13 +443,9 @@ class Item : ITypeWithPayload
 
     // TODO: isWeakLong never used
     public static Item New(uint size, bool isPinned, bool isFinalizable, bool isWeakLong = false, bool isPoh = false)
-    {
-        if (isFinalizable)
-        {
-            throw new Exception("TODO");
-        }
-        return new Item(size, isPinned, isWeakLong, isPoh);
-    }
+        => isFinalizable
+            ? (Item) new ItemFinalizable(size, isPinned, isWeakLong, isPoh)
+            : new ItemNonFinalizable(size, isPinned, isWeakLong, isPoh);
 
     private Item(uint size, bool isPinned, bool isWeakLong, bool isPoh)
     {
@@ -535,6 +541,26 @@ class Item : ITypeWithPayload
 
     public byte[] GetPayload() =>
         Util.NonNull(payload);
+
+    class ItemFinalizable : Item
+    {
+        public ItemFinalizable(uint size, bool isPinned, bool isWeakLong, bool isPoh)
+            : base(size, isPinned, isWeakLong, isPoh)
+        {
+            Interlocked.Increment(ref NumCreatedWithFinalizers);
+        }
+
+        ~ItemFinalizable()
+        {
+            Interlocked.Increment(ref NumFinalized);
+        }
+    }
+
+    class ItemNonFinalizable : Item
+    {
+        public ItemNonFinalizable(uint size, bool isPinned, bool isWeakLong, bool isPoh)
+            : base(size, isPinned, isWeakLong, isPoh) { }
+    }
 };
 
 // This just contains a byte array to take up space
@@ -654,18 +680,9 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
     public static uint SimpleOverhead = ReferenceItemWithSizeSize;
 
     public static ReferenceItemWithSize New(uint size, bool isPinned, bool isFinalizable, bool isPoh)
-    {
-        // Can't use conditional expression as these are two different classes
-        if (isFinalizable)
-        {
-            return new ReferenceItemWithSizeFinalizable(size, isPinned, isPoh);
-        }
-        else
-        {
-            return new ReferenceItemWithSizeNonFinalizable(size, isPinned, isPoh);
-        }
-
-    }
+        => isFinalizable
+            ? (ReferenceItemWithSize) new ReferenceItemWithSizeFinalizable(size, isPinned, isPoh)
+            : new ReferenceItemWithSizeNonFinalizable(size, isPinned, isPoh);
 
     protected ReferenceItemWithSize(uint size, bool isPinned, bool isPoh)
     {
@@ -807,7 +824,7 @@ readonly struct BucketSpec
 
     public override string ToString()
     {
-        string result = $"{sizeRange}; surv every {survInterval}; pin every {pinInterval}; weight {weight}";
+        string result = $"{sizeRange}; surv every {survInterval}; pin every {pinInterval}; finalize every {finalizableInterval}; weight {weight}";
 
 #if NET5_0_OR_GREATER
         result += $"; isPoh {isPoh}";
@@ -2734,13 +2751,13 @@ class MemoryAlloc
 
             if (args.finishWithFullCollect)
             {
-                while (ReferenceItemWithSize.NumFinalized < ReferenceItemWithSize.NumCreatedWithFinalizers)
+                while (ITypeWithPayload.Totals.NumFinalized < ITypeWithPayload.Totals.NumCreatedWithFinalizers)
                 {
-                    Console.WriteLine($"{ReferenceItemWithSize.NumFinalized} out of {ReferenceItemWithSize.NumCreatedWithFinalizers} finalizers have run, doing a full collect");
+                    Console.WriteLine($"{ITypeWithPayload.Totals.NumFinalized} out of {ITypeWithPayload.Totals.NumCreatedWithFinalizers} finalizers have run, doing a full collect");
                     GC.Collect(2, GCCollectionMode.Forced, blocking: true);
                     GC.WaitForPendingFinalizers();
                 }
-                Util.AlwaysAssert(ReferenceItemWithSize.NumFinalized == ReferenceItemWithSize.NumCreatedWithFinalizers);
+                Util.AlwaysAssert(ITypeWithPayload.Totals.NumFinalized == ITypeWithPayload.Totals.NumCreatedWithFinalizers);
             }
 
             PrintResult(testResult);
@@ -2801,8 +2818,8 @@ class MemoryAlloc
         }
         Console.WriteLine("]");
 
-        Console.WriteLine($"num_created_with_finalizers: {ReferenceItemWithSize.NumCreatedWithFinalizers}");
-        Console.WriteLine($"num_finalized: {ReferenceItemWithSize.NumFinalized}");
+        Console.WriteLine($"num_created_with_finalizers: {ITypeWithPayload.Totals.NumCreatedWithFinalizers}");
+        Console.WriteLine($"num_finalized: {ITypeWithPayload.Totals.NumFinalized}");
         Console.WriteLine($"final_total_memory_bytes: {GC.GetTotalMemory(forceFullCollection: false)}");
 
         // Use reflection to detect GC.GetGCMemoryInfo because it doesn't exist in dotnet core 2.0 or in .NET framework.
