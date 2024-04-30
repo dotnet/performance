@@ -433,16 +433,3 @@ Module.symvers
 Mkfile.old
 dkms.conf
 ################################################################################
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.cs.xlf
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.de.xlf
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.es.xlf
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.fr.xlf
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.it.xlf
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.ja.xlf
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.ko.xlf
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.pl.xlf
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.pt-BR.xlf
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.ru.xlf
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.tr.xlf
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.zh-Hans.xlf
-/src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure/Properties/xlf/Resources.zh-Hant.xlf
