@@ -1,4 +1,5 @@
-﻿using YamlDotNet.Serialization;
+﻿using System.Runtime.CompilerServices;
+using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace GC.Infrastructure.Core.Configurations.GCPerfSim
@@ -101,9 +102,18 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
             // Check to ensure the builds are valid i.e., have an existent path to corerun.
             foreach (var build in configuration.coreruns!)
             {
-                if (string.IsNullOrEmpty(build.Value.Path) || !File.Exists(build.Value.Path))
+                if (string.IsNullOrEmpty(build.Value.Path) || 
+                    (!File.Exists(build.Value.Path) && !Directory.Exists(build.Value.Path)))
                 {
                     throw new ArgumentException($"{nameof(GCPerfSimConfigurationParser)}: The corerun for {build.Key} either doesn't exist or the path provided is incorrect. Please ensure that path points to a valid corerun");
+                }
+
+                // If corerun path is a directory, make sure it contains corerun binary.
+                if (Directory.Exists(build.Value.Path) &&
+                    !Directory.EnumerateFiles(build.Value.Path)
+                        .Any(filePath => Path.GetFileNameWithoutExtension(filePath) == "corerun"))
+                {
+                    throw new ArgumentException($"{nameof(GCPerfSimConfigurationParser)}: The corerun for {build.Key} is incorrect. Please ensure that path points to a valid core root");
                 }
             }
 
