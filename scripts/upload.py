@@ -46,7 +46,7 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
                 if queue is not None:
                     try:
                         queue_client = QueueClient(account_url=storage_account_uri.format('queue'), queue_name=queue, credential=sas_token, message_encode_policy=TextBase64EncodePolicy())
-                        retry_on_exception(lambda: queue_client.send_message(blob_client.url))
+                        retry_on_exception(lambda: queue_client.send_message(blob_client.url[0:blob_client.url.index('?')]))
                         getLogger().info("upload and queue complete")
                     except Exception as ex:
                         any_upload_or_queue_failed = True
