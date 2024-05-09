@@ -19,7 +19,8 @@
         public Dictionary<string, string> environment_variables { get; set; } = new();
         public uint default_max_seconds { get; set; } = 300;
         public string framework_version { get; set; } = "net8.0";
-        public uint Iterations { get; set; } = 1;
+        // uncomment once we implement iteration mechanism in the ASP.NET command
+        // public uint Iterations { get; set; } = 1;
     }
 
     public class BenchmarkSettings
