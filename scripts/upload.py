@@ -2,7 +2,8 @@ from random import randint
 import uuid
 from azure.storage.blob import BlobClient, ContentSettings
 from azure.storage.queue import QueueClient, TextBase64EncodePolicy
-from azure.core.exceptions import ResourceExistsError
+from azure.core.exceptions import ResourceExistsError, ClientAuthenticationError
+from azure.identity import DefaultAzureCredential
 from traceback import format_exc
 from glob import glob
 from performance.common import retry_on_exception
@@ -27,8 +28,13 @@ def get_unique_name(filename: str, unique_id: str) -> str:
 
 def upload(globpath: str, container: str, queue: str, sas_token_env: str, storage_account_uri: str):
     try:
-        sas_token = os.getenv(sas_token_env)
-        if sas_token is None:
+        credential = DefaultAzureCredential()
+        try:
+            credential.get_token("https://graph.microsoft.com/.default")
+        except ClientAuthenticationError as ex:
+            getLogger().info("Unable to use DefaultAzureCredential")
+            credential = os.getenv(sas_token_env)
+        if credential is None:
             getLogger().error("Sas token environment variable {} was not defined.".format(sas_token_env))
             return 1
 
@@ -39,7 +45,7 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
 
             getLogger().info("uploading {}".format(infile))
 
-            blob_client = BlobClient(account_url=storage_account_uri.format('blob'), container_name=container, blob_name=blob_name, credential=sas_token)
+            blob_client = BlobClient(account_url=storage_account_uri.format('blob'), container_name=container, blob_name=blob_name, credential=credential)
             
             upload_succeded = False
             with open(infile, "rb") as data:
@@ -54,7 +60,7 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
             if upload_succeded:
                 if queue is not None:
                     try:
-                        queue_client = QueueClient(account_url=storage_account_uri.format('queue'), queue_name=queue, credential=sas_token, message_encode_policy=TextBase64EncodePolicy())
+                        queue_client = QueueClient(account_url=storage_account_uri.format('queue'), queue_name=queue, credential=credential, message_encode_policy=TextBase64EncodePolicy())
                         message = QueueMessage(container, blob_name)
                         retry_on_exception(lambda: queue_client.send_message(json.dumps(message.__dict__)))
                         getLogger().info("upload and queue complete")
