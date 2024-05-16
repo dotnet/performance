@@ -49,8 +49,8 @@ namespace GC.Analysis.API
             if (tracePath.EndsWith(".nettrace"))
             {
                 string pathToNettraceEtlx = Etlx.TraceLog.CreateFromEventTraceLogFile(tracePath);
-                var tracelog = Etlx.TraceLog.OpenOrConvert(pathToNettraceEtlx);
-                var trace = tracelog.Events.GetSource();
+                TraceLog = Etlx.TraceLog.OpenOrConvert(pathToNettraceEtlx);
+                var trace = TraceLog.Events.GetSource();
                 trace.NeedLoadedDotNetRuntimes();
                 trace.Process();
 
