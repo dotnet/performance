@@ -81,6 +81,17 @@ namespace System.Buffers.Text.Tests
         [Benchmark]
         public bool ConvertTryFromBase64Chars() => Convert.TryFromBase64Chars(_encodedChars, _decodedBytes, out _);
 #endif
+
+#if NET8_0_OR_GREATER // API added in .NET 8.0
+        [GlobalSetup(Target = nameof(Base64IsValid))]
+        public void SetupBase64IsValid()
+        {
+            _encodedBytes = ValuesGenerator.ArrayBase64EncodingBytes(NumberOfBytes);
+        }
+
+        [Benchmark]
+        public bool Base64IsValid() => Base64.IsValid(_encodedBytes);
+#endif
     }
 
     // We want to test InPlace methods, which require fresh input for every benchmark invocation.
