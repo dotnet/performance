@@ -597,8 +597,18 @@ def get_dotnet_sdk(
 
     with open(path.join(sdk_path, sdk, '.version')) as sdk_version_file:
         return sdk_version_file.readline().strip()
-    raise RuntimeError("Unable to retrieve information about the .NET SDK.")
 
+def get_dotnet_sdk_version_precise(
+        framework: str,
+        dotnet_path: Optional[str] = None,
+        sdk: Optional[str] = None) -> str:
+    sdk_path = get_sdk_path(dotnet_path)
+    sdk = get_dotnet_version(framework, dotnet_path,
+                             sdk_path) if sdk is None else sdk
+
+    # Use the precise version if it exists. https://learn.microsoft.com/en-us/dotnet/core/compatibility/sdk/6.0/version-file-entries
+    with open(path.join(sdk_path, sdk, '.version')) as sdk_version_file:
+        return sdk_version_file.readlines()[3].strip()
 
 def get_repository(repository: str) -> Tuple[str, str]:
     url_path = urlparse(repository).path
