@@ -631,7 +631,7 @@ def get_commit_date(
         # The origin of the repo where the commit belongs to has changed
         # between release. Here we attempt to naively guess the repo.
         core_sdk_frameworks = ChannelMap.get_supported_frameworks()
-        repo = 'core-sdk' if framework  in core_sdk_frameworks else 'cli'
+        repo = 'sdk' if framework in core_sdk_frameworks else 'cli'
         url = f'https://github.com/dotnet/{repo}/commit/{commit_sha}.patch'
     else:
         owner, repo = get_repository(repository)

@@ -345,7 +345,7 @@ def main(args: Any):
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
 
-    # if repository is not set, then we are doing a core-sdk in performance repo run
+    # if repository is not set, then we are doing a sdk in performance repo run
     # if repository is set, user needs to supply the commit_sha
     use_core_sdk = args.repository is None
     if not ((args.commit_sha is None) == use_core_sdk):
@@ -397,7 +397,7 @@ def main(args: Any):
     path_variable = 'set PATH=%s;%%PATH%%\n' if args.target_windows else 'export PATH=%s:$PATH\n'
     which = 'where dotnet\n' if args.target_windows else 'which dotnet\n'
     dotnet_path = '%HELIX_CORRELATION_PAYLOAD%\\dotnet' if args.target_windows else '$HELIX_CORRELATION_PAYLOAD/dotnet'
-    owner, repo = ('dotnet', 'core-sdk') if repo_url is None else (dotnet.get_repository(repo_url))
+    owner, repo = ('dotnet', 'sdk') if repo_url is None else (dotnet.get_repository(repo_url))
     config_string = ';'.join(args.build_configs) if args.target_windows else "%s" % ';'.join(args.build_configs)
     pgo_config = ''
     physical_promotion_config = ''
