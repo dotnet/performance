@@ -3,7 +3,7 @@ import uuid
 from azure.storage.blob import BlobClient, ContentSettings
 from azure.storage.queue import QueueClient, TextBase64EncodePolicy
 from azure.core.exceptions import ResourceExistsError, ClientAuthenticationError
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, ClientAssertionCredential
 from traceback import format_exc
 from glob import glob
 from performance.common import retry_on_exception
@@ -28,11 +28,12 @@ def get_unique_name(filename: str, unique_id: str) -> str:
 
 def upload(globpath: str, container: str, queue: str, sas_token_env: str, storage_account_uri: str):
     try:
-        credential = DefaultAzureCredential()
+        credential1 = DefaultAzureCredential()
+        credential = None
         try:
-            credential.get_token("https://graph.microsoft.com/.default")
+            credential = ClientAssertionCredential("72f988bf-86f1-41af-91ab-2d7cd011db47", "df9ef8a6-0a18-48c4-9e88-8e923c5b0549", lambda: credential1.get_token("https://graph.microsoft.com/.default").token)
         except ClientAuthenticationError as ex:
-            getLogger().info("Unable to use DefaultAzureCredential")
+            getLogger().info("Unable to use managed identity. Falling back to environment variable.")
             credential = os.getenv(sas_token_env)
         if credential is None:
             getLogger().error("Sas token environment variable {} was not defined.".format(sas_token_env))
