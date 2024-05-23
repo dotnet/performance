@@ -31,7 +31,7 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
         credential1 = DefaultAzureCredential()
         credential = None
         try:
-            credential = ClientAssertionCredential("72f988bf-86f1-41af-91ab-2d7cd011db47", "df9ef8a6-0a18-48c4-9e88-8e923c5b0549", lambda: credential1.get_token("https://graph.microsoft.com/.default").token)
+            credential = ClientAssertionCredential("72f988bf-86f1-41af-91ab-2d7cd011db47", "a231f733-103b-46e9-b58a-9416edde0eb4", lambda: credential1.get_token("https://graph.microsoft.com/.default").token)
         except ClientAuthenticationError as ex:
             getLogger().info("Unable to use managed identity. Falling back to environment variable.")
             credential = os.getenv(sas_token_env)
