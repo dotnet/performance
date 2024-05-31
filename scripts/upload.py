@@ -7,6 +7,7 @@ from azure.identity import DefaultAzureCredential, ClientAssertionCredential
 from traceback import format_exc
 from glob import glob
 from performance.common import retry_on_exception
+from performance.constants import TENANT_ID, CLIENT_ID
 import os
 import json
 
@@ -28,10 +29,10 @@ def get_unique_name(filename: str, unique_id: str) -> str:
 
 def upload(globpath: str, container: str, queue: str, sas_token_env: str, storage_account_uri: str):
     try:
-        credential1 = DefaultAzureCredential()
         credential = None
         try:
-            credential = ClientAssertionCredential("72f988bf-86f1-41af-91ab-2d7cd011db47", "a231f733-103b-46e9-b58a-9416edde0eb4", lambda: credential1.get_token("api://AzureADTokenExchange/.default").token)
+            dac = DefaultAzureCredential()
+            credential = ClientAssertionCredential(TENANT_ID, CLIENT_ID, lambda: dac.get_token("api://AzureADTokenExchange/.default").token)
         except ClientAuthenticationError as ex:
             getLogger().info("Unable to use managed identity. Falling back to environment variable.")
             credential = os.getenv(sas_token_env)
