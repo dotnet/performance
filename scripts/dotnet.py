@@ -627,7 +627,7 @@ def get_commit_date(
 
     # Example URL: https://github.com/dotnet/runtime/commit/2d76178d5faa97be86fc8d049c7dbcbdf66dc497.patch
     url = None
-    fallback_url = ""
+    fallback_url = None
     if repository is None:
         # The origin of the repo where the commit belongs to has changed
         # between release. Here we attempt to naively guess the repo.
@@ -639,6 +639,7 @@ def get_commit_date(
     else:
         owner, repo = get_repository(repository)
         url = f'https://github.com/{owner}/{repo}/commit/{commit_sha}.patch'
+        fallback_url = url # We don't need to try a real fallback, just use the url
 
     build_timestamp = None
     sleep_time = 10 # Start with 10 second sleep timer        
