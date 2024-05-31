@@ -28,7 +28,7 @@ namespace System.Net.Http.Tests
 
         public IEnumerable<TryAddWithoutValidationTestData> IEnumerableArgument()
         {
-            yield return new TryAddWithoutValidationTestData("Array", Enumerable.Range(0, 5).Select(i => "value" + i).ToArray()); // tests array optimized case
+            yield return new TryAddWithoutValidationTestData("Array", Enumerable.Range(0, 5).Select(i => "value" + i).ToArray()); // tests IList optimized case
             yield return new TryAddWithoutValidationTestData("List", Enumerable.Range(0, 5).Select(i => "value" + i).ToList()); // tests IList optimized case
             yield return new TryAddWithoutValidationTestData("Hashset", new HashSet<string>(Enumerable.Range(0, 5).Select(i => "value" + i))); // tests the slow path IEnumerable case
         }
