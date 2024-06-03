@@ -627,15 +627,19 @@ def get_commit_date(
 
     # Example URL: https://github.com/dotnet/runtime/commit/2d76178d5faa97be86fc8d049c7dbcbdf66dc497.patch
     url = None
+    fallback_url = None
     if repository is None:
         # The origin of the repo where the commit belongs to has changed
         # between release. Here we attempt to naively guess the repo.
         core_sdk_frameworks = ChannelMap.get_supported_frameworks()
         repo = 'sdk' if framework in core_sdk_frameworks else 'cli'
         url = f'https://github.com/dotnet/{repo}/commit/{commit_sha}.patch'
+        fallback_repo = 'core-sdk' if framework in core_sdk_frameworks else 'cli'
+        fallback_url = f'https://github.com/dotnet/{fallback_repo}/commit/{commit_sha}.patch'
     else:
         owner, repo = get_repository(repository)
         url = f'https://github.com/{owner}/{repo}/commit/{commit_sha}.patch'
+        fallback_url = url # We don't need to try a real fallback, just use the url
 
     build_timestamp = None
     sleep_time = 10 # Start with 10 second sleep timer        
@@ -651,6 +655,21 @@ def get_commit_date(
                     break
         except URLError as error:
             getLogger().warning(f"URL Error trying to get commit date from {url}; Reason: {error.reason}; Attempt {retrycount}")
+            # Try using the old core-sdk URL for sdk repo failures as the commits may be from before the switch
+            if 'Not Found' in error.reason and repo == "sdk":
+                try:
+                    getLogger().warning(f"Trying fallback URL {fallback_url}")
+                    with urlopen(fallback_url) as response:
+                        getLogger().info("Commit: %s", url)
+                        patch = response.read().decode('utf-8')
+                        dateMatch = search(r'^Date: (.+)$', patch, MULTILINE)
+                        if dateMatch:
+                            build_timestamp = datetime.datetime.strptime(dateMatch.group(1), '%a, %d %b %Y %H:%M:%S %z').astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+                            getLogger().info(f"Got UTC timestamp {build_timestamp} from {dateMatch.group(1)}")
+                            break
+                except URLError as error_fallback:
+                    getLogger().warning(f"URL Error trying to get commit date from {fallback_url}; Reason: {error_fallback.reason}; Attempt {retrycount}")
+
             sleep(sleep_time)
             sleep_time = sleep_time * 2
 
