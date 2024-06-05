@@ -3,6 +3,7 @@ using Microsoft.Data.Analysis;
 using Microsoft.Diagnostics.Symbols;
 using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
 using Microsoft.Diagnostics.Tracing.Stacks;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace GC.Analysis.API
@@ -280,7 +281,7 @@ namespace GC.Analysis.API
         private static TraceEventStackSource GetTraceEventStackSource(StackSource source)
         {
             StackSourceStacks rawSource = source;
-            TraceEventStackSource asTraceEventStackSource = null;
+            TraceEventStackSource? asTraceEventStackSource = null;
             for (; ; )
             {
                 asTraceEventStackSource = rawSource as TraceEventStackSource;
@@ -329,8 +330,12 @@ namespace GC.Analysis.API
             return new DataFrame(methodName, inclusiveCount, exclusiveCount).OrderByDescending("Exclusive Count");
         }
 
-        public SourceLocation? GetSourceLocation(string searchString, out SortedDictionary<int, float>? metricOnLine)
+        public bool TryGetSourceLocation(
+            string searchString,
+            [NotNullWhen(true)] out SourceLocation? sourceLocation,
+            [NotNullWhen(true)] out SortedDictionary<int, float>? metricOnLine)
         {
+            sourceLocation = null;
             metricOnLine = null;
 
             // Find the most numerous call stack
@@ -379,7 +384,7 @@ namespace GC.Analysis.API
             if (maxFrameIdx == StackSourceFrameIndex.Invalid)
             {
                 // TODO: Log an error.
-                return null;
+                return false;
             }
 
             // Find the most primitive TraceEventStackSource
@@ -390,7 +395,7 @@ namespace GC.Analysis.API
             {
                 // TODO: Log error.
                 //StatusBar.LogError("Source does not support symbolic lookup.");
-                return null;
+                return false;
             }
 
             var reader = _symbolReader;
@@ -398,7 +403,7 @@ namespace GC.Analysis.API
             var frameToLine = new Dictionary<StackSourceFrameIndex, int>();
 
             // OK actually get the source location of the maximal value (our return value). 
-            var sourceLocation = asTraceEventStackSource.GetSourceLine(maxFrameIdx, reader);
+            sourceLocation = asTraceEventStackSource.GetSourceLine(maxFrameIdx, reader);
             if (sourceLocation != null)
             {
                 var filePathForMax = sourceLocation.SourceFile.BuildTimeFilePath;
@@ -451,7 +456,7 @@ namespace GC.Analysis.API
                 }
             }
 
-            return sourceLocation;
+            return sourceLocation != null;
         }
 
         public string Annotate(SortedDictionary<int, float> metricOnLine, SourceLocation sourceLocation)

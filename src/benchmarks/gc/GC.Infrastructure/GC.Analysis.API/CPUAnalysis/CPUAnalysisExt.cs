@@ -246,10 +246,14 @@ namespace GC.Analysis.API
 
         public static void SetSourcePath(this CPUProcessData processData, string sourcePath)
             => processData.StackView.SymbolReader.SourcePath = sourcePath;
-        public static string Annotate(this CPUProcessData processData, string methodName)
+        public static string? Annotate(this CPUProcessData processData, string methodName)
         {
-            SourceLocation location = processData.StackView.GetSourceLocation(methodName, out var @out);
-            SortedDictionary<int, float> metricsOnLine = @out;
+            if (!processData.StackView.TryGetSourceLocation(methodName, out SourceLocation? location, out SortedDictionary<int, float>? metricsOnLine))
+            {
+                // TODO: Log an error.
+                return null;
+            }
+
             return processData.StackView.Annotate(metricsOnLine, location);
         }
     }
