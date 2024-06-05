@@ -555,7 +555,7 @@ def get_dotnet_path() -> str:
     return dotnet_path
 
 
-def get_dotnet_version_path(
+def get_dotnet_version_from_path(
         framework: str,
         dotnet_path: Optional[str] = None,
         sdk_path: Optional[str] = None) -> str:
@@ -591,8 +591,8 @@ def get_dotnet_version_precise(
         dotnet_path: Optional[str] = None,
         sdk: Optional[str] = None) -> str:
     sdk_path = get_sdk_path(dotnet_path)
-    sdk = get_dotnet_version_path(framework, dotnet_path,
-                             sdk_path) if sdk is None else sdk
+    if sdk is None:
+        sdk = get_dotnet_version_from_path(framework, dotnet_path, sdk_path)
 
     # Use the precise version if it exists. https://learn.microsoft.com/en-us/dotnet/core/compatibility/sdk/6.0/version-file-entries
     with open(path.join(sdk_path, sdk, '.version')) as sdk_version_file:
@@ -603,7 +603,7 @@ def get_dotnet_sdk(
         dotnet_path: Optional[str] = None,
         sdk: Optional[str] = None) -> str:
     sdk_path = get_sdk_path(dotnet_path)
-    sdk = get_dotnet_version_path(framework, dotnet_path,
+    sdk = get_dotnet_version_from_path(framework, dotnet_path,
                              sdk_path) if sdk is None else sdk
 
     with open(path.join(sdk_path, sdk, '.version')) as sdk_version_file:
