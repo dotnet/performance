@@ -165,7 +165,6 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             f"{python} -m pip install -U pip --force-reinstall",
             f"{python} -m pip install azure.storage.blob==12.0.0 --force-reinstall",
             f"{python} -m pip install azure.storage.queue==12.0.0 --force-reinstall",
-            f"{python} -m pip install azure.identity==1.16.0 --force-reinstall",
             f"{python} -m pip install urllib3==1.26.18 --force-reinstall",
         ]
 
