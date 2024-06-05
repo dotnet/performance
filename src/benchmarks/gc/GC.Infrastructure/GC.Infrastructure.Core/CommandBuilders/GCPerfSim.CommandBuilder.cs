@@ -27,7 +27,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
             }
 
             // Add overrides, if available.
-            if (run.Value.override_parameters != null)
+            if (run.Value?.override_parameters != null)
             {
                 foreach (var p in run.Value.override_parameters)
                 {
@@ -86,7 +86,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
             }
 
             // Add overrides, if available.
-            if (run.Value.override_parameters != null)
+            if (run.Value?.override_parameters != null)
             {
                 foreach (var p in run.Value.override_parameters)
                 {

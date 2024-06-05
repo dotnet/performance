@@ -138,7 +138,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         }
 
                         // Add overrides.
-                        if (runInfo.RunDetails.Value.environment_variables != null)
+                        if (runInfo.RunDetails.Value?.environment_variables != null)
                         {
                             foreach (var environmentVar in runInfo.RunDetails.Value.environment_variables)
                             {
