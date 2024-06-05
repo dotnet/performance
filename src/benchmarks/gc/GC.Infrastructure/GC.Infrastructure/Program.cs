@@ -65,7 +65,7 @@ namespace GC.Infrastructure
             }
 
             // TODO: Handle each exception.
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }
