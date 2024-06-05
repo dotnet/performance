@@ -1863,8 +1863,8 @@ class ArgsParser
             double a31 = 1;
             double a32 = 1;
             double a33 = 1;
-            double b1 = lohAllocRatioArg * overhead;
-            double b2 = pohAllocRatioArg * overhead;
+            double b1 = 1000 * lohAllocRatioArg * overhead;
+            double b2 = 1000 * pohAllocRatioArg * overhead;
             double b3 = 1000;
             double det = a11 * a22 * a33 + a12 * a23 * a31 + a13 * a21 * a32 - a13 * a22 * a31 - a12 * a21 * a33 - a11 * a23 * a32;
             double sohWeight = ((b1 * a22 * a33 + a12 * a23 * b3 + a13 * b2 * a32 - a13 * a22 * b3 - a12 * b2 * a33 - b1 * a23 * a32) / det);
