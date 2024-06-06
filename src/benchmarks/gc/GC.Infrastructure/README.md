@@ -148,7 +148,7 @@ The ASP.NET benchmarks can be run without any of the users changes however, if t
 This can be accomplished by specifying either a file or a directory as the corerun path of a particular run:
 
 As an example, if I were to only update ``gc.cpp`` and build a standalone ``clrgc.dll``, specifically set the ``corerun`` field of the said run to the path of the ``clrgc.dll``.
-NOTE: the environment variable ``COMPlus_GCName`` must be set in this case:
+NOTE: the environment variable ``DOTNET_GCName`` must be set in this case:
 
 1. Assume your ``clrgc.dll`` is placed in ``C:\ASPNETUpload``:  
 
@@ -164,10 +164,10 @@ runs:
   run:
     corerun: C:\ASPNetUpload\clrgc.dll
     environment_variables:
-      COMPlus_GCName: clrgc.dll # This environment variable was set.
+      DOTNET_GCName: clrgc.dll # This environment variable was set.
 ```
 
-NOTE: For this case, ensure the environment variable ``COMPlus_GCName`` or ``DOTNET_GCName`` is set to clrgc.dll.
+NOTE: For this case, ensure the environment variable ``DOTNET_GCName`` is set to clrgc.dll.
 
 On the other hand, if you want upload the entire directory, say ``C:\ASPNETUpload2``, simply set the path to the directory in the corerun of a corerun:
 
@@ -176,7 +176,7 @@ runs:
   run:
     corerun: C:\ASPNetUpload2
     environment_variables:
-      COMPlus_GCName: clrgc.dll
+      DOTNET_GCName: clrgc.dll
 ```
 
 ###### Updating Which Benchmarks to Run
@@ -222,6 +222,19 @@ benchmark_settings:
 
 If there is a match, these filters will run in the order specified in the yaml file.
 
+###### How To Override Parameters
+
+You can override parameters specified in the benchmark csv file by replacing all instances of the command arg with values in the `override_arguments` field.
+
+```yaml
+benchmark_settings:
+  benchmark_file: C:\InfraRuns\RunNew_All\Suites\ASPNETBenchmarks\ASPNetBenchmarks.csv
+  additional_arguments: --chart --chart-type hex 
+  override_arguments: --profile aspnet-citrine-win
+```
+
+As an example based on the configuration immediately above, all `--profile` values will be replaces with `--profile aspnet-citrine-win`.
+
 ## All Commands
 
 The infrastructure can be run in modular manner. What this means is that you can invoke a particular command that runs some part of the infrastructure. A list of all the commands can be found here:
@@ -234,6 +247,7 @@ The infrastructure can be run in modular manner. What this means is that you can
 | gcperfsim                | Runs a GCPerfSim Configuration - both orchestration and analysis.                             | ``gcperfsim --configuration Configuration.yaml [--server nameOfMachine]``                |
 | gcperfsim-analyze        | Runs just the analysis portion of the GCPerfSim run assuming the traces are available.        | ``gcperfsim-analyze --configuration Configuration.yaml``        |
 | gcperfsim-compare        | Runs the comparison between two traces and generates a report for GCPerfSim runs. The acceptable file types are: ``.etl, .nettrace, .etl.zip``            | ``gcperfsim-compare --baseline Trace1Path  --comparand Trace2Path --output PathToOutput.md``        |
+| gcperfsim-functional | Runs the functional portion of the GCPerfSim Tests. | ``gcperfsim-functional --configuration Configuration.yaml`` |
 | microbenchmarks          | Runs a Microbenchmark Configuration - both orchestration and analysis.                        | ``microbenchmarks --configuration Configuration.yaml``           |
 | microbenchmarks-analyze  | Runs just the analysis portion of the Microbenchmark run assuming the traces are available.   | ``microbenchmarks-analyze --configuration Configuration.yaml``   |
 | aspnetbenchmarks         | Runs the ASPNet Benchmarks - both orchestration and analysis.                                 | ``aspnetbenchmarks --configuration Configuration.yaml``         |

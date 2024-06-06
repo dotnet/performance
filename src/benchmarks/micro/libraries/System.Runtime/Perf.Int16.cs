@@ -23,14 +23,17 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
+        [MemoryRandomization]
         public short Parse(string value) => short.Parse(value);
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
+        [MemoryRandomization]
         public bool TryParse(string value) => short.TryParse(value, out _);
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
+        [MemoryRandomization]
         public string ToString(short value) => value.ToString();
 
 #if NET7_0_OR_GREATER

@@ -25,6 +25,7 @@
     {
         public string? benchmark_file { get; set; }
         public string additional_arguments { get; set; } = "";
+        public string? override_arguments { get; set; } = "";
         public List<string> benchmarkFilters { get; set; } = new();
     }
 
@@ -56,6 +57,19 @@
             if (configuration == null)
             {
                 throw new ArgumentNullException($"{nameof(ASPNetBenchmarksConfigurationParser)}: {nameof(configuration)} is null. Check the syntax of the configuration.");
+            }
+
+            // Check for any COMPlus_ environment variables.
+            if (configuration.Environment != null)
+            {
+                ConfigurationChecker.VerifyEnvironmentVariables(configuration.Environment.environment_variables, $"{nameof(ASPNetBenchmarksConfigurationParser)}");
+            }
+            if (configuration.Runs != null)
+            {
+                foreach (var run in configuration.Runs)
+                {
+                    ConfigurationChecker.VerifyEnvironmentVariables(run.Value.environment_variables, $"{nameof(ASPNetBenchmarksConfigurationParser)} for Run: {run.Key}");
+                }
             }
 
             return configuration;

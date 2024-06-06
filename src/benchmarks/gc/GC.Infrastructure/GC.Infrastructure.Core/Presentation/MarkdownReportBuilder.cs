@@ -81,6 +81,24 @@ namespace GC.Infrastructure.Core.Presentation
             }
         }
 
+        public static void AddIncompleteTestsSectionWithYamlFileName(this StreamWriter sw, string yamlFileName, Dictionary<string, ProcessExecutionDetails> executionDetails)
+        {
+            sw.WriteLine($"# Incomplete Tests: {yamlFileName}.yaml");
+
+            foreach (var p in executionDetails)
+            {
+                if (p.Value.HasFailed)
+                {
+                    sw.WriteLine($"### {p.Key}");
+                    sw.WriteLine($"Standard Error: {p.Value.StandardError}\n");
+                    sw.WriteLine();
+                    sw.WriteLine($"Standard Out: {p.Value.StandardOut}\n");
+                    sw.WriteLine();
+                    sw.WriteLine($"Repro: \n ```{p.Value.CommandlineArgs}```\n");
+                }
+            }
+        }
+
         public static void AddReproSection(this StreamWriter sw, Dictionary<string, ProcessExecutionDetails> executionDetails)
         {
             sw.WriteLine("## Repro Steps");

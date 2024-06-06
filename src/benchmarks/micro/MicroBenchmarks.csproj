@@ -19,6 +19,7 @@
 
     <!-- Allow building with one major version, and running using a sdk with a higher major version -->
     <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
+    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
   <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->
@@ -79,6 +80,7 @@
     <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt;= '5.0'" />
     <PackageReference Include="System.IO.Hashing" Version="$(SystemVersion)" />
     <PackageReference Include="System.IO.Pipelines" Version="$(SystemVersion)" />
+    <PackageReference Include="System.Net.Http.WinHttpHandler" Version="$(SystemVersion)" Condition="'$(OS)' == 'Windows_NT'" />
     <PackageReference Include="System.Threading.Channels" Version="$(SystemVersion)" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
     <PackageReference Include="System.Collections.Immutable" Version="8.0.*-*" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0')" />
@@ -230,6 +232,7 @@
   <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
     <!-- System.Drawing.Common only supported on Windows -->
     <Compile Remove="libraries\System.Drawing\*.cs" />
+    <Compile Remove="libraries\System.Net.Http\Perf.WinHttpHandler.cs" />
   </ItemGroup>
 
   <ItemGroup>

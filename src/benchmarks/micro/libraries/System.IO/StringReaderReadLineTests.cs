@@ -28,6 +28,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public async Task ReadLineAsync()
         {
             using (StringReader reader = new StringReader(_text))

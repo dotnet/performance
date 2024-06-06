@@ -27,10 +27,12 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
+        [MemoryRandomization]
         public bool TryParse(string value) => ushort.TryParse(value, out _);
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
+        [MemoryRandomization]
         public string ToString(ushort value) => value.ToString();
     }
 }

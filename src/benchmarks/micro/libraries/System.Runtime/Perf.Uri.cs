@@ -70,9 +70,11 @@ namespace System.Tests
         public string DnsSafeHost() => new Uri("http://[fe80::3]%1").DnsSafeHost;
 
         [Benchmark]
+        [MemoryRandomization]
         public string GetComponents() => _uri.GetComponents(UriComponents.PathAndQuery | UriComponents.Fragment, UriFormat.UriEscaped);
 
         [Benchmark]
+        [MemoryRandomization]
         public string PathAndQuery() => _uri.PathAndQuery;
 
         [Benchmark]

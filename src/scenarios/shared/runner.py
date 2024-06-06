@@ -637,7 +637,7 @@ ex: C:\repos\performance;C:\repos\runtime
             getLogger().info("Completed install.")
 
             allResults = []
-            timeToFirstDrawEventEndDateTime = datetime.now() # This is used to keep track of the latest time to draw end event, we use this to calculate time to draw and also as a reference point for the next iteration log time.
+            timeToFirstDrawEventEndDateTime = datetime.now() + timedelta(minutes=-10) # This is used to keep track of the latest time to draw end event, we use this to calculate time to draw and also as a reference point for the next iteration log time.
             for i in range(self.startupiterations + 1): # adding one iteration to account for the warmup iteration
                 getLogger().info("Waiting 10 secs to ensure we're not getting confused with previous app run.")
                 time.sleep(10)
@@ -749,6 +749,16 @@ ex: C:\repos\performance;C:\repos\runtime
                     except:
                         break
 
+                
+                if i == 0: # Use the warmup iteration to get the current device time
+                    if len(events) > 0:
+                        timeToFirstDrawEventEndDateTime = datetime.strptime(events[-1]['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
+                        getLogger().info("Time on device: %s", timeToFirstDrawEventEndDateTime)
+                        continue
+
+                    getLogger().error("No watchdog events found in the log, this could mean the app crashed or the device clock is not in sync with the host.")
+                    raise Exception("No watchdog events found in the log, this could mean the app crashed or the device clock is not in sync with the host.")
+
                 # the startup measurement relies on the date/time of the device to be pretty much in sync with the host
                 # since we use the timestamps from the host to decide which parts of the device log to get and
                 # we then use that to calculate the time delta from watchdog events
@@ -814,13 +824,8 @@ ex: C:\repos\performance;C:\repos\runtime
                     # startup time is time to first draw
                     totalTimeMilliseconds = timeToMainMilliseconds + timeToFirstDrawMilliseconds
 
-                if i == 0:
-                    # ignore the warmup iteration
-                    getLogger().info(f'Warmup iteration took {totalTimeMilliseconds}')
-                else:
-                    # TODO: this isn't really a COLD run, we should have separate measurements for starting the app right after install
-                    launchState = 'COLD'
-                    allResults.append(f'LaunchState: {launchState}\nTotalTime: {int(totalTimeMilliseconds)}\nTimeToMain: {int(timeToMainMilliseconds)}\n\n')
+                launchState = 'COLD'
+                allResults.append(f'LaunchState: {launchState}\nTotalTime: {int(totalTimeMilliseconds)}\nTimeToMain: {int(timeToMainMilliseconds)}\n\n')
 
             # Done with testing, uninstall the app
             getLogger().info("Uninstalling app")

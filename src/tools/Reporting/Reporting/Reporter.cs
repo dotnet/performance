@@ -103,8 +103,8 @@ public class Reporter
                 if(entry.Key.ToString().Equals("DOTNET_VERSION", StringComparison.InvariantCultureIgnoreCase)){
                     build.AdditionalData["productVersion"] = entry.Value.ToString();
                 } else if(entry.Key.ToString().Equals("MAUI_VERSION", StringComparison.InvariantCultureIgnoreCase)){
-                    build.AdditionalData["mauiVersion"] = entry.Value.ToString();
-                } else {
+                    build.AdditionalData["MAUIVERSION"] = entry.Value.ToString();
+                } else if(!string.IsNullOrWhiteSpace(entry.Value.ToString())){
                     build.AdditionalData[entry.Key.ToString()] = entry.Value.ToString();
                 }
             }

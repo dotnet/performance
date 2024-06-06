@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -21,6 +21,7 @@ namespace System.Numerics.Tests
         public Matrix3x2 IdentityBenchmark() => Matrix3x2.Identity;
 
         [Benchmark]
+        [MemoryRandomization]
         public bool IsIdentityBenchmark() => Matrix3x2.Identity.IsIdentity;
 
         [Benchmark]
@@ -84,6 +85,7 @@ namespace System.Numerics.Tests
         public Matrix3x2 CreateTranslationFromScalarXY() => Matrix3x2.CreateTranslation(1.0f, 2.0f);
 
         [Benchmark]
+        [MemoryRandomization]
         public bool EqualsBenchmark() => Matrix3x2.Identity.Equals(Matrix3x2.Identity);
 
         [Benchmark]

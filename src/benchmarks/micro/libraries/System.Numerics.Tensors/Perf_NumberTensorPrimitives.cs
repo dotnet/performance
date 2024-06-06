@@ -42,7 +42,7 @@ namespace System.Numerics.Tensors.Tests
         public void Abs() => TensorPrimitives.Abs<T>(_source1, _destination);
 
         [Benchmark]
-        public void Negate() => TensorPrimitives.Abs<T>(_source1, _destination);
+        public void Negate() => TensorPrimitives.Negate<T>(_source1, _destination);
         #endregion
 
         #region Binary/Ternary Operations

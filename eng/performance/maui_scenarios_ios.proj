@@ -48,13 +48,6 @@
       <IPAName>MauiBlazoriOSDefault</IPAName>
       <PackageName>net.dot.mauiblazortesting</PackageName>
     </MAUIiOSScenario>
-    <!-- Temporarily disabled per: https://github.com/dotnet/performance/issues/3767 -->
-    <!-- <MAUIiOSScenario Include="Maui iOS Podcast $(RunConfigsString)">
-      <ScenarioDirectoryName>mauiiospodcast</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <IPAName>Microsoft.NetConf2021.Maui</IPAName>
-      <PackageName>net.dot.netconf2021.maui</PackageName>
-    </MAUIiOSScenario> -->
   </ItemGroup>
 
   <ItemGroup>
@@ -150,35 +143,6 @@
 
           # Testing commands
           $(Python) test.py devicestartup -1-device-type ios -1-package-path MauiBlazoriOSDefault.app -1-package-name net.dot.mauiblazortesting -1-scenario-name "%(Identity)" -1-use-fully-drawn-time -1-fully-drawn-magic-string __MAUI_Blazor_WebView_OnAfterRender__ -1-startup-iterations 5
-          ((result=$?))
-
-          # Post commands
-          $(Python) post.py
-          exit $result
-        ]]>
-      </CustomCommands>
-    </XHarnessAppBundleToTest> -->
-    <!-- Temporarily disabled per: https://github.com/dotnet/performance/issues/3767 -->
-    <!-- <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Podcast $(RunConfigsString)">
-      <AppBundlePath>$(ScenariosDir)mauiiospodcast.zip</AppBundlePath>
-      <WorkItemTimeout>00:15:00</WorkItemTimeout>
-      <TestTarget>ios-device</TestTarget>
-      <CustomCommands>
-        <![CDATA[
-          # PreCommands
-          export XHARNESSPATH=$XHARNESS_CLI_PATH
-
-          cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiiospodcast/Microsoft.NetConf2021.Maui.ipa $HELIX_WORKITEM_ROOT/mauiiospodcast/Microsoft.NetConf2021.Maui.zip
-          mkdir $HELIX_WORKITEM_ROOT/mauiiospodcast/pub
-          cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiiospodcast/versions.json $HELIX_WORKITEM_ROOT/mauiiospodcast/pub/versions.json
-          unzip -d $HELIX_WORKITEM_ROOT/mauiiospodcast $HELIX_WORKITEM_ROOT/mauiiospodcast/Microsoft.NetConf2021.Maui.zip
-          mv $HELIX_WORKITEM_ROOT/mauiiospodcast/Payload/Microsoft.NetConf2021.Maui.app $HELIX_WORKITEM_ROOT/mauiiospodcast/Microsoft.NetConf2021.Maui.app
-          cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/mauiiospodcast/Microsoft.NetConf2021.Maui.app
-          cd $HELIX_WORKITEM_ROOT/mauiiospodcast
-          sign Microsoft.NetConf2021.Maui.app
-
-          # Testing commands
-          $(Python) test.py devicestartup -1-device-type ios -1-package-path Microsoft.NetConf2021.Maui.app -1-package-name net.dot.netconf2021.maui -1-scenario-name "%(Identity)"
           ((result=$?))
 
           # Post commands

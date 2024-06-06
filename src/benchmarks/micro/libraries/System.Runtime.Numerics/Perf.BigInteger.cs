@@ -17,6 +17,8 @@ namespace System.Numerics.Tests
             yield return new BigIntegerData("123");
             yield return new BigIntegerData(int.MinValue.ToString());
             yield return new BigIntegerData(string.Concat(Enumerable.Repeat("1234567890", 20)));
+            yield return new BigIntegerData(string.Concat(Enumerable.Repeat("1234567890", 2000)));
+            yield return new BigIntegerData(string.Concat(Enumerable.Repeat("1234567890", 1000)) + new string('0', 10000));
         }
 
         [Benchmark]
@@ -81,6 +83,7 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ValuesSameOrHalfSize))]
+        [MemoryRandomization]
         public BigInteger Multiply(BigIntegers arguments)
             => BigInteger.Multiply(arguments.Left, arguments.Right);
 
