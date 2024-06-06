@@ -33,6 +33,7 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
         try:
             dac = DefaultAzureCredential()
             credential = ClientAssertionCredential(TENANT_ID, CLIENT_ID, lambda: dac.get_token("api://AzureADTokenExchange/.default").token)
+            credential.get_token("https://storage.azure.com/.default")
         except ClientAuthenticationError as ex:
             getLogger().info("Unable to use managed identity. Falling back to environment variable.")
             credential = os.getenv(sas_token_env)
