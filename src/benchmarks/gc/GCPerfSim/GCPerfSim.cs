@@ -1835,19 +1835,17 @@ class ArgsParser
         }
         else
         {
-            ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
-            ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
-            ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
-            int sohAllocRatioArg = (int)(1000 - lohAllocRatioArg - pohAllocRatioArg);
+            long meanSohObjSize = (long)Util.Mean(sohAllocLow, sohAllocHigh);
+            long meanLohObjSize = (long)Util.Mean(lohAllocLow, lohAllocHigh);
+            long meanPohObjSize = (long)Util.Mean(pohAllocLow, pohAllocHigh);
+            int sohAllocRatioArgInt = (int)(1000 - lohAllocRatioArg - pohAllocRatioArg);
 
-            if (sohAllocRatioArg == 0)
-            {
-                // Below code will fail because the equations below are all in relation to sohAllocRatioArg.
-                // This makes the determinant of the matrix is zero.
-                // Instead, set it to a small negative value and solving will yield a value that is close
-                // (and negative).
-                sohAllocRatioArg = -1;
-            }
+            // If sohAllocRationArg is zero, then the determinant of the matrix below will be zero,
+            // and the solution will fail.  Set it very small to get close.  A low value of
+            // sohAllocRatioArg may lead to a negative sohWeight (essentially trying to counteract
+            // the overhead if it already uses too much soh space), in which case the soh bucket
+            // will be dropped below.
+            double sohAllocRatioArg = (sohAllocRatioArgInt == 0) ? 0.0000001 : sohAllocRatioArgInt;
 
             /*
              * Solving for the weights by 3 linear equations using the Cramer's rule.
@@ -1870,20 +1868,6 @@ class ArgsParser
             double sohWeight = ((b1 * a22 * a33 + a12 * a23 * b3 + a13 * b2 * a32 - a13 * a22 * b3 - a12 * b2 * a33 - b1 * a23 * a32) / det);
             double lohWeight = ((a11 * b2 * a33 + b1 * a23 * a31 + a13 * a21 * b3 - a13 * b2 * a31 - b1 * a21 * a33 - a11 * a23 * b3) / det);
             double pohWeight = ((a11 * a22 * b3 + a12 * b2 * a31 + b1 * a21 * a32 - b1 * a22 * a31 - a12 * a21 * b3 - a11 * b2 * a32) / det);
-
-            if (sohWeight < 0)
-            {
-                // This case can happen for two different reasons:
-                // 1. sohAllocRatioArg was zero and we set it negative above, leading to a negative solution.
-                // 2. sohAllocRatioArg was close to zero, and overhead alone would be enough to over-satisfy
-                //    the amount of soh space required, so "negative allocations" would be needed to reach
-                //    the goal.
-                //
-                // In either case, just set sohWeight to zero because that's as close as we can get.
-                // We could linearly rescale lohWeight and pohWeight so that they sum to 1000, but the sum
-                // doesn't actually matter to the bucket chooser.
-                sohWeight = 0;
-            }
 
             if (lohWeight > 0)
             {
