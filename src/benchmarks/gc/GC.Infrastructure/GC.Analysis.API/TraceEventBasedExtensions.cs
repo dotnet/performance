@@ -19,8 +19,8 @@ namespace GC.Analysis.API
             eventSource.NeedLoadedDotNetRuntimes();
             eventSource.Process();
             return eventSource.Processes()
-                .Select(p => p.LoadedDotNetRuntime())
-                .Where(p =>
+                .EagerSelect(p => p.LoadedDotNetRuntime())
+                .EagerWhere(p =>
                 {
                     return p != null &&
                            p.GC != null &&

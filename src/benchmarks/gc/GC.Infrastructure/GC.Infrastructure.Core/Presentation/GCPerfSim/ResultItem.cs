@@ -44,8 +44,8 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
             PctTimePausedInGC = processData.Stats.GetGCPauseTimePercentage();
             FirstToLastGCSeconds = ( processData.GCs.Last().StartRelativeMSec - processData.GCs.First().StartRelativeMSec ) / 1000;
-            HeapSizeAfter_Mean = GoodLinq.Average(processData.GCs, (gc => gc.HeapSizeAfterMB));
-            HeapSizeBeforeMB_Mean = GoodLinq.Average(processData.GCs, (gc => gc.HeapSizeBeforeMB));
+            HeapSizeAfter_Mean = processData.GCs.EagerAverage(gc => gc.HeapSizeAfterMB);
+            HeapSizeBeforeMB_Mean = processData.GCs.EagerAverage(gc => gc.HeapSizeBeforeMB);
 
             var properties = processData.Stats.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             foreach (var property in properties) 
@@ -74,14 +74,14 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
             }
 
             // 95P
-            PauseDurationMSec_95PWhereIsGen0 = Statistics.Percentile(GoodLinq.Select( GoodLinq.Where(processData.GCs, (gc => gc.Generation == 0)), (gc => gc.PauseDurationMSec)), 0.95);
-            PauseDurationMSec_95PWhereIsGen1 = Statistics.Percentile(GoodLinq.Select( GoodLinq.Where(processData.GCs, (gc => gc.Generation == 1)), (gc => gc.PauseDurationMSec)), 0.95);
+            PauseDurationMSec_95PWhereIsGen0 = processData.GCs.EagerWhere(gc => gc.Generation == 0).EagerSelect(gc => gc.PauseDurationMSec).Percentile(0.95);
+            PauseDurationMSec_95PWhereIsGen1 = processData.GCs.EagerWhere(gc => gc.Generation == 1).EagerSelect(gc => gc.PauseDurationMSec).Percentile(0.95);
 
-            PauseDurationMSec_95PWhereIsBackground = Statistics.Percentile(GoodLinq.Select( GoodLinq.Where(processData.GCs, (gc => gc.Type == GCType.BackgroundGC)), (gc => gc.PauseDurationMSec)), 0.95);
-            PauseDurationMSec_MeanWhereIsBackground = GoodLinq.Average(GoodLinq.Select(GoodLinq.Where(processData.GCs, (gc => gc.Type == GCType.BackgroundGC)), (gc => gc.PauseDurationMSec)), (p => p));
+            PauseDurationMSec_95PWhereIsBackground = processData.GCs.EagerWhere(gc => gc.Type == GCType.BackgroundGC).EagerSelect(gc => gc.PauseDurationMSec).Percentile(0.95);
+            PauseDurationMSec_MeanWhereIsBackground = processData.GCs.EagerWhere(gc => gc.Type == GCType.BackgroundGC).EagerAverage(gc => gc.PauseDurationMSec);
 
-            PauseDurationMSec_95PWhereIsBlockingGen2 = Statistics.Percentile(GoodLinq.Select( GoodLinq.Where(processData.GCs, (gc => gc.Type != GCType.BackgroundGC && gc.Generation == 2)), (gc => gc.PauseDurationMSec)), 0.95);
-            PauseDurationMSec_MeanWhereIsBlockingGen2 = GoodLinq.Average(GoodLinq.Select(GoodLinq.Where(processData.GCs, (gc => gc.Type != GCType.BackgroundGC && gc.Generation == 2)), (gc => gc.PauseDurationMSec)), (p => p));
+            PauseDurationMSec_95PWhereIsBlockingGen2 = processData.GCs.EagerWhere(gc => gc.Type != GCType.BackgroundGC && gc.Generation == 2).EagerSelect(gc => gc.PauseDurationMSec).Percentile(0.95);
+            PauseDurationMSec_MeanWhereIsBlockingGen2 = processData.GCs.EagerWhere(gc => gc.Type != GCType.BackgroundGC && gc.Generation == 2).EagerAverage(gc => gc.PauseDurationMSec);
 
             CountIsBlockingGen2 = processData.GCs.Count(gc => gc.Generation == 2 && gc.Type != GCType.BackgroundGC);
 
@@ -92,12 +92,12 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
             Speed_MBPerMSec = processData.Stats.TotalPromotedMB / processData.Stats.TotalPauseTimeMSec;
 
             PauseDurationMSec_MeanWhereIsEphemeral =
-                GoodLinq.Average(GoodLinq.Where(processData.GCs, (gc => gc.Generation == 1 || gc.Generation == 0)), (gc => gc.PauseDurationMSec));
+                processData.GCs.EagerWhere(gc => gc.Generation == 1 || gc.Generation == 0).EagerAverage(gc => gc.PauseDurationMSec);
             PauseDurationSeconds_SumWhereIsGen1 =
-                GoodLinq.Sum(GoodLinq.Where(processData.GCs, (gc => gc.Generation == 1)), (gc => gc.PauseDurationMSec));
-            PauseDurationMSec_Sum = GoodLinq.Sum(processData.GCs, (gc => gc.PauseDurationMSec)); 
-            CountIsGen1 = GoodLinq.Where(processData.GCs, gc => gc.Generation == 1).Count;
-            CountIsGen0 = GoodLinq.Where(processData.GCs, gc => gc.Generation == 0).Count;
+                processData.GCs.EagerWhere(gc => gc.Generation == 1).EagerSum(gc => gc.PauseDurationMSec);
+            PauseDurationMSec_Sum = processData.GCs.EagerSum(gc => gc.PauseDurationMSec); 
+            CountIsGen1 = processData.GCs.EagerWhere(gc => gc.Generation == 1).Count;
+            CountIsGen0 = processData.GCs.EagerWhere(gc => gc.Generation == 0).Count;
         }
 
         public double PctTimePausedInGC                       { get; }

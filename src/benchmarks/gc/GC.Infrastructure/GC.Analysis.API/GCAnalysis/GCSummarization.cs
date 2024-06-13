@@ -19,7 +19,7 @@ namespace GC.Analysis.API
                 }
             }
 
-            return summaryData.OrderByDescending(s => s.value).Select(s => s.summary).Take(topN);
+            return summaryData.OrderByDescending(s => s.value).EagerSelect(s => s.summary).Take(topN);
         }
 
         public static IEnumerable<DataFrame> Summarize(this Analyzer analyzer, string processName)
@@ -85,8 +85,8 @@ namespace GC.Analysis.API
             AddStr("Gen0 Total Pause Time MSec", processData.Generations[0].TotalPauseTimeMSec);
             AddStr("Gen1 Total Pause Time MSec", processData.Generations[1].TotalPauseTimeMSec);
             AddStr("Ephemeral Total Pause Time MSec", processData.Generations[0].TotalPauseTimeMSec + processData.Generations[1].TotalPauseTimeMSec);
-            AddStr("Blocking Gen2 Total Pause Time MSec", processData.Gen2Blocking.Sum(gc => gc.PauseDurationMSec));
-            AddStr("BGC Total Pause Time MSec", processData.BGCs.Sum(gc => gc.PauseDurationMSec));
+            AddStr("Blocking Gen2 Total Pause Time MSec", processData.Gen2Blocking.EagerSum(gc => gc.PauseDurationMSec));
+            AddStr("BGC Total Pause Time MSec", processData.BGCs.EagerSum(gc => gc.PauseDurationMSec));
 
             AddStr("GC Pause Time %", processData.Stats.GetGCPauseTimePercentage());
 
@@ -94,11 +94,11 @@ namespace GC.Analysis.API
             AddStr("Gen0 Total Promoted MB", processData.Generations[0].TotalPromotedMB);
             AddStr("Gen1 Total Promoted MB", processData.Generations[1].TotalPromotedMB);
             AddStr("Ephemeral Total Promoted MB", processData.Generations[0].TotalPromotedMB + processData.Generations[1].TotalPromotedMB);
-            AddStr("BGC Total Promoted MB", processData.BGCs.Sum(gc => gc.PromotedMB));
-            AddStr("Gen2 Total Promoted MB - Blocking", processData.Gen2Blocking.Sum(gc => gc.PromotedMB));
+            AddStr("BGC Total Promoted MB", processData.BGCs.EagerSum(gc => gc.PromotedMB));
+            AddStr("Gen2 Total Promoted MB - Blocking", processData.Gen2Blocking.EagerSum(gc => gc.PromotedMB));
 
             // Allocations
-            AddStr("Mean Size Before MB", processData.GCs.Average(gc => gc.HeapSizeBeforeMB));
+            AddStr("Mean Size Before MB", processData.GCs.EagerAverage(gc => gc.HeapSizeBeforeMB));
             AddStr("Mean Size After MB", processData.Stats.MeanSizeAfterMB);
 
             // Speeds
@@ -106,14 +106,14 @@ namespace GC.Analysis.API
             AddStr("Gen0 Average Speed (MB/MSec)", processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec);
             AddStr("Gen1 Average Speed (MB/MSec)", processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec);
 
-            IEnumerable<TraceGC> gen0 = processData.GCs.Where(gc => gc.Generation == 0);
-            IEnumerable<TraceGC> gen1 = processData.GCs.Where(gc => gc.Generation == 1);
+            IEnumerable<TraceGC> gen0 = processData.GCs.EagerWhere(gc => gc.Generation == 0);
+            IEnumerable<TraceGC> gen1 = processData.GCs.EagerWhere(gc => gc.Generation == 1);
 
-            AddStr("Avg. Gen0 Pause Time (ms)", (gen0.Count() > 0 ? gen0.Average(gc => gc.PauseDurationMSec) : double.NaN));
-            AddStr("Avg. Gen1 Pause Time (ms)", (gen1.Count() > 0 ? gen1.Average(gc => gc.PauseDurationMSec) : double.NaN));
+            AddStr("Avg. Gen0 Pause Time (ms)", (gen0.Count() > 0 ? gen0.EagerAverage(gc => gc.PauseDurationMSec) : double.NaN));
+            AddStr("Avg. Gen1 Pause Time (ms)", (gen1.Count() > 0 ? gen1.EagerAverage(gc => gc.PauseDurationMSec) : double.NaN));
 
-            AddStr("Avg. Gen0 Promoted (mb)", (gen0.Count() > 0 ? gen0.Average(gc => gc.PromotedMB) : double.NaN)); 
-            AddStr("Avg. Gen1 Promoted (mb)", (gen1.Count() > 0 ? gen1.Average(gc => gc.PromotedMB) : double.NaN));
+            AddStr("Avg. Gen0 Promoted (mb)", (gen0.Count() > 0 ? gen0.EagerAverage(gc => gc.PromotedMB) : double.NaN)); 
+            AddStr("Avg. Gen1 Promoted (mb)", (gen1.Count() > 0 ? gen1.EagerAverage(gc => gc.PromotedMB) : double.NaN));
 
             var gen0Speed = processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec;
             AddStr("Avg. Gen0 Speed (mb/ms)", gen0Speed); 
@@ -121,8 +121,8 @@ namespace GC.Analysis.API
             var gen1Speed = processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec;
             AddStr("Avg. Gen1 Speed (mb/ms)", gen1Speed);
 
-            AddStr("Avg. Gen0 Promoted (mb) / heap", gen0.Count() > 0 ? gen0.Average(gc => gc.PromotedMB) / processData.Stats.HeapCount : double.NaN);
-            AddStr("Avg. Gen1 Promoted (mb) / heap", gen1.Count() > 0 ? gen1.Average(gc => gc.PromotedMB) / processData.Stats.HeapCount : double.NaN);
+            AddStr("Avg. Gen0 Promoted (mb) / heap", gen0.Count() > 0 ? gen0.EagerAverage(gc => gc.PromotedMB) / processData.Stats.HeapCount : double.NaN);
+            AddStr("Avg. Gen1 Promoted (mb) / heap", gen1.Count() > 0 ? gen1.EagerAverage(gc => gc.PromotedMB) / processData.Stats.HeapCount : double.NaN);
 
             AddStr("Avg. Gen0 Speed (mb/ms) / heap", gen0Speed / processData.Stats.HeapCount);
             AddStr("Avg. Gen1 Speed (mb/ms) / heap", gen1Speed / processData.Stats.HeapCount);
@@ -177,67 +177,67 @@ namespace GC.Analysis.API
                 }
             }
 
-            AddStr("Process ID", processData.ProcessID.ToString(), others.Select(p => p.ProcessID.ToString()));
-            AddStr("Process Name", processData.ProcessName, others.Select(p => p.ProcessName));
-            AddStr("Commandline", processData.CommandLine, others.Select(p => p.CommandLine));
+            AddStr("Process ID", processData.ProcessID.ToString(), others.EagerSelect(p => p.ProcessID.ToString()));
+            AddStr("Process Name", processData.ProcessName, others.EagerSelect(p => p.ProcessName));
+            AddStr("Commandline", processData.CommandLine, others.EagerSelect(p => p.CommandLine));
 
-            Add("Process Duration (Sec)", processData.Stats.ProcessDuration / 1000, others.Select(p => p.Stats.ProcessDuration / 1000));
-            Add("Total Allocated MB", processData.Stats.TotalAllocatedMB, others.Select(p => p.Stats.TotalAllocatedMB));
-            Add("Max Size Peak MB", processData.Stats.MaxSizePeakMB, others.Select(p => p.Stats.MaxSizePeakMB));
+            Add("Process Duration (Sec)", processData.Stats.ProcessDuration / 1000, others.EagerSelect(p => p.Stats.ProcessDuration / 1000));
+            Add("Total Allocated MB", processData.Stats.TotalAllocatedMB, others.EagerSelect(p => p.Stats.TotalAllocatedMB));
+            Add("Max Size Peak MB", processData.Stats.MaxSizePeakMB, others.EagerSelect(p => p.Stats.MaxSizePeakMB));
 
             // Counts.
-            Add("GC Count", processData.Stats.Count, others.Select(p => (double)p.Stats.Count));
-            Add("Heap Count", processData.Stats.HeapCount, others.Select(p => (double)p.Stats.HeapCount));
-            Add("Gen0 Count", processData.Generations[0].Count, others.Select(p => (double)p.Generations[0].Count));
-            Add("Gen1 Count", processData.Generations[1].Count, others.Select(p => (double)p.Generations[1].Count));
-            Add("Ephemeral Count", processData.Generations[0].Count + processData.Generations[1].Count, others.Select(p => (double)p.Generations[0].Count + p.Generations[1].Count));
-            Add("Gen2 Blocking Count", processData.Gen2Blocking.Count(), others.Select(p => (double)p.Gen2Blocking.Count()));
-            Add("BGC Count", processData.BGCs.Count(), others.Select(p => (double)p.BGCs.Count()));
+            Add("GC Count", processData.Stats.Count, others.EagerSelect(p => (double)p.Stats.Count));
+            Add("Heap Count", processData.Stats.HeapCount, others.EagerSelect(p => (double)p.Stats.HeapCount));
+            Add("Gen0 Count", processData.Generations[0].Count, others.EagerSelect(p => (double)p.Generations[0].Count));
+            Add("Gen1 Count", processData.Generations[1].Count, others.EagerSelect(p => (double)p.Generations[1].Count));
+            Add("Ephemeral Count", processData.Generations[0].Count + processData.Generations[1].Count, others.EagerSelect(p => (double)p.Generations[0].Count + p.Generations[1].Count));
+            Add("Gen2 Blocking Count", processData.Gen2Blocking.Count(), others.EagerSelect(p => (double)p.Gen2Blocking.Count()));
+            Add("BGC Count", processData.BGCs.Count(), others.EagerSelect(p => (double)p.BGCs.Count()));
 
             // Pauses
-            Add("Gen0 Total Pause Time MSec", processData.Generations[0].TotalPauseTimeMSec, others.Select(p => (double)p.Generations[0].TotalPauseTimeMSec));
-            Add("Gen1 Total Pause Time MSec", processData.Generations[1].TotalPauseTimeMSec, others.Select(p => (double)p.Generations[1].TotalPauseTimeMSec));
-            Add("Ephemeral Total Pause Time MSec", processData.Generations[0].TotalPauseTimeMSec + processData.Generations[1].TotalPauseTimeMSec, others.Select(p => (double)p.Generations[0].TotalPauseTimeMSec + p.Generations[1].TotalPauseTimeMSec));
-            Add("Blocking Gen2 Total Pause Time MSec", processData.Gen2Blocking.Sum(gc => gc.PauseDurationMSec), others.Select(p => (double)p.Gen2Blocking.Sum(gc => gc.PauseDurationMSec)));
-            Add("BGC Total Pause Time MSec", processData.BGCs.Sum(gc => gc.PauseDurationMSec), others.Select(p => p.BGCs.Sum(gc => gc.PauseDurationMSec)));
+            Add("Gen0 Total Pause Time MSec", processData.Generations[0].TotalPauseTimeMSec, others.EagerSelect(p => (double)p.Generations[0].TotalPauseTimeMSec));
+            Add("Gen1 Total Pause Time MSec", processData.Generations[1].TotalPauseTimeMSec, others.EagerSelect(p => (double)p.Generations[1].TotalPauseTimeMSec));
+            Add("Ephemeral Total Pause Time MSec", processData.Generations[0].TotalPauseTimeMSec + processData.Generations[1].TotalPauseTimeMSec, others.EagerSelect(p => (double)p.Generations[0].TotalPauseTimeMSec + p.Generations[1].TotalPauseTimeMSec));
+            Add("Blocking Gen2 Total Pause Time MSec", processData.Gen2Blocking.EagerSum(gc => gc.PauseDurationMSec), others.EagerSelect(p => (double)p.Gen2Blocking.EagerSum(gc => gc.PauseDurationMSec)));
+            Add("BGC Total Pause Time MSec", processData.BGCs.EagerSum(gc => gc.PauseDurationMSec), others.EagerSelect(p => p.BGCs.EagerSum(gc => gc.PauseDurationMSec)));
 
-            Add("GC Pause Time %", processData.Stats.GetGCPauseTimePercentage(), others.Select(gc => gc.Stats.GetGCPauseTimePercentage()));
+            Add("GC Pause Time %", processData.Stats.GetGCPauseTimePercentage(), others.EagerSelect(gc => gc.Stats.GetGCPauseTimePercentage()));
 
             // Speed
             // Pauses
-            IEnumerable<TraceGC> gen0 = processData.GCs.Where(gc => gc.Generation == 0);
-            IEnumerable<TraceGC> gen1 = processData.GCs.Where(gc => gc.Generation == 1);
+            IEnumerable<TraceGC> gen0 = processData.GCs.EagerWhere(gc => gc.Generation == 0);
+            IEnumerable<TraceGC> gen1 = processData.GCs.EagerWhere(gc => gc.Generation == 1);
 
             Dictionary<GCProcessData, IEnumerable<TraceGC>> gen0Cache = new();
             foreach(var other in others)
             {
-                var gen0s = other.GCs.Where(gc => gc.Generation == 0);
+                var gen0s = other.GCs.EagerWhere(gc => gc.Generation == 0);
                 gen0Cache[other] = gen0s;
             }
 
             Dictionary<GCProcessData, IEnumerable<TraceGC>> gen1Cache = new();
             foreach(var other in others)
             {
-                var gen1s = other.GCs.Where(gc => gc.Generation == 1);
+                var gen1s = other.GCs.EagerWhere(gc => gc.Generation == 1);
                 gen1Cache[other] = gen1s;
             }
 
             int heapCount = processData.Stats.HeapCount;
 
-            Add("Avg. Gen0 Pause Time (ms)", gen0.Average(gc => gc.PauseDurationMSec), others.Select(p => gen0Cache[p].Average(gc => gc.PauseDurationMSec)));
-            Add("Avg. Gen1 Pause Time (ms)", gen1.Average(gc => gc.PauseDurationMSec), others.Select(p => gen1Cache[p].Average(gc => gc.PauseDurationMSec)));
+            Add("Avg. Gen0 Pause Time (ms)", gen0.EagerAverage(gc => gc.PauseDurationMSec), others.EagerSelect(p => gen0Cache[p].EagerAverage(gc => gc.PauseDurationMSec)));
+            Add("Avg. Gen1 Pause Time (ms)", gen1.EagerAverage(gc => gc.PauseDurationMSec), others.EagerSelect(p => gen1Cache[p].EagerAverage(gc => gc.PauseDurationMSec)));
 
-            Add("Avg. Gen0 Promoted (mb)", gen0.Average(gc => gc.PromotedMB), others.Select(p => (double)gen0Cache[p].Average(gc => gc.PromotedMB)));
-            Add("Avg. Gen1 Promoted (mb)", gen1.Average(gc => gc.PromotedMB), others.Select(p => (double)gen1Cache[p].Average(gc => gc.PromotedMB)));
+            Add("Avg. Gen0 Promoted (mb)", gen0.EagerAverage(gc => gc.PromotedMB), others.EagerSelect(p => (double)gen0Cache[p].EagerAverage(gc => gc.PromotedMB)));
+            Add("Avg. Gen1 Promoted (mb)", gen1.EagerAverage(gc => gc.PromotedMB), others.EagerSelect(p => (double)gen1Cache[p].EagerAverage(gc => gc.PromotedMB)));
 
-            Add("Avg. Gen0 Speed (mb/ms)", processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec, others.Select(p => p.Generations[0].TotalPromotedMB / p.Generations[0].TotalPauseTimeMSec));
-            Add("Avg. Gen1 Speed (mb/ms)", processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec, others.Select(p => p.Generations[1].TotalPromotedMB / p.Generations[1].TotalPauseTimeMSec));
+            Add("Avg. Gen0 Speed (mb/ms)", processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec, others.EagerSelect(p => p.Generations[0].TotalPromotedMB / p.Generations[0].TotalPauseTimeMSec));
+            Add("Avg. Gen1 Speed (mb/ms)", processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec, others.EagerSelect(p => p.Generations[1].TotalPromotedMB / p.Generations[1].TotalPauseTimeMSec));
 
-            Add("Avg. Gen0 Promoted (mb) / heap", gen0.Average(gc => gc.PromotedMB) / heapCount, others.Select(p => gen0Cache[p].Average(gc => gc.PromotedMB) / heapCount));
-            Add("Avg. Gen1 Promoted (mb) / heap", gen1.Average(gc => gc.PromotedMB) / heapCount, others.Select(p => gen1Cache[p].Average(gc => gc.PromotedMB) / heapCount));
+            Add("Avg. Gen0 Promoted (mb) / heap", gen0.EagerAverage(gc => gc.PromotedMB) / heapCount, others.EagerSelect(p => gen0Cache[p].EagerAverage(gc => gc.PromotedMB) / heapCount));
+            Add("Avg. Gen1 Promoted (mb) / heap", gen1.EagerAverage(gc => gc.PromotedMB) / heapCount, others.EagerSelect(p => gen1Cache[p].EagerAverage(gc => gc.PromotedMB) / heapCount));
 
-            Add("Avg. Gen0 Speed (mb/ms) / heap", processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec / heapCount, others.Select(p => p.Generations[0].TotalPromotedMB / p.Generations[0].TotalPauseTimeMSec / heapCount));
-            Add("Avg. Gen1 Speed (mb/ms) / heap", processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec / heapCount, others.Select(p => p.Generations[1].TotalPromotedMB / p.Generations[1].TotalPauseTimeMSec / heapCount));
+            Add("Avg. Gen0 Speed (mb/ms) / heap", processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec / heapCount, others.EagerSelect(p => p.Generations[0].TotalPromotedMB / p.Generations[0].TotalPauseTimeMSec / heapCount));
+            Add("Avg. Gen1 Speed (mb/ms) / heap", processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec / heapCount, others.EagerSelect(p => p.Generations[1].TotalPromotedMB / p.Generations[1].TotalPauseTimeMSec / heapCount));
 
             List<DataFrameColumn> columns = new List<DataFrameColumn> { criteria, value };
 
@@ -298,11 +298,11 @@ namespace GC.Analysis.API
                 }
             }
 
-            AddStr("Process ID", processData.ProcessID.ToString(), others.Select(p => p.ProcessID.ToString()));
-            AddStr("Process Name", processData.ProcessName, others.Select(p => p.ProcessName));
-            AddStr("Commandline", processData.CommandLine, others.Select(p => p.CommandLine));
+            AddStr("Process ID", processData.ProcessID.ToString(), others.EagerSelect(p => p.ProcessID.ToString()));
+            AddStr("Process Name", processData.ProcessName, others.EagerSelect(p => p.ProcessName));
+            AddStr("Commandline", processData.CommandLine, others.EagerSelect(p => p.CommandLine));
 
-            Add("Process Duration (Sec)", processData.Stats.ProcessDuration / 1000, others.Select(p => p.Stats.ProcessDuration / 1000));
+            Add("Process Duration (Sec)", processData.Stats.ProcessDuration / 1000, others.EagerSelect(p => p.Stats.ProcessDuration / 1000));
 
             double maxTotalAllocated = processData.Stats.TotalAllocatedMB;
             foreach (var p in others)
@@ -317,64 +317,64 @@ namespace GC.Analysis.API
                 ratioMap[o] = o.Stats.TotalAllocatedMB / maxTotalAllocated;
             }
 
-            Add("Allocation Ratio", Math.Round(currentAllocRatio, 10), others.Select(p => Math.Round(ratioMap[p], 10)), "N5");
-            Add("Total Allocated MB", processData.Stats.TotalAllocatedMB / currentAllocRatio, others.Select(p => p.Stats.TotalAllocatedMB / ratioMap[p]));
-            Add("Max Size Peak MB", processData.Stats.MaxSizePeakMB / currentAllocRatio, others.Select(p => p.Stats.MaxSizePeakMB / ratioMap[p]));
+            Add("Allocation Ratio", Math.Round(currentAllocRatio, 10), others.EagerSelect(p => Math.Round(ratioMap[p], 10)), "N5");
+            Add("Total Allocated MB", processData.Stats.TotalAllocatedMB / currentAllocRatio, others.EagerSelect(p => p.Stats.TotalAllocatedMB / ratioMap[p]));
+            Add("Max Size Peak MB", processData.Stats.MaxSizePeakMB / currentAllocRatio, others.EagerSelect(p => p.Stats.MaxSizePeakMB / ratioMap[p]));
 
             // Counts.
-            Add("GC Count", processData.Stats.Count, others.Select(p => (double)p.Stats.Count));
-            Add("Heap Count", processData.Stats.HeapCount, others.Select(p => (double)p.Stats.HeapCount));
-            Add("Gen0 Count", processData.Generations[0].Count, others.Select(p => (double)p.Generations[0].Count));
-            Add("Gen1 Count", processData.Generations[1].Count, others.Select(p => (double)p.Generations[1].Count));
-            Add("Ephemeral Count", processData.Generations[0].Count + processData.Generations[1].Count, others.Select(p => (double)p.Generations[0].Count + p.Generations[1].Count));
-            Add("Gen2 Blocking Count", processData.Gen2Blocking.Count(), others.Select(p => (double)p.Gen2Blocking.Count()));
-            Add("BGC Count", processData.BGCs.Count(), others.Select(p => (double)p.BGCs.Count()));
+            Add("GC Count", processData.Stats.Count, others.EagerSelect(p => (double)p.Stats.Count));
+            Add("Heap Count", processData.Stats.HeapCount, others.EagerSelect(p => (double)p.Stats.HeapCount));
+            Add("Gen0 Count", processData.Generations[0].Count, others.EagerSelect(p => (double)p.Generations[0].Count));
+            Add("Gen1 Count", processData.Generations[1].Count, others.EagerSelect(p => (double)p.Generations[1].Count));
+            Add("Ephemeral Count", processData.Generations[0].Count + processData.Generations[1].Count, others.EagerSelect(p => (double)p.Generations[0].Count + p.Generations[1].Count));
+            Add("Gen2 Blocking Count", processData.Gen2Blocking.Count(), others.EagerSelect(p => (double)p.Gen2Blocking.Count()));
+            Add("BGC Count", processData.BGCs.Count(), others.EagerSelect(p => (double)p.BGCs.Count()));
 
             // Pauses
-            Add("Total Pause Time MSec", processData.Stats.TotalPauseTimeMSec / currentAllocRatio, others.Select(p => p.Stats.TotalPauseTimeMSec / ratioMap[p] ));
-            Add("Gen0 Total Pause Time MSec", processData.Generations[0].TotalPauseTimeMSec / currentAllocRatio, others.Select(p => p.Generations[0].TotalPauseTimeMSec / ratioMap[p] ));
-            Add("Gen1 Total Pause Time MSec", processData.Generations[1].TotalPauseTimeMSec / currentAllocRatio, others.Select(p => p.Generations[1].TotalPauseTimeMSec / ratioMap[p] ));
-            Add("Ephemeral Total Pause Time MSec", (processData.Generations[0].TotalPauseTimeMSec + processData.Generations[1].TotalPauseTimeMSec) / currentAllocRatio, others.Select(p => (p.Generations[0].TotalPauseTimeMSec + p.Generations[1].TotalPauseTimeMSec) / (ratioMap[p] )));
-            Add("Blocking Gen2 Total Pause Time MSec", processData.Gen2Blocking.Sum(gc => gc.PauseDurationMSec) / currentAllocRatio, others.Select(p => (double)p.Gen2Blocking.Sum(gc => gc.PauseDurationMSec) / ratioMap[p]));
-            Add("BGC Total Pause Time MSec", processData.BGCs.Sum(gc => gc.PauseDurationMSec) / currentAllocRatio, others.Select(p => p.BGCs.Sum(gc => gc.PauseDurationMSec) / ratioMap[p] ));
+            Add("Total Pause Time MSec", processData.Stats.TotalPauseTimeMSec / currentAllocRatio, others.EagerSelect(p => p.Stats.TotalPauseTimeMSec / ratioMap[p] ));
+            Add("Gen0 Total Pause Time MSec", processData.Generations[0].TotalPauseTimeMSec / currentAllocRatio, others.EagerSelect(p => p.Generations[0].TotalPauseTimeMSec / ratioMap[p] ));
+            Add("Gen1 Total Pause Time MSec", processData.Generations[1].TotalPauseTimeMSec / currentAllocRatio, others.EagerSelect(p => p.Generations[1].TotalPauseTimeMSec / ratioMap[p] ));
+            Add("Ephemeral Total Pause Time MSec", (processData.Generations[0].TotalPauseTimeMSec + processData.Generations[1].TotalPauseTimeMSec) / currentAllocRatio, others.EagerSelect(p => (p.Generations[0].TotalPauseTimeMSec + p.Generations[1].TotalPauseTimeMSec) / (ratioMap[p] )));
+            Add("Blocking Gen2 Total Pause Time MSec", processData.Gen2Blocking.EagerSum(gc => gc.PauseDurationMSec) / currentAllocRatio, others.EagerSelect(p => (double)p.Gen2Blocking.EagerSum(gc => gc.PauseDurationMSec) / ratioMap[p]));
+            Add("BGC Total Pause Time MSec", processData.BGCs.EagerSum(gc => gc.PauseDurationMSec) / currentAllocRatio, others.EagerSelect(p => p.BGCs.EagerSum(gc => gc.PauseDurationMSec) / ratioMap[p] ));
 
-            Add("GC Pause Time %", processData.Stats.GetGCPauseTimePercentage(), others.Select(gc => gc.Stats.GetGCPauseTimePercentage()));
+            Add("GC Pause Time %", processData.Stats.GetGCPauseTimePercentage(), others.EagerSelect(gc => gc.Stats.GetGCPauseTimePercentage()));
 
             // Speed
             // Pauses
-            IEnumerable<TraceGC> gen0 = processData.GCs.Where(gc => gc.Generation == 0);
-            IEnumerable<TraceGC> gen1 = processData.GCs.Where(gc => gc.Generation == 1);
+            IEnumerable<TraceGC> gen0 = processData.GCs.EagerWhere(gc => gc.Generation == 0);
+            IEnumerable<TraceGC> gen1 = processData.GCs.EagerWhere(gc => gc.Generation == 1);
 
             Dictionary<GCProcessData, IEnumerable<TraceGC>> gen0Cache = new();
             foreach(var other in others)
             {
-                var gen0s = other.GCs.Where(gc => gc.Generation == 0);
+                var gen0s = other.GCs.EagerWhere(gc => gc.Generation == 0);
                 gen0Cache[other] = gen0s;
             }
 
             Dictionary<GCProcessData, IEnumerable<TraceGC>> gen1Cache = new();
             foreach(var other in others)
             {
-                var gen1s = other.GCs.Where(gc => gc.Generation == 1);
+                var gen1s = other.GCs.EagerWhere(gc => gc.Generation == 1);
                 gen1Cache[other] = gen1s;
             }
 
             int heapCount = processData.Stats.HeapCount;
 
-            Add("Avg. Gen0 Pause Time (ms)", gen0.Average(gc => gc.PauseDurationMSec), others.Select(p => gen0Cache[p].Average(gc => gc.PauseDurationMSec)));
-            Add("Avg. Gen1 Pause Time (ms)", gen1.Average(gc => gc.PauseDurationMSec), others.Select(p => gen1Cache[p].Average(gc => gc.PauseDurationMSec)));
+            Add("Avg. Gen0 Pause Time (ms)", gen0.EagerAverage(gc => gc.PauseDurationMSec), others.EagerSelect(p => gen0Cache[p].EagerAverage(gc => gc.PauseDurationMSec)));
+            Add("Avg. Gen1 Pause Time (ms)", gen1.EagerAverage(gc => gc.PauseDurationMSec), others.EagerSelect(p => gen1Cache[p].EagerAverage(gc => gc.PauseDurationMSec)));
 
-            Add("Avg. Gen0 Promoted (mb)", gen0.Average(gc => gc.PromotedMB), others.Select(p => (double)gen0Cache[p].Average(gc => gc.PromotedMB)));
-            Add("Avg. Gen1 Promoted (mb)", gen1.Average(gc => gc.PromotedMB), others.Select(p => (double)gen1Cache[p].Average(gc => gc.PromotedMB)));
+            Add("Avg. Gen0 Promoted (mb)", gen0.EagerAverage(gc => gc.PromotedMB), others.EagerSelect(p => (double)gen0Cache[p].EagerAverage(gc => gc.PromotedMB)));
+            Add("Avg. Gen1 Promoted (mb)", gen1.EagerAverage(gc => gc.PromotedMB), others.EagerSelect(p => (double)gen1Cache[p].EagerAverage(gc => gc.PromotedMB)));
 
-            Add("Avg. Gen0 Speed (mb/ms)", processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec, others.Select(p => p.Generations[0].TotalPromotedMB / p.Generations[0].TotalPauseTimeMSec));
-            Add("Avg. Gen1 Speed (mb/ms)", processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec, others.Select(p => p.Generations[1].TotalPromotedMB / p.Generations[1].TotalPauseTimeMSec));
+            Add("Avg. Gen0 Speed (mb/ms)", processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec, others.EagerSelect(p => p.Generations[0].TotalPromotedMB / p.Generations[0].TotalPauseTimeMSec));
+            Add("Avg. Gen1 Speed (mb/ms)", processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec, others.EagerSelect(p => p.Generations[1].TotalPromotedMB / p.Generations[1].TotalPauseTimeMSec));
 
-            Add("Avg. Gen0 Promoted (mb) / heap", gen0.Average(gc => gc.PromotedMB) / heapCount, others.Select(p => gen0Cache[p].Average(gc => gc.PromotedMB) / heapCount));
-            Add("Avg. Gen1 Promoted (mb) / heap", gen1.Average(gc => gc.PromotedMB) / heapCount, others.Select(p => gen1Cache[p].Average(gc => gc.PromotedMB) / heapCount));
+            Add("Avg. Gen0 Promoted (mb) / heap", gen0.EagerAverage(gc => gc.PromotedMB) / heapCount, others.EagerSelect(p => gen0Cache[p].EagerAverage(gc => gc.PromotedMB) / heapCount));
+            Add("Avg. Gen1 Promoted (mb) / heap", gen1.EagerAverage(gc => gc.PromotedMB) / heapCount, others.EagerSelect(p => gen1Cache[p].EagerAverage(gc => gc.PromotedMB) / heapCount));
 
-            Add("Avg. Gen0 Speed (mb/ms) / heap", processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec / heapCount, others.Select(p => p.Generations[0].TotalPromotedMB / p.Generations[0].TotalPauseTimeMSec / heapCount));
-            Add("Avg. Gen1 Speed (mb/ms) / heap", processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec / heapCount, others.Select(p => p.Generations[1].TotalPromotedMB / p.Generations[1].TotalPauseTimeMSec / heapCount));
+            Add("Avg. Gen0 Speed (mb/ms) / heap", processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec / heapCount, others.EagerSelect(p => p.Generations[0].TotalPromotedMB / p.Generations[0].TotalPauseTimeMSec / heapCount));
+            Add("Avg. Gen1 Speed (mb/ms) / heap", processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec / heapCount, others.EagerSelect(p => p.Generations[1].TotalPromotedMB / p.Generations[1].TotalPauseTimeMSec / heapCount));
 
             List<DataFrameColumn> columns = new List<DataFrameColumn> { criteria, value };
 
