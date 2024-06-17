@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Data.Analysis" Version="0.19.1" />
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.7" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.9" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="XPlot.Plotly" Version="4.0.6" />
     <PackageReference Include="YamlDotNet" Version="11.2.1" />
