@@ -12,6 +12,8 @@ environment:
   environment_variables: {}
   default_max_seconds: 300
   framework_version: net8.0
+  # uncomment once we implement iteration mechanism in the ASP.NET command
+  # iterations: 1
 benchmark_settings:
   benchmark_file: C:\InfraRuns\RunNew_All\Suites\ASPNETBenchmarks\ASPNetBenchmarks.csv
   # To take a dump: --application.options.dumpType full --application.options.dumpOutput <filename>

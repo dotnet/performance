@@ -137,7 +137,6 @@ namespace GC.Infrastructure.Commands.Microbenchmark
 
                 foreach (var run in configuration.Runs)
                 {
-                    AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Running Microbechmarks: {configuration.Name} - {run.Key} {benchmark} [/]\n");
                     string runPath = Path.Combine(configuration.Output.Path, run.Key);
 
                     // Create the run path directory.
@@ -150,45 +149,52 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                     (string, string) fileNameAndCommand = MicrobenchmarkCommandBuilder.Build(configuration, run, benchmark, invocationCountFromBaseline);
                     run.Value.Name = run.Key;
 
-                    // Run The BDN process with the trace collector.
-                    using (Process bdnProcess = new())
+                    for (int iterationIdx = 0; iterationIdx < configuration.Environment.Iterations; iterationIdx++)
                     {
-                        bdnProcess.StartInfo.FileName = fileNameAndCommand.Item1;
-                        bdnProcess.StartInfo.Arguments = fileNameAndCommand.Item2;
-                        bdnProcess.StartInfo.UseShellExecute = false;
-                        bdnProcess.StartInfo.RedirectStandardError = true;
-                        bdnProcess.StartInfo.RedirectStandardOutput = true;
-                        bdnProcess.StartInfo.CreateNoWindow = true;
-
-                        StringBuilder consoleOutput = new();
-                        StringBuilder consoleError  = new();
-
-                        bdnProcess.OutputDataReceived += (s, e) =>
+                        // Run The BDN process with the trace collector.
+                        using (Process bdnProcess = new())
                         {
-                            consoleOutput.AppendLine(e.Data);
+                            bdnProcess.StartInfo.FileName = fileNameAndCommand.Item1;
+                            bdnProcess.StartInfo.Arguments = fileNameAndCommand.Item2;
+                            bdnProcess.StartInfo.UseShellExecute = false;
+                            bdnProcess.StartInfo.RedirectStandardError = true;
+                            bdnProcess.StartInfo.RedirectStandardOutput = true;
+                            bdnProcess.StartInfo.CreateNoWindow = true;
 
-                        };
+                            AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Running Microbechmarks: {configuration.Name} - {run.Key} {benchmark} - Iteration: {iterationIdx} [/]\n");
 
-                        bdnProcess.ErrorDataReceived += (s, e) =>
-                        {
-                            consoleError.AppendLine(e.Data);
-                        };
+                            StringBuilder consoleOutput = new();
+                            StringBuilder consoleError = new();
 
-                        using (TraceCollector traceCollector = new TraceCollector(benchmarkCleanedName, collectType, runPath))
-                        {
-                            bdnProcess.Start();
-                            bdnProcess.BeginOutputReadLine();
-                            bdnProcess.BeginErrorReadLine();
-                            bdnProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                            bdnProcess.OutputDataReceived += (s, e) =>
+                            {
+                                consoleOutput.AppendLine(e.Data);
+
+                            };
+
+                            bdnProcess.ErrorDataReceived += (s, e) =>
+                            {
+                                consoleError.AppendLine(e.Data);
+                            };
+
+                            string key = $"{run.Key}.{benchmarkCleanedName}.{iterationIdx}";
+                            string traceName = $"{run.Key}.{benchmarkCleanedName}.{iterationIdx}";
+                            using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath))
+                            {
+                                bdnProcess.Start();
+                                bdnProcess.BeginOutputReadLine();
+                                bdnProcess.BeginErrorReadLine();
+                                bdnProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                            }
+
+                            ProcessExecutionDetails details = new(key: key,
+                                                                  commandlineArgs: $"{fileNameAndCommand.Item1} {fileNameAndCommand.Item2}",
+                                                                  environmentVariables: run.Value.environment_variables,
+                                                                  standardError: consoleError.ToString(),
+                                                                  standardOut: consoleOutput.ToString(),
+                                                                  exitCode: bdnProcess.ExitCode);
+                            executionDetails[key] = details;
                         }
-
-                        ProcessExecutionDetails details = new(key: $"{run.Key}_{benchmark}",
-                                                              commandlineArgs: $"{fileNameAndCommand.Item1} {fileNameAndCommand.Item2}", 
-                                                              environmentVariables: run.Value.environment_variables,
-                                                              standardError: consoleError.ToString(), 
-                                                              standardOut: consoleOutput.ToString(),
-                                                              exitCode: bdnProcess.ExitCode);
-                        executionDetails[$"{run.Key}_{benchmark}"] = details;
                     }
                 }
             }
