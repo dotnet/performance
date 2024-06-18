@@ -4,29 +4,31 @@ BenchmarkDotNet is the benchmarking tool that allows to run benchmarks for .NET,
 
 ## Table of Contents
 
-- [Main Concepts](#main-concepts)
-- [Prerequisites](#prerequisites)
-- [Building the benchmarks](#building-the-benchmarks)
-  - [Using .NET Cli](#using-net-cli)
-  - [Using Python script](#using-python-script)
-- [Running the Benchmarks](#running-the-benchmarks)
-  - [Interactive Mode](#interactive-mode)
-  - [Command Line](#command-line)
-    - [Filtering the Benchmarks](#filtering-the-benchmarks)
-    - [Listing the Benchmarks](#listing-the-benchmarks)
-- [Reading the Results](#reading-the-results)
-  - [Reading the Histogram](#reading-the-histogram)
-  - [Reading Memory Statistics](#reading-memory-statistics)
-- [Profiling](#profiling)
-- [Disassembly](#disassembly)
-- [Multiple Runtimes](#multiple-runtimes)
-- [Regressions](#regressions)
-- [Private Runtime Builds](#private-runtime-builds)
-  - [Running In Process](#running-in-process)
-  - [CoreRun](#corerun)
-  - [dotnet cli](#dotnet-cli)
-  - [Private CLR Build](#private-clr-build)
-  - [Private CoreRT Build](#private-corert-build)
+- [BenchmarkDotNet](#benchmarkdotnet)
+  - [Table of Contents](#table-of-contents)
+  - [Main Concepts](#main-concepts)
+  - [Prerequisites](#prerequisites)
+  - [Building the benchmarks](#building-the-benchmarks)
+    - [Using .NET Cli](#using-net-cli)
+    - [Using Python script](#using-python-script)
+  - [Running the Benchmarks](#running-the-benchmarks)
+    - [Interactive Mode](#interactive-mode)
+    - [Command Line](#command-line)
+      - [Filtering the Benchmarks](#filtering-the-benchmarks)
+      - [Listing the Benchmarks](#listing-the-benchmarks)
+  - [Reading the Results](#reading-the-results)
+    - [Reading the Histogram](#reading-the-histogram)
+    - [Reading Memory Statistics](#reading-memory-statistics)
+  - [Profiling](#profiling)
+  - [Disassembly](#disassembly)
+  - [Multiple Runtimes](#multiple-runtimes)
+  - [Regressions](#regressions)
+  - [Private Runtime Builds](#private-runtime-builds)
+    - [Running In Process](#running-in-process)
+    - [CoreRun](#corerun)
+    - [dotnet cli](#dotnet-cli)
+    - [Private CLR Build](#private-clr-build)
+    - [Private CoreRT Build](#private-corert-build)
 
 ## Main Concepts
 
@@ -70,8 +72,8 @@ dotnet build -c Release
 If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file.
 
 ```diff
--<TargetFrameworks>netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
-+<TargetFrameworks>net8.0</TargetFrameworks>
+-<TargetFrameworks>netcoreapp3.1;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
++<TargetFrameworks>net9.0</TargetFrameworks>
 ```
 
 The alternative is to set `PERFLAB_TARGET_FRAMEWORKS` environment variable to selected Target Framework Moniker.
@@ -81,7 +83,7 @@ The alternative is to set `PERFLAB_TARGET_FRAMEWORKS` environment variable to se
 If you don't want to install `dotnet cli` manually, we have a Python 3 script which can do that for you. All you need to do is to provide the frameworks:
 
 ```cmd
-py .\scripts\benchmarks_ci.py --frameworks net8.0
+py .\scripts\benchmarks_ci.py --frameworks net9.0
 ```
 
 ## Running the Benchmarks
@@ -91,7 +93,7 @@ py .\scripts\benchmarks_ci.py --frameworks net8.0
 To run the benchmarks in interactive mode you have to execute `dotnet run -c Release -f $targetFrameworkMoniker` in the folder with benchmarks project.
 
 ```cmd
-C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f net8.0
+C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f net9.0
 Available Benchmarks:
   #0   Burgers
   #1   ByteMark
@@ -122,37 +124,37 @@ The glob patterns are applied to full benchmark name: namespace.typeName.methodN
 - Run all the benchmarks from BenchmarksGame namespace:
 
 ```cmd
-dotnet run -c Release -f net8.0 --filter BenchmarksGame*
+dotnet run -c Release -f net9.0 --filter BenchmarksGame*
 ```
 
 - Run all the benchmarks with type name Richards:
 
 ```cmd
-dotnet run -c Release -f net8.0 --filter *.Richards.*
+dotnet run -c Release -f net9.0 --filter *.Richards.*
 ```
 
 - Run all the benchmarks with method name ToStream:
 
 ```cmd
-dotnet run -c Release -f net8.0 --filter *.ToStream
+dotnet run -c Release -f net9.0 --filter *.ToStream
 ```
 
 - Run ALL benchmarks:
 
 ```cmd
-dotnet run -c Release -f net8.0 --filter *
+dotnet run -c Release -f net9.0 --filter *
 ```
 
 - You can provide many filters (logical disjunction):
 
 ```cmd
-dotnet run -c Release -f net8.0 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
+dotnet run -c Release -f net9.0 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
 ```
 
 - To print a **joined summary** for all of the benchmarks (by default printed per type), use `--join`:
 
 ```cmd
-dotnet run -c Release -f net8.0 --filter BenchmarksGame* --join
+dotnet run -c Release -f net9.0 --filter BenchmarksGame* --join
 ```
 
 Please remember that on **Unix** systems `*` is resolved to all files in current directory, so you need to escape it `'*'`.
@@ -164,7 +166,7 @@ To print the list of all available benchmarks you need to pass `--list [tree/fla
 Example: Show the tree of all the benchmarks from System.Threading namespace that can be run for .NET 7.0:
 
 ```cmd
-dotnet run -c Release -f net8.0 --list tree --filter System.Threading*
+dotnet run -c Release -f net9.0 --list tree --filter System.Threading*
 ```
 
 ```log
@@ -259,7 +261,7 @@ If you want to disassemble the benchmarked code, you need to use the [Disassembl
 
 You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`.
 
-Example: `dotnet run -c Release -f net8.0 -- --filter System.Memory.Span<Int32>.Reverse -d`
+Example: `dotnet run -c Release -f net9.0 -- --filter System.Memory.Span<Int32>.Reverse -d`
 
 ```assembly
 ; System.Runtime.InteropServices.MemoryMarshal.GetReference[[System.Byte, System.Private.CoreLib]](System.Span`1<Byte>)
@@ -285,7 +287,7 @@ M00_L00:
 
 The `--runtimes` or just `-r` allows you to run the benchmarks for **multiple Runtimes**.
 
-Available options are: Mono, wasmnet70, CoreRT, net462, net47, net471, net472, netcoreapp3.1, net6.0, net7.0, and net8.0.
+Available options are: Mono, wasmnet70, CoreRT, net462, net47, net471, net472, netcoreapp3.1, net6.0, net7.0, net8.0, and net9.0.
 
 Example: run the benchmarks for .NET 7.0 and 8.0:
 
@@ -329,7 +331,7 @@ Please use this option only when you are sure that the benchmarks you want to ru
 It's possible to benchmark private builds of [dotnet/runtime](https://github.com/dotnet/runtime) using CoreRun.
 
 ```cmd
-dotnet run -c Release -f net8.0 --coreRun $thePath
+dotnet run -c Release -f net9.0 --coreRun $thePath
 ```
 
 **Note:** You can provide more than 1 path to CoreRun. In such case, the first path will be the baseline and all the benchmarks are going to be executed for all CoreRuns you have specified.
@@ -352,7 +354,7 @@ public void PrintInfo()
 You can also use any dotnet cli to build and run the benchmarks.
 
 ```cmd
-dotnet run -c Release -f net8.0 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
+dotnet run -c Release -f net9.0 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
 ```
 
 This is very useful when you want to compare different builds of .NET.
@@ -374,5 +376,5 @@ More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/7
 To run benchmarks with private CoreRT build you need to provide the `IlcPath`. Example:
 
 ```cmd
-dotnet run -c Release -f net8.0 -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release
+dotnet run -c Release -f net9.0 -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release
 ```

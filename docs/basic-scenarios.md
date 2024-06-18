@@ -34,10 +34,10 @@ For **Self-Contained Empty Console App Size On Disk** scenario, run precommand t
 
 ```cmd
 cd emptyconsoletemplate
-python3 pre.py publish -f net8.0 -c Release -r win-x64
+python3 pre.py publish -f net9.0 -c Release -r win-x64
 ```
 
-`-f net8.0` sets the new template project targeting `net8.0` framework; `-c Release` configures the publish to be in release; `-r win-x64` takes an [RID](https://docs.microsoft.com/en-us/dotnet/core/rid-catalog)(Runtime Identifier) and specifies which runtime it supports.
+`-f net9.0` sets the new template project targeting `net9.0` framework; `-c Release` configures the publish to be in release; `-r win-x64` takes an [RID](https://docs.microsoft.com/en-us/dotnet/core/rid-catalog)(Runtime Identifier) and specifies which runtime it supports.
 
 **Note that by specifying RID option `-r <RID>`, it defaults to publish the app into a [SCD](https://docs.microsoft.com/en-us/dotnet/core/deploying/#publish-self-contained)(Self-contained Deployment) app; without it, a [FDD](https://docs.microsoft.com/en-us/dotnet/core/deploying/#publish-framework-dependent)(Framework Dependent Deployment) app will be published.**
 
@@ -85,27 +85,28 @@ Same instruction of [Scenario Tests Guide - Step 4](./scenarios-workflow.md#step
   - net6.0
   - net7.0
   - net8.0
+  - net9.0
 - \<-r RID> values:
   - ""(WITHOUT `-r <RID>` --> FDD app)
   - `"-r <RID>"` (WITH `-r` --> SCD app, [list of RID](https://docs.microsoft.com/en-us/dotnet/core/rid-catalog))
 
 | Scenario                                      | Asset Directory         | Precommand                                    |  Testcommand    | Postcommand | Supported Framework                              | Supported Platform |
 |-----------------------------------------------|-------------------------|-----------------------------------------------|-----------------|-------------|--------------------------------------------------|--------------------|
-| Static Console Template Publish Startup       | staticconsoletemplate   | pre.py publish -f TFM -c Release           | test.py startup | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0 | Windows            |
-| Static Console Template Publish SizeOnDisk    | staticconsoletemplate   | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0 | Windows;Linux      |
-| Static Console Template Build SizeOnDisk      | staticconsoletemplate   | pre.py build -f TFM -c Release             | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0 | Windows;Linux      |
-| Static VB Console Template Publish Startup    | staticvbconsoletemplate | pre.py publish -f TFM -c Release           | test.py startup | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0 | Windows            |
-| Static VB Console Template Publish SizeOnDisk | staticvbconsoletemplate | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0 | Windows;Linux      |
-| Static VB Console Template Build SizeOnDisk   | staticvbconsoletemplate | pre.py build -f TFM -c Release             | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0 | Windows;Linux      |
+| Static Console Template Publish Startup       | staticconsoletemplate   | pre.py publish -f TFM -c Release           | test.py startup | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0;net9.0 | Windows            |
+| Static Console Template Publish SizeOnDisk    | staticconsoletemplate   | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0;net9.0 | Windows;Linux      |
+| Static Console Template Build SizeOnDisk      | staticconsoletemplate   | pre.py build -f TFM -c Release             | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0;net9.0 | Windows;Linux      |
+| Static VB Console Template Publish Startup    | staticvbconsoletemplate | pre.py publish -f TFM -c Release           | test.py startup | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0;net9.0 | Windows            |
+| Static VB Console Template Publish SizeOnDisk | staticvbconsoletemplate | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0;net9.0 | Windows;Linux      |
+| Static VB Console Template Build SizeOnDisk   | staticvbconsoletemplate | pre.py build -f TFM -c Release             | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0;net9.0 | Windows;Linux      |
 | Static Winforms Template Publish Startup      | staticwinformstemplate  | pre.py publish -f TFM -c Release           | test.py startup | post.py     | netcoreapp3.1        | Windows            |
 | Static Winforms Template Publish SizeOnDisk   | staticwinformstemplate  | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | netcoreapp3.1        | Windows;Linux      |
 | Static Winforms Template Build SizeOnDisk     | staticwinformstemplate  | pre.py build -f TFM -c Release             | test.py sod     | post.py     | netcoreapp3.1        | Windows;Linux      |
-| New Console Template Publish Startup          | emptyconsoletemplate    | pre.py publish -f TFM -c Release           | test.py startup | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0 | Windows            |
-| New Console Template Publish SizeOnDisk       | emptyconsoletemplate    | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0 | Windows;Linux      |
-| New Console Template Build SizeOnDisk         | emptyconsoletemplate    | pre.py build -f TFM -c Release             | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0 | Windows;Linux      |
-| New VB Console Template Publish Startup       | emptyvbconsoletemplate  | pre.py publish -f TFM -c Release           | test.py startup | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0 | Windows            |
-| New VB Console Template Publish SizeOnDisk    | emptyvbconsoletemplate  | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0 | Windows;Linux      |
-| New VB Console Template Build SizeOnDisk      | emptyvbconsoletemplate  | pre.py build -f TFM -c Release             | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0 | Windows;Linux      |
+| New Console Template Publish Startup          | emptyconsoletemplate    | pre.py publish -f TFM -c Release           | test.py startup | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0;net9.0 | Windows            |
+| New Console Template Publish SizeOnDisk       | emptyconsoletemplate    | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0;net9.0 | Windows;Linux      |
+| New Console Template Build SizeOnDisk         | emptyconsoletemplate    | pre.py build -f TFM -c Release             | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0;net9.0 | Windows;Linux      |
+| New VB Console Template Publish Startup       | emptyvbconsoletemplate  | pre.py publish -f TFM -c Release           | test.py startup | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0;net9.0 | Windows            |
+| New VB Console Template Publish SizeOnDisk    | emptyvbconsoletemplate  | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0;net9.0 | Windows;Linux      |
+| New VB Console Template Build SizeOnDisk      | emptyvbconsoletemplate  | pre.py build -f TFM -c Release             | test.py sod     | post.py     | netcoreapp3.1;net6.0;net7.0;net8.0;net9.0 | Windows;Linux      |
 
 ## Relevant Links
 
