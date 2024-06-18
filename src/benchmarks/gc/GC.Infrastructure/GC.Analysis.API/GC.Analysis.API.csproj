@@ -2,20 +2,31 @@
 
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute> 
   </PropertyGroup>
 
+  <Import Project="../Versions.props" />
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Data.Analysis" Version="0.19.1" />
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.9" />
+    <PackageReference Condition="'$(CustomTraceEvent)' != 'true'" Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.9" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="XPlot.Plotly" Version="4.0.6" />
     <PackageReference Include="YamlDotNet" Version="11.2.1" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(CustomTraceEvent)' == 'true'">
+    <Reference Include="Microsoft.Diagnostics.FastSerialization.dll">
+      <HintPath>$(PerfViewPath)\src\FastSerialization\bin\Release\netstandard2.0\Microsoft.Diagnostics.FastSerialization.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Diagnostics.Tracing.TraceEvent">
+      <HintPath>$(PerfViewPath)\src\TraceEvent\bin\Release\netstandard2.0\Microsoft.Diagnostics.Tracing.TraceEvent.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

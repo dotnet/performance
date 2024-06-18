@@ -1,12 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute> 
   </PropertyGroup>
+
+  <Import Project="../Versions.props" />
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta1" />
@@ -22,6 +24,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GC.Analysis.API\GC.Analysis.API.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(CustomTraceEvent)' == 'true'">
+    <Reference Include="Microsoft.Diagnostics.FastSerialization.dll">
+      <HintPath>$(PerfViewPath)\src\FastSerialization\bin\Release\netstandard2.0\Microsoft.Diagnostics.FastSerialization.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Diagnostics.Tracing.TraceEvent">
+      <HintPath>$(PerfViewPath)\src\TraceEvent\bin\Release\netstandard2.0\Microsoft.Diagnostics.Tracing.TraceEvent.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
