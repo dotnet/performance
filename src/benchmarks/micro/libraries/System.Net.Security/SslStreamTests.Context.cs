@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.IO;
 using System.IO.Pipes;
 using System.Net.Security;
@@ -29,7 +28,6 @@ namespace System.Net.Security.Tests
         [BenchmarkCategory(Categories.NoAOT)]
         public Task DefaultHandshakeContextIPv6Async() => DefaultContextHandshake(_clientIPv6, _serverIPv6);
 
-
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
         public Task DefaultMutualHandshakeContextIPv4Async() => DefaultContextHandshake(_clientIPv4, _serverIPv4, true);
@@ -37,6 +35,7 @@ namespace System.Net.Security.Tests
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
         public Task DefaultMutualHandshakeContextIPv6Async() => DefaultContextHandshake(_clientIPv6, _serverIPv6, true);
+
         private async Task DefaultContextHandshake(Stream client, Stream server, bool requireClientCert = false)
         {
             if (_context == null)
