@@ -48,7 +48,7 @@ namespace GC.Analysis.API
                     }
 
                     cpuData.NumberOfSamples++;
-                    gcThreadProcessorNumbers.Add(sampledProfileTraceData.ProcessorNumber); 
+                    gcThreadProcessorNumbers.Add(sampledProfileTraceData.ProcessorNumber);
                 }
             }
 

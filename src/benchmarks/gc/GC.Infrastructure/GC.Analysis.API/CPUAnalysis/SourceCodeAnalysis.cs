@@ -3,7 +3,7 @@ using Microsoft.Diagnostics.Symbols;
 using Microsoft.Diagnostics.Tracing.Stacks;
 using System.Text.RegularExpressions;
 using Address = System.UInt64;
-using EtlxNS = Microsoft.Diagnostics.Tracing.Etlx; 
+using EtlxNS = Microsoft.Diagnostics.Tracing.Etlx;
 
 namespace GC.Analysis.API.CPUAnalysis
 {

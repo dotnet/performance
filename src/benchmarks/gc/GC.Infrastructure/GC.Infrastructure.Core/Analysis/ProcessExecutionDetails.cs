@@ -9,12 +9,12 @@
                                        string standardOut,
                                        int exitCode)
         {
-            Key                  = key;
-            CommandlineArgs      = commandlineArgs;
+            Key = key;
+            CommandlineArgs = commandlineArgs;
             EnvironmentVariables = environmentVariables;
-            StandardError        = standardError;
-            StandardOut          = standardOut;
-            ExitCode             = exitCode;
+            StandardError = standardError;
+            StandardOut = standardOut;
+            ExitCode = exitCode;
         }
 
         public string Key { get; }

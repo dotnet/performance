@@ -10,7 +10,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
         public static IReadOnlyList<MicrobenchmarkComparisonResults> Present(MicrobenchmarkConfiguration configuration, Dictionary<string, ProcessExecutionDetails> executionDetails)
         {
             IReadOnlyList<MicrobenchmarkComparisonResults> comparisonResults = MicrobenchmarkResultsAnalyzer.GetComparisons(configuration);
-            foreach(var format in configuration.Output.Formats)
+            foreach (var format in configuration.Output.Formats)
             {
                 if (format == "markdown")
                 {

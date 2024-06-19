@@ -21,7 +21,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
             string processName = corerunOverride.Path;
 
             Dictionary<string, string> parameters = new();
-            foreach(var p in configuration.gcperfsim_configurations.Parameters)
+            foreach (var p in configuration.gcperfsim_configurations.Parameters)
             {
                 parameters[p.Key] = p.Value;
             }
@@ -37,7 +37,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
 
             // Construct the command line with the appropriate parameters.
             StringBuilder sb = new();
-            foreach(var p in parameters)
+            foreach (var p in parameters)
             {
                 sb.Append($" -{p.Key} {p.Value}");
             }
@@ -80,7 +80,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
 
             // GCPerfSim Configurations.
             Dictionary<string, string> parameters = new();
-            foreach(var p in configuration.gcperfsim_configurations!.Parameters)
+            foreach (var p in configuration.gcperfsim_configurations!.Parameters)
             {
                 parameters[p.Key] = p.Value;
             }
@@ -131,7 +131,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
 
                 // Add name of output.
                 string extension = os == OS.Windows ? "etl.zip" : "nettrace";
-                commandStringBuilder.Append($" --application.options.traceOutput {Path.Combine(configuration.Output!.Path, run.Key, run.Key + "." + corerunOverride.Key + "." +  iterationIdx + "." + collectType + "." + extension)} ");
+                commandStringBuilder.Append($" --application.options.traceOutput {Path.Combine(configuration.Output!.Path, run.Key, run.Key + "." + corerunOverride.Key + "." + iterationIdx + "." + collectType + "." + extension)} ");
             }
 
             if (corerunOverride.Value.environment_variables != null)

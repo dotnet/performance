@@ -18,7 +18,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         public GCPerfSimResults(IReadOnlyDictionary<string, ProcessExecutionDetails> executionDetails, IReadOnlyList<ComparisonResult> analysisResults)
         {
             ExecutionDetails = executionDetails;
-            AnalysisResults  = analysisResults;
+            AnalysisResults = analysisResults;
         }
 
         public IReadOnlyDictionary<string, ProcessExecutionDetails> ExecutionDetails { get; }
@@ -43,7 +43,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             public RunInfo(KeyValuePair<string, Run> runDetails, KeyValuePair<string, CoreRunInfo> corerunDetails)
             {
                 RunDetails = runDetails;
-                CorerunDetails = corerunDetails; 
+                CorerunDetails = corerunDetails;
             }
 
             public KeyValuePair<string, Run> RunDetails { get; set; }
@@ -149,7 +149,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         // Add per corerun based environment variables.
                         if (runInfo.CorerunDetails.Value.environment_variables != null)
                         {
-                            foreach (var environmentVar in runInfo.CorerunDetails.Value.environment_variables) 
+                            foreach (var environmentVar in runInfo.CorerunDetails.Value.environment_variables)
                             {
                                 environmentVariables[environmentVar.Key] = environmentVar.Value;
                             }
@@ -170,7 +170,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         {
                             gcperfsimProcess.Start();
                             output = gcperfsimProcess.StandardOutput.ReadToEnd();
-                            error = gcperfsimProcess.StandardError.ReadToEnd(); 
+                            error = gcperfsimProcess.StandardError.ReadToEnd();
                             gcperfsimProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
                             File.WriteAllText(Path.Combine(outputPath, key + ".txt"), "Standard Out: \n" + output + "\n Standard Error: \n" + error);
                         }
@@ -184,7 +184,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                                 AnsiConsole.MarkupLine($"[yellow bold] ({DateTime.Now}) The trace for the run wasn't successfully captured. Please check the log file for more details: {Markup.Escape(output)} Full run details: {Path.GetFileNameWithoutExtension(configuration.Name)}: {runInfo.CorerunDetails.Key} for {runInfo.RunDetails.Key} [/]");
                             }
                         }
-                        
+
                         int exitCode = gcperfsimProcess.ExitCode;
                         if (!string.IsNullOrEmpty(error))
                         {
@@ -192,8 +192,8 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         }
 
                         ProcessExecutionDetails details = new(key: key,
-                                                              commandlineArgs: $"{processAndParameters.Item1} {processAndParameters.Item2}", 
-                                                              environmentVariables: environmentVariables, 
+                                                              commandlineArgs: $"{processAndParameters.Item1} {processAndParameters.Item2}",
+                                                              environmentVariables: environmentVariables,
                                                               standardError: error,
                                                               standardOut: output,
                                                               exitCode: exitCode);
@@ -265,7 +265,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                     ProcessExecutionDetails details = new(key: key,
                                                           commandlineArgs: $"{processAndParameters.Item1} {processAndParameters.Item2}",
                                                           environmentVariables: new(), // The environment variables are embedded in the command line for crank. 
-                                                          standardError: error.ToString(), 
+                                                          standardError: error.ToString(),
                                                           standardOut: output.ToString(),
                                                           exitCode: exitCode);
                     executionDetails[key] = details;

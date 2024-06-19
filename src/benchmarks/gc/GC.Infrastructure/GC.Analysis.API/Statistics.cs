@@ -7,8 +7,8 @@
             if (seq.Count() == 0)
             {
                 return double.NaN;
-            }    
-            
+            }
+
             var elements = seq.ToArray();
             Array.Sort(elements);
             double realIndex = percentile * (elements.Length - 1);
