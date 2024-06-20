@@ -44,6 +44,7 @@ class PerfSendToHelixArgs:
     wait_for_work_item_completion: bool = True
     creator: str = ""
     helix_results_destination_dir : Optional[str] = None
+    fail_on_test_failure: bool = False
 
     # Used by our custom .proj files
     work_item_dir: str = ""
@@ -56,14 +57,21 @@ class PerfSendToHelixArgs:
 
     # Used by BDN projects
     work_item_command: Optional[List[str]] = None
+    baseline_work_item_command: Optional[List[str]] = None
     partition_count: Optional[int] = None
     bdn_arguments: Optional[List[str]] = None
+    baseline_bdn_arguments: Optional[List[str]] = None
+    compare: bool = False
+    compare_command: Optional[List[str]] = None
+    only_sanity_check: bool = False
 
     # Used by scenarios projects
     runtime_flavor: Optional[str] = None
     hybrid_globalization: Optional[bool] = None
     python: Optional[str] = None
     affinity: Optional[str] = None
+    ios_strip_symbols: Optional[bool] = None
+    ios_llvm_build: Optional[bool] = None
 
     def set_environment_variables(self, save_to_pipeline: bool = True):
         def set_env_var(name: str, value: Union[str, bool, List[str], timedelta, int, None], sep = " ", save_to_pipeline=save_to_pipeline):
@@ -100,14 +108,22 @@ class PerfSendToHelixArgs:
         set_env_var("PartitionCount", self.partition_count)
         set_env_var("RuntimeFlavor", self.runtime_flavor)
         set_env_var("HybridGlobalization", self.hybrid_globalization)
+        set_env_var("iOSStripSymbols", self.ios_strip_symbols)
+        set_env_var("iOSLlvmBuild", self.ios_llvm_build)
         set_env_var("TargetCsproj", self.target_csproj)
         set_env_var("WorkItemCommand", self.work_item_command, sep=" ")
+        set_env_var("BaselineWorkItemCommand", self.baseline_work_item_command, sep=" ")
+        set_env_var("CompareCommand", self.compare_command, sep=" ")
         set_env_var("BenchmarkDotNetArguments", self.bdn_arguments, sep=" ")
+        set_env_var("BaselineBenchmarkDotNetArguments", self.baseline_bdn_arguments, sep=" ")
         set_env_var("DownloadFilesFromHelix", self.download_files_from_helix)
         set_env_var("TargetsWindows", self.targets_windows)
         set_env_var("HelixResultsDestinationDir", self.helix_results_destination_dir)
         set_env_var("Python", self.python)
         set_env_var("AffinityValue", self.affinity)
+        set_env_var("Compare", self.compare)
+        set_env_var("FailOnTestFailure", self.fail_on_test_failure)
+        set_env_var("OnlySanityCheck", self.only_sanity_check)
 
         # The following will already be set in the CI pipeline, but are required to run Helix locally
         set_env_var("BUILD_REASON", self.env_build_reason, save_to_pipeline=False)
