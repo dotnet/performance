@@ -50,12 +50,12 @@ jobs:
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - name: internalParam
             value: "--internal"
-            - ${{ if and(eq(parameters.osName, 'windows'), ne(parameters.architecture, 'x86')) }}:
-              - name: PdnPathParameter
-                value: "--pdn-path '$(System.DefaultWorkingDirectory)/assets/PDN.zip'"
-            - ${{ else }}:
-              - name: PdnPathParameter
-                value: ''
+          - ${{ if and(eq(parameters.osName, 'windows'), ne(parameters.architecture, 'x86')) }}:
+            - name: PdnPathParameter
+              value: "--pdn-path '$(System.DefaultWorkingDirectory)/assets/PDN.zip'"
+          - ${{ else }}:
+            - name: PdnPathParameter
+              value: ''
           - group: DotNet-HelixApi-Access
           - group: dotnet-benchview
         - ${{ if not(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'))) }}:
