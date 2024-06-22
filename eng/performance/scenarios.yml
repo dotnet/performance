@@ -52,7 +52,7 @@ jobs:
             value: "--internal"
           - ${{ if and(eq(parameters.osName, 'windows'), ne(parameters.architecture, 'x86')) }}:
             - name: PdnPathParameter
-              value: "--pdn-path '$(System.DefaultWorkingDirectory)/PDN.zip'"
+              value: "--pdn-path '$(System.DefaultWorkingDirectory)\PDN.zip'"
           - ${{ else }}:
             - name: PdnPathParameter
               value: ''
