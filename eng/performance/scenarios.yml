@@ -52,7 +52,7 @@ jobs:
             value: "--internal"
           - ${{ if and(eq(parameters.osName, 'windows'), ne(parameters.architecture, 'x86')) }}:
             - name: PdnPathParameter
-              value: "--pdn-path '$(Build.ArtifactStagingDirectory)\\PDN.zip'"
+              value: '--pdn-path "$(Build.ArtifactStagingDirectory)\\PDN.zip"'
           - ${{ else }}:
             - name: PdnPathParameter
               value: ''
