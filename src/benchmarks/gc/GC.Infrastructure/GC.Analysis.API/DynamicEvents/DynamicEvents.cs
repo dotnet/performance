@@ -51,6 +51,10 @@ namespace GC.Analysis.API.DynamicEvents
                     {
                         offset += 2;
                     }
+                    else if (field.Value == typeof(uint))
+                    {
+                        offset += 4;
+                    }
                     else if (field.Value == typeof(ulong))
                     {
                         offset += 8;
@@ -114,6 +118,10 @@ namespace GC.Analysis.API.DynamicEvents
                 if (fieldType == typeof(ushort))
                 {
                     value = BitConverter.ToUInt16(dynamicEvent.Payload, fieldOffset);
+                }
+                else if (fieldType == typeof(uint))
+                {
+                    value = BitConverter.ToUInt32(dynamicEvent.Payload, fieldOffset);
                 }
                 else if (fieldType == typeof(ulong))
                 {
