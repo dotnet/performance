@@ -91,7 +91,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
             // Check if the current time is between 12:00 AM and 12:09 AM.
             DateTime start = pstNow.Date; // 12:00 AM today.
-            DateTime end = start.AddMinutes(9); // 12:09 AM today.
+            DateTime end = start.AddMinutes(10); // 12:10 AM today.
 
             if (pstNow >= start && pstNow < end)
             {
@@ -349,7 +349,13 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             }
 
             // Check to see if we got back all the files regardless of the exit code.
-            CheckForMissingOutputs(configuration, run.Key, benchmarkToCommand.Key);
+            HashSet<string> missingOutputs = CheckForMissingOutputsAndReturnNames(configuration, run.Key, benchmarkToCommand.Key);
+
+            // If traces are missing, consider the run failed so that users can re-run it via the Failed yaml.
+            if (missingOutputs.Contains("Traces"))
+            {
+                exitCode = -1;
+            }
 
             File.WriteAllText(logfileOutput, "Output: \n" + outputDetails + "\n Errors: \n" + errors.ToString());
             return new ProcessExecutionDetails(key: GetKey(benchmarkToCommand.Key, run.Key),
@@ -360,7 +366,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                                                exitCode: exitCode);
         }
 
-        internal static void CheckForMissingOutputs(ASPNetBenchmarksConfiguration configuration, string runName, string benchmarkName)
+        internal static HashSet<string> CheckForMissingOutputsAndReturnNames(ASPNetBenchmarksConfiguration configuration, string runName, string benchmarkName)
         {
             HashSet<string> missingOutputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             string basePath = Path.Combine(configuration.Output!.Path, runName);
@@ -427,6 +433,8 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             {
                 AnsiConsole.Markup($"[yellow bold] Missing the following files from the run: \n\t-{string.Join("\n\t-", missingOutputs)} \n[/]");
             }
+
+            return missingOutputs;
         }
     }
 }
