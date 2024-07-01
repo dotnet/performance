@@ -12,7 +12,8 @@ namespace GC.Analysis.API.UnitTests
         [TestMethod]
         public void TestDuplicatedSchema()
         {
-            Action test = () => { 
+            Action test = () =>
+            {
                 DynamicEventSchema.Set(
                     new List<DynamicEventSchema>
                     {
@@ -43,7 +44,8 @@ namespace GC.Analysis.API.UnitTests
         [TestMethod]
         public void TestDuplicatedFields()
         {
-            Action test = () => { 
+            Action test = () =>
+            {
                 DynamicEventSchema.Set(
                     new List<DynamicEventSchema>
                     {
@@ -65,7 +67,8 @@ namespace GC.Analysis.API.UnitTests
         [TestMethod]
         public void TestUnsupportedType()
         {
-            Action test = () => { 
+            Action test = () =>
+            {
                 DynamicEventSchema.Set(
                     new List<DynamicEventSchema>
                     {
@@ -84,7 +87,190 @@ namespace GC.Analysis.API.UnitTests
         }
 
         [TestMethod]
-        public void TestValidSchema()
+        public void TestNegativeMinOccurrence()
+        {
+            Action test = () =>
+            {
+                DynamicEventSchema.Set(
+                    new List<DynamicEventSchema>
+                    {
+                        new DynamicEventSchema
+                        {
+                            DynamicEventName = "SampleEventName",
+                            MinOccurrence = -1,
+                            Fields = new List<KeyValuePair<string, Type>>
+                            {
+                                new KeyValuePair<string, Type>("version", typeof(ushort)),
+                            }
+                        },
+                    }
+                );
+            };
+            test.Should().Throw<Exception>();
+        }
+
+        [TestMethod]
+        public void TestSmallerMaxOccurrence()
+        {
+            Action test = () =>
+            {
+                DynamicEventSchema.Set(
+                    new List<DynamicEventSchema>
+                    {
+                        new DynamicEventSchema
+                        {
+                            DynamicEventName = "SampleEventName",
+                            MinOccurrence = 1,
+                            MaxOccurrence = 0,
+                            Fields = new List<KeyValuePair<string, Type>>
+                            {
+                                new KeyValuePair<string, Type>("version", typeof(ushort)),
+                            }
+                        },
+                    }
+                );
+            };
+            test.Should().Throw<Exception>();
+        }
+
+        private List<DynamicEventSchema> correctSingleSchema = new List<DynamicEventSchema>
+        {
+            new DynamicEventSchema
+            {
+                DynamicEventName = "SampleEventName",
+                MinOccurrence = 1,
+                Fields = new List<KeyValuePair<string, Type>>
+                {
+                    new KeyValuePair<string, Type>("version", typeof(ushort)),
+                    new KeyValuePair<string, Type>("Number", typeof(ulong)),
+                }
+            },
+        };
+
+        private DynamicEvent sampleEvent = new DynamicEvent(
+            "SampleEventName",
+            DateTime.Now,
+            new byte[] { 1, 0, 2, 0, 0, 0, 0, 0, 0, 0 }
+        );
+
+        private DynamicEvent unknownEvent = new DynamicEvent(
+            "UnknownEventName",
+            DateTime.Now,
+            new byte[] { 1, 0, 2, 0, 0, 0, 0, 0, 0, 0 }
+        );
+
+        [TestMethod]
+        public void TestMissedSingleEvent()
+        {
+            DynamicEventSchema.Set(correctSingleSchema);
+            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>();
+            Action test = () =>
+            {
+                dynamic index = new DynamicIndex(dynamicEvents);
+            };
+            test.Should().Throw<Exception>();
+        }
+
+        [TestMethod]
+        public void TestDuplicatedSingleEvent()
+        {
+            DynamicEventSchema.Set(correctSingleSchema);
+            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>
+            {
+                sampleEvent,
+                sampleEvent
+            };
+            Action test = () =>
+            {
+                dynamic index = new DynamicIndex(dynamicEvents);
+            };
+            test.Should().Throw<Exception>();
+        }
+
+        [TestMethod]
+        public void TestSingleEvent()
+        {
+            DynamicEventSchema.Set(correctSingleSchema);
+            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>
+            {
+                sampleEvent
+            };
+            dynamic index = new DynamicIndex(dynamicEvents);
+
+            ((int)index.SampleEventName.version).Should().Be(1);
+            ((int)index.SampleEventName.Number).Should().Be(2);
+            string pattern = @"
+SampleEventName
+version   : 1
+Number    : 2
+TimeStamp : *
+".Trim();
+            ((string)index.SampleEventName.ToString()).Should().Match(pattern);
+        }
+
+        private List<DynamicEventSchema> correctMultipleSchema = new List<DynamicEventSchema>
+        {
+            new DynamicEventSchema
+            {
+                DynamicEventName = "SampleEventName",
+                MinOccurrence = 1,
+                MaxOccurrence = 2,
+                Fields = new List<KeyValuePair<string, Type>>
+                {
+                    new KeyValuePair<string, Type>("version", typeof(ushort)),
+                    new KeyValuePair<string, Type>("Number", typeof(ulong)),
+                }
+            },
+        };
+
+        [TestMethod]
+        public void TestMissedMultipleEvent()
+        {
+            DynamicEventSchema.Set(correctMultipleSchema);
+            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>();
+            Action test = () =>
+            {
+                dynamic index = new DynamicIndex(dynamicEvents);
+            };
+            test.Should().Throw<Exception>();
+        }
+
+        [TestMethod]
+        public void TestTooManyMultipleEvents()
+        {
+            DynamicEventSchema.Set(correctMultipleSchema);
+            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>
+            {
+                sampleEvent,
+                sampleEvent,
+                sampleEvent,
+            };
+            Action test = () =>
+            {
+                dynamic index = new DynamicIndex(dynamicEvents);
+            };
+            test.Should().Throw<Exception>();
+        }
+
+        [TestMethod]
+        public void TestMultipleEvents()
+        {
+            DynamicEventSchema.Set(correctMultipleSchema);
+            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>
+            {
+                sampleEvent,
+                sampleEvent,
+            };
+            dynamic index = new DynamicIndex(dynamicEvents);
+
+            ((int)index.SampleEventName[0].version).Should().Be(1);
+            ((int)index.SampleEventName[0].Number).Should().Be(2);
+            ((int)index.SampleEventName[1].version).Should().Be(1);
+            ((int)index.SampleEventName[1].Number).Should().Be(2);
+        }
+
+        [TestMethod]
+        public void TestOptionalEvent()
         {
             DynamicEventSchema.Set(
                 new List<DynamicEventSchema>
@@ -100,20 +286,38 @@ namespace GC.Analysis.API.UnitTests
                     },
                 }
             );
-            DynamicEvent sampleEvent = new DynamicEvent(
-                "SampleEventName",
-                DateTime.Now,
-                new byte[] {1, 0, 2, 0, 0, 0, 0, 0, 0, 0}
-            );
-        
+            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>();
+            dynamic index = new DynamicIndex(dynamicEvents);
+            ((bool)(index.SampleEventName == null)).Should().Be(true);
+        }
+
+        [TestMethod]
+        public void TestForgivingUnknownEvent()
+        {
+            DynamicEventSchema.Set(correctSingleSchema);
             List<DynamicEvent> dynamicEvents = new List<DynamicEvent>
             {
-                sampleEvent
+                sampleEvent,
+                unknownEvent
             };
             dynamic index = new DynamicIndex(dynamicEvents);
+            // As long as we don't throw exception, this is forgiving.
+        }
 
-            ((int)index.SampleEventName.version).Should().Be(1);
-            ((int)index.SampleEventName.Number).Should().Be(2);
+        [TestMethod]
+        public void TestReportingUnknownEvent()
+        {
+            DynamicEventSchema.Set(correctSingleSchema, false);
+            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>
+            {
+                sampleEvent,
+                unknownEvent
+            };
+            Action test = () =>
+            {
+                dynamic index = new DynamicIndex(dynamicEvents);
+            };
+            test.Should().Throw<Exception>();
         }
     }
 }
