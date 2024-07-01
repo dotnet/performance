@@ -384,7 +384,7 @@ def main(args: Any):
     if framework in ('net8.0', 'nativeaot8.0'):
         global_json_path = os.path.join(get_repo_root_path(), 'global.json')
         shutil.copy(os.path.join(get_repo_root_path(), 'global.net8.json'), global_json_path)
-        print('Overwrote global.json with global.net8.json')
+        getLogger().info('Overwrote global.json with global.net8.json')
              
     # dotnet --info
     dotnet.info(verbose=verbose)
