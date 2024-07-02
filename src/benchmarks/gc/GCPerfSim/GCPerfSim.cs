@@ -1865,18 +1865,6 @@ class ArgsParser
             ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
             uint sohAllocRatioArg = 1000 - lohAllocRatioArg - pohAllocRatioArg;
 
-            double sohWeight;
-            double lohWeight;
-            double pohWeight;
-
-            if ((sohAllocRatioArg == 0) && (pohAllocRatioArg == 0))
-            {
-               lohWeight = 1;
-               sohWeight = 0;
-               pohWeight = 0;
-            }
-            else
-            {
             /*
              * Solving for the weights by 3 linear equations using the Cramer's rule.
              * See http://cshung.github.io/posts/poh-tuning-2 for a full derivation of the coefficients.
@@ -1895,10 +1883,9 @@ class ArgsParser
             double b2 = pohAllocRatioArg * overhead;
             double b3 = 1000;
             double det = a11 * a22 * a33 + a12 * a23 * a31 + a13 * a21 * a32 - a13 * a22 * a31 - a12 * a21 * a33 - a11 * a23 * a32;
-            sohWeight = ((b1 * a22 * a33 + a12 * a23 * b3 + a13 * b2 * a32 - a13 * a22 * b3 - a12 * b2 * a33 - b1 * a23 * a32) / det);
-            lohWeight = ((a11 * b2 * a33 + b1 * a23 * a31 + a13 * a21 * b3 - a13 * b2 * a31 - b1 * a21 * a33 - a11 * a23 * b3) / det);
-            pohWeight = ((a11 * a22 * b3 + a12 * b2 * a31 + b1 * a21 * a32 - b1 * a22 * a31 - a12 * a21 * b3 - a11 * b2 * a32) / det);
-            }
+            double sohWeight = ((b1 * a22 * a33 + a12 * a23 * b3 + a13 * b2 * a32 - a13 * a22 * b3 - a12 * b2 * a33 - b1 * a23 * a32) / det);
+            double lohWeight = ((a11 * b2 * a33 + b1 * a23 * a31 + a13 * a21 * b3 - a13 * b2 * a31 - b1 * a21 * a33 - a11 * a23 * b3) / det);
+            double pohWeight = ((a11 * a22 * b3 + a12 * b2 * a31 + b1 * a21 * a32 - b1 * a22 * a31 - a12 * a21 * b3 - a11 * b2 * a32) / det);
 
             if (lohWeight > 0)
             {
