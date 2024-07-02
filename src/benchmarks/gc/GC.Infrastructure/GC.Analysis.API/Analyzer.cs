@@ -38,7 +38,7 @@ namespace GC.Analysis.API
                     AllGCProcessData[p.Name] = values = new();
                 }
 
-                values.Add(new GCProcessData(p, managedProcess, processIdToGCThreads[p.ProcessID], this, p.EndTimeRelativeMsec - p.StartTimeRelativeMsec));
+                values.Add(new GCProcessData(p, managedProcess, processIdToGCThreads.GetValueOrDefault(p.ProcessID) ?? new(), this, p.EndTimeRelativeMsec - p.StartTimeRelativeMsec));
             }
         }
 
@@ -92,12 +92,7 @@ namespace GC.Analysis.API
                         AllGCProcessData[p.Name] = values = new();
                     }
 
-                    if (!processIdToGCThreads.ContainsKey(p.ProcessID))
-                    {
-                        continue;
-                    }
-
-                    values.Add(new GCProcessData(p, managedProcess, processIdToGCThreads[p.ProcessID], this, p.EndTimeRelativeMsec - p.StartTimeRelativeMsec));
+                    values.Add(new GCProcessData(p, managedProcess, processIdToGCThreads.GetValueOrDefault(p.ProcessID) ?? new(), this, p.EndTimeRelativeMsec - p.StartTimeRelativeMsec));
                 }
             }
         }
