@@ -155,17 +155,18 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                             }
                         }
 
+                        // Check if the log file is specified, also store it in a run-specific location.
+                        // This log file should be named in concordance with the name of the run and the benchmark.
+                        const string gclogVariable = "DOTNET_GCLogFile";
+                        if (environmentVariables.TryGetValue(gclogVariable, out string gclogFile))
+                        {
+                            string gcLogDirectory = Path.Combine(outputPath, runInfo.RunDetails.Key + "_GCLog");
+                            Core.Utilities.TryCreateDirectory(gcLogDirectory);
+                            environmentVariables[gclogVariable] = Path.Combine(gcLogDirectory, gclogFile);
+                        }
+
                         foreach (var environVar in environmentVariables)
                         {
-                            // Check if the log file is specified, also store it in a run-specific location.
-                            // This log file should be named in concordance with the name of the run and the benchmark.
-                            if (string.CompareOrdinal(environVar.Key, "DOTNET_GCLogFile") == 0)
-                            {
-                                string gcLogDirectory = Path.Combine(outputPath, runInfo.RunDetails.Key + "_GCLog");
-                                Core.Utilities.TryCreateDirectory(gcLogDirectory);
-                                gcperfsimProcess.StartInfo.WorkingDirectory = gcLogDirectory;
-                            }
-
                             gcperfsimProcess.StartInfo.EnvironmentVariables[environVar.Key] = environVar.Value;
                         }
 
