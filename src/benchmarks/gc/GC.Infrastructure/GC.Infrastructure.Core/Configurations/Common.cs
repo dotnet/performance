@@ -29,7 +29,7 @@ namespace GC.Infrastructure.Core.Configurations
                 throw new ArgumentNullException($"{prefix}: The provided path to yaml file {nameof(configurationPath)} doesn't exist or is empty - please ensure you are passing in a valid .yaml file.");
             }
 
-            if ((Path.GetExtension(configurationPath) != ".yaml") && (Path.GetExtension(Path.GetFileNameWithoutExtension(configurationPath)) != ".yaml"))
+            if (Path.GetExtension(configurationPath) != ".yaml")
             {
                 throw new ArgumentNullException($"{prefix}: A yaml file wasn't provided as the configuration.");
             }
