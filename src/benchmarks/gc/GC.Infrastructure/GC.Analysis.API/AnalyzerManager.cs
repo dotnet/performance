@@ -22,7 +22,7 @@ namespace GC.Analysis.API
         {
             Dictionary<string, Analyzer> analyzers = new();
 
-            IEnumerable<string> allFiles = null;
+            IEnumerable<string> allFiles;
 
             if (!recursive)
             {
@@ -66,7 +66,7 @@ namespace GC.Analysis.API
         {
             ConcurrentDictionary<string, Analyzer> analyzers = new();
 
-            IEnumerable<string> allFiles = null;
+            IEnumerable<string> allFiles;
 
             if (!recursive)
             {

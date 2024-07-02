@@ -157,7 +157,7 @@ namespace GC.Analysis.API
             foreach(var customObject in customObjects)
             {
                 double? val = GetDoubleValueBasedOnField(customObject, fieldName);
-                values.Add(val.Value); // Let this except and bubble up to the user in case the field isn't found.
+                values.Add(val!.Value); // Let this except and bubble up to the user in case the field isn't found.
             }
 
             return values;
