@@ -17,7 +17,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
             // Environment Variables.
             // Add the environment variables from the configuration.
             Dictionary<string, string> environmentVariables = new();
-            foreach (var env in configuration.Environment.environment_variables)
+            foreach (var env in configuration.Environment!.environment_variables)
             {
                 environmentVariables[env.Key] = env.Value;
             }
@@ -41,8 +41,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 {
                     string fileNameOfLog = Path.GetFileName(env.Value);
                     commandStringBuilder.Append( $" --application.options.downloadFiles \"*{fileNameOfLog}.log\" " );
-                    string fileName = Path.GetFileNameWithoutExtension(env.Value);
-                    commandStringBuilder.Append( $" --application.options.downloadFilesOutput \"{Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkNameToCommand.Key}_GCLog")}\" " );
+                    commandStringBuilder.Append( $" --application.options.downloadFilesOutput \"{Path.Combine(configuration.Output!.Path, run.Key, $"{benchmarkNameToCommand.Key}_GCLog")}\" " );
                 }
 
                 commandStringBuilder.Append($" --application.environmentVariables {env.Key}={variable} ");
@@ -84,12 +83,6 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 commandStringBuilder.Append($" --application.options.traceOutput {Path.Combine(configuration.Output.Path, run.Key, (benchmarkNameToCommand.Key + "." + collectType)) + traceFileSuffix}");
             }
 
-            // Add any additional arguments specified.
-            if (!string.IsNullOrEmpty(configuration.benchmark_settings.additional_arguments))
-            {
-                commandStringBuilder.Append($" {configuration.benchmark_settings.additional_arguments} ");
-            }
-
             string frameworkVersion = configuration.Environment.framework_version;
             // Override the framework version if it's specified at the level of the run.
             if (!string.IsNullOrEmpty(run.Value.framework_version))
@@ -119,6 +112,12 @@ namespace GC.Infrastructure.Core.CommandBuilders
 
             // Add the extra metrics by including the configuration.
             commandStringBuilder.Append($" --config {Path.Combine("Commands", "RunCommand", "BaseSuite", "PercentileBasedMetricsConfiguration.yml")} ");
+
+            // Add any additional arguments specified.
+            if (!string.IsNullOrEmpty(configuration.benchmark_settings.additional_arguments))
+            {
+                commandStringBuilder.Append($" {configuration.benchmark_settings.additional_arguments} ");
+            }
 
             string commandString = commandStringBuilder.ToString();
 

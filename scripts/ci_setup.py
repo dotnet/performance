@@ -447,7 +447,7 @@ def main(args: Any):
 
     if not framework.startswith('net4'):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
-        dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
+        dotnet_version = dotnet.get_dotnet_version_precise(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if use_core_sdk else args.commit_sha
 
         if args.local_build:
