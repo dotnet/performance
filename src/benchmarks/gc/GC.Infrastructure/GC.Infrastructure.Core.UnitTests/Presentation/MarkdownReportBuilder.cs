@@ -7,7 +7,7 @@ namespace GC.Infrastructure.Core.UnitTests.Presentation
     public class MarkdownReportBuilderTests
     {
         [TestMethod]
-        public void CopySectionFromMarkdown_CopySuccessful1_Successful() 
+        public void CopySectionFromMarkdown_CopySuccessful1_Successful()
         {
             string text = "# Section1\na\nb\nc\nd\n# Section 2";
             string details = MarkdownReportBuilder.CopySectionFromMarkDown(text, "Section1");
@@ -15,7 +15,7 @@ namespace GC.Infrastructure.Core.UnitTests.Presentation
         }
 
         [TestMethod]
-        public void CopySectionFromMarkdown_CopySuccessful2_Successful() 
+        public void CopySectionFromMarkdown_CopySuccessful2_Successful()
         {
             string text = @"# Summary
 |  | Working Set (MB)|Private Memory (MB)|Requests/sec

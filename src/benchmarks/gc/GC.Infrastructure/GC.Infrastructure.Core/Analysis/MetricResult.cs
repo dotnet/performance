@@ -25,7 +25,7 @@
         public double BaselineValue { get; }
         public double ComparandValue { get; }
         public double Delta { get; }
-        public double DeltaPercent => BaselineValue != 0 ? Math.Round(Delta / BaselineValue, 2) * 100.0 
+        public double DeltaPercent => BaselineValue != 0 ? Math.Round(Delta / BaselineValue, 2) * 100.0
                                                          : double.NaN;
         public override string ToString()
             => $"{Key} | {MetricName} | {BaselineValue} | {ComparandValue} | {DeltaPercent}";

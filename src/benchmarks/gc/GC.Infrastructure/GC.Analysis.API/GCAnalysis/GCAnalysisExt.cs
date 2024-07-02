@@ -10,7 +10,7 @@ namespace GC.Analysis.API
         {
             if (!analyzer.AllGCProcessData.TryGetValue(processName, out var vals))
             {
-                return new List<GCProcessData>(); 
+                return new List<GCProcessData>();
             }
 
             return vals;
@@ -77,7 +77,7 @@ namespace GC.Analysis.API
             StringDataFrameColumn criteria = new(" ");
             StringDataFrameColumn value = new("Values");
 
-            void AddStr(string c, object val) 
+            void AddStr(string c, object val)
             {
                 criteria.Append(c);
 
@@ -95,7 +95,7 @@ namespace GC.Analysis.API
             AddStr("Max Size Peak MB", maxSizePeak);
 
             // Counts.
-            AddStr("GC Count", gcCount); 
+            AddStr("GC Count", gcCount);
             AddStr("Heap Count", heapCount);
             AddStr("Gen0 Count", gen0Count);
             AddStr("Gen1 Count", gen1Count);
@@ -115,7 +115,7 @@ namespace GC.Analysis.API
             AddStr("Gen1 Total Promoted MB", gen1TotalPromotedMB);
             AddStr("Ephemeral Total Promoted MB", empTotalPromotedMB);
             AddStr("Blocking Gen2 Total Promoted MB", gen2BlockingTotalPromotedMB);
-            AddStr("BGC Total Promoted MB", bgcTotalPromotedMB); 
+            AddStr("BGC Total Promoted MB", bgcTotalPromotedMB);
 
             // Allocations
             AddStr("Mean Size Before MB", gcs.Average(gc => gc.HeapSizeBeforeMB));
@@ -135,7 +135,7 @@ namespace GC.Analysis.API
             AddStr("Gen1 Average Promoted (mb) / heap", gen1AvgPromotedPerHeap);
 
             AddStr("Gen0 Average Speed (mb/ms) / heap", gen0AvgSpeedPerHeap);
-            AddStr("Gen1 Average Speed (mb/ms) / heap", gen1AvgSpeedPerHeap); 
+            AddStr("Gen1 Average Speed (mb/ms) / heap", gen1AvgSpeedPerHeap);
 
             return new DataFrame(criteria, value);
         }

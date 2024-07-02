@@ -6,11 +6,11 @@ namespace GC.Analysis.API
     {
         public CPUInfo(TraceGC gc, float count)
         {
-            GC    = gc;
+            GC = gc;
             Count = count;
         }
 
-        public TraceGC GC { get; } 
+        public TraceGC GC { get; }
         public float Count { get; }
     }
 }

@@ -8,7 +8,7 @@ namespace GC.Analysis.API
         {
             List<CPUInfo> cpuInfos = new List<CPUInfo>();
             GCProcessData gcData = data.Parent.Analyzer.GetProcessGCData(data.ProcessName).Single(g => g.ProcessID == data.ProcessID);
-            foreach(var gc in gcData.GCs)
+            foreach (var gc in gcData.GCs)
             {
                 if (perGCCounts.TryGetValue(gc.Number, out float f))
                 {
@@ -50,12 +50,12 @@ namespace GC.Analysis.API
                 throw new ArgumentException($"'{nameof(methodName)}' cannot be null or empty.", nameof(methodName));
             }
 
-            SortedDictionary<int, float> perGCCost = new(); 
+            SortedDictionary<int, float> perGCCost = new();
 
             if (processData.PerGCData.TryGetValue(methodName, out var data))
             {
                 // For each GC, for each thread, sum up the counts.
-                foreach(var perGC in data)
+                foreach (var perGC in data)
                 {
                     int gcNumber = perGC.Key;
                     if (!perGCCost.TryGetValue(gcNumber, out var value))
@@ -63,9 +63,9 @@ namespace GC.Analysis.API
                         perGCCost[gcNumber] = 0;
                     }
 
-                    foreach(var thread in perGC.Value)
+                    foreach (var thread in perGC.Value)
                     {
-                        foreach(var c in thread.Value)
+                        foreach (var c in thread.Value)
                         {
                             if (c.Callers.Any(gc => gc.Contains(caller)))
                             {
@@ -81,9 +81,9 @@ namespace GC.Analysis.API
             {
                 SortedDictionary<int, float> perGCCostForPlanPhase = new();
                 var relocatePhase = GetPerGCMethodCost(processData, "gc_heap::relocate_phase", isInclusiveCount);
-                var compactPhase  = GetPerGCMethodCost(processData, "gc_heap::compact_phase", isInclusiveCount);
+                var compactPhase = GetPerGCMethodCost(processData, "gc_heap::compact_phase", isInclusiveCount);
 
-                foreach(var gc in perGCCost)
+                foreach (var gc in perGCCost)
                 {
                     if (!perGCCostForPlanPhase.TryGetValue(gc.Key, out var planCount))
                     {
@@ -126,7 +126,7 @@ namespace GC.Analysis.API
             if (processData.OverallData.TryGetValue(methodName, out var data))
             {
                 // For each GC, for each thread, sum up the counts.
-                foreach(var perGC in data)
+                foreach (var perGC in data)
                 {
                     int gcNumber = perGC.Key;
                     perGCCost[gcNumber] = isInclusiveCount ? perGC.Value.InclusiveCount : perGC.Value.ExclusiveCount;
@@ -138,10 +138,10 @@ namespace GC.Analysis.API
             {
                 SortedDictionary<int, float> perGCCostForPlanPhase = new();
                 var relocatePhase = GetPerGCMethodCost(processData, "gc_heap::relocate_phase", isInclusiveCount);
-                var compactPhase  = GetPerGCMethodCost(processData, "gc_heap::compact_phase", isInclusiveCount);
+                var compactPhase = GetPerGCMethodCost(processData, "gc_heap::compact_phase", isInclusiveCount);
                 var makeFreeListsPhase = GetPerGCMethodCost(processData, "gc_heap::make_free_lists", isInclusiveCount);
 
-                foreach(var gc in perGCCost)
+                foreach (var gc in perGCCost)
                 {
                     if (!perGCCostForPlanPhase.TryGetValue(gc.Key, out var planCount))
                     {
@@ -173,7 +173,7 @@ namespace GC.Analysis.API
             return processData.ConvertToCPUInfo(perGCCost);
         }
 
-        public static List<CPUInfo> GetPerGCMethodCost(this CPUProcessData processData, 
+        public static List<CPUInfo> GetPerGCMethodCost(this CPUProcessData processData,
                                                        string methodName,
                                                        HashSet<int> gcsToConsider,
                                                        bool isInclusiveCount = true)
@@ -192,7 +192,7 @@ namespace GC.Analysis.API
 
             if (processData.OverallData.TryGetValue(methodName, out var data))
             {
-                foreach(var perGC in data)
+                foreach (var perGC in data)
                 {
                     int gcNumber = perGC.Key;
                     if (!gcsToConsider.Contains(gcNumber))
@@ -209,10 +209,10 @@ namespace GC.Analysis.API
             {
                 SortedDictionary<int, float> perGCCostForPlanPhase = new();
                 var relocatePhase = GetPerGCMethodCost(processData, "gc_heap::relocate_phase", isInclusiveCount);
-                var compactPhase  = GetPerGCMethodCost(processData, "gc_heap::compact_phase", isInclusiveCount);
+                var compactPhase = GetPerGCMethodCost(processData, "gc_heap::compact_phase", isInclusiveCount);
                 var makeFreeListsPhase = GetPerGCMethodCost(processData, "gc_heap::make_free_lists", isInclusiveCount);
 
-                foreach(var gc in perGCCost)
+                foreach (var gc in perGCCost)
                 {
                     if (!perGCCostForPlanPhase.TryGetValue(gc.Key, out var planCount))
                     {

@@ -84,7 +84,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             {
                 try
                 {
-                    GCPerfSimConfiguration gcperfsimConfiguration = 
+                    GCPerfSimConfiguration gcperfsimConfiguration =
                         GCPerfSimConfigurationParser.Parse(gcperfsimConfigurationFileName);
 
                     Stopwatch sw = new();
@@ -186,7 +186,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             // modify gcperfsim_configurations
             gcPerfSimNormalWorkstationConfiguration.gcperfsim_configurations.Parameters["tc"] = "2";
             gcPerfSimNormalWorkstationConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
-            
+
             // modify output
             gcPerfSimNormalWorkstationConfiguration.Output.Path =
                 Path.Combine(configuration.output_path, "Normal_Workstation");
@@ -230,7 +230,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             };
 
             // modify gcperfsim_configurations
-            gcPerfSimLowMemoryContainerConfiguration.gcperfsim_configurations.Parameters["tc"] = (_logicalProcessors * 2).ToString(); 
+            gcPerfSimLowMemoryContainerConfiguration.gcperfsim_configurations.Parameters["tc"] = (_logicalProcessors * 2).ToString();
             gcPerfSimLowMemoryContainerConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
             gcPerfSimLowMemoryContainerConfiguration.gcperfsim_configurations.Parameters["tlgb"] = "0.1";
             gcPerfSimLowMemoryContainerConfiguration.gcperfsim_configurations.Parameters["sohsi"] = "50";

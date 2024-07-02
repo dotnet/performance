@@ -4,7 +4,7 @@ using System.Text;
 
 namespace GC.Infrastructure.Core.CommandBuilders
 {
-    public static class ASPNetBenchmarksCommandBuilder 
+    public static class ASPNetBenchmarksCommandBuilder
     {
         public static (string, string) Build(ASPNetBenchmarksConfiguration configuration, KeyValuePair<string, Run> run, KeyValuePair<string, string> benchmarkNameToCommand, OS os)
         {
@@ -40,8 +40,8 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 if (string.CompareOrdinal(env.Key, "DOTNET_GCLogFile") == 0)
                 {
                     string fileNameOfLog = Path.GetFileName(env.Value);
-                    commandStringBuilder.Append( $" --application.options.downloadFiles \"*{fileNameOfLog}.log\" " );
-                    commandStringBuilder.Append( $" --application.options.downloadFilesOutput \"{Path.Combine(configuration.Output!.Path, run.Key, $"{benchmarkNameToCommand.Key}_GCLog")}\" " );
+                    commandStringBuilder.Append($" --application.options.downloadFiles \"*{fileNameOfLog}.log\" ");
+                    commandStringBuilder.Append($" --application.options.downloadFilesOutput \"{Path.Combine(configuration.Output!.Path, run.Key, $"{benchmarkNameToCommand.Key}_GCLog")}\" ");
                 }
 
                 commandStringBuilder.Append($" --application.environmentVariables {env.Key}={variable} ");
@@ -51,9 +51,9 @@ namespace GC.Infrastructure.Core.CommandBuilders
             // If the TraceConfiguration Key is specified in the yaml and 
             if (configuration.TraceConfigurations != null && !string.Equals(configuration.TraceConfigurations.Type, "none", StringComparison.OrdinalIgnoreCase))
             {
-                CollectType collectType  = TraceCollector.StringToCollectTypeMap[configuration.TraceConfigurations.Type];
+                CollectType collectType = TraceCollector.StringToCollectTypeMap[configuration.TraceConfigurations.Type];
                 string collectionCommand = TraceCollector.WindowsCollectTypeMap[collectType];
-                collectionCommand        = collectionCommand.Replace(" ", ";").Replace("/", "");
+                collectionCommand = collectionCommand.Replace(" ", ";").Replace("/", "");
 
                 string traceFileSuffix = ".etl.zip";
                 // Add specific commands.
@@ -125,7 +125,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
             if (!string.IsNullOrEmpty(configuration.benchmark_settings.override_arguments))
             {
                 List<KeyValuePair<string, string>> overrideCommands = GetCrankArgsAsList(configuration.benchmark_settings.override_arguments);
-                if (overrideCommands.Count > 0) 
+                if (overrideCommands.Count > 0)
                 {
                     // Take the current commands and first replace all the keys that match the override commands.
                     // Subsequently, add the new overrides and then convert the key-value pair list back to a string.

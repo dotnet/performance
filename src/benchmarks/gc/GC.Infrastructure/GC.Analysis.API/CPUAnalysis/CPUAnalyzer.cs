@@ -13,7 +13,7 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace GC.Analysis.API
 {
-    public sealed class CPUProcessData 
+    public sealed class CPUProcessData
     {
         public int ProcessID { get; set; }
         public string ProcessName { get; set; }
@@ -28,8 +28,8 @@ namespace GC.Analysis.API
         [JsonIgnore]
         internal StackView StackView { get; set; }
         // Method Name -> GC # -> CPU Data 
-        public Dictionary<string, Dictionary<int, CPUThreadData>> OverallData{ get; set; } = new();
-        public Dictionary<int, Dictionary<string, CPUThreadData>> GCOverallData{ get; set; } = new();
+        public Dictionary<string, Dictionary<int, CPUThreadData>> OverallData { get; set; } = new();
+        public Dictionary<int, Dictionary<string, CPUThreadData>> GCOverallData { get; set; } = new();
         public Dictionary<string, CPUThreadData> MethodToData { get; set; } = new();
     }
 
@@ -48,9 +48,9 @@ namespace GC.Analysis.API
                                            .Build();
 
             string configContents = File.ReadAllText(yamlPath);
-            Configuration         = deserializer.Deserialize<GCMethodsData>(configContents);
+            Configuration = deserializer.Deserialize<GCMethodsData>(configContents);
 
-            _symbolWriter = TextWriter.Null; 
+            _symbolWriter = TextWriter.Null;
             if (!string.IsNullOrEmpty(anaylsisLogFile))
             {
                 _symbolWriter = new StreamWriter(anaylsisLogFile);
@@ -71,7 +71,7 @@ namespace GC.Analysis.API
             SymbolReader.SecurityCheck = path => true;
 
             // Resolve symbols.
-            foreach(var module in analyzer.TraceLog.ModuleFiles)
+            foreach (var module in analyzer.TraceLog.ModuleFiles)
             {
                 if (module.Name.ToLower().Contains("clr") /* || module.Name.ToLower().Contains("ntoskrnl") */)
                 {
@@ -84,7 +84,7 @@ namespace GC.Analysis.API
 
             List<string> allMethods = Configuration.gc_methods.ToList();
             // TODO: Segregate the non-GC methods here.
-            CPUAnalyzers = GetAllCPUAnalyzers(analyzer, new HashSet<string>(allMethods)); 
+            CPUAnalyzers = GetAllCPUAnalyzers(analyzer, new HashSet<string>(allMethods));
         }
 
         internal static List<CallTreeNodeBase> FindNodesByName(string nodeNamePat, List<CallTreeNodeBase> byID)
@@ -126,7 +126,7 @@ namespace GC.Analysis.API
                         Callers = new(),
                     };
 
-                    var cpuThreads     = GetCPUThreadNode(method: method, threadID: threadID, gcNumber: gcNumber, processData: processData);
+                    var cpuThreads = GetCPUThreadNode(method: method, threadID: threadID, gcNumber: gcNumber, processData: processData);
                     var cpuThreadsByGC = GetCPUThreadNodeByGCNumber(method, threadID, gcNumber, processData);
 
                     CallTreeNode cursor = callee;
@@ -165,7 +165,7 @@ namespace GC.Analysis.API
             return cpuData;
         }
 
-        internal static List<CPUThreadData> GetCPUThreadNodeByGCNumber(string method, int threadID, int gcNumber, CPUProcessData processData) 
+        internal static List<CPUThreadData> GetCPUThreadNodeByGCNumber(string method, int threadID, int gcNumber, CPUProcessData processData)
         {
             if (!processData.PerGCData.TryGetValue(method, out var gcToThreadData))
             {
@@ -189,7 +189,7 @@ namespace GC.Analysis.API
         {
             Microsoft.Diagnostics.Tracing.Etlx.TraceLog traceLog = analyzer.TraceLog;
             Dictionary<int, string> processIDMap = new();
-            foreach(var process in traceLog.Processes)
+            foreach (var process in traceLog.Processes)
             {
                 if (analyzer.AllGCProcessData.ContainsKey(process.Name))
                 {
@@ -235,7 +235,7 @@ namespace GC.Analysis.API
                 var allStackSource = CopyStackSource.Clone(traceStackSource);
                 processData.StackView = new StackView(analyzer.TraceLog, allStackSource, SymbolReader, traceEvents);
 
-                foreach(var method in Configuration.gc_methods)
+                foreach (var method in Configuration.gc_methods)
                 {
                     CPUThreadData d = processData.MethodToData[method] = new CPUThreadData
                     {
@@ -255,7 +255,7 @@ namespace GC.Analysis.API
                     return;
                 }
 
-                foreach(var gc in process.GCs)
+                foreach (var gc in process.GCs)
                 {
                     if (gc.Type == Microsoft.Diagnostics.Tracing.Parsers.Clr.GCType.BackgroundGC)
                     {
@@ -270,12 +270,12 @@ namespace GC.Analysis.API
                         new FilterStackSource(filterParams, allStackSource, ScalingPolicyKind.ScaleToData);
                     StackView stackView = new(processData.Parent.Analyzer.TraceLog, timeFilteredStackSource, processData.Parent.SymbolReader, processData.StackView.TraceEvents);
 
-                    foreach(var method in Configuration.gc_methods)
+                    foreach (var method in Configuration.gc_methods)
                     {
                         if (!methodDict.TryGetValue(method, out var m))
                         {
                             methodDict[method] = m = new CPUThreadData
-                            { 
+                            {
                                 Method = method,
                                 Thread = "-1",
                             };
@@ -299,10 +299,10 @@ namespace GC.Analysis.API
                 }
 
                 // For each gc.
-                foreach(var gc in processData.GCOverallData)
+                foreach (var gc in processData.GCOverallData)
                 {
                     // For each method in that gc.
-                    foreach(var method in gc.Value)
+                    foreach (var method in gc.Value)
                     {
                         if (!processData.OverallData.TryGetValue(method.Key, out var d))
                         {
@@ -383,9 +383,9 @@ namespace GC.Analysis.API
 
         public Analyzer Analyzer { get; }
         public SymbolReader SymbolReader { get; }
-        public GCMethodsData Configuration { get; } 
+        public GCMethodsData Configuration { get; }
 
         // Process Name -> CPU Process Data.
-        public Dictionary<string, List<CPUProcessData>> CPUAnalyzers { get; } = new(); 
+        public Dictionary<string, List<CPUProcessData>> CPUAnalyzers { get; } = new();
     }
 }

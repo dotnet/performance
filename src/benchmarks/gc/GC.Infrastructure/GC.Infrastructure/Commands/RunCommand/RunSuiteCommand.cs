@@ -23,7 +23,7 @@ namespace GC.Infrastructure.Commands.RunCommand
         public override int Execute([NotNull] CommandContext context, [NotNull] RunSuiteCommandSettings settings)
         {
             if (!string.IsNullOrEmpty(settings.SuiteBasePath) || !Directory.Exists(settings.SuiteBasePath))
-            { 
+            {
                 throw new ArgumentNullException($"{nameof(RunSuiteCommandSettings)}: {nameof(settings.SuiteBasePath)} was either null or the directory doesn't exists.");
             }
 

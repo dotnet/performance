@@ -11,9 +11,9 @@ namespace GC.Analysis.API
         {
             List<(double value, DataFrame summary)> summaryData = new();
 
-            foreach(var processes in analyzer.AllGCProcessData.Values) 
+            foreach (var processes in analyzer.AllGCProcessData.Values)
             {
-                foreach(var process in processes)
+                foreach (var process in processes)
                 {
                     summaryData.Add((ReflectionHelpers.GetDoubleValueForGCStatsField(process.Stats, criteriaInGCStats), Summarize(analyzer, process.ProcessID)));
                 }
@@ -27,7 +27,7 @@ namespace GC.Analysis.API
             List<DataFrame> dataFrames = new();
 
             var processes = analyzer.GetProcessGCData(processName);
-            foreach(var processData in processes)
+            foreach (var processData in processes)
             {
                 dataFrames.Add(analyzer.Summarize(processData.ProcessID));
             }
@@ -40,7 +40,7 @@ namespace GC.Analysis.API
             StringDataFrameColumn criteria = new(" ");
             StringDataFrameColumn value = new("Values");
 
-            void AddStr(string c, object val) 
+            void AddStr(string c, object val)
             {
                 criteria.Append(c);
 
@@ -55,7 +55,7 @@ namespace GC.Analysis.API
             }
 
             GCProcessData? processData = null;
-            foreach(var val in analyzer.AllGCProcessData.Values)
+            foreach (var val in analyzer.AllGCProcessData.Values)
             {
                 processData = val.FirstOrDefault(v => v.ProcessID == processID);
                 if (processData != null)
@@ -73,7 +73,7 @@ namespace GC.Analysis.API
             AddStr("Max Size Peak MB", processData.Stats.MaxSizePeakMB);
 
             // Counts.
-            AddStr("GC Count", processData.Stats.Count); 
+            AddStr("GC Count", processData.Stats.Count);
             AddStr("Heap Count", processData.Stats.HeapCount);
             AddStr("Gen0 Count", processData.Generations[0].Count);
             AddStr("Gen1 Count", processData.Generations[1].Count);
@@ -112,11 +112,11 @@ namespace GC.Analysis.API
             AddStr("Avg. Gen0 Pause Time (ms)", (gen0.Count() > 0 ? gen0.Average(gc => gc.PauseDurationMSec) : double.NaN));
             AddStr("Avg. Gen1 Pause Time (ms)", (gen1.Count() > 0 ? gen1.Average(gc => gc.PauseDurationMSec) : double.NaN));
 
-            AddStr("Avg. Gen0 Promoted (mb)", (gen0.Count() > 0 ? gen0.Average(gc => gc.PromotedMB) : double.NaN)); 
+            AddStr("Avg. Gen0 Promoted (mb)", (gen0.Count() > 0 ? gen0.Average(gc => gc.PromotedMB) : double.NaN));
             AddStr("Avg. Gen1 Promoted (mb)", (gen1.Count() > 0 ? gen1.Average(gc => gc.PromotedMB) : double.NaN));
 
             var gen0Speed = processData.Generations[0].TotalPromotedMB / processData.Generations[0].TotalPauseTimeMSec;
-            AddStr("Avg. Gen0 Speed (mb/ms)", gen0Speed); 
+            AddStr("Avg. Gen0 Speed (mb/ms)", gen0Speed);
 
             var gen1Speed = processData.Generations[1].TotalPromotedMB / processData.Generations[1].TotalPauseTimeMSec;
             AddStr("Avg. Gen1 Speed (mb/ms)", gen1Speed);
@@ -209,14 +209,14 @@ namespace GC.Analysis.API
             IEnumerable<TraceGC> gen1 = processData.GCs.Where(gc => gc.Generation == 1);
 
             Dictionary<GCProcessData, IEnumerable<TraceGC>> gen0Cache = new();
-            foreach(var other in others)
+            foreach (var other in others)
             {
                 var gen0s = other.GCs.Where(gc => gc.Generation == 0);
                 gen0Cache[other] = gen0s;
             }
 
             Dictionary<GCProcessData, IEnumerable<TraceGC>> gen1Cache = new();
-            foreach(var other in others)
+            foreach (var other in others)
             {
                 var gen1s = other.GCs.Where(gc => gc.Generation == 1);
                 gen1Cache[other] = gen1s;
@@ -312,7 +312,7 @@ namespace GC.Analysis.API
             double currentAllocRatio = processData.Stats.TotalAllocatedMB / maxTotalAllocated;
 
             Dictionary<GCProcessData, double> ratioMap = new();
-            foreach(var o in others)
+            foreach (var o in others)
             {
                 ratioMap[o] = o.Stats.TotalAllocatedMB / maxTotalAllocated;
             }
@@ -331,12 +331,12 @@ namespace GC.Analysis.API
             Add("BGC Count", processData.BGCs.Count(), others.Select(p => (double)p.BGCs.Count()));
 
             // Pauses
-            Add("Total Pause Time MSec", processData.Stats.TotalPauseTimeMSec / currentAllocRatio, others.Select(p => p.Stats.TotalPauseTimeMSec / ratioMap[p] ));
-            Add("Gen0 Total Pause Time MSec", processData.Generations[0].TotalPauseTimeMSec / currentAllocRatio, others.Select(p => p.Generations[0].TotalPauseTimeMSec / ratioMap[p] ));
-            Add("Gen1 Total Pause Time MSec", processData.Generations[1].TotalPauseTimeMSec / currentAllocRatio, others.Select(p => p.Generations[1].TotalPauseTimeMSec / ratioMap[p] ));
-            Add("Ephemeral Total Pause Time MSec", (processData.Generations[0].TotalPauseTimeMSec + processData.Generations[1].TotalPauseTimeMSec) / currentAllocRatio, others.Select(p => (p.Generations[0].TotalPauseTimeMSec + p.Generations[1].TotalPauseTimeMSec) / (ratioMap[p] )));
+            Add("Total Pause Time MSec", processData.Stats.TotalPauseTimeMSec / currentAllocRatio, others.Select(p => p.Stats.TotalPauseTimeMSec / ratioMap[p]));
+            Add("Gen0 Total Pause Time MSec", processData.Generations[0].TotalPauseTimeMSec / currentAllocRatio, others.Select(p => p.Generations[0].TotalPauseTimeMSec / ratioMap[p]));
+            Add("Gen1 Total Pause Time MSec", processData.Generations[1].TotalPauseTimeMSec / currentAllocRatio, others.Select(p => p.Generations[1].TotalPauseTimeMSec / ratioMap[p]));
+            Add("Ephemeral Total Pause Time MSec", (processData.Generations[0].TotalPauseTimeMSec + processData.Generations[1].TotalPauseTimeMSec) / currentAllocRatio, others.Select(p => (p.Generations[0].TotalPauseTimeMSec + p.Generations[1].TotalPauseTimeMSec) / (ratioMap[p])));
             Add("Blocking Gen2 Total Pause Time MSec", processData.Gen2Blocking.Sum(gc => gc.PauseDurationMSec) / currentAllocRatio, others.Select(p => (double)p.Gen2Blocking.Sum(gc => gc.PauseDurationMSec) / ratioMap[p]));
-            Add("BGC Total Pause Time MSec", processData.BGCs.Sum(gc => gc.PauseDurationMSec) / currentAllocRatio, others.Select(p => p.BGCs.Sum(gc => gc.PauseDurationMSec) / ratioMap[p] ));
+            Add("BGC Total Pause Time MSec", processData.BGCs.Sum(gc => gc.PauseDurationMSec) / currentAllocRatio, others.Select(p => p.BGCs.Sum(gc => gc.PauseDurationMSec) / ratioMap[p]));
 
             Add("GC Pause Time %", processData.Stats.GetGCPauseTimePercentage(), others.Select(gc => gc.Stats.GetGCPauseTimePercentage()));
 
@@ -346,14 +346,14 @@ namespace GC.Analysis.API
             IEnumerable<TraceGC> gen1 = processData.GCs.Where(gc => gc.Generation == 1);
 
             Dictionary<GCProcessData, IEnumerable<TraceGC>> gen0Cache = new();
-            foreach(var other in others)
+            foreach (var other in others)
             {
                 var gen0s = other.GCs.Where(gc => gc.Generation == 0);
                 gen0Cache[other] = gen0s;
             }
 
             Dictionary<GCProcessData, IEnumerable<TraceGC>> gen1Cache = new();
-            foreach(var other in others)
+            foreach (var other in others)
             {
                 var gen1s = other.GCs.Where(gc => gc.Generation == 1);
                 gen1Cache[other] = gen1s;
@@ -417,7 +417,7 @@ namespace GC.Analysis.API
 
                 else
                 {
-                    return string.Empty; 
+                    return string.Empty;
                 }
             }
 

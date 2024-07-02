@@ -64,7 +64,7 @@ namespace GC.Infrastructure.Core.Configurations
             {
                 ConfigurationChecker.VerifyEnvironmentVariables(run.Value.environment_variables, $"{nameof(GCPerfSimFunctionalConfigurationParser)} for Run: {run.Key}");
             }
-            ConfigurationChecker.VerifyEnvironmentVariables(configuration.Environment.environment_variables, $"{nameof(GCPerfSimFunctionalConfigurationParser)}");  
+            ConfigurationChecker.VerifyEnvironmentVariables(configuration.Environment.environment_variables, $"{nameof(GCPerfSimFunctionalConfigurationParser)}");
 
             return configuration;
         }

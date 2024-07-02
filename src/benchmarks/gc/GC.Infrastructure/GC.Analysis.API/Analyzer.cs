@@ -20,9 +20,9 @@ namespace GC.Analysis.API
             TraceLog = Etlx.TraceLog.OpenOrConvert(tracePath);
             Dictionary<int, Dictionary<int, int>> processIdToGCThreads = GetAllGCThreads(TraceLog.Events.GetSource(), processNames);
 
-            foreach(var p in TraceLog.GetAllProcesses())
+            foreach (var p in TraceLog.GetAllProcesses())
             {
-                if (!processNames.Contains(p.Name)) 
+                if (!processNames.Contains(p.Name))
                 {
                     continue;
                 }
@@ -79,7 +79,7 @@ namespace GC.Analysis.API
                 TraceLog = Etlx.TraceLog.OpenOrConvert(tracePath);
                 Dictionary<int, Dictionary<int, int>> processIdToGCThreads = GetAllGCThreads(TraceLog.Events.GetSource());
 
-                foreach(var p in TraceLog.GetAllProcesses())
+                foreach (var p in TraceLog.GetAllProcesses())
                 {
                     TraceLoadedDotNetRuntime managedProcess = p.LoadedDotNetRuntime();
                     if (!IsInterestingGCProcess(managedProcess))
@@ -116,7 +116,7 @@ namespace GC.Analysis.API
 
                 if (!gcThreadsForAllProcesses.TryGetValue(markData.ProcessID, out var gcThreads))
                 {
-                    gcThreadsForAllProcesses[markData.ProcessID] = gcThreads = new Dictionary<int, int>(); 
+                    gcThreadsForAllProcesses[markData.ProcessID] = gcThreads = new Dictionary<int, int>();
                 }
 
                 gcThreads[markData.ThreadID] = markData.HeapNum;
@@ -127,8 +127,8 @@ namespace GC.Analysis.API
         }
 
         internal static Predicate<TraceLoadedDotNetRuntime> IsInterestingGCProcess = (managedProcess) =>
-                (managedProcess != null        &&  // If the process in question is a managed process.
-                 managedProcess.GC != null     &&  // If the managed process has GCs.
+                (managedProcess != null &&  // If the process in question is a managed process.
+                 managedProcess.GC != null &&  // If the managed process has GCs.
                  managedProcess.GC.GCs != null &&  // "
                  managedProcess.GC.GCs.Count > 0); // "
         private bool disposedValue;

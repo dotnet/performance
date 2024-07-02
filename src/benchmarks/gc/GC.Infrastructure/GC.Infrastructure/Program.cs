@@ -69,7 +69,7 @@ namespace GC.Infrastructure
             }
         }
 
-        internal static bool IsAdministrator => 
+        internal static bool IsAdministrator =>
             new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
     }
 }

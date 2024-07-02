@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project> 
+  <PropertyGroup>
+    <!-- To use a custom TraceEvent library, specify CustomTraceEvent to true and the PerfViewPath below -->
+    <CustomTraceEvent>false</CustomTraceEvent>
+    <PerfViewPath>$(MSBuildProjectDirectory)\..\..\..\..\..\..\PerfView</PerfViewPath>
+    <DefineConstants Condition="'$(CustomTraceEvent)' == 'true'">CUSTOM_TRACE_EVENT;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+</Project>

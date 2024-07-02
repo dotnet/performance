@@ -14,12 +14,12 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
         public Output? Output { get; set; }
     }
 
-    public sealed class Run : RunBase 
-    { 
+    public sealed class Run : RunBase
+    {
         public Dictionary<string, string>? override_parameters { get; set; }
     }
 
-    public sealed class Output : OutputBase {}
+    public sealed class Output : OutputBase { }
 
     public class GCPerfSimConfigurations
     {
@@ -41,16 +41,16 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
     }
     public static class GCPerfSimConfigurationParser
     {
-        private static readonly IDeserializer _deserializer = 
+        private static readonly IDeserializer _deserializer =
             new DeserializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build();
 
         public static GCPerfSimConfiguration Parse(string path, bool isIncompleteConfiguration = false)
         {
             // Preconditions.
-            ConfigurationChecker.VerifyFile(path, nameof(GCPerfSimConfigurationParser)); 
+            ConfigurationChecker.VerifyFile(path, nameof(GCPerfSimConfigurationParser));
 
             string serializedConfiguration = File.ReadAllText(path);
-            GCPerfSimConfiguration? configuration = null; 
+            GCPerfSimConfiguration? configuration = null;
 
             // This try catch is here because the exception from the YamlDotNet isn't helpful and must be imbued with more details.
             try
@@ -102,7 +102,7 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
             // Check to ensure the builds are valid i.e., have an existent path to corerun.
             foreach (var build in configuration.coreruns!)
             {
-                if (string.IsNullOrEmpty(build.Value.Path) || 
+                if (string.IsNullOrEmpty(build.Value.Path) ||
                     (!File.Exists(build.Value.Path) && !Directory.Exists(build.Value.Path)))
                 {
                     throw new ArgumentException($"{nameof(GCPerfSimConfigurationParser)}: The corerun for {build.Key} either doesn't exist or the path provided is incorrect. Please ensure that path points to a valid corerun");

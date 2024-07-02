@@ -7,7 +7,7 @@ namespace GC.Infrastructure.Core.Analysis
 {
     public static class AnalyzeTrace
     {
-        public static string GetExecutionDetailKeyForGCPerfSim (string runName, string corerunName) => $"{runName}.{corerunName}.0";
+        public static string GetExecutionDetailKeyForGCPerfSim(string runName, string corerunName) => $"{runName}.{corerunName}.0";
 
         public static GCProcessData? GetGCProcessDataForGCPerfSim(Analyzer analyzer)
         {
@@ -18,7 +18,7 @@ namespace GC.Infrastructure.Core.Analysis
             {
                 p = analyzer.AllGCProcessData.First().Value.First();
             }
-            
+
             else // ETL* traces.
             {
                 p = analyzer.GetProcessGCData("corerun").FirstOrDefault();
@@ -74,7 +74,7 @@ namespace GC.Infrastructure.Core.Analysis
 
                             else
                             {
-                                d[corerunName] = processData = new ResultItem(p, run.Key, corerun); 
+                                d[corerunName] = processData = new ResultItem(p, run.Key, corerun);
                             }
                         }
                     }
@@ -86,7 +86,7 @@ namespace GC.Infrastructure.Core.Analysis
 
         public static IReadOnlyList<ComparisonResult> GetComparisons(GCPerfSimConfiguration configuration, Func<GCPerfSimConfiguration, string> keyFunctor)
         {
-            ConcurrentDictionary<string, ConcurrentDictionary<string, ResultItem>> runToCorerunData = GetTracesFromConfiguration(configuration); 
+            ConcurrentDictionary<string, ConcurrentDictionary<string, ResultItem>> runToCorerunData = GetTracesFromConfiguration(configuration);
             List<ComparisonResult> allComparisonResults = new();
 
             // First corerun is the base.
@@ -143,14 +143,14 @@ namespace GC.Infrastructure.Core.Analysis
         public static Dictionary<string, ComparisonResult> GetComparisons(string baselinePath, string runPath)
         {
             Analyzer baselineAnalyzer = AnalyzerManager.GetAnalyzer(baselinePath);
-            GCProcessData? baselineProcessData =  GetGCProcessDataForGCPerfSim(baselineAnalyzer);
+            GCProcessData? baselineProcessData = GetGCProcessDataForGCPerfSim(baselineAnalyzer);
             ResultItem baselineResultItem = (baselineProcessData != null)
                                              ? new ResultItem(baselineProcessData, baselinePath, baselinePath)
                                              : ResultItem.GetNullItem(baselinePath, baselinePath);
 
-            Analyzer runAnalyzer         = AnalyzerManager.GetAnalyzer(runPath);
-            GCProcessData? runProcessData =  GetGCProcessDataForGCPerfSim(runAnalyzer);
-            ResultItem runResultItem = (runProcessData != null) 
+            Analyzer runAnalyzer = AnalyzerManager.GetAnalyzer(runPath);
+            GCProcessData? runProcessData = GetGCProcessDataForGCPerfSim(runAnalyzer);
+            ResultItem runResultItem = (runProcessData != null)
                                        ? new ResultItem(runProcessData, runPath, runPath)
                                        : ResultItem.GetNullItem(runPath, runPath);
 

@@ -57,7 +57,7 @@
             }
 
             // Checks if mandatory arguments are specified in the configuration.
-            if (configuration.Output == null) 
+            if (configuration.Output == null)
             {
                 throw new ArgumentNullException($"{nameof(ASPNetBenchmarksConfigurationParser)}: {nameof(configuration.Output)} is null. Check the syntax of the configuration.");
             }

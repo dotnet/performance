@@ -25,15 +25,15 @@ namespace GC.Analysis.API
     {
         public string? YAxisLabel { get; set; } = null;
         public string? XAxisLabel { get; set; } = null;
-        public double? Width { get; set; }      = null;
-        public double? Height { get; set; }     = null;
+        public double? Width { get; set; } = null;
+        public double? Height { get; set; } = null;
     }
 
     public static class ChartingHelpers
     {
-        internal static Layout.Layout ConstructLayout(string title, 
-                                                      string fieldName, 
-                                                      string xAxis, 
+        internal static Layout.Layout ConstructLayout(string title,
+                                                      string fieldName,
+                                                      string xAxis,
                                                       ChartInfo? chartInfo)
         {
             var layout = new Layout.Layout
@@ -45,12 +45,12 @@ namespace GC.Analysis.API
 
             if (chartInfo != null)
             {
-                if (chartInfo.Width.HasValue) 
+                if (chartInfo.Width.HasValue)
                 {
                     layout.width = chartInfo.Width.Value;
                 }
 
-                if (chartInfo.Height.HasValue) 
+                if (chartInfo.Height.HasValue)
                 {
                     layout.height = chartInfo.Height.Value;
                 }
@@ -59,9 +59,9 @@ namespace GC.Analysis.API
             return layout;
         }
 
-        internal static Layout.Layout ConstructLayout(string title, 
-                                                      IEnumerable<string> fieldNames, 
-                                                      string xAxis, 
+        internal static Layout.Layout ConstructLayout(string title,
+                                                      IEnumerable<string> fieldNames,
+                                                      string xAxis,
                                                       ChartInfo? chartInfo)
         {
             var layout = new Layout.Layout
@@ -73,12 +73,12 @@ namespace GC.Analysis.API
 
             if (chartInfo != null)
             {
-                if (chartInfo.Width.HasValue) 
+                if (chartInfo.Width.HasValue)
                 {
                     layout.width = chartInfo.Width.Value;
                 }
 
-                if (chartInfo.Height.HasValue) 
+                if (chartInfo.Height.HasValue)
                 {
                     layout.height = chartInfo.Height.Value;
                 }
@@ -118,12 +118,12 @@ namespace GC.Analysis.API
         public static double Sum<TSource>(this IEnumerable<TSource> data, Func<TSource, double> map)
         {
             double sum = 0;
-            if (data == null || data.Count() == 0) 
+            if (data == null || data.Count() == 0)
             {
                 return sum;
             }
 
-            foreach(var sourceItem in data)
+            foreach (var sourceItem in data)
             {
                 sum += (double)map(sourceItem);
             }
@@ -134,13 +134,13 @@ namespace GC.Analysis.API
         public static double Average<TSource>(this IEnumerable<TSource> data, Func<TSource, double> map)
         {
             int count = data.Count();
-            if (data == null || count == 0) 
+            if (data == null || count == 0)
             {
                 return double.NaN;
             }
 
             double sum = 0;
-            foreach(var sourceItem in data)
+            foreach (var sourceItem in data)
             {
                 sum += (double)map(sourceItem);
             }
@@ -154,7 +154,7 @@ namespace GC.Analysis.API
         public static List<double> GetDoubleValueFromFieldForCustomObjects(IEnumerable<object> customObjects, string fieldName)
         {
             List<double> values = new();
-            foreach(var customObject in customObjects)
+            foreach (var customObject in customObjects)
             {
                 double? val = GetDoubleValueBasedOnField(customObject, fieldName);
                 values.Add(val.Value); // Let this except and bubble up to the user in case the field isn't found.
@@ -166,7 +166,7 @@ namespace GC.Analysis.API
         public static List<double> GetDoubleValueForGCField(IEnumerable<TraceGC> gcs, string fieldName)
         {
             List<double> values = new();
-            foreach(var gc in gcs)
+            foreach (var gc in gcs)
             {
                 double? val = GetDoubleValueBasedOnField(gc, fieldName);
                 values.Add(val.Value); // Let this except and bubble up to the user in case the field isn't found.
@@ -231,7 +231,7 @@ namespace GC.Analysis.API
 
             // Add the 2 header rows.
             sb.Append("|");
-            foreach(var columnName in columnNames)
+            foreach (var columnName in columnNames)
             {
                 sb.Append(columnName);
                 sb.Append("|");
@@ -241,7 +241,7 @@ namespace GC.Analysis.API
             sb.Clear();
 
             sb.Append("|");
-            foreach(var columnName in columnNames)
+            foreach (var columnName in columnNames)
             {
                 sb.Append("------");
                 sb.Append("|");
@@ -280,7 +280,7 @@ namespace GC.Analysis.API
 
                 // Add the 2 header rows.
                 sb.Append("|");
-                foreach(var columnName in columnNames)
+                foreach (var columnName in columnNames)
                 {
                     sb.Append(columnName);
                     sb.Append("|");
@@ -290,7 +290,7 @@ namespace GC.Analysis.API
                 sb.Clear();
 
                 sb.Append("|");
-                foreach(var columnName in columnNames)
+                foreach (var columnName in columnNames)
                 {
                     sb.Append("------");
                     sb.Append("|");
@@ -339,19 +339,19 @@ namespace GC.Analysis.API
             FieldInfo[] fieldsInfo = type.GetFields();
             Dictionary<string, StringDataFrameColumn> columnsData = new();
 
-            foreach(var field in fieldsInfo)
+            foreach (var field in fieldsInfo)
             {
                 StringDataFrameColumn column = new(field.Name);
                 columnsData[field.Name] = new StringDataFrameColumn(field.Name);
             }
 
             // For all data points, go through all the fields and append the values to the columns.
-            foreach(var datum in dataArray)
+            foreach (var datum in dataArray)
             {
                 FieldInfo[] fields = type.GetFields();
 
                 // For each field in fields, get the value.
-                foreach(var field in fields)
+                foreach (var field in fields)
                 {
                     object obtainedValue = field.GetValue(datum);
                     string obtainedValueAsString = obtainedValue.ToString();

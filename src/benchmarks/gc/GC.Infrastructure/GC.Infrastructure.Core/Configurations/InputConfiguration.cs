@@ -2,9 +2,9 @@
 {
     public sealed class InputConfiguration
     {
-        public string output_path                   { get; set; }
-        public string gcperfsim_path                { get; set; }
-        public string microbenchmark_path           { get; set; }
+        public string output_path { get; set; }
+        public string gcperfsim_path { get; set; }
+        public string microbenchmark_path { get; set; }
         public Dictionary<string, CoreRunInfo> coreruns { get; set; }
         public Dictionary<string, CoreRunInfo>? linux_coreruns { get; set; }
         public Dictionary<string, string>? environment_variables { get; set; }

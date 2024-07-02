@@ -10,14 +10,14 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
         {
             Baseline = baseline;
             Comparand = comparand;
-            
+
             MetricName = metricName;
             PropertyInfo pInfo = typeof(ResultItem).GetProperty(metricName, BindingFlags.Instance | BindingFlags.Public);
 
             // Property found on the ResultItem.
             if (pInfo != null)
             {
-                BaselineMetric  = (double)pInfo.GetValue(baseline);
+                BaselineMetric = (double)pInfo.GetValue(baseline);
                 ComparandMetric = (double)pInfo.GetValue(comparand);
             }
 
@@ -38,16 +38,16 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
                     else
                     {
-                        BaselineMetric  = (double)fieldInfo.GetValue(baseline);
+                        BaselineMetric = (double)fieldInfo.GetValue(baseline);
                         ComparandMetric = (double)fieldInfo.GetValue(comparand);
                     }
                 }
 
                 else
                 {
-                    BaselineMetric  = (double)pInfo.GetValue(baseline);
+                    BaselineMetric = (double)pInfo.GetValue(baseline);
                     ComparandMetric = (double)pInfo.GetValue(comparand);
-                }    
+                }
             }
         }
 
@@ -61,7 +61,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
             return sb.ToString();
         }
 
-        public string RunName => Baseline.RunName; 
+        public string RunName => Baseline.RunName;
         public string MetricName { get; }
         public double BaselineMetric { get; }
         public double ComparandMetric { get; }
