@@ -118,3 +118,4 @@ Upcoming:
   (e.g., b1_1, b1_2, b1_3, b1_max, b1_avg, b2_1, b2_2, b2_3, b2_max, b2_avg)
 - Consider splitting `SeriesInfo` into level-specific versions and make methods such as `ChartInternal` generic
   on the series information.
+  
