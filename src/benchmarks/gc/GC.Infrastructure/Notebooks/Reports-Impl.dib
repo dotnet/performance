@@ -479,7 +479,7 @@ public class Metric<TSource> : BaseMetric<TSource, double?>
 public static class Metrics
 {
     public static Metric<IterationData> Promote(Metric<TraceGC> metric, Aggregation aggregation)
-        => Metric<IterationData>.Promote<TraceGC>(metric, iterationData => (IEnumerable<TraceGC>)iterationData.GCProcessData.GCs, aggregation);
+        => Metric<IterationData>.Promote(metric, iterationData => (IEnumerable<TraceGC>)iterationData.GCProcessData.GCs, aggregation);
     public static Metric<BenchmarkData> Promote(Metric<IterationData> metric, Aggregation aggregation)
         => Metric<BenchmarkData>.Promote(metric, benchmarkData => benchmarkData.Iterations, aggregation);
     public static Metric<ConfigData> Promote(Metric<BenchmarkData> metric, Aggregation aggregation)
