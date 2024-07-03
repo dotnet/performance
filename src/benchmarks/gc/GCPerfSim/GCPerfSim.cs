@@ -542,7 +542,7 @@ abstract class Item : ITypeWithPayload
     public byte[] GetPayload() =>
         Util.NonNull(payload);
 
-    class ItemFinalizable : Item
+    sealed class ItemFinalizable : Item
     {
         public ItemFinalizable(uint size, bool isPinned, bool isWeakLong, bool isPoh)
             : base(size, isPinned, isWeakLong, isPoh)
@@ -556,7 +556,7 @@ abstract class Item : ITypeWithPayload
         }
     }
 
-    class ItemNonFinalizable : Item
+    sealed class ItemNonFinalizable : Item
     {
         public ItemNonFinalizable(uint size, bool isPinned, bool isWeakLong, bool isPoh)
             : base(size, isPinned, isWeakLong, isPoh) { }
@@ -748,7 +748,7 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
 #endif
     }
 
-    class ReferenceItemWithSizeFinalizable : ReferenceItemWithSize
+    sealed class ReferenceItemWithSizeFinalizable : ReferenceItemWithSize
     {
         public ReferenceItemWithSizeFinalizable(uint size, bool isPinned, bool isPoh)
             : base(size, isPinned, isPoh)
@@ -762,7 +762,7 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
         }
     }
 
-    class ReferenceItemWithSizeNonFinalizable : ReferenceItemWithSize
+    sealed class ReferenceItemWithSizeNonFinalizable : ReferenceItemWithSize
     {
         public ReferenceItemWithSizeNonFinalizable(uint size, bool isPinned, bool isPoh)
             : base(size, isPinned, isPoh) { }
