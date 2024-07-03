@@ -1,5 +1,5 @@
 
-# Benchmark Analysis 
+# Benchmark Analysis
 
 This notebook contains code for producing charts (and soon, tables) for GC benchmarks.  It can currently process data
 from the ASP.NET benchmarks obtained using crank as well as ETL data.  One of the design points of this notebook is
@@ -7,6 +7,7 @@ that the different operations have a similar "feel"; they have many optional par
 The parameters are intended to be identical (or at least similar) across operations.
 
 The data is organized in a hierarchy.  (See `TopLevelData`.)
+
 - A "run" consists of multiple "configurations".  (See `RunData`.)
 - A "configuration" consists of multiple "benchmarks".  (See `ConfigData`.)
 - A "benchmark" consists of multiple "iterations".  (See `BenchmarkData`.)
@@ -21,6 +22,7 @@ Data is stored in a `DataManager` object.  This class has a number of `Create...
 data identically; a `Create` method is simply shorthand for `new` and `Add` and is the common usage.
 
 `CreateAspNetData` expects the directory structure that is produced by the GC infrastructure for ASP.NET.  For example:
+
 ``` xml
 <run>\<configA>_0\<benchmarkX>.<configA>_0.log
                  \<benchmarkX>.gc.etl
@@ -34,6 +36,7 @@ data identically; a `Create` method is simply shorthand for `new` and `Add` and 
      \<configB>_2\...
      \<configB>_3\...
 ```
+
 Because of the way these names are generated, do not put `.` in any name or `_` in configuration names.  The `_0`, `_1`,
 etc., are the iterations.
 
@@ -55,6 +58,7 @@ helpers.  However, typically charting (and soon tabling) methods will be called 
 for each of the three levels (the "run" level is not included since aggregating across configurations is not
 expected), and at each level there are two overloads that only differ based on whether they expect one metric or
 a list of metrics.
+
 - `ChartBenchmarks` will chart benchmarks across the x-axis using aggregation of data from the iterations.  Each
   run/configuration will be a data series.
 - `ChartIterations` will chart benchmarks across the x-axis using data from each iteration.  Each
@@ -79,6 +83,7 @@ Each charting method accepts `Filter`s for the runs, configs, and benchmarks and
 data itself (`BenchmarkData`, `IterationData`, or `TraceGC`).
 
 In addition, some more advanced arguments are available:
+
 - `xArrangement` - controls how the x-axis is arranged
   - `XArrangements.Default` - normal sorting by x values
   - `XArrangements.Sorted` - each series is sorted (highest-to-lowest), and the x-axis values are changed to ranks
@@ -105,6 +110,7 @@ In addition, some more advanced arguments are available:
 - `debug` - Enables a bit of debug spew.
 
 Upcoming:
+
 - Add the ability to specify a primary data series and add metrics that compare against it.
 - Fill out the predefined metrics.
 - Add requested features (specify width of chart).
