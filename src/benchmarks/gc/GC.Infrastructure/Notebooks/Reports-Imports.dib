@@ -1,0 +1,23 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"languageName":"csharp","name":"csharp"}]}}
+
+#!csharp
+
+#i "nuget: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json"
+
+//#r "nuget: YamlDotnet"
+#r "nuget: XPlot.Plotly"
+#r "nuget: XPlot.Plotly.Interactive"
+#r "nuget: Microsoft.Data.Analysis, 0.19.1"
+//#r "nuget: Newtonsoft.Json"
+
+//using Etlx = Microsoft.Diagnostics.Tracing.Etlx;
+//using Microsoft.Data.Analysis;
+using Microsoft.Diagnostics.Tracing.Analysis.GC;
+//using Microsoft.Diagnostics.Tracing.Analysis;
+using Microsoft.Diagnostics.Tracing.Parsers.Clr;
+//using Microsoft.Diagnostics.Tracing;
+//using Newtonsoft.Json;
+//using System.Diagnostics;
+using XPlot.Plotly;

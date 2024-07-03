@@ -1,0 +1,15 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"languageName":"csharp","name":"csharp"}]}}
+
+#!pwsh
+
+dotnet build -c Release "..\GC.Analysis.API"
+
+#!csharp
+
+#!import Utils.dib
+#!import DataManager.dib
+#!import Reports-Imports.dib
+#!import Reports-Impl.dib
+#!import Reports-Data.dib

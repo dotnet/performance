@@ -1,0 +1,759 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"languageName":"csharp","name":"csharp"}]}}
+
+#!csharp
+
+#i "nuget: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json"
+
+#r "nuget: Microsoft.Diagnostics.Tracing.TraceEvent"
+
+// TODO: Ensure you are pointing to the right artifacts folder.
+#r "..\..\..\..\..\artifacts\bin\GC.Analysis.API\Release\net7.0\GC.Analysis.API.dll"
+
+using GC.Analysis.API;
+
+using System.IO;
+using System.Text.RegularExpressions;
+
+#!csharp
+
+// Data Acquisition
+//
+// The next few cells detail how to retrieve the data from a base path. The run name below is the name of the folder generated from running the ``aspnetbenchmarks`` command from the GC.Infrastructure API. 
+
+#!csharp
+
+// The LoadInfo class consists of all the pertinent fields needed to represent both the result from a particular benchmark
+// as well as the the comparison between two runs where the Data2 represents the GCProcessData of the comparand.
+public sealed class LoadInfo
+{
+    public double MaxWorkingSetMB {get;set;} = double.NaN;
+    public double P99WorkingSetMB {get;set;} = double.NaN;
+    public double P95WorkingSetMB {get;set;} = double.NaN;
+    public double P90WorkingSetMB {get;set;} = double.NaN;
+    public double P75WorkingSetMB {get;set;} = double.NaN;
+    public double P50WorkingSetMB {get;set;} = double.NaN;
+
+    public double MaxPrivateMemoryMB {get;set;} = double.NaN;
+    public double P99PrivateMemoryMB {get;set;} = double.NaN;
+    public double P95PrivateMemoryMB {get;set;} = double.NaN;
+    public double P90PrivateMemoryMB {get;set;} = double.NaN;
+    public double P75PrivateMemoryMB {get;set;} = double.NaN;
+    public double P50PrivateMemoryMB {get;set;} = double.NaN;
+
+    public double RequestsPerMSec {get; set;} = double.NaN;
+    public double MeanLatencyMS {get; set;} = double.NaN;
+    public double Latency99thMS {get; set;} = double.NaN;
+    public double Latency90thMS {get; set;} = double.NaN;
+    public double Latency75thMS {get; set;} = double.NaN;
+    public double Latency50thMS {get; set;} = double.NaN;
+
+    // Do these need to be stored on the LoadInfo?  Context should already have this information.
+    public string Run {get; set;}
+    public string Config {get; set;}
+    public string Benchmark {get; set;}
+    public int Iteration {get; set;} = -1;
+}
+
+public class GCSummaryInfo
+{
+    public double TotalSuspensionTimeMSec {get;set;} = double.NaN;
+    public double PercentPauseTimeInGC {get; set;} = double.NaN;
+    public double PercentTimeInGC {get; set;} = double.NaN;
+    public double MeanHeapSizeBeforeMB {get; set;} = double.NaN;
+    public double MaxHeapSizeMB {get; set;} = double.NaN;
+    public double TotalAllocationsMB {get;set;} = double.NaN;
+    public double GCScore {get;set;} = double.NaN;
+
+    public double MaxHeapCount {get;set;} = double.NaN;
+    public double NumberOfHeapCountSwitches {get;set;} = double.NaN;
+    public double NumberOfHeapCountDirectionChanges {get;set;} = double.NaN;
+
+    // Consider removing
+    public GCProcessData Data {get;set;}
+    public GCProcessData? Data2 {get;set;}
+
+    public int ProcessId {get;set;}
+    public string CommandLine {get;set;}
+    public string TracePath {get; set;}
+    public string ProcessName {get;set;}
+}
+
+public class BenchmarkSummaryData
+{
+    public double MaxWorkingSetMB {get;set;} = double.NaN;
+    public double P99WorkingSetMB {get;set;} = double.NaN;
+    public double P95WorkingSetMB {get;set;} = double.NaN;
+    public double P90WorkingSetMB {get;set;} = double.NaN;
+    public double P75WorkingSetMB {get;set;} = double.NaN;
+    public double P50WorkingSetMB {get;set;} = double.NaN;
+
+    public double MaxPrivateMemoryMB {get;set;} = double.NaN;
+    public double P99PrivateMemoryMB {get;set;} = double.NaN;
+    public double P95PrivateMemoryMB {get;set;} = double.NaN;
+    public double P90PrivateMemoryMB {get;set;} = double.NaN;
+    public double P75PrivateMemoryMB {get;set;} = double.NaN;
+    public double P50PrivateMemoryMB {get;set;} = double.NaN;
+
+    public double RequestsPerMSec {get;set;} = double.NaN;
+    public double MeanLatencyMS {get; set;} = double.NaN;
+    public double Latency50thMS {get; set;} = double.NaN;
+    public double Latency75thMS {get; set;} = double.NaN;
+    public double Latency90thMS {get; set;} = double.NaN;
+    public double Latency99thMS {get; set;} = double.NaN;
+
+    public string Benchmark {get; set;}
+}
+
+// XXXData is the Data for an XXX, not a mapping from XXX to data.
+// For example, BenchmarkData is a mapping from iterations to data because a benchmark can have multiple iterations.
+public record IterationData(LoadInfo LoadInfo, GCSummaryInfo GCSummaryInfo, GCProcessData GCProcessData)
+{
+    public LoadInfo LoadInfo { get; set; } = LoadInfo;
+    public GCSummaryInfo GCSummaryInfo { get; set; } = GCSummaryInfo;
+    public GCProcessData GCProcessData  { get; set; } = GCProcessData;
+    // GCLogInfo GCLogInfo;
+    // Dictionary<string, double> Other;
+}
+public record BenchmarkData(LoadInfo SummaryLoadInfo, List<IterationData> Iterations); // Iteration # -> data
+public record ConfigData(Dictionary<string, BenchmarkData> Benchmarks); // Benchmark name -> data
+public record RunData(Dictionary<string, ConfigData> Configs); // Config name -> data
+public record TopLevelData(Dictionary<string, RunData> Runs); // Run name -> data
+
+public class Filter // abstraction used whenever names should be filtered
+{
+    private string[] _includeNames;
+    private string[] _excludeNames;
+    private Regex _includeRE;
+    private Regex _excludeRE;
+
+    public Filter(params string[] includeNames) : this(includeNames: includeNames, excludeNames: null) {}
+    public Filter(IEnumerable<string> includeNames = null, IEnumerable<string> excludeNames = null,
+                  string includeRE = null, string excludeRE = null)
+        : this(
+            includeNames: includeNames?.ToArray(),
+            excludeNames: excludeNames?.ToArray(),
+            includeRE: (includeRE != null) ? (new Regex(includeRE)) : null,
+            excludeRE: (excludeRE != null) ? (new Regex(excludeRE)) : null
+        )
+        {}
+
+    private Filter(string[] includeNames = null, string[] excludeNames = null,
+                   Regex includeRE = null, Regex excludeRE = null)
+    {
+        _includeNames = includeNames;
+        _excludeNames = excludeNames;
+        _includeRE = includeRE;
+        _excludeRE = excludeRE;
+    }
+
+    public static Filter Names(params string[] includeNames) => new(includeNames: includeNames);
+    public static Filter ExcludeNames(params string[] includeNames) => new(excludeNames: includeNames);
+    public static Filter RE(string includeRE) => new(includeRE: includeRE);
+    public static Filter ExcludeRE(string includeRE) => new(excludeRE: includeRE);
+    public static Filter All { get; } = new(null);
+
+    public bool Include(string candidate)
+        => (((_includeNames != null) || (_includeRE != null))
+                ? ((_includeNames?.Contains(candidate) ?? false) || ((_includeRE?.Match(candidate).Success ?? false)))
+                : true)
+            && (!_excludeNames?.Contains(candidate) ?? true)
+            && (!_excludeRE?.Match(candidate).Success ?? true);
+}
+
+public class IntFilter
+{
+    private (int min, int max)[] _includeRanges;
+    private (int min, int max)[] _excludeRanges;
+
+    private static IEnumerable<T> EmptyIfNull<T>(IEnumerable<T> enumerable)
+        => enumerable ?? Enumerable.Empty<T>();
+
+    public IntFilter(params int[] includeValues) : this(includeValues: includeValues, excludeRanges: null) {}
+    public IntFilter(params (int min, int max)[] includeRanges) : this(includeRanges: includeRanges, excludeRanges: null) {}
+    public IntFilter(IEnumerable<int> includeValues = null, IEnumerable<int> excludeValues = null,
+        IEnumerable<(int min, int max)> includeRanges = null, IEnumerable<(int min, int max)> excludeRanges = null)
+        : this(
+            includeRanges:
+                (includeValues != null || includeRanges != null)
+                ? (EmptyIfNull(includeValues).Select(v => (v,v))).Concat(EmptyIfNull(includeRanges)).ToArray()
+                : null,
+            excludeRanges:
+                (excludeValues != null || excludeRanges != null)
+                ? (EmptyIfNull(excludeValues).Select(v => (v,v))).Concat(EmptyIfNull(excludeRanges)).ToArray()
+                : null
+        )
+        {}
+
+    private IntFilter((int min, int max)[] includeRanges = null, (int min, int max)[] excludeRanges = null)
+    {
+        _includeRanges = includeRanges;
+        _excludeRanges = excludeRanges;
+    }
+
+    public static IntFilter Values(params int[] includeValues) => new(includeValues: includeValues);
+    public static IntFilter Ranges(params (int min, int max)[] includeRanges) => new(includeRanges: includeRanges);
+    public static IntFilter ExcludeValues(params int[] excludeValues) => new(excludeValues: excludeValues);
+    public static IntFilter ExcludeRanges(params (int min, int max)[] excludeRanges) => new(excludeRanges: excludeRanges);
+    public static IntFilter All { get; } = new(includeValues: null);
+
+    public bool Include(int candidate)
+        => (_includeRanges?.Any(pair => pair.min <= candidate && candidate <= pair.max) ?? true)
+            && (!_excludeRanges?.Any(pair => pair.min <= candidate && candidate <= pair.max) ?? true);
+}
+
+#!csharp
+
+// Filter tests
+int failed = 0;
+void Assert(bool b, string message)
+{
+    if (!b)
+    {
+        failed++;
+        Console.WriteLine($"Failed: {message}");
+    }
+}
+
+{
+    foreach (Filter fa in ML(new("a"), new (includeNames: ML("a")), Filter.Names("a"), new(includeRE: "a"), Filter.RE("a")))
+    {
+        Assert(fa.Include("a"), "a~a");
+        Assert(!fa.Include("b"), "a~!b");
+    }
+
+    foreach (Filter fab in ML(new("a", "b"), new(includeNames: ML("a", "b")), Filter.Names("a", "b"), new(includeRE: "a|b"), Filter.RE("a|b"),
+        new(includeNames: ML("a"), includeRE: "b")))
+    {
+        Assert(fab.Include("a"), "ab~a");
+        Assert(fab.Include("b"), "ab~b");
+        Assert(!fab.Include("c"), "ab~!c");
+    }
+
+    foreach (Filter fna in ML(new(excludeNames: ML("a")), Filter.ExcludeNames("a"), new(excludeRE: "a"), Filter.ExcludeRE("a")))
+    {
+        Assert(!fna.Include("a"), "!a~!a");
+        Assert(fna.Include("b"), "!a~b");
+    }
+
+    foreach (Filter fnab in ML(new(excludeNames: ML("a", "b")), Filter.ExcludeNames("a", "b"), new(excludeRE: "a|b"), Filter.ExcludeRE("a|b"),
+        new(excludeNames: ML("a"), excludeRE: "b")))
+    {
+        Assert(!fnab.Include("a"), "!ab~!a");
+        Assert(!fnab.Include("b"), "!ab~!b");
+        Assert(fnab.Include("c"), "!ab~c");
+    }
+
+    foreach (Filter fanb in ML<Filter>(new(includeNames: ML("a", "b"), excludeNames: ML("b")), new(includeRE: "a|b", excludeRE: "b")))
+    {
+        Assert(fanb.Include("a"), "a!b~a");
+        Assert(!fanb.Include("b"), "a!b~!b");
+    }
+
+    Assert(Filter.All.Include("a"), "all~a");
+
+    foreach (IntFilter f1 in ML(new(1), new((1,1)), new (includeValues: ML(1)), new (includeRanges: ML((1,1))),
+        IntFilter.Values(1), IntFilter.Ranges((1,1))))
+    {
+        Assert(f1.Include(1), "1~1");
+        Assert(!f1.Include(2), "1~!2");
+    }
+
+    foreach (IntFilter f12 in ML(new((1,2)), new((1,1), (2,2)),
+        new (includeValues: ML(1,2)), new (includeRanges: ML((1,1), (2,2))), new (includeRanges: ML((1,2))),
+        IntFilter.Values(1, 2), IntFilter.Ranges((1,2)), IntFilter.Ranges((1,1), (2,2))))
+    {
+        Assert(f12.Include(1), "1~1");
+        Assert(f12.Include(2), "1~!2");
+    }
+
+    foreach (IntFilter fn1 in ML(new (excludeValues: ML(1)), new (excludeRanges: ML((1,1))),
+        IntFilter.ExcludeValues(1), IntFilter.ExcludeRanges((1,1))))
+    {
+        Assert(!fn1.Include(1), "!1~!1");
+        Assert(fn1.Include(2), "!1~2");
+    }
+
+    foreach (IntFilter fn12 in ML(new(excludeValues: ML(1,2)), IntFilter.ExcludeValues(1,2),
+        new(excludeRanges: ML((1,1),(2,2))), new(excludeRanges: ML((1,2))), IntFilter.ExcludeRanges((1,2)), IntFilter.ExcludeRanges((1,2))))
+    {
+        Assert(!fn12.Include(1), "!12~!1");
+        Assert(!fn12.Include(2), "!12~!2");
+        Assert(fn12.Include(3), "!12~3");
+    }
+
+    foreach (IntFilter f1n2 in ML<IntFilter>(new(includeValues: ML(1,2), excludeValues: ML(2)), new(includeRanges: ML((1,2)), excludeRanges: ML((2,2)))))
+    {
+        Assert(f1n2.Include(1), "1!2~1");
+        Assert(!f1n2.Include(2), "1!2~!2");
+    }
+
+    Assert(IntFilter.All.Include(1), "all~1");
+}
+if (failed > 0) throw new Exception($"Failed {failed} test(s)");
+
+#!csharp
+
+using ConfigIterationFilter = System.Collections.Generic.IReadOnlyDictionary<string, IntFilter>;
+
+public static bool MightInclude(this ConfigIterationFilter configIterationFilter, string config)
+    => (configIterationFilter == null) || configIterationFilter.ContainsKey(config);
+
+public static bool Include(this ConfigIterationFilter configIterationFilter, string config, int iteration)
+    => (configIterationFilter == null) || (configIterationFilter.GetValueOrDefault(config)?.Include(iteration) ?? true);
+
+public class DataManager
+{
+    public readonly TopLevelData _data;
+
+    public DataManager() => _data = new(new());
+
+    public static DataManager CreateAspNetData(string basePath,
+        Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null, ConfigIterationFilter configIterationFilter = null,
+        List<string> pertinentProcesses = null)
+        => CreateAspNetData(MA(basePath),
+            configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter, configIterationFilter: configIterationFilter,
+            pertinentProcesses: pertinentProcesses);
+
+    public static DataManager CreateAspNetData(IEnumerable<string> basePaths,
+        Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null, ConfigIterationFilter configIterationFilter = null,
+        List<string> pertinentProcesses = null)
+    {
+        DataManager dataManager = new();
+        dataManager.AddAspNetData(basePaths: basePaths,
+            configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter, configIterationFilter: configIterationFilter,
+            pertinentProcesses: pertinentProcesses);
+        return dataManager;
+    }
+
+    public static DataManager CreateGCTrace(string file, List<string> pertinentProcesses, string run = null, string config = null, int? iteration = null,
+        bool loadMultipleProcesses = true)
+    {
+        DataManager dataManager = new();
+        dataManager.AddGCTrace(file: file, pertinentProcesses: pertinentProcesses, run: run, config: config, iteration: iteration,
+            loadMultipleProcesses: loadMultipleProcesses);
+        return dataManager;
+    }
+
+    public static DataManager CreateGCTraces(string basePath, List<string> pertinentProcesses, SearchOption searchOption = SearchOption.TopDirectoryOnly,
+        Filter benchmarkFilter = null, string run = null, string config = null, int? iteration = null, bool loadMultipleProcesses = true)
+    {
+        DataManager dataManager = new();
+        dataManager.AddGCTraces(basePath: basePath, pertinentProcesses: pertinentProcesses, searchOption: searchOption,
+            benchmarkFilter: benchmarkFilter, run: run, config: config, iteration: iteration, loadMultipleProcesses: loadMultipleProcesses);
+        return dataManager;
+
+    }
+
+    public void AddAspNetData(string basePath,
+        Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null, ConfigIterationFilter configIterationFilter = null,
+        List<string> pertinentProcesses = null)
+        => AddAspNetData(basePaths: MA(basePath),
+            configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter, configIterationFilter: configIterationFilter,
+            pertinentProcesses: pertinentProcesses);
+
+    public void AddAspNetData(IEnumerable<string> basePaths,
+        Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null, ConfigIterationFilter configIterationFilter = null,
+        List<string> pertinentProcesses = null)
+    {
+        configFilter = configFilter ?? Filter.All;
+        benchmarkFilter = benchmarkFilter ?? Filter.All;
+        iterationFilter = iterationFilter ?? IntFilter.All;
+        // configIterationFilter is not set to an empty dictionary as that would exclude everything
+
+        foreach (var basePath in basePaths)
+        {
+            LoadAspNetDataFromBasePath(basePath: basePath,
+                configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter, configIterationFilter: configIterationFilter,
+                pertinentProcesses: pertinentProcesses);
+        }
+    }
+
+    public void AddGCTrace(string file, List<string> pertinentProcesses, string run = null, string config = null, string benchmark = null, int? iteration = null, bool loadMultipleProcesses = true)
+    {
+        LoadGCTrace(file: file, configFilter: Filter.All, benchmarkFilter: Filter.All, run: run, config: config, benchmark: benchmark, iteration: iteration, pertinentProcesses: pertinentProcesses,
+            expectAspNetData: false, loadMultipleProcesses: loadMultipleProcesses);
+    }
+
+    public void AddGCTraces(string basePath, List<string> pertinentProcesses, SearchOption searchOption = SearchOption.TopDirectoryOnly, Filter configFilter = null, Filter benchmarkFilter = null,
+        string run = null, string config = null, string benchmark = null, int? iteration = null, bool loadMultipleProcesses = true)
+    {
+        configFilter = configFilter ?? Filter.All;
+        benchmarkFilter = benchmarkFilter ?? Filter.All;
+
+        LoadGCTracesFromPath(path: basePath, searchOption: searchOption, configFilter: configFilter, benchmarkFilter: benchmarkFilter,
+            run: run, config: config, benchmark: benchmark, iteration: iteration, pertinentProcesses: pertinentProcesses,
+            expectAspNetData: false, loadMultipleProcesses: loadMultipleProcesses);
+    }
+
+    public static double DeltaPercent (double baseline, double comparand) => Math.Round((comparand - baseline) / baseline * 100, 2);
+
+    public TopLevelData Data => _data; 
+
+    //public static LoadInfo LoadLogFile(string file)
+    //{
+    //    
+    //}
+
+    // Consider generalizing the error reporting here
+    private (string, int) ParseConfigIterName(string dir)
+    {
+        int lastUnderscore = dir.LastIndexOf("_");
+        string config;
+        int iteration;
+        if ((lastUnderscore != -1)
+            && int.TryParse(dir.AsSpan(lastUnderscore + 1), out iteration))
+        {
+            config = dir.Substring(0, lastUnderscore);
+        }
+        else
+        {
+            Console.WriteLine($"{dir} is not in the form <config>_<iteration>");
+            config = dir;
+            iteration = 0;
+        }
+
+        return (config, iteration);
+    }
+
+    private (string, string, int) ParseBenchmarkLogFileName(string logName)
+    {
+        string[] split = Path.GetFileName(logName).Split(".");
+        if ((split.Length != 3) || (split[2] != "log"))
+        {
+            Console.WriteLine($"{logName} is not in the form <benchmark>.<config>_<iteration>.log");
+        }
+        // TODO: Store these suffixes
+        string benchmark = Path.GetFileName( split[0] ).Replace("_Windows", "").Replace("_Linux", "").Replace(".gc", "").Replace(".nettrace", "");
+        (string config, int iteration) = ParseConfigIterName(split[1]);
+        return (config, benchmark, iteration);
+    }
+
+    private List<string> AspNetProcesses = new()
+    {
+        "PlatformBenchmarks",
+        "Benchmarks",
+        "MapAction",
+        "TodosApi",
+        "BasicGrpc",
+        "BasicMinimalApi",
+    };
+
+    private void LoadAspNetDataFromBasePath(string basePath,
+        Filter configFilter, Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter,
+        List<string> pertinentProcesses)
+    {
+        pertinentProcesses = pertinentProcesses ?? AspNetProcesses;
+
+        string run = Path.GetFileName(basePath);
+
+        foreach (string fullDir in Directory.GetDirectories(basePath))
+        {
+            string subDir = Path.GetFileName(fullDir);
+            (string config, int iteration) = ParseConfigIterName(subDir);
+            if (configFilter.Include(config) && iterationFilter.Include(iteration) && configIterationFilter.Include(config, iteration))
+            {
+                LoadAspNetDataFromPath(fullDir, benchmarkFilter, run, config, iteration);
+                // configFilter has alreay been done- LoadGCTracesFromPath needs it for the case where loadMultipleProcesses is true
+                // and the filenames become the configs
+                LoadGCTracesFromPath(fullDir, SearchOption.TopDirectoryOnly, configFilter: Filter.All, benchmarkFilter: benchmarkFilter,
+                    run: run, config: config, benchmark: null, iteration: iteration,
+                    pertinentProcesses: pertinentProcesses, expectAspNetData: true, loadMultipleProcesses: false);
+            }
+        }
+    }
+
+    // Returns a LoadInfo with information extracted from the log file.
+    // Does not populate the Benchmark, etc., fields.
+    private LoadInfo LoadAspNetLogFile(string file)
+    {
+        LoadInfo info = new();
+
+        int idxOfApplication = Int32.MaxValue;
+        int idxOfLoad = Int32.MaxValue;
+        int idx = 0;
+
+        foreach (var line in File.ReadLines(file))
+        {
+            string[] sp = line.Split("|", StringSplitOptions.TrimEntries);
+            if (line.Contains("| application"))
+            {
+                idxOfApplication = idx;
+            }
+            else if (line.Contains("| load"))
+            {
+                idxOfLoad = idx;
+            }
+            else if (line.Contains("| Latency 50th"))
+            {
+                info.Latency50thMS = double.Parse(sp[2]);
+            }
+            else if (line.Contains("| Latency 75th"))
+            {
+                info.Latency75thMS = double.Parse(sp[2]);
+            }
+            else if (line.Contains("| Latency 90th"))
+            {
+                info.Latency90thMS = double.Parse(sp[2]);
+            }
+            else if (line.Contains("| Latency 99th"))
+            {
+                info.Latency99thMS = double.Parse(sp[2]);
+            }
+            else if (line.Contains("Requests/sec"))
+            {
+                info.RequestsPerMSec = double.Parse(sp[2]) / 1000;
+            }
+            else if (line.Contains("Mean latency"))
+            {
+                info.MeanLatencyMS = double.Parse(sp[2]);
+            }
+            else if (line.Contains("Max Working Set") && (idxOfApplication < idx && idx < idxOfLoad)) 
+            {
+                info.MaxWorkingSetMB = double.Parse(sp[2]);
+            }
+            else if (line.Contains("Working Set P99") && (idxOfApplication < idx && idx < idxOfLoad)) 
+            {
+                info.P99WorkingSetMB = double.Parse(sp[2]);
+            }
+            else if (line.Contains("Working Set P95") && (idxOfApplication < idx && idx < idxOfLoad)) 
+            {
+                info.P95WorkingSetMB = double.Parse(sp[2]);
+            }
+            else if (line.Contains("Working Set P90") && (idxOfApplication < idx && idx < idxOfLoad)) 
+            {
+                info.P90WorkingSetMB = double.Parse(sp[2]);
+            }                
+            else if (line.Contains("Working Set P75") && (idxOfApplication < idx && idx < idxOfLoad)) 
+            {
+                info.P75WorkingSetMB = double.Parse(sp[2]);
+            }
+            else if (line.Contains("Working Set P50") && (idxOfApplication < idx && idx < idxOfLoad)) 
+            {
+                info.P50WorkingSetMB = double.Parse(sp[2]);
+            }                
+            else if (line.Contains("Max Private Memory") && (idxOfApplication < idx && idx < idxOfLoad)) 
+            {
+                info.MaxPrivateMemoryMB  = double.Parse(sp[2]);
+            }
+            else if (line.Contains("Private Memory P99") && (idxOfApplication < idx && idx < idxOfLoad)) 
+            {
+                info.P99PrivateMemoryMB = double.Parse(sp[2]);
+            }
+            else if (line.Contains("Private Memory P95") && (idxOfApplication < idx && idx < idxOfLoad)) 
+            {
+                info.P95PrivateMemoryMB = double.Parse(sp[2]);
+            }
+            else if (line.Contains("Private Memory P90") && (idxOfApplication < idx && idx < idxOfLoad)) 
+            {
+                info.P90PrivateMemoryMB = double.Parse(sp[2]);
+            }                
+            else if (line.Contains("Private Memory P75") && (idxOfApplication < idx && idx < idxOfLoad)) 
+            {
+                info.P75PrivateMemoryMB = double.Parse(sp[2]);
+            }
+            else if (line.Contains("Private Memory P50") && (idxOfApplication < idx && idx < idxOfLoad)) 
+            {
+                info.P50PrivateMemoryMB = double.Parse(sp[2]);
+            }
+
+            ++idx;
+        }
+
+        return info;
+    }
+
+    private void LoadAspNetDataFromPath(string path, Filter benchmarkFilter, string run, string config, int iteration)
+    {
+        var files = Directory.GetFiles(path, "*.log", SearchOption.AllDirectories);
+
+        foreach (var file in files)
+        {
+            if (file.Contains("build.log") || file.Contains("output.log") || file.Contains("_GCLog"))
+            {
+                continue;
+            }
+
+            (string logConfig, string benchmark, int logIteration) = ParseBenchmarkLogFileName(file);
+
+            if (!benchmarkFilter.Include(benchmark))
+            {
+                continue;
+            }
+
+            if ((config != logConfig) || (iteration != logIteration))
+            {
+                Console.WriteLine($"Directory name and log filename in {file} disagree on config/iteration");
+            }
+
+            LoadInfo info = LoadAspNetLogFile(file);
+
+            info.Run = run;
+            info.Config = config;
+            info.Benchmark = benchmark;
+            info.Iteration = iteration;
+
+            RunData runData = _data.Runs.GetOrAdd(run, new(new()));
+            ConfigData configData = runData.Configs.GetOrAdd(config, new(new()));
+            BenchmarkData benchmarkData = configData.Benchmarks.GetOrAdd(benchmark, new(null, new()));
+            if ((benchmarkData.Iterations.Count > iteration)
+                && (benchmarkData.Iterations[iteration] != null))
+            {
+                Console.WriteLine($"WARNING: Duplicate iteration '{run} / {config} / {benchmark} / {iteration}' found");
+                benchmarkData.Iterations[iteration].LoadInfo = info;
+            }
+            else
+            {
+                benchmarkData.Iterations.SetWithExtend(iteration, new(info, null, null));
+            }
+        }
+    }
+
+    private void LoadGCTracesFromPath(string path, SearchOption searchOption, Filter configFilter, Filter benchmarkFilter, string run, string config, string benchmark, int? iteration, List<string> pertinentProcesses,
+        bool expectAspNetData, bool loadMultipleProcesses)
+    {
+        var traceFiles = Directory.GetFiles(path, "*.etl.zip", searchOption).ToList();
+        var nettraceFiles = Directory.GetFiles(path, "*.nettrace", searchOption);
+        traceFiles.AddRange(nettraceFiles);
+
+        Parallel.ForEach(traceFiles,
+            file => LoadGCTrace(file: file, configFilter: configFilter, benchmarkFilter: benchmarkFilter, run: run, config: config, benchmark: benchmark, iteration: iteration,
+                pertinentProcesses: pertinentProcesses, expectAspNetData: expectAspNetData, loadMultipleProcesses: loadMultipleProcesses));
+    }
+
+    private void LoadGCTrace(string file, Filter configFilter, Filter benchmarkFilter, string run, string config, string benchmark, int? iteration, List<string> pertinentProcesses, bool expectAspNetData, bool loadMultipleProcesses)
+    {
+        string dir = Path.GetFileName(Path.GetDirectoryName(file));
+        //string[] sp = file.Split("\\");
+        //sp[sp.Length - 1]
+        string fileBaseName = Path.GetFileNameWithoutExtension(file)
+            .Replace("_Windows", "")
+            .Replace(".gc.etl", "")
+            .Replace("_Linux", "")
+            .Replace(".nettrace", "")
+            .Replace(".gc", "")
+            .Replace(".etl", "");
+
+        if (loadMultipleProcesses && (benchmark != null))
+        {
+            throw new ArgumentException("LoadGCTrace: loadMultipleProcesses and setting a benchmark name are not compatible");
+        }
+
+        run = run ?? (loadMultipleProcesses ? dir : "");
+        config = config ?? (loadMultipleProcesses ? fileBaseName : dir);
+        if (!configFilter.Include(config)) return;
+
+        Analyzer analyzer = AnalyzerManager.GetAnalyzer(file);
+        List<GCProcessData> allData;
+
+        //foreach (var pair in analyzer.AllGCProcessData)
+        //{
+        //    Console.WriteLine($"{pair.Key}: {pair.Value.Count}");
+        //}
+        //if (file.Contains(".nettrace"))
+        //{
+        //    data = analyzer.AllGCProcessData.First().Value.First();
+        //}
+        //else
+        {
+            allData = pertinentProcesses.SelectMany(p => analyzer.GetProcessGCData(p)).ToList(); //.Where(NotNull).FirstOrDefault();
+        }
+
+        if (allData.Count == 0)
+        {
+            Console.WriteLine($"The following trace doesn't have a pertinent process: {file}");
+            Console.WriteLine($"Processes: {string.Join(", ", analyzer.AllGCProcessData.Keys)}");
+            Console.WriteLine($"Check: {string.Join(", ", analyzer.AllGCProcessData.Keys.Select(k => k == pertinentProcesses[0]))}");
+            return;
+        }
+        if (!loadMultipleProcesses && (allData.Count > 1))
+        {
+            Console.WriteLine($"The following trace has more than one pertinent process: {file}");
+            Console.WriteLine($"Found processes: {string.Join(", ", allData.Select(d => d.ProcessName))}'");
+            return;
+        }
+
+        foreach (GCProcessData data in allData)
+        {
+            benchmark = benchmark ?? (loadMultipleProcesses ? data.ProcessName : fileBaseName);
+            if (!benchmarkFilter.Include(benchmark)) continue;
+            LoadGCTraceOneProcess(file, data, run, config, benchmark, iteration, expectAspNetData);
+        }
+    }
+
+    private void LoadGCTraceOneProcess(string file, GCProcessData data, string run, string config, string benchmark, int? iteration, bool expectAspNetData)
+    {
+        GCSummaryInfo gcSummaryInfo = new();
+        gcSummaryInfo.MeanHeapSizeBeforeMB = data.Stats.MeanSizePeakMB;
+        gcSummaryInfo.MaxHeapSizeMB = data.Stats.MaxSizePeakMB;
+        gcSummaryInfo.PercentTimeInGC = (data.GCs.Sum(gc => gc.PauseDurationMSec - gc.SuspendDurationMSec) / (data.Stats.ProcessDuration) ) * 100;
+        gcSummaryInfo.TracePath = data.Parent.TraceLogPath;
+        gcSummaryInfo.TotalAllocationsMB = data.Stats.TotalAllocatedMB;
+        gcSummaryInfo.CommandLine = data.CommandLine;
+        gcSummaryInfo.PercentPauseTimeInGC = data.Stats.GetGCPauseTimePercentage();
+        gcSummaryInfo.GCScore = (gcSummaryInfo.MaxHeapSizeMB * gcSummaryInfo.PercentPauseTimeInGC);
+        gcSummaryInfo.ProcessId = data.ProcessID;
+        gcSummaryInfo.Data = data;
+        gcSummaryInfo.ProcessName = data.ProcessName;
+        gcSummaryInfo.TotalSuspensionTimeMSec = data.GCs.Sum(gc => gc.SuspendDurationMSec);
+
+        gcSummaryInfo.MaxHeapCount = 0;
+        gcSummaryInfo.NumberOfHeapCountSwitches = 0;
+        gcSummaryInfo.NumberOfHeapCountDirectionChanges = 0;
+
+        int? prevNumHeapsOption = null;
+        bool prevChangeUp = true; // don't want to count the initial 1->n change as a change in direction
+        for (int i = 0; i < data.GCs.Count; i++)
+        {
+            if (data.GCs[i].GlobalHeapHistory == null) continue;
+            int thisNumHeaps = data.GCs[i].GlobalHeapHistory.NumHeaps;
+            gcSummaryInfo.MaxHeapCount = Math.Max(gcSummaryInfo.MaxHeapCount, thisNumHeaps);
+            if (prevNumHeapsOption.HasValue)
+            {
+                int prevNumHeaps = prevNumHeapsOption.Value;
+                if (prevNumHeaps != thisNumHeaps)
+                {
+                    gcSummaryInfo.NumberOfHeapCountSwitches++;
+                    bool thisChangeUp = thisNumHeaps > prevNumHeaps;
+                    if (prevChangeUp != thisChangeUp)
+                    {
+                        gcSummaryInfo.NumberOfHeapCountDirectionChanges++;
+                    }
+                    prevChangeUp = thisChangeUp;
+                }
+            }
+            prevNumHeapsOption = thisNumHeaps;
+        }
+
+        lock (_data)
+        {
+            RunData runData = _data.Runs.GetOrAdd(run, new(new()));
+            ConfigData configData = runData.Configs.GetOrAdd(config, new(new()));
+            BenchmarkData benchmarkData = configData.Benchmarks.GetOrAdd(benchmark, new(null, new()));
+
+            int iterationToUse = iteration ?? benchmarkData.Iterations.FindIndex(iterationData => iterationData == null);
+            if (iterationToUse == -1) iterationToUse = benchmarkData.Iterations.Count;
+
+            if ((benchmarkData.Iterations.Count > iterationToUse)
+                && (benchmarkData.Iterations[iterationToUse] != null))
+            {
+                if (benchmarkData.Iterations[iterationToUse].GCSummaryInfo != null)
+                {
+                    Console.WriteLine($"Replacing existing GC information for '{run} / {config} / {benchmark} / {iterationToUse}' - {file}");
+                }
+                benchmarkData.Iterations[iterationToUse].GCSummaryInfo = gcSummaryInfo;
+                benchmarkData.Iterations[iterationToUse].GCProcessData = data;
+            }
+            else
+            {
+                if (expectAspNetData)
+                {
+                    Console.WriteLine($"The following trace doesn't have a corresponding ASP.NET log '{run} / {config} / {benchmark} / {iterationToUse}' - {file}");
+                }
+
+                benchmarkData.Iterations.SetWithExtend(iterationToUse, new(null, gcSummaryInfo, data));
+            }
+        }
+    }
+}

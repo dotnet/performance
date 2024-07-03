@@ -1,0 +1,1756 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"languageName":"csharp","name":"csharp"}]}}
+
+#!csharp
+
+// Huge block of code that operates on DataManager
+// -----------------------------------------------
+
+// Notebook cells are already in implicit classes, so this isn't needed (and doesn't work):
+// public static class DataManagerExtensions
+
+public static IEnumerable<(string run, string config, ConfigData configData)> GetConfigsWithData(this DataManager dataManager, Filter runFilter, Filter configFilter)
+{
+    foreach ((string run, RunData runData) in dataManager.Data.Runs)
+    {
+        if (!runFilter.Include(run)) continue;
+        foreach ((string config, ConfigData configData) in runData.Configs)
+        {
+            if (!configFilter.Include(config)) continue;
+            yield return (run, config, configData);
+        }
+    }
+}
+
+public static IEnumerable<(string run, string config)> GetConfigs(this DataManager dataManager, Filter runFilter, Filter configFilter)
+    => dataManager.GetConfigsWithData(runFilter, configFilter).Select(tuple => (tuple.run, tuple.config));
+
+public static IEnumerable<(string run, string config, string benchmark, BenchmarkData benchmarkData)> GetBenchmarksWithData(
+    this DataManager dataManager, Filter runFilter, Filter configFilter, Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter)
+{
+    foreach ((string run, string config, ConfigData configData) in dataManager.GetConfigsWithData(runFilter, configFilter))
+    {
+        if (!configIterationFilter.MightInclude(config)) continue;
+
+        foreach ((string benchmark, BenchmarkData benchmarkData) in configData.Benchmarks)
+        {
+            if (!benchmarkFilter.Include(benchmark)) continue;
+            if (!benchmarkData.Iterations.WithIndex()
+                .Where(pair => pair.Item1 != null)
+                .Select(pair => pair.Item2)
+                .Any(iteration => iterationFilter.Include(iteration) && configIterationFilter.Include(config, iteration))) continue;
+            yield return (run, config, benchmark, benchmarkData);
+        }
+    }
+}
+
+public static IEnumerable<(string run, string config, string benchmark)> GetBenchmarks(this DataManager dataManager, Filter runFilter, Filter configFilter,
+    Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter)
+    => dataManager.GetBenchmarksWithData(runFilter, configFilter, benchmarkFilter, iterationFilter, configIterationFilter)
+        .Select(tuple => (tuple.run, tuple.config, tuple.benchmark));
+
+public static IEnumerable<(string run, string config, int iteration, IterationData data)> GetIterationsForBenchmark(this DataManager dataManager,
+    Filter runFilter, Filter configFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, string benchmark)
+{
+    foreach ((string run, string config, ConfigData configData) in dataManager.GetConfigsWithData(runFilter, configFilter))
+    {
+        if (!configIterationFilter.MightInclude(config)) continue;
+        if (!configData.Benchmarks.TryGetValue(benchmark, out BenchmarkData benchmarkData)) continue;
+
+        foreach ((IterationData iterationData, int iteration) in benchmarkData.Iterations.WithIndex())
+        {
+            if (!iterationFilter.Include(iteration)) continue;
+            if (!configIterationFilter.Include(config, iteration)) continue;
+            if (iterationData == null) continue;
+            yield return (run, config, iteration, iterationData);
+        }
+    }
+}
+
+public static IEnumerable<int> GetIterations(this ConfigData data, string config,
+    Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter)
+    // May need to improve efficiency here
+    => data.Benchmarks
+        .Where((b, _) => benchmarkFilter.Include(b.Key))
+        .SelectMany(b =>
+            b.Value.Iterations
+                .WithIndex()
+                .Where(pair => pair.Item1 != null)
+                .Select(pair => pair.Item2)
+                .Where(iteration => iterationFilter.Include(iteration) && configIterationFilter.Include(config, iteration)))
+        .Distinct()
+        .OrderBy(x => x);
+
+// Utilities
+
+// https://stackoverflow.com/a/49058506 
+public static IEnumerable<(T PrevItem, T CurrentItem, T NextItem)>
+        SlidingWindow<T>(this IEnumerable<T> source, T emptyValue = default)
+{
+    using (var iter = source.GetEnumerator())
+    {
+        if (!iter.MoveNext())
+            yield break;
+        var prevItem = emptyValue;
+        var currentItem = iter.Current;
+        while (iter.MoveNext())
+        {
+            var nextItem = iter.Current;
+            yield return (prevItem, currentItem, nextItem);
+            prevItem = currentItem;
+            currentItem = nextItem;
+        }
+        yield return (prevItem, currentItem, emptyValue);
+    }
+}
+
+// overkill for what is needed now but leftover
+
+public struct CircularListAccess<T> : IReadOnlyList<T>
+{
+    private IList<T> _list;
+    private int _start;
+    private int _length;
+
+    public CircularListAccess(IList<T> list, int start, int length)
+    {
+        if (list == null) throw new ArgumentException("list");
+        if (start < 0 || start >= list.Count) throw new ArgumentException("start");
+        if (length < 0 || length > list.Count) throw new ArgumentException("length");
+
+        _list = list;
+        _start = start;
+        _length = length;
+    }
+
+    public T this[int index]
+    {
+        get
+        {
+            if (index >= _length) throw new IndexOutOfRangeException();
+            return _list[(_start + index) % _list.Count];
+        }
+    }
+
+    public int Count => _length;
+
+    public struct Enumerator : IEnumerator<T>
+    {
+        private CircularListAccess<T> _list;
+        private int _index;
+        private T _current;
+
+        public Enumerator(CircularListAccess<T> list)
+        {
+            _list = list;
+            _index = 0;
+            _current = default;
+        }
+        public T Current => _current;
+        object IEnumerator.Current => Current;
+        public bool MoveNext()
+        {
+            int count = _list.Count;
+            if (_index < count)
+            {
+                _current = _list[_index++];
+                return true;
+            }
+            else
+            {
+                _current = default;
+                return false;
+            }
+        }
+        public void Reset() { _index = 0; _current = default; }
+        public void Dispose() {}
+    }
+
+    public IEnumerator<T> GetEnumerator() => new Enumerator(this);
+    IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
+}
+
+public static IEnumerable<IReadOnlyList<T>>
+        SlidingRange<T>(this List<T> source, int size)
+{
+    for (int i = 0; i <= source.Count - size; ++i)
+    {
+        // don't actually need CircularListAccess - was from an earlier idea
+        yield return new CircularListAccess<T>(source, i, size);
+    }
+}
+
+public class ColorProvider
+{
+    // Families of gradients
+    // 80 00 00 -> ff 00 00 -> ff 80 80 (3)
+    // 80 80 00 -> ff ff 00 -> ff ff 80 (3)
+    // 80 40 00 -> ff 80 00 -> ff c0 80 (6)
+    // 40 40 40 -> 80 80 80 -> c0 c0 c0 (1)
+    // 80 2A 00 -> ff 55 00 -> ff aa 80 (6)
+    // 80 55 00 -> ff aa 00 -> ff d4 80 (6)
+    enum Scale
+    {
+        Zero,
+        Full,
+        Half,
+        OneThird,
+        TwoThird,
+    }
+    
+    static (int first, int mid, int last) GetScale(Scale scale)
+        => scale switch
+        {
+            Scale.Zero => (0, 0, 0x80),
+            Scale.Full => (0x80, 0xFF, 0xFF),
+            Scale.Half => (0x40, 0x80, 0xC0),
+            Scale.OneThird => (0x2A, 0x55, 0xAA),
+            Scale.TwoThird => (0x55, 0xAA, 0xD4),
+            _ => throw new Exception("Unknown Scale")
+        };
+
+    public record RGB(int R, int G, int B);
+    record ScaleRGB(Scale R, Scale G, Scale B);
+
+    static ScaleRGB[] _colorFamilies =
+    {
+        new ScaleRGB(Scale.Full, Scale.Zero, Scale.Zero),
+        new ScaleRGB(Scale.Zero, Scale.Full, Scale.Zero),
+        new ScaleRGB(Scale.Zero, Scale.Zero, Scale.Full),
+
+        new ScaleRGB(Scale.Half, Scale.Half, Scale.Half),
+
+        //new ScaleRGB(Scale.Full, Scale.Full, Scale.Zero), // yellow isn't scaling very well
+        new ScaleRGB(Scale.Full, Scale.Zero, Scale.Full),
+        new ScaleRGB(Scale.Zero, Scale.Full, Scale.Full),
+        
+        new ScaleRGB(Scale.Full, Scale.Half, Scale.Zero),
+        new ScaleRGB(Scale.Zero, Scale.Full, Scale.Half),
+        new ScaleRGB(Scale.Half, Scale.Zero, Scale.Full),
+
+        new ScaleRGB(Scale.Full, Scale.Zero, Scale.Half),
+        new ScaleRGB(Scale.Half, Scale.Full, Scale.Zero),
+        new ScaleRGB(Scale.Zero, Scale.Half, Scale.Full),
+
+        new ScaleRGB(Scale.Full, Scale.OneThird, Scale.Zero),
+        new ScaleRGB(Scale.Zero, Scale.Full, Scale.OneThird),
+        new ScaleRGB(Scale.OneThird, Scale.Zero, Scale.Full),
+
+        new ScaleRGB(Scale.Full, Scale.Zero, Scale.OneThird),
+        new ScaleRGB(Scale.OneThird, Scale.Full, Scale.Zero),
+        new ScaleRGB(Scale.Zero, Scale.OneThird, Scale.Full),
+
+        new ScaleRGB(Scale.Full, Scale.TwoThird, Scale.Zero),
+        new ScaleRGB(Scale.Zero, Scale.Full, Scale.TwoThird),
+        new ScaleRGB(Scale.TwoThird, Scale.Zero, Scale.Full),
+
+        new ScaleRGB(Scale.Full, Scale.Zero, Scale.TwoThird),
+        new ScaleRGB(Scale.TwoThird, Scale.Full, Scale.Zero),
+        new ScaleRGB(Scale.Zero, Scale.TwoThird, Scale.Full),
+    };
+
+    int GetComponent(Scale scale, int index, int count)
+    {
+        int max = count - 1;
+        float half = max / 2.0f;
+        var scaleValue = GetScale(scale);
+        if (max == 0) return scaleValue.first;
+        (int baseValue, int topValue, float fraction) =
+            (index > half)
+            ? (scaleValue.mid, scaleValue.last, (index - half) / half)
+            : (scaleValue.first, scaleValue.mid, (index / half));
+        return (int)(baseValue + fraction * (topValue - baseValue));
+    }
+
+    public static Marker GetMarker(RGB rgb) => (rgb != null) ? (new Marker { color = $"rgb({rgb.R}, {rgb.G}, {rgb.B})" }) : null;
+
+    RGB GetColor(int colorIndex, int groupIndex, int numInBuild)
+    {
+        if (colorIndex >= _colorFamilies.Length) return null;
+
+        var RGB = _colorFamilies[colorIndex];
+        var R = GetComponent(RGB.R, groupIndex, numInBuild);
+        var G = GetComponent(RGB.G, groupIndex, numInBuild);
+        var B = GetComponent(RGB.B, groupIndex, numInBuild);
+        return new RGB(R, G, B);
+    }
+
+    record ColorGroup(int FamilyIndex, int GroupIndex, int GroupSize, Dictionary<string, RGB> GroupColorMap)
+    {
+        public int GroupIndex { get; set; } = GroupIndex;
+    }
+
+    Dictionary<string, ColorGroup>? _groups; // name of build -> (color index, next index in group)
+
+    public ColorProvider(Dictionary<string, int> groups)
+    {
+        if (groups.Count <= 1) return;
+
+        _groups = groups
+            .Take(_colorFamilies.Length)
+            .Select((kvp, index) => (kvp.Key, new ColorGroup(index, 0, kvp.Value, new())))
+            .ToDictionary();
+    }
+
+    public RGB GetColor(string buildName, string id = null)
+    {
+        //Console.WriteLine($"- '{buildName}' '{id}'");
+        if (_groups == null) return null;
+        ColorGroup group = _groups[buildName];
+        if (group.FamilyIndex >= _colorFamilies.Length) return null;
+
+        if ((id != null) && group.GroupColorMap.TryGetValue(id, out RGB color))
+        {
+            return color;
+        }
+        //Console.WriteLine($"--- '{group}'");
+        color = GetColor(group.FamilyIndex, group.GroupIndex++, group.GroupSize);
+        //Console.WriteLine($"----- '{color}'");
+        if (id != null) group.GroupColorMap[id] = color;
+        return color;
+    }
+
+    public void SetMarker(Scatter scatter, string buildName, string id = null)
+    {
+        Marker marker = GetMarker(GetColor(buildName, id));
+        if (marker != null) scatter.marker = marker;
+    }
+
+    public void DumpColorGroups()
+    {
+        if (_groups == null)
+        {
+            Console.WriteLine("No groups");
+            return;
+        }
+        Console.WriteLine($"Number of groups: {_groups.Count}");
+        foreach (var (name, group) in _groups)
+        {
+            Console.WriteLine($"  '{name}': {group.FamilyIndex}, {group.GroupIndex}/{group.GroupSize}");
+        }
+    }
+}
+
+public class Aggregation
+{
+    public Func<IEnumerable<double>, double> Func;
+    public string Title;
+    public string UnitOverride;
+
+    public Aggregation(Func<IEnumerable<double>, double> func, string title, string unitOverride)
+    {
+        Func = func;
+        Title = title;
+        UnitOverride = unitOverride;
+    }
+
+    public static class Funcs
+    {
+        public static double Min(IEnumerable<double> data) => data.Min();
+        public static double Max(IEnumerable<double> data) => data.Max();
+
+        public static double Volatility(IEnumerable<double> data)
+        {
+            var max = data.Max();
+            var min = data.Min();
+            return Math.Round(((max - min) / min) * 100, 2);
+        }
+
+        public static double Average(IEnumerable<double> data) => data.Average();
+        public static double Range(IEnumerable<double> data) => data.Max() - data.Min();
+
+        public static double GeoMean(IEnumerable<double> data)
+        {
+            double mult = 1;
+            int count = 0;
+            foreach (double value in data)
+            {
+                mult *= value;
+                count++;
+            }
+            return Math.Pow(mult, 1.0 / count);
+        }
+    }
+
+    public static Aggregation Min { get; } = new Aggregation(Funcs.Min, "Min", null);
+    public static Aggregation Max { get; } = new Aggregation(Funcs.Max, "Max", null);
+    public static Aggregation Volatility { get; } = new Aggregation(Funcs.Volatility, "Volatility", "?");
+    public static Aggregation Average { get; } = new Aggregation(Funcs.Average, "Average", null);
+    public static Aggregation Range { get; } = new Aggregation(Funcs.Range, "Range", null);
+    public static Aggregation GeoMean { get; } = new Aggregation(Funcs.GeoMean, "GeoMean", null);
+}
+
+public class BaseMetric<TSource, TValue>
+{
+    protected Func<TSource, TValue?> ExtractFunc;
+    public string Title;
+
+    public BaseMetric(Func<TSource, TValue?> extract, string title)
+    {
+        ExtractFunc = extract;
+        Title = title;
+    }
+
+    public TValue? DoExtract(TSource gc)
+    {
+        TValue? value;
+        try
+        {
+            value = ExtractFunc(gc);
+        }
+        catch (Exception e)
+        {
+            //Console.WriteLine($"Exception processing {Title}");
+            //Console.WriteLine($"   {e}");
+            value = default;
+        }
+        return value;
+    }
+}
+
+public class Metric<TSource> : BaseMetric<TSource, double?>
+{
+    public string Unit;
+    public double? Cap;
+    private int _capExceededCount;
+    private double _capExceededMin;
+    private double _capExceededMax;
+    public double? AxisCountOffset;
+
+    public Metric(Func<TSource, double> extract, string title, string unit, double? cap = null, double? axisCountOffset = null)
+        : base((s => extract(s)), title)
+    {
+        Unit = unit;
+        Cap = cap;
+        AxisCountOffset = axisCountOffset;
+    }
+
+    public Metric(Func<TSource, double?> extract, string title, string unit, double? cap = null, double? axisCountOffset = null)
+        : base(extract, title)
+    {
+        Unit = unit;
+        Cap = cap;
+        AxisCountOffset = axisCountOffset;
+    }
+
+    public double? DoExtract(TSource gc, int count)
+    {
+        double? value = base.DoExtract(gc);
+        if (value.HasValue)
+        {
+            if (value > Cap)
+            {
+                _capExceededCount++;
+                _capExceededMin = Math.Min(_capExceededMin, value.Value);
+                _capExceededMax = Math.Max(_capExceededMax, value.Value);
+                value = Cap;
+            }
+            if (AxisCountOffset.HasValue) value += AxisCountOffset * count;
+        }
+        return value;
+    }
+
+    private Metric<TSource> Copy() => new(ExtractFunc, Title, Unit, Cap);
+    public Metric<TSource> WithCap(double cap) => new(ExtractFunc, Title, Unit, cap, AxisCountOffset);
+    public Metric<TSource> WithOffset(double offset) => new(ExtractFunc, Title, Unit, Cap, offset);
+
+    public void ResetDiagnostics()
+    {
+        _capExceededCount = 0;
+        _capExceededMin = double.MaxValue;
+        _capExceededMax = double.MinValue;
+    }
+
+    public void DisplayDiagnostics(string context)
+    {
+        if (_capExceededCount > 0)
+        {
+            Console.WriteLine($"Cap ({Cap.Value}) exceeded {_capExceededCount} times (min={_capExceededMin:N2}, max={_capExceededMax:N2}) for {context}");
+        }
+    }
+
+    public static Metric<TSource> Promote<TOldSource>(Metric<TOldSource> metric, Func<TSource, IEnumerable<TOldSource>> oldExtract, Aggregation aggregation)
+        => new(extract: source => aggregation.Func(oldExtract(source).Select(metric.ExtractFunc).Where(NotNull).Select(value => value.Value)),
+            title: $"{aggregation.Title} of {metric.Title}",
+            unit: aggregation.UnitOverride ?? metric.Unit);
+}
+
+public static class Metrics
+{
+    public static Metric<IterationData> Promote(Metric<TraceGC> metric, Aggregation aggregation)
+        => Metric<IterationData>.Promote<TraceGC>(metric, iterationData => (IEnumerable<TraceGC>)iterationData.GCProcessData.GCs, aggregation);
+    public static Metric<BenchmarkData> Promote(Metric<IterationData> metric, Aggregation aggregation)
+        => Metric<BenchmarkData>.Promote(metric, benchmarkData => benchmarkData.Iterations, aggregation);
+    public static Metric<ConfigData> Promote(Metric<BenchmarkData> metric, Aggregation aggregation)
+        => Metric<ConfigData>.Promote(metric, configData => configData.Benchmarks.Values, aggregation);
+    public static Metric<RunData> Promote(Metric<ConfigData> metric, Aggregation aggregation)
+        => Metric<RunData>.Promote(metric, runData => runData.Configs.Values, aggregation);
+    public static Metric<TopLevelData> Promote(Metric<RunData> metric, Aggregation aggregation)
+        => Metric<TopLevelData>.Promote(metric, data => data.Runs.Values, aggregation);
+
+    public static class X
+    {
+        public static BaseMetric<(string, TraceGC), XValue> GCIndex { get; } = new(pair => new XValue(pair.Item2.Number), "GC Index");
+        public static BaseMetric<(string, TraceGC), XValue> StartRelativeMSec { get; } = new(pair => new XValue(pair.Item2.StartRelativeMSec), "GC Start");
+        public static BaseMetric<(string, BenchmarkData), XValue> BenchmarkName { get; } = new(pair => new XValue(pair.Item1), "Benchmark Name");
+        public static BaseMetric<(string, IterationData), XValue> IterationBenchmarkName { get; } = new(pair => new XValue(pair.Item1), "Benchmark Name");
+    }
+
+    public static class G
+    {
+        public static Metric<TraceGC> AllocedSinceLastGCMB = new(gc => gc.AllocedSinceLastGCMB, title: "Allocated", unit: "MB");
+        // AllocRateMBSec is MB/s but this puts it on same y-axis as plain MB
+        public static Metric<TraceGC> AllocRateMBSec = new(gc => gc.AllocRateMBSec, title: "Allocation rate", unit: "MB");
+        public static Metric<TraceGC> CommittedAfterTotalBookkeeping = new(gc => gc.CommittedUsageAfter.TotalBookkeepingCommitted, title: "Committed Book (after)", unit: "MB");
+        public static Metric<TraceGC> CommittedAfterInFree = new(gc => gc.CommittedUsageAfter.TotalCommittedInFree, title: "Committed In Free (after)", unit: "MB");
+        public static Metric<TraceGC> CommittedAfterInGlobalDecommit = new(gc => gc.CommittedUsageAfter.TotalCommittedInGlobalDecommit, title: "Committed In Global Decommit (after)", unit: "MB");
+        public static Metric<TraceGC> CommittedAfterInGlobalFree = new(gc => gc.CommittedUsageAfter.TotalCommittedInGlobalFree, title: "Committed In Global Free (after)", unit: "MB");
+        public static Metric<TraceGC> CommittedAfterInUse = new(gc => gc.CommittedUsageAfter.TotalCommittedInUse, title: "Committed In Use (after)", unit: "MB");
+        public static List<Metric<TraceGC>> CommittedAfterMetrics = ML(CommittedAfterTotalBookkeeping, CommittedAfterInFree, CommittedAfterInGlobalDecommit, CommittedAfterInGlobalFree, CommittedAfterInUse);
+        public static Metric<TraceGC> CommittedBeforeTotalBookkeeping = new(gc => gc.CommittedUsageBefore.TotalBookkeepingCommitted, title: "Committed Book (before)", unit: "MB");
+        public static Metric<TraceGC> CommittedBeforeInFree = new(gc => gc.CommittedUsageBefore.TotalCommittedInFree, title: "Committed In Free (before)", unit: "MB");
+        public static Metric<TraceGC> CommittedBeforeInGlobalDecommit = new(gc => gc.CommittedUsageBefore.TotalCommittedInGlobalDecommit, title: "Committed In Global Decommit (before)", unit: "MB");
+        public static Metric<TraceGC> CommittedBeforeInGlobalFree = new(gc => gc.CommittedUsageBefore.TotalCommittedInGlobalFree, title: "Committed In Global Free (before)", unit: "MB");
+        public static Metric<TraceGC> CommittedBeforeInUse = new(gc => gc.CommittedUsageBefore.TotalCommittedInUse, title: "Committed In Use (before)", unit: "MB");
+        public static List<Metric<TraceGC>> CommittedBeforeMetrics = ML(CommittedBeforeTotalBookkeeping, CommittedBeforeInFree, CommittedBeforeInGlobalDecommit, CommittedBeforeInGlobalFree, CommittedBeforeInUse);
+        public static Metric<TraceGC> DurationMSec = new(gc => gc.DurationMSec, "Duration", "ms");
+        public static Metric<TraceGC> GCCpuMSec = new(gc => gc.GCCpuMSec, "GC CPU", "ms");
+        public static Metric<TraceGC> Gen0Budget = new(gc => gc.GenBudgetMB(Gens.Gen0), "Gen0 budget", "MB");
+        public static Metric<TraceGC> Gen1Budget = new(gc => gc.GenBudgetMB(Gens.Gen1), "Gen1 budget", "MB");
+        public static Metric<TraceGC> Gen2Budget = new(gc => gc.GenBudgetMB(Gens.Gen2), "Gen2 budget", "MB");
+        public static Metric<TraceGC> GenLargeBudget = new(gc => gc.GenBudgetMB(Gens.GenLargeObj), "GenLarge budget", "MB");
+        public static Metric<TraceGC> GenPinBudget = new(gc => gc.GenBudgetMB(Gens.GenPinObj), "GenPin budget", "MB");
+        public static Metric<TraceGC> Generation = new(gc => gc.Generation, "Generation", "gen");
+        public static Metric<TraceGC> Gen0Fragmentation = new(gc => gc.GenFragmentationMB(Gens.Gen0), "Gen0 fragmentation", "MB");
+        public static Metric<TraceGC> Gen1Fragmentation = new(gc => gc.GenFragmentationMB(Gens.Gen1), "Gen1 fragmentation", "MB");
+        public static Metric<TraceGC> Gen2Fragmentation = new(gc => gc.GenFragmentationMB(Gens.Gen2), "Gen2 fragmentation", "MB");
+        public static Metric<TraceGC> GenLargeFragmentation = new(gc => gc.GenFragmentationMB(Gens.GenLargeObj), "GenLarge fragmentation", "MB");
+        public static Metric<TraceGC> GenPinFragmentation = new(gc => gc.GenFragmentationMB(Gens.GenPinObj), "GenPin fragmentation", "MB");
+        public static Metric<TraceGC> Gen0FragmentationPercent = new(gc => gc.GenFragmentationPercent(Gens.Gen0), "Gen0 fragmentation %", "%");
+        public static Metric<TraceGC> Gen1FragmentationPercent = new(gc => gc.GenFragmentationPercent(Gens.Gen1), "Gen1 fragmentation %", "%");
+        public static Metric<TraceGC> Gen2FragmentationPercent = new(gc => gc.GenFragmentationPercent(Gens.Gen2), "Gen2 fragmentation %", "%");
+        public static Metric<TraceGC> GenLargeFragmentationPercent = new(gc => gc.GenFragmentationPercent(Gens.GenLargeObj), "GenLarge fragmentation %", "%");
+        public static Metric<TraceGC> GenPinFragmentationPercent = new(gc => gc.GenFragmentationPercent(Gens.GenPinObj), "GenPin fragmentation %", "%");
+        public static Metric<TraceGC> Gen0In = new(gc => gc.GenInMB(Gens.Gen0), "Gen0 Memory (in)", "MB");
+        public static Metric<TraceGC> Gen1In = new(gc => gc.GenInMB(Gens.Gen1), "Gen1 Memory (in)", "MB");
+        public static Metric<TraceGC> Gen2In = new(gc => gc.GenInMB(Gens.Gen2), "Gen2 Memory (in)", "MB");
+        public static Metric<TraceGC> GenLargeIn = new(gc => gc.GenInMB(Gens.GenLargeObj), "GenLarge Memory (in)", "MB");
+        public static Metric<TraceGC> GenPinIn = new(gc => gc.GenInMB(Gens.GenPinObj), "GenPin Memory (in)", "MB");
+        public static Metric<TraceGC> Gen0ObjSizeAfter = new(gc => gc.GenObjSizeAfterMB(Gens.Gen0), "Gen0 object size (after)", "MB");
+        public static Metric<TraceGC> Gen1ObjSizeAfter = new(gc => gc.GenObjSizeAfterMB(Gens.Gen1), "Gen1 object size (after)", "MB");
+        public static Metric<TraceGC> Gen2ObjSizeAfter = new(gc => gc.GenObjSizeAfterMB(Gens.Gen2), "Gen2 object size (after)", "MB");
+        public static Metric<TraceGC> GenLargeObjSizeAfter = new(gc => gc.GenObjSizeAfterMB(Gens.GenLargeObj), "GenLarge object size (after)", "MB");
+        public static Metric<TraceGC> GenPinObjSizeAfter = new(gc => gc.GenObjSizeAfterMB(Gens.GenPinObj), "GenPin object size (after)", "MB");
+        public static Metric<TraceGC> Gen0Out = new(gc => gc.GenOutMB(Gens.Gen0), "Gen0 Memory (out)", "MB");
+        public static Metric<TraceGC> Gen1Out = new(gc => gc.GenOutMB(Gens.Gen1), "Gen1 Memory (out)", "MB");
+        public static Metric<TraceGC> Gen2Out = new(gc => gc.GenOutMB(Gens.Gen2), "Gen2 Memory (out)", "MB");
+        public static Metric<TraceGC> GenLargeOut = new(gc => gc.GenOutMB(Gens.GenLargeObj), "GenLarge Memory (out)", "MB");
+        public static Metric<TraceGC> GenPinOut = new(gc => gc.GenOutMB(Gens.GenPinObj), "GenPin Memory (out)", "MB");
+        public static Metric<TraceGC> Gen0Promoted = new(gc => gc.GenPromotedMB(Gens.Gen0), "Gen0 Promoted", "MB");
+        public static Metric<TraceGC> Gen1Promoted = new(gc => gc.GenPromotedMB(Gens.Gen1), "Gen1 Promoted", "MB");
+        public static Metric<TraceGC> Gen2Promoted = new(gc => gc.GenPromotedMB(Gens.Gen2), "Gen2 Promoted", "MB");
+        public static Metric<TraceGC> GenLargePromoted = new(gc => gc.GenPromotedMB(Gens.GenLargeObj), "GenLarge Promoted", "MB");
+        public static Metric<TraceGC> GenPinPromoted = new(gc => gc.GenPromotedMB(Gens.GenPinObj), "GenPin Promoted", "MB");
+        public static Metric<TraceGC> Gen0SizeAfter = new(gc => gc.GenSizeAfterMB(Gens.Gen0), "Gen0 size (after)", "MB");
+        public static Metric<TraceGC> Gen1SizeAfter = new(gc => gc.GenSizeAfterMB(Gens.Gen1), "Gen1 size (after)", "MB");
+        public static Metric<TraceGC> Gen2SizeAfter = new(gc => gc.GenSizeAfterMB(Gens.Gen2), "Gen2 size (after)", "MB");
+        public static Metric<TraceGC> GenLargeSizeAfter = new(gc => gc.GenSizeAfterMB(Gens.GenLargeObj), "GenLarge size (after)", "MB");
+        public static Metric<TraceGC> GenPinSizeAfter = new(gc => gc.GenSizeAfterMB(Gens.GenPinObj), "GenPin size (after)", "MB");
+        public static Metric<TraceGC> Gen0SizeBefore = new(gc => gc.GenSizeBeforeMB[(int) Gens.Gen0], "Gen0 size (before)", "MB");
+        public static Metric<TraceGC> Gen1SizeBefore = new(gc => gc.GenSizeBeforeMB[(int) Gens.Gen1], "Gen1 size (before)", "MB");
+        public static Metric<TraceGC> Gen2SizeBefore = new(gc => gc.GenSizeBeforeMB[(int) Gens.Gen2], "Gen2 size (before)", "MB");
+        public static Metric<TraceGC> GenLargeSizeBefore = new(gc => gc.GenSizeBeforeMB[(int) Gens.GenLargeObj], "GenLarge size (before)", "MB");
+        public static Metric<TraceGC> GenPinSizeBefore = new(gc => gc.GenSizeBeforeMB[(int) Gens.GenPinObj], "GenPin size (before)", "MB");
+        //public static Metric<TraceGC> Condemned = new(gc => gc.GetCondemnedReasons());
+
+        // TODO: GlobalHeapHistory.*
+        //public static Metric<TraceGC> Ghh = new(gc => gc.GlobalHeapHistory., "", "");
+        public static Metric<TraceGC> IsConcurrent = new (gc => Convert.ToDouble((gc.GlobalHeapHistory.GlobalMechanisms & GCGlobalMechanisms.Concurrent) != 0), "Is concurrent", "Y/N");
+        public static Metric<TraceGC> IsCompaction = new (gc => Convert.ToDouble((gc.GlobalHeapHistory.GlobalMechanisms & GCGlobalMechanisms.Compaction) != 0), "Is compaction", "Y/N");
+        public static Metric<TraceGC> IsPromotion = new (gc => Convert.ToDouble((gc.GlobalHeapHistory.GlobalMechanisms & GCGlobalMechanisms.Promotion) != 0), "Is promotion", "Y/N");
+        public static Metric<TraceGC> IsDemotion = new (gc => Convert.ToDouble((gc.GlobalHeapHistory.GlobalMechanisms & GCGlobalMechanisms.Demotion) != 0), "Is demotion", "Y/N");
+        public static Metric<TraceGC> IsCardBundles = new (gc => Convert.ToDouble((gc.GlobalHeapHistory.GlobalMechanisms & GCGlobalMechanisms.CardBundles) != 0), "Is cardbundles", "Y/N");
+        public static Metric<TraceGC> NumHeaps = new((gc => gc.GlobalHeapHistory.NumHeaps), "GC Heaps", "#");
+        public static Metric<TraceGC> NumHeapsWithOffset = NumHeaps.WithOffset(0.05);
+
+        public static Metric<TraceGC> HeapCount = new(gc => gc.HeapCount, "Heap count", "#");
+
+        // HeapCountSample
+        public static Metric<TraceGC> HcsElapsedTimeBetweenGCs = new(gc => gc.HeapCountSample.ElapsedTimeBetweenGCsMSec, "HCSampleElapsed", "ms");
+        public static Metric<TraceGC> HcsGCIndex = new(gc => gc.HeapCountSample.GCIndex, "HCSampleGCIndex", "#");
+        public static Metric<TraceGC> HcsGCPauseTime = new(gc => gc.HeapCountSample.GCPauseTimeMSec, "HCSampleGCPause", "ms");
+        public static Metric<TraceGC> HcsMslWaitTime = new(gc => gc.HeapCountSample.MslWaitTimeMSec, "HCSampleGCMslWait", "ms");
+
+        // HeapCountTuning
+        public static Metric<TraceGC> HctGCIndex = new(gc => gc.HeapCountTuning?.GCIndex, "HCTuningGCIndex", "#");
+        public static Metric<TraceGC> HctMtcp = new((gc => gc.HeapCountTuning?.MedianThroughputCostPercent), "Median TCP", "%");
+        public static Metric<TraceGC> HctMtcpCap15 = HctMtcp.WithCap(15);
+        public static Metric<TraceGC> HctNewHeapCount = new(gc => gc.HeapCountTuning?.NewHeapCount, "HCTuningNewHeapCount", "#");
+        public static Metric<TraceGC> HctSmtcp = new(gc => gc.HeapCountTuning?.SmoothedMedianThroughputCostPercent, "Smoothed MTCP", "%");
+        public static Metric<TraceGC> HctSpaceCostDown = new(gc => gc.HeapCountTuning?.SpaceCostPercentDecreasePerStepDown, "Space cost (down)", "%");
+        public static Metric<TraceGC> HctSpaceCostUp = new(gc => gc.HeapCountTuning?.SpaceCostPercentIncreasePerStepUp, "Space cost (up)TCP", "%");
+        public static Metric<TraceGC> HctTPCostDown = new(gc => gc.HeapCountTuning?.ThroughputCostPercentIncreasePerStepDown, "TP cost (down)", "%");
+        public static Metric<TraceGC> HctTPCostUp = new(gc => gc.HeapCountTuning?.ThroughputCostPercentReductionPerStepUp, "TP cost (up)", "%");
+
+        public static Metric<TraceGC> HeapSizeAfter = new(gc => gc.HeapSizeAfterMB, "Heap size (after)", "MB");
+        public static Metric<TraceGC> HeapSizeBefore = new(gc => gc.HeapSizeBeforeMB, "Heap size (before)", "MB");
+        public static Metric<TraceGC> HeapSizePeak = new(gc => gc.HeapSizePeakMB, "Heap size (peak)", "MB");
+        
+        // TODO: HeapStats.*
+        //public static Metric<TraceGC> Hs = new(gc => gc.HeapStats., "", "");
+
+        // TODO: Remaining are less comprehensive
+        public static Metric<TraceGC> PauseDuration = new((gc => gc.PauseDurationMSec), "GC pause", "ms");
+        public static Metric<TraceGC> PausePercent = new((gc => gc.PauseTimePercentageSinceLastGC), "GC pause %", "%");
+        public static Metric<TraceGC> EndOfSegAllocated = new(gc => gc.PerHeapHistories.Sum(p => p.EndOfSegAllocated), title: "EndOfSegAllocated", unit: "?");
+        public static Metric<TraceGC> PauseStack = new(gc => gc.PerHeapMarkTimes.Values.Select(mi => mi.MarkTimes[(int) MarkRootType.MarkStack]).Sum(), "Pause (stack)", "ms");
+        public static Metric<TraceGC> PauseFQ = new(gc => gc.PerHeapMarkTimes.Values.Select(mi => mi.MarkTimes[(int) MarkRootType.MarkFQ]).Sum(), "Pause (FQ)", "ms");
+        public static Metric<TraceGC> PauseHandles = new(gc => gc.PerHeapMarkTimes.Values.Select(mi => mi.MarkTimes[(int) MarkRootType.MarkHandles]).Sum(), "Pause (handles)", "ms");
+        public static Metric<TraceGC> PauseCards = new(gc => gc.PerHeapMarkTimes.Values.Select(mi => mi.MarkTimes[(int) MarkRootType.MarkOlder]).Sum(), "Pause (cards)", "ms");
+        public static Metric<TraceGC> ObjectSpaceStack = new(gc => gc.PerHeapMarkTimes.Values.Select(mi => mi.MarkPromoted[(int) MarkRootType.MarkStack]).Sum(), "Obj space (stack)", "bytes");
+        public static Metric<TraceGC> ObjectSpaceFQ = new(gc => gc.PerHeapMarkTimes.Values.Select(mi => mi.MarkPromoted[(int) MarkRootType.MarkFQ]).Sum(), "Obj space (FQ)", "bytes");
+        public static Metric<TraceGC> ObjectSpaceHandles = new(gc => gc.PerHeapMarkTimes.Values.Select(mi => mi.MarkPromoted[(int) MarkRootType.MarkHandles]).Sum(), "Obj space (handles)", "bytes");
+        public static Metric<TraceGC> ObjectSpaceCards = new(gc => gc.PerHeapMarkTimes.Values.Select(mi => mi.MarkPromoted[(int) MarkRootType.MarkOlder]).Sum(), "Obj space (cards)", "bytes");
+        public static Metric<TraceGC> Suspend = new(gc => gc.SuspendDurationMSec, "Suspend", "ms");
+        public static Metric<TraceGC> UserAllocated = new(gc => gc.UserAllocated.Sum(), "UserAllocated", "bytes");
+    }
+
+    public static class I
+    {
+        public static Metric<IterationData> MaxNumHeaps = Promote(Metrics.G.NumHeaps, Aggregation.Max);
+        public static Metric<IterationData> MaxPauseDuration = Promote(Metrics.G.PauseDuration, Aggregation.Max);
+
+        public static Metric<IterationData> TotalSuspensionTime = new (iterationData => iterationData.GCSummaryInfo.TotalSuspensionTimeMSec, "Total suspension time", "ms");
+        public static Metric<IterationData> PercentPauseTimeInGC = new (iterationData => iterationData.GCSummaryInfo.PercentPauseTimeInGC, "% pause GC", "%");
+        public static Metric<IterationData> PercentTimeInGC = new (iterationData => iterationData.GCSummaryInfo.PercentTimeInGC, "% GC", "%");
+        public static Metric<IterationData> MeanHeapSizeBeforeMB = new (iterationData => iterationData.GCSummaryInfo.MeanHeapSizeBeforeMB, "Mean heap size (before)", "MB");
+        public static Metric<IterationData> MaxHeapSizeMB = new (iterationData => iterationData.GCSummaryInfo.MaxHeapSizeMB, "Max heap size", "MB");
+        public static Metric<IterationData> TotalAllocationsMB = new (iterationData => iterationData.GCSummaryInfo.TotalAllocationsMB, "Total allocations", "MB");
+        public static Metric<IterationData> GCScore = new (iterationData => iterationData.GCSummaryInfo.GCScore, "GC score", "score"); // MB * %
+
+        public static Metric<IterationData> MaxHeapCount = new (iterationData => iterationData.GCSummaryInfo.MaxHeapCount, "Max heap count", "#");
+        public static Metric<IterationData> NumberOfHeapCountSwitches = new (iterationData => iterationData.GCSummaryInfo.NumberOfHeapCountSwitches, "# hc changes", "#");
+        public static Metric<IterationData> NumberOfHeapCountDirectionChanges = new (iterationData => iterationData.GCSummaryInfo.NumberOfHeapCountDirectionChanges, "# hc dir changes", "#");
+
+        public static Metric<IterationData> MaxWorkingSetMB = new (iterationData => iterationData.LoadInfo.MaxWorkingSetMB, "Max working set", "MB");
+        public static Metric<IterationData> P99WorkingSetMB = new (iterationData => iterationData.LoadInfo.P99WorkingSetMB, "P99 working set", "MB");
+        public static Metric<IterationData> P95WorkingSetMB = new (iterationData => iterationData.LoadInfo.P95WorkingSetMB, "P95 working set", "MB");
+        public static Metric<IterationData> P90WorkingSetMB = new (iterationData => iterationData.LoadInfo.P90WorkingSetMB, "P90 working set", "MB");
+        public static Metric<IterationData> P75WorkingSetMB = new (iterationData => iterationData.LoadInfo.P75WorkingSetMB, "P75 working set", "MB");
+        public static Metric<IterationData> P50WorkingSetMB = new (iterationData => iterationData.LoadInfo.P50WorkingSetMB, "P50 working set", "MB");
+        public static List<Metric<IterationData>> WorkingSetMBList = ML(MaxWorkingSetMB, P99PrivateMemoryMB, P95PrivateMemoryMB, P90PrivateMemoryMB, P75PrivateMemoryMB, P50PrivateMemoryMB);
+
+        public static Metric<IterationData> MaxPrivateMemoryMB = new (iterationData => iterationData.LoadInfo.MaxPrivateMemoryMB, "Max private memory", "MB");
+        public static Metric<IterationData> P99PrivateMemoryMB = new (iterationData => iterationData.LoadInfo.P99PrivateMemoryMB, "P99 private memory", "MB");
+        public static Metric<IterationData> P95PrivateMemoryMB = new (iterationData => iterationData.LoadInfo.P95PrivateMemoryMB, "P95 private memory", "MB");
+        public static Metric<IterationData> P90PrivateMemoryMB = new (iterationData => iterationData.LoadInfo.P90PrivateMemoryMB, "P90 private memory", "MB");
+        public static Metric<IterationData> P75PrivateMemoryMB = new (iterationData => iterationData.LoadInfo.P75PrivateMemoryMB, "P75 private memory", "MB");
+        public static Metric<IterationData> P50PrivateMemoryMB = new (iterationData => iterationData.LoadInfo.P50PrivateMemoryMB, "P50 private memory", "MB");
+        public static List<Metric<IterationData>> PrivateMemoryMBList = ML(MaxPrivateMemoryMB, P99PrivateMemoryMB, P95PrivateMemoryMB, P90PrivateMemoryMB, P75PrivateMemoryMB, P50PrivateMemoryMB);
+
+        public static Metric<IterationData> RequestsPerMSec = new (iterationData => iterationData.LoadInfo.RequestsPerMSec, "RPS", "RPS");
+        public static Metric<IterationData> MeanLatencyMS = new (iterationData => iterationData.LoadInfo.MeanLatencyMS, "Mean latency", "ms");
+        public static Metric<IterationData> Latency99thMS = new (iterationData => iterationData.LoadInfo.Latency99thMS, "Latency 99th", "ms");
+        public static Metric<IterationData> Latency90thMS = new (iterationData => iterationData.LoadInfo.Latency90thMS, "Latency 90th", "ms");
+        public static Metric<IterationData> Latency75thMS = new (iterationData => iterationData.LoadInfo.Latency75thMS, "Latency 75th", "ms");
+        public static Metric<IterationData> Latency50thMS = new (iterationData => iterationData.LoadInfo.Latency50thMS, "Latency 50th", "ms");
+        public static List<Metric<IterationData>> LatencyMSList = ML(MeanLatencyMS, Latency99thMS, Latency90thMS, Latency75thMS, Latency50thMS);
+    }
+
+    public static class B
+    {
+        public static Metric<BenchmarkData> MaxHeapCount = Promote(Metrics.I.MaxHeapCount, Aggregation.Max);
+        public static Metric<BenchmarkData> MaxPauseDurationBenchmark = Promote(Metrics.I.MaxPauseDuration, Aggregation.Max);
+        public static Metric<BenchmarkData> MaxPercentPauseTimeInGC = Promote(Metrics.I.PercentPauseTimeInGC, Aggregation.Max);
+        public static Metric<BenchmarkData> AveragePercentPauseTimeInGC = Promote(Metrics.I.PercentPauseTimeInGC, Aggregation.Average);
+    }
+
+}
+
+// Exploratory
+public abstract class NameSimplifier
+{
+    public abstract (string title, Dictionary<string, string>) Simplify(List<string> names);
+
+    public static PrefixSimplifier PrefixDashed { get; } = new PrefixSimplifier('-');
+}
+
+public class ListSimplifier : NameSimplifier
+{
+    private Dictionary<string, string> _nameMap;
+
+    public ListSimplifier(params (string inData, string toDisplay)[] names)
+        : this((IEnumerable<(string, string)>) names) {}
+
+    public ListSimplifier(IEnumerable<(string inData, string toDisplay)> names)
+        => _nameMap = names.ToDictionary();
+
+    public override (string title, Dictionary<string, string>) Simplify(List<string> names) => (null, _nameMap);
+}
+
+public class PrefixSimplifier : NameSimplifier
+{
+    private char _delimiter;
+    private string _emptyResult;
+
+    public PrefixSimplifier(char delimiter, string emptyResult = "<>")
+    {
+        _delimiter = delimiter;
+        _emptyResult = emptyResult;
+    }
+
+    public override (string title, Dictionary<string, string>) Simplify(List<string> names)
+    {
+        if (names.Count == 0) return (null, null);
+        List<string> namesToScan = names;
+        int longestMatch = namesToScan.Select(n => n.Length).Min();
+        bool allContinueWithDelimiter = namesToScan.All(n => (n.Length == longestMatch) || (n[longestMatch] == _delimiter));
+        if (allContinueWithDelimiter)
+        {
+            namesToScan = namesToScan.Select(n => ((allContinueWithDelimiter && (n.Length == longestMatch)) ? (n + _delimiter) : n)).ToList();
+            longestMatch++;
+        }
+        foreach (string name in namesToScan)
+        {
+            int overlap = name.TakeWhile((ch, i) => (i < longestMatch) && (ch == namesToScan[0][i])).Count();
+            longestMatch = (overlap == 0) ? 0 : name.LastIndexOf(_delimiter, overlap - 1) + 1;
+            if (longestMatch == 0) break;
+        }
+        if (longestMatch > 0)
+        {
+            return (
+                names[0].Substring(0, longestMatch - 1),
+                names.Select(config => (config, (longestMatch >= config.Length) ? _emptyResult : config.Substring(longestMatch)))
+                    .ToDictionary()
+            );
+        }
+        return (null, null);
+    }
+}
+
+// Some will be null depending on the chart type
+record SeriesInfo<TData>(Metric<TData> Metric, string Run, string Config, ConfigData ConfigData, string Benchmark, int? Iteration, IterationData IterationData);
+
+abstract class ChartType<TData>
+{
+    public abstract BaseMetric<(string, TData), XValue> DefaultXMetric { get; }
+    public abstract string DefaultBenchmarkMap(string benchmark);
+
+    public abstract IEnumerable<SeriesInfo<TData>> GetSeries(DataManager dataManager, List<Metric<TData>> metrics, Filter runFilter, Filter configFilter,
+        Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, IEnumerable<string> benchmarkList);
+    public abstract string GetColorFamilyKey(SeriesInfo<TData> info, bool multipleMetrics, bool includeRunName, bool multipleConfigs,
+        Dictionary<string, string> configDisplayNames, bool multipleBenchmarks);
+    public abstract string GetColorFamilyId(SeriesInfo<TData> info, bool multipleMetrics);
+    public abstract string GetSeriesTitle(SeriesInfo<TData> info, string colorFamilyKey, bool multipleMetrics);
+    public abstract string GetChartTitle();
+    public abstract List<KeyValuePair<string, TData>> GetDataSource(SeriesInfo<TData> info,
+        Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, Func<TData, bool> dataFilter);
+}
+
+class BenchmarksChartType : ChartType<BenchmarkData>
+{
+    public override BaseMetric<(string, BenchmarkData), XValue> DefaultXMetric { get; } = Metrics.X.BenchmarkName;
+    public override string DefaultBenchmarkMap(string benchmark) => "";
+
+    public override IEnumerable<SeriesInfo<BenchmarkData>> GetSeries(DataManager dataManager, List<Metric<BenchmarkData>> metrics, Filter runFilter, Filter configFilter,
+        Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, IEnumerable<string> benchmarkList)
+    {
+        foreach (var metric in metrics)
+        {
+            foreach ((string run, string config, ConfigData configData) in dataManager.GetConfigsWithData(runFilter, configFilter))
+            {
+                if (!configIterationFilter.MightInclude((config))) continue;
+
+                // Note - could filter out configs that don't have a relevant benchmark/iteration
+                yield return new (metric, run, config, configData, null, null, null);
+            }
+        }
+    }
+
+    public override string GetColorFamilyKey(SeriesInfo<BenchmarkData> info, bool multipleMetrics, bool includeRunName, bool multipleConfigs,
+        Dictionary<string, string> configDisplayNames, bool multipleBenchmarks)
+    {
+        string runDisplay = includeRunName ? $"{info.Run}, " : "";
+        string configDisplay = multipleConfigs ? (configDisplayNames?.GetValueOrDefault(info.Config) ?? info.Config) : "";
+        string colorFamilyKey = $"{runDisplay}{configDisplay}";
+        return colorFamilyKey;
+    }
+
+    public override string GetColorFamilyId(SeriesInfo<BenchmarkData> info, bool multipleMetrics) => multipleMetrics ? $"{info.Metric.Title} / " : "";
+    public override string GetSeriesTitle(SeriesInfo<BenchmarkData> info, string colorFamilyKey, bool multipleMetrics) => $"{GetColorFamilyId(info, multipleMetrics)}{colorFamilyKey}";
+
+    public override string GetChartTitle() => "Per-benchmark behavior";
+
+    public override List<KeyValuePair<string, BenchmarkData>> GetDataSource(SeriesInfo<BenchmarkData> info,
+        Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, Func<BenchmarkData, bool> dataFilter)
+        => info.ConfigData.Benchmarks
+            .Where(benchmark => benchmarkFilter.Include(benchmark.Key)
+                && benchmark.Value.Iterations.WithIndex()
+                    .Any(pair => (pair.Item1 != null)
+                        && iterationFilter.Include(pair.Item2)
+                        && configIterationFilter.Include(info.Config, pair.Item2)));
+}
+
+class IterationsChartType : ChartType<IterationData>
+{
+    public override BaseMetric<(string, IterationData), XValue> DefaultXMetric { get; } = Metrics.X.IterationBenchmarkName;
+    public override string DefaultBenchmarkMap(string benchmark) => "";
+
+    public override IEnumerable<SeriesInfo<IterationData>> GetSeries(DataManager dataManager, List<Metric<IterationData>> metrics, Filter runFilter, Filter configFilter,
+        Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, IEnumerable<string> benchmarkList)
+    {
+        foreach (var metric in metrics)
+        {
+            foreach ((string run, string config, ConfigData configData) in dataManager.GetConfigsWithData(runFilter, configFilter))
+            {
+                foreach (int iteration in configData.GetIterations(config, benchmarkFilter, iterationFilter, configIterationFilter))
+                {
+                    yield return new (metric, run, config, configData, null, iteration, null);
+                }
+            }
+        }
+    }
+        
+    public override string GetColorFamilyKey(SeriesInfo<IterationData> info, bool multipleMetrics, bool includeRunName, bool multipleConfigs,
+        Dictionary<string, string> configDisplayNames, bool multipleBenchmarks)
+    {
+        string metricDisplay = multipleMetrics ? $"{info.Metric.Title}, " : "";
+        string runDisplay = includeRunName ? $"{info.Run}, " : "";
+        string configDisplay = multipleConfigs ? (configDisplayNames?.GetValueOrDefault(info.Config) ?? info.Config) : "";
+        string colorFamilyKey = $"{metricDisplay}{runDisplay}{configDisplay}";
+
+        return colorFamilyKey;
+    }
+
+    public override string GetColorFamilyId(SeriesInfo<IterationData> info, bool multipleMetrics) => $"_{info.Iteration}";
+    public override string GetSeriesTitle(SeriesInfo<IterationData> info, string colorFamilyKey, bool multipleMetrics) => $"{colorFamilyKey}{GetColorFamilyId(info, multipleMetrics)}";
+
+    public override string GetChartTitle() => "Per-iteration behavior";
+
+    public override List<KeyValuePair<string, IterationData>> GetDataSource(SeriesInfo<IterationData> info,
+        Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, Func<IterationData, bool> dataFilter)
+    {
+        if (!iterationFilter.Include(info.Iteration.Value)
+            || !configIterationFilter.Include(info.Config, info.Iteration.Value))
+        {
+            throw new Exception("IterationsChartType.GetDataSource expected GetSeries to filter iterations");
+        }
+
+        return info.ConfigData.Benchmarks
+            .Where(benchmark => benchmarkFilter.Include(benchmark.Key))
+            .Where(benchmark => info.Iteration < benchmark.Value.Iterations.Count)
+            .Select(benchmark => KeyValuePair.Create(benchmark.Key, benchmark.Value.Iterations[info.Iteration.Value]))
+            .Where(kvp => kvp.Value != null);
+    }
+}
+
+class TraceGCChartType : ChartType<TraceGC>
+{
+    public override BaseMetric<(string, TraceGC), XValue> DefaultXMetric { get; } = Metrics.X.GCIndex;
+    public override string DefaultBenchmarkMap(string benchmark) => benchmark;
+    
+    public override IEnumerable<SeriesInfo<TraceGC>> GetSeries(DataManager dataManager, List<Metric<TraceGC>> metrics, Filter runFilter, Filter configFilter,
+        Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, IEnumerable<string> benchmarkList)
+    {
+        foreach (var metric in metrics)
+        {
+            foreach (string benchmark in benchmarkList)
+            {
+                foreach ((string run, string config, int iteration, IterationData iterationData) in
+                    dataManager.GetIterationsForBenchmark(runFilter, configFilter, iterationFilter, configIterationFilter, benchmark))
+                {
+                    yield return new (metric, run, config, null, benchmark, iteration, iterationData);
+                }
+            }
+        }
+    }
+
+    public override string GetColorFamilyKey(SeriesInfo<TraceGC> info, bool multipleMetrics, bool includeRunName, bool multipleConfigs,
+        Dictionary<string, string> configDisplayNames, bool multipleBenchmarks)
+    {
+        string benchmarkDisplay = multipleBenchmarks ? $"{info.Benchmark}, " : "";
+        string metricDisplay = multipleMetrics ? $"{info.Metric.Title}, " : "";
+        string runDisplay = includeRunName ? $"{info.Run}, " : "";
+        string configDisplay = multipleConfigs ? (configDisplayNames?.GetValueOrDefault(info.Config) ?? info.Config) : "";
+        string colorFamilyKey = $"{benchmarkDisplay}{metricDisplay}{runDisplay}{configDisplay}";
+
+        return colorFamilyKey;
+    }
+
+    public override string GetColorFamilyId(SeriesInfo<TraceGC> info, bool multipleMetrics) => $"_{info.Iteration}";
+    public override string GetSeriesTitle(SeriesInfo<TraceGC> info, string colorFamilyKey, bool multipleMetrics) => $"{colorFamilyKey}{GetColorFamilyId(info, multipleMetrics)}";
+
+    public override string GetChartTitle() => "Per-run behavior";
+
+    public override List<KeyValuePair<string, TraceGC>> GetDataSource(SeriesInfo<TraceGC> info,
+        Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, Func<TraceGC, bool> dataFilter)
+        => ((IEnumerable<TraceGC>)info.IterationData.GCProcessData?.GCs).Where(gc => gc.GlobalHeapHistory != null).Where(dataFilter).Select(gc => KeyValuePair.Create("", gc));
+}
+
+public struct XValue : IComparable<XValue>, IEquatable<XValue>
+{
+    private double _value;
+    private string _name;
+
+    public XValue(double value) { _value = value; _name = null; }
+    public XValue(string name) { _value = 0; _name = name; }
+
+    public bool HasValue => _name == null;
+    public bool HasName => _name != null;
+
+    public double GetValue() => HasValue ? _value : throw new Exception("XValue.GetValue on a named value");
+    public string GetName() => HasName ? _name : throw new Exception("XValue.GetName on a numerical value");
+
+    public override int GetHashCode() => HasValue ? GetValue().GetHashCode() : GetName().GetHashCode();
+    public bool Equals(XValue other) => HasValue ? (other.HasValue && (GetValue() == other.GetValue())) : (other.HasName && (GetName() == other.GetName()));
+    public override bool Equals(object other) => other is XValue otherX && Equals(otherX);
+
+    public int CompareTo(XValue other)
+        => (HasValue && other.HasName) ? 1
+            : (HasName && other.HasValue) ? -1
+            : HasValue ? GetValue().CompareTo(other.GetValue())
+            : GetName().CompareTo(other.GetName());
+
+    public override string ToString() => HasValue ? _value.ToString() : _name;
+    public string ToString(string format) => HasValue ? _value.ToString(format) : _name;
+}
+
+public abstract class XArrangement
+{
+    private string _titleOverride;
+
+    public XArrangement(string titleOverride) { _titleOverride = titleOverride; }
+
+    public string GetNewTitle(string oldTitle) => _titleOverride ?? oldTitle;
+    public abstract List<(XValue x, double? y)> Arrange(List<(XValue x, double? y)> data, List<(XValue x, double? y)> firstDataPreSorted);
+    // This interface probably needs some work.  The idea is that, given the next xvalue in each series, this selects which one
+    // should be next overall.
+    public abstract XValue? ChooseNext(IEnumerable<XValue?> xavlues);
+
+    public class DefaultXArrangement : XArrangement
+    {
+        public DefaultXArrangement() : base(null) {}
+        public override List<(XValue x, double? y)> Arrange(List<(XValue x, double? y)> data, List<(XValue x, double? y)> firstDataPreSorted) => data;
+        public override XValue? ChooseNext(IEnumerable<XValue?> xvalues) => xvalues.FirstOrDefault(x => x.HasValue);
+    }
+
+    public class PercentileXArrangement : XArrangement
+    {
+        private bool _descending;
+        public PercentileXArrangement(bool descending = false) : base("Percentile") { _descending = descending; }
+        public override List<(XValue x, double? y)> Arrange(List<(XValue x, double? y)> data, List<(XValue x, double? y)> firstDataPreSorted)
+        {
+            var sortedData = _descending
+                ? data.Select(d => d.y).OrderByDescending(y => y)
+                : data.Select(d => d.y).OrderBy(y => y);
+            return sortedData.Select((d, i) => (new XValue(i / (double) data.Count), d)).ToList();
+        }
+        public override XValue? ChooseNext(IEnumerable<XValue?> xvalues) => xvalues.Min();
+    }
+
+    public class SortedXArrangement : XArrangement
+    {
+        private bool _descending;
+        public SortedXArrangement(bool descending = true) : base("Metric Rank") { _descending = descending; }
+        public override List<(XValue x, double? y)> Arrange(List<(XValue x, double? y)> data, List<(XValue x, double? y)> firstDataPreSorted)
+        {
+            var sortedData = _descending
+                ? data.Select(d => d.y).OrderByDescending(y => y)
+                : data.Select(d => d.y).OrderBy(y => y);
+            return sortedData.Select((d, i) => (new XValue(i), d)).ToList();
+        }
+        public override XValue? ChooseNext(IEnumerable<XValue?> xvalues) => xvalues.Min();
+    }
+
+    public class CombinedSortedXArrangement : XArrangement
+    {
+        public CombinedSortedXArrangement() : base(null) {}
+        public override List<(XValue x, double? y)> Arrange(List<(XValue x, double? y)> data, List<(XValue x, double? y)> firstDataPreSorted)
+            => data.Join(firstDataPreSorted, d => d.x, d => d.x, ((d, sortedEntry) => (d.x, d.y, sortedEntry.y)))
+                .OrderByDescending(triple => triple.Item3)
+                .Select(triple => (triple.x, triple.Item2));
+        public override XValue? ChooseNext(IEnumerable<XValue?> xvalues) => xvalues.FirstOrDefault(x => x.HasValue);
+    }
+
+    public class RelativeXArrangement : XArrangement
+    {
+        public RelativeXArrangement() : base(null) {}
+        public override List<(XValue x, double? y)> Arrange(List<(XValue x, double? y)> data, List<(XValue x, double? y)> firstDataPreSorted)
+        {
+            if (data.Count == 0) return data;
+            if (data[0].x.HasName)
+            {
+                Console.WriteLine($"Applying {nameof(RelativeXArrangement)} on non-numeric x values (first is {data[0].x})");
+                return data;
+            }
+            double firstValue = data[0].x.GetValue();
+            return data.Select(d => (new XValue(d.x.GetValue() - firstValue), d.y));
+        }
+        public override XValue? ChooseNext(IEnumerable<XValue?> xvalues) => xvalues.Min(); // not necessarily?
+    }
+}
+
+public static class XArrangements
+{
+    public static XArrangement.DefaultXArrangement Default { get; } = new ();
+    public static XArrangement.PercentileXArrangement Percentile { get; } = new();
+    public static XArrangement.SortedXArrangement Sorted { get; } = new();
+    public static XArrangement.CombinedSortedXArrangement CombinedSorted { get; } = new();
+    public static XArrangement.RelativeXArrangement Relative { get; } = new();
+}
+
+public abstract class DataPresenter<TResult>
+{
+    public bool Debug;
+
+    public abstract void Clear();
+
+    // true if ok
+    public abstract bool PrepareUnits(IEnumerable<string> units);
+    public abstract void SetColorGroups(Dictionary<string, int> colorGroups);
+    public abstract void Display();
+    public abstract TResult Result { get; }
+
+    // Below members are per-chart
+
+    public abstract void Start(string title, string xlabel);
+    public abstract void AddSeries(string title, string unit, string colorFamilyKey, string colorFamilyId, List<(XValue x, double? y)> data);
+    public abstract void Finish(XArrangement xArrangement);
+}
+
+public abstract class TextPresenter : DataPresenter<List<List<string>>>
+{
+    public static RawTextPresenter RawText { get; } = new RawTextPresenter();
+    public static MarkdownPresenter Markdown { get; } = new MarkdownPresenter();
+    public static HtmlPresenter Html { get; } = new HtmlPresenter();
+    public static CsvPresenter Csv { get; } = new CsvPresenter();
+
+    protected record struct DataPoint(XValue x, double? y);
+    private record Series(string title, string unit, List<DataPoint> data);
+    private record Table(string title, string xlabel, List<Series> series);
+
+    private List<List<string>> _result = new();
+    public override void Clear() => _result.Clear();
+
+    // true if ok
+    public override bool PrepareUnits(IEnumerable<string> units) => true;
+    public override void SetColorGroups(Dictionary<string, int> colorGroups) {}
+
+    public override List<List<string>> Result => _result;
+    
+    // Below members are per-table
+
+    private Table _current;
+
+    public override void Start(string title, string xlabel) { _current = new(title: title, xlabel: xlabel, series: new()); }
+    public override void AddSeries(string title, string unit, string colorFamilyKey, string colorFamilyId, List<(XValue x, double? y)> data)
+        => _current.series.Add(new(title: title, unit: unit, data: data.Select(pair => new DataPoint(pair.x, pair.y)).ToList()));
+
+    private int MaxTokenLength(string phrase) => phrase.Split(' ').Select(s => s.Length).Max();
+    protected string NDashes(int n) => new string('-', n);
+    protected string NSpaces(int n) => new string(' ', n);
+    protected void PadLeft(StringBuilder sb, int width) => sb.Insert(0, NSpaces(width - sb.Length));
+
+    protected abstract string MakeTitle(string title);
+    protected abstract string? StartTable();
+    protected abstract IEnumerable<string> HeaderLines(IEnumerable<string> headerValues, IEnumerable<int> widths);
+    protected abstract string? HeaderBorder(IEnumerable<int> widths);
+    protected abstract IEnumerable<string> DataLine(XValue xvalue, IEnumerable<DataPoint?> values, IEnumerable<int> widths);
+    protected abstract string? EndTable();
+
+    protected const string lineStart = "| ";
+    protected const string lineDelim = " | ";
+    protected const string lineEnd = " |";
+
+    private static void AddIfNotNull(List<string> list, string? value)
+    {
+        if (value != null) list.Add(value);
+    }
+
+    public override void Finish(XArrangement xArrangement)
+    {
+
+        int xWidth = _current.series.SelectMany(series => series.data.Select(d => d.x.ToString().Length))
+            .Append(MaxTokenLength(_current.xlabel))
+            .Max();
+        List<int> seriesWidths = _current.series.Select(
+            series => series.data.Select(d => d.y?.ToString("N3").Length ?? 0)
+                .Append((this is RawTextPresenter) ? MaxTokenLength(series.title) : series.title.Length)
+                .Append(series.unit.Length + 2) // "(<unit>)"
+                .Max());
+        var allWidths = seriesWidths.Prepend(xWidth);
+        List<string> tableText = new();
+        tableText.Add(MakeTitle(_current.title));
+        tableText.Add("");
+        AddIfNotNull(tableText, StartTable());
+
+        var headerValues = _current.series.Select(series => series.title).Prepend(_current.xlabel);
+        tableText.AddRange(HeaderLines(headerValues, allWidths));
+        AddIfNotNull(tableText, HeaderBorder(allWidths));
+
+        int numSeries = _current.series.Count;
+        int[] nextIndices = new int[numSeries]; // all zeroes
+        DataPoint?[] candidates = new DataPoint?[numSeries];
+        string[] elements = new string[numSeries + 1]; // includes X
+        while (true)
+        {
+            // Find next xvalue, if it exists.
+            for (int i = 0; i < numSeries; ++i)
+            {
+                while ((nextIndices[i] < _current.series[i].data.Count)
+                    && !_current.series[i].data[nextIndices[i]].y.HasValue)
+                {
+                    nextIndices[i]++;
+                }
+
+                candidates[i] = nextIndices[i] < _current.series[i].data.Count
+                    ? _current.series[i].data[nextIndices[i]]
+                    : null;
+            }
+            XValue? next = xArrangement.ChooseNext(candidates.Select(p => p?.x));
+            if (!next.HasValue) break;
+
+            // Get values
+            for (int i = 0; i < numSeries; ++i)
+            {
+                if (!candidates[i].HasValue) continue;
+                if (!next.Value.Equals(candidates[i].Value.x))
+                {
+                    candidates[i] = null;
+                    continue;
+                }
+                nextIndices[i]++;
+            }
+            if (!candidates.Any(NotNull)) throw new Exception("internal error - no candidate used");
+
+            tableText.AddRange(DataLine(next.Value, candidates, allWidths));
+        }
+
+        AddIfNotNull(tableText, EndTable());
+        _result.Add(tableText);
+    }
+}
+
+public class RawTextPresenter : TextPresenter
+{
+    private const string borderStart = "+ ";
+    private const string borderDelim = "-+-";
+    private const string borderEnd = " +";
+
+    protected override string MakeTitle(string title) => title;
+    protected override string? StartTable() => null;
+    
+    private List<string> MakeLines(string phrase, int width)
+    {
+        List<string> result = new();
+
+        string[] tokens = phrase.Split(' ');
+        StringBuilder current = new();
+        foreach (string token in tokens)
+        {
+            if (token.Length > width) throw new Exception("Tokenization inconsistent");
+            if ((current.Length + token.Length + 1) > width)
+            {
+                PadLeft(current, width);
+                result.Add(current.ToString());
+                current = new();
+            }
+
+            if (current.Length > 0) current.Append(' ');
+            current.Append(token);
+        }
+        PadLeft(current, width);
+        result.Add(current.ToString());
+
+        return result;
+    }
+
+    protected override IEnumerable<string> HeaderLines(IEnumerable<string> headerValues, IEnumerable<int> widths)
+    {
+        var headerCells = headerValues.Zip(widths).Select(headerAndWidth => MakeLines(headerAndWidth.First, headerAndWidth.Second));
+        int maxHeaderLines = headerCells.Select(lines => lines.Count).Max();
+        foreach ((List<string> cell, int width) in headerCells.Zip(widths))
+        {
+            while (cell.Count < maxHeaderLines) cell.Insert(0, NSpaces(width));
+        }
+        for (int i = 0; i < maxHeaderLines; ++i)
+        {
+            yield return (lineStart + string.Join(lineDelim, headerCells.Select(cell => cell[i])) + lineEnd);
+        }
+    }
+
+    protected override string? HeaderBorder(IEnumerable<int> widths)
+        => borderStart + string.Join(borderDelim, widths.Select(n => NDashes(n))) + borderEnd;
+
+    protected override IEnumerable<string> DataLine(XValue xvalue, IEnumerable<DataPoint?> values, IEnumerable<int> widths)
+    {
+        var cells = values.Select(p => p?.y?.ToString("N3")).Prepend(xvalue.ToString())
+            .Zip(widths).Select(p => (p.First ?? "").PadLeft(p.Second));
+        yield return lineStart + string.Join(lineDelim, cells) + lineEnd;
+    }
+
+    protected override string? EndTable() => null;
+
+    public override void Display()
+    {
+        foreach (List<string> table in Result)
+        {
+
+            Console.WriteLine();
+            foreach (string line in table)
+            {
+                Console.WriteLine(line);
+            }
+        }
+    }
+}
+
+public class MarkdownPresenter : TextPresenter
+{
+    protected override string MakeTitle(string title) => $"### {title}";
+    protected override string? StartTable() => null;
+
+    protected override IEnumerable<string> HeaderLines(IEnumerable<string> headerValues, IEnumerable<int> widths)
+    {
+        yield return lineStart + string.Join(lineDelim, headerValues.Zip(widths).Select(pair => pair.First.PadLeft(pair.Second))) + lineEnd;
+    }
+
+    protected override string? HeaderBorder(IEnumerable<int> widths)
+        => lineStart + string.Join(lineDelim, widths.Select(n => NDashes(n-1) + ":")) + lineEnd;
+
+    protected override IEnumerable<string> DataLine(XValue xvalue, IEnumerable<DataPoint?> values, IEnumerable<int> widths)
+    {
+        var cells = values.Select(p => p?.y?.ToString("N3")).Prepend(xvalue.ToString())
+            .Zip(widths).Select(p => (p.First ?? "").PadLeft(p.Second));
+        yield return lineStart + string.Join(lineDelim, cells) + lineEnd;
+    }
+
+    protected override string? EndTable() => null;
+
+    public override void Display()
+    {
+        foreach (List<string> table in Result)
+        {
+            string.Join("\n", table).DisplayAs("text/markdown");
+        }
+    }
+}
+
+public class HtmlPresenter : TextPresenter
+{
+    protected override string MakeTitle(string title) => $"<h3>{title}</h3>";
+    protected override string? StartTable() => "<table>";
+    protected override IEnumerable<string> HeaderLines(IEnumerable<string> headerValues, IEnumerable<int> widths)
+    {
+        yield return "<tr>";
+        foreach (string value in headerValues)
+        {
+            yield return $"  <th>{value}</th>";
+        }
+        yield return "</tr>";
+    }
+
+    protected override string? HeaderBorder(IEnumerable<int> widths) => null;
+
+    protected override IEnumerable<string> DataLine(XValue xvalue, IEnumerable<DataPoint?> values, IEnumerable<int> widths)
+    {
+        var cells = values.Select(p => p?.y?.ToString("N3")).Prepend(xvalue.ToString());
+        yield return "<tr>";
+        foreach (string value in cells)
+        {
+            yield return $"  <th>{value}</th>";
+        }
+        yield return "</tr>";
+    }
+
+    protected override string? EndTable() => "</table>";
+
+    public override void Display()
+    {
+        foreach (List<string> table in Result)
+        {
+            string.Join("\n", table).DisplayAs("text/html");
+        }
+    }
+}
+
+public class CsvPresenter : TextPresenter
+{
+    protected override string MakeTitle(string title) => $"# {title}";
+    protected override string? StartTable() => null;
+    protected override IEnumerable<string> HeaderLines(IEnumerable<string> headerValues, IEnumerable<int> widths)
+    {
+        yield return string.Join(",", headerValues);
+    }
+
+    protected override string? HeaderBorder(IEnumerable<int> widths) => null;
+
+    protected override IEnumerable<string> DataLine(XValue xvalue, IEnumerable<DataPoint?> values, IEnumerable<int> widths)
+    {
+        var cells = values.Select(p => p?.y?.ToString("N3")).Prepend(xvalue.ToString());
+        yield return string.Join(",", cells);
+    }
+
+    protected override string? EndTable() => null;
+
+    public override void Display()
+    {
+        foreach (List<string> table in Result)
+        {
+            string.Join("\n", table).DisplayAs("text/csv");
+        }
+    }
+}
+
+public class ChartPresenter : DataPresenter<List<PlotlyChart>>
+{
+    private string _scatterMode;
+    private List<string> _uniqueUnits;
+    private ColorProvider _colorProvider;
+    private List<PlotlyChart> _charts = new();
+
+    public ChartPresenter(string scatterMode = null)
+    {
+        _scatterMode = scatterMode;
+    }
+
+    public override void Clear() => _charts.Clear();
+
+    public override bool PrepareUnits(IEnumerable<string> units)
+    {
+        _uniqueUnits = new();
+        foreach (string unit in units)
+        {
+            if (!_uniqueUnits.Contains(unit)) _uniqueUnits.Add(unit);
+        }
+        if (_uniqueUnits.Count > 2)
+        {
+            Console.WriteLine($"Too many units: {string.Join(", ", _uniqueUnits)}");
+            return false;
+        }
+        return true;
+    }
+
+    private int yaxis(string unit) => _uniqueUnits.IndexOf(unit);
+
+    public override void SetColorGroups(Dictionary<string, int> colorGroups)
+    {
+        _colorProvider = new(colorGroups);
+        if (Debug) _colorProvider.DumpColorGroups();
+    }
+
+    public override void Display()
+    {
+        foreach (PlotlyChart chart in Result) chart.Display();
+    }
+
+    public override List<PlotlyChart> Result => _charts;
+
+    // Below members are per-chart
+
+    private Layout.Layout _layout;
+    private List<Scatter> _scatters;
+
+    public override void Start(string title, string xlabel)
+    {
+        _layout = new Layout.Layout
+            {
+                xaxis = new Xaxis { title = xlabel },
+                yaxis = new Yaxis { title = _uniqueUnits[0] },
+                title = title,
+                // margin = new Margin() { r = 123 },
+            };
+
+        if (_uniqueUnits.Count > 1)
+        {
+            _layout.yaxis2 = new Yaxis { title = _uniqueUnits[1], side = "right", overlaying = "y" };
+        }
+
+        _scatters = new();
+    }
+
+    public override void AddSeries(string title, string unit, string colorFamilyKey, string colorFamilyId, List<(XValue x, double? y)> data)
+    {
+        Scatter scatter =
+            new Scatter {
+                name = title,
+                x = data[0].x.HasName ? data.Select(d => d.x.GetName()) : data.Select(d => d.x.GetValue()),
+                y = data.Select(d => d.y),
+            };
+        if (_scatterMode != null) scatter.mode = _scatterMode;
+        if (yaxis(unit) == 1) scatter.yaxis = "y2";
+        _colorProvider.SetMarker(scatter, colorFamilyKey, colorFamilyId);
+        // scatter.marker will throw if marker hasn't been set.
+        // ShouldSerializemarker appears to check if it has been set.
+        if (Debug) Console.WriteLine($"color '{colorFamilyKey}': '{(scatter.ShouldSerializemarker() ? scatter.marker.color : "")}'");
+        _scatters.Add(scatter);
+    }
+
+    public override void Finish(XArrangement xArrangement) => _charts.Add(Chart.Plot(_scatters, _layout));
+}
+
+TResult ChartInternal<TData, TResult>(DataPresenter<TResult> presenter, ChartType<TData> chartType,
+    DataManager dataManager, List<Metric<TData>> metrics,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<TData, bool> dataFilter = null, Func<string, string> benchmarkMap = null,
+    BaseMetric<(string, TData), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+{
+    runFilter = runFilter ?? Filter.All;
+    configFilter = configFilter ?? Filter.All;
+    benchmarkFilter = benchmarkFilter ?? Filter.All;
+    iterationFilter = iterationFilter ?? IntFilter.All;
+    // configIterationFilter is not set to an empty dictionary as that would exclude everything
+    dataFilter = dataFilter ?? (data => true);
+    benchmarkMap = benchmarkMap ?? chartType.DefaultBenchmarkMap;
+    xMetric = xMetric ?? chartType.DefaultXMetric;
+    xArrangement = xArrangement ?? XArrangements.Default;
+
+    presenter.Clear();
+    presenter.Debug = debug;
+
+    if (metrics.Count == 0)
+    {
+        Console.WriteLine("No metrics");
+        return default(TResult);
+    }
+
+    List<string> configs = dataManager.GetConfigs(runFilter: runFilter, configFilter: configFilter).Select(tuple => tuple.config).Distinct().ToList();
+    if (configs.Count == 0)
+    {
+        Console.WriteLine("No configs afer filtering");
+        return default(TResult);
+    }
+
+    if (debug) Console.WriteLine("Simplify config names");
+    Dictionary<string, string> configDisplayNames = null;
+    string configPrefix = null;
+    if (configNameSimplifier != null)
+    {
+        (configPrefix, configDisplayNames) = configNameSimplifier.Simplify(configs);
+    }
+    
+    if (debug) Console.WriteLine("Prepare units");
+    presenter.PrepareUnits(metrics.Select(metric => metric.Unit));
+
+    Dictionary<string, List<string>> benchmarkGroups = new();
+    HashSet<string> benchmarkSet = new();
+    foreach ((string run, string config, string benchmark) in
+        dataManager.GetBenchmarks(runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+            configIterationFilter: configIterationFilter))
+    {
+        if (!benchmarkSet.Add(benchmark)) continue;
+
+        string benchmarkGroup = (benchmarkMap != null) ? benchmarkMap(benchmark) : benchmark;
+        benchmarkGroups.GetOrAdd(benchmarkGroup, new());
+        benchmarkGroups[benchmarkGroup].Add(benchmark);
+    }
+
+    foreach (var (groupName, benchmarkList) in benchmarkGroups)
+    {
+        benchmarkList.Sort();
+
+        if (debug)
+        {
+            Console.Write($"{groupName}:");
+            foreach (var benchmark in benchmarkList)
+            {
+                Console.Write($" {benchmark}");
+            }
+            Console.WriteLine();
+        }
+    }
+
+    foreach (var (benchmarkGroup, benchmarkList) in benchmarkGroups)
+    {
+        if (debug) Console.WriteLine("Initialize colors");
+
+        // Consider moving 'colorGroups' to the presenter
+        Dictionary<string, int> colorGroups = new();
+        foreach (SeriesInfo<TData> info in
+            chartType.GetSeries(dataManager, metrics, runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter,
+                iterationFilter: iterationFilter, configIterationFilter: configIterationFilter, benchmarkList: benchmarkList))
+        {
+            string colorFamilyKey = chartType.GetColorFamilyKey(info, multipleMetrics: metrics.Count > 1, includeRunName: includeRunName, multipleConfigs: configs.Count > 1,
+                configDisplayNames: configDisplayNames, multipleBenchmarks: benchmarkList.Count > 1);
+
+            colorGroups[colorFamilyKey] = colorGroups.GetValueOrDefault(colorFamilyKey, 0) + 1;
+        }
+
+        presenter.SetColorGroups(colorGroups);
+
+        {
+            List<Scatter> scatters = new();
+
+            string xlabel = xArrangement.GetNewTitle(xMetric.Title);
+
+            string titlePrefix = chartType.GetChartTitle();
+            List<string> titleParts = new();
+            if (!string.IsNullOrWhiteSpace(benchmarkGroup)) titleParts.Add(benchmarkGroup);
+            if (metrics.Count == 1) titleParts.Add(metrics[0].Title);
+            if (configPrefix != null) titleParts.Add(configPrefix);
+            else if (configs.Count == 1) titleParts.Add(configDisplayNames?.GetValueOrDefault(configs[0]) ?? configs[0]);
+            string titleWithoutPrefix = string.Join(" / ", titleParts);
+            string title = string.Join(" / ", titleParts.Prepend(titlePrefix));
+            presenter.Start(title: title, xlabel: xlabel);
+
+            List<(XValue x, double? y)> firstDataPreSorted = null;
+            double firstDataMin = 0;
+            HashSet<XValue> firstDataSet = new();
+
+            foreach ((SeriesInfo<TData> info, int indexForOffsetting) in
+                chartType.GetSeries(dataManager, metrics, runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter,
+                    iterationFilter: iterationFilter, configIterationFilter: configIterationFilter, benchmarkList: benchmarkList).WithIndex())
+            {
+                string colorFamilyKey = chartType.GetColorFamilyKey(info, multipleMetrics: metrics.Count > 1, includeRunName: includeRunName, multipleConfigs: configs.Count > 1,
+                    configDisplayNames: configDisplayNames, multipleBenchmarks: benchmarkList.Count > 1);
+                string seriesTitle = chartType.GetSeriesTitle(info, colorFamilyKey, metrics.Count > 1);
+                if (debug) Console.Write($"series title: {seriesTitle}, ");
+
+                List<KeyValuePair<string, TData>> dataSource;
+                try { dataSource = chartType.GetDataSource(info, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+                    configIterationFilter: configIterationFilter, dataFilter: dataFilter); }
+                catch (Exception e) { Console.WriteLine($"Exception {e} processing data source for {title} / {seriesTitle}"); dataSource = null; }
+                if (dataSource == null)
+                {
+                    Console.WriteLine($"No data for {titleWithoutPrefix} / {seriesTitle}");
+                    continue;
+                }
+                int dataSourceCount = dataSource.Count;
+                if (debug) Console.Write($"source count = {dataSourceCount}, ");
+
+                List<(XValue x, double? y)> data;
+                // Theory: For numeric x values, null y values need to be filtered or "mode==lines" won't show
+                //         values that have null neighbors.
+                // Theory: For non-numeric x values, null y values are needed to avoid shuffling of the x values
+                //         (Example: if series 1 has "a" "c" and series 2 has "a" "b" "c", then 2 will be displayed
+                //         "a" "c" "b" -AND- "mode==lines" will connect the "a" to the "b" to the "c")
+                //         TODO: We probably need to add fake entries to the first (?) series if the different
+                //         series have different sets of x values. The existing code will work if the x value
+                //         exists in the DataManager but the metrics don't. (Example: we have ASP.NET metrics but
+                //         no GC trace for a benchmark, but the chart contains GC metrics)
+                info.Metric.ResetDiagnostics();
+                try { data = dataSource.Select(b => (x: xMetric.DoExtract((b.Key, b.Value)), y: info.Metric.DoExtract(b.Value, indexForOffsetting))).ToList(); }
+                catch { Console.WriteLine($"Exception processing data items for {title} / {seriesTitle}"); data = null; }
+                info.Metric.DisplayDiagnostics($"{titleWithoutPrefix} / {seriesTitle}");
+                if (debug) Console.Write($"data count = {data.Count}, ");
+                if (!data.Any(d => d.y != null))
+                {
+                    Console.WriteLine($"No data items for {titleWithoutPrefix} / {seriesTitle}");
+                    continue;
+                }
+
+                // This should probably be factored into CombinedSortedXArrangement.  The idea is that firstDataPreSorted
+                // contains the first series' data so that each series can be merged into it, sorted the same way, and
+                // then all displayed in the same order of x values.  However, the first series might not have all of the
+                // values, so this tacks them on the end arbitrarily.
+                if (firstDataPreSorted == null)
+                {
+                    firstDataPreSorted = new(data); // make a copy so that edits don't change the original
+                    firstDataMin = firstDataPreSorted.Select(pair => pair.y).Where(NotNull).Min(y => y.Value);
+                    firstDataSet = new(firstDataPreSorted.Select(pair => pair.x));
+                }
+                foreach (var d in data)
+                {
+                    if (firstDataSet.Add(d.x))
+                    {
+                        // The "--" is a hack to produce lower values.  This should be fixed to be clearer.
+                        firstDataPreSorted.Add((d.x, --firstDataMin));
+                    }
+                }
+
+                data = xArrangement.Arrange(data, firstDataPreSorted);
+
+                // See above comment.  If x values are numeric, remove ones without y values.
+                // Note that xarrangement can change the x value type.
+                if (data[0].x.HasValue)
+                {
+                    data = data.Where(d => d.y != null);
+                }
+
+                if (debug) Console.Write($"data count = {data.Count}, ");
+                if (data.Count == 0)
+                {
+                    Console.WriteLine($"No data items after filtering nulls for {titleWithoutPrefix} / {seriesTitle}");
+                    continue;
+                }
+
+                string colorFamilyId = chartType.GetColorFamilyId(info, multipleMetrics: metrics.Count > 1);
+                presenter.AddSeries(title: seriesTitle, unit: info.Metric.Unit, colorFamilyKey: colorFamilyKey, colorFamilyId: colorFamilyId, data: data);
+            }
+
+            presenter.Finish(xArrangement);
+        }
+    }
+
+    if (display)
+    {
+        presenter.Display();
+    }
+
+    return presenter.Result;
+}
+
+List<List<string>> TableBenchmarks(DataManager dataManager, List<Metric<BenchmarkData>> metrics, TextPresenter textPresenter = null,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<BenchmarkData, bool> dataFilter = null,
+    Func<string, string> benchmarkMap = null, BaseMetric<(string, BenchmarkData), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+    => ChartInternal(textPresenter ?? TextPresenter.RawText, new BenchmarksChartType(),
+        dataManager, metrics,
+        runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+        configIterationFilter: configIterationFilter, dataFilter: dataFilter,
+        benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
+        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        display: display, debug: debug);
+
+List<List<string>> TableBenchmarks(DataManager dataManager, Metric<BenchmarkData> metric, TextPresenter textPresenter = null,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<BenchmarkData, bool> dataFilter = null,
+    Func<string, string> benchmarkMap = null, BaseMetric<(string, BenchmarkData), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+    => TableBenchmarks(dataManager, ML(metric), textPresenter,
+        runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+        configIterationFilter: configIterationFilter, dataFilter: dataFilter,
+        benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
+        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        display: display, debug: debug);
+
+List<List<string>> TableIterations(DataManager dataManager, List<Metric<IterationData>> metrics, TextPresenter textPresenter = null,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<IterationData, bool> dataFilter = null,
+    Func<string, string> benchmarkMap = null, BaseMetric<(string, IterationData), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+    => ChartInternal(textPresenter ?? TextPresenter.RawText, new IterationsChartType(),
+        dataManager, metrics,
+        runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+        configIterationFilter: configIterationFilter, dataFilter: dataFilter,
+        benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
+        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        display: display, debug: debug);
+
+List<List<string>> TableIterations(DataManager dataManager, Metric<IterationData> metric, TextPresenter textPresenter = null,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<IterationData, bool> dataFilter = null,
+    Func<string, string> benchmarkMap = null, BaseMetric<(string, IterationData), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+    => TableIterations(dataManager, ML(metric), textPresenter,
+        runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+        configIterationFilter: configIterationFilter, dataFilter: dataFilter,
+        benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
+        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        display: display, debug: debug);
+
+List<List<string>> TableGCData(DataManager dataManager, List<Metric<TraceGC>> metrics, TextPresenter textPresenter = null,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<TraceGC, bool> dataFilter = null,
+    Func<string, string> benchmarkMap = null, BaseMetric<(string, TraceGC), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+    => ChartInternal(textPresenter ?? TextPresenter.RawText, new TraceGCChartType(),
+        dataManager, metrics,
+        runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+        configIterationFilter: configIterationFilter, dataFilter: dataFilter,
+        benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
+        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        display: display, debug: debug);
+
+List<List<string>> TableGCData(DataManager dataManager, Metric<TraceGC> metric, TextPresenter textPresenter = null,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<TraceGC, bool> dataFilter = null,
+    Func<string, string> benchmarkMap = null, BaseMetric<(string, TraceGC), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+    => TableGCData(dataManager, ML(metric), textPresenter,
+        runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+        configIterationFilter: configIterationFilter, dataFilter: dataFilter,
+        benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
+        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        display: display, debug: debug);
+
+List<PlotlyChart> ChartBenchmarks(DataManager dataManager, List<Metric<BenchmarkData>> metrics,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<BenchmarkData, bool> dataFilter = null,
+    Func<string, string> benchmarkMap = null, BaseMetric<(string, BenchmarkData), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+    => ChartInternal(new ChartPresenter(scatterMode: null), new BenchmarksChartType(),
+        dataManager, metrics,
+        runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+        configIterationFilter: configIterationFilter, dataFilter: dataFilter,
+        benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
+        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        display: display, debug: debug);
+
+List<PlotlyChart> ChartBenchmarks(DataManager dataManager, Metric<BenchmarkData> metric,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<BenchmarkData, bool> dataFilter = null,
+    Func<string, string> benchmarkMap = null, BaseMetric<(string, BenchmarkData), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+    => ChartBenchmarks(dataManager, ML(metric),
+        runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+        configIterationFilter: configIterationFilter, dataFilter: dataFilter,
+        benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
+        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        display: display, debug: debug);
+
+List<PlotlyChart> ChartIterations(DataManager dataManager, List<Metric<IterationData>> metrics,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<IterationData, bool> dataFilter = null,
+    Func<string, string> benchmarkMap = null, BaseMetric<(string, IterationData), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+    => ChartInternal(new ChartPresenter(scatterMode: "markers"), new IterationsChartType(),
+        dataManager, metrics,
+        runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+        configIterationFilter: configIterationFilter, dataFilter: dataFilter,
+        benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
+        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        display: display, debug: debug);
+
+List<PlotlyChart> ChartIterations(DataManager dataManager, Metric<IterationData> metric,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<IterationData, bool> dataFilter = null,
+    Func<string, string> benchmarkMap = null, BaseMetric<(string, IterationData), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+    => ChartIterations(dataManager, ML(metric),
+        runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+        configIterationFilter: configIterationFilter, dataFilter: dataFilter,
+        benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
+        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        display: display, debug: debug);
+
+List<PlotlyChart> ChartGCData(DataManager dataManager, List<Metric<TraceGC>> metrics,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<TraceGC, bool> dataFilter = null,
+    Func<string, string> benchmarkMap = null, BaseMetric<(string, TraceGC), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+    => ChartInternal(new ChartPresenter(scatterMode: null), new TraceGCChartType(),
+        dataManager, metrics,
+        runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+        configIterationFilter: configIterationFilter, dataFilter: dataFilter,
+        benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
+        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        display: display, debug: debug);
+
+List<PlotlyChart> ChartGCData(DataManager dataManager, Metric<TraceGC> metric,
+    Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
+    ConfigIterationFilter configIterationFilter = null, Func<TraceGC, bool> dataFilter = null,
+    Func<string, string> benchmarkMap = null, BaseMetric<(string, TraceGC), XValue> xMetric = null, XArrangement xArrangement = null,
+    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    bool display = true, bool debug = false)
+    => ChartGCData(dataManager, ML(metric),
+        runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
+        configIterationFilter: configIterationFilter, dataFilter: dataFilter,
+        benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
+        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        display: display, debug: debug);
