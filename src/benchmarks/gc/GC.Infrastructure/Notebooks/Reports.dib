@@ -4,6 +4,17 @@
 
 #!csharp
 
+// Instructions to get Intellisense, etc., in this file:
+//
+// Normally this file is #!import-ed into an environment (BenchmarkAnalysis.dib) that already has types such as DataManager defined.
+// However, to work on this file, we need that context available here.  To get that, uncomment the following  #!import, execute this
+// cell, and then comment the line again.  This will provide an editing environment.  Keeping it commented it necessary because
+// splitting the imports/usings in the BenchmarkAnalysis case can cause strange name resolution and type conversion errors.
+
+//#!import DataManager.dib
+
+#!csharp
+
 // Huge block of code that operates on DataManager
 // -----------------------------------------------
 
@@ -479,7 +490,7 @@ public class Metric<TSource> : BaseMetric<TSource, double?>
 public static class Metrics
 {
     public static Metric<IterationData> Promote(Metric<TraceGC> metric, Aggregation aggregation)
-        => Metric<IterationData>.Promote(metric, iterationData => (IEnumerable<TraceGC>)iterationData.GCProcessData.GCs, aggregation);
+        => Metric<IterationData>.Promote(metric, iterationData => iterationData.GCProcessData.GCs, aggregation);
     public static Metric<BenchmarkData> Promote(Metric<IterationData> metric, Aggregation aggregation)
         => Metric<BenchmarkData>.Promote(metric, benchmarkData => benchmarkData.Iterations, aggregation);
     public static Metric<ConfigData> Promote(Metric<BenchmarkData> metric, Aggregation aggregation)
@@ -885,7 +896,7 @@ class TraceGCChartType : ChartType<TraceGC>
 
     public override List<KeyValuePair<string, TraceGC>> GetDataSource(SeriesInfo<TraceGC> info,
         Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, Func<TraceGC, bool> dataFilter)
-        => ((IEnumerable<TraceGC>)info.IterationData.GCProcessData?.GCs).Where(gc => gc.GlobalHeapHistory != null).Where(dataFilter).Select(gc => KeyValuePair.Create("", gc));
+        => info.IterationData.GCProcessData?.GCs.Where(gc => gc.GlobalHeapHistory != null).Where(dataFilter).Select(gc => KeyValuePair.Create("", gc));
 }
 
 public struct XValue : IComparable<XValue>, IEquatable<XValue>
@@ -1754,3 +1765,46 @@ List<PlotlyChart> ChartGCData(DataManager dataManager, Metric<TraceGC> metric,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
         configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
         display: display, debug: debug);
+
+#!csharp
+
+// Benchmark lists
+
+// scoutList is a list of ASP.NET benchmarks identified by looking at allocation rates.
+// scoutList2 adds some tests that Maoni identified.
+// smallList is for very quick looks.
+
+// Often a test infra run will have been limited to a smaller set of tests when desired,
+// in which case these aren't necessary.  However, these predefined lists can be used to
+// help load (or chart after loading) a subset of a run when desired.
+
+List<string> scoutList = ML(
+    "ConnectionClose",
+    "ConnectionCloseHttps",
+    "ConnectionCloseHttpsHttpSys",
+    "ConnectionCloseHttpSys",
+    "Fortunes",
+    "FortunesDapper",
+    "FortunesEf",
+    "FortunesPlatform",
+    "FortunesPlatformDapper",
+    "FortunesPlatformEF",
+    "Json",
+    "JsonHttps",
+    "JsonHttpsHttpSys",
+    "JsonMin",
+    "JsonMvc",
+    "MultipleQueriesPlatform",
+    "PlaintextMvc",
+    "PlaintextQueryString",
+    "PlaintextWithParametersEmptyFilter",
+    "PlaintextWithParametersNoFilter",
+    "SingleQueryPlatform",
+    "Stage1",
+    "Stage1Grpc",
+    "Stage2",
+    "UpdatesPlatform"
+);
+
+List<string> scoutList2 = scoutList.Concat(ML("CachingPlatform", "JsonMapAction", "Stage1TrimR2RSingleFile")).ToList();
+List<string> smallList = ML("Fortunes", "JsonHttpsHttpSys", "PlaintextQueryString", "Stage2", "PlaintextMvc");

@@ -7,14 +7,52 @@
 #i "nuget: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json"
 
 #r "nuget: Microsoft.Diagnostics.Tracing.TraceEvent"
+#r "nuget: Microsoft.Data.Analysis, 0.19.1"
+//#r "nuget: Newtonsoft.Json"
+#r "nuget: XPlot.Plotly"
+#r "nuget: XPlot.Plotly.Interactive"
+//#r "nuget: YamlDotnet"
 
 // TODO: Ensure you are pointing to the right artifacts folder.
 #r "..\..\..\..\..\artifacts\bin\GC.Analysis.API\Release\net7.0\GC.Analysis.API.dll"
 
-using GC.Analysis.API;
-
 using System.IO;
 using System.Text.RegularExpressions;
+
+using GC.Analysis.API;
+
+//using Etlx = Microsoft.Diagnostics.Tracing.Etlx;
+//using Microsoft.Data.Analysis;
+using Microsoft.Diagnostics.Tracing.Analysis.GC;
+//using Microsoft.Diagnostics.Tracing.Analysis;
+using Microsoft.Diagnostics.Tracing.Parsers.Clr;
+//using Microsoft.Diagnostics.Tracing;
+//using Newtonsoft.Json;
+//using System.Diagnostics;
+using XPlot.Plotly;
+
+#!csharp
+
+// ML and MA are convenience syntax for making lists and arrays.
+public static List<T> ML<T>(params T[] elems) => new List<T>(elems);
+public static T[] MA<T>(params T[] elems) => elems;
+
+public static V GetOrAdd<K,V>(this Dictionary<K,V> dict, K key, V value)
+    => dict.TryAdd(key, value) ? value : dict[key];
+
+public static void SetWithExtend<T>(this List<T> list, int index, T value)
+{
+    int count = list.Count;
+    int needed = index + 1;
+    for (int i = 0; i < (needed - count); ++i)
+    {
+        list.Add(default(T));
+    }
+    list[index] = value;
+}
+
+public static IEnumerable<(T, int)> WithIndex<T>(this IEnumerable<T> list) => list.Select((value, index) => (value, index));
+public static bool NotNull<T>(T x) => x != null;
 
 #!csharp
 
