@@ -1,5 +1,3 @@
-# Workflow HERE!!!
-
 # Benchmark Analysis
 
 This notebook contains code for producing charts (and soon, tables) for GC benchmarks.  It can currently process data
