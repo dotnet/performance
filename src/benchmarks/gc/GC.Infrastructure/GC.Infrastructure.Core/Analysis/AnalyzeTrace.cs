@@ -111,7 +111,7 @@ namespace GC.Infrastructure.Core.Analysis
                     ResultItem comparandRunItem = runToCorerunData[run.Key][corerun.Key];
                     var resultItemComparison = new ResultItemComparison(baseRunItem, comparandRunItem);
 
-                    HashSet<string> requestedPropertyNames = new HashSet<string>(GoodLinq.Select(configuration.Output.Columns, (c => c.ToLowerInvariant().Replace(" ", "").Replace("(", ")").Replace(")", ""))));
+                    HashSet<string> requestedPropertyNames = new HashSet<string>(configuration.Output.Columns.EagerSelect(c => c.ToLowerInvariant().Replace(" ", "").Replace("(", ")").Replace(")", "")));
 
                     foreach (var property in typeof(ResultItem).GetProperties())
                     {

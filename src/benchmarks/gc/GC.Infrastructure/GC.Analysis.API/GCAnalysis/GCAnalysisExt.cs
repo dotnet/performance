@@ -21,16 +21,16 @@ namespace GC.Analysis.API
             // Remove any duplicates.
             gcs = gcs.Distinct();
 
-            double totalAllocated = gcs.Sum(gc => gc.AllocedSinceLastGCMB);
+            double totalAllocated = gcs.EagerSum(gc => gc.AllocedSinceLastGCMB);
             double maxSizePeak = gcs.Max(gc => gc.HeapSizePeakMB);
             int gcCount = gcs.Count();
             int heapCount = gcs.First().HeapCount;
 
-            var gen0 = gcs.Where(gc => gc.Generation == 0);
-            var gen1 = gcs.Where(gc => gc.Generation == 1);
-            var emp = gcs.Where(gc => gc.Generation == 1 || gc.Generation == 0);
-            var gen2Blocking = gcs.Where(gc => gc.Generation == 2 && gc.Type != GCType.BackgroundGC);
-            var bgc = gcs.Where(gc => gc.Generation == 2 && gc.Type == GCType.BackgroundGC);
+            var gen0 = gcs.EagerWhere(gc => gc.Generation == 0);
+            var gen1 = gcs.EagerWhere(gc => gc.Generation == 1);
+            var emp = gcs.EagerWhere(gc => gc.Generation == 1 || gc.Generation == 0);
+            var gen2Blocking = gcs.EagerWhere(gc => gc.Generation == 2 && gc.Type != GCType.BackgroundGC);
+            var bgc = gcs.EagerWhere(gc => gc.Generation == 2 && gc.Type == GCType.BackgroundGC);
 
             int gen0Count = gen0.Count;
             int gen1Count = gen1.Count;
@@ -39,32 +39,32 @@ namespace GC.Analysis.API
             int bgcCount = bgc.Count;
 
             // Pause Times
-            double gen0TotalPauseTime = gen0.Sum(gc => gc.PauseDurationMSec);
-            double gen1TotalPauseTime = gen1.Sum(gc => gc.PauseDurationMSec);
-            double empTotalPauseTime = emp.Sum(gc => gc.PauseDurationMSec);
-            double gen2BlockingTotalPauseTime = gen2Blocking.Sum(gc => gc.PauseDurationMSec);
-            double bgcTotalPauseTime = bgc.Sum(gc => gc.PauseDurationMSec);
+            double gen0TotalPauseTime = gen0.EagerSum(gc => gc.PauseDurationMSec);
+            double gen1TotalPauseTime = gen1.EagerSum(gc => gc.PauseDurationMSec);
+            double empTotalPauseTime = emp.EagerSum(gc => gc.PauseDurationMSec);
+            double gen2BlockingTotalPauseTime = gen2Blocking.EagerSum(gc => gc.PauseDurationMSec);
+            double bgcTotalPauseTime = bgc.EagerSum(gc => gc.PauseDurationMSec);
 
             // Promoted Bytes
-            double gen0TotalPromotedMB = gen0.Sum(gc => gc.PromotedMB);
-            double gen1TotalPromotedMB = gen1.Sum(gc => gc.PromotedMB);
-            double empTotalPromotedMB = emp.Sum(gc => gc.PromotedMB);
-            double gen2BlockingTotalPromotedMB = gen2Blocking.Sum(gc => gc.PromotedMB);
-            double bgcTotalPromotedMB = bgc.Sum(gc => gc.PromotedMB);
+            double gen0TotalPromotedMB = gen0.EagerSum(gc => gc.PromotedMB);
+            double gen1TotalPromotedMB = gen1.EagerSum(gc => gc.PromotedMB);
+            double empTotalPromotedMB = emp.EagerSum(gc => gc.PromotedMB);
+            double gen2BlockingTotalPromotedMB = gen2Blocking.EagerSum(gc => gc.PromotedMB);
+            double bgcTotalPromotedMB = bgc.EagerSum(gc => gc.PromotedMB);
 
             // Avg. Gen0 Pause Time (msec)
-            double gen0AvgPauseTime = gen0.Average(gc => gc.PauseDurationMSec);
+            double gen0AvgPauseTime = gen0.EagerAverage(gc => gc.PauseDurationMSec);
             // Avg. Gen1 Pause Time (msec)
-            double gen1AvgPauseTime = gen1.Average(gc => gc.PauseDurationMSec);
+            double gen1AvgPauseTime = gen1.EagerAverage(gc => gc.PauseDurationMSec);
             // Avg. Gen0 Promoted (mb) 
-            double gen0AvgPromoted = gen0.Average(gc => gc.PromotedMB);
+            double gen0AvgPromoted = gen0.EagerAverage(gc => gc.PromotedMB);
             // Avg. Gen1 Promoted (mb)
-            double gen1AvgPromoted = gen1.Average(gc => gc.PromotedMB);
+            double gen1AvgPromoted = gen1.EagerAverage(gc => gc.PromotedMB);
 
             // Avg. Gen0 Speed (mb/msec)
-            double gen0AvgSpeed = gen0.Sum(gc => gc.PromotedMB) / gen0TotalPauseTime;
+            double gen0AvgSpeed = gen0.EagerSum(gc => gc.PromotedMB) / gen0TotalPauseTime;
             // Avg. Gen1 Speed (mb/msec)
-            double gen1AvgSpeed = gen1.Sum(gc => gc.PromotedMB) / gen1TotalPauseTime;
+            double gen1AvgSpeed = gen1.EagerSum(gc => gc.PromotedMB) / gen1TotalPauseTime;
             // Avg. Gen0 Promoted (mb) / heap
             double gen0AvgPromotedPerHeap = gen0AvgPromoted / heapCount;
             // Avg. Gen1 Promoted (mb) / heap
@@ -118,8 +118,8 @@ namespace GC.Analysis.API
             AddStr("BGC Total Promoted MB", bgcTotalPromotedMB); 
 
             // Allocations
-            AddStr("Mean Size Before MB", gcs.Average(gc => gc.HeapSizeBeforeMB));
-            AddStr("Mean Size After MB", gcs.Average(gc => gc.HeapSizeAfterMB));
+            AddStr("Mean Size Before MB", gcs.EagerAverage(gc => gc.HeapSizeBeforeMB));
+            AddStr("Mean Size After MB", gcs.EagerAverage(gc => gc.HeapSizeAfterMB));
 
             // Speeds
             AddStr("Gen0 Average Speed (MB/MSec)", gen0AvgSpeed);

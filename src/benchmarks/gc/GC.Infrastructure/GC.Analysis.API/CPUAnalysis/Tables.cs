@@ -187,10 +187,10 @@ namespace GC.Analysis.API
                 return null;
             }
 
-            var gen0s = new HashSet<int>(gcProcessData.GCs.Where(gc => gc.Generation == 0).Select(gc => gc.Number));
-            var gen1s = new HashSet<int>(gcProcessData.GCs.Where(gc => gc.Generation == 1).Select(gc => gc.Number));
-            var bgcs = new HashSet<int>(gcProcessData.BGCs.Select(gc => gc.Number));
-            var gen2Blocking = new HashSet<int>(gcProcessData.Gen2Blocking.Select(gc => gc.Number));
+            var gen0s = new HashSet<int>(gcProcessData.GCs.EagerWhere(gc => gc.Generation == 0).EagerSelect(gc => gc.Number));
+            var gen1s = new HashSet<int>(gcProcessData.GCs.EagerWhere(gc => gc.Generation == 1).EagerSelect(gc => gc.Number));
+            var bgcs = new HashSet<int>(gcProcessData.BGCs.EagerSelect(gc => gc.Number));
+            var gen2Blocking = new HashSet<int>(gcProcessData.Gen2Blocking.EagerSelect(gc => gc.Number));
 
             foreach(var majorPhase in phases)
             {
@@ -204,7 +204,7 @@ namespace GC.Analysis.API
                 {
                     foreach(var gc in gcToData)
                     {
-                        var count = gc.Value.Values.Sum(g => g.Sum(gc => gc.InclusiveCount));
+                        var count = gc.Value.Values.EagerSum(g => g.EagerSum(gc => gc.InclusiveCount));
 
                         if (gen0s.Contains(gc.Key))
                         {

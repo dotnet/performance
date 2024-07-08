@@ -11,8 +11,8 @@ namespace GC.Analysis.API
                                                         ChartInfo? chartInfo = null)
         {
             Layout.Layout layout = ChartingHelpers.ConstructLayout(title: title, fieldName: data.name, xAxis: xAxisAsGCNumber, chartInfo: chartInfo);
-            List<float> cost = data.gcsToCost.Select(gc => gc.Count);
-            List<int> gcNumber = data.gcsToCost.Select(gc => gc.GC.Number);
+            List<float> cost = data.gcsToCost.EagerSelect(gc => gc.Count);
+            List<int> gcNumber = data.gcsToCost.EagerSelect(gc => gc.GC.Number);
 
             Scatter scatter = new Scatter
             {
@@ -31,8 +31,8 @@ namespace GC.Analysis.API
                                                                    ChartInfo? chartInfo = null)
         {
             Layout.Layout layout = ChartingHelpers.ConstructLayout(title: title, fieldName: "Inclusive Count", xAxis: xAxisAsGCNumber, chartInfo: chartInfo);
-            List<float> cost = data.gcsToCost.Select(gc => gc.Count);
-            List<int> gcNumber = data.gcsToCost.Select(gc => gc.GC.Number);
+            List<float> cost = data.gcsToCost.EagerSelect(gc => gc.Count);
+            List<int> gcNumber = data.gcsToCost.EagerSelect(gc => gc.GC.Number);
 
             layout.yaxis2 = new Yaxis { title = other.name, side = "right", overlaying = "y" };
 
@@ -65,8 +65,8 @@ namespace GC.Analysis.API
 
             foreach(var d in data)
             {
-                List<float> cost = d.gcsToCost.Select(gc => gc.Count);
-                List<int> gcNumber = d.gcsToCost.Select(gc => gc.GC.Number);
+                List<float> cost = d.gcsToCost.EagerSelect(gc => gc.Count);
+                List<int> gcNumber = d.gcsToCost.EagerSelect(gc => gc.GC.Number);
 
                 Scatter scatter = new Scatter
                 {
@@ -93,8 +93,8 @@ namespace GC.Analysis.API
             string countType = isInclusiveCount ? "Inclusive Count" : "Exclusive Count";
             Layout.Layout layout = ChartingHelpers.ConstructLayout(title: title, fieldName: countType, xAxis: xAxisAsGCNumber, chartInfo: chartInfo);
             var data = cpuProcessData.GetPerGCMethodCost(methodName: methodName, caller: caller, isInclusiveCount : isInclusiveCount);
-            List<float> cost = data.Select(gc => gc.Count);
-            List<int> gcNumber = data.Select(gc => gc.GC.Number);
+            List<float> cost = data.EagerSelect(gc => gc.Count);
+            List<int> gcNumber = data.EagerSelect(gc => gc.GC.Number);
 
             Scatter scatter = new Scatter
             {
@@ -117,8 +117,8 @@ namespace GC.Analysis.API
             string countType = isInclusiveCount ? "Inclusive Count" : "Exclusive Count";
             Layout.Layout layout = ChartingHelpers.ConstructLayout(title: title, fieldName: countType, xAxis: xAxisAsGCNumber, chartInfo: chartInfo);
             var data = cpuProcessData.GetPerGCMethodCost(methodName: methodName, isInclusiveCount : isInclusiveCount);
-            List<float> cost = data.Select(gc => gc.Count);
-            List<int> gcNumber = data.Select(gc => gc.GC.Number);
+            List<float> cost = data.EagerSelect(gc => gc.Count);
+            List<int> gcNumber = data.EagerSelect(gc => gc.GC.Number);
 
             Scatter scatter = new Scatter
             {
@@ -146,8 +146,8 @@ namespace GC.Analysis.API
             foreach (var methodName in methodNames)
             {
                 var data = cpuProcessData.GetPerGCMethodCost(methodName: methodName, isInclusiveCount : isInclusiveCount);
-                List<float> cost = data.Select(gc => gc.Count);
-                List<int> gcNumber = data.Select(gc => gc.GC.Number);
+                List<float> cost = data.EagerSelect(gc => gc.Count);
+                List<int> gcNumber = data.EagerSelect(gc => gc.GC.Number);
 
                 Scatter scatter = new Scatter
                 {

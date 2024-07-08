@@ -207,7 +207,7 @@ namespace GC.Analysis.API
                 if (node.Name.Equals(unresolvedSymbolsNodeName, StringComparison.OrdinalIgnoreCase))
                 {
                     // Symbols haven't been resolved yet.  Try to resolve them now.
-                    EtlxNS.TraceModuleFile moduleFile = _traceLog.ModuleFiles.Where(m => m.Name.Equals(symbolParts[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    EtlxNS.TraceModuleFile moduleFile = _traceLog.ModuleFiles.EagerWhere(m => m.Name.Equals(symbolParts[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (moduleFile != null)
                     {
                         // Special handling for NGEN images.
@@ -384,7 +384,7 @@ namespace GC.Analysis.API
 
             // Find the most primitive TraceEventStackSource
             TraceEventStackSource asTraceEventStackSource = GetTraceEventStackSource(CallTree.StackSource);
-            var cpuEvents = asTraceEventStackSource.TraceLog.Events.Where(e => e is SampledProfileTraceData && e.ProcessID != 0);
+            var cpuEvents = asTraceEventStackSource.TraceLog.Events.EagerWhere(e => e is SampledProfileTraceData && e.ProcessID != 0);
 
             if (asTraceEventStackSource == null)
             {

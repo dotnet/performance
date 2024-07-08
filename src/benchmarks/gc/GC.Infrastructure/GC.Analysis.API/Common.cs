@@ -4,6 +4,70 @@ using System.Reflection;
 using System.Text;
 using XPlot.Plotly;
 
+namespace System.Linq
+{
+    public static class Linq
+    {
+        public static List<R> EagerSelect<T, R>(this IEnumerable<T> data, Func<T, R> map)
+        {
+            List<R> result = new();
+            foreach (var d in data)
+            {
+                result.Add(map(d));
+            }
+
+            return result;
+        }
+
+        public static List<T> EagerWhere<T>(this IEnumerable<T> data, Func<T, bool> predicate)
+        {
+            List<T> result = new();
+            foreach (var d in data)
+            {
+                if (predicate(d))
+                {
+                    result.Add(d);
+                }
+            }
+
+            return result;
+        }
+
+        public static double EagerSum<TSource>(this IEnumerable<TSource> data, Func<TSource, double> map)
+        {
+            double sum = 0;
+            if (data == null || data.Count() == 0) 
+            {
+                return sum;
+            }
+
+            foreach(var sourceItem in data)
+            {
+                sum += (double)map(sourceItem);
+            }
+
+            return sum;
+        }
+
+        public static double EagerAverage<TSource>(this IEnumerable<TSource> data, Func<TSource, double> map)
+        {
+            int count = data.Count();
+            if (data == null || count == 0) 
+            {
+                return double.NaN;
+            }
+
+            double sum = 0;
+            foreach(var sourceItem in data)
+            {
+                sum += (double)map(sourceItem);
+            }
+
+            return sum / count;
+        }
+    }
+}
+
 namespace GC.Analysis.API
 {
     public sealed class AxisInfo
@@ -85,67 +149,6 @@ namespace GC.Analysis.API
             }
 
             return layout;
-        }
-    }
-
-    public static class GoodLinq
-    {
-        public static List<R> Select<T, R>(this IEnumerable<T> data, Func<T, R> map)
-        {
-            List<R> result = new();
-            foreach (var d in data)
-            {
-                result.Add(map(d));
-            }
-
-            return result;
-        }
-
-        public static List<T> Where<T>(this IEnumerable<T> data, Func<T, bool> predicate)
-        {
-            List<T> result = new();
-            foreach (var d in data)
-            {
-                if (predicate(d))
-                {
-                    result.Add(d);
-                }
-            }
-
-            return result;
-        }
-
-        public static double Sum<TSource>(this IEnumerable<TSource> data, Func<TSource, double> map)
-        {
-            double sum = 0;
-            if (data == null || data.Count() == 0) 
-            {
-                return sum;
-            }
-
-            foreach(var sourceItem in data)
-            {
-                sum += (double)map(sourceItem);
-            }
-
-            return sum;
-        }
-
-        public static double Average<TSource>(this IEnumerable<TSource> data, Func<TSource, double> map)
-        {
-            int count = data.Count();
-            if (data == null || count == 0) 
-            {
-                return double.NaN;
-            }
-
-            double sum = 0;
-            foreach(var sourceItem in data)
-            {
-                sum += (double)map(sourceItem);
-            }
-
-            return sum / count;
         }
     }
 

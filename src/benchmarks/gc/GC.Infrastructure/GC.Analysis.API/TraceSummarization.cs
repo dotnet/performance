@@ -25,7 +25,7 @@ namespace GC.Analysis.API
             var traceLog    = analyzer.TraceLog;
             var eventSource = traceLog.Events.GetSource(); 
 
-            HashSet<int> processIds = new HashSet<int>(processData.Select(p => p.ProcessID));
+            HashSet<int> processIds = new HashSet<int>(processData.EagerSelect(p => p.ProcessID));
 
             Dictionary<int, FirstLastData> cpuData      = new();
             Dictionary<int, FirstLastData> cswitchData  = new();
@@ -117,7 +117,7 @@ namespace GC.Analysis.API
                     double firstTimestamp = firstLast.FirstTimeStamp;
                     double lastTimestamp  = firstLast.LastTimeStamp;
 
-                    var encompassedGCs = traceGCs.Where(gc =>
+                    var encompassedGCs = traceGCs.EagerWhere(gc =>
                     {
                         return gc.Type != GCType.BackgroundGC &&           // For all background GCs,
                                (firstTimestamp < gc.StartRelativeMSec) &&  // get all GCs after the first timestamp.
