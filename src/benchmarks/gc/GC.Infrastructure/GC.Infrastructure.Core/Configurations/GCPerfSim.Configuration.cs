@@ -139,12 +139,12 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
             ConfigurationChecker.VerifyEnvironmentVariables(configuration.Environment.environment_variables, $"{nameof(GCPerfSimConfigurationParser)}");
             foreach (var corerun in configuration.coreruns)
             {
-                ConfigurationChecker.VerifyEnvironmentVariables(corerun.Value.environment_variables, $"{nameof(GCPerfSimConfigurationParser)} for Corerun: {corerun.Key}");
+                ConfigurationChecker.VerifyEnvironmentVariables(corerun.Value?.environment_variables, $"{nameof(GCPerfSimConfigurationParser)} for Corerun: {corerun.Key}");
             }
 
             foreach (var run in configuration.Runs!)
             {
-                ConfigurationChecker.VerifyEnvironmentVariables(run.Value.environment_variables, $"{nameof(GCPerfSimConfigurationParser)} for Run: {run.Key}");
+                ConfigurationChecker.VerifyEnvironmentVariables(run.Value?.environment_variables, $"{nameof(GCPerfSimConfigurationParser)} for Run: {run.Key}");
             }
 
             return configuration;
