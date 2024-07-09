@@ -128,10 +128,10 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 string[] line = lines[lineIdx].Split(',', StringSplitOptions.TrimEntries);
                 Debug.Assert(line.Length == 2);
 
-                string benchmarkName     = line[0];
+                string benchmarkName = line[0];
                 string benchmarkCommands = line[1];
 
-                benchmarkNameToCommand[benchmarkName] = benchmarkCommands; 
+                benchmarkNameToCommand[benchmarkName] = benchmarkCommands;
             }
 
             List<KeyValuePair<string, string>> benchmarkToNameCommandAsKvpList = new();
@@ -175,7 +175,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             }
 
             // Overwrite the dictionary with the most up to date results of what will be run. 
-            benchmarkNameToCommand = benchmarkToNameCommandAsKvpList.ToDictionary(pair =>  pair.Key, pair => pair.Value);
+            benchmarkNameToCommand = benchmarkToNameCommandAsKvpList.ToDictionary(pair => pair.Key, pair => pair.Value);
 
             // For each benchmark, iterate over all specified runs.
             foreach (var benchmarkToCommand in benchmarkToNameCommandAsKvpList)
@@ -187,9 +187,9 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             return new AspNetBenchmarkResults(executionDetails, results);
         }
 
-        internal static void ExecuteBenchmarkForRuns(ASPNetBenchmarksConfiguration configuration, 
-                                                   KeyValuePair<string, string> benchmarkToCommand, 
-                                                   Dictionary<string, ProcessExecutionDetails> executionDetails, 
+        internal static void ExecuteBenchmarkForRuns(ASPNetBenchmarksConfiguration configuration,
+                                                   KeyValuePair<string, string> benchmarkToCommand,
+                                                   Dictionary<string, ProcessExecutionDetails> executionDetails,
                                                    List<(string, string, string)> retryMessages)
         {
             foreach (var run in configuration.Runs!)
@@ -203,7 +203,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                     ExecuteBenchmarkForRuns(configuration, benchmarkToCommand, executionDetails, retryMessages);
                     return; // Return here to prevent infinite looping.
                 }
-                
+
                 ProcessExecutionDetails result = ExecuteBenchmarkForRun(configuration, run, benchmarkToCommand);
                 string key = GetKey(benchmarkToCommand.Key, run.Key);
 
@@ -374,21 +374,21 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             // Files to expect always from crank:
             // 1. Build Output: BenchmarkName_RunName.build.log
             string buildOutput = Path.Combine(basePath, $"{benchmarkName}_{runName}.build.log");
-            if (!File.Exists(buildOutput)) 
+            if (!File.Exists(buildOutput))
             {
                 missingOutputs.Add("Build Output");
             }
 
             // 2. Application Output: BenchmarkName_RunName.output.log
             string applicationOutput = Path.Combine(basePath, $"{benchmarkName}_{runName}.output.log");
-            if (!File.Exists(applicationOutput)) 
+            if (!File.Exists(applicationOutput))
             {
                 missingOutputs.Add("Application Output");
             }
 
             // 3. Json Output: BenchmarkName_RunName.json
             string outputJson = Path.Combine(basePath, $"{benchmarkName}_{runName}.json");
-            if (!File.Exists(outputJson)) 
+            if (!File.Exists(outputJson))
             {
                 missingOutputs.Add("Output Json");
             }
@@ -397,7 +397,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             // 1. Trace: BenchmarkName.<Type>.etl.zip or BenchmarkName.<Type>.nettrace
             if (configuration.TraceConfigurations?.Type != "none")
             {
-                string etlFileName      = Path.Combine(basePath, $"{benchmarkName}.{configuration.TraceConfigurations!.Type}.etl.zip");
+                string etlFileName = Path.Combine(basePath, $"{benchmarkName}.{configuration.TraceConfigurations!.Type}.etl.zip");
                 string nettraceFileName = Path.Combine(basePath, $"{benchmarkName}.{configuration.TraceConfigurations!.Type}.nettrace");
                 if (!File.Exists(etlFileName) && !File.Exists(nettraceFileName))
                 {
@@ -406,10 +406,10 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             }
 
             // 2. GCLog: BenchmarkName_GCLog/<LogName>.log
-            if (configuration.Environment!.environment_variables!.ContainsKey("DOTNET_GCLog")                       || 
-                configuration.Environment!.environment_variables!.ContainsKey("COMPlus_GCLog")                      || 
-                configuration.Runs!.Any(r => r.Value.environment_variables?.ContainsKey("DOTNET_GCLog") ?? false)   || 
-                configuration.Runs!.Any(r => r.Value.environment_variables?.ContainsKey("COMPlus_GCLog") ?? false) )
+            if (configuration.Environment!.environment_variables!.ContainsKey("DOTNET_GCLog") ||
+                configuration.Environment!.environment_variables!.ContainsKey("COMPlus_GCLog") ||
+                configuration.Runs!.Any(r => r.Value.environment_variables?.ContainsKey("DOTNET_GCLog") ?? false) ||
+                configuration.Runs!.Any(r => r.Value.environment_variables?.ContainsKey("COMPlus_GCLog") ?? false))
             {
                 string basePathForGCLog = Path.Combine(configuration.Output.Path, runName, $"{benchmarkName}_GCLog");
 
