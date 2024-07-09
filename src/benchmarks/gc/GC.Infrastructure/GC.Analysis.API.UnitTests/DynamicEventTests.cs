@@ -1,4 +1,7 @@
-﻿using FluentAssertions;
+﻿// TODO, andrewau, remove this condition when new TraceEvent is available through Nuget.
+#if CUSTOM_TRACE_EVENT
+
+using FluentAssertions;
 using Microsoft.Diagnostics.Tracing.Analysis.GC;
 using Microsoft.Diagnostics.Tracing.Parsers.GCDynamic;
 using GC.Analysis.API.DynamicEvents;
@@ -321,3 +324,5 @@ TimeStamp : *
         }
     }
 }
+
+#endif
