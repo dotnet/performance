@@ -7,7 +7,7 @@
             string targetPathAsDirectory = targetPath + "\\";
             foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
             {
-                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPathAsDirectory)); 
+                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPathAsDirectory));
             }
 
             foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
@@ -23,8 +23,8 @@
                 throw new ArgumentException($"{nameof(Utilities)}: Path is null or empty.");
             }
 
-            if (!Directory.Exists(path)) 
-            { 
+            if (!Directory.Exists(path))
+            {
                 Directory.CreateDirectory(path);
                 return true;
             }
@@ -37,9 +37,9 @@
 
         public static bool TryCopyFile(string sourcePath, string destinationPath)
         {
-            if (!File.Exists(destinationPath)) 
-            { 
-                File.Copy(sourceFileName: sourcePath, 
+            if (!File.Exists(destinationPath))
+            {
+                File.Copy(sourceFileName: sourcePath,
                           destFileName: destinationPath);
                 return true;
             }

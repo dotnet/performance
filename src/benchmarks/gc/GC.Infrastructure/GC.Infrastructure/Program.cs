@@ -81,7 +81,7 @@ namespace GC.Infrastructure
         }
 
         [SupportedOSPlatform("windows")]
-        internal static bool IsAdministrator => 
+        internal static bool IsAdministrator =>
             new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
     }
 }

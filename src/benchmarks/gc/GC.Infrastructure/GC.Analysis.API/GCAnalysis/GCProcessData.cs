@@ -11,8 +11,8 @@ namespace GC.Analysis.API
             {  "gc count", (gc) => gc.Stats.Count },
             {  "non induced gc count", (gc) => gc.Stats.Count - gc.GCs.Count(g => g.Reason == GCReason.Induced)},
             {  "induced gc count", (gc) => gc.GCs.Count(g => g.Reason == GCReason.Induced)},
-            {  "total allocated (mb)", (gc) => gc.Stats.TotalAllocatedMB }, 
-            {  "max size peak (mb)", (gc) => gc.Stats.MaxSizePeakMB }, 
+            {  "total allocated (mb)", (gc) => gc.Stats.TotalAllocatedMB },
+            {  "max size peak (mb)", (gc) => gc.Stats.MaxSizePeakMB },
             {  "total pause time (msec)", (gc) => gc.Stats.TotalPauseTimeMSec },
             {  "gc pause time %", (gc) => gc.Stats.GetGCPauseTimePercentage() },
             {  "avg. heap size (mb)", (gc) => gc.GCs.Average(g => g.HeapSizeBeforeMB) },
@@ -21,13 +21,13 @@ namespace GC.Analysis.API
 
         private readonly Lazy<JoinAnalysis> _joinAnalysis;
 
-        public GCProcessData(TraceProcess process, TraceLoadedDotNetRuntime managedProcess, Dictionary<int, int> gcThreadsToHeapNumber, Analyzer parent, double durationMSec) 
+        public GCProcessData(TraceProcess process, TraceLoadedDotNetRuntime managedProcess, Dictionary<int, int> gcThreadsToHeapNumber, Analyzer parent, double durationMSec)
         {
             ProcessName = process.Name;
             ProcessID = process.ProcessID;
             CommandLine = process.CommandLine;
             GCs = managedProcess.GC.GCs;
-            DurationMSec = durationMSec; 
+            DurationMSec = durationMSec;
             Stats = managedProcess.GC.Stats();
             Generations = managedProcess.GC.Generations();
             Gen2Blocking = GCs.Where(gc => gc.Generation == 2 && gc.Type != GCType.BackgroundGC);
@@ -89,6 +89,6 @@ namespace GC.Analysis.API
             }
         }
 
-        public JoinAnalysis GetJoinAnalysis() => _joinAnalysis.Value; 
+        public JoinAnalysis GetJoinAnalysis() => _joinAnalysis.Value;
     }
 }
