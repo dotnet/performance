@@ -23,67 +23,68 @@ namespace GC.Analysis.API
             }
 
             var traceLog = analyzer.TraceLog;
-            var eventSource = traceLog.Events.GetSource();
-
-            HashSet<int> processIds = new HashSet<int>(processData.Select(p => p.ProcessID));
-
             Dictionary<int, FirstLastData> cpuData = new();
             Dictionary<int, FirstLastData> cswitchData = new();
             Dictionary<int, int> readyThreadCount = new();
-
-            eventSource.Kernel.ThreadCSwitch += (data) =>
+            if (traceLog != null)
             {
-                if (!processIds.Contains(data.ProcessID))
-                {
-                    return;
-                }
+                var eventSource = traceLog.Events.GetSource();
 
-                if (!cswitchData.TryGetValue(data.ProcessID, out var firstLast))
+                HashSet<int> processIds = new HashSet<int>(processData.Select(p => p.ProcessID));
+                eventSource.Kernel.ThreadCSwitch += (data) =>
                 {
-                    cswitchData[data.ProcessID] = firstLast = new()
+                    if (!processIds.Contains(data.ProcessID))
                     {
-                        FirstTimeStamp = data.TimeStampRelativeMSec
-                    };
-                }
+                        return;
+                    }
 
-                firstLast.LastTimeStamp = data.TimeStampRelativeMSec;
-                ++firstLast.Count;
-            };
-
-            eventSource.Kernel.PerfInfoSample += (data) =>
-            {
-                if (!processIds.Contains(data.ProcessID))
-                {
-                    return;
-                }
-
-                if (!cpuData.TryGetValue(data.ProcessID, out var firstLast))
-                {
-                    cpuData[data.ProcessID] = firstLast = new()
+                    if (!cswitchData.TryGetValue(data.ProcessID, out var firstLast))
                     {
-                        FirstTimeStamp = data.TimeStampRelativeMSec
-                    };
-                }
+                        cswitchData[data.ProcessID] = firstLast = new()
+                        {
+                            FirstTimeStamp = data.TimeStampRelativeMSec
+                        };
+                    }
 
-                firstLast.LastTimeStamp = data.TimeStampRelativeMSec;
-                firstLast.Count += 1;
-            };
+                    firstLast.LastTimeStamp = data.TimeStampRelativeMSec;
+                    ++firstLast.Count;
+                };
 
-            eventSource.Kernel.DispatcherReadyThread += (data) =>
-            {
-                if (!processIds.Contains(data.ProcessID))
+                eventSource.Kernel.PerfInfoSample += (data) =>
                 {
-                    return;
-                }
+                    if (!processIds.Contains(data.ProcessID))
+                    {
+                        return;
+                    }
 
-                if (!readyThreadCount.TryGetValue(data.ProcessID, out var _))
+                    if (!cpuData.TryGetValue(data.ProcessID, out var firstLast))
+                    {
+                        cpuData[data.ProcessID] = firstLast = new()
+                        {
+                            FirstTimeStamp = data.TimeStampRelativeMSec
+                        };
+                    }
+
+                    firstLast.LastTimeStamp = data.TimeStampRelativeMSec;
+                    firstLast.Count += 1;
+                };
+
+                eventSource.Kernel.DispatcherReadyThread += (data) =>
                 {
-                    readyThreadCount[data.ProcessID] = 0;
-                }
+                    if (!processIds.Contains(data.ProcessID))
+                    {
+                        return;
+                    }
 
-                readyThreadCount[data.ProcessID] += 1;
-            };
-            eventSource.Process();
+                    if (!readyThreadCount.TryGetValue(data.ProcessID, out var _))
+                    {
+                        readyThreadCount[data.ProcessID] = 0;
+                    }
+
+                    readyThreadCount[data.ProcessID] += 1;
+                };
+                eventSource.Process();
+            }
 
             List<DataFrame> dataFrames = new();
 
