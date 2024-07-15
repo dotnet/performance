@@ -50,14 +50,18 @@ jobs:
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - name: internalParam
             value: "--internal"
-          - name: DownloadPdnParameter
-            value: --download-pdn
+          - ${{ if and(eq(parameters.osName, 'windows'), ne(parameters.architecture, 'x86')) }}:
+            - name: PdnPathParameter
+              value: '--pdn-path "$(Build.ArtifactStagingDirectory)\\PDN.zip"'
+          - ${{ else }}:
+            - name: PdnPathParameter
+              value: ''
           - group: DotNet-HelixApi-Access
           - group: dotnet-benchview
         - ${{ if not(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'))) }}:
           - name: internalParam
             value: ''
-          - name: DownloadPdnParameter
+          - name: PdnPathParameter
             value: ''
         workspace:
           clean: all
@@ -78,7 +82,17 @@ jobs:
         steps:
         - checkout: self
           clean: true
-        - script: $(Python) scripts/run_performance_job.py --performance-repo-ci --is-scenario --queue ${{ parameters.queue }} --channel $(_Channel) --architecture ${{ parameters.architecture }} --run-kind ${{ parameters.kind }} --affinity ${{ parameters.affinity }} $(runEnvVarsParam) --os-group ${{ parameters.osName }} $(runtimeFlavorParam) $(hybridGlobalizationParam) $(DownloadPdnParameter) --os-version ${{ parameters.osVersion }} $(_DotnetVersionParam) $(internalParam) --project-file $(Build.SourcesDirectory)/eng/performance/${{ parameters.projectFile }}
+        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+          - task: AzureCLI@2
+            condition: ne(variables.PdnPathParameter, '')
+            displayName: 'Download PDN'
+            inputs:
+              azureSubscription: '.NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)'
+              scriptType: 'pscore'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az storage blob download --auth-mode login --account-name pvscmdupload --container-name assets --name paint.net.5.0.3.portable.${{ parameters.architecture }}.zip --file $(Build.ArtifactStagingDirectory)/PDN.zip 
+        - script: $(Python) scripts/run_performance_job.py --performance-repo-ci --is-scenario --queue ${{ parameters.queue }} --channel $(_Channel) --architecture ${{ parameters.architecture }} --run-kind ${{ parameters.kind }} --affinity ${{ parameters.affinity }} $(runEnvVarsParam) --os-group ${{ parameters.osName }} $(runtimeFlavorParam) $(hybridGlobalizationParam) $(PdnPathParameter) --os-version ${{ parameters.osVersion }} $(_DotnetVersionParam) $(internalParam) --project-file $(Build.SourcesDirectory)/eng/performance/${{ parameters.projectFile }}
           displayName: Run run_performance_job.py
           env:
             HelixAccessToken: '$(HelixApiAccessToken)'

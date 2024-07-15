@@ -14,7 +14,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
             string command = $"run -f {frameworkVersion} --filter \"{filter}\" -c Release --noOverwrite --no-build";
 
             // [Optional] Add corerun.
-            if (!string.IsNullOrEmpty(run.Value.corerun)) 
+            if (!string.IsNullOrEmpty(run.Value.corerun))
             {
                 command += $" --corerun {run.Value.corerun}";
             }
@@ -28,9 +28,9 @@ namespace GC.Infrastructure.Core.CommandBuilders
             }
 
             // Add bdn arguments and output that must be added to the --bdn-arguments part of the command.
-            if (!string.IsNullOrEmpty(configuration.MicrobenchmarkConfigurations.bdn_arguments) || !string.IsNullOrEmpty(configuration.Output.Path) || ( run.Value.environment_variables != null && run.Value.environment_variables.Count != 0))
+            if (!string.IsNullOrEmpty(configuration.MicrobenchmarkConfigurations.bdn_arguments) || !string.IsNullOrEmpty(configuration.Output.Path) || (run.Value.environment_variables != null && run.Value.environment_variables.Count != 0))
             {
-                command += $" {configuration.MicrobenchmarkConfigurations.bdn_arguments}"; 
+                command += $" {configuration.MicrobenchmarkConfigurations.bdn_arguments}";
 
                 // Add artifacts.
                 if (!string.IsNullOrEmpty(configuration.Output.Path))

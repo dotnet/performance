@@ -9,7 +9,7 @@ namespace GC.Analysis.API
         public static Dictionary<string, Analyzer> GetAnalyzer(IEnumerable<string> tracePaths)
         {
             Dictionary<string, Analyzer> analyzers = new();
-            foreach(var tracePath in tracePaths)
+            foreach (var tracePath in tracePaths)
             {
                 Analyzer analyzer = new Analyzer(tracePath);
                 analyzers[tracePath] = analyzer;
@@ -22,7 +22,7 @@ namespace GC.Analysis.API
         {
             Dictionary<string, Analyzer> analyzers = new();
 
-            IEnumerable<string> allFiles = null;
+            IEnumerable<string> allFiles;
 
             if (!recursive)
             {
@@ -34,7 +34,7 @@ namespace GC.Analysis.API
                 allFiles = Directory.EnumerateFiles(basePath, "*", SearchOption.AllDirectories);
             }
 
-            foreach(var file in allFiles)
+            foreach (var file in allFiles)
             {
                 if (file.EndsWith("etl.zip"))
                 {
@@ -51,7 +51,7 @@ namespace GC.Analysis.API
                         analyzers[file] = analyzer;
                     }
                 }
-                
+
                 else if (file.EndsWith(".nettrace"))
                 {
                     Analyzer analyzer = new Analyzer(file);
@@ -66,7 +66,7 @@ namespace GC.Analysis.API
         {
             ConcurrentDictionary<string, Analyzer> analyzers = new();
 
-            IEnumerable<string> allFiles = null;
+            IEnumerable<string> allFiles;
 
             if (!recursive)
             {

@@ -1835,10 +1835,17 @@ class ArgsParser
         }
         else
         {
-            ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
-            ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
-            ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
-            uint sohAllocRatioArg = 1000 - lohAllocRatioArg - pohAllocRatioArg;
+            long meanSohObjSize = (long)Util.Mean(sohAllocLow, sohAllocHigh);
+            long meanLohObjSize = (long)Util.Mean(lohAllocLow, lohAllocHigh);
+            long meanPohObjSize = (long)Util.Mean(pohAllocLow, pohAllocHigh);
+            int sohAllocRatioArgInt = (int)(1000 - lohAllocRatioArg - pohAllocRatioArg);
+
+            // If sohAllocRationArg is zero, then the determinant of the matrix below will be zero,
+            // and the solution will fail.  Set it very small to get close.  A low value of
+            // sohAllocRatioArg may lead to a negative sohWeight (essentially trying to counteract
+            // the overhead if it already uses too much soh space), in which case the soh bucket
+            // will be dropped below.
+            double sohAllocRatioArg = (sohAllocRatioArgInt == 0) ? 0.0000001 : sohAllocRatioArgInt;
 
             /*
              * Solving for the weights by 3 linear equations using the Cramer's rule.
@@ -1854,8 +1861,8 @@ class ArgsParser
             double a31 = 1;
             double a32 = 1;
             double a33 = 1;
-            double b1 = lohAllocRatioArg * overhead;
-            double b2 = pohAllocRatioArg * overhead;
+            double b1 = 1000 * lohAllocRatioArg * overhead;
+            double b2 = 1000 * pohAllocRatioArg * overhead;
             double b3 = 1000;
             double det = a11 * a22 * a33 + a12 * a23 * a31 + a13 * a21 * a32 - a13 * a22 * a31 - a12 * a21 * a33 - a11 * a23 * a32;
             double sohWeight = ((b1 * a22 * a33 + a12 * a23 * b3 + a13 * b2 * a32 - a13 * a22 * b3 - a12 * b2 * a33 - b1 * a23 * a32) / det);

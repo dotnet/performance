@@ -99,7 +99,7 @@ class RunPerformanceJobArgs:
     use_local_commit_time: bool = False
     javascript_engine_path: Optional[str] = None
     maui_version: Optional[str] = None
-    download_pdn: bool = False
+    pdn_path: Optional[str] = None
     os_version: Optional[str] = None
     dotnet_version_link: Optional[str] = None
     target_csproj: Optional[str] = None
@@ -729,18 +729,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceLTTngProvider", "build.sh"),
                 "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")]).run()
         
-        # download PDN
-        if args.os_group == "windows" and args.architecture != "x86" and args.download_pdn:
-            print("Downloading PDN")
-            escaped_upload_token = str(os.environ.get("PerfCommandUploadTokenLinux")).replace("%25", "%")
-            pdn_url = f"https://pvscmdupload.blob.core.windows.net/assets/paint.net.5.0.3.portable.{args.architecture}.zip{escaped_upload_token}"
+        # copy PDN
+        if args.os_group == "windows" and args.architecture != "x86" and args.pdn_path is not None:
+            print("Copying PDN")
             pdn_dest = os.path.join(payload_dir, "PDN")
-            os.makedirs(pdn_dest, exist_ok=True)
             pdn_file_path = os.path.join(pdn_dest, "PDN.zip")
-            with urllib.request.urlopen(pdn_url) as response, open(pdn_file_path, "wb") as f:
-                data = response.read()
-                f.write(data)
-            print(f"PDN downloaded to {pdn_file_path}")
+            os.makedirs(pdn_dest, exist_ok=True)
+            shutil.copyfile(args.pdn_path, pdn_file_path)
+            print(f"PDN copied to {pdn_file_path}")
 
         # create a copy of the environment since we want these to only be set during the following invocation
         environ_copy = os.environ.copy()
@@ -932,8 +928,7 @@ def main(argv: List[str]):
             "--ios-strip-symbols": "ios_strip_symbols",
             "--hybrid-globalization": "hybrid_globalization",
             "--send-to-helix": "send_to_helix",
-            "--performance-repo-ci": "performance_repo_ci",
-            "--download-pdn": "download_pdn"
+            "--performance-repo-ci": "performance_repo_ci"
         }
 
         if key in bool_args:
@@ -976,6 +971,7 @@ def main(argv: List[str]):
             "--os-version": "os_version",
             "--dotnet-version-link": "dotnet_version_link",
             "--target-csproj": "target_csproj",
+            "--pdn-path": "pdn_path",
         }
 
         if key in simple_arg_map:
