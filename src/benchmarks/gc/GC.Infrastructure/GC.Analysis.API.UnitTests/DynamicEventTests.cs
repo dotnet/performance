@@ -147,13 +147,13 @@ namespace GC.Analysis.API.UnitTests
             },
         };
 
-        private DynamicEvent sampleEvent = new DynamicEvent(
+        private GCDynamicEvent sampleEvent = new GCDynamicEvent(
             "SampleEventName",
             DateTime.Now,
             new byte[] { 1, 0, 2, 0, 0, 0, 0, 0, 0, 0 }
         );
 
-        private DynamicEvent unknownEvent = new DynamicEvent(
+        private GCDynamicEvent unknownEvent = new GCDynamicEvent(
             "UnknownEventName",
             DateTime.Now,
             new byte[] { 1, 0, 2, 0, 0, 0, 0, 0, 0, 0 }
@@ -163,7 +163,7 @@ namespace GC.Analysis.API.UnitTests
         public void TestMissedSingleEvent()
         {
             DynamicEventSchema.Set(correctSingleSchema);
-            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>();
+            List<GCDynamicEvent> dynamicEvents = new List<GCDynamicEvent>();
             Action test = () =>
             {
                 dynamic index = new DynamicIndex(dynamicEvents);
@@ -175,7 +175,7 @@ namespace GC.Analysis.API.UnitTests
         public void TestDuplicatedSingleEvent()
         {
             DynamicEventSchema.Set(correctSingleSchema);
-            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>
+            List<GCDynamicEvent> dynamicEvents = new List<GCDynamicEvent>
             {
                 sampleEvent,
                 sampleEvent
@@ -191,7 +191,7 @@ namespace GC.Analysis.API.UnitTests
         public void TestSingleEvent()
         {
             DynamicEventSchema.Set(correctSingleSchema);
-            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>
+            List<GCDynamicEvent> dynamicEvents = new List<GCDynamicEvent>
             {
                 sampleEvent
             };
@@ -227,7 +227,7 @@ TimeStamp : *
         public void TestMissedMultipleEvent()
         {
             DynamicEventSchema.Set(correctMultipleSchema);
-            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>();
+            List<GCDynamicEvent> dynamicEvents = new List<GCDynamicEvent>();
             Action test = () =>
             {
                 dynamic index = new DynamicIndex(dynamicEvents);
@@ -239,7 +239,7 @@ TimeStamp : *
         public void TestTooManyMultipleEvents()
         {
             DynamicEventSchema.Set(correctMultipleSchema);
-            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>
+            List<GCDynamicEvent> dynamicEvents = new List<GCDynamicEvent>
             {
                 sampleEvent,
                 sampleEvent,
@@ -256,7 +256,7 @@ TimeStamp : *
         public void TestMultipleEvents()
         {
             DynamicEventSchema.Set(correctMultipleSchema);
-            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>
+            List<GCDynamicEvent> dynamicEvents = new List<GCDynamicEvent>
             {
                 sampleEvent,
                 sampleEvent,
@@ -286,7 +286,7 @@ TimeStamp : *
                     },
                 }
             );
-            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>();
+            List<GCDynamicEvent> dynamicEvents = new List<GCDynamicEvent>();
             dynamic index = new DynamicIndex(dynamicEvents);
             ((bool)(index.SampleEventName == null)).Should().Be(true);
         }
@@ -295,7 +295,7 @@ TimeStamp : *
         public void TestForgivingUnknownEvent()
         {
             DynamicEventSchema.Set(correctSingleSchema);
-            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>
+            List<GCDynamicEvent> dynamicEvents = new List<GCDynamicEvent>
             {
                 sampleEvent,
                 unknownEvent
@@ -308,7 +308,7 @@ TimeStamp : *
         public void TestReportingUnknownEvent()
         {
             DynamicEventSchema.Set(correctSingleSchema, false);
-            List<DynamicEvent> dynamicEvents = new List<DynamicEvent>
+            List<GCDynamicEvent> dynamicEvents = new List<GCDynamicEvent>
             {
                 sampleEvent,
                 unknownEvent
