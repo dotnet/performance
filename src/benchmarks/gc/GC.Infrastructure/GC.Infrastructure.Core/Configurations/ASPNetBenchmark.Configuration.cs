@@ -62,10 +62,11 @@
                 throw new ArgumentNullException($"{nameof(ASPNetBenchmarksConfigurationParser)}: {nameof(configuration.Output)} is null. Check the syntax of the configuration.");
             }
 
-            if (string.IsNullOrEmpty(configuration.Output.Path))
-            {
-                throw new ArgumentNullException($"{nameof(ASPNetBenchmarksConfigurationParser)}: {nameof(configuration.Output.Path)} is null or empty. Please specify an output path.");
-            }
+            // configuration.Output.Path can be null when creating suites for ene to end run. 
+            //if (string.IsNullOrEmpty(configuration.Output.Path))
+            //{
+            //    throw new ArgumentNullException($"{nameof(ASPNetBenchmarksConfigurationParser)}: {nameof(configuration.Output.Path)} is null or empty. Please specify an output path.");
+            //}
 
             if (configuration.Environment == null)
             {
