@@ -14,7 +14,6 @@ namespace Loops
 {
     [BenchmarkCategory(Categories.Runtime, Categories.JIT)]
     [GroupBenchmarksBy(BenchmarkDotNet.Configs.BenchmarkLogicalGroupRule.ByCategory)]
-    [MemoryRandomization]
     public class StrengthReduction
     {
         private short[] _arrayShorts;
