@@ -1,4 +1,3 @@
-
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -499,16 +498,6 @@ namespace Loops
         private struct S3
         {
             public byte A, B, C;
-        }
-
-        private struct S5
-        {
-            public byte A, B, C, D, E;
-        }
-
-        private struct S6
-        {
-            public ushort A, B, C;
         }
 
         public struct S8
