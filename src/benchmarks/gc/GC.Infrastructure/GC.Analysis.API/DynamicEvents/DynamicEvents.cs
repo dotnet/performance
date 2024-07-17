@@ -127,17 +127,17 @@ namespace GC.Analysis.API.DynamicEvents
     {
         private readonly Dictionary<string, object?> index;
 
-        public DynamicIndex(List<DynamicEvent> dynamicEvents)
+        public DynamicIndex(List<GCDynamicEvent> dynamicEvents)
         {
             this.index = new Dictionary<string, object?>();
-            Dictionary<string, List<DynamicEvent>> indexedEvents = new Dictionary<string, List<DynamicEvent>>();
+            Dictionary<string, List<GCDynamicEvent>> indexedEvents = new Dictionary<string, List<GCDynamicEvent>>();
             foreach (string eventName in DynamicEventSchema.DynamicEventSchemas.Keys)
             {
-                indexedEvents.Add(eventName, new List<DynamicEvent>());
+                indexedEvents.Add(eventName, new List<GCDynamicEvent>());
             }
-            foreach (DynamicEvent dynamicEvent in dynamicEvents)
+            foreach (GCDynamicEvent dynamicEvent in dynamicEvents)
             {
-                List<DynamicEvent>? dynamicEventList;
+                List<GCDynamicEvent>? dynamicEventList;
                 if (indexedEvents.TryGetValue(dynamicEvent.Name, out dynamicEventList))
                 {
                     dynamicEventList.Add(dynamicEvent);
@@ -152,7 +152,7 @@ namespace GC.Analysis.API.DynamicEvents
             }
             foreach (string eventName in DynamicEventSchema.DynamicEventSchemas.Keys)
             {
-                List<DynamicEvent> eventList = indexedEvents[eventName];
+                List<GCDynamicEvent> eventList = indexedEvents[eventName];
                 CompiledSchema schema = DynamicEventSchema.DynamicEventSchemas[eventName];
                 if (eventList.Count > schema.MaxOccurrence)
                 {
@@ -176,7 +176,7 @@ namespace GC.Analysis.API.DynamicEvents
                 else
                 {
                     List<DynamicEventObject> output = new List<DynamicEventObject>();
-                    foreach (DynamicEvent dynamicEvent in eventList)
+                    foreach (GCDynamicEvent dynamicEvent in eventList)
                     {
                         output.Add(new DynamicEventObject(dynamicEvent, schema));
                     }
@@ -196,7 +196,7 @@ namespace GC.Analysis.API.DynamicEvents
         private string name;
         private Dictionary<string, object> fieldValues;
 
-        public DynamicEventObject(DynamicEvent dynamicEvent, CompiledSchema schema)
+        public DynamicEventObject(GCDynamicEvent dynamicEvent, CompiledSchema schema)
         {
             this.name = dynamicEvent.Name;
             this.fieldValues = new Dictionary<string, object>();
