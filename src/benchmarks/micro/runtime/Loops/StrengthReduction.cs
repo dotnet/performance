@@ -22,8 +22,6 @@ namespace Loops
         private long[] _arrayLongs;
 
         private S3[] _arrayS3;
-        private S5[] _arrayS5;
-        private S6[] _arrayS6;
         private S8[] _arrayS8;
         private S12[] _arrayS12;
         private S16[] _arrayS16;
@@ -37,8 +35,6 @@ namespace Loops
             _arrayLongs = Enumerable.Range(0, 10000).Select(i => (long)i).ToArray();
 
             _arrayS3 = Enumerable.Range(0, 10000).Select(i => new S3 { A = (byte)i, B = (byte)i, C = (byte)i }).ToArray();
-            _arrayS5 = Enumerable.Range(0, 10000).Select(i => new S5 { A = (byte)i, B = (byte)i, C = (byte)i, D = (byte)i, E = (byte)i }).ToArray();
-            _arrayS6 = Enumerable.Range(0, 10000).Select(i => new S6 { A = (ushort)i, B = (ushort)i, C = (ushort)i, }).ToArray();
             _arrayS8 = Enumerable.Range(0, 10000).Select(i => new S8 { A = i, B = i, }).ToArray();
             _arrayS12 = Enumerable.Range(0, 10000).Select(i => new S12 { A = i, B = i, C = i, }).ToArray();
             _arrayS16 = Enumerable.Range(0, 10000).Select(i => new S16 { A = i, B = i, }).ToArray();
@@ -259,118 +255,6 @@ namespace Loops
                 do
                 {
                     S3 s = p;
-                    result += s.A | 1;
-                    p = ref Unsafe.Add(ref p, 1);
-                    length--;
-                } while (length != 0);
-            }
-
-            return result;
-        }
-
-        [Benchmark(Baseline = true), BenchmarkCategory("S5")]
-        public int SumS5Array()
-        {
-            return SumS5WithArray(_arrayS5);
-        }
-
-        [Benchmark, BenchmarkCategory("S5")]
-        public int SumS5Span()
-        {
-            return SumS5WithSpan(_arrayS5);
-        }
-
-        [Benchmark, BenchmarkCategory("S5")]
-        public int SumS5ArrayStrengthReduced()
-        {
-            return SumS5StrengthReducedWithArray(_arrayS5);
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private int SumS5WithArray(S5[] input)
-        {
-            int result = 0;
-            foreach (S5 s in input)
-                result += s.A | 1;
-            return result;
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private int SumS5WithSpan(ReadOnlySpan<S5> input)
-        {
-            int result = 0;
-            foreach (S5 s in input)
-                result += s.A | 1;
-            return result;
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private int SumS5StrengthReducedWithArray(S5[] input)
-        {
-            int result = 0;
-            uint length = (uint)input.Length;
-            if (length > 0)
-            {
-                ref S5 p = ref input[0];
-                do
-                {
-                    S5 s = p;
-                    result += s.A | 1;
-                    p = ref Unsafe.Add(ref p, 1);
-                    length--;
-                } while (length != 0);
-            }
-
-            return result;
-        }
-
-        [Benchmark(Baseline = true), BenchmarkCategory("S6")]
-        public int SumS6Array()
-        {
-            return SumS6WithArray(_arrayS6);
-        }
-
-        [Benchmark, BenchmarkCategory("S6")]
-        public int SumS6Span()
-        {
-            return SumS6WithSpan(_arrayS6);
-        }
-
-        [Benchmark, BenchmarkCategory("S6")]
-        public int SumS6ArrayStrengthReduced()
-        {
-            return SumS6StrengthReducedWithArray(_arrayS6);
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private int SumS6WithArray(S6[] input)
-        {
-            int result = 0;
-            foreach (S6 s in input)
-                result += s.A | 1;
-            return result;
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private int SumS6WithSpan(ReadOnlySpan<S6> input)
-        {
-            int result = 0;
-            foreach (S6 s in input)
-                result += s.A | 1;
-            return result;
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private int SumS6StrengthReducedWithArray(S6[] input)
-        {
-            int result = 0;
-            uint length = (uint)input.Length;
-            if (length > 0)
-            {
-                ref S6 p = ref input[0];
-                do
-                {
-                    S6 s = p;
                     result += s.A | 1;
                     p = ref Unsafe.Add(ref p, 1);
                     length--;
