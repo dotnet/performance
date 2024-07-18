@@ -7,7 +7,7 @@ namespace GC.Analysis.API
         private const string xAxisAsGCNumber = "GC #";
 
         public static PlotlyChart ChartCountForGCMethod((string name, List<CPUInfo> gcsToCost) data,
-                                                        string title, 
+                                                        string title,
                                                         ChartInfo? chartInfo = null)
         {
             Layout.Layout layout = ChartingHelpers.ConstructLayout(title: title, fieldName: data.name, xAxis: xAxisAsGCNumber, chartInfo: chartInfo);
@@ -47,7 +47,7 @@ namespace GC.Analysis.API
             Scatter gcScatter = new Scatter
             {
                 x = gcNumber,
-                y  = other.gcData,
+                y = other.gcData,
                 yaxis = "y2",
                 showlegend = true,
                 name = other.name,
@@ -57,13 +57,13 @@ namespace GC.Analysis.API
         }
 
         public static PlotlyChart ChartCountForGCMethods(IEnumerable<(string name, List<CPUInfo> gcsToCost)> data,
-                                                         string title, 
+                                                         string title,
                                                          ChartInfo? chartInfo = null)
         {
             Layout.Layout layout = ChartingHelpers.ConstructLayout(title: title, fieldName: "Inclusive Cost", xAxis: xAxisAsGCNumber, chartInfo: chartInfo);
             List<Scatter> scatters = new();
 
-            foreach(var d in data)
+            foreach (var d in data)
             {
                 List<float> cost = d.gcsToCost.Select(gc => gc.Count);
                 List<int> gcNumber = d.gcsToCost.Select(gc => gc.GC.Number);
@@ -83,7 +83,7 @@ namespace GC.Analysis.API
             return Chart.Plot(scatters, layout);
         }
 
-        public static PlotlyChart ChartCountForGCMethod(this CPUProcessData cpuProcessData, 
+        public static PlotlyChart ChartCountForGCMethod(this CPUProcessData cpuProcessData,
                                                         string methodName,
                                                         string title,
                                                         string caller,
@@ -92,7 +92,7 @@ namespace GC.Analysis.API
         {
             string countType = isInclusiveCount ? "Inclusive Count" : "Exclusive Count";
             Layout.Layout layout = ChartingHelpers.ConstructLayout(title: title, fieldName: countType, xAxis: xAxisAsGCNumber, chartInfo: chartInfo);
-            var data = cpuProcessData.GetPerGCMethodCost(methodName: methodName, caller: caller, isInclusiveCount : isInclusiveCount);
+            var data = cpuProcessData.GetPerGCMethodCost(methodName: methodName, caller: caller, isInclusiveCount: isInclusiveCount);
             List<float> cost = data.Select(gc => gc.Count);
             List<int> gcNumber = data.Select(gc => gc.GC.Number);
 
@@ -116,7 +116,7 @@ namespace GC.Analysis.API
         {
             string countType = isInclusiveCount ? "Inclusive Count" : "Exclusive Count";
             Layout.Layout layout = ChartingHelpers.ConstructLayout(title: title, fieldName: countType, xAxis: xAxisAsGCNumber, chartInfo: chartInfo);
-            var data = cpuProcessData.GetPerGCMethodCost(methodName: methodName, isInclusiveCount : isInclusiveCount);
+            var data = cpuProcessData.GetPerGCMethodCost(methodName: methodName, isInclusiveCount: isInclusiveCount);
             List<float> cost = data.Select(gc => gc.Count);
             List<int> gcNumber = data.Select(gc => gc.GC.Number);
 
@@ -132,10 +132,10 @@ namespace GC.Analysis.API
             return Chart.Plot(scatter, layout);
         }
 
-        public static PlotlyChart ChartCountForGCMethods(this CPUProcessData cpuProcessData, 
-                                                         IEnumerable<string> methodNames, 
-                                                         string title, 
-                                                         bool isInclusiveCount = true, 
+        public static PlotlyChart ChartCountForGCMethods(this CPUProcessData cpuProcessData,
+                                                         IEnumerable<string> methodNames,
+                                                         string title,
+                                                         bool isInclusiveCount = true,
                                                          ChartInfo? chartInfo = null)
         {
             string countType = isInclusiveCount ? "Inclusive Count" : "Exclusive Count";
@@ -145,7 +145,7 @@ namespace GC.Analysis.API
 
             foreach (var methodName in methodNames)
             {
-                var data = cpuProcessData.GetPerGCMethodCost(methodName: methodName, isInclusiveCount : isInclusiveCount);
+                var data = cpuProcessData.GetPerGCMethodCost(methodName: methodName, isInclusiveCount: isInclusiveCount);
                 List<float> cost = data.Select(gc => gc.Count);
                 List<int> gcNumber = data.Select(gc => gc.GC.Number);
 

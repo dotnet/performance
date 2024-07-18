@@ -7,16 +7,16 @@ namespace GC.Infrastructure.Core.Configurations
     {
         private static readonly Lazy<IDeserializer> _deserializer =
             new Lazy<IDeserializer>(new DeserializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build());
-        private static readonly Lazy<ISerializer> _serializer     =
+        private static readonly Lazy<ISerializer> _serializer =
             new Lazy<ISerializer>(new SerializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build());
         public static IDeserializer Deserializer => _deserializer.Value;
-        public static ISerializer Serializer     => _serializer.Value;
+        public static ISerializer Serializer => _serializer.Value;
     }
 
     public class CoreRunInfo
     {
         public string Path { get; set; }
-        public Dictionary<string, string> environment_variables { get; set; } 
+        public Dictionary<string, string> environment_variables { get; set; }
     }
 
     public static class ConfigurationChecker

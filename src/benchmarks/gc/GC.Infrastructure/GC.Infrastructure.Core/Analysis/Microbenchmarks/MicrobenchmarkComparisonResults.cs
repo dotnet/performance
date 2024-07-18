@@ -6,13 +6,13 @@
     {
         public MicrobenchmarkComparisonResults(string baselineName, string runName, IEnumerable<MicrobenchmarkComparisonResult> comparisons)
         {
-            Comparisons  = comparisons;
-            BaselineName = baselineName; 
-            RunName      = runName;
+            Comparisons = comparisons;
+            BaselineName = baselineName;
+            RunName = runName;
         }
 
         public string BaselineName { get; }
-        public string RunName      { get; }
+        public string RunName { get; }
         public string MarkdownIdentifier => $"#{BaselineName.ToLowerInvariant()}-vs-{RunName.ToLowerInvariant()}";
 
         public IEnumerable<MicrobenchmarkComparisonResult> Comparisons { get; }

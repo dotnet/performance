@@ -6,10 +6,10 @@ using GC.Infrastructure.Core.Configurations.Microbenchmarks;
 
 namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 {
-    public static class Markdown 
+    public static class Markdown
     {
         private const string baseTableString = "| Benchmark Name | Baseline | Comparand | Baseline Mean Duration (MSec) | Comparand Mean Duration (MSec) | Δ Mean Duration (MSec) | Δ% Mean Duration |";
-        private const string baseTableRows   = "| --- | --- | -- | --- | --- | --- | --- | ";
+        private const string baseTableRows = "| --- | --- | -- | --- | --- | --- | --- | ";
 
         public static void GenerateTable(MicrobenchmarkConfiguration configuration, IReadOnlyList<MicrobenchmarkComparisonResults> comparisonResults, Dictionary<string, ProcessExecutionDetails> executionDetails, string path)
         {
@@ -86,7 +86,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 
             if (configuration.Output.additional_report_metrics != null)
             {
-                foreach(var metric in configuration.Output.additional_report_metrics)
+                foreach (var metric in configuration.Output.additional_report_metrics)
                 {
                     sw.WriteLine($"## Comparison by {metric}");
                     var ordered = comparisonResult.Comparisons.OrderByDescending(c => c.GetDiffPercentFromOtherMetrics(metric));
@@ -100,7 +100,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                     sw.WriteLine($"### Large Improvements (>20%): {comparisonResult.LargeImprovements.Count()} \n");
                     var largeImprovements = GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) < -0.2);
                     largeImprovements.Reverse();
-                    sw.AddTableForSingleCriteria(configuration, largeImprovements); 
+                    sw.AddTableForSingleCriteria(configuration, largeImprovements);
                     sw.WriteLine("\n");
 
                     // Regressions
@@ -112,7 +112,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                     sw.WriteLine($"### Improvements (5% - 20%): {comparisonResult.Improvements.Count()} \n");
                     var improvements = GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) > 0.05 && o.GetDiffPercentFromOtherMetrics(metric) < 0.2);
                     improvements.Reverse();
-                    sw.AddTableForSingleCriteria(configuration, improvements); 
+                    sw.AddTableForSingleCriteria(configuration, improvements);
                     sw.WriteLine("\n");
 
                     // Stale Regressions
@@ -124,7 +124,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                     sw.WriteLine($"### Stale Improvements (Same or percent difference within 5% margin): {comparisonResult.StaleImprovements.Count()} \n");
                     var staleImprovements = GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) > -0.05 && o.GetDiffPercentFromOtherMetrics(metric) < 0.0);
                     staleImprovements.Reverse();
-                    sw.AddTableForSingleCriteria(configuration, staleImprovements); 
+                    sw.AddTableForSingleCriteria(configuration, staleImprovements);
                     sw.WriteLine("\n");
                 }
             }
@@ -138,7 +138,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 
             if (configuration.Output.Columns != null)
             {
-                foreach(var column in configuration.Output.Columns)
+                foreach (var column in configuration.Output.Columns)
                 {
                     tableHeader0 += $"Baseline {column}  | Comparand {column} |  Δ {column} |  Δ% {column} |";
                     tableHeader1 += "--- | --- | --- | --- |";
@@ -147,7 +147,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 
             if (configuration.Output.cpu_columns != null)
             {
-                foreach(var column in configuration.Output.cpu_columns)
+                foreach (var column in configuration.Output.cpu_columns)
                 {
                     tableHeader0 += $"Baseline {column}  | Comparand {column} |  Δ {column} |  Δ% {column} |";
                     tableHeader1 += "--- | --- | --- | --- |";
@@ -157,15 +157,15 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
             sw.WriteLine(tableHeader0);
             sw.WriteLine(tableHeader1);
 
-            foreach(var lr in comparisons)
+            foreach (var lr in comparisons)
             {
                 try
                 {
-                    var baseRow = $"| {lr.MicrobenchmarkName} | {lr.BaselineRunName} | {lr.ComparandRunName} | {Math.Round(lr.Baseline.Statistics.Mean.Value, 2)} | {Math.Round(lr.Comparand.Statistics.Mean.Value, 2)} | {Math.Round(lr.MeanDiff,2 )}| {Math.Round(lr.MeanDiffPerc, 2)}|";
+                    var baseRow = $"| {lr.MicrobenchmarkName} | {lr.BaselineRunName} | {lr.ComparandRunName} | {Math.Round(lr.Baseline.Statistics.Mean.Value, 2)} | {Math.Round(lr.Comparand.Statistics.Mean.Value, 2)} | {Math.Round(lr.MeanDiff, 2)}| {Math.Round(lr.MeanDiffPerc, 2)}|";
 
                     if (configuration.Output.Columns != null)
                     {
-                        foreach(var column in configuration.Output.Columns)
+                        foreach (var column in configuration.Output.Columns)
                         {
                             if (!lr.Baseline.OtherMetrics.TryGetValue(column, out double? baselineValue))
                             {
@@ -191,7 +191,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 
                     if (configuration.Output.cpu_columns != null)
                     {
-                        foreach(var column in configuration.Output.cpu_columns)
+                        foreach (var column in configuration.Output.cpu_columns)
                         {
                             if (!lr.Baseline.OtherMetrics.TryGetValue(column, out double? baselineValue))
                             {
@@ -226,7 +226,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
             }
 
             // Dispose all the Analyzers now that we are persisting the values.
-            foreach(var comparison in comparisons)
+            foreach (var comparison in comparisons)
             {
                 comparison.Baseline?.GCData?.Parent?.Dispose();
                 comparison.Baseline?.CPUData?.Parent?.Analyzer?.Dispose();
