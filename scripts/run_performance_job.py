@@ -166,7 +166,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             f"{python} -m pip install azure.storage.blob==12.13.0 --force-reinstall",
             f"{python} -m pip install azure.storage.queue==12.4.0 --force-reinstall",
             f"{python} -m pip install azure.identity==1.16.1 --force-reinstall",
-            f"{python} -m pip install urllib3==1.26.18 --force-reinstall",
+            f"{python} -m pip install urllib3==1.26.19 --force-reinstall",
         ]
 
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
@@ -752,7 +752,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         # TODO: See if these commands are needed for linux as they were being called before but were failing.
         if args.os_group == "windows" or args.os_group == "osx":
             RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
-            RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.18"]).run()
+            RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
             RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
 
         scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
