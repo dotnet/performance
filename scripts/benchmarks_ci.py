@@ -335,10 +335,8 @@ def main(argv: List[str]):
                 for file in glob(globpath, recursive=True):
                     shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
 
-                bdn_artifacts_zip_file_name = "bdn-artifacts.zip"
-                bdn_artifacts_zip_file_path = os.path.join(helix_upload_root, bdn_artifacts_zip_file_name)
-                shutil.make_archive(bdn_artifacts_zip_file_path, 'zip', artifacts_dir)
-                getLogger().info(f"Created {bdn_artifacts_zip_file_name}")
+                shutil.make_archive(os.path.join(helix_upload_root, "bdn-artifacts"), 'zip', artifacts_dir)
+                getLogger().info("Created \"bdn-artifacts\".zip")
             else:
                 getLogger().info("Skipping upload of artifacts to Helix as HELIX_WORKITEM_UPLOAD_ROOT environment variable is not set.")
 
