@@ -12,13 +12,13 @@ namespace GC.Infrastructure.Commands.RunCommand
 {
     public sealed class CreateSuitesCommand : Command<CreateSuitesCommand.CreateSuitesSettings>
     {
-        private static readonly string _baseSuitePath      = Path.Combine("Commands", "RunCommand", "BaseSuite"); 
+        private static readonly string _baseSuitePath = Path.Combine("Commands", "RunCommand", "BaseSuite");
         // Removed the high volatility configuration.  
         //private static readonly string _gcPerfSimBase      = Path.Combine(_baseSuitePath, "GCPerfSim_Normal_Workstation.yaml");
         private static readonly string _gcPerfSimBaseLowVolatility = Path.Combine(_baseSuitePath, "LowVolatilityRuns.yaml");
         private static readonly string _microbenchmarkBase = Path.Combine(_baseSuitePath, "Microbenchmarks.yaml");
-        private static readonly string _aspNetBase         = Path.Combine(_baseSuitePath, "ASPNetBenchmarks.yaml");
-        private static readonly ISerializer _serializer    = Common.Serializer;
+        private static readonly string _aspNetBase = Path.Combine(_baseSuitePath, "ASPNetBenchmarks.yaml");
+        private static readonly ISerializer _serializer = Common.Serializer;
 
         public sealed class CreateSuitesSettings : CommandSettings
         {
@@ -59,7 +59,7 @@ namespace GC.Infrastructure.Commands.RunCommand
                 string outputSymbolPath = Path.Combine(configuration.output_path, "Symbols");
                 Core.Utilities.TryCreateDirectory(outputSymbolPath);
 
-                foreach (var paths in configuration.symbol_path) 
+                foreach (var paths in configuration.symbol_path)
                 {
                     string pathToSymbols = Path.Combine(outputSymbolPath, paths.Key);
                     Core.Utilities.TryCreateDirectory(pathToSymbols);
@@ -73,7 +73,7 @@ namespace GC.Infrastructure.Commands.RunCommand
                 string outputSourcePath = Path.Combine(configuration.output_path, "Sources");
                 Core.Utilities.TryCreateDirectory(outputSourcePath);
 
-                foreach (var paths in configuration.source_path) 
+                foreach (var paths in configuration.source_path)
                 {
                     string pathToSource = Path.Combine(outputSourcePath, paths.Key);
                     Core.Utilities.TryCreateDirectory(pathToSource);
@@ -130,8 +130,8 @@ namespace GC.Infrastructure.Commands.RunCommand
                 // ASPNET benchmarks is any file that gets uploaded to the servers
                 foreach (var envVars in r.Value.environment_variables)
                 {
-                    if (string.CompareOrdinal(envVars.Key, "COMPlus_GCName") == 0 ||
-                        string.CompareOrdinal(envVars.Key, "DOTNET_GCName") == 0 )
+                    if (string.CompareOrdinal(envVars.Key, "DOTNET_GCName") == 0 ||
+                        string.CompareOrdinal(envVars.Key, "DOTNET_GCName") == 0)
                     {
                         string directoryOfCorerun = Path.GetDirectoryName(r.Value.Path)!;
                         run.corerun = Path.Combine(directoryOfCorerun, envVars.Value);
@@ -175,14 +175,14 @@ namespace GC.Infrastructure.Commands.RunCommand
 
             // Workstation Runs.
             MicrobenchmarkConfiguration workstation = CreateBaseMicrobenchmarkSuite(inputConfiguration, destinationMicrobenchmarksToRun, destinationMicrobenchmarkInvocationCount);
-            foreach(var r in workstation.Runs)
+            foreach (var r in workstation.Runs)
             {
                 if (r.Value.environment_variables == null)
                 {
                     r.Value.environment_variables = new();
                 }
 
-                r.Value.environment_variables["COMPlus_GCServer"] = "0";
+                r.Value.environment_variables["DOTNET_gcServer"] = "0";
             }
 
             workstation.Name = "Workstation";
@@ -193,14 +193,14 @@ namespace GC.Infrastructure.Commands.RunCommand
             // Server Runs.
             MicrobenchmarkConfiguration server = CreateBaseMicrobenchmarkSuite(inputConfiguration, destinationMicrobenchmarksToRun, destinationMicrobenchmarkInvocationCount);
             server.Name = "Server";
-            foreach(var r in server.Runs)
+            foreach (var r in server.Runs)
             {
                 if (r.Value.environment_variables == null)
                 {
                     r.Value.environment_variables = new();
                 }
 
-                r.Value.environment_variables["COMPlus_GCServer"] = "1";
+                r.Value.environment_variables["DOTNET_gcServer"] = "1";
             }
             server.microbenchmarks_path = inputConfiguration.microbenchmark_path;
             server.Output.Path = Path.Combine(microbenchmarkOutputPath, "Server");
@@ -220,7 +220,7 @@ namespace GC.Infrastructure.Commands.RunCommand
                 configuration.Runs.Add(corerun.Key, new Core.Configurations.Microbenchmarks.Run
                 {
                     corerun = corerun.Value.Path,
-                    Name    = corerun.Key,
+                    Name = corerun.Key,
                     environment_variables = corerun.Value.environment_variables
                 });
             }
@@ -233,7 +233,7 @@ namespace GC.Infrastructure.Commands.RunCommand
             configuration.MicrobenchmarkConfigurations.FilterPath = microbenchmarkFilterFile;
 
             // Microbenchmark Invocation Count Path.
-            configuration.MicrobenchmarkConfigurations.InvocationCountPath = microbenchmarkInvocationCountFile; 
+            configuration.MicrobenchmarkConfigurations.InvocationCountPath = microbenchmarkInvocationCountFile;
 
             // Update Trace Configuration type.
             configuration.TraceConfigurations.Type = inputConfiguration.trace_configuration_type.ToLower();
@@ -242,7 +242,7 @@ namespace GC.Infrastructure.Commands.RunCommand
             string baseMicrobenchmarkPath = Path.Combine(inputConfiguration.output_path, "Microbenchmarks");
             Core.Utilities.TryCreateDirectory(baseMicrobenchmarkPath);
 
-            configuration.Output.Path = baseMicrobenchmarkPath; 
+            configuration.Output.Path = baseMicrobenchmarkPath;
             return configuration;
         }
 
@@ -279,7 +279,7 @@ namespace GC.Infrastructure.Commands.RunCommand
         internal static GCPerfSimConfiguration GetBaseConfiguration(InputConfiguration inputConfiguration, string name)
         {
             GCPerfSimConfiguration baseConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBaseLowVolatility, isIncompleteConfiguration: true);
-            baseConfiguration.Output.Path = Path.Combine(inputConfiguration.output_path, name); 
+            baseConfiguration.Output.Path = Path.Combine(inputConfiguration.output_path, name);
             baseConfiguration.TraceConfigurations.Type = inputConfiguration.trace_configuration_type.ToLower();
             baseConfiguration.gcperfsim_configurations.gcperfsim_path = inputConfiguration.gcperfsim_path;
             baseConfiguration.coreruns = inputConfiguration.coreruns;
@@ -309,8 +309,8 @@ namespace GC.Infrastructure.Commands.RunCommand
             normalServerCase.gcperfsim_configurations.Parameters["tagb"] = (30 * logicalProcessors).ToString();
 
             // Set the environment variables appropriately.
-            normalServerCase.Environment.environment_variables["COMPlus_GCServer"]    = "1";
-            normalServerCase.Environment.environment_variables["COMPlus_GCHeapCount"] = logicalProcessors.ToString("x");
+            normalServerCase.Environment.environment_variables["DOTNET_gcServer"] = "1";
+            normalServerCase.Environment.environment_variables["DOTNET_GCHeapCount"] = logicalProcessors.ToString("x");
             normalServerCase.Name = Path.GetFileNameWithoutExtension(name);
 
             return normalServerCase;
@@ -335,16 +335,16 @@ namespace GC.Infrastructure.Commands.RunCommand
             workstationRun.override_parameters["tlgb"] = "3";
             workstationRun.override_parameters["sohsi"] = "50";
             workstationRun.environment_variables = new();
-            workstationRun.environment_variables["COMPlus_GCServer"] = "0";
+            workstationRun.environment_variables["DOTNET_gcServer"] = "0";
             highMemoryConfiguration.Runs.Add("workstation", workstationRun);
 
-            highMemoryConfiguration.Environment.environment_variables["COMPlus_GCServer"] = "1";
+            highMemoryConfiguration.Environment.environment_variables["DOTNET_gcServer"] = "1";
             int logicalProcessors = GetAppropriateLogicalProcessors();
-            highMemoryConfiguration.Environment.environment_variables["COMPlus_GCHeapCount"] = logicalProcessors.ToString("x");
+            highMemoryConfiguration.Environment.environment_variables["DOTNET_GCHeapCount"] = logicalProcessors.ToString("x");
 
             // Add the appropriate environment variables.
-            highMemoryConfiguration.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x100000000";
-            highMemoryConfiguration.Environment.environment_variables["COMPlus_GCTotalPhysicalMemory"] = "0x100000000";
+            highMemoryConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimit"] = "0x100000000";
+            highMemoryConfiguration.Environment.environment_variables["DOTNET_GCTotalPhysicalMemory"] = "0x100000000";
             highMemoryConfiguration.Name = name;
             return highMemoryConfiguration;
         }
@@ -370,15 +370,15 @@ namespace GC.Infrastructure.Commands.RunCommand
             workstationRun.override_parameters["tagb"] = "100";
             workstationRun.override_parameters["tlgb"] = "0.5";
             workstationRun.environment_variables = new();
-            workstationRun.environment_variables["COMPlus_GCServer"] = "0";
+            workstationRun.environment_variables["DOTNET_gcServer"] = "0";
             lowMemoryConfigurationCase.Runs.Add("workstation", workstationRun);
 
-            lowMemoryConfigurationCase.Environment.environment_variables["COMPlus_GCServer"] = "1";
-            lowMemoryConfigurationCase.Environment.environment_variables["COMPlus_GCHeapCount"] = "4";
+            lowMemoryConfigurationCase.Environment.environment_variables["DOTNET_gcServer"] = "1";
+            lowMemoryConfigurationCase.Environment.environment_variables["DOTNET_GCHeapCount"] = "4";
 
             // Add the appropriate environment variables.
-            lowMemoryConfigurationCase.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x23C34600";
-            lowMemoryConfigurationCase.Environment.environment_variables["COMPlus_GCTotalPhysicalMemory"] = "0x23C34600";
+            lowMemoryConfigurationCase.Environment.environment_variables["DOTNET_GCHeapHardLimit"] = "0x23C34600";
+            lowMemoryConfigurationCase.Environment.environment_variables["DOTNET_GCTotalPhysicalMemory"] = "0x23C34600";
             lowMemoryConfigurationCase.Name = name;
             return lowMemoryConfigurationCase;
         }
@@ -386,9 +386,9 @@ namespace GC.Infrastructure.Commands.RunCommand
         internal static GCPerfSimConfiguration CreateLargePagesWithServer(InputConfiguration inputConfiguration, string name)
         {
             GCPerfSimConfiguration largePagesServer = CreateNormalServerCase(inputConfiguration, name);
-            largePagesServer.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
+            largePagesServer.Environment.environment_variables["DOTNET_GCLargePages"] = "1";
             // This is a particularly memory intensive test that needs to be revisited. (~40 GB needed)
-            largePagesServer.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x960000000";
+            largePagesServer.Environment.environment_variables["DOTNET_GCHeapHardLimit"] = "0x960000000";
             largePagesServer.Name = name;
             return largePagesServer;
         }
@@ -396,9 +396,9 @@ namespace GC.Infrastructure.Commands.RunCommand
         internal static GCPerfSimConfiguration CreateLargePagesWithWorkstation(InputConfiguration inputConfiguration, string name)
         {
             GCPerfSimConfiguration largePagesWorkstation = GetBaseConfiguration(inputConfiguration, name);
-            largePagesWorkstation.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
+            largePagesWorkstation.Environment.environment_variables["DOTNET_GCLargePages"] = "1";
             // This is a particularly memory intensive test that needs to be revisited. (~40 GB needed)
-            largePagesWorkstation.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x960000000";
+            largePagesWorkstation.Environment.environment_variables["DOTNET_GCHeapHardLimit"] = "0x960000000";
             largePagesWorkstation.Name = name;
             return largePagesWorkstation;
         }
@@ -408,7 +408,7 @@ namespace GC.Infrastructure.Commands.RunCommand
             int logicalProcessors = System.Environment.ProcessorCount;
             switch (logicalProcessors)
             {
-                case int lp when lp > 4:  return logicalProcessors - 2;
+                case int lp when lp > 4: return logicalProcessors - 2;
                 case int lp when lp > 2 && lp <= 4: return logicalProcessors - 1;
                 default:
                     return logicalProcessors;

@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-- [Profiling workflow for dotnet/runtime repository](#top)
+- [Profiling workflow for dotnet/runtime repository {#top}](#profiling-workflow-for-dotnetruntime-repository-top)
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
   - [Prerequisites](#prerequisites)
@@ -65,16 +65,16 @@ The build produces two things that we care about:
 * `dotnet` and all `System.XYZ.dlls` used internally to run Libraries unit tests. It can be used by Visual Studio Profiler to run the code that you want to profile. Example:
 
 ```log
-C:\Projects\runtime\artifacts\bin\testhost\net8.0-windows-Release-x64\dotnet.exe
+C:\Projects\runtime\artifacts\bin\testhost\net9.0-windows-Release-x64\dotnet.exe
 ```
 
 * `CoreRun` and all `System.XYZ.dlls` that can be used to run the code that you want to profile. Example:
 
 ```log
-C:\Projects\runtime\artifacts\bin\testhost\net8.0-windows-Release-x64\shared\Microsoft.NETCore.App\8.0.0\CoreRun.exe
+C:\Projects\runtime\artifacts\bin\testhost\net9.0-windows-Release-x64\shared\Microsoft.NETCore.App\9.0.0\CoreRun.exe
 ```
 
-* But the dotnet/runtime build only produces the artifacts necessary for a _runtime_, not for an _sdk_. Visual Studio will require a full SDK to be able to compile your console app from the next step. One way to convert your generated _runtime_ into a full _sdk_, is to navigate to the `runtime\.dotnet\` folder, copy the `packs` and `sdk` folders located inside, and then paste them inside `runtime\artifacts\bin\testhost\net8.0-windows-Release-x64\`.
+* But the dotnet/runtime build only produces the artifacts necessary for a _runtime_, not for an _sdk_. Visual Studio will require a full SDK to be able to compile your console app from the next step. One way to convert your generated _runtime_ into a full _sdk_, is to navigate to the `runtime\.dotnet\` folder, copy the `packs` and `sdk` folders located inside, and then paste them inside `runtime\artifacts\bin\testhost\net9.0-windows-Release-x64\`.
 
 Once you rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime) you are working on, the appropriate `.dll` gets updated and the next time you run profiler, dotnet|CoreRun is going to use the updated library.
 
@@ -134,7 +134,7 @@ It's recommended to disable Tiered JIT (to avoid the need of warmup) and emit fu
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
 
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
@@ -178,7 +178,7 @@ start %sln%
 You can just save it as `startvs.cmd` file and run providing path to the `testhost` folder produced by [dotnet/runtime](https://github.com/dotnet/runtime) build and a VS solution with repo project:
 
 ```cmd
-startvs.cmd "C:\Projects\runtime\artifacts\bin\testhost\net8.0-windows-Release-x64\" "C:\Projects\repro\ProfilingDocs.sln"
+startvs.cmd "C:\Projects\runtime\artifacts\bin\testhost\net9.0-windows-Release-x64\" "C:\Projects\repro\ProfilingDocs.sln"
 ```
 
 ### CPU Usage

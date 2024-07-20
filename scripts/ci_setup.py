@@ -345,7 +345,7 @@ def main(args: Any):
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
 
-    # if repository is not set, then we are doing a core-sdk in performance repo run
+    # if repository is not set, then we are doing a sdk in performance repo run
     # if repository is set, user needs to supply the commit_sha
     use_core_sdk = args.repository is None
     if not ((args.commit_sha is None) == use_core_sdk):
@@ -397,7 +397,7 @@ def main(args: Any):
     path_variable = 'set PATH=%s;%%PATH%%\n' if args.target_windows else 'export PATH=%s:$PATH\n'
     which = 'where dotnet\n' if args.target_windows else 'which dotnet\n'
     dotnet_path = '%HELIX_CORRELATION_PAYLOAD%\\dotnet' if args.target_windows else '$HELIX_CORRELATION_PAYLOAD/dotnet'
-    owner, repo = ('dotnet', 'core-sdk') if repo_url is None else (dotnet.get_repository(repo_url))
+    owner, repo = ('dotnet', 'sdk') if repo_url is None else (dotnet.get_repository(repo_url))
     config_string = ';'.join(args.build_configs) if args.target_windows else "%s" % ';'.join(args.build_configs)
     pgo_config = ''
     physical_promotion_config = ''
@@ -414,14 +414,12 @@ def main(args: Any):
     if args.r2r_status == 'nor2r':
         r2r_config = variable_format % ('DOTNET_ReadyToRun', '0')
 
-    if args.experiment_name == "crossblocklocalassertionprop":
-        experiment_config = variable_format % ('DOTNET_JitEnableCrossBlockLocalAssertionProp', '1')
-    elif args.experiment_name == "gdv3":
-        experiment_config = variable_format % ('DOTNET_JitGuardedDevirtualizationMaxTypeChecks', '3')
-    elif args.experiment_name == "rlcse":
+    if args.experiment_name == "rlcse":
         experiment_config = variable_format % ('DOTNET_JitRLCSEGreedy', '1')
     elif args.experiment_name == "jitoptrepeat":
         experiment_config = variable_format % ('DOTNET_JitOptRepeat', '*')
+    elif args.experiment_name == "rpolayout":
+        experiment_config = variable_format % ('DOTNET_JitDoReversePostOrderLayout', '1')
 
     output = ''
 
@@ -449,7 +447,7 @@ def main(args: Any):
 
     if not framework.startswith('net4'):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
-        dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
+        dotnet_version = dotnet.get_dotnet_version_precise(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if use_core_sdk else args.commit_sha
 
         if args.local_build:

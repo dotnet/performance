@@ -2,9 +2,9 @@
 {
     public sealed class InputConfiguration
     {
-        public string output_path                   { get; set; }
-        public string gcperfsim_path                { get; set; }
-        public string microbenchmark_path           { get; set; }
+        public string output_path { get; set; }
+        public string gcperfsim_path { get; set; }
+        public string microbenchmark_path { get; set; }
         public Dictionary<string, CoreRunInfo> coreruns { get; set; }
         public Dictionary<string, CoreRunInfo>? linux_coreruns { get; set; }
         public Dictionary<string, string>? environment_variables { get; set; }
@@ -43,6 +43,13 @@
             if (string.IsNullOrEmpty(configuration.microbenchmark_path) || !Directory.Exists(configuration.microbenchmark_path))
             {
                 throw new ArgumentException($"{nameof(InputConfigurationParser)}: A path to the microbenchmarks must be provided or exist.");
+            }
+
+            // Check if the user passes any COMPlus environment variables.
+            ConfigurationChecker.VerifyEnvironmentVariables(configuration.environment_variables, $"{nameof(InputConfigurationParser)}");
+            foreach (var run in configuration.coreruns)
+            {
+                ConfigurationChecker.VerifyEnvironmentVariables(run.Value.environment_variables, $"{nameof(InputConfigurationParser)} with Run {run.Key}");
             }
 
             return configuration;

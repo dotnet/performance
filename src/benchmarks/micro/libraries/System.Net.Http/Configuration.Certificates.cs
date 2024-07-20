@@ -27,6 +27,7 @@ namespace System.Net.Test.Common
             {
                 try
                 {
+                    #pragma warning disable SYSLIB0057 // Warning disabled per https://github.com/dotnet/docs/issues/41662, TODO: Update to use X509CertificateLoader.LoadPkcs12FromFile we are able to use it (will need to version block with this regardless).
                     return new X509Certificate2(
                          File.ReadAllBytes(
                              Path.Combine(
@@ -36,6 +37,7 @@ namespace System.Net.Test.Common
                                  certificateFileName)),
                          CertificatePassword,
                          X509KeyStorageFlags.DefaultKeySet);
+                    #pragma warning restore SYSLIB0057
                 }
                 catch (Exception)
                 {

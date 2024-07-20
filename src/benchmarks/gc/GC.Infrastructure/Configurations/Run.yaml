@@ -6,11 +6,11 @@ coreruns:
     baseline: 
       path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
       environment_variables:
-          COMPlus_GCName: clrgc.dll
+          DOTNET_GCName: clrgc.dll
     run:
       path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
       environment_variables:
-          COMPlus_GCName: clrgc.dll
+          DOTNET_GCName: clrgc.dll
 
 trace_configuration_type: gc # Choose between: none, gc, verbose, cpu, cpu_managed, threadtime, join.
 

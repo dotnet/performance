@@ -5,14 +5,14 @@ coreruns:
   segments:
     path: C:\runtime_rc2\artifacts\tests\coreclr\windows.x64.Release\Tests\Core_Root\corerun.exe
     environment_variables:
-      COMPlus_GCName: clrgc.dll
+      DOTNET_GCName: clrgc.dll
   regions:
     path: C:\runtime_ga\artifacts\tests\coreclr\windows.x64.Release\Tests\Core_Root\corerun.exe
     environment_variables:
-      COMPlus_GCName: clrgcexp.dll
+      DOTNET_GCName: clrgcexp.dll
 
 environment:
   environment_variables:
-    COMPlus_GCServer: 1
+    DOTNET_gcServer: 1
 
 trace_configuration_type: none # Choose between: none, gc, verbose, cpu, cpu_managed, threadtime, join.

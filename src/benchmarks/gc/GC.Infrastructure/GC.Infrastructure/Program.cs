@@ -5,6 +5,7 @@ using GC.Infrastructure.Commands.RunCommand;
 using Microsoft.Win32;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 
 namespace GC.Infrastructure
@@ -13,16 +14,23 @@ namespace GC.Infrastructure
     {
         internal static void Main(string[] args)
         {
-            if (!IsAdministrator)
-            {
-                AnsiConsole.WriteLine("Not running in admin mode - please elevate privileges to run this process.");
-                return;
-            }
+            RegistryKey? registrykeyHKLM = null;
+            string? keyPath = null;
+            string? oldValue = null;
 
-            RegistryKey registrykeyHKLM = Registry.CurrentUser;
-            string keyPath = @"Software\Microsoft\Windows\Windows Error Reporting\DontShowUI";
-            string oldValue = registrykeyHKLM.GetValue(keyPath)?.ToString() ?? 0x0.ToString();
-            registrykeyHKLM.SetValue(keyPath, 0x1, RegistryValueKind.DWord);
+            if (OperatingSystem.IsWindows())
+            {
+                if (!IsAdministrator)
+                {
+                    AnsiConsole.WriteLine("Not running in admin mode - please elevate privileges to run this process.");
+                    return;
+                }
+
+                registrykeyHKLM = Registry.CurrentUser;
+                keyPath = @"Software\Microsoft\Windows\Windows Error Reporting\DontShowUI";
+                oldValue = registrykeyHKLM.GetValue(keyPath)?.ToString() ?? 0x0.ToString();
+                registrykeyHKLM.SetValue(keyPath, 0x1, RegistryValueKind.DWord);
+            }
 
             // TODO: Do the same thing for Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting
 
@@ -57,19 +65,23 @@ namespace GC.Infrastructure
             }
 
             // TODO: Handle each exception.
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }
 
             finally
             {
-                registrykeyHKLM.SetValue(keyPath, Convert.ToInt16(oldValue), RegistryValueKind.DWord);
-                registrykeyHKLM.Close();
+                if (OperatingSystem.IsWindows())
+                {
+                    registrykeyHKLM!.SetValue(keyPath, Convert.ToInt16(oldValue), RegistryValueKind.DWord);
+                    registrykeyHKLM.Close();
+                }
             }
         }
 
-        internal static bool IsAdministrator => 
+        [SupportedOSPlatform("windows")]
+        internal static bool IsAdministrator =>
             new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
     }
 }

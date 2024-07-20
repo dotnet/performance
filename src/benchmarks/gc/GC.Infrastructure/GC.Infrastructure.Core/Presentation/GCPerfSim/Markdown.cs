@@ -159,7 +159,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
             else
             {
-                return ResultItem.GetNullItem(run, corerun); 
+                return ResultItem.GetNullItem(run, corerun);
             }
         }
 

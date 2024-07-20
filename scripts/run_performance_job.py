@@ -101,7 +101,7 @@ class RunPerformanceJobArgs:
     use_local_commit_time: bool = False
     javascript_engine_path: Optional[str] = None
     maui_version: Optional[str] = None
-    download_pdn: bool = False
+    pdn_path: Optional[str] = None
     os_version: Optional[str] = None
     dotnet_version_link: Optional[str] = None
     target_csproj: Optional[str] = None
@@ -169,8 +169,9 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
         # Install python pacakges needed to upload results to azure storage
         install_prerequisites += [
             f"{python} -m pip install -U pip --force-reinstall",
-            f"{python} -m pip install azure.storage.blob==12.0.0 --force-reinstall",
-            f"{python} -m pip install azure.storage.queue==12.0.0 --force-reinstall",
+            f"{python} -m pip install azure.storage.blob==12.13.0 --force-reinstall",
+            f"{python} -m pip install azure.storage.queue==12.4.0 --force-reinstall",
+            f"{python} -m pip install azure.identity==1.16.1 --force-reinstall",
             f"{python} -m pip install urllib3==1.26.18 --force-reinstall",
         ]
 
@@ -820,18 +821,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceLTTngProvider", "build.sh"),
                 "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")]).run()
         
-        # download PDN
-        if args.os_group == "windows" and args.architecture != "x86" and args.download_pdn:
-            print("Downloading PDN")
-            escaped_upload_token = str(os.environ.get("PerfCommandUploadTokenLinux")).replace("%25", "%")
-            pdn_url = f"https://pvscmdupload.blob.core.windows.net/assets/paint.net.5.0.3.portable.{args.architecture}.zip{escaped_upload_token}"
+        # copy PDN
+        if args.os_group == "windows" and args.architecture != "x86" and args.pdn_path is not None:
+            print("Copying PDN")
             pdn_dest = os.path.join(payload_dir, "PDN")
-            os.makedirs(pdn_dest, exist_ok=True)
             pdn_file_path = os.path.join(pdn_dest, "PDN.zip")
-            with urllib.request.urlopen(pdn_url) as response, open(pdn_file_path, "wb") as f:
-                data = response.read()
-                f.write(data)
-            print(f"PDN downloaded to {pdn_file_path}")
+            os.makedirs(pdn_dest, exist_ok=True)
+            shutil.copyfile(args.pdn_path, pdn_file_path)
+            print(f"PDN copied to {pdn_file_path}")
 
         # create a copy of the environment since we want these to only be set during the following invocation
         environ_copy = os.environ.copy()
@@ -1065,7 +1062,6 @@ def main(argv: List[str]):
             "--hybrid-globalization": "hybrid_globalization",
             "--send-to-helix": "send_to_helix",
             "--performance-repo-ci": "performance_repo_ci",
-            "--download-pdn": "download_pdn",
             "--only-sanity-check": "only_sanity_check",
             "--use-local-commit-time": "use_local_commit_time",
         }
@@ -1110,6 +1106,7 @@ def main(argv: List[str]):
             "--os-version": "os_version",
             "--dotnet-version-link": "dotnet_version_link",
             "--target-csproj": "target_csproj",
+            "--pdn-path": "pdn_path",
             "--runtime-repo-dir": "runtime_repo_dir",
             "--logical-machine": "logical_machine"
         }

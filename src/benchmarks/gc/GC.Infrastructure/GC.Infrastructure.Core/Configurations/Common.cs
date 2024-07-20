@@ -7,16 +7,16 @@ namespace GC.Infrastructure.Core.Configurations
     {
         private static readonly Lazy<IDeserializer> _deserializer =
             new Lazy<IDeserializer>(new DeserializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build());
-        private static readonly Lazy<ISerializer> _serializer     =
+        private static readonly Lazy<ISerializer> _serializer =
             new Lazy<ISerializer>(new SerializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build());
         public static IDeserializer Deserializer => _deserializer.Value;
-        public static ISerializer Serializer     => _serializer.Value;
+        public static ISerializer Serializer => _serializer.Value;
     }
 
     public class CoreRunInfo
     {
         public string Path { get; set; }
-        public Dictionary<string, string> environment_variables { get; set; } 
+        public Dictionary<string, string> environment_variables { get; set; }
     }
 
     public static class ConfigurationChecker
@@ -32,6 +32,26 @@ namespace GC.Infrastructure.Core.Configurations
             if (Path.GetExtension(configurationPath) != ".yaml")
             {
                 throw new ArgumentNullException($"{prefix}: A yaml file wasn't provided as the configuration.");
+            }
+        }
+
+        public static void VerifyEnvironmentVariables(Dictionary<string, string>? environmentVariables, string prefix)
+        {
+            // If there are no environment variables set, ignore.
+            if (environmentVariables == null)
+            {
+                return;
+            }
+
+            else
+            {
+                foreach (var env in environmentVariables)
+                {
+                    if (env.Key.ToLower().StartsWith("complus_"))
+                    {
+                        throw new ArgumentException($"{prefix}: COMPlus Environment variables are disallowed. Please replace it with it's DOTNET equivalent.");
+                    }
+                }
             }
         }
     }

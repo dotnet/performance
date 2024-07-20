@@ -46,7 +46,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 {
                     Dictionary<string, Analyzer> analyzers = AnalyzerManager.GetAllAnalyzers(outputPathForRun);
 
-                    foreach(var analyzer in analyzers)
+                    foreach (var analyzer in analyzers)
                     {
                         List<GCProcessData> allPertinentProcesses = analyzer.Value.GetProcessGCData("dotnet");
                         List<GCProcessData> corerunProcesses = analyzer.Value.GetProcessGCData("corerun");
@@ -101,11 +101,11 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             {
                 foreach (var comparison in configuration.Output.run_comparisons)
                 {
-                    string[] breakup    = comparison.Split(",", StringSplitOptions.TrimEntries);
+                    string[] breakup = comparison.Split(",", StringSplitOptions.TrimEntries);
                     string baselineName = breakup[0];
-                    string runName      = breakup[1];
+                    string runName = breakup[1];
 
-                    Run run         = runResults.Keys.FirstOrDefault(k => string.CompareOrdinal(k.Name, runName) == 0);
+                    Run run = runResults.Keys.FirstOrDefault(k => string.CompareOrdinal(k.Name, runName) == 0);
                     Run baselineRun = runResults.Keys.FirstOrDefault(k => string.CompareOrdinal(k.Name, baselineName) == 0);
 
                     List<MicrobenchmarkComparisonResult> microbenchmarkResults = new();
@@ -139,11 +139,11 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 KeyValuePair<Run, ConcurrentDictionary<string, MicrobenchmarkResult>> baselineResult = baselineName != null ? runResults.First(r => r.Key.Name == baselineName) : runResults.First();
 
                 // For each run, we want to grab it and it's baseline and then do a per microbenchmark association.
-                foreach(var runResult in runResults)
+                foreach (var runResult in runResults)
                 {
                     Run run = runResult.Key;
                     string runName = run.Name;
-                    
+
                     if (string.CompareOrdinal(runName, baselineName) == 0)
                     {
                         continue;
@@ -172,7 +172,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 }
             }
 
-            return comparisonResults; 
+            return comparisonResults;
         }
     }
 }

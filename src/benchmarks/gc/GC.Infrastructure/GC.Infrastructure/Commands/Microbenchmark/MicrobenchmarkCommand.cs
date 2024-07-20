@@ -21,7 +21,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
         public MicrobenchmarkOutputResults(Dictionary<string, ProcessExecutionDetails> processExecutionDetails, IReadOnlyList<MicrobenchmarkComparisonResults> analysisResults)
         {
             ProcessExecutionDetails = processExecutionDetails;
-            AnalysisResults = analysisResults; 
+            AnalysisResults = analysisResults;
         }
 
         public IReadOnlyDictionary<string, ProcessExecutionDetails> ProcessExecutionDetails { get; }
@@ -161,7 +161,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                         bdnProcess.StartInfo.CreateNoWindow = true;
 
                         StringBuilder consoleOutput = new();
-                        StringBuilder consoleError  = new();
+                        StringBuilder consoleError = new();
 
                         bdnProcess.OutputDataReceived += (s, e) =>
                         {
@@ -183,9 +183,9 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                         }
 
                         ProcessExecutionDetails details = new(key: $"{run.Key}_{benchmark}",
-                                                              commandlineArgs: $"{fileNameAndCommand.Item1} {fileNameAndCommand.Item2}", 
+                                                              commandlineArgs: $"{fileNameAndCommand.Item1} {fileNameAndCommand.Item2}",
                                                               environmentVariables: run.Value.environment_variables,
-                                                              standardError: consoleError.ToString(), 
+                                                              standardError: consoleError.ToString(),
                                                               standardOut: consoleOutput.ToString(),
                                                               exitCode: bdnProcess.ExitCode);
                         executionDetails[$"{run.Key}_{benchmark}"] = details;
