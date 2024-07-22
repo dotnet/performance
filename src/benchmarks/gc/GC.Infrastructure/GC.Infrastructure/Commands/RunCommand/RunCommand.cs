@@ -63,7 +63,7 @@ namespace GC.Infrastructure.Commands.RunCommand
             sw.Start();
 
             int gcperfsimTestCount = 0;
-            string gcperfsimBase    = configurationMap["GCPerfSim"];
+            string gcperfsimBase = configurationMap["GCPerfSim"];
             string[] gcperfsimConfigurations = Directory.GetFiles(gcperfsimBase, "*.yaml");
 
             Dictionary<string, GCPerfSimResults> allComparisonResults = new();
@@ -75,8 +75,8 @@ namespace GC.Infrastructure.Commands.RunCommand
 
             Dictionary<string, Dictionary<string, double>> configurationToTopLevelMetrics_GCPerfSim = new();
 
-            HashSet<string> gcTopLevelResults = new HashSet<string>(new List<string> 
-            { 
+            HashSet<string> gcTopLevelResults = new HashSet<string>(new List<string>
+            {
                 "ExecutionTimeMSec",
                 "PctTimePausedInGC",
                 "HeapSizeBeforeMB_Mean",
@@ -212,7 +212,7 @@ namespace GC.Infrastructure.Commands.RunCommand
                 foreach (var d in gcPerfsimDirectories)
                 {
                     string resultPath = Path.Combine(d, "Results.md");
-                    string results    = File.ReadAllText(resultPath);
+                    string results = File.ReadAllText(resultPath);
 
                     sb.AppendLine($"\n## Results for: {d}\n");
                     sb.Append(results);
@@ -225,7 +225,7 @@ namespace GC.Infrastructure.Commands.RunCommand
                 foreach (var d in microbenchmarkDirectories)
                 {
                     string resultPath = Path.Combine(d, "Results.md");
-                    string results    = File.ReadAllText(resultPath);
+                    string results = File.ReadAllText(resultPath);
 
                     sb.AppendLine($"\n## Results for: {d}\n");
                     sb.Append(results);
@@ -234,12 +234,12 @@ namespace GC.Infrastructure.Commands.RunCommand
                 // Add the ASPNet Benchmarks Results.
                 sb.AppendLine("# ASPNet Benchmarks");
                 string aspnetBenchmarkBasePath = Path.Combine(configuration.output_path, "ASPNetBenchmarks");
-                string aspnetResultPath        = Path.Combine(aspnetBenchmarkBasePath, "Results.md");
-                string aspnetResultsText = ""; 
+                string aspnetResultPath = Path.Combine(aspnetBenchmarkBasePath, "Results.md");
+                string aspnetResultsText = "";
                 aspnetResultsText = File.ReadAllText(aspnetResultPath);
                 sb.Append(aspnetResultsText);
 
-                swReport.WriteLine($"# Results Comparing {string.Join(" and ", configuration.coreruns.Select(c => $"```{c.Key}```"))}"); 
+                swReport.WriteLine($"# Results Comparing {string.Join(" and ", configuration.coreruns.Select(c => $"```{c.Key}```"))}");
 
                 swReport.WriteLine("# Contents");
                 swReport.WriteLine("- [Checklist](#checklist)");
@@ -276,8 +276,8 @@ namespace GC.Infrastructure.Commands.RunCommand
                 // GC PerfSim Top Level Results.
                 swReport.WriteLine($"## GC PerfSim ({uniqueGCPerfSimTests.Count})\n");
 
-                swReport.WriteLine($"|  | {string.Join("|", gcTopLevelResults.Select(r => gcLevelResultsMap[ r ] ))}");
-                swReport.WriteLine($"|--- | {string.Join("", Enumerable.Repeat("---|", gcTopLevelResults.Count ))}");
+                swReport.WriteLine($"|  | {string.Join("|", gcTopLevelResults.Select(r => gcLevelResultsMap[r]))}");
+                swReport.WriteLine($"|--- | {string.Join("", Enumerable.Repeat("---|", gcTopLevelResults.Count))}");
 
                 foreach (var r in configurationToTopLevelMetrics_GCPerfSim)
                 {
@@ -287,13 +287,13 @@ namespace GC.Infrastructure.Commands.RunCommand
                         restOfMetrics += $" {Math.Round(r.Value[l], 2)}% |";
                     }
 
-                    swReport.WriteLine($"| {r.Key} | {restOfMetrics}"); 
+                    swReport.WriteLine($"| {r.Key} | {restOfMetrics}");
                 }
                 swReport.WriteLine();
 
                 swReport.WriteLine($"## Microbenchmarks ({uniqueMicrobenchmarks.Count})\n");
-                swReport.WriteLine($"|  |  Mean Execution Time (MSec) | {string.Join("|", gcTopLevelResults.Select(r => gcLevelResultsMap[ r ] ))}");
-                swReport.WriteLine($"|--- |  ---- | {string.Join("", Enumerable.Repeat("---|", gcTopLevelResults.Count ))}");
+                swReport.WriteLine($"|  |  Mean Execution Time (MSec) | {string.Join("|", gcTopLevelResults.Select(r => gcLevelResultsMap[r]))}");
+                swReport.WriteLine($"|--- |  ---- | {string.Join("", Enumerable.Repeat("---|", gcTopLevelResults.Count))}");
 
                 foreach (var m in allMicrobenchmarkResults)
                 {
@@ -306,7 +306,7 @@ namespace GC.Infrastructure.Commands.RunCommand
                             restOfMetrics += $" {Math.Round(metric, 2)}% |";
                         }
 
-                        swReport.WriteLine($"| {m.Key} {r.MicrobenchmarkName} | {Math.Round(r.MeanDiffPerc, 2)}% | {restOfMetrics}" ); 
+                        swReport.WriteLine($"| {m.Key} {r.MicrobenchmarkName} | {Math.Round(r.MeanDiffPerc, 2)}% | {restOfMetrics}");
                     }
                 }
 
@@ -315,7 +315,7 @@ namespace GC.Infrastructure.Commands.RunCommand
                 string aspNetSummary = MarkdownReportBuilder.CopySectionFromMarkDownPath(aspnetResultPath, "Summary");
                 swReport.Write(aspNetSummary);
                 swReport.WriteLine();
-                swReport.Write( sb.ToString() );
+                swReport.Write(sb.ToString());
             }
 
             sw.Stop();

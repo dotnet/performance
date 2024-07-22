@@ -24,7 +24,7 @@ namespace GC.Infrastructure.Core.Analysis
         {
             { "number of iterations", (Statistics stats) => stats.N },
             { "min", (Statistics stats) => stats.Min },
-            { "max", (Statistics stats) => stats.Max }, 
+            { "max", (Statistics stats) => stats.Max },
             { "median", (Statistics stats) => stats.Median },
             { "q1", (Statistics stats) => stats.Q1 },
             { "q3", (Statistics stats) => stats.Q3 },
@@ -83,7 +83,7 @@ namespace GC.Infrastructure.Core.Analysis
         public int? Level { get; set; }
         public double? Margin { get; set; }
         public double? Lower { get; set; }
-        public double?  Upper { get; set; }
+        public double? Upper { get; set; }
     }
 
     public sealed class Descriptor
@@ -186,4 +186,4 @@ namespace GC.Infrastructure.Core.Analysis
         public ConfidenceInterval? ConfidenceInterval { get; set; }
         public Percentiles Percentiles { get; set; }
     }
-} 
+}

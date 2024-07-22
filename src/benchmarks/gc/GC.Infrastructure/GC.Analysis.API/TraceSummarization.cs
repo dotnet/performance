@@ -7,8 +7,8 @@ namespace GC.Analysis.API
     internal sealed class FirstLastData
     {
         public double FirstTimeStamp { get; set; }
-        public double LastTimeStamp  { get; set; }
-        public int Count             { get; set; }
+        public double LastTimeStamp { get; set; }
+        public int Count { get; set; }
     }
 
     public static class TraceSummarization
@@ -22,14 +22,14 @@ namespace GC.Analysis.API
                 return Enumerable.Empty<DataFrame>();
             }
 
-            var traceLog    = analyzer.TraceLog;
-            var eventSource = traceLog.Events.GetSource(); 
+            var traceLog = analyzer.TraceLog;
+            var eventSource = traceLog.Events.GetSource();
 
             HashSet<int> processIds = new HashSet<int>(processData.Select(p => p.ProcessID));
 
-            Dictionary<int, FirstLastData> cpuData      = new();
-            Dictionary<int, FirstLastData> cswitchData  = new();
-            Dictionary<int, int> readyThreadCount       = new();
+            Dictionary<int, FirstLastData> cpuData = new();
+            Dictionary<int, FirstLastData> cswitchData = new();
+            Dictionary<int, int> readyThreadCount = new();
 
             eventSource.Kernel.ThreadCSwitch += (data) =>
             {
@@ -40,7 +40,7 @@ namespace GC.Analysis.API
 
                 if (!cswitchData.TryGetValue(data.ProcessID, out var firstLast))
                 {
-                    cswitchData[data.ProcessID] = firstLast = new() 
+                    cswitchData[data.ProcessID] = firstLast = new()
                     {
                         FirstTimeStamp = data.TimeStampRelativeMSec
                     };
@@ -88,23 +88,23 @@ namespace GC.Analysis.API
             List<DataFrame> dataFrames = new();
 
             // For each Process.
-            foreach(var process in processData)
+            foreach (var process in processData)
             {
                 int processId = process.ProcessID;
 
-                StringDataFrameColumn criteria      = new($"Process ID: {processId}");
-                StringDataFrameColumn startMS       = new("Start (ms)");
+                StringDataFrameColumn criteria = new($"Process ID: {processId}");
+                StringDataFrameColumn startMS = new("Start (ms)");
                 StringDataFrameColumn startGCNumber = new("Start GC Index");
-                StringDataFrameColumn endMS         = new("End (ms)");
-                StringDataFrameColumn endGCNumber   = new("End GC Index");
-                StringDataFrameColumn notes         = new("Notes");
+                StringDataFrameColumn endMS = new("End (ms)");
+                StringDataFrameColumn endGCNumber = new("End GC Index");
+                StringDataFrameColumn notes = new("Notes");
 
                 IEnumerable<TraceGC> traceGCs = process.GCs;
 
                 // GC Data
                 criteria.Append("GC");
                 var firstGC = traceGCs.First(gc => gc.Type != GCType.BackgroundGC);
-                var lastGC  = traceGCs.Last(gc => gc.Type != GCType.BackgroundGC);
+                var lastGC = traceGCs.Last(gc => gc.Type != GCType.BackgroundGC);
                 startMS.Append(DataFrameHelpers.Round2(firstGC.StartRelativeMSec).ToString());
                 startGCNumber.Append(firstGC.Number.ToString());
                 endMS.Append(DataFrameHelpers.Round2(lastGC.StartRelativeMSec + lastGC.DurationMSec).ToString());
@@ -115,7 +115,7 @@ namespace GC.Analysis.API
                 {
                     // Get range of the first and last.
                     double firstTimestamp = firstLast.FirstTimeStamp;
-                    double lastTimestamp  = firstLast.LastTimeStamp;
+                    double lastTimestamp = firstLast.LastTimeStamp;
 
                     var encompassedGCs = traceGCs.Where(gc =>
                     {
@@ -124,7 +124,7 @@ namespace GC.Analysis.API
                                (gc.PauseDurationMSec + gc.PauseStartRelativeMSec < lastTimestamp); // And all GCs before the last timestamp.
                     });
                     int startGCIdx = encompassedGCs.FirstOrDefault()?.Number ?? -1;
-                    int endGCIdx = encompassedGCs.LastOrDefault()?.Number ?? -1; 
+                    int endGCIdx = encompassedGCs.LastOrDefault()?.Number ?? -1;
 
                     return (startGCIdx, endGCIdx);
                 }
@@ -161,7 +161,7 @@ namespace GC.Analysis.API
 
                     if (readyThreadCount.TryGetValue(processId, out var r))
                     {
-                        notes.Append($"Ready Thread Event Count: {r}"); 
+                        notes.Append($"Ready Thread Event Count: {r}");
                     }
 
                     else

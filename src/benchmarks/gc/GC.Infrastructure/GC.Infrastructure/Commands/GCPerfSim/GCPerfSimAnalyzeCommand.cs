@@ -36,7 +36,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         public static IReadOnlyList<ComparisonResult> ExecuteAnalysis(GCPerfSimConfiguration configuration, Dictionary<string, ProcessExecutionDetails> executionDetails)
         {
             string outputPath = Path.Combine(configuration.Output!.Path, "Results.md");
-            IReadOnlyList<ComparisonResult> results = Markdown.GenerateTable(configuration, executionDetails, outputPath); 
+            IReadOnlyList<ComparisonResult> results = Markdown.GenerateTable(configuration, executionDetails, outputPath);
             AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to {outputPath} [/]");
             return results;
         }

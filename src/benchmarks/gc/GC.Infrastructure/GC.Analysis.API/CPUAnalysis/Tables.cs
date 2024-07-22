@@ -4,8 +4,8 @@ namespace GC.Analysis.API
 {
     public static class Tables
     {
-        internal static readonly IEnumerable<string> phases = new List<string> 
-        { 
+        internal static readonly IEnumerable<string> phases = new List<string>
+        {
             "gc_heap::mark_phase",
             "gc_heap::plan_phase",
             "gc_heap::relocate_phase",
@@ -62,12 +62,12 @@ namespace GC.Analysis.API
             Dictionary<string, double> phaseToCount = new();
             double total = 0;
 
-            foreach(var phase in phases)
+            foreach (var phase in phases)
             {
                 double sum = 0;
                 if (cpuData.MethodToData.TryGetValue(phase, out var data))
                 {
-                    sum += showInclusiveCount ? data.InclusiveCount : data.ExclusiveCount; 
+                    sum += showInclusiveCount ? data.InclusiveCount : data.ExclusiveCount;
                 }
                 phaseToCount[phase] = sum;
                 total += sum;
@@ -76,7 +76,7 @@ namespace GC.Analysis.API
             phaseToCount["gc_heap::plan_phase"] -= phaseToCount["gc_heap::relocate_phase"] + phaseToCount["gc_heap::compact_phase"];
             total -= phaseToCount["gc_heap::relocate_phase"] + phaseToCount["gc_heap::compact_phase"];
 
-            foreach(var phase in phaseToCount)
+            foreach (var phase in phaseToCount)
             {
                 phaseName.Append(phase.Key);
                 counts.Append(phase.Value);
@@ -96,12 +96,12 @@ namespace GC.Analysis.API
             Dictionary<string, double> phaseToCount = new();
             double total = 0;
 
-            foreach(var phase in phases)
+            foreach (var phase in phases)
             {
                 double sum = 0;
                 if (cpuData.MethodToData.TryGetValue(phase, out var data))
                 {
-                    sum += showInclusiveCount ? data.InclusiveCount : data.ExclusiveCount; 
+                    sum += showInclusiveCount ? data.InclusiveCount : data.ExclusiveCount;
                 }
                 phaseToCount[phase] = sum;
                 total += sum;
@@ -110,7 +110,7 @@ namespace GC.Analysis.API
             phaseToCount["gc_heap::plan_phase"] -= phaseToCount["gc_heap::relocate_phase"] + phaseToCount["gc_heap::compact_phase"];
             total -= phaseToCount["gc_heap::relocate_phase"] + phaseToCount["gc_heap::compact_phase"];
 
-            foreach(var phase in phaseToCount)
+            foreach (var phase in phaseToCount)
             {
                 phaseName.Append(phase.Key);
                 baselineCounts.Append(phase.Value);
@@ -121,7 +121,7 @@ namespace GC.Analysis.API
 
             List<DataFrameColumn> otherColumns = new();
 
-            foreach(var o in others)
+            foreach (var o in others)
             {
                 DoubleDataFrameColumn otherCounts = new(showInclusiveCount ? $"Inclusive Count: {o.ProcessID}" : $"Exclusive Count: {o.ProcessID}");
                 DoubleDataFrameColumn otherDiffCount = new($"Diff: {o.ProcessID}");
@@ -131,12 +131,12 @@ namespace GC.Analysis.API
                 Dictionary<string, double> otherPhaseToCount = new();
                 double otherTotal = 0;
 
-                foreach(var phase in phases)
+                foreach (var phase in phases)
                 {
                     double sum = 0;
                     if (o.MethodToData.TryGetValue(phase, out var data))
                     {
-                        sum += showInclusiveCount ? data.InclusiveCount : data.ExclusiveCount; 
+                        sum += showInclusiveCount ? data.InclusiveCount : data.ExclusiveCount;
                     }
                     otherPhaseToCount[phase] = sum;
                     otherTotal += sum;
@@ -145,7 +145,7 @@ namespace GC.Analysis.API
                 otherPhaseToCount["gc_heap::plan_phase"] -= otherPhaseToCount["gc_heap::relocate_phase"] + otherPhaseToCount["gc_heap::compact_phase"];
                 total -= otherPhaseToCount["gc_heap::relocate_phase"] + otherPhaseToCount["gc_heap::compact_phase"];
 
-                foreach(var phase in otherPhaseToCount)
+                foreach (var phase in otherPhaseToCount)
                 {
                     otherCounts.Append(phase.Value);
                     double percentage = DataFrameHelpers.Round2((phase.Value / total) * 100);
@@ -178,7 +178,7 @@ namespace GC.Analysis.API
             StringDataFrameColumn bgcCount = new("BGC Count");
             //StringDataFrameColumn bgcPercent = new("BGC %");
 
-            StringDataFrameColumn blockingGen2Count   = new("Blocking Gen2 Count");
+            StringDataFrameColumn blockingGen2Count = new("Blocking Gen2 Count");
             //StringDataFrameColumn blockingGen2Percent = new("BGC %");
 
             var gcProcessData = cpuData.Parent.Analyzer.GetProcessGCData(cpuData.ProcessName).FirstOrDefault(p => p.ProcessID == cpuData.ProcessID);
@@ -192,23 +192,23 @@ namespace GC.Analysis.API
             var bgcs = new HashSet<int>(gcProcessData.BGCs.Select(gc => gc.Number));
             var gen2Blocking = new HashSet<int>(gcProcessData.Gen2Blocking.Select(gc => gc.Number));
 
-            foreach(var majorPhase in phases)
+            foreach (var majorPhase in phases)
             {
                 var phase = majorPhase;
                 double gen0CountData = 0;
                 double gen1CountData = 0;
                 double bgcCountData = 0;
                 double gen2BlockingCountData = 0;
-                
+
                 if (cpuData.PerGCData.TryGetValue(phase, out var gcToData))
                 {
-                    foreach(var gc in gcToData)
+                    foreach (var gc in gcToData)
                     {
                         var count = gc.Value.Values.Sum(g => g.Sum(gc => gc.InclusiveCount));
 
                         if (gen0s.Contains(gc.Key))
                         {
-                            gen0CountData += count; 
+                            gen0CountData += count;
                         }
 
                         else if (gen1s.Contains(gc.Key))

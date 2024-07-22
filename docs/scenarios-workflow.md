@@ -83,10 +83,10 @@ In our **startup time of an empty console template** example, we can run
 
 ```cmd
 cd emptyconsoletemplate
-python3 pre.py publish -f net8.0 -c Release
+python3 pre.py publish -f net9.0 -c Release
 ```
 
-The above command creates a new dotnet console template in `emptyconsoletemplate\app\` folder, builds the project targeting net8.0 in Release and publishs it to `emptyconsoletemplate\pub\` folder.
+The above command creates a new dotnet console template in `emptyconsoletemplate\app\` folder, builds the project targeting net9.0 in Release and publishs it to `emptyconsoletemplate\pub\` folder.
 
 Run `python3 pre.py --help` for more command options and their meanings.
 

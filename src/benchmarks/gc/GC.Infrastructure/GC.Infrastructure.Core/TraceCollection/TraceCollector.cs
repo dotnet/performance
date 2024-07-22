@@ -78,7 +78,7 @@ namespace GC.Infrastructure.Core.TraceCollection
             if (_collectType != CollectType.none)
             {
                 _sessionName = Guid.NewGuid();
-                foreach(var invalid in Path.GetInvalidPathChars())
+                foreach (var invalid in Path.GetInvalidPathChars())
                 {
                     name = name.Replace(invalid.ToString(), string.Empty);
                 }
@@ -152,7 +152,7 @@ namespace GC.Infrastructure.Core.TraceCollection
                     stopLogmanProcess.StartInfo.Arguments = etsStopCommand;
                     stopLogmanProcess.StartInfo.UseShellExecute = false;
                     stopLogmanProcess.StartInfo.RedirectStandardOutput = false;
-                    stopLogmanProcess.StartInfo.RedirectStandardError  = false;
+                    stopLogmanProcess.StartInfo.RedirectStandardError = false;
                     stopLogmanProcess.StartInfo.CreateNoWindow = true;
                     stopLogmanProcess.Start();
                     stopLogmanProcess.WaitForExit(5_000);
@@ -164,11 +164,11 @@ namespace GC.Infrastructure.Core.TraceCollection
 
         public string Name { get; init; }
 
-         ~TraceCollector()
-         {
-             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-             Dispose(disposing: false);
-         }
+        ~TraceCollector()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
 
         public void Dispose()
         {

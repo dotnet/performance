@@ -36,7 +36,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
         {
             if (!Baseline.OtherMetrics.TryGetValue(metric, out var baselineMetric))
             {
-                return null; 
+                return null;
             }
 
             if (!baselineMetric.HasValue)

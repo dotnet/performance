@@ -107,7 +107,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
                     if (crankCompareProcess.ExitCode == 0)
                     {
-                        if (!metricResults.TryGetValue(benchmark.Key, out var metrics ))
+                        if (!metricResults.TryGetValue(benchmark.Key, out var metrics))
                         {
                             metrics = metricResults[benchmark.Key] = new();
                         }
@@ -126,7 +126,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
                 var topLevelSummarySet = new HashSet<string>(new List<string> { "Working Set (MB)", "Private Memory (MB)", "Requests/sec", "Mean Latency (MSec)", "Latency 50th (MSec)", "Latency 75th (MSec)", "Latency 90th (MSec)", "Latency 99th (MSec)" });
                 sw.WriteLine($"|  | {string.Join("|", topLevelSummarySet)}");
-                sw.WriteLine($"|--- | {string.Join( "", Enumerable.Repeat("---|", topLevelSummarySet.Count ))}");
+                sw.WriteLine($"|--- | {string.Join("", Enumerable.Repeat("---|", topLevelSummarySet.Count))}");
 
                 foreach (var r in metricResults)
                 {
@@ -163,17 +163,17 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 }
 
                 // Best way to deep-copy a configuration is to serialize and then deserialize.
-                string configurationSerialized =  Common.Serializer.Serialize(configuration);
+                string configurationSerialized = Common.Serializer.Serialize(configuration);
 
                 // We want to be able to rerun the failed tests in an easy manner. For this, we take any failed runs and create a 
                 // new configuration based on the run configuration and then add these failed runs to filter on.
                 // The process of creating a deep copy of the old configuration involves serializing and deserializing the current configuration.
                 // We then iterate over all the failed runs, add them as items in the benchmark filters and persist the new configuration in the output path.
                 List<KeyValuePair<string, ProcessExecutionDetails>> failedRuns = executionDetails.Where(exec => exec.Value.HasFailed).ToList();
-                
+
                 // This path is only valid if we have failed runs.
                 if (failedRuns.Count > 0)
-                { 
+                {
                     try
                     {
                         configuration = Common.Deserializer.Deserialize<ASPNetBenchmarksConfiguration>(configurationSerialized);
@@ -271,7 +271,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             List<MetricResult> results = new();
             string[] firstLineSplit = resultsLineSplit[0].Split("|", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
-            string baseline  = firstLineSplit[1];
+            string baseline = firstLineSplit[1];
             string comparand = firstLineSplit[2];
 
             for (int runnerIdx = 0; runnerIdx < resultsLineSplit.Length; runnerIdx++)
