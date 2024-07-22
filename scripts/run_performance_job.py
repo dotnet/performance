@@ -612,7 +612,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
         extra_bdn_arguments += [
             "--wasmEngine", args.javascript_engine_path,
-            f"\\\"--wasmArgs={wasm_args} \\\""
+            f"\\\"--wasmArgs={wasm_args} \\\"",
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
             "--wasmDataDir", "$HELIX_CORRELATION_PAYLOAD/wasm-data"
         ]
