@@ -47,8 +47,7 @@ def setup_loggers(verbose: bool):
     def __generate_log_file_name(launch_datetime: datetime) -> str:
         '''Generates a unique log file name for the current script.'''
         log_dir = path.join(get_repo_root_path(), 'logs')
-        if not path.exists(log_dir):
-            makedirs(log_dir)
+        makedirs(log_dir, exist_ok=True)
 
         if not hasattr(__main__, '__file__'):
             script_name = 'python_interactive_mode'

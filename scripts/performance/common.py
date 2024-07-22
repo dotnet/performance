@@ -66,8 +66,7 @@ def make_directory(path: str):
     '''Creates a directory.'''
     if not path:
         raise TypeError('Undefined path.')
-    if not os.path.isdir(path):
-        os.makedirs(path)
+    os.makedirs(path, exist_ok=True)
 
 
 def remove_directory(path: str) -> None:

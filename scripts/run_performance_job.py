@@ -169,11 +169,11 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
 
         # Install python pacakges needed to upload results to azure storage
         install_prerequisites += [
-            f"{python} -m pip install -U pip --force-reinstall",
-            f"{python} -m pip install azure.storage.blob==12.13.0 --force-reinstall",
-            f"{python} -m pip install azure.storage.queue==12.4.0 --force-reinstall",
-            f"{python} -m pip install azure.identity==1.16.1 --force-reinstall",
-            f"{python} -m pip install urllib3==1.26.19 --force-reinstall",
+            f"{python} -m pip install -U pip",
+            f"{python} -m pip install azure.storage.blob==12.13.0",
+            f"{python} -m pip install azure.storage.queue==12.4.0",
+            f"{python} -m pip install azure.identity==1.16.1",
+            f"{python} -m pip install urllib3==1.26.19",
         ]
 
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
