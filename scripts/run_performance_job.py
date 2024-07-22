@@ -63,7 +63,7 @@ class RunPerformanceJobArgs:
     mono_dotnet_dir: Optional[str] = None
     libraries_download_dir: Optional[str] = None
     versions_props_path: Optional[str] = None
-    chrome_versions_props_path: Optional[str] = None
+    browser_versions_props_path: Optional[str] = None
     built_app_dir: Optional[str] = None
     extra_bdn_args: Optional[str] = None
     run_categories: str = 'Libraries Runtime'
@@ -151,7 +151,8 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             if args.os_group != "osx" and args.os_sub_group != "_musl":
                 install_prerequisites += [
                     'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"'
-                    'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\''
+                    'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
+                    "sudo apt-get remove -y lttng-modules-dkms &&", # https://github.com/dotnet/runtime/pull/101142
                     "sudo apt-get -y install python3-pip python3-venv"
                 ]
 
@@ -586,14 +587,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
         wasm_args = " --expose_wasm"
 
         if args.javascript_engine == "v8":
-            if args.chrome_versions_props_path is None:
+            if args.browser_versions_props_path is None:
                 if args.runtime_repo_dir is None:
                     raise Exception("ChromeVersion.props must be present for wasm runs")
-                args.chrome_versions_props_path = os.path.join(args.runtime_repo_dir, "eng", "testing", "ChromeVersions.props")
+                args.browser_versions_props_path = os.path.join(args.runtime_repo_dir, "eng", "testing", "BrowserVersions.props")
             
             wasm_args += " --module"
 
-            with open(args.chrome_versions_props_path) as f:
+            with open(args.browser_versions_props_path) as f:
                 for line in f:
                     match = re.search(r"linux_V8Version>([^<]*)<", line)
                     if match:
@@ -601,7 +602,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                         v8_version = ".".join(v8_version.split(".")[:3])
                         break
                 else:
-                    raise Exception("Unable to find v8 version in ChromeVersions.props")
+                    raise Exception("Unable to find v8 version in BrowserVersions.props")
             
             if args.javascript_engine_path is None:
                 args.javascript_engine_path = f"/home/helixbot/.jsvu/bin/v8-{v8_version}"
@@ -1081,7 +1082,7 @@ def main(argv: List[str]):
             "--mono-dotnet-dir": "mono_dotnet_dir",
             "--libraries-download-dir": "libraries_download_dir",
             "--versions-props-path": "versions_props_path",
-            "--chrome-versions-props-path": "chrome_versions_props_path",
+            "--browser-versions-props-path": "browser_versions_props_path",
             "--built-app-dir": "built_app_dir",
             "--perflab-upload-token": "perflab_upload_token",
             "--helix-access-token": "helix_access_token",
