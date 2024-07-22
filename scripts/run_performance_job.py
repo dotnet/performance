@@ -150,9 +150,9 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
         else:
             if args.os_group != "osx" and args.os_sub_group != "_musl":
                 install_prerequisites += [
-                    'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"'
+                    'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
                     'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
-                    "sudo apt-get remove -y lttng-modules-dkms &&", # https://github.com/dotnet/runtime/pull/101142
+                    "sudo apt-get remove -y lttng-modules-dkms", # https://github.com/dotnet/runtime/pull/101142
                     "sudo apt-get -y install python3-pip python3-venv"
                 ]
 
