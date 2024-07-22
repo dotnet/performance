@@ -692,8 +692,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if android_mono:
         if args.built_app_dir is None:
             raise Exception("Built apps directory must be present for Android Mono benchmarks")
-        shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), root_payload_dir)
-        shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorld", "HelloAndroid.apk"), root_payload_dir)
+        shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), os.path.join(root_payload_dir, "MonoBenchmarksDroid.apk"))
+        shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorld", "HelloAndroid.apk"), os.path.join(root_payload_dir, "HelloAndroid.apk"))
         ci_setup_arguments.architecture = "arm64"
 
     if ios_mono or ios_nativeaot:
@@ -872,7 +872,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         # restore env vars
         os.environ.update(environ_copy)
 
-        shutil.copy(os.path.join(performance_payload_dir, "NuGet.config"), root_payload_dir)
+        shutil.copy(os.path.join(performance_payload_dir, "NuGet.config"), os.path.join(root_payload_dir, "NuGet.config"))
         shutil.copytree(os.path.join(performance_payload_dir, "scripts"), os.path.join(payload_dir, "scripts"))
         shutil.copytree(os.path.join(performance_payload_dir, "src", "scenarios", "shared"), os.path.join(payload_dir, "shared"))
         shutil.copytree(os.path.join(performance_payload_dir, "src", "scenarios", "staticdeps"), os.path.join(payload_dir, "staticdeps"))
