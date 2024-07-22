@@ -259,10 +259,11 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
         ]
 
     # ensure that the PYTHONPATH is set to the scripts directory
+    # TODO: Run scripts out of work item directory instead of payload directory
     if args.os_group == "windows":
-        helix_pre_commands += ["set PYTHONPATH=%HELIX_WORKITEM_ROOT%\\scripts%3B%HELIX_WORKITEM_ROOT%"]
+        helix_pre_commands += ["set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\\scripts%3B%HELIX_CORRELATION_PAYLOAD%"]
     else:
-        helix_pre_commands += ["export PYTHONPATH=$HELIX_WORKITEM_ROOT/scripts:$HELIX_WORKITEM_ROOT"]
+        helix_pre_commands += ["export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD"]
 
     if args.runtime_type == "iOSMono":
         if args.os_group == "windows":
@@ -583,8 +584,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             if os.path.isdir(dir_path):
                 shutil.copytree(dir_path, os.path.join(wasm_bundle_dir_path, dir_name))
 
-        # Ensure there is a space at the beginning, so BDN can correctly read them as arguments to `--wasmArgs`
-        wasm_args = " --expose_wasm"
+        wasm_args = "--expose_wasm"
 
         if args.javascript_engine == "v8":
             if args.browser_versions_props_path is None:
@@ -923,7 +923,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.os_group == "windows":
             bdn_arguments += ["--corerun", f"%HELIX_CORRELATION_PAYLOAD%\\dotnet-mono\\shared\\Microsoft.NETCore.App\\{product_version}\\corerun.exe"]
         else:
-            bdn_arguments = ["--corerun", f"$HELIX_CORRELATION_PAYLOAD/dotnet-mono/shared/Microsoft.NETCore.App/{product_version}/corerun"]
+            bdn_arguments += ["--corerun", f"$HELIX_CORRELATION_PAYLOAD/dotnet-mono/shared/Microsoft.NETCore.App/{product_version}/corerun"]
     
     if use_core_run:
         if args.os_group == "windows":

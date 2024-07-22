@@ -442,7 +442,13 @@ def main(args: Any):
         output_file += extension
 
     dir_path = os.path.dirname(output_file)
-    os.makedirs(dir_path, exist_ok=True)
+
+    # There is a bug with os.makedirs causing it to fail on Python 3.4, it was fixed in 3.4.1
+    # TODO: Figure out a way to rewrite this without needing a try-except block
+    try:
+        os.makedirs(dir_path, exist_ok=True)
+    except:
+        pass
 
     if not framework.startswith('net4'):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
