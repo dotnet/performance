@@ -800,8 +800,7 @@ def install(
 
     if not install_dir:
         install_dir = __get_directory(architecture)
-    if not path.exists(install_dir):
-        makedirs(install_dir)
+    makedirs(install_dir, exist_ok=True)
 
     getLogger().info("DotNet Install Path: '%s'", install_dir)
 
