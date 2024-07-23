@@ -334,6 +334,9 @@ def main(argv: List[str]):
             if helix_upload_root is not None:
                 for file in glob(globpath, recursive=True):
                     shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
+
+                shutil.make_archive(os.path.join(helix_upload_root, "bdn-artifacts"), 'zip', artifacts_dir)
+                getLogger().info("Created \"bdn-artifacts\".zip")
             else:
                 getLogger().info("Skipping upload of artifacts to Helix as HELIX_WORKITEM_UPLOAD_ROOT environment variable is not set.")
 
