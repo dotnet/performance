@@ -44,7 +44,7 @@ class PerfSendToHelixArgs:
     wait_for_work_item_completion: bool = True
     creator: str = ""
     helix_results_destination_dir : Optional[str] = None
-    fail_on_test_failure: bool = False
+    fail_on_test_failure: bool = True
 
     # Used by our custom .proj files
     work_item_dir: str = ""

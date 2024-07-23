@@ -928,9 +928,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if use_core_run:
         if args.os_group == "windows":
             bdn_arguments += ["--corerun", "%HELIX_CORRELATION_PAYLOAD%\\Core_Root\\CoreRun.exe"]
-            baseline_bdn_arguments += ["--corerun", "%HELIX_CORRELATION_PAYLOAD%\\Baseline_Core_Root\\CoreRun.exe"]
         else:
             bdn_arguments += ["--corerun", "$HELIX_CORRELATION_PAYLOAD/Core_Root/corerun"]
+
+    if use_baseline_core_run:
+        if args.os_group == "windows":
+            baseline_bdn_arguments += ["--corerun", "%HELIX_CORRELATION_PAYLOAD%\\Baseline_Core_Root\\CoreRun.exe"]
+        else:
             baseline_bdn_arguments += ["--corerun", "$HELIX_CORRELATION_PAYLOAD/Baseline_Core_Root/corerun"]
 
     if args.os_group == "windows":
@@ -974,7 +978,9 @@ def run_performance_job(args: RunPerformanceJobArgs):
     helix_results_destination_dir=os.path.join(args.performance_repo_dir, "artifacts", "helix-results")
 
     compare_command = None
+    fail_on_test_failure = True
     if args.compare:
+        fail_on_test_failure = False        
         if args.os_group == "windows":
             dotnet_exe = f"%HELIX_WORKITEM_ROOT%\\performance\\tools\\dotnet\\{args.architecture}\\dotnet.exe"
             results_comparer = "%HELIX_WORKITEM_ROOT%\\performance\\src\\tools\\ResultsComparer\\ResultsComparer.csproj"
@@ -1028,7 +1034,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         compare_command=compare_command,
         only_sanity_check=args.only_sanity_check,
         ios_strip_symbols=args.ios_strip_symbols,
-        ios_llvm_build=args.ios_llvm_build)
+        ios_llvm_build=args.ios_llvm_build,
+        fail_on_test_failure=fail_on_test_failure)
     
     if args.send_to_helix:
         perf_send_to_helix(perf_send_to_helix_args)
@@ -1078,6 +1085,7 @@ def main(argv: List[str]):
             "--run-kind": "run_kind",
             "--architecture": "architecture",
             "--core-root-dir": "core_root_dir",
+            "--baseline-core-root-dir": "baseline_core_root_dir",
             "--performance-repo-dir": "performance_repo_dir",
             "--mono-dotnet-dir": "mono_dotnet_dir",
             "--libraries-download-dir": "libraries_download_dir",

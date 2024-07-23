@@ -46,11 +46,7 @@
     <Partition Include="$(BuildConfig).Partition29" Index="29" Condition="$(PartitionCount) &gt; 29" />
   </ItemGroup>
 
-  <!-- 
-    Partition the MicroBenchmarks project, but nothing else
-    TODO: Support Compare runs
-      This is achieved by doing a baseline corerun in a precommand, then running ResultsComparer in a postcommand
-  -->
+  <!-- Partition the MicroBenchmarks project, but nothing else -->
   <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
     <HelixWorkItem Include="@(Partition)">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
