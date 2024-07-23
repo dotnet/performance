@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <WasmGenerateRunV8Script>true</WasmGenerateRunV8Script>
-    <WasmMainJSPath>$(WasmDataDir)\test-main.js</WasmMainJSPath>
+    <WasmMainJSPath>$(WasmDataDir)\test-main.mjs</WasmMainJSPath>
     <TrimMode>partial</TrimMode>
     <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
     <WasmNativeStrip>false</WasmNativeStrip>

@@ -174,7 +174,7 @@ In order to run the benchmarks against local [dotnet/runtime](https://github.com
 
 This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-latest`, which should be used to run the benchmarks.
 
-3. And you need `/path/to/dotnet/runtime/src/mono/wasm/test-main.js`
+3. And you need `/path/to/dotnet/runtime/src/mono/browser/test-main.mjs`
 
 #### Install v8 engine
 
@@ -182,9 +182,15 @@ Make sure you have the v8 engine installed and in the PATH. Follow the installat
 
 #### Run the benchmarks with the interpreter
 
+1. Configure NuGet Feeds to Include Local Packages. Open the `NuGet.config` and modify `packageSources` section
+```
+<add key="dotnet-runtime" value="/path/to/dotnet/runtime/artifacts/packages/Release/Shipping" />
+```
+
+2. Run the benchmark
 ```cmd
 /path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py -f net9.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --run-isolated --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
-    --bdn-arguments="--anyCategories Libraries Runtime --category-exclusion-filter NoInterpreter NoWASM NoMono --logBuildOutput --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
+    --bdn-arguments="--anyCategories Libraries Runtime --category-exclusion-filter NoInterpreter NoWASM NoMono --logBuildOutput --wasmArgs=\"--module\" --wasmDataDir </path/to/dotnet/runtime>/src/mono/browser --filter <filter>"
 ```
 
 #### Run the benchmarks with AOT
@@ -193,7 +199,7 @@ Essentially, add `--aotcompilermode wasm` to the `--bdn-arguments=".."`:
 
 ```cmd
 /path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net9.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --run-isolated --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
-    --bdn-arguments="--category-exclusion-filter NoInterpreter NoWASM NoMono --aotcompilermode wasm --logBuildOutput --buildTimeout 3600 --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
+    --bdn-arguments="--category-exclusion-filter NoInterpreter NoWASM NoMono --aotcompilermode wasm --logBuildOutput --buildTimeout 3600 --wasmArgs=\"--module\" --wasmDataDir </path/to/dotnet/runtime>/src/mono/browser --filter <filter>"
 ```
 
 #### Note about "file ... being used by another process" error
