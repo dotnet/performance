@@ -104,10 +104,15 @@ jobs:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
           # Current version of PaintDotNet zip file is PDN10 built on 2023-01-09
           - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-            - powershell: |
-                mkdir $(CorrelationStaging)PDN
-                curl "https://pvscmdupload.blob.core.windows.net/assets/PDN.zip$(PerfCommandUploadTokenNonEscaped)" -OutFile $(CorrelationStaging)PDN\PDN.zip
-              displayName: Download PDN
+            - task: AzureCLI@2
+              displayName: 'Download PDN'
+              inputs:
+                azureSubscription: '.NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)'
+                scriptType: 'pscore'
+                scriptLocation: 'inlineScript'
+                inlineScript: |
+                  mkdir $(CorrelationStaging)PDN\
+                  az storage blob download --auth-mode login --account-name pvscmdupload --container-name assets --name PDN.zip --file $(CorrelationStaging)PDN\PDN.zip
           - powershell: |
               $(Python) -m pip install --upgrade pip
               $(Python) -m pip install urllib3==1.26.15
