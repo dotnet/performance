@@ -588,21 +588,169 @@ public static class Metrics
         public static Metric<TraceGC> HeapCount = new(gc => gc.HeapCount, "Heap count", "#");
 
         // HeapCountSample
-        public static Metric<TraceGC> HcsElapsedTimeBetweenGCs = new(gc => gc.HeapCountSample.ElapsedTimeBetweenGCsMSec, "HCSampleElapsed", "ms");
-        public static Metric<TraceGC> HcsGCIndex = new(gc => gc.HeapCountSample.GCIndex, "HCSampleGCIndex", "#");
-        public static Metric<TraceGC> HcsGCPauseTime = new(gc => gc.HeapCountSample.GCPauseTimeMSec, "HCSampleGCPause", "ms");
-        public static Metric<TraceGC> HcsMslWaitTime = new(gc => gc.HeapCountSample.MslWaitTimeMSec, "HCSampleGCMslWait", "ms");
+        public static Metric<TraceGC> TCPToConsider = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.TcpToConsider;
+        },
+        "TCPToConsider", 
+        "%");
+
+        public static Metric<TraceGC> NewNHeaps = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.NewNHeaps;
+        },
+        "NewNHeaps", 
+        "#");
+
+        public static Metric<TraceGC> MaxHeapCountDatas = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.MaxHeapCountDatas;
+        },
+        "MaxHeapCountDatas", 
+        "#");
+
+        public static Metric<TraceGC> MinHeapCountDatas = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.MinHeapCountDatas;
+        },
+        "MinHeapCountDatas", 
+        "#");
+
+        public static Metric<TraceGC> CurrentGCIndex = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.CurrentGCIndex;
+        },
+        "CurrentGCIndex", 
+        "#");
+
+        public static Metric<TraceGC> TotalSOHStableSize = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.TotalSOHStableSize;
+        },
+        "TotalSOHStableSize", 
+        "bytes");
+
+        public static Metric<TraceGC> MedianThroughputCostPercent = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.MedianThroughputCostPercent;
+        },
+        "MedianThroughputCostPercent", 
+        "%");
+
+        public static Metric<TraceGC> CurrentAroundTargetAccumulation = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.CurrentAroundTargetAccumulation;
+        },
+        "CurrentAroundTargetAccumulation", 
+        "#");
+
+        public static Metric<TraceGC> RecordedTcpCount = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.RecordedTcpCount;
+        },
+        "RecordedTcpCount", 
+        "#");
+
+        public static Metric<TraceGC> RecordedTcpSlope = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.RecordedTcpSlope;
+        },
+        "RecordedTcpSlope", 
+        "#");
+
+        public static Metric<TraceGC> NumGcsSinceLastChange = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.NumGcsSinceLastChange;
+        },
+        "NumGcsSinceLastChange", 
+        "#");
+
+        public static Metric<TraceGC> AggFactor = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.AggFactor;
+        },
+        "AggFactor", 
+        "#");
+
+        public static Metric<TraceGC> ChangeDecision = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.ChangeDecision;
+        },
+        "ChangeDecision", 
+        "#");
+
+        public static Metric<TraceGC> AdjReason = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.AdjReason;
+        },
+        "AdjReason", 
+        "#");
+
+        public static Metric<TraceGC> HcChangeFreqFactor = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.HcChangeFreqFactor;
+        },
+        "HcChangeFreqFactor", 
+        "#");
+
+        public static Metric<TraceGC> HcFreqReason = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.HcFreqReason;
+        },
+        "HcFreqReason", 
+        "#");
+
+        public static Metric<TraceGC> AdjMetric = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationTuning?.AdjMetric;
+        },
+        "AdjMetric", 
+        "#");
+
+        public static Metric<TraceGC> ElapsedTimeBetweenGCs = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationSample?.ElapsedTimeBetweenGCs;
+        },
+        "ElapsedTimeBetweenGCs", 
+        "msec");
+
+        public static Metric<TraceGC> GCIndex = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationSample?.GCIndex;
+        },
+        "GCIndex", 
+        "#");
+
+        public static Metric<TraceGC> GCPauseTime = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationSample?.GCPauseTime;
+        },
+        "GCPauseTime", 
+        "msec");
+
+        public static Metric<TraceGC> SOHMSLWaitTime = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationSample?.SOHMSLWaitTime;
+        },
+        "SOHMSLWaitTime", 
+        "msec");
+
+        public static Metric<TraceGC> UOHMSLWaitTime = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationSample?.UOHMSLWaitTime;
+        },
+        "UOHMSLWaitTime", 
+        "msec");
+
+        public static Metric<TraceGC> Gen0BudgetPerHeap = new(gc => 
+        {
+            return gc.DynamicEvents().SizeAdaptationSample?.Gen0BudgetPerHeap;
+        },
+        "Gen0BudgetPerHeap", 
+        "#");
+
 
         // HeapCountTuning
-        public static Metric<TraceGC> HctGCIndex = new(gc => gc.HeapCountTuning?.GCIndex, "HCTuningGCIndex", "#");
-        public static Metric<TraceGC> HctMtcp = new((gc => gc.HeapCountTuning?.MedianThroughputCostPercent), "Median TCP", "%");
-        public static Metric<TraceGC> HctMtcpCap15 = HctMtcp.WithCap(15);
-        public static Metric<TraceGC> HctNewHeapCount = new(gc => gc.HeapCountTuning?.NewHeapCount, "HCTuningNewHeapCount", "#");
-        public static Metric<TraceGC> HctSmtcp = new(gc => gc.HeapCountTuning?.SmoothedMedianThroughputCostPercent, "Smoothed MTCP", "%");
-        public static Metric<TraceGC> HctSpaceCostDown = new(gc => gc.HeapCountTuning?.SpaceCostPercentDecreasePerStepDown, "Space cost (down)", "%");
-        public static Metric<TraceGC> HctSpaceCostUp = new(gc => gc.HeapCountTuning?.SpaceCostPercentIncreasePerStepUp, "Space cost (up)TCP", "%");
-        public static Metric<TraceGC> HctTPCostDown = new(gc => gc.HeapCountTuning?.ThroughputCostPercentIncreasePerStepDown, "TP cost (down)", "%");
-        public static Metric<TraceGC> HctTPCostUp = new(gc => gc.HeapCountTuning?.ThroughputCostPercentReductionPerStepUp, "TP cost (up)", "%");
 
         public static Metric<TraceGC> HeapSizeAfter = new(gc => gc.HeapSizeAfterMB, "Heap size (after)", "MB");
         public static Metric<TraceGC> HeapSizeBefore = new(gc => gc.HeapSizeBeforeMB, "Heap size (before)", "MB");

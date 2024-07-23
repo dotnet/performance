@@ -1,5 +1,5 @@
 // TODO, andrewau, remove this condition when new TraceEvent is available through Nuget.
-#if CUSTOM_TRACE_EVENT
+//#if CUSTOM_TRACE_EVENT
 
 using Microsoft.Diagnostics.Tracing.Analysis.GC;
 using Microsoft.Diagnostics.Tracing.Parsers.GCDynamic;
@@ -43,69 +43,85 @@ namespace GC.Analysis.API.DynamicEvents
 
         public int MaxOccurrence { get; init; } = 1;
 
+        static DynamicEventSchema()
+        {
+            // One time add.
+            if (DynamicEventSchemas.Count == 0)
+            {
+                // Add the adaptation schemas.
+                Add(GCDynamicEvents.SizeAdaptationSampleSchema);
+                Add(GCDynamicEvents.SizeAdaptationTuningSchema);
+            }
+        }
+
+        public static void Add(DynamicEventSchema dynamicEventSchema, bool allowPartialSchema = true)
+        {
+            if (DynamicEventSchemas.ContainsKey(dynamicEventSchema.DynamicEventName))
+            {
+                throw new Exception($"Provided schema has a duplicated event named {dynamicEventSchema.DynamicEventName}");
+            }
+            CompiledSchema schema = new CompiledSchema();
+            if (dynamicEventSchema.MinOccurrence < 0)
+            {
+                throw new Exception($"Provided event named {dynamicEventSchema.DynamicEventName} has a negative MinOccurrence");
+            }
+            if (dynamicEventSchema.MaxOccurrence < dynamicEventSchema.MinOccurrence)
+            {
+                throw new Exception($"Provided event named {dynamicEventSchema.DynamicEventName} has a MaxOccurrence smaller than MinOccurrence");
+            }
+            schema.MinOccurrence = dynamicEventSchema.MinOccurrence;
+            schema.MaxOccurrence = dynamicEventSchema.MaxOccurrence;
+            int offset = 0;
+            foreach (KeyValuePair<string, Type> field in dynamicEventSchema.Fields)
+            {
+                if (schema.ContainsKey(field.Key))
+                {
+                    DynamicEventSchemas.Clear();
+                    throw new Exception($"Provided event named {dynamicEventSchema.DynamicEventName} has a duplicated field named {field.Key}");
+                }
+                schema.Add(field.Key, new DynamicEventField { FieldOffset = offset, FieldType = field.Value });
+
+                if (field.Value == typeof(ushort))
+                {
+                    offset += 2;
+                }
+                else if (field.Value == typeof(uint))
+                {
+                    offset += 4;
+                }
+                else if (field.Value == typeof(float))
+                {
+                    offset += 4;
+                }
+                else if (field.Value == typeof(ulong))
+                {
+                    offset += 8;
+                }
+                else if (field.Value == typeof(byte))
+                {
+                    offset += 1;
+                }
+                else if (field.Value == typeof(bool))
+                {
+                    offset += 1;
+                }
+                else
+                {
+                    DynamicEventSchemas.Clear();
+                    throw new Exception($"Provided event named {dynamicEventSchema.DynamicEventName} has a field named {field.Key} using an unsupported type {field.Value}");
+                }
+            }
+            schema.Size = offset;
+            DynamicEventSchemas.Add(dynamicEventSchema.DynamicEventName, schema);
+        }
+
         public static void Set(List<DynamicEventSchema> dynamicEventSchemas, bool allowPartialSchema = true)
         {
             DynamicEventSchemas.Clear();
             DynamicEventSchema.allowPartialSchema = allowPartialSchema;
             foreach (DynamicEventSchema dynamicEventSchema in dynamicEventSchemas)
             {
-                if (DynamicEventSchemas.ContainsKey(dynamicEventSchema.DynamicEventName))
-                {
-                    throw new Exception($"Provided schema has a duplicated event named {dynamicEventSchema.DynamicEventName}");
-                }
-                CompiledSchema schema = new CompiledSchema();
-                if (dynamicEventSchema.MinOccurrence < 0)
-                {
-                    throw new Exception($"Provided event named {dynamicEventSchema.DynamicEventName} has a negative MinOccurrence");
-                }
-                if (dynamicEventSchema.MaxOccurrence < dynamicEventSchema.MinOccurrence)
-                {
-                    throw new Exception($"Provided event named {dynamicEventSchema.DynamicEventName} has a MaxOccurrence smaller than MinOccurrence");
-                }
-                schema.MinOccurrence = dynamicEventSchema.MinOccurrence;
-                schema.MaxOccurrence = dynamicEventSchema.MaxOccurrence;
-                int offset = 0;
-                foreach (KeyValuePair<string, Type> field in dynamicEventSchema.Fields)
-                {
-                    if (schema.ContainsKey(field.Key))
-                    {
-                        DynamicEventSchemas.Clear();
-                        throw new Exception($"Provided event named {dynamicEventSchema.DynamicEventName} has a duplicated field named {field.Key}");
-                    }
-                    schema.Add(field.Key, new DynamicEventField { FieldOffset = offset, FieldType = field.Value });
-
-                    if (field.Value == typeof(ushort))
-                    {
-                        offset += 2;
-                    }
-                    else if (field.Value == typeof(uint))
-                    {
-                        offset += 4;
-                    }
-                    else if (field.Value == typeof(float))
-                    {
-                        offset += 4;
-                    }
-                    else if (field.Value == typeof(ulong))
-                    {
-                        offset += 8;
-                    }
-                    else if (field.Value == typeof(byte))
-                    {
-                        offset += 1;
-                    }
-                    else if (field.Value == typeof(bool))
-                    {
-                        offset += 1;
-                    }
-                    else
-                    {
-                        DynamicEventSchemas.Clear();
-                        throw new Exception($"Provided event named {dynamicEventSchema.DynamicEventName} has a field named {field.Key} using an unsupported type {field.Value}");
-                    }
-                }
-                schema.Size = offset;
-                DynamicEventSchemas.Add(dynamicEventSchema.DynamicEventName, schema);
+                Add(dynamicEventSchema, allowPartialSchema);
             }
         }
     }
@@ -271,4 +287,4 @@ namespace GC.Analysis.API.DynamicEvents
     }
 }
 
-#endif
+//#endif
