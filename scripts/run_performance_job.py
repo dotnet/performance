@@ -167,6 +167,8 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             f"{python} -m pip install azure.storage.queue==12.4.0 --force-reinstall",
             f"{python} -m pip install azure.identity==1.16.1 --force-reinstall",
             f"{python} -m pip install urllib3==1.26.19 --force-reinstall",
+            f"{python} -m pip install opentelemetry-api==1.23.0 --force-reinstall",
+            f"{python} -m pip install opentelemetry-sdk==1.23.0 --force-reinstall",
         ]
 
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 

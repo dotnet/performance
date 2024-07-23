@@ -32,6 +32,7 @@ from typing import Any, List, Optional
 
 from performance.common import validate_supported_runtime, get_artifacts_directory, helixuploadroot
 from performance.logger import setup_loggers
+from performance.tracer import setup_tracing, enable_trace_console_exporter, get_tracer
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
 from subprocess import CalledProcessError
@@ -40,6 +41,10 @@ from glob import glob
 import dotnet
 import micro_benchmarks
 
+setup_tracing()
+tracer = get_tracer()
+
+@tracer.start_as_current_span(name="benchmarks_ci_init_tools") # type: ignore
 def init_tools(
         architecture: str,
         dotnet_versions: List[str],
@@ -69,7 +74,6 @@ def init_tools(
         azure_feed_url=azure_feed_url,
         internal_build_key=internal_build_key
     )
-
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''Adds new arguments to the specified ArgumentParser object.'''
@@ -228,6 +232,24 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Partition Index of the run',
     )
 
+    parser.add_argument(
+        '--enable-open-telemetry-logger',
+        dest='enable_open_telemetry_logger',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Enables OpenTelemetry logging',
+    )
+
+    parser.add_argument(
+        '--enable-open-telemetry-tracer-console',
+        dest='enable_open_telemetry_tracer_console',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Enables OpenTelemetry tracing',
+    )
+
     return parser
 
 
@@ -241,13 +263,16 @@ def __process_arguments(args: List[str]):
     add_arguments(parser)
     return parser.parse_args(args)
 
+@tracer.start_as_current_span("benchmarks_ci_main") # type: ignore
 def main(argv: List[str]):
     validate_supported_runtime()
     args = __process_arguments(argv)
     verbose = not args.quiet
 
     if not args.skip_logger_setup:
-        setup_loggers(verbose=verbose)
+        setup_loggers(verbose=verbose, enable_open_telemetry_logger=args.enable_open_telemetry_logger)
+        if args.enable_open_telemetry_tracer_console:
+            enable_trace_console_exporter()
 
     if not args.frameworks:
         raise Exception("Framework version (-f) must be specified.")
