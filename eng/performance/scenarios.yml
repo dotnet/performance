@@ -111,6 +111,7 @@ jobs:
                 scriptType: 'pscore'
                 scriptLocation: 'inlineScript'
                 inlineScript: |
+                  mkdir $(CorrelationStaging)PDN\
                   az storage blob download --auth-mode login --account-name pvscmdupload --container-name assets --name PDN.zip --file $(CorrelationStaging)PDN\PDN.zip
           - powershell: |
               $(Python) -m pip install --upgrade pip
