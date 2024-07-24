@@ -182,12 +182,14 @@ Make sure you have the v8 engine installed and in the PATH. Follow the installat
 
 #### Run the benchmarks with the interpreter
 
-1. Configure NuGet Feeds to Include Local Packages. Open the `NuGet.config` and modify `packageSources` section
-```
+1. Configure NuGet Feeds to include local packages. Open the `NuGet.config` and modify `packageSources` section
+
+`
 <add key="dotnet-runtime" value="/path/to/dotnet/runtime/artifacts/packages/Release/Shipping" />
-```
+`
 
 2. Run the benchmark
+
 ```cmd
 /path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py -f net9.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --run-isolated --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
     --bdn-arguments="--anyCategories Libraries Runtime --category-exclusion-filter NoInterpreter NoWASM NoMono --logBuildOutput --wasmArgs=\"--module\" --wasmDataDir </path/to/dotnet/runtime>/src/mono/browser --filter <filter>"
