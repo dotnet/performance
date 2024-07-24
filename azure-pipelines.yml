@@ -382,8 +382,7 @@ jobs:
         kind: maui_scenarios_android
         projectFile: maui_scenarios_android.proj
         dotnetVersionsLinks:
-          9.0: https://raw.githubusercontent.com/dotnet/maui/net9.0/eng/Version.Details.xml
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json
+          9.0: ./eng/Version.Details.xml
 
   # Maui iOS Mono scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -396,8 +395,7 @@ jobs:
         kind: maui_scenarios_ios
         projectFile: maui_scenarios_ios.proj
         dotnetVersionsLinks:
-          9.0: https://raw.githubusercontent.com/dotnet/maui/net9.0/eng/Version.Details.xml
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json
+          9.0: ./eng/Version.Details.xml
         runtimeFlavor: mono
 
   # Maui iOS Native AOT scenario benchmarks
@@ -411,8 +409,49 @@ jobs:
         kind: maui_scenarios_ios
         projectFile: maui_scenarios_ios.proj
         dotnetVersionsLinks:
-          9.0: https://raw.githubusercontent.com/dotnet/maui/net9.0/eng/Version.Details.xml
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json
+          9.0: ./eng/Version.Details.xml
+        runtimeFlavor: coreclr
+
+  # Maui Android scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_android
+        projectFile: maui_scenarios_android.proj
+        channels:
+          - 8.0
+
+  # Maui iOS Mono scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_ios
+        projectFile: maui_scenarios_ios.proj
+        channels:
+          - 8.0
+        runtimeFlavor: mono
+
+  # Maui iOS Native AOT scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_ios
+        projectFile: maui_scenarios_ios.proj
+        channels:
+          - 8.0
         runtimeFlavor: coreclr
 
   ## Maui scenario benchmarks

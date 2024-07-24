@@ -21,7 +21,7 @@ def install_versioned_maui(precommands: PreCommands):
         f.write(requests.get(f'https://raw.githubusercontent.com/dotnet/maui/{target_framework_wo_platform}/NuGet.config', allow_redirects=True, timeout=10).content)
 
     workload_install_args = ['--configfile', 'MauiNuGet.config', '--skip-sign-check']
-    if int(target_framework_wo_platform.split('.')[0][3:]) > 7: # Use the rollback file for versions greater than 7
+    if int(target_framework_wo_platform.split('.')[0][3:]) > 8: # Use the rollback file for versions greater than 7
         # Generate and use rollback based on Version.Details.xml
         # Generate the list of versions starts to get and the names to save them as in the rollback.
         rollback_dict: dict[str, str] = {}
