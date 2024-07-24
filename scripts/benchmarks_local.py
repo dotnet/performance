@@ -248,7 +248,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             # browser folder was extracted from wasm folder here: https://github.com/dotnet/runtime/pull/95940, so we need to check both locations for which to use (Dec, 2023)
             src_file_test_main = glob.glob(os.path.join(repo_path, "src", "mono", "*", "test-main.mjs"))[0]
             dest_dir_wasm_data = os.path.join(dir_bin_wasm, "wasm-data")
-            dest_file_test_main = os.path.join(dest_dir_wasm_data, "test-main.mjs") # to do
+            dest_file_test_main = os.path.join(dest_dir_wasm_data, "test-main.mjs")
             if not os.path.exists(dest_dir_wasm_data):
                 os.makedirs(dest_dir_wasm_data)
             shutil.copy2(src_file_test_main, dest_file_test_main)
