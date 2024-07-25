@@ -70,9 +70,16 @@ def getruntimeidentifier():
 
     return rid
 
+# https://stackoverflow.com/a/42580137
+def is_venv(): 
+    return (hasattr(sys, 'real_prefix') or
+            (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))
+
 def pythoncommand():
-    if iswin():
-        return 'py'
+    if is_venv():
+        return 'python'
+    elif iswin():
+        return 'py -3'
     else:
         return 'python3'
 
