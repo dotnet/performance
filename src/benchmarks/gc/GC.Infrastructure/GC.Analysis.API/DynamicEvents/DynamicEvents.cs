@@ -3,7 +3,6 @@
 
 using Microsoft.Diagnostics.Tracing.Analysis.GC;
 using Microsoft.Diagnostics.Tracing.Parsers.GCDynamic;
-using System.Diagnostics;
 using System.Dynamic;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -18,7 +17,7 @@ namespace GC.Analysis.API.DynamicEvents
 
         public static dynamic DynamicEvents(this TraceGC traceGC)
         {
-            DynamicIndex dynamicIndex;
+            DynamicIndex? dynamicIndex;
             if (!dynamicEventsCache.TryGetValue(traceGC, out dynamicIndex))
             {
                 dynamicIndex = new DynamicIndex(traceGC.DynamicEvents);
@@ -31,7 +30,12 @@ namespace GC.Analysis.API.DynamicEvents
 
     public sealed class DynamicEventSchema
     {
-        internal static Dictionary<string, CompiledSchema> DynamicEventSchemas = new Dictionary<string, CompiledSchema>();
+        internal static Dictionary<string, CompiledSchema> DynamicEventSchemas = new Dictionary<string, CompiledSchema>()
+        {
+            // These are the dynamic events that are currently emitted from the runtime.
+            { GCDynamicEvents.SizeAdaptationSampleSchema.DynamicEventName, Compile(GCDynamicEvents.SizeAdaptationSampleSchema) },
+            { GCDynamicEvents.SizeAdaptationTuningSchema.DynamicEventName, Compile(GCDynamicEvents.SizeAdaptationTuningSchema) },
+        };
 
         internal static bool allowPartialSchema;
 
@@ -43,20 +47,9 @@ namespace GC.Analysis.API.DynamicEvents
 
         public int MaxOccurrence { get; init; } = 1;
 
-        static DynamicEventSchema()
+        internal static CompiledSchema Compile(DynamicEventSchema dynamicEventSchema, bool allowPartialSchema = true)
         {
-            // One time add.
-            if (DynamicEventSchemas.Count == 0)
-            {
-                // Add the adaptation schemas.
-                Add(GCDynamicEvents.SizeAdaptationSampleSchema);
-                Add(GCDynamicEvents.SizeAdaptationTuningSchema);
-            }
-        }
-
-        public static void Add(DynamicEventSchema dynamicEventSchema, bool allowPartialSchema = true)
-        {
-            if (DynamicEventSchemas.ContainsKey(dynamicEventSchema.DynamicEventName))
+            if (DynamicEventSchemas != null && DynamicEventSchemas.ContainsKey(dynamicEventSchema.DynamicEventName))
             {
                 throw new Exception($"Provided schema has a duplicated event named {dynamicEventSchema.DynamicEventName}");
             }
@@ -76,7 +69,7 @@ namespace GC.Analysis.API.DynamicEvents
             {
                 if (schema.ContainsKey(field.Key))
                 {
-                    DynamicEventSchemas.Clear();
+                    DynamicEventSchemas?.Clear();
                     throw new Exception($"Provided event named {dynamicEventSchema.DynamicEventName} has a duplicated field named {field.Key}");
                 }
                 schema.Add(field.Key, new DynamicEventField { FieldOffset = offset, FieldType = field.Value });
@@ -107,12 +100,18 @@ namespace GC.Analysis.API.DynamicEvents
                 }
                 else
                 {
-                    DynamicEventSchemas.Clear();
+                    DynamicEventSchemas?.Clear();
                     throw new Exception($"Provided event named {dynamicEventSchema.DynamicEventName} has a field named {field.Key} using an unsupported type {field.Value}");
                 }
             }
             schema.Size = offset;
-            DynamicEventSchemas.Add(dynamicEventSchema.DynamicEventName, schema);
+            return schema;
+        }
+
+        public static void Add(DynamicEventSchema dynamicEventSchema, bool allowPartialSchema = true)
+        {
+            CompiledSchema compiledSchema = Compile(dynamicEventSchema, allowPartialSchema);
+            DynamicEventSchemas.Add(dynamicEventSchema.DynamicEventName, compiledSchema);
         }
 
         public static void Set(List<DynamicEventSchema> dynamicEventSchemas, bool allowPartialSchema = true)
