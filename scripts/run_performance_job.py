@@ -139,6 +139,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             install_prerequisites += [
                 "py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv",
                 "call %HELIX_WORKITEM_ROOT%\\.venv\\Scripts\\activate.bat",
+                "echo on" # venv activate script turns echo off, so turn it back on
             ]
         else:
             if args.os_group != "osx" and args.os_sub_group != "_musl":
@@ -146,8 +147,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
 
             install_prerequisites += [
                 "python3 -m venv $HELIX_WORKITEM_ROOT/.venv",
-                ". $HELIX_WORKITEM_ROOT/.venv/bin/activate",
-                "echo on" # venv activate script turns echo off, so turn it back on
+                ". $HELIX_WORKITEM_ROOT/.venv/bin/activate"
             ]
 
         # Clear the PYTHONPATH first so that modules installed elsewhere are not used
