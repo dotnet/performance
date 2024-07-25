@@ -245,16 +245,20 @@ ex: C:\repos\performance;C:\repos\runtime
         Runs the specified scenario
         '''
         self.parseargs()
+
+        python_command = pythoncommand().split(' ')
+        python_exe = python_command[0]
+        python_args = " ".join(python_command[1:])
         if self.testtype == const.INNERLOOP:
             startup = StartupWrapper()
             self.traits.add_traits(scenarioname=self.scenarioname,
             scenariotypename=const.SCENARIO_NAMES[const.INNERLOOP],
             apptorun='dotnet', appargs='run --project %s' % appfolder(self.traits.exename, self.traits.projext),
-            innerloopcommand=pythoncommand(),
-            iterationsetup=pythoncommand(),
-            setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
-            iterationcleanup=pythoncommand(),
-            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            innerloopcommand=python_exe,
+            iterationsetup=python_exe,
+            setupargs='%s %s setup_build' % (python_args, const.ITERATION_SETUP_FILE),
+            iterationcleanup=python_exe,
+            cleanupargs='%s %s cleanup' % (python_args, const.ITERATION_SETUP_FILE),
             affinity=self.affinity)
             startup.runtests(self.traits)
 
@@ -263,11 +267,11 @@ ex: C:\repos\performance;C:\repos\runtime
             self.traits.add_traits(scenarioname=self.scenarioname,
             scenariotypename=const.SCENARIO_NAMES[const.INNERLOOPMSBUILD],
             apptorun='dotnet', appargs='run --project %s' % appfolder(self.traits.exename, self.traits.projext),
-            innerloopcommand=pythoncommand(),
-            iterationsetup=pythoncommand(),
-            setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
-            iterationcleanup=pythoncommand(),
-            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            innerloopcommand=python_exe,
+            iterationsetup=python_exe,
+            setupargs='%s %s setup_build' % (python_args, const.ITERATION_SETUP_FILE),
+            iterationcleanup=python_exe,
+            cleanupargs='%s %s cleanup' % (python_args, const.ITERATION_SETUP_FILE),
             affinity=self.affinity)
             startup.runtests(self.traits)
             
@@ -276,11 +280,11 @@ ex: C:\repos\performance;C:\repos\runtime
             self.traits.add_traits(scenarioname=self.scenarioname,
             scenariotypename=const.SCENARIO_NAMES[const.DOTNETWATCH],
             apptorun='dotnet', appargs='watch -v',
-            innerloopcommand=pythoncommand(),
-            iterationsetup=pythoncommand(),
-            setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
-            iterationcleanup=pythoncommand(),
-            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            innerloopcommand=python_exe,
+            iterationsetup=python_exe,
+            setupargs='%s %s setup_build' % (python_args, const.ITERATION_SETUP_FILE),
+            iterationcleanup=python_exe,
+            cleanupargs='%s %s cleanup' % (python_args, const.ITERATION_SETUP_FILE),
             affinity=self.affinity)
             self.traits.add_traits(workingdir = const.APPDIR)
             startup.runtests(self.traits)
@@ -312,10 +316,10 @@ ex: C:\repos\performance;C:\repos\runtime
                     scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.CLEAN_BUILD),
                     apptorun=const.DOTNET,
                     appargs='build',
-                    iterationsetup=pythoncommand(),
-                    setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
-                    iterationcleanup=pythoncommand(),
-                    cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+                    iterationsetup=python_exe,
+                    setupargs='%s %s setup_build' % (python_args, const.ITERATION_SETUP_FILE),
+                    iterationcleanup=python_exe,
+                    cleanupargs='%s %s cleanup' % (python_args, const.ITERATION_SETUP_FILE),
                     workingdir=const.APPDIR,
                     environmentvariables=envlistcleanbuild,
                 )
@@ -344,10 +348,10 @@ ex: C:\repos\performance;C:\repos\runtime
                     apptorun=const.DOTNET,
                     scenarioname=self.scenarioname,
                     scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.NEW_CONSOLE),
-                    iterationsetup=pythoncommand(),
-                    setupargs='%s %s setup_new' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
-                    iterationcleanup=pythoncommand(),
-                    cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+                    iterationsetup=python_exe,
+                    setupargs='%s %s setup_new' % (python_args, const.ITERATION_SETUP_FILE),
+                    iterationcleanup=python_exe,
+                    cleanupargs='%s %s cleanup' % (python_args, const.ITERATION_SETUP_FILE),
                     workingdir=const.APPDIR
                 )
                 self.traits.add_traits(overwrite=True, startupmetric=const.STARTUP_PROCESSTIME)

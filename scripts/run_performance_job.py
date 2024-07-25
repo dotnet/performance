@@ -122,11 +122,6 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     if args.os_group != "windows":
         helix_pre_commands += ["export CRYPTOGRAPHY_ALLOW_OPENSSL_102=true"]
 
-    if args.os_group == "windows":
-        python = "py -3"
-    else:
-        python = "python3"
-
     # Create separate list of commands to handle the next part. 
     # On non-Windows, these commands are chained together with && so they will stop if any fail
     install_prerequisites: list[str] = []
@@ -144,6 +139,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             install_prerequisites += [
                 "py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv",
                 "call %HELIX_WORKITEM_ROOT%\\.venv\\Scripts\\activate.bat",
+                "echo on" # venv activate script turns echo off, so turn it back on
             ]
         else:
             if args.os_group != "osx" and args.os_sub_group != "_musl":
@@ -162,13 +158,13 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
 
         # Install python pacakges needed to upload results to azure storage
         install_prerequisites += [
-            f"{python} -m pip install -U pip --force-reinstall",
-            f"{python} -m pip install azure.storage.blob==12.13.0 --force-reinstall",
-            f"{python} -m pip install azure.storage.queue==12.4.0 --force-reinstall",
-            f"{python} -m pip install azure.identity==1.16.1 --force-reinstall",
-            f"{python} -m pip install urllib3==1.26.19 --force-reinstall",
-            f"{python} -m pip install opentelemetry-api==1.23.0 --force-reinstall",
-            f"{python} -m pip install opentelemetry-sdk==1.23.0 --force-reinstall",
+            f"python -m pip install -U pip --force-reinstall",
+            f"python -m pip install azure.storage.blob==12.13.0 --force-reinstall",
+            f"python -m pip install azure.storage.queue==12.4.0 --force-reinstall",
+            f"python -m pip install azure.identity==1.16.1 --force-reinstall",
+            f"python -m pip install urllib3==1.26.19 --force-reinstall",
+            f"python -m pip install opentelemetry-api==1.23.0 --force-reinstall",
+            f"python -m pip install opentelemetry-sdk==1.23.0 --force-reinstall",
         ]
 
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
@@ -619,11 +615,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     # ensure work item directory is not empty
     shutil.copytree(os.path.join(args.performance_repo_dir, "docs"), work_item_dir)
-    
+
     if args.os_group == "windows":
-        python = "py -3"
+        agent_python = "py -3"
     else:
-        python = "python3"
+        agent_python = "python3"
 
     helix_pre_commands = get_pre_commands(args, v8_version)
     helix_post_commands = get_post_commands(args)
@@ -747,15 +743,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
         os.environ["Architecture"] = args.architecture
         os.environ["TargetsWindows"] = "true" if args.os_group == "windows" else "false"
         os.environ["HelixTargetQueues"] = args.queue
-        os.environ["Python"] = python
+        os.environ["Python"] = agent_python
         os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
         os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
 
         # TODO: See if these commands are needed for linux as they were being called before but were failing.
         if args.os_group == "windows" or args.os_group == "osx":
-            RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
-            RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
-            RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
+            RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
+            RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
+            RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
 
         scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
         script_path = os.path.join(args.performance_repo_dir, "scripts")
@@ -843,12 +839,12 @@ def run_performance_job(args: RunPerformanceJobArgs):
     
     if args.os_group == "windows":
         work_item_command = [
-            python,
+            "python",
             "%HELIX_WORKITEM_ROOT%\\performance\\scripts\\benchmarks_ci.py", 
             "--csproj", f"%HELIX_WORKITEM_ROOT%\\performance\\{args.target_csproj}"]
     else:
         work_item_command = [
-            python,
+            "python",
             "$HELIX_WORKITEM_ROOT/performance/scripts/benchmarks_ci.py", 
             "--csproj", f"$HELIX_WORKITEM_ROOT/performance/{args.target_csproj}"]
         
@@ -895,7 +891,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         download_files_from_helix=True,
         targets_windows=args.os_group == "windows",
         helix_results_destination_dir=helix_results_destination_dir,
-        python=python,
+        python="python",
         affinity=args.affinity)
     
     if args.send_to_helix:
