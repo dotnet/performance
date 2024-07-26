@@ -8,7 +8,7 @@
         "**/logs/": true,
         "**/obj/": true,
         "**/packages/": true,
-        "tools/": true,
+        "/tools/": true,
     },
     "python.analysis.typeCheckingMode": "strict",
     "python.analysis.diagnosticSeverityOverrides": {
