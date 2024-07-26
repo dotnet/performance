@@ -3,6 +3,7 @@ import os
 import xml.etree.ElementTree as ET
 import re
 import requests
+from logging import getLogger
 from performance.common import get_repo_root_path
 from shared.precommands import PreCommands
 
@@ -32,9 +33,7 @@ def install_versioned_maui(precommands: PreCommands):
             "microsoft.net.sdk.macos" : "Microsoft.macOS.Sdk",
             "microsoft.net.sdk.maui" : "Microsoft.Maui.Controls",
             "microsoft.net.sdk.tvos" : "Microsoft.tvOS.Sdk",
-            f"microsoft.net.sdk.mono.toolchain.{target_framework_wo_platform}" : "Microsoft.NETCore.App.Ref",
             "microsoft.net.sdk.mono.toolchain.current" : "Microsoft.NETCore.App.Ref",
-            f"microsoft.net.sdk.mono.emscripten.{target_framework_wo_platform}" : "Microsoft.NET.Workload.Emscripten.Current",
             "microsoft.net.sdk.mono.emscripten.current" : "Microsoft.NET.Workload.Emscripten.Current"
         }
 
@@ -81,6 +80,7 @@ def install_versioned_maui(precommands: PreCommands):
                 raise ValueError(f"Unable to find {rollback_name} with proper version in Version.Details.xml")
 
         json_output = json.dumps(rollback_dict, indent=4)
+        getLogger().info(f"Rollback file: \n{json_output}")
         with open(f"rollback_{target_framework_wo_platform}.json", "w", encoding="utf-8") as f:
             f.write(json_output)
         workload_install_args += ['--from-rollback-file', f'rollback_{target_framework_wo_platform}.json']
