@@ -14,12 +14,13 @@
 //#r "nuget: YamlDotnet"
 
 // TODO: Ensure you are pointing to the right artifacts folder.
-#r "..\..\..\..\..\artifacts\bin\GC.Analysis.API\Release\net7.0\GC.Analysis.API.dll"
+#r "..\..\..\..\..\artifacts\bin\GC.Analysis.API\Release\net8.0\GC.Analysis.API.dll"
 
 using System.IO;
 using System.Text.RegularExpressions;
 
 using GC.Analysis.API;
+using GC.Analysis.API.DynamicEvents;
 
 //using Etlx = Microsoft.Diagnostics.Tracing.Etlx;
 //using Microsoft.Data.Analysis;
