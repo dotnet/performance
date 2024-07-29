@@ -118,6 +118,7 @@ jobs:
       architecture: arm64
       pool:
         vmImage: ubuntu-latest
+      container: ubuntu_x64_build_container
       machinePool: Ampere
       queue: Ubuntu.2204.Arm64.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
