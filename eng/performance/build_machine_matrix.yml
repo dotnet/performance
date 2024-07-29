@@ -117,7 +117,7 @@ jobs:
       osVersion: 2204
       architecture: arm64
       pool:
-        vmImage: ubuntu-22.04
+        vmImage: ubuntu-latest
       machinePool: Ampere
       queue: Ubuntu.2204.Arm64.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
