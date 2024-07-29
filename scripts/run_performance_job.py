@@ -684,7 +684,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "Startup", "Startup.csproj"),
             f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'Startup.binlog')}",
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
+            verbose=True).run()
 
         # build SizeOnDisk
         RunCommand([
@@ -696,7 +697,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "SizeOnDisk", "SizeOnDisk.csproj"),
             f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'SizeOnDisk.binlog')}",
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
+            verbose=True).run()
         
         # build MemoryConsumption
         RunCommand([
@@ -708,7 +710,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"),
             f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'MemoryConsumption.binlog')}",
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
+            verbose=True).run()
         
         # build PerfLabGenericEventSourceForwarder
         RunCommand([
@@ -719,13 +722,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-r", runtime_id,
             os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder.csproj"),
             f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PerfLabGenericEventSourceForwarder.binlog')}",
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
+            verbose=True).run()
         
         # build PerfLabGenericEventSourceLTTngProvider
         if args.os_group != "windows" and args.os_group != "osx" and args.os_version == "2204":
             RunCommand([
                 os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceLTTngProvider", "build.sh"),
-                "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")]).run()
+                "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")],
+                verbose=True).run()
         
         # copy PDN
         if args.os_group == "windows" and args.architecture != "x86" and args.pdn_path is not None:
