@@ -414,9 +414,7 @@ def main(args: Any):
     if args.r2r_status == 'nor2r':
         r2r_config = variable_format % ('DOTNET_ReadyToRun', '0')
 
-    if args.experiment_name == "rlcse":
-        experiment_config = variable_format % ('DOTNET_JitRLCSEGreedy', '1')
-    elif args.experiment_name == "jitoptrepeat":
+    if args.experiment_name == "jitoptrepeat":
         experiment_config = variable_format % ('DOTNET_JitOptRepeat', '*')
     elif args.experiment_name == "rpolayout":
         experiment_config = variable_format % ('DOTNET_JitDoReversePostOrderLayout', '1')
