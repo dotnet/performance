@@ -174,7 +174,7 @@ In order to run the benchmarks against local [dotnet/runtime](https://github.com
 
 This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-latest`, which should be used to run the benchmarks.
 
-3. And you need `/path/to/dotnet/runtime/src/mono/browser/test-main.mjs`
+3. And you need `/path/to/dotnet/runtime/src/mono/browser/test-main.js`
 
 #### Install v8 engine
 
