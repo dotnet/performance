@@ -17,7 +17,9 @@ def remove_aab_files(output_dir="."):
 def generate_maui_rollback_dict():
     # Generate and use rollback based on Version.Details.xml
     # Generate the list of versions starts to get and the names to save them as in the rollback.
-    rollback_dict: dict[str, str] = {}
+    # These mapping values were taken from the previously generated rollback files for the maui workload. There should be at least one entry for each
+    # of the Maui Workload dependencies in the /eng/Version.Details.xml file, aside from VS.Tools.Net.Core.SDK.Resolver.
+    # If there are errors in the future, reach out to the maui team.
     rollback_name_to_xml_name_mappings: dict[str, str] = {
         "microsoft.net.sdk.android" : "Microsoft.Android.Sdk",
         "microsoft.net.sdk.ios" : "Microsoft.iOS.Sdk",
@@ -28,6 +30,7 @@ def generate_maui_rollback_dict():
         "microsoft.net.sdk.mono.toolchain.current" : "Microsoft.NETCore.App.Ref",
         "microsoft.net.sdk.mono.emscripten.current" : "Microsoft.NET.Workload.Emscripten.Current"
     }
+    rollback_dict: dict[str, str] = {}
 
     # Load in the Version.Details.xml file
     with open(os.path.join(get_repo_root_path(), "eng", "Version.Details.xml"), encoding="utf-8") as f:
@@ -86,7 +89,7 @@ def install_versioned_maui(precommands: PreCommands):
             f.write(response.read())
 
     workload_install_args = ['--configfile', 'MauiNuGet.config', '--skip-sign-check']
-    if int(target_framework_wo_platform.split('.')[0][3:]) > 8: # Use the rollback file for versions greater than 7
+    if int(target_framework_wo_platform.split('.')[0][3:]) > 8: # Use the rollback file for versions greater than 8 (should be set to only run for versions where we also use a specific dotnet version from the yml)
         rollback_dict = generate_maui_rollback_dict()
         dump_dict_to_json_file(rollback_dict, f"rollback_{target_framework_wo_platform}.json")
         workload_install_args += ['--from-rollback-file', f'rollback_{target_framework_wo_platform}.json']
