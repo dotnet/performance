@@ -184,9 +184,9 @@ Make sure you have the v8 engine installed and in the PATH. Follow the installat
 
 1. Configure NuGet Feeds to include local packages. Open the `NuGet.config` and modify `packageSources` section
 
-`
+```xml
 <add key="dotnet-runtime" value="/path/to/dotnet/runtime/artifacts/packages/Release/Shipping" />
-`
+```
 
 2. Run the benchmark
 
