@@ -555,6 +555,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
                         ci_setup_arguments.dotnet_versions = [values["dotnet_version"]]
                     else:
                         ci_setup_arguments.dotnet_versions = [values["version"]]
+            else:
+                raise ValueError("Invalid dotnet_version_link provided. Must be a json file if a url.")
         elif os.path.exists(os.path.join(args.performance_repo_dir, args.dotnet_version_link)) and args.dotnet_version_link.endswith("Version.Details.xml"): # version_link is a file in the perf repo
             with open(os.path.join(args.performance_repo_dir, args.dotnet_version_link), encoding="utf-8") as f:
                 root = ET.fromstring(f.read())

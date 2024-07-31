@@ -3,7 +3,6 @@ import os
 import xml.etree.ElementTree as ET
 import re
 import urllib.request
-from logging import getLogger
 from performance.common import get_repo_root_path
 from shared.precommands import PreCommands
 
@@ -40,8 +39,8 @@ def generate_maui_rollback_dict():
     # Get the General Band version from the Version.Details.xml file sdk version
     general_version_obj = root.find(".//Dependency[@Name='VS.Tools.Net.Core.SDK.Resolver']")
     if general_version_obj is not None:
-        full_band_version_holder = general_version_obj.get("Version", "ERROR: Failed to get version")
-        if full_band_version_holder == "ERROR: Failed to get version":
+        full_band_version_holder = general_version_obj.get("Version")
+        if full_band_version_holder is None:
             raise ValueError("Unable to find VS.Tools.Net.Core.SDK.Resolver with proper version in Version.Details.xml")
         match = re.search(r'^\d+\.\d+\.\d+\-(preview|rc|alpha).\d+', full_band_version_holder)
         if match:
@@ -56,8 +55,8 @@ def generate_maui_rollback_dict():
     for rollback_name, xml_name in rollback_name_to_xml_name_mappings.items():
         for dependency in dependencies:
             if dependency.get("Name").startswith(xml_name): # type: ignore we know Name is present
-                workload_version = dependency.get("Version", "ERROR: Failed to get version")
-                if workload_version == "ERROR: Failed to get version":
+                workload_version = dependency.get("Version")
+                if workload_version is None:
                     raise ValueError(f"Unable to find {xml_name} with proper version in the provided xml file")
 
                 # Use the band version based on what the maui upstream currently has. This is necessary if they hardcode the version.
@@ -95,4 +94,3 @@ def install_versioned_maui(precommands: PreCommands):
         workload_install_args += ['--from-rollback-file', f'rollback_{target_framework_wo_platform}.json']
 
     precommands.install_workload('maui', workload_install_args) 
-
