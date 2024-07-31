@@ -1,6 +1,3 @@
-// TODO, andrewau, remove this condition when new TraceEvent is available through Nuget.
-#if CUSTOM_TRACE_EVENT
-
 using Microsoft.Diagnostics.Tracing.Analysis.GC;
 using Microsoft.Diagnostics.Tracing.Parsers.GCDynamic;
 using System.Dynamic;
@@ -285,5 +282,3 @@ namespace GC.Analysis.API.DynamicEvents
         }
     }
 }
-
-#endif
