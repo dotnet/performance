@@ -764,7 +764,9 @@ public enum ColorKeys
 // Some will be null depending on the chart type
 record SeriesInfo<TData>(Metric<TData> Metric, string Run, string Config, ConfigData ConfigData, string Benchmark, int? Iteration, IterationData IterationData)
 {
-    public string GetColorFamilyKey(ColorKeys keys)
+    public string GetColorFamilyKey(ColorKeys keys) => GetColorFamilyId(~keys);
+
+    public string GetColorFamilyId(ColorKeys keys)
     {
         var items = new List<string>();
 
@@ -776,8 +778,6 @@ record SeriesInfo<TData>(Metric<TData> Metric, string Run, string Config, Config
 
         return string.Join(", ", items);
     }
-
-    public string GetColorFamilyId(ColorKeys keys) => GetColorFamilyKey(~keys);
 
     public string GetSeriesTitle(bool multipleMetrics, bool includeRunName, bool multipleConfigs, bool multipleBenchmarks, Dictionary<string, string> configDisplayNames)
     {
@@ -845,7 +845,7 @@ class IterationsChartType : ChartType<IterationData>
 {
     public override BaseMetric<(string, IterationData), XValue> DefaultXMetric { get; } = Metrics.X.IterationBenchmarkName;
     public override string DefaultBenchmarkMap(string benchmark) => "";
-    public override ColorKeys DefaultColorKeysToGroup => ColorKeys.Iteration | ColorKeys.Metric;
+    public override ColorKeys DefaultColorKeysToGroup => ColorKeys.Iteration;
 
     public override IEnumerable<SeriesInfo<IterationData>> GetSeries(DataManager dataManager, List<Metric<IterationData>> metrics, Filter runFilter, Filter configFilter,
         Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, IEnumerable<string> benchmarkList)
