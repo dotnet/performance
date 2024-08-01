@@ -7,6 +7,7 @@ import os
 import shutil
 import sys
 import urllib.request
+import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional
 
 import ci_setup
@@ -544,12 +545,28 @@ def run_performance_job(args: RunPerformanceJobArgs):
         ci_setup_arguments.dotnet_path = f"{wasm_bundle_dir}/dotnet"
 
     if args.dotnet_version_link is not None:
-        with urllib.request.urlopen(args.dotnet_version_link) as response:
-            values = json.loads(response.read().decode('utf-8'))
-            if "dotnet_version" in values:
-                ci_setup_arguments.dotnet_versions = [values["dotnet_version"]]
+        if args.dotnet_version_link.startswith("https"): # Version link is a proper url
+            if args.dotnet_version_link.endswith(".json"):
+                with urllib.request.urlopen(args.dotnet_version_link) as response:
+                    values = json.loads(response.read().decode('utf-8'))
+                    if "dotnet_version" in values:
+                        ci_setup_arguments.dotnet_versions = [values["dotnet_version"]]
+                    else:
+                        ci_setup_arguments.dotnet_versions = [values["version"]]
             else:
-                ci_setup_arguments.dotnet_versions = [values["version"]]
+                raise ValueError("Invalid dotnet_version_link provided. Must be a json file if a url.")
+        elif os.path.exists(os.path.join(args.performance_repo_dir, args.dotnet_version_link)) and args.dotnet_version_link.endswith("Version.Details.xml"): # version_link is a file in the perf repo
+            with open(os.path.join(args.performance_repo_dir, args.dotnet_version_link), encoding="utf-8") as f:
+                root = ET.fromstring(f.read())
+            dependency = root.find(".//Dependency[@Name='VS.Tools.Net.Core.SDK.Resolver']") # For net9.0
+            if dependency is None: # For older than net9.0
+                dependency = root.find(".//Dependency[@Name='Microsoft.Dotnet.Sdk.Internal']")
+            if dependency is not None and "Version" in dependency.attrib: # Get the actual version
+                ci_setup_arguments.dotnet_versions = [dependency.get("Version", "ERROR: Failed to get version")]
+            else:
+                raise ValueError("Unable to find dotnet version in the provided xml file")
+        else:
+            raise ValueError("Invalid dotnet_version_link provided")
 
     if args.pgo_run_type == "nodynamicpgo":
         ci_setup_arguments.pgo_status = "nodynamicpgo"
