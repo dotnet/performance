@@ -11,7 +11,7 @@ namespace GC.Infrastructure.Core.UnitTests.Presentation
         {
             string text = "# Section1\na\nb\nc\nd\n# Section 2";
             string details = MarkdownReportBuilder.CopySectionFromMarkDown(text, "Section1");
-            details.Should().BeEquivalentTo("a\r\nb\r\nc\r\nd\r\n");
+            details.Should().BeEquivalentTo($"a{Environment.NewLine}b{Environment.NewLine}c{Environment.NewLine}d{Environment.NewLine}");
         }
 
         [TestMethod]
@@ -26,7 +26,7 @@ JsonMin_Windows | -7.000000000000001% | -12% | -6%
 ";
 
             string details = MarkdownReportBuilder.CopySectionFromMarkDown(text, "Summary");
-            details.Should().BeEquivalentTo("|  | Working Set (MB)|Private Memory (MB)|Requests/sec\r\n|--- | ---|---|---|\r\nJsonMin_Windows | -7.000000000000001% | -12% | -6%\r\n");
+            details.Should().BeEquivalentTo($"|  | Working Set (MB)|Private Memory (MB)|Requests/sec{Environment.NewLine}|--- | ---|---|---|{Environment.NewLine}JsonMin_Windows | -7.000000000000001% | -12% | -6%{Environment.NewLine}");
         }
     }
 }
