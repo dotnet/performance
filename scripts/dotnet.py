@@ -21,6 +21,7 @@ from urllib.parse import urlparse
 from urllib.request import urlopen
 from time import sleep
 
+from channel_map import ChannelMap
 from performance.common import get_machine_architecture
 from performance.common import get_repo_root_path
 from performance.common import get_tools_directory
@@ -28,9 +29,12 @@ from performance.common import push_dir
 from performance.common import RunCommand
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
-from channel_map import ChannelMap
+from performance.tracer import setup_tracing, get_tracer
 
+setup_tracing()
+tracer = get_tracer()
 
+@tracer.start_as_current_span(name="info") # type: ignore
 def info(verbose: bool) -> None:
     """
     Executes `dotnet --info` in order to get the .NET Core information from the
@@ -39,6 +43,7 @@ def info(verbose: bool) -> None:
     cmdline = ['dotnet', '--info']
     RunCommand(cmdline, verbose=verbose).run()
 
+@tracer.start_as_current_span(name="exec") # type: ignore
 def exec(asm_path: str, success_exit_codes: List[int], verbose: bool, *args: str) -> int:
     """
     Executes `dotnet exec` which can be used to execute assemblies
@@ -72,6 +77,7 @@ class FrameworkAction(Action):
             setattr(namespace, self.dest, list(set(values)))
 
     @staticmethod
+    @tracer.start_as_current_span("frameworkaction_get_target_framework_moniker") # type: ignore
     def get_target_framework_moniker(framework: str) -> str:
         '''
         Translates framework name to target framework moniker (TFM)
@@ -90,6 +96,7 @@ class FrameworkAction(Action):
             return framework
 
     @staticmethod
+    @tracer.start_as_current_span("frameworkaction_get_supported_frameworks") # type: ignore
     def get_target_framework_monikers(frameworks: List[str]) -> List[str]:
         '''
         Translates framework names to target framework monikers (TFM)
@@ -158,6 +165,7 @@ class CompilationAction(Action):
             setattr(namespace, self.dest, values)
 
     @staticmethod
+    @tracer.start_as_current_span("compilationaction_set_mode") # type: ignore
     def __set_mode(mode: str) -> None:
         # Remove potentially set environments.
         COMPLUS_ENVIRONMENTS = [
@@ -186,6 +194,7 @@ class CompilationAction(Action):
             raise ArgumentTypeError('Unknown mode: {}'.format(mode))
 
     @staticmethod
+    @tracer.start_as_current_span("compilationaction_validate") # type: ignore
     def validate(usr_mode: str) -> str:
         '''Validate user input.'''
         requested_mode = None
@@ -199,6 +208,7 @@ class CompilationAction(Action):
         return requested_mode
 
     @staticmethod
+    @tracer.start_as_current_span("compilationaction_modes") # type: ignore
     def modes() -> List[str]:
         '''Available .NET Performance modes.'''
         return [
@@ -210,11 +220,13 @@ class CompilationAction(Action):
         ]
 
     @staticmethod
+    @tracer.start_as_current_span("compilationaction_noenv") # type: ignore
     def noenv() -> str:
         '''Default .NET performance mode.'''
         return CompilationAction.modes()[0]  # No environment set
 
     @staticmethod
+    @tracer.start_as_current_span("compilationaction_help_text") # type: ignore
     def help_text() -> str:
         '''Gets the help string describing the different compilation modes.'''
         return '''Different compilation modes that can be set to change the
@@ -288,6 +300,7 @@ class CSharpProject:
         '''Gets the directory in which the built binaries will be placed.'''
         return self.__bin_directory
 
+    @tracer.start_as_current_span("csharpproject_restore") # type: ignore
     def restore(self, 
                 packages_path: str, 
                 verbose: bool,
@@ -322,6 +335,7 @@ class CSharpProject:
         RunCommand(cmdline, verbose=verbose, retry=1).run(
             self.working_directory)
 
+    @tracer.start_as_current_span("csharpproject_build") # type: ignore
     def build(self,
               configuration: str,
               verbose: bool,
@@ -379,6 +393,7 @@ class CSharpProject:
                 RunCommand(cmdline, verbose=verbose).run(
                     self.working_directory)
     @staticmethod
+    @tracer.start_as_current_span("csharpproject_new") # type: ignore
     def new(template: str,
             output_dir: str,
             bin_dir: str,
@@ -425,6 +440,7 @@ class CSharpProject:
                                             working_directory),
                              bin_dir)
 
+    @tracer.start_as_current_span("csharpproject_publish") # type: ignore
     def publish(self,
                 configuration: str,
                 output_dir: str,
@@ -484,6 +500,7 @@ class CSharpProject:
                     getLogger().info('  "%s=%s"', env, environ[env])
         getLogger().info('-' * 50)
 
+    @tracer.start_as_current_span("csharpproject_run") # type: ignore
     def run(self,
             configuration: str,
             target_framework_moniker: str,
@@ -509,6 +526,7 @@ class CSharpProject:
 
 
 FrameworkVersion = NamedTuple('FrameworkVersion', major=int, minor=int)
+@tracer.start_as_current_span("dotnet_get_framework_version") # type: ignore
 def get_framework_version(framework: str) -> FrameworkVersion:
     groups = search(r".*(\d)\.(\d)$", framework)
     if not groups:
@@ -518,7 +536,7 @@ def get_framework_version(framework: str) -> FrameworkVersion:
 
     return version
 
-
+@tracer.start_as_current_span("dotnet_get_base_path") # type: ignore
 def get_base_path(dotnet_path: Optional[str] = None) -> str:
     """Gets the dotnet Host version from the `dotnet --info` command."""
     if not dotnet_path:
@@ -554,7 +572,7 @@ def get_dotnet_path() -> str:
     dotnet_path = path.abspath(path.join(base_path, '..', '..'))
     return dotnet_path
 
-
+@tracer.start_as_current_span("dotnet_get_dotnet_version_from_path") # type: ignore
 def get_dotnet_version_from_path(
         framework: str,
         dotnet_path: Optional[str] = None,
@@ -586,6 +604,7 @@ def get_dotnet_version_from_path(
 
     return sdk
 
+@tracer.start_as_current_span("dotnet_get_dotnet_version_precise") # type: ignore
 def get_dotnet_version_precise(
         framework: str,
         dotnet_path: Optional[str] = None,
@@ -598,6 +617,7 @@ def get_dotnet_version_precise(
     with open(path.join(sdk_path, sdk, '.version')) as sdk_version_file:
         return sdk_version_file.readlines()[3].strip()
 
+@tracer.start_as_current_span("dotnet_get_dotnet_sdk") # type: ignore
 def get_dotnet_sdk(
         framework: str,
         dotnet_path: Optional[str] = None,
@@ -609,6 +629,7 @@ def get_dotnet_sdk(
     with open(path.join(sdk_path, sdk, '.version')) as sdk_version_file:
         return sdk_version_file.readline().strip()
 
+@tracer.start_as_current_span("dotnet_get_repository") # type: ignore
 def get_repository(repository: str) -> Tuple[str, str]:
     url_path = urlparse(repository).path
     tokens = url_path.split("/")
@@ -619,7 +640,7 @@ def get_repository(repository: str) -> Tuple[str, str]:
 
     return owner, repo
 
-
+@tracer.start_as_current_span("dotnet_get_commit_date") # type: ignore
 def get_commit_date(
         framework: str,
         commit_sha: str,
@@ -756,7 +777,7 @@ def __get_directory(architecture: str) -> str:
     '''Gets the default directory where dotnet is to be installed.'''
     return path.join(get_tools_directory(), 'dotnet', architecture)
 
-
+@tracer.start_as_current_span("dotnet_remove_dotnet") # type: ignore
 def remove_dotnet(architecture: str) -> None:
     '''
     Removes the dotnet installed in the tools directory associated with the
@@ -766,6 +787,7 @@ def remove_dotnet(architecture: str) -> None:
     if path.isdir(dotnet_path):
         rmtree(dotnet_path)
 
+@tracer.start_as_current_span("dotnet_shutdown_server") # type: ignore
 def shutdown_server(verbose:bool) -> None:
     '''
     Shuts down the dotnet server
@@ -784,7 +806,7 @@ def shutdown_server(verbose:bool) -> None:
         else:
             system('killall -9 dotnet 2> /dev/null || killall -9 VSTest.Console 2> /dev/null || killall -9 msbuild 2> /dev/null')
 
-
+@tracer.start_as_current_span("dotnet_install") # type: ignore
 def install(
         architecture: str,
         channels: List[str],
@@ -888,6 +910,7 @@ def install(
 
     setup_dotnet(install_dir)
 
+@tracer.start_as_current_span(name="dotnet_setup_dotnet") # type: ignore
 def setup_dotnet(dotnet_path: str):
     # Set DotNet Cli environment variables.
     environ['DOTNET_CLI_TELEMETRY_OPTOUT'] = '1'

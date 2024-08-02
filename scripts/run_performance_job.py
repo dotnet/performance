@@ -7,6 +7,7 @@ import os
 import shutil
 import sys
 import urllib.request
+import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional
 
 import ci_setup
@@ -124,11 +125,6 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     if args.os_group != "windows":
         helix_pre_commands += ["export CRYPTOGRAPHY_ALLOW_OPENSSL_102=true"]
 
-    if args.os_group == "windows":
-        python = "py -3"
-    else:
-        python = "python3"
-
     # Create separate list of commands to handle the next part. 
     # On non-Windows, these commands are chained together with && so they will stop if any fail
     install_prerequisites: list[str] = []
@@ -146,6 +142,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             install_prerequisites += [
                 "py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv",
                 "call %HELIX_WORKITEM_ROOT%\\.venv\\Scripts\\activate.bat",
+                "echo on" # venv activate script turns echo off, so turn it back on
             ]
         else:
             if args.os_group != "osx" and args.os_sub_group != "_musl":
@@ -169,11 +166,13 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
 
         # Install python pacakges needed to upload results to azure storage
         install_prerequisites += [
-            f"{python} -m pip install -U pip",
-            f"{python} -m pip install azure.storage.blob==12.13.0",
-            f"{python} -m pip install azure.storage.queue==12.4.0",
-            f"{python} -m pip install azure.identity==1.16.1",
-            f"{python} -m pip install urllib3==1.26.19",
+            f"python -m pip install -U pip",
+            f"python -m pip install azure.storage.blob==12.13.0",
+            f"python -m pip install azure.storage.queue==12.4.0",
+            f"python -m pip install azure.identity==1.16.1",
+            f"python -m pip install urllib3==1.26.19",
+            f"python -m pip install opentelemetry-api==1.23.0",
+            f"python -m pip install opentelemetry-sdk==1.23.0",
         ]
 
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
@@ -626,12 +625,28 @@ def run_performance_job(args: RunPerformanceJobArgs):
         ci_setup_arguments.dotnet_path = f"{wasm_bundle_dir_path}/dotnet"
 
     if args.dotnet_version_link is not None:
-        with urllib.request.urlopen(args.dotnet_version_link) as response:
-            values = json.loads(response.read().decode('utf-8'))
-            if "dotnet_version" in values:
-                ci_setup_arguments.dotnet_versions = [values["dotnet_version"]]
+        if args.dotnet_version_link.startswith("https"): # Version link is a proper url
+            if args.dotnet_version_link.endswith(".json"):
+                with urllib.request.urlopen(args.dotnet_version_link) as response:
+                    values = json.loads(response.read().decode('utf-8'))
+                    if "dotnet_version" in values:
+                        ci_setup_arguments.dotnet_versions = [values["dotnet_version"]]
+                    else:
+                        ci_setup_arguments.dotnet_versions = [values["version"]]
             else:
-                ci_setup_arguments.dotnet_versions = [values["version"]]
+                raise ValueError("Invalid dotnet_version_link provided. Must be a json file if a url.")
+        elif os.path.exists(os.path.join(args.performance_repo_dir, args.dotnet_version_link)) and args.dotnet_version_link.endswith("Version.Details.xml"): # version_link is a file in the perf repo
+            with open(os.path.join(args.performance_repo_dir, args.dotnet_version_link), encoding="utf-8") as f:
+                root = ET.fromstring(f.read())
+            dependency = root.find(".//Dependency[@Name='VS.Tools.Net.Core.SDK.Resolver']") # For net9.0
+            if dependency is None: # For older than net9.0
+                dependency = root.find(".//Dependency[@Name='Microsoft.Dotnet.Sdk.Internal']")
+            if dependency is not None and "Version" in dependency.attrib: # Get the actual version
+                ci_setup_arguments.dotnet_versions = [dependency.get("Version", "ERROR: Failed to get version")]
+            else:
+                raise ValueError("Unable to find dotnet version in the provided xml file")
+        else:
+            raise ValueError("Invalid dotnet_version_link provided")
 
     if args.pgo_run_type == "nodynamicpgo":
         ci_setup_arguments.pgo_status = "nodynamicpgo"
@@ -710,11 +725,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     # ensure work item directory is not empty
     shutil.copytree(os.path.join(args.performance_repo_dir, "docs"), work_item_dir)
-    
+
     if args.os_group == "windows":
-        python = "py -3"
+        agent_python = "py -3"
     else:
-        python = "python3"
+        agent_python = "python3"
 
     helix_pre_commands = get_pre_commands(args, v8_version)
     helix_post_commands = get_post_commands(args)
@@ -779,7 +794,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "Startup", "Startup.csproj"),
             f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'Startup.binlog')}",
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
+            verbose=True).run()
 
         # build SizeOnDisk
         RunCommand([
@@ -791,7 +807,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "SizeOnDisk", "SizeOnDisk.csproj"),
             f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'SizeOnDisk.binlog')}",
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
+            verbose=True).run()
         
         # build MemoryConsumption
         RunCommand([
@@ -803,7 +820,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"),
             f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'MemoryConsumption.binlog')}",
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
+            verbose=True).run()
         
         # build PerfLabGenericEventSourceForwarder
         RunCommand([
@@ -814,13 +832,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-r", runtime_id,
             os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder.csproj"),
             f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PerfLabGenericEventSourceForwarder.binlog')}",
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
+            verbose=True).run()
         
         # build PerfLabGenericEventSourceLTTngProvider
         if args.os_group != "windows" and args.os_group != "osx" and args.os_version == "2204":
             RunCommand([
                 os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceLTTngProvider", "build.sh"),
-                "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")]).run()
+                "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")],
+                verbose=True).run()
         
         # copy PDN
         if args.os_group == "windows" and args.architecture != "x86" and args.pdn_path is not None:
@@ -838,15 +858,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
         os.environ["Architecture"] = args.architecture
         os.environ["TargetsWindows"] = "true" if args.os_group == "windows" else "false"
         os.environ["HelixTargetQueues"] = args.queue
-        os.environ["Python"] = python
+        os.environ["Python"] = agent_python
         os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
         os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
 
         # TODO: See if these commands are needed for linux as they were being called before but were failing.
         if args.os_group == "windows" or args.os_group == "osx":
-            RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
-            RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
-            RunCommand([*(python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
+            RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
+            RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
+            RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
 
         scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
         script_path = os.path.join(args.performance_repo_dir, "scripts")
@@ -946,12 +966,12 @@ def run_performance_job(args: RunPerformanceJobArgs):
     
     if args.os_group == "windows":
         work_item_command = [
-            python,
+            "python",
             "%HELIX_WORKITEM_ROOT%\\performance\\scripts\\benchmarks_ci.py", 
             "--csproj", f"%HELIX_WORKITEM_ROOT%\\performance\\{args.target_csproj}"]
     else:
         work_item_command = [
-            python,
+            "python",
             "$HELIX_WORKITEM_ROOT/performance/scripts/benchmarks_ci.py", 
             "--csproj", f"$HELIX_WORKITEM_ROOT/performance/{args.target_csproj}"]
         
@@ -1028,7 +1048,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         download_files_from_helix=True,
         targets_windows=args.os_group == "windows",
         helix_results_destination_dir=helix_results_destination_dir,
-        python=python,
+        python="python",
         affinity=args.affinity,
         compare=args.compare,
         compare_command=compare_command,

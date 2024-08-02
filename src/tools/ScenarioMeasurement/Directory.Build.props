@@ -3,7 +3,7 @@
     <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
     <PropertyGroup>
         <FallbackTargetFramework>net8.0</FallbackTargetFramework>
-        <LibrariesTargetFramework>net6.0</LibrariesTargetFramework>
+        <LibrariesTargetFramework>net8.0</LibrariesTargetFramework>
         <NoWarn>$(NoWarn);CS8002</NoWarn>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>

@@ -382,8 +382,9 @@ jobs:
         kind: maui_scenarios_android
         projectFile: maui_scenarios_android.proj
         dotnetVersionsLinks:
-          9.0: https://maui.blob.core.windows.net/metadata/sdks/net9.0.json
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json
+          9.0: ./eng/Version.Details.xml
+        channels:
+          - 8.0
 
   # Maui iOS Mono scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -396,8 +397,9 @@ jobs:
         kind: maui_scenarios_ios
         projectFile: maui_scenarios_ios.proj
         dotnetVersionsLinks:
-          9.0: https://maui.blob.core.windows.net/metadata/sdks/net9.0.json
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json
+          9.0: ./eng/Version.Details.xml
+        channels:
+          - 8.0
         runtimeFlavor: mono
 
   # Maui iOS Native AOT scenario benchmarks
@@ -411,8 +413,9 @@ jobs:
         kind: maui_scenarios_ios
         projectFile: maui_scenarios_ios.proj
         dotnetVersionsLinks:
-          9.0: https://maui.blob.core.windows.net/metadata/sdks/net9.0.json
-          8.0: https://aka.ms/dotnet/sdk/maui/net8.0.json
+          9.0: ./eng/Version.Details.xml
+        channels:
+          - 8.0
         runtimeFlavor: coreclr
 
   ## Maui scenario benchmarks

@@ -587,22 +587,30 @@ public static class Metrics
 
         public static Metric<TraceGC> HeapCount = new(gc => gc.HeapCount, "Heap count", "#");
 
-        // HeapCountSample
-        public static Metric<TraceGC> HcsElapsedTimeBetweenGCs = new(gc => gc.HeapCountSample.ElapsedTimeBetweenGCsMSec, "HCSampleElapsed", "ms");
-        public static Metric<TraceGC> HcsGCIndex = new(gc => gc.HeapCountSample.GCIndex, "HCSampleGCIndex", "#");
-        public static Metric<TraceGC> HcsGCPauseTime = new(gc => gc.HeapCountSample.GCPauseTimeMSec, "HCSampleGCPause", "ms");
-        public static Metric<TraceGC> HcsMslWaitTime = new(gc => gc.HeapCountSample.MslWaitTimeMSec, "HCSampleGCMslWait", "ms");
-
-        // HeapCountTuning
-        public static Metric<TraceGC> HctGCIndex = new(gc => gc.HeapCountTuning?.GCIndex, "HCTuningGCIndex", "#");
-        public static Metric<TraceGC> HctMtcp = new((gc => gc.HeapCountTuning?.MedianThroughputCostPercent), "Median TCP", "%");
-        public static Metric<TraceGC> HctMtcpCap15 = HctMtcp.WithCap(15);
-        public static Metric<TraceGC> HctNewHeapCount = new(gc => gc.HeapCountTuning?.NewHeapCount, "HCTuningNewHeapCount", "#");
-        public static Metric<TraceGC> HctSmtcp = new(gc => gc.HeapCountTuning?.SmoothedMedianThroughputCostPercent, "Smoothed MTCP", "%");
-        public static Metric<TraceGC> HctSpaceCostDown = new(gc => gc.HeapCountTuning?.SpaceCostPercentDecreasePerStepDown, "Space cost (down)", "%");
-        public static Metric<TraceGC> HctSpaceCostUp = new(gc => gc.HeapCountTuning?.SpaceCostPercentIncreasePerStepUp, "Space cost (up)TCP", "%");
-        public static Metric<TraceGC> HctTPCostDown = new(gc => gc.HeapCountTuning?.ThroughputCostPercentIncreasePerStepDown, "TP cost (down)", "%");
-        public static Metric<TraceGC> HctTPCostUp = new(gc => gc.HeapCountTuning?.ThroughputCostPercentReductionPerStepUp, "TP cost (up)", "%");
+        // Dynamic Events Related to Size Adaptation.
+        public static Metric<TraceGC> TCPToConsider = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.TcpToConsider, "TCPToConsider", "%");
+        public static Metric<TraceGC> NewNHeaps = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.NewNHeaps, "NewNHeaps", "#");
+        public static Metric<TraceGC> MaxHeapCountDatas = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.MaxHeapCountDatas, "MaxHeapCountDatas", "#");
+        public static Metric<TraceGC> MinHeapCountDatas = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.MinHeapCountDatas, "MinHeapCountDatas", "#");
+        public static Metric<TraceGC> CurrentGCIndex = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.CurrentGCIndex, "CurrentGCIndex", "#");
+        public static Metric<TraceGC> TotalSOHStableSize = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.TotalSOHStableSize, "TotalSOHStableSize", "bytes");
+        public static Metric<TraceGC> MedianThroughputCostPercent = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.MedianThroughputCostPercent, "MedianThroughputCostPercent", "%");
+        public static Metric<TraceGC> CurrentAroundTargetAccumulation = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.CurrentAroundTargetAccumulation, "CurrentAroundTargetAccumulation", "#");
+        public static Metric<TraceGC> RecordedTcpCount = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.RecordedTcpCount, "RecordedTcpCount", "#");
+        public static Metric<TraceGC> RecordedTcpSlope = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.RecordedTcpSlope, "RecordedTcpSlope", "#");
+        public static Metric<TraceGC> NumGcsSinceLastChange = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.NumGcsSinceLastChange, "NumGcsSinceLastChange", "#");
+        public static Metric<TraceGC> AggFactor = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.AggFactor, "AggFactor", "#");
+        public static Metric<TraceGC> ChangeDecision = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.ChangeDecision, "ChangeDecision", "#");
+        public static Metric<TraceGC> AdjReason = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.AdjReason, "AdjReason", "#");
+        public static Metric<TraceGC> HcChangeFreqFactor = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.HcChangeFreqFactor, "HcChangeFreqFactor", "#");
+        public static Metric<TraceGC> HcFreqReason = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.HcFreqReason, "HcFreqReason", "#");
+        public static Metric<TraceGC> AdjMetric = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.AdjMetric, "AdjMetric", "#");
+        public static Metric<TraceGC> ElapsedTimeBetweenGCs = new(gc => gc.DynamicEvents().SizeAdaptationSample?.ElapsedTimeBetweenGCs, "ElapsedTimeBetweenGCs", "ms");
+        public static Metric<TraceGC> GCIndex = new(gc => gc.DynamicEvents().SizeAdaptationSample?.GCIndex, "GCIndex", "#");
+        public static Metric<TraceGC> GCPauseTime = new(gc => gc.DynamicEvents().SizeAdaptationSample?.GCPauseTime, "GCPauseTime", "ms");
+        public static Metric<TraceGC> SOHMSLWaitTime = new(gc => gc.DynamicEvents().SizeAdaptationSample?.SOHMSLWaitTime, "SOHMSLWaitTime", "ms");
+        public static Metric<TraceGC> UOHMSLWaitTime = new(gc => gc.DynamicEvents().SizeAdaptationSample?.UOHMSLWaitTime, "UOHMSLWaitTime", "ms");
+        public static Metric<TraceGC> Gen0BudgetPerHeap = new(gc => gc.DynamicEvents().SizeAdaptationSample?.Gen0BudgetPerHeap, "Gen0BudgetPerHeap", "#");
 
         public static Metric<TraceGC> HeapSizeAfter = new(gc => gc.HeapSizeAfterMB, "Heap size (after)", "MB");
         public static Metric<TraceGC> HeapSizeBefore = new(gc => gc.HeapSizeBeforeMB, "Heap size (before)", "MB");
@@ -675,8 +683,11 @@ public static class Metrics
         public static Metric<BenchmarkData> MaxPauseDurationBenchmark = Promote(Metrics.I.MaxPauseDuration, Aggregation.Max);
         public static Metric<BenchmarkData> MaxPercentPauseTimeInGC = Promote(Metrics.I.PercentPauseTimeInGC, Aggregation.Max);
         public static Metric<BenchmarkData> AveragePercentPauseTimeInGC = Promote(Metrics.I.PercentPauseTimeInGC, Aggregation.Average);
+        public static Metric<BenchmarkData> AverageRequestPerMSec = Promote(Metrics.I.RequestsPerMSec, Aggregation.Average);
+        public static Metric<BenchmarkData> AverageMaxHeapSize = Promote(Metrics.I.MaxHeapSizeMB, Aggregation.Average);
+        public static Metric<BenchmarkData> AverageP50Latency = Promote(Metrics.I.Latency50thMS, Aggregation.Average);
+        public static Metric<BenchmarkData> AverageMeanLatency = Promote(Metrics.I.MeanLatencyMS, Aggregation.Average);
     }
-
 }
 
 // Exploratory
@@ -1610,7 +1621,7 @@ List<List<string>> TableBenchmarks(DataManager dataManager, List<Metric<Benchmar
     Func<string, string> benchmarkMap = null, BaseMetric<(string, BenchmarkData), XValue> xMetric = null, XArrangement xArrangement = null,
     NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
-    => ChartInternal(textPresenter ?? TextPresenter.RawText, new BenchmarksChartType(),
+    => ChartInternal(textPresenter ?? TextPresenter.Markdown, new BenchmarksChartType(),
         dataManager, metrics,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
@@ -1624,7 +1635,7 @@ List<List<string>> TableBenchmarks(DataManager dataManager, Metric<BenchmarkData
     Func<string, string> benchmarkMap = null, BaseMetric<(string, BenchmarkData), XValue> xMetric = null, XArrangement xArrangement = null,
     NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
-    => TableBenchmarks(dataManager, ML(metric), textPresenter,
+    => TableBenchmarks(dataManager, ML(metric), textPresenter ?? TextPresenter.Markdown,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
@@ -1637,7 +1648,7 @@ List<List<string>> TableIterations(DataManager dataManager, List<Metric<Iteratio
     Func<string, string> benchmarkMap = null, BaseMetric<(string, IterationData), XValue> xMetric = null, XArrangement xArrangement = null,
     NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
-    => ChartInternal(textPresenter ?? TextPresenter.RawText, new IterationsChartType(),
+    => ChartInternal(textPresenter ?? TextPresenter.Markdown, new IterationsChartType(),
         dataManager, metrics,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
@@ -1651,7 +1662,7 @@ List<List<string>> TableIterations(DataManager dataManager, Metric<IterationData
     Func<string, string> benchmarkMap = null, BaseMetric<(string, IterationData), XValue> xMetric = null, XArrangement xArrangement = null,
     NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
-    => TableIterations(dataManager, ML(metric), textPresenter,
+    => TableIterations(dataManager, ML(metric), textPresenter ?? TextPresenter.Markdown,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
@@ -1664,7 +1675,7 @@ List<List<string>> TableGCData(DataManager dataManager, List<Metric<TraceGC>> me
     Func<string, string> benchmarkMap = null, BaseMetric<(string, TraceGC), XValue> xMetric = null, XArrangement xArrangement = null,
     NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
-    => ChartInternal(textPresenter ?? TextPresenter.RawText, new TraceGCChartType(),
+    => ChartInternal(textPresenter ?? TextPresenter.Markdown, new TraceGCChartType(),
         dataManager, metrics,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
@@ -1678,7 +1689,7 @@ List<List<string>> TableGCData(DataManager dataManager, Metric<TraceGC> metric, 
     Func<string, string> benchmarkMap = null, BaseMetric<(string, TraceGC), XValue> xMetric = null, XArrangement xArrangement = null,
     NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
-    => TableGCData(dataManager, ML(metric), textPresenter,
+    => TableGCData(dataManager, ML(metric), textPresenter ?? TextPresenter.Markdown,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
