@@ -184,20 +184,21 @@ jobs:
           - 8.0
 
   # F# benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: fsharp
-        csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
-        runCategories: 'fsharp'
-        channels:
-          - main
-          - 8.0
+  - ${{ if false }}: # skipping, no useful benchmarks there currently
+    - template: /eng/performance/build_machine_matrix.yml
+      parameters:
+        jobTemplate: /eng/performance/benchmark_jobs.yml
+        buildMachines:
+          - win-x64
+          - ubuntu-x64
+        isPublic: true
+        jobParameters:
+          kind: fsharp
+          csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+          runCategories: 'fsharp'
+          channels:
+            - main
+            - 8.0
 
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
@@ -489,22 +490,23 @@ jobs:
           - 8.0
 
   # F# benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-        - win-arm64
-        - ubuntu-arm64-ampere
-      isPublic: false
-      jobParameters:
-        kind: fsharp
-        csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
-        runCategories: 'fsharp'
-        channels:
-          - main
-          - 8.0
+  - ${{ if false }}: # skipping, no useful benchmarks there currently
+    - template: /eng/performance/build_machine_matrix.yml
+      parameters:
+        jobTemplate: /eng/performance/benchmark_jobs.yml
+        buildMachines:
+          - win-x64
+          - ubuntu-x64
+          - win-arm64
+          - ubuntu-arm64-ampere
+        isPublic: false
+        jobParameters:
+          kind: fsharp
+          csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+          runCategories: 'fsharp'
+          channels:
+            - main
+            - 8.0
 
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
