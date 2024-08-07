@@ -9,6 +9,9 @@
 
   <ItemGroup>
     <Compile Include="Categories.fs" />
+    <Compile Include="equality\BasicTypes.fs" />
+    <Compile Include="Equality\FSharpCoreFunctions.fs" />
+    <Compile Include="Equality\Arrays.fs" />
     <Compile Include="Collections.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
@@ -16,5 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
   </ItemGroup>
+
+  <ItemGroup />
 
 </Project>
