@@ -445,11 +445,9 @@ public class Metric<TSource> : BaseMetric<TSource, double?>
         AxisCountOffset = axisCountOffset;
     }
 
-    private double? BaseExtract(TSource gc) => base.DoExtract(gc);
-
     public double? DoExtract(TSource gc, int count)
     {
-        double? value = BaseExtract(gc);
+        double? value = base.DoExtract(gc);
         if (value.HasValue)
         {
             if (value > Cap)
@@ -465,7 +463,6 @@ public class Metric<TSource> : BaseMetric<TSource, double?>
     }
 
     private Metric<TSource> Copy() => new(ExtractFunc, Title, Unit, Cap);
-    public Metric<TSource> WithTitle(string title) => new (ExtractFunc, title, Unit, Cap, AxisCountOffset);
     public Metric<TSource> WithCap(double cap) => new(ExtractFunc, Title, Unit, cap, AxisCountOffset);
     public Metric<TSource> WithOffset(double offset) => new(ExtractFunc, Title, Unit, Cap, offset);
 
@@ -488,20 +485,6 @@ public class Metric<TSource> : BaseMetric<TSource, double?>
         => new(extract: source => aggregation.Func(oldExtract(source).Select(metric.ExtractFunc).Where(NotNull).Select(value => value.Value)),
             title: $"{aggregation.Title} of {metric.Title}",
             unit: aggregation.UnitOverride ?? metric.Unit);
-
-    public static Metric<TSource> operator +(Metric<TSource> m1, Metric<TSource> m2)
-        => new(extract: source => m1.BaseExtract(source) + m2.BaseExtract(source),
-            title: $"Sum of {m1.Title} and {m2.Title}",
-            unit: m1.Unit
-            // ignoring cap/offset for now
-            );
-
-    public static Metric<TSource> operator -(Metric<TSource> m1, Metric<TSource> m2)
-        => new(extract: source => m1.BaseExtract(source) - m2.BaseExtract(source),
-            title: $"Diff of {m1.Title} and {m2.Title}",
-            unit: m1.Unit
-            // ignoring cap/offset for now
-            );
 }
 
 public static class Metrics
@@ -517,22 +500,6 @@ public static class Metrics
     public static Metric<TopLevelData> Promote(Metric<RunData> metric, Aggregation aggregation)
         => Metric<TopLevelData>.Promote(metric, data => data.Runs.Values, aggregation);
 
-    public static Metric<TSource> ToMB<TSource>(Metric<TSource> m)
-    {
-        double conversion = m.Unit switch
-        {
-            "bytes" => 0.000_001,
-            "MB" => 1,
-            _ => throw new Exception("Not convertible to MB")
-        };
-
-        return new(extract: source => conversion * m.DoExtract(source),
-            title: m.Title,
-            unit: "MB"
-            // Cap/offset handled by original metric
-            );
-    }
-
     public static class X
     {
         public static BaseMetric<(string, TraceGC), XValue> GCIndex { get; } = new(pair => new XValue(pair.Item2.Number), "GC Index");
@@ -546,44 +513,18 @@ public static class Metrics
         public static Metric<TraceGC> AllocedSinceLastGCMB = new(gc => gc.AllocedSinceLastGCMB, title: "Allocated", unit: "MB");
         // AllocRateMBSec is MB/s but this puts it on same y-axis as plain MB
         public static Metric<TraceGC> AllocRateMBSec = new(gc => gc.AllocRateMBSec, title: "Allocation rate", unit: "MB");
-
-        public static Metric<TraceGC> CommittedAfterTotalBookkeeping = new(gc => gc.CommittedUsageAfter.TotalBookkeepingCommitted, title: "Committed Book (after)", unit: "bytes");
-        public static Metric<TraceGC> CommittedAfterInFree = new(gc => gc.CommittedUsageAfter.TotalCommittedInFree, title: "Committed In Free (after)", unit: "bytes");
-        public static Metric<TraceGC> CommittedAfterInGlobalDecommit = new(gc => gc.CommittedUsageAfter.TotalCommittedInGlobalDecommit, title: "Committed In Global Decommit (after)", unit: "bytes");
-        public static Metric<TraceGC> CommittedAfterInGlobalFree = new(gc => gc.CommittedUsageAfter.TotalCommittedInGlobalFree, title: "Committed In Global Free (after)", unit: "bytes");
-        public static Metric<TraceGC> CommittedAfterInUse = new(gc => gc.CommittedUsageAfter.TotalCommittedInUse, title: "Committed In Use (after)", unit: "bytes");
+        public static Metric<TraceGC> CommittedAfterTotalBookkeeping = new(gc => gc.CommittedUsageAfter.TotalBookkeepingCommitted, title: "Committed Book (after)", unit: "MB");
+        public static Metric<TraceGC> CommittedAfterInFree = new(gc => gc.CommittedUsageAfter.TotalCommittedInFree, title: "Committed In Free (after)", unit: "MB");
+        public static Metric<TraceGC> CommittedAfterInGlobalDecommit = new(gc => gc.CommittedUsageAfter.TotalCommittedInGlobalDecommit, title: "Committed In Global Decommit (after)", unit: "MB");
+        public static Metric<TraceGC> CommittedAfterInGlobalFree = new(gc => gc.CommittedUsageAfter.TotalCommittedInGlobalFree, title: "Committed In Global Free (after)", unit: "MB");
+        public static Metric<TraceGC> CommittedAfterInUse = new(gc => gc.CommittedUsageAfter.TotalCommittedInUse, title: "Committed In Use (after)", unit: "MB");
         public static List<Metric<TraceGC>> CommittedAfterMetrics = ML(CommittedAfterTotalBookkeeping, CommittedAfterInFree, CommittedAfterInGlobalDecommit, CommittedAfterInGlobalFree, CommittedAfterInUse);
-        public static Metric<TraceGC> CommittedAfterEitherFree = (CommittedAfterInFree + CommittedAfterInGlobalFree).WithTitle("Committed In Either Free (after)");
-        public static Metric<TraceGC> CommittedAfterFreeOrDecommit = CommittedAfterEitherFree + CommittedAfterInGlobalDecommit;
-
-        public static Metric<TraceGC> CommittedBeforeTotalBookkeeping = new(gc => gc.CommittedUsageBefore.TotalBookkeepingCommitted, title: "Committed Book (before)", unit: "bytes");
-        public static Metric<TraceGC> CommittedBeforeInFree = new(gc => gc.CommittedUsageBefore.TotalCommittedInFree, title: "Committed In Free (before)", unit: "bytes");
-        public static Metric<TraceGC> CommittedBeforeInGlobalDecommit = new(gc => gc.CommittedUsageBefore.TotalCommittedInGlobalDecommit, title: "Committed In Global Decommit (before)", unit: "bytes");
-        public static Metric<TraceGC> CommittedBeforeInGlobalFree = new(gc => gc.CommittedUsageBefore.TotalCommittedInGlobalFree, title: "Committed In Global Free (before)", unit: "bytes");
-        public static Metric<TraceGC> CommittedBeforeInUse = new(gc => gc.CommittedUsageBefore.TotalCommittedInUse, title: "Committed In Use (before)", unit: "bytes");
+        public static Metric<TraceGC> CommittedBeforeTotalBookkeeping = new(gc => gc.CommittedUsageBefore.TotalBookkeepingCommitted, title: "Committed Book (before)", unit: "MB");
+        public static Metric<TraceGC> CommittedBeforeInFree = new(gc => gc.CommittedUsageBefore.TotalCommittedInFree, title: "Committed In Free (before)", unit: "MB");
+        public static Metric<TraceGC> CommittedBeforeInGlobalDecommit = new(gc => gc.CommittedUsageBefore.TotalCommittedInGlobalDecommit, title: "Committed In Global Decommit (before)", unit: "MB");
+        public static Metric<TraceGC> CommittedBeforeInGlobalFree = new(gc => gc.CommittedUsageBefore.TotalCommittedInGlobalFree, title: "Committed In Global Free (before)", unit: "MB");
+        public static Metric<TraceGC> CommittedBeforeInUse = new(gc => gc.CommittedUsageBefore.TotalCommittedInUse, title: "Committed In Use (before)", unit: "MB");
         public static List<Metric<TraceGC>> CommittedBeforeMetrics = ML(CommittedBeforeTotalBookkeeping, CommittedBeforeInFree, CommittedBeforeInGlobalDecommit, CommittedBeforeInGlobalFree, CommittedBeforeInUse);
-        public static Metric<TraceGC> CommittedBeforeEitherFree = (CommittedBeforeInFree + CommittedBeforeInGlobalFree).WithTitle("Committed In Either Free (before)");
-        public static Metric<TraceGC> CommittedBeforeFreeOrDecommit = CommittedBeforeEitherFree + CommittedBeforeInGlobalDecommit;
-
-        public static Metric<TraceGC> CommittedChangeInGlobalFree = (CommittedAfterInGlobalFree - CommittedBeforeInGlobalFree).WithTitle("Change in Committed In Global Free");
-
-        private static double? GetTotalCommittedBefore(TraceGC gc)
-        {
-            long? total = gc.CommittedUsageBefore?.TotalBookkeepingCommitted + gc.CommittedUsageBefore?.TotalCommittedInFree + gc.CommittedUsageBefore?.TotalCommittedInGlobalDecommit
-                + gc.CommittedUsageBefore?.TotalCommittedInGlobalFree + gc.CommittedUsageBefore?.TotalCommittedInUse;
-            if (total.HasValue) return total;
-            return 1_000_000 * gc.HeapSizeBeforeMB + gc.PerHeapHistories.Select(h => h.ExtraGen0Commit).Sum();
-        }
-        public static Metric<TraceGC> TotalCommittedBefore = new(GetTotalCommittedBefore, title: "Total Committed (before)", unit: "bytes");
-        private static double? GetTotalCommittedAfter(TraceGC gc)
-        {
-            long? total = gc.CommittedUsageAfter?.TotalBookkeepingCommitted + gc.CommittedUsageAfter?.TotalCommittedInFree + gc.CommittedUsageAfter?.TotalCommittedInGlobalDecommit
-                + gc.CommittedUsageAfter?.TotalCommittedInGlobalFree + gc.CommittedUsageAfter?.TotalCommittedInUse;
-            if (total.HasValue) return total;
-            return 1_000_000 * gc.HeapSizeAfterMB + gc.PerHeapHistories.Select(h => h.ExtraGen0Commit).Sum();
-        }
-        public static Metric<TraceGC> TotalCommittedAfter = new(GetTotalCommittedAfter, title: "Total Committed (after)", unit: "bytes");
-
         public static Metric<TraceGC> DurationMSec = new(gc => gc.DurationMSec, "Duration", "ms");
         public static Metric<TraceGC> GCCpuMSec = new(gc => gc.GCCpuMSec, "GC CPU", "ms");
         public static Metric<TraceGC> Gen0Budget = new(gc => gc.GenBudgetMB(Gens.Gen0), "Gen0 budget", "MB");
@@ -681,16 +622,7 @@ public static class Metrics
         // TODO: Remaining are less comprehensive
         public static Metric<TraceGC> PauseDuration = new((gc => gc.PauseDurationMSec), "GC pause", "ms");
         public static Metric<TraceGC> PausePercent = new((gc => gc.PauseTimePercentageSinceLastGC), "GC pause %", "%");
-
         public static Metric<TraceGC> EndOfSegAllocated = new(gc => gc.PerHeapHistories.Sum(p => p.EndOfSegAllocated), title: "EndOfSegAllocated", unit: "?");
-        public static Metric<TraceGC> ExtraGen0Committed = new(gc => gc.PerHeapHistories.Sum(p => p.ExtraGen0Commit), "Committed - extra gen0", "bytes");
-
-        public static Metric<TraceGC> Heap0Gen0Budget = new(gc => gc.PerHeapHistories[0].GenData[(int) Gens.Gen0].Budget, "H0/Gen0 Budget", "bytes");
-        public static Metric<TraceGC> Heap0Gen1Budget = new(gc => gc.PerHeapHistories[0].GenData[(int) Gens.Gen1].Budget, "H0/Gen1 Budget", "bytes");
-        public static Metric<TraceGC> Heap0Gen2Budget = new(gc => gc.PerHeapHistories[0].GenData[(int) Gens.Gen2].Budget, "H0/Gen2 Budget", "bytes");
-        public static Metric<TraceGC> Heap0GenLargeBudget = new(gc => gc.PerHeapHistories[0].GenData[(int) Gens.GenLargeObj].Budget, "H0/GenLarge Budget", "bytes");
-        public static Metric<TraceGC> Heap0GenPinnedBudget = new(gc => gc.PerHeapHistories[0].GenData[(int) Gens.GenPinObj].Budget, "H0/GenPin Budget", "bytes");
-
         public static Metric<TraceGC> PauseStack = new(gc => gc.PerHeapMarkTimes.Values.Select(mi => mi.MarkTimes[(int) MarkRootType.MarkStack]).Sum(), "Pause (stack)", "ms");
         public static Metric<TraceGC> PauseFQ = new(gc => gc.PerHeapMarkTimes.Values.Select(mi => mi.MarkTimes[(int) MarkRootType.MarkFQ]).Sum(), "Pause (FQ)", "ms");
         public static Metric<TraceGC> PauseHandles = new(gc => gc.PerHeapMarkTimes.Values.Select(mi => mi.MarkTimes[(int) MarkRootType.MarkHandles]).Sum(), "Pause (handles)", "ms");
