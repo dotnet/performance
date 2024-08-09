@@ -885,7 +885,7 @@ class TraceGCChartType : ChartType<TraceGC>
 {
     public override BaseMetric<(string, TraceGC), XValue> DefaultXMetric { get; } = Metrics.X.GCIndex;
     public override string DefaultBenchmarkMap(string benchmark) => benchmark;
-    public override ColorKeys DefaultColorKeysToGroup => ColorKeys.Iteration | ColorKeys.Config;
+    public override ColorKeys DefaultColorKeysToGroup => ColorKeys.Iteration;
     
     public override IEnumerable<SeriesInfo<TraceGC>> GetSeries(DataManager dataManager, List<Metric<TraceGC>> metrics, Filter runFilter, Filter configFilter,
         Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, IEnumerable<string> benchmarkList)
