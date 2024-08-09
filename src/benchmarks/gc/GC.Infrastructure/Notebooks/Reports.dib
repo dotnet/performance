@@ -1026,7 +1026,8 @@ public abstract class DataPresenter<TResult>
 {
     public bool Debug;
 
-    public abstract void Clear();
+    // Must be called to clear state before each presentation
+    public virtual void Clear() => Debug = false;
 
     // true if ok
     public abstract bool PrepareUnits(IEnumerable<string> units);
@@ -1053,7 +1054,7 @@ public abstract class TextPresenter : DataPresenter<List<List<string>>>
     private record Table(string title, string xlabel, List<Series> series);
 
     private List<List<string>> _result = new();
-    public override void Clear() => _result.Clear();
+    public override void Clear() { base.Clear(); _result.Clear(); }
 
     // true if ok
     public override bool PrepareUnits(IEnumerable<string> units) => true;
@@ -1328,16 +1329,18 @@ public class CsvPresenter : TextPresenter
 public class ChartPresenter : DataPresenter<List<PlotlyChart>>
 {
     private string _scatterMode;
+    private int? _width;
     private List<string> _uniqueUnits;
     private ColorProvider _colorProvider;
     private List<PlotlyChart> _charts = new();
 
-    public ChartPresenter(string scatterMode = null)
+    public ChartPresenter(string scatterMode = null, int? width = null)
     {
         _scatterMode = scatterMode;
+        _width = width;
     }
 
-    public override void Clear() => _charts.Clear();
+    public override void Clear() { base.Clear(); _charts.Clear(); }
 
     public override bool PrepareUnits(IEnumerable<string> units)
     {
@@ -1383,6 +1386,8 @@ public class ChartPresenter : DataPresenter<List<PlotlyChart>>
                 title = title,
                 // margin = new Margin() { r = 123 },
             };
+
+        if (_width.HasValue) _layout.width = _width.Value;
 
         if (_uniqueUnits.Count > 1)
         {
@@ -1697,12 +1702,13 @@ List<List<string>> TableGCData(DataManager dataManager, Metric<TraceGC> metric, 
         display: display, debug: debug);
 
 List<PlotlyChart> ChartBenchmarks(DataManager dataManager, List<Metric<BenchmarkData>> metrics,
+    string scatterMode = null, int? width = null,
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<BenchmarkData, bool> dataFilter = null,
     Func<string, string> benchmarkMap = null, BaseMetric<(string, BenchmarkData), XValue> xMetric = null, XArrangement xArrangement = null,
     ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
-    => ChartInternal(new ChartPresenter(scatterMode: null), new BenchmarksChartType(),
+    => ChartInternal(new ChartPresenter(scatterMode: scatterMode, width: width), new BenchmarksChartType(),
         dataManager, metrics,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
@@ -1711,12 +1717,14 @@ List<PlotlyChart> ChartBenchmarks(DataManager dataManager, List<Metric<Benchmark
         display: display, debug: debug);
 
 List<PlotlyChart> ChartBenchmarks(DataManager dataManager, Metric<BenchmarkData> metric,
+    string scatterMode = null, int? width = null,
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<BenchmarkData, bool> dataFilter = null,
     Func<string, string> benchmarkMap = null, BaseMetric<(string, BenchmarkData), XValue> xMetric = null, XArrangement xArrangement = null,
     ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
     => ChartBenchmarks(dataManager, ML(metric),
+        scatterMode: scatterMode, width: width,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
@@ -1724,12 +1732,13 @@ List<PlotlyChart> ChartBenchmarks(DataManager dataManager, Metric<BenchmarkData>
         display: display, debug: debug);
 
 List<PlotlyChart> ChartIterations(DataManager dataManager, List<Metric<IterationData>> metrics,
+    string scatterMode = "markers", int? width = null,
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<IterationData, bool> dataFilter = null,
     Func<string, string> benchmarkMap = null, BaseMetric<(string, IterationData), XValue> xMetric = null, XArrangement xArrangement = null,
     ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
-    => ChartInternal(new ChartPresenter(scatterMode: "markers"), new IterationsChartType(),
+    => ChartInternal(new ChartPresenter(scatterMode: scatterMode, width: width), new IterationsChartType(),
         dataManager, metrics,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
@@ -1738,12 +1747,14 @@ List<PlotlyChart> ChartIterations(DataManager dataManager, List<Metric<Iteration
         display: display, debug: debug);
 
 List<PlotlyChart> ChartIterations(DataManager dataManager, Metric<IterationData> metric,
+    string scatterMode = "markers", int? width = null,
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<IterationData, bool> dataFilter = null,
     Func<string, string> benchmarkMap = null, BaseMetric<(string, IterationData), XValue> xMetric = null, XArrangement xArrangement = null,
     ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
     => ChartIterations(dataManager, ML(metric),
+        scatterMode: scatterMode, width: width,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
@@ -1751,12 +1762,13 @@ List<PlotlyChart> ChartIterations(DataManager dataManager, Metric<IterationData>
         display: display, debug: debug);
 
 List<PlotlyChart> ChartGCData(DataManager dataManager, List<Metric<TraceGC>> metrics,
+    string scatterMode = null, int? width = null,
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<TraceGC, bool> dataFilter = null,
     Func<string, string> benchmarkMap = null, BaseMetric<(string, TraceGC), XValue> xMetric = null, XArrangement xArrangement = null,
     ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
-    => ChartInternal(new ChartPresenter(scatterMode: null), new TraceGCChartType(),
+    => ChartInternal(new ChartPresenter(scatterMode: scatterMode, width: width), new TraceGCChartType(),
         dataManager, metrics,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
@@ -1765,12 +1777,14 @@ List<PlotlyChart> ChartGCData(DataManager dataManager, List<Metric<TraceGC>> met
         display: display, debug: debug);
 
 List<PlotlyChart> ChartGCData(DataManager dataManager, Metric<TraceGC> metric,
+    string scatterMode = null, int? width = null,
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<TraceGC, bool> dataFilter = null,
     Func<string, string> benchmarkMap = null, BaseMetric<(string, TraceGC), XValue> xMetric = null, XArrangement xArrangement = null,
     ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
     => ChartGCData(dataManager, ML(metric),
+        scatterMode: scatterMode, width: width,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
