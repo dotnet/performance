@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="9.0.0-rc.1.24408.5">
+    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="9.0.0-rc.1.24408.12">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>aac3b2c83a4ecbb2fc7e178579b557854a5a7bc4</Sha>
+      <Sha>68511fd27fe4055ce5203742998ba12019dfcbd4</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="9.0.0-rc.1.24408.5">
+    <Dependency Name="Microsoft.NET.ILLink" Version="9.0.0-rc.1.24408.12">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>aac3b2c83a4ecbb2fc7e178579b557854a5a7bc4</Sha>
+      <Sha>68511fd27fe4055ce5203742998ba12019dfcbd4</Sha>
     </Dependency>
-    <Dependency Name="System.Threading.Channels" Version="9.0.0-rc.1.24408.5">
+    <Dependency Name="System.Threading.Channels" Version="9.0.0-rc.1.24408.12">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>aac3b2c83a4ecbb2fc7e178579b557854a5a7bc4</Sha>
+      <Sha>68511fd27fe4055ce5203742998ba12019dfcbd4</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.0-rc.1.24408.5">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.0-rc.1.24408.12">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>aac3b2c83a4ecbb2fc7e178579b557854a5a7bc4</Sha>
+      <Sha>68511fd27fe4055ce5203742998ba12019dfcbd4</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
