@@ -558,7 +558,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         elif os.path.exists(os.path.join(args.performance_repo_dir, args.dotnet_version_link)) and args.dotnet_version_link.endswith("Version.Details.xml"): # version_link is a file in the perf repo
             with open(os.path.join(args.performance_repo_dir, args.dotnet_version_link), encoding="utf-8") as f:
                 root = ET.fromstring(f.read())
-            dependency = root.find(".//Dependency[@Name='VS.Tools.Net.Core.SDK.Resolver']") # For net9.0
+            dependency = root.find(".//Dependency[@Name='Microsoft.NET.Sdk']") # For net9.0
             if dependency is None: # For older than net9.0
                 dependency = root.find(".//Dependency[@Name='Microsoft.Dotnet.Sdk.Internal']")
             if dependency is not None and "Version" in dependency.attrib: # Get the actual version
