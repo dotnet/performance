@@ -68,24 +68,6 @@ jobs:
         machinePool: Tiger
         queue: Ubuntu.2204.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
 
-# While we wait for lttng updates on Ubuntu 22.04 we are going to use 18.04
-- ${{ if containsValue(parameters.buildMachines, 'ubuntu-x64-1804') }}:
-  - template: ${{ parameters.jobTemplate }}
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      container: ubuntu_x64_build_container
-      ${{ insert }}: ${{ parameters.jobParameters }}
-      ${{ if eq(parameters.isPublic, true) }}:
-        machinePool: Open
-        queue: Ubuntu.1804.Amd64.Open
-      ${{ else }}:
-        machinePool: Tiger
-        queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-
 - ${{ if and(containsValue(parameters.buildMachines, 'win-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:

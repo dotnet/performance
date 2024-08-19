@@ -111,7 +111,7 @@ jobs:
       buildMachines:
         - win-x64
         - win-x86
-        - ubuntu-x64-1804
+        #- ubuntu-x64-1804 reenable under new machine on new ubuntu once lttng/events are available
       isPublic: true
       jobParameters:
         kind: sdk_scenarios
@@ -466,7 +466,7 @@ jobs:
       buildMachines:
         - win-x64
         - win-x86
-        - ubuntu-x64-1804
+        #- ubuntu-x64-1804 reenable under new machine on new ubuntu once lttng/events are available
       isPublic: false
       jobParameters:
         kind: sdk_scenarios
