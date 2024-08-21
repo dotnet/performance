@@ -39,8 +39,8 @@
       Mapping_Microsoft.tvOS.Sdk:default
     -->
     <!-- Dependencies for .NET MAUI workload -->
-    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.0-rc.1.24421.17">
-      <Sha>cbd0f3c827b9881b7ba3658ea0067f73e57234fb</Sha>
+    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.0-rc.1.24421.18">
+      <Sha>79bdab0011bc3b4fb9a83e43721ba332eaf47083</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
     <Dependency Name="Microsoft.NET.Sdk" Version="9.0.100-rc.1.24421.6" CoherentParentDependency="Microsoft.Maui.Controls">
@@ -55,8 +55,8 @@
       <Sha>459c92904b224d125a350a3f3e431fe90152a95e</Sha>
       <Uri>https://github.com/dotnet/emsdk</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="35.0.0-rc.1.49" CoherentParentDependency="Microsoft.Maui.Controls">
-      <Sha>d050fda83a61bb7cd31e0a0686e9047cb01f924d</Sha>
+    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="35.0.0-rc.1.69" CoherentParentDependency="Microsoft.Maui.Controls">
+      <Sha>e70ae00cbef38de282f16701045eec6578c5062f</Sha>
       <Uri>https://github.com/dotnet/android</Uri>
     </Dependency>
     <Dependency Name="Microsoft.MacCatalyst.Sdk.net9.0_17.5" Version="17.5.9260-net9-rc1" CoherentParentDependency="Microsoft.Maui.Controls">
