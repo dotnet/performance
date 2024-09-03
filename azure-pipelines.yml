@@ -17,34 +17,11 @@ resources:
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
 
 # Disable this pipeline as release/7.0 is no longer supported
-# # CI Trigger on release/7.0 branch
-# trigger:
-#   branches:
-#     include:
-#     - release/7.0
-#   paths:
-#     include:
-#     - eng/Version.Details.xml
+# CI Trigger on release/7.0 branch
+trigger: none
 
-# # Trigger builds for PR's targeting release/7.0
-# pr:
-#   branches:
-#     include:
-#     - release/7.0
-#   paths:
-#     exclude: # don't trigger the CI if only a doc file was changed
-#     - docs/
-#     - '**/*.md'
-#     - scripts/benchmarks_monthly.py
-
-# schedules:
-#   - cron: "0 */12 * * *"
-#     displayName: Every 12 hours build
-#     branches:
-#       include:
-#       - release/7.0
-#     always: true
-
+# Trigger builds for PR's targeting release/7.0
+pr: none
 jobs:
 
 ######################################################
