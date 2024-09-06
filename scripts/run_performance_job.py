@@ -150,7 +150,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
                     'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
                     'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
                     "sudo apt-get remove -y lttng-modules-dkms", # https://github.com/dotnet/runtime/pull/101142
-                    "sudo apt-get -y install python3-pip python3-venv"
+                    "sudo apt-get -y install python3-pip"
                 ]
 
             install_prerequisites += [
@@ -197,6 +197,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             "export NODE_MAJOR=18",
             "echo \"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main\" | sudo tee /etc/apt/sources.list.d/nodesource.list",
             "sudo apt-get update",
+            "sudo apt autoremove -y",
             "sudo apt-get install nodejs -y",
             f"test -n \"{v8_version}\"",
             "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
