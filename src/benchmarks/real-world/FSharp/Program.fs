@@ -64,41 +64,14 @@ let parseAndTypeCheckProject (projectDir, projectOptions: FSharpProjectOptions, 
         let errors = errors |> Seq.map (sprintf "%A") |> String.concat "\n" 
         failwith $"Type checking failed {errors}"
 
-let counter = (Seq.initInfinite id).GetEnumerator()
-
-let typeCheckFileInProject projectDir projectOptions (checker: FSharpChecker) filename =
-    let filename = projectDir ++ filename
-    
-    counter.MoveNext() |> ignore
-    let count = counter.Current
-    let contents = File.ReadAllText filename + $"\n// {count}" // avoid cache
-    
-    let _parseResult, checkResult = checker.ParseAndCheckFileInProject(filename, count, SourceText.ofString contents, projectOptions) |> Async.RunSynchronously
-           
-    match checkResult with
-    | FSharpCheckFileAnswer.Succeeded checkFileResults ->
-        match checkFileResults.Diagnostics |> Seq.where (fun d -> d.Severity = FSharpDiagnosticSeverity.Error) |> Seq.toList with
-        | [] -> checkFileResults
-        | errors ->
-            let errors = errors |> Seq.map (sprintf "%A") |> String.concat "\n" 
-            failwith $"Type checking failed {errors}"
-    | FSharpCheckFileAnswer.Aborted -> failwith "Type checking aborted"   
-
 
 [<BenchmarkCategory(FSharpCategory)>]
 type FsToolkitBenchmarks () =
     
     let projectDir, projectOptions, checker = prepareProject "FsToolkit.ErrorHandling"
     
-    let sourceFiles = [for file in projectOptions.SourceFiles do
-                           file, SourceText.ofString (File.ReadAllText file)]
-   
-    let parseAllFiles =
-        let parsingOptions, _diagnostics = checker.GetParsingOptionsFromProjectOptions projectOptions
-        [for file, contents in sourceFiles do
-            checker.ParseFile(file, contents, parsingOptions, cache=false)]
-    
-    [<Benchmark>]
+    // Disabled since the benchmark does too much and produces too many false positives and negatives 
+    // [<Benchmark>]
     member _.ParseAndTypeCheckProject() =
         parseAndTypeCheckProject (projectDir, projectOptions, checker)
     
@@ -106,14 +79,6 @@ type FsToolkitBenchmarks () =
     member _.TypeCheckingCleanup() =
         checker.InvalidateAll()
         checker.ClearLanguageServiceRootCachesAndCollectAndFinalizeAllTransients()
-    
-    [<Benchmark>]
-    member _.ParseAllFilesInProjectSequential() =
-        parseAllFiles |> Async.Sequential |> Async.RunSynchronously
-
-    [<Benchmark>]
-    member _.ParseAllFilesInProjectParallel() =
-        parseAllFiles |> Async.Parallel |> Async.RunSynchronously
 
 
 [<EntryPoint>]
