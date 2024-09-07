@@ -423,12 +423,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
     work_item_dir = os.path.join(working_dir, "workitem", "") # Folder in which the work item commands will be run in
     payload_dir = os.path.join(working_dir, "payload", "") # Uploaded folder containing everything needed to run the performance test
     root_payload_dir = os.path.join(payload_dir, "root") # folder that will get copied into the root of the payload directory
-    os.makedirs(root_payload_dir, exist_ok=True)
 
     # clear payload directory
     if os.path.exists(working_dir):
         print("Clearing existing payload directory")
         shutil.rmtree(working_dir)
+
+    # ensure directories exist
+    os.makedirs(work_item_dir, exist_ok=True)
+    os.makedirs(root_payload_dir, exist_ok=True)
 
     # Include a copy of the whole performance in the payload directory
     performance_payload_dir = os.path.join(payload_dir, "performance")
@@ -845,7 +848,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 print("Copying PDN")
                 pdn_dest = os.path.join(payload_dir, "PDN")
                 pdn_file_path = os.path.join(pdn_dest, "PDN.zip")
-                os.makedirs(pdn_dest, exist_ok=True)
                 shutil.copyfile(args.pdn_path, pdn_file_path)
                 print(f"PDN copied to {pdn_file_path}")
 
