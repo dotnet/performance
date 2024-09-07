@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using System.Reflection;
 using GC.Infrastructure.NotebookTests.NotebookParser;
 using Newtonsoft.Json;
 using System.Diagnostics;
@@ -43,7 +44,7 @@ namespace GC.Infrastructure.NotebookTests
             }
         }
 
-        public static Process SetupNotebookProcessRun(string notebookFile, string? outputPath = "")
+        public static Process SetupNotebookProcessRun(string notebookFile, string? outputPath = "", string? overrideWorkingDirectory = "")
         {
             Process process = new Process();
             process.StartInfo.FileName = "dotnet-repl";
@@ -53,14 +54,25 @@ namespace GC.Infrastructure.NotebookTests
             {
                 process.StartInfo.Arguments += $" --output-path {outputPath}";
             }
+            
+            // Working Directory for the process should be that of the "Notebooks" directory by default.
+            if (!string.IsNullOrEmpty(overrideWorkingDirectory))
+            {
+                process.StartInfo.WorkingDirectory = overrideWorkingDirectory;
+            }
+
+            else
+            {
+                process.StartInfo.WorkingDirectory = GetNotebookDirectoryPath();
+            }
 
             return process;
         }
 
-        public static void RunNotebookThatsExpectedToPass(string notebookPath)
+        public static void RunNotebookThatsExpectedToPass(string notebookPath, string overrideRunDirectory = "")
         {
             string tempPathForOutputNotebook = Path.GetTempFileName();
-            using (Process dotnetReplProcess = SetupNotebookProcessRun(notebookPath, tempPathForOutputNotebook))
+            using (Process dotnetReplProcess = SetupNotebookProcessRun(notebookPath, tempPathForOutputNotebook, overrideRunDirectory))
             {
                 dotnetReplProcess.Start();
                 dotnetReplProcess.WaitForExit(TIMEOUT);
@@ -80,7 +92,7 @@ namespace GC.Infrastructure.NotebookTests
             File.Delete(tempPathForOutputNotebook);
         }
 
-        public static void RunNotebookThatsExpectedToFail(string notebookPath)
+        public static void RunNotebookThatsExpectedToFail(string notebookPath, string overrideRunDirectory = "")
         {
             using (Process dotnetReplProcess = SetupNotebookProcessRun(notebookPath))
             {
@@ -107,6 +119,15 @@ namespace GC.Infrastructure.NotebookTests
                     }
                 }
             }
+        }
+
+        public static string GetNotebookDirectoryPath()
+        {
+            string executingAssemblyPath = Assembly.GetExecutingAssembly().Location;
+            string? executionPath = Path.GetDirectoryName(executingAssemblyPath!);
+            DirectoryInfo rootDirectoryInfo = Directory.GetParent(executionPath!)?.Parent?.Parent?.Parent?.Parent!;
+            string notebookPath = Path.Combine(rootDirectoryInfo!.FullName, "src", "benchmarks", "gc", "GC.Infrastructure", "Notebooks");
+            return notebookPath;
         }
     }
 }

@@ -12,23 +12,14 @@ namespace GC.Infrastructure.NotebookTests
             {
                 Utils.InstallDotnetRepl();
             }
-
-            string currentDir = Directory.GetCurrentDirectory();
-            DirectoryInfo? rootDirectoryInfo = Directory.GetParent(currentDir)?.Parent?.Parent?.Parent?.Parent;
-            rootDirectoryInfo.Should().NotBeNull();
-
-            // Set the current working directory to that of the Notebooks one.
-            // This is done because the notebooks use relative paths to reference other notebooks.
-            string notebookPath = Path.Combine(rootDirectoryInfo!.FullName, "src", "benchmarks", "gc", "GC.Infrastructure", "Notebooks");
-            Directory.SetCurrentDirectory(notebookPath);
         }
 
         [Test]
         public void FunctionalTest_GCAnalysisExamples_Success()
         {
             string notebookPath = "GCAnalysisExamples.ipynb";
-            Directory.SetCurrentDirectory(Path.Combine(Directory.GetCurrentDirectory(), "Examples"));
-            Utils.RunNotebookThatsExpectedToPass(notebookPath);
+            string examplesPath = Path.Combine(Utils.GetNotebookDirectoryPath(), "Examples");
+            Utils.RunNotebookThatsExpectedToPass(notebookPath, examplesPath);
         }
 
         [Test]
@@ -44,13 +35,12 @@ namespace GC.Infrastructure.NotebookTests
         {
             string? executionPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             Assert.IsNotNull(executionPath);
-            string failureNotebooks = Path.Combine(executionPath, "TestNotebooks");
-
-            string[] failedNotebookPaths = Directory.GetFiles(failureNotebooks);
+            string failureNotebookPath = Path.Combine(executionPath, "TestNotebooks");
+            string[] failedNotebookPaths = Directory.GetFiles(failureNotebookPath);
 
             foreach (var failedNotebookPath in failedNotebookPaths)
             {
-                Utils.RunNotebookThatsExpectedToFail(failedNotebookPath);
+                Utils.RunNotebookThatsExpectedToFail(failedNotebookPath, failureNotebookPath);
             }
         }
     }
