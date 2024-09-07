@@ -6,13 +6,13 @@ namespace GC.Infrastructure.NotebookTests.NotebookParser
     public class Cell
     {
         [JsonProperty("cell_type")]
-        public string CellType { get; set; }
+        public required string CellType { get; set; }
 
         [JsonProperty("execution_count")]
-        public object ExecutionCount { get; set; }
+        public required object ExecutionCount { get; set; }
 
         [JsonProperty("metadata")]
-        public Metadata Metadata { get; set; }
+        public required Metadata Metadata { get; set; }
 
         [JsonProperty("outputs")]
         public List<Output> Outputs { get; } = new List<Output>();
@@ -30,10 +30,10 @@ namespace GC.Infrastructure.NotebookTests.NotebookParser
     public class DotnetInteractive
     {
         [JsonProperty("language")]
-        public string Language { get; set; }
+        public required string Language { get; set; }
 
         [JsonProperty("defaultKernelName")]
-        public string DefaultKernelName { get; set; }
+        public required string DefaultKernelName { get; set; }
 
         [JsonProperty("items")]
         public List<Item> Items { get; } = new List<Item>();
@@ -42,37 +42,37 @@ namespace GC.Infrastructure.NotebookTests.NotebookParser
     public class Item
     {
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
     }
 
     public class Kernelspec
     {
         [JsonProperty("display_name")]
-        public string DisplayName { get; set; }
+        public required string DisplayName { get; set; }
 
         [JsonProperty("language")]
-        public string Language { get; set; }
+        public required string Language { get; set; }
 
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
     }
 
     public class LanguageInfo
     {
         [JsonProperty("file_extension")]
-        public string FileExtension { get; set; }
+        public required string FileExtension { get; set; }
 
         [JsonProperty("mimetype")]
-        public string Mimetype { get; set; }
+        public required string Mimetype { get; set; }
 
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         [JsonProperty("pygments_lexer")]
-        public string PygmentsLexer { get; set; }
+        public required string PygmentsLexer { get; set; }
 
         [JsonProperty("version")]
-        public string Version { get; set; }
+        public required string Version { get; set; }
     }
 
     public class Metadata
@@ -84,40 +84,40 @@ namespace GC.Infrastructure.NotebookTests.NotebookParser
         public DateTime DotnetReplCellExecutionEndTime { get; set; }
 
         [JsonProperty("dotnet_interactive")]
-        public DotnetInteractive DotnetInteractive { get; set; }
+        public required DotnetInteractive DotnetInteractive { get; set; }
 
         [JsonProperty("polyglot_notebook")]
-        public PolyglotNotebook PolyglotNotebook { get; set; }
+        public required PolyglotNotebook PolyglotNotebook { get; set; }
 
         [JsonProperty("kernelspec")]
-        public Kernelspec Kernelspec { get; set; }
+        public required Kernelspec Kernelspec { get; set; }
 
         [JsonProperty("language_info")]
-        public LanguageInfo LanguageInfo { get; set; }
+        public required LanguageInfo LanguageInfo { get; set; }
     }
 
     public class Output
     {
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public required     string Name { get; set; }
 
         [JsonProperty("output_type")]
-        public string OutputType { get; set; }
+        public required string OutputType { get; set; }
 
         [JsonProperty("text")]
         public List<string> Text { get; } = new List<string>();
 
         [JsonProperty("data")]
-        public Data Data { get; set; }
+        public required Data Data { get; set; }
 
         [JsonProperty("metadata")]
-        public Metadata Metadata { get; set; }
+        public required Metadata Metadata { get; set; }
 
         [JsonProperty("ename")]
-        public string Ename { get; set; }
+        public required string Ename { get; set; }
 
         [JsonProperty("evalue")]
-        public string Evalue { get; set; }
+        public required string Evalue { get; set; }
 
         [JsonProperty("traceback")]
         public List<string> Traceback { get; } = new List<string>();
@@ -126,10 +126,10 @@ namespace GC.Infrastructure.NotebookTests.NotebookParser
     public class PolyglotNotebook
     {
         [JsonProperty("kernelName")]
-        public string KernelName { get; set; }
+        public required string KernelName { get; set; }
 
         [JsonProperty("defaultKernelName")]
-        public string DefaultKernelName { get; set; }
+        public required string DefaultKernelName { get; set; }
 
         [JsonProperty("items")]
         public List<Item> Items { get; } = new List<Item>();
@@ -141,7 +141,7 @@ namespace GC.Infrastructure.NotebookTests.NotebookParser
         public List<Cell> Cells { get; } = new List<Cell>();
 
         [JsonProperty("metadata")]
-        public Metadata Metadata { get; set; }
+        public required Metadata Metadata { get; set; }
 
         [JsonProperty("nbformat")]
         public int Nbformat { get; set; }
