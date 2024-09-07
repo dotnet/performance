@@ -575,20 +575,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
     v8_version = ""
     if wasm_bundle_dir is not None:
         wasm_bundle_dir_path = payload_dir
-
-        # can't use shutil.copytree because it only works if the destination does not exist
-        # need to manually do first layer of traversal and call copytree on children
-        for dir_name in os.listdir(wasm_bundle_dir):
-            dir_path = os.path.join(wasm_bundle_dir, dir_name)
-            if os.path.isdir(dir_path):
-                shutil.copytree(dir_path, os.path.join(wasm_bundle_dir_path, dir_name))
+        shutil.copytree(wasm_bundle_dir, wasm_bundle_dir_path, dirs_exist_ok=True)
 
         wasm_args = "--expose_wasm"
 
         if args.javascript_engine == "v8":
             if args.browser_versions_props_path is None:
                 if args.runtime_repo_dir is None:
-                    raise Exception("ChromeVersion.props must be present for wasm runs")
+                    raise Exception("BrowserVersions.props must be present for wasm runs")
                 args.browser_versions_props_path = os.path.join(args.runtime_repo_dir, "eng", "testing", "BrowserVersions.props")
             
             wasm_args += " --module"
@@ -715,16 +709,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.built_app_dir is None:
             raise Exception("Built apps directory must be present for IOS Mono or IOS Native AOT benchmarks")
         
-        dest_zip_folder = os.path.join(payload_dir, "iosHelloWorldZip")
         shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorld"), os.path.join(payload_dir, "iosHelloWorld"))
-        shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldZip"), dest_zip_folder)
+        dest_zip_folder = shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldZip"), os.path.join(payload_dir, "iosHelloWorldZip"))
 
         # rename all zips in the 2nd folder to iOSSampleApp.zip
         for file in glob(os.path.join(dest_zip_folder, "*.zip")):
             os.rename(file, os.path.join(dest_zip_folder, "iOSSampleApp.zip"))
 
     # ensure work item directory is not empty
-    shutil.copytree(os.path.join(args.performance_repo_dir, "docs"), work_item_dir)
+    shutil.copytree(os.path.join(args.performance_repo_dir, "docs"), work_item_dir, dirs_exist_ok=True)
 
     if args.os_group == "windows":
         agent_python = "py -3"
