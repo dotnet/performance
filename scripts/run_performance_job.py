@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import sys
+import tempfile
 import urllib.request
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional
@@ -119,11 +120,6 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
         helix_pre_commands += ["set ORIGPYPATH=%PYTHONPATH%"]
     else:
         helix_pre_commands += ["export ORIGPYPATH=$PYTHONPATH"]
-
-    # Allow using OpenSSL 1.0.2: https://github.com/dotnet/runtime/pull/60728 
-    # TODO: Is this still needed? 
-    if args.os_group != "windows":
-        helix_pre_commands += ["export CRYPTOGRAPHY_ALLOW_OPENSSL_102=true"]
 
     # Create separate list of commands to handle the next part. 
     # On non-Windows, these commands are chained together with && so they will stop if any fail
@@ -907,7 +903,9 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
         # Zip the workitem directory (for xharness (mobile) based workitems)
         if args.run_kind == "ios_scenarios" or args.run_kind == "android_scenarios":
-            shutil.make_archive(work_item_dir, 'zip', work_item_dir)
+            with tempfile.TemporaryDirectory() as temp_dir:
+                archive_path = shutil.make_archive(os.path.join(temp_dir, 'workitem'), 'zip', work_item_dir)
+                shutil.move(archive_path, f"{work_item_dir}.zip")
 
     if args.os_group == "windows":
         cli_arguments = [
