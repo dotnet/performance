@@ -811,87 +811,88 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
             verbose=True).run()
         
-        # build MemoryConsumption
-        RunCommand([
-            dotnet_executable_path, "publish", 
-            "-c", "Release", 
-            "-o", os.path.join(payload_dir, "MemoryConsumption"),
-            "-f", framework,
-            "-r", runtime_id,
-            "--self-contained",
-            os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"),
-            f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'MemoryConsumption.binlog')}",
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
-            verbose=True).run()
-        
-        # build PerfLabGenericEventSourceForwarder
-        RunCommand([
-            dotnet_executable_path, "publish", 
-            "-c", "Release", 
-            "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder"),
-            "-f", framework,
-            "-r", runtime_id,
-            os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder.csproj"),
-            f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PerfLabGenericEventSourceForwarder.binlog')}",
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
-            verbose=True).run()
-        
-        # build PerfLabGenericEventSourceLTTngProvider
-        if args.os_group != "windows" and args.os_group != "osx" and args.os_version == "2204":
-            RunCommand([
-                os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceLTTngProvider", "build.sh"),
-                "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")],
-                verbose=True).run()
-        
-        # copy PDN
-        if args.os_group == "windows" and args.architecture != "x86" and args.pdn_path is not None:
-            print("Copying PDN")
-            pdn_dest = os.path.join(payload_dir, "PDN")
-            pdn_file_path = os.path.join(pdn_dest, "PDN.zip")
-            os.makedirs(pdn_dest, exist_ok=True)
-            shutil.copyfile(args.pdn_path, pdn_file_path)
-            print(f"PDN copied to {pdn_file_path}")
-
-        # create a copy of the environment since we want these to only be set during the following invocation
-        environ_copy = os.environ.copy()
-
-        os.environ["CorrelationPayloadDirectory"] = payload_dir
-        os.environ["Architecture"] = args.architecture
-        os.environ["TargetsWindows"] = "true" if args.os_group == "windows" else "false"
-        os.environ["HelixTargetQueues"] = args.queue
-        os.environ["Python"] = agent_python
-        os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
-        os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
-
-        # TODO: See if these commands are needed for linux as they were being called before but were failing.
-        if args.os_group == "windows" or args.os_group == "osx":
-            RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
-            RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
-            RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
-
-        scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
-        script_path = os.path.join(args.performance_repo_dir, "scripts")
-        os.environ["PYTHONPATH"] = f"{os.environ.get('PYTHONPATH', '')}{os.pathsep}{script_path}{os.pathsep}{scenarios_path}"
-        print(f"PYTHONPATH={os.environ['PYTHONPATH']}")
-
-        os.environ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
-        os.environ["DOTNET_MULTILEVEL_LOOKUP"] = "0"
-        os.environ["UseSharedCompilation"] = "false"
-
-        print("Current dotnet directory:", ci_setup_arguments.install_dir)
-        print("If more than one version exist in this directory, usually the latest runtime and sdk will be used.")
-
-        # PreparePayloadWorkItems is only available for scenarios runs defined inside the performance repo
         if args.performance_repo_ci:
+            # build MemoryConsumption
             RunCommand([
-                "dotnet", "msbuild", args.project_file, 
-                "/restore", 
-                "/t:PreparePayloadWorkItems",
-                f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PrepareWorkItemPayloads.binlog')}"],
+                dotnet_executable_path, "publish", 
+                "-c", "Release", 
+                "-o", os.path.join(payload_dir, "MemoryConsumption"),
+                "-f", framework,
+                "-r", runtime_id,
+                "--self-contained",
+                os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"),
+                f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'MemoryConsumption.binlog')}",
+                "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
                 verbose=True).run()
+            
+            # build PerfLabGenericEventSourceForwarder
+            RunCommand([
+                dotnet_executable_path, "publish", 
+                "-c", "Release", 
+                "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder"),
+                "-f", framework,
+                "-r", runtime_id,
+                os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder.csproj"),
+                f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PerfLabGenericEventSourceForwarder.binlog')}",
+                "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
+                verbose=True).run()
+            
+            # build PerfLabGenericEventSourceLTTngProvider
+            if args.os_group != "windows" and args.os_group != "osx" and args.os_version == "2204":
+                RunCommand([
+                    os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceLTTngProvider", "build.sh"),
+                    "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")],
+                    verbose=True).run()
+            
+            # copy PDN
+            if args.os_group == "windows" and args.architecture != "x86" and args.pdn_path is not None:
+                print("Copying PDN")
+                pdn_dest = os.path.join(payload_dir, "PDN")
+                pdn_file_path = os.path.join(pdn_dest, "PDN.zip")
+                os.makedirs(pdn_dest, exist_ok=True)
+                shutil.copyfile(args.pdn_path, pdn_file_path)
+                print(f"PDN copied to {pdn_file_path}")
 
-        # restore env vars
-        os.environ.update(environ_copy)
+            # create a copy of the environment since we want these to only be set during the following invocation
+            environ_copy = os.environ.copy()
+
+            os.environ["CorrelationPayloadDirectory"] = payload_dir
+            os.environ["Architecture"] = args.architecture
+            os.environ["TargetsWindows"] = "true" if args.os_group == "windows" else "false"
+            os.environ["HelixTargetQueues"] = args.queue
+            os.environ["Python"] = agent_python
+            os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
+            os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
+
+            # TODO: See if these commands are needed for linux as they were being called before but were failing.
+            if args.os_group == "windows" or args.os_group == "osx":
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
+
+            scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
+            script_path = os.path.join(args.performance_repo_dir, "scripts")
+            os.environ["PYTHONPATH"] = f"{os.environ.get('PYTHONPATH', '')}{os.pathsep}{script_path}{os.pathsep}{scenarios_path}"
+            print(f"PYTHONPATH={os.environ['PYTHONPATH']}")
+
+            os.environ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
+            os.environ["DOTNET_MULTILEVEL_LOOKUP"] = "0"
+            os.environ["UseSharedCompilation"] = "false"
+
+            print("Current dotnet directory:", ci_setup_arguments.install_dir)
+            print("If more than one version exist in this directory, usually the latest runtime and sdk will be used.")
+
+            # PreparePayloadWorkItems is only available for scenarios runs defined inside the performance repo
+            if args.performance_repo_ci:
+                RunCommand([
+                    "dotnet", "msbuild", args.project_file, 
+                    "/restore", 
+                    "/t:PreparePayloadWorkItems",
+                    f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PrepareWorkItemPayloads.binlog')}"],
+                    verbose=True).run()
+
+            # restore env vars
+            os.environ.update(environ_copy)
 
         shutil.copy(os.path.join(performance_payload_dir, "NuGet.config"), os.path.join(root_payload_dir, "NuGet.config"))
         shutil.copytree(os.path.join(performance_payload_dir, "scripts"), os.path.join(payload_dir, "scripts"))
@@ -903,6 +904,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
             arm64_dotnet_dir = os.path.join(args.performance_repo_dir, "tools", "dotnet", "arm64")
             shutil.rmtree(dotnet_dir)
             shutil.copytree(arm64_dotnet_dir, dotnet_dir)
+
+        # Zip the workitem directory (for xharness (mobile) based workitems)
+        if args.run_kind == "ios_scenarios" or args.run_kind == "android_scenarios":
+            shutil.make_archive(work_item_dir, 'zip', work_item_dir)
 
     if args.os_group == "windows":
         cli_arguments = [
