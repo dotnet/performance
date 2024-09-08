@@ -709,12 +709,16 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.built_app_dir is None:
             raise Exception("Built apps directory must be present for IOS Mono or IOS Native AOT benchmarks")
         
-        shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorld"), os.path.join(payload_dir, "iosHelloWorld"))
-        dest_zip_folder = shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldZip"), os.path.join(payload_dir, "iosHelloWorldZip"))
+        ios_hello_world_dir = os.path.join(payload_dir, "iosHelloWorld")
+        os.makedirs(ios_hello_world_dir, exist_ok=True) # need to create the dir since the files actually get copied into a child dir
+        shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorld"), os.path.join(ios_hello_world_dir, "iosHelloWorld"))
+
+        ios_hello_world_zip_dir = os.path.join(payload_dir, "iosHelloWorldZip")
+        shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldZip"), ios_hello_world_zip_dir)
 
         # rename all zips in the 2nd folder to iOSSampleApp.zip
-        for file in glob(os.path.join(dest_zip_folder, "*.zip")):
-            os.rename(file, os.path.join(dest_zip_folder, "iOSSampleApp.zip"))
+        for file in glob(os.path.join(ios_hello_world_zip_dir, "*.zip")):
+            os.rename(file, os.path.join(ios_hello_world_zip_dir, "iOSSampleApp.zip"))
 
     # ensure work item directory is not empty
     shutil.copytree(os.path.join(args.performance_repo_dir, "docs"), work_item_dir, dirs_exist_ok=True)
