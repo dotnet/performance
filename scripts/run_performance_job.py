@@ -1,3 +1,4 @@
+from logging import getLogger
 import re
 from dataclasses import dataclass, field
 from datetime import timedelta
@@ -5,14 +6,17 @@ from glob import glob
 import json
 import os
 import shutil
+from subprocess import CalledProcessError
 import sys
 import tempfile
+from traceback import format_exc
 import urllib.request
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional
 
 import ci_setup
 from performance.common import RunCommand, set_environment_variable
+from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
 def output_counters_for_crank(reports: List[Any]):
@@ -335,6 +339,8 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
                 return queue_map.get(logical_machine, "Ubuntu.2204.Amd64.Tiger.Perf")
 
 def run_performance_job(args: RunPerformanceJobArgs):
+    setup_loggers(verbose=True)
+
     helix_type_suffix = ""
     if args.runtime_type == "wasm":
         if args.codegen_type == "AOT":
@@ -372,7 +378,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         env_var_name = "PerfCommandUploadToken" if args.os_group == "windows" else "PerfCommandUploadTokenLinux"
         args.perflab_upload_token = os.environ.get(env_var_name)
         if args.perflab_upload_token is None:
-            print(f"WARNING: {env_var_name} is not set. Results will not be uploaded.")
+            getLogger().warn(f"{env_var_name} is not set. Results will not be uploaded.")
     
     args.performance_repo_dir = os.path.abspath(args.performance_repo_dir)
 
@@ -426,7 +432,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     # clear payload directory
     if os.path.exists(working_dir):
-        print("Clearing existing payload directory")
+        getLogger().info("Clearing existing payload directory")
         shutil.rmtree(working_dir)
 
     # ensure directories exist
@@ -435,9 +441,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     # Include a copy of the whole performance in the payload directory
     performance_payload_dir = os.path.join(payload_dir, "performance")
-    print("Copying performance repository to payload directory")
+    getLogger().info("Copying performance repository to payload directory")
     shutil.copytree(args.performance_repo_dir, performance_payload_dir, ignore=shutil.ignore_patterns("CorrelationStaging", ".git", "artifacts", ".dotnet", ".venv", ".vs"))
-    print("Finished copying performance repository to payload directory")
 
     bdn_arguments = ["--anyCategories", args.run_categories]
 
@@ -570,11 +575,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     if mono_dotnet is not None:
         mono_dotnet_path = os.path.join(payload_dir, "dotnet-mono")
+        getLogger().info("Copying mono dotnet directory to payload directory")
         shutil.copytree(mono_dotnet, mono_dotnet_path)
 
     v8_version = ""
     if wasm_bundle_dir is not None:
         wasm_bundle_dir_path = payload_dir
+        getLogger().info("Copying wasm bundle directory to payload directory")
         shutil.copytree(wasm_bundle_dir, wasm_bundle_dir_path, dirs_exist_ok=True)
 
         wasm_args = "--expose_wasm"
@@ -657,6 +664,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if mono_aot_path is None:
             raise Exception("Mono AOT Path must be provided for MonoAOT runs")
         monoaot_dotnet_path = os.path.join(payload_dir, "monoaot")
+        getLogger().info("Copying MonoAOT build to payload directory")
         shutil.copytree(mono_aot_path, monoaot_dotnet_path)
         extra_bdn_arguments += [
             "--runtimes", "monoaotllvm",
@@ -683,11 +691,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 raise Exception("Core_Root directory must be specified for non-performance CI runs")
             args.core_root_dir = os.path.join(args.runtime_repo_dir, "artifacts", "tests", "coreclr", f"{args.os_group}.{args.architecture}.Release", "Tests", "Core_Root")
         coreroot_payload_dir = os.path.join(payload_dir, "Core_Root")
+        getLogger().info("Copying Core_Root directory to payload directory")
         shutil.copytree(args.core_root_dir, coreroot_payload_dir, ignore=shutil.ignore_patterns("*.pdb"))
 
         if args.baseline_core_root_dir is not None:
             use_baseline_core_run = True
             baseline_coreroot_payload_dir = os.path.join(payload_dir, "Baseline_Core_Root")
+            getLogger().info("Copying Baseline Core_Root directory to payload directory")
             shutil.copytree(args.baseline_core_root_dir, baseline_coreroot_payload_dir)
     
     if args.maui_version is not None:
@@ -701,6 +711,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if android_mono:
         if args.built_app_dir is None:
             raise Exception("Built apps directory must be present for Android Mono benchmarks")
+        getLogger().info("Copying Android apps to payload directory")
         shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), os.path.join(root_payload_dir, "MonoBenchmarksDroid.apk"))
         shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorld", "HelloAndroid.apk"), os.path.join(root_payload_dir, "HelloAndroid.apk"))
         ci_setup_arguments.architecture = "arm64"
@@ -709,6 +720,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.built_app_dir is None:
             raise Exception("Built apps directory must be present for IOS Mono or IOS Native AOT benchmarks")
         
+        getLogger().info("Copying IOS apps to payload directory")
         ios_hello_world_dir = os.path.join(payload_dir, "iosHelloWorld")
         os.makedirs(ios_hello_world_dir, exist_ok=True) # need to create the dir since the files actually get copied into a child dir
         shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorld"), os.path.join(ios_hello_world_dir, "iosHelloWorld"))
@@ -716,11 +728,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
         ios_hello_world_zip_dir = os.path.join(payload_dir, "iosHelloWorldZip")
         shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldZip"), ios_hello_world_zip_dir)
 
-        # rename all zips in the 2nd folder to iOSSampleApp.zip
-        for file in glob(os.path.join(ios_hello_world_zip_dir, "*.zip")):
-            os.rename(file, os.path.join(ios_hello_world_zip_dir, "iOSSampleApp.zip"))
+        # Find the zip file in the directory and move it to iOSSampleApp.zip
+        for file in glob(os.path.join(ios_hello_world_zip_dir, "**", "*.zip")):
+            dest = os.path.join(ios_hello_world_zip_dir, "iOSSampleApp.zip")
+            getLogger().info(f"Moving {file} to {dest}")
+            shutil.move(file, dest)
+            break
 
     # ensure work item directory is not empty
+    getLogger().info("Copying docs to work item directory so it isn't empty")
     shutil.copytree(os.path.join(args.performance_repo_dir, "docs"), work_item_dir, dirs_exist_ok=True)
 
     if args.os_group == "windows":
@@ -758,15 +774,16 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     # ci_setup may modify global.json, so we should copy it across to the payload directory if that happens
     # TODO: Refactor this when we eventually remove the dependency on ci_setup.py directly from the runtime repository.
+    getLogger().info("Copying global.json to payload directory")
     shutil.copy(os.path.join(args.performance_repo_dir, 'global.json'), os.path.join(performance_payload_dir, 'global.json'))
 
     if args.is_scenario:
         set_environment_variable("DOTNET_ROOT", ci_setup_arguments.install_dir, save_to_pipeline=True)
-        print(f"Set DOTNET_ROOT to {ci_setup_arguments.install_dir}")
+        getLogger().info(f"Set DOTNET_ROOT to {ci_setup_arguments.install_dir}")
 
         new_path = f"{ci_setup_arguments.install_dir}{os.pathsep}{os.environ['PATH']}"
         set_environment_variable("PATH", new_path, save_to_pipeline=True)
-        print(f"Set PATH to {new_path}")
+        getLogger().info(f"Set PATH to {new_path}")
 
         framework = os.environ["PERFLAB_Framework"]
         os.environ["PERFLAB_TARGET_FRAMEWORKS"] = framework
@@ -842,11 +859,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
             
             # copy PDN
             if args.os_group == "windows" and args.architecture != "x86" and args.pdn_path is not None:
-                print("Copying PDN")
                 pdn_dest = os.path.join(payload_dir, "PDN")
                 pdn_file_path = os.path.join(pdn_dest, "PDN.zip")
+                getLogger().info(f"Copying PDN from {args.pdn_path} to {pdn_file_path}")
                 shutil.copyfile(args.pdn_path, pdn_file_path)
-                print(f"PDN copied to {pdn_file_path}")
 
             # create a copy of the environment since we want these to only be set during the following invocation
             environ_copy = os.environ.copy()
@@ -868,14 +884,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
             scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
             script_path = os.path.join(args.performance_repo_dir, "scripts")
             os.environ["PYTHONPATH"] = f"{os.environ.get('PYTHONPATH', '')}{os.pathsep}{script_path}{os.pathsep}{scenarios_path}"
-            print(f"PYTHONPATH={os.environ['PYTHONPATH']}")
+            getLogger().info(f"PYTHONPATH={os.environ['PYTHONPATH']}")
 
             os.environ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
             os.environ["DOTNET_MULTILEVEL_LOOKUP"] = "0"
             os.environ["UseSharedCompilation"] = "false"
 
-            print("Current dotnet directory:", ci_setup_arguments.install_dir)
-            print("If more than one version exist in this directory, usually the latest runtime and sdk will be used.")
+            getLogger().info("Current dotnet directory:", ci_setup_arguments.install_dir)
+            getLogger().info("If more than one version exist in this directory, usually the latest runtime and sdk will be used.")
 
             # PreparePayloadWorkItems is only available for scenarios runs defined inside the performance repo
             if args.performance_repo_ci:
@@ -889,6 +905,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             # restore env vars
             os.environ.update(environ_copy)
 
+        getLogger().info("Copying NuGet.config, shared, and staticdeps to payload directory")
         shutil.copy(os.path.join(performance_payload_dir, "NuGet.config"), os.path.join(root_payload_dir, "NuGet.config"))
         shutil.copytree(os.path.join(performance_payload_dir, "scripts"), os.path.join(payload_dir, "scripts"))
         shutil.copytree(os.path.join(performance_payload_dir, "src", "scenarios", "shared"), os.path.join(payload_dir, "shared"))
@@ -897,11 +914,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.architecture == "arm64":
             dotnet_dir = os.path.join(ci_setup_arguments.install_dir, "")
             arm64_dotnet_dir = os.path.join(args.performance_repo_dir, "tools", "dotnet", "arm64")
+            getLogger().info(f"Copying arm64 dotnet directory to payload dotnet directory")
             shutil.rmtree(dotnet_dir)
             shutil.copytree(arm64_dotnet_dir, dotnet_dir)
 
         # Zip the workitem directory (for xharness (mobile) based workitems)
         if args.run_kind == "ios_scenarios" or args.run_kind == "android_scenarios":
+            getLogger().info("Zipping workitem directory for app bundle")
             with tempfile.TemporaryDirectory() as temp_dir:
                 archive_path = shutil.make_archive(os.path.join(temp_dir, 'workitem'), 'zip', work_item_dir)
                 shutil.move(archive_path, f"{work_item_dir}.zip")
@@ -1077,96 +1096,106 @@ def run_performance_job(args: RunPerformanceJobArgs):
         
 
 def main(argv: List[str]):
-    args: dict[str, Any] = {}
+    setup_loggers(verbose=True)
+    
+    try:
+        args: dict[str, Any] = {}
 
-    i = 1
-    while i < len(argv):
-        key = argv[i]
-        bool_args = {
-            "--internal": "internal",
-            "--physical-promotion": "physical_promotion_run_type",
-            "--is-scenario": "is_scenario",
-            "--local-build": "local_build",
-            "--compare": "compare",
-            "--ios-llvm-build": "ios_llvm_build",
-            "--ios-strip-symbols": "ios_strip_symbols",
-            "--hybrid-globalization": "hybrid_globalization",
-            "--send-to-helix": "send_to_helix",
-            "--performance-repo-ci": "performance_repo_ci",
-            "--only-sanity-check": "only_sanity_check",
-            "--use-local-commit-time": "use_local_commit_time",
-        }
+        i = 1
+        while i < len(argv):
+            key = argv[i]
+            bool_args = {
+                "--internal": "internal",
+                "--physical-promotion": "physical_promotion_run_type",
+                "--is-scenario": "is_scenario",
+                "--local-build": "local_build",
+                "--compare": "compare",
+                "--ios-llvm-build": "ios_llvm_build",
+                "--ios-strip-symbols": "ios_strip_symbols",
+                "--hybrid-globalization": "hybrid_globalization",
+                "--send-to-helix": "send_to_helix",
+                "--performance-repo-ci": "performance_repo_ci",
+                "--only-sanity-check": "only_sanity_check",
+                "--use-local-commit-time": "use_local_commit_time",
+            }
 
-        if key in bool_args:
-            args[bool_args[key]] = True
-            i += 1
-            continue
-
-        simple_arg_map = {
-            "--queue": "queue",
-            "--framework": "framework",
-            "--run-kind": "run_kind",
-            "--architecture": "architecture",
-            "--core-root-dir": "core_root_dir",
-            "--baseline-core-root-dir": "baseline_core_root_dir",
-            "--performance-repo-dir": "performance_repo_dir",
-            "--mono-dotnet-dir": "mono_dotnet_dir",
-            "--libraries-download-dir": "libraries_download_dir",
-            "--versions-props-path": "versions_props_path",
-            "--browser-versions-props-path": "browser_versions_props_path",
-            "--built-app-dir": "built_app_dir",
-            "--perflab-upload-token": "perflab_upload_token",
-            "--helix-access-token": "helix_access_token",
-            "--project-file": "project_file",
-            "--build-repository-name": "build_repository_name",
-            "--build-source-branch": "build_source_branch",
-            "--build-number": "build_number",
-            "--pgo-run-type": "pgo_run_type",
-            "--r2r-run-type": "r2r_run_type",
-            "--codegen-type": "codegen_type",
-            "--runtime-type": "runtime_type",
-            "--run-categories": "run_categories",
-            "--extra-bdn-args": "extra_bdn_args",
-            "--affinity": "affinity",
-            "--os-group": "os_group",
-            "--os-sub-group": "os_sub_group",
-            "--runtime-flavor": "runtime_flavor",
-            "--javascript-engine": "javascript_engine",
-            "--experiment-name": "experiment_name",
-            "--channel": "channel",
-            "--perf-hash": "perf_hash",
-            "--os-version": "os_version",
-            "--dotnet-version-link": "dotnet_version_link",
-            "--target-csproj": "target_csproj",
-            "--pdn-path": "pdn_path",
-            "--runtime-repo-dir": "runtime_repo_dir",
-            "--logical-machine": "logical_machine"
-        }
-
-        if key in simple_arg_map:
-            arg_name = simple_arg_map[key]
-            val = argv[i + 1]
-        elif key == "--partition-count":
-            arg_name = "partition_count"
-            val = int(argv[i + 1])
-        elif key == "--run-env-vars":
-            val = {}
-            while i < len(argv):
+            if key in bool_args:
+                args[bool_args[key]] = True
                 i += 1
-                arg = argv[i]
-                if arg.startswith("--"):
-                    break
-                k, v = arg.split("=")
-                val[k] = v
-            args["run_env_vars"] = val
-            continue
-        else:
-            raise Exception(f"Invalid argument: {key}")
+                continue
 
-        args[arg_name] = val
-        i += 2
+            simple_arg_map = {
+                "--queue": "queue",
+                "--framework": "framework",
+                "--run-kind": "run_kind",
+                "--architecture": "architecture",
+                "--core-root-dir": "core_root_dir",
+                "--baseline-core-root-dir": "baseline_core_root_dir",
+                "--performance-repo-dir": "performance_repo_dir",
+                "--mono-dotnet-dir": "mono_dotnet_dir",
+                "--libraries-download-dir": "libraries_download_dir",
+                "--versions-props-path": "versions_props_path",
+                "--browser-versions-props-path": "browser_versions_props_path",
+                "--built-app-dir": "built_app_dir",
+                "--perflab-upload-token": "perflab_upload_token",
+                "--helix-access-token": "helix_access_token",
+                "--project-file": "project_file",
+                "--build-repository-name": "build_repository_name",
+                "--build-source-branch": "build_source_branch",
+                "--build-number": "build_number",
+                "--pgo-run-type": "pgo_run_type",
+                "--r2r-run-type": "r2r_run_type",
+                "--codegen-type": "codegen_type",
+                "--runtime-type": "runtime_type",
+                "--run-categories": "run_categories",
+                "--extra-bdn-args": "extra_bdn_args",
+                "--affinity": "affinity",
+                "--os-group": "os_group",
+                "--os-sub-group": "os_sub_group",
+                "--runtime-flavor": "runtime_flavor",
+                "--javascript-engine": "javascript_engine",
+                "--experiment-name": "experiment_name",
+                "--channel": "channel",
+                "--perf-hash": "perf_hash",
+                "--os-version": "os_version",
+                "--dotnet-version-link": "dotnet_version_link",
+                "--target-csproj": "target_csproj",
+                "--pdn-path": "pdn_path",
+                "--runtime-repo-dir": "runtime_repo_dir",
+                "--logical-machine": "logical_machine"
+            }
 
-    run_performance_job(RunPerformanceJobArgs(**args))
+            if key in simple_arg_map:
+                arg_name = simple_arg_map[key]
+                val = argv[i + 1]
+            elif key == "--partition-count":
+                arg_name = "partition_count"
+                val = int(argv[i + 1])
+            elif key == "--run-env-vars":
+                val = {}
+                while i < len(argv):
+                    i += 1
+                    arg = argv[i]
+                    if arg.startswith("--"):
+                        break
+                    k, v = arg.split("=")
+                    val[k] = v
+                args["run_env_vars"] = val
+                continue
+            else:
+                raise Exception(f"Invalid argument: {key}")
+
+            args[arg_name] = val
+            i += 2
+
+        run_performance_job(RunPerformanceJobArgs(**args))
+    except CalledProcessError as ex:
+        getLogger().error('Command: "%s", exited with status: %s', ex.cmd, ex.returncode)
+    except IOError as ex:
+        getLogger().error("I/O error (%s): %s: %s", ex.errno, ex.strerror, ex.filename)
+    except Exception:
+        getLogger().error('Unexpected error: %s', sys.exc_info()[0])
+        getLogger().error(format_exc())
 
 if __name__ == "__main__":
     main(sys.argv)
