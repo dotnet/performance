@@ -300,7 +300,7 @@ def get_post_commands(args: RunPerformanceJobArgs):
 def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str, architecture: str, alpine: bool):
     if os_group == "windows":
         if not internal:
-            return"Windows.10.Amd64.ClientRS4.DevEx.15.8.Open"
+            return "Windows.10.Amd64.ClientRS4.DevEx.15.8.Open"
         else:
             queue_map = {
                 "perftiger": "Windows.11.Amd64.Tiger.Perf",
@@ -458,7 +458,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             raise Exception("HelixAccessToken environment variable is not configured")
     else:
         args.helix_access_token = None
-        os.environ.pop("HelixAccessToken") # in case the environment variable is set on the system already
+        os.environ.pop("HelixAccessToken", None) # in case the environment variable is set on the system already
         args.perflab_upload_token = ""
         extra_bdn_arguments += [
             "--iterationCount", "1", 
