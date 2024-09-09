@@ -862,6 +862,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 pdn_dest = os.path.join(payload_dir, "PDN")
                 pdn_file_path = os.path.join(pdn_dest, "PDN.zip")
                 getLogger().info(f"Copying PDN from {args.pdn_path} to {pdn_file_path}")
+                os.makedirs(pdn_dest, exist_ok=True)
                 shutil.copyfile(args.pdn_path, pdn_file_path)
 
             # create a copy of the environment since we want these to only be set during the following invocation
@@ -1097,7 +1098,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
 def main(argv: List[str]):
     setup_loggers(verbose=True)
-    
+
     try:
         args: dict[str, Any] = {}
 
@@ -1189,6 +1190,7 @@ def main(argv: List[str]):
             i += 2
 
         run_performance_job(RunPerformanceJobArgs(**args))
+        return 0
     except CalledProcessError as ex:
         getLogger().error('Command: "%s", exited with status: %s', ex.cmd, ex.returncode)
     except IOError as ex:
@@ -1196,6 +1198,7 @@ def main(argv: List[str]):
     except Exception:
         getLogger().error('Unexpected error: %s', sys.exc_info()[0])
         getLogger().error(format_exc())
+    return 1
 
 if __name__ == "__main__":
     main(sys.argv)
