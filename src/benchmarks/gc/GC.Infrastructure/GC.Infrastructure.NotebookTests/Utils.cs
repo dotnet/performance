@@ -44,39 +44,33 @@ namespace GC.Infrastructure.NotebookTests
             }
         }
 
-        public static Process SetupNotebookProcessRun(string notebookFile, string? outputPath = "", string? overrideWorkingDirectory = "")
+        public static Process SetupNotebookProcessRun(string notebookPath, string? outputNotebookPath = null)
         {
             Process process = new Process();
             process.StartInfo.FileName = "dotnet-repl";
             process.StartInfo.UseShellExecute = false;
-            process.StartInfo.Arguments = $"--run {notebookFile} --exit-after-run";
-            if (!string.IsNullOrEmpty(outputPath))
+            process.StartInfo.Arguments = $"--run {notebookPath} --exit-after-run";
+
+            // Optionally include the output notebook path in case we care about the output.
+            if (!string.IsNullOrEmpty(outputNotebookPath))
             {
-                process.StartInfo.Arguments += $" --output-path {outputPath}";
-            }
-            
-            // Working Directory for the process should be that of the "Notebooks" directory by default.
-            if (!string.IsNullOrEmpty(overrideWorkingDirectory))
-            {
-                process.StartInfo.WorkingDirectory = overrideWorkingDirectory;
+                process.StartInfo.Arguments += $" --output-path {outputNotebookPath}";
             }
 
-            else
-            {
-                process.StartInfo.WorkingDirectory = GetNotebookDirectoryPath();
-            }
-
+            // The working directory should be the directory that the notebook is in.
+            process.StartInfo.WorkingDirectory = Path.GetDirectoryName(notebookPath);
             return process;
         }
 
-        public static void RunNotebookThatsExpectedToPass(string notebookPath, string overrideRunDirectory = "")
+        public static void RunNotebookThatsExpectedToPass(string notebookPath) 
         {
             string tempPathForOutputNotebook = Path.GetTempFileName();
-            using (Process dotnetReplProcess = SetupNotebookProcessRun(notebookPath, tempPathForOutputNotebook, overrideRunDirectory))
+            using (Process dotnetReplProcess = SetupNotebookProcessRun(notebookPath, tempPathForOutputNotebook))
             {
                 dotnetReplProcess.Start();
                 dotnetReplProcess.WaitForExit(TIMEOUT);
 
+                // If notebook execution fails, parse the notebook and find the error.
                 if (dotnetReplProcess.ExitCode != 0)
                 {
                     ParseNotebookAndFindErrors(tempPathForOutputNotebook, notebookPath);
@@ -92,9 +86,10 @@ namespace GC.Infrastructure.NotebookTests
             File.Delete(tempPathForOutputNotebook);
         }
 
-        public static void RunNotebookThatsExpectedToFail(string notebookPath, string overrideRunDirectory = "")
+        public static void RunNotebookThatsExpectedToFail(string notebookPath)
         {
-            using (Process dotnetReplProcess = SetupNotebookProcessRun(notebookPath))
+            string tempPathForOutputNotebook = Path.GetTempFileName();
+            using (Process dotnetReplProcess = SetupNotebookProcessRun(notebookPath, tempPathForOutputNotebook))
             {
                 dotnetReplProcess.Start();
                 dotnetReplProcess.WaitForExit(TIMEOUT);
@@ -102,11 +97,17 @@ namespace GC.Infrastructure.NotebookTests
             }
         }
 
-        public static void ParseNotebookAndFindErrors(string outputNotebookPath, string baseNotebookPath)
+        public static NotebookRoot? ParseNotebook(string notebookPath)
         {
-            string failedNotebookText = File.ReadAllText(outputNotebookPath);
+            string failedNotebookText = File.ReadAllText(notebookPath);
             NotebookRoot? deserializedNotebook = JsonConvert.DeserializeObject<NotebookRoot>(failedNotebookText);
             deserializedNotebook.Should().NotBeNull();
+            return deserializedNotebook;
+        }
+
+        public static void ParseNotebookAndFindErrors(string outputNotebookPath, string baseNotebookPath)
+        {
+            NotebookRoot? deserializedNotebook = ParseNotebook(outputNotebookPath);
             File.Delete(outputNotebookPath);
 
             foreach (var cell in deserializedNotebook!.Cells)

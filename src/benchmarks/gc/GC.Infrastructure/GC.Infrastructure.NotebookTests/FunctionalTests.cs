@@ -1,4 +1,3 @@
-using FluentAssertions;
 using System.Reflection;
 
 namespace GC.Infrastructure.NotebookTests
@@ -15,18 +14,18 @@ namespace GC.Infrastructure.NotebookTests
         }
 
         [Test]
-        public void FunctionalTest_GCAnalysisExamples_Success()
+        public void FunctionalTest_RunGCAnalysisExamples_Success()
         {
-            string notebookPath = "GCAnalysisExamples.ipynb";
-            string examplesPath = Path.Combine(Utils.GetNotebookDirectoryPath(), "Examples");
-            Utils.RunNotebookThatsExpectedToPass(notebookPath, examplesPath);
+            // Conjecture: All examples should be functional.
+            string notebookPath = Path.Combine(Utils.GetNotebookDirectoryPath(), "Examples", "GCAnalysisExamples.ipynb");
+            Utils.RunNotebookThatsExpectedToPass(notebookPath);
         }
 
         [Test]
-        public void FunctionalTest_BenchmarkAnalysisFunctionalTest_Success()
+        public void FunctionalTest_RunBenchmarkAnalysis_Success()
         {
             // TODO: Parameterize the notebook paths.
-            string notebookPath = "BenchmarkAnalysis.dib";
+            string notebookPath = Path.Combine(Utils.GetNotebookDirectoryPath(), "BenchmarkAnalysis.dib");
             Utils.RunNotebookThatsExpectedToPass(notebookPath);
         }
 
@@ -40,7 +39,7 @@ namespace GC.Infrastructure.NotebookTests
 
             foreach (var failedNotebookPath in failedNotebookPaths)
             {
-                Utils.RunNotebookThatsExpectedToFail(failedNotebookPath, failureNotebookPath);
+                Utils.RunNotebookThatsExpectedToFail(failedNotebookPath);
             }
         }
     }
