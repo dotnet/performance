@@ -2738,7 +2738,7 @@ class MemoryAlloc
         return testResult;
     }
 
-    public static int Main(string[] argsStrs)
+    public static int Test(string[] argsStrs)
     {
         try
         {
@@ -2830,7 +2830,13 @@ class MemoryAlloc
         Console.WriteLine($"num_finalized: {ITypeWithPayload.Totals.NumFinalized}");
         Console.WriteLine($"final_total_memory_bytes: {GC.GetTotalMemory(forceFullCollection: false)}");
 
-        // Use reflection to detect GC.GetGCMemoryInfo because it doesn't exist in dotnet core 2.0 or in .NET framework.
+#if NET5_0_OR_GREATER
+        GCMemoryInfo info = GC.GetGCMemoryInfo();
+        long heapSizeBytes = info.HeapSizeBytes;
+        long fragmentedBytes = info.FragmentedBytes;
+        Console.WriteLine($"final_heap_size_bytes: {heapSizeBytes}");
+        Console.WriteLine($"final_fragmentation_bytes: {fragmentedBytes}");
+#else
         var getGCMemoryInfo = typeof(GC).GetMethod("GetGCMemoryInfo", new Type[] { });
         if (getGCMemoryInfo != null)
         {
@@ -2840,11 +2846,14 @@ class MemoryAlloc
             Console.WriteLine($"final_heap_size_bytes: {heapSizeBytes}");
             Console.WriteLine($"final_fragmentation_bytes: {fragmentedBytes}");
         }
+#endif
     }
 
+#if !NET5_0_OR_GREATER
     private static T GetProperty<T>(object instance, string name)
     {
         PropertyInfo property = Util.NonNull(instance.GetType().GetProperty(name));
         return (T)Util.NonNull(Util.NonNull(property.GetGetMethod()).Invoke(instance, parameters: null));
     }
+#endif
 }
