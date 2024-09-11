@@ -1006,7 +1006,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         "-f", perf_lab_framework,
         *perf_lab_arguments]
 
-    if perf_lab_framework != "net461":
+    if perf_lab_framework != "net462":
         work_item_command = work_item_command + cli_arguments
     
     baseline_work_item_command = work_item_command[:]
