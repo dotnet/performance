@@ -323,20 +323,15 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
             else:
                 return "Ubuntu.2204.Amd64.Open"
         else:
-            if architecture == "arm64":
-                if logical_machine == "perfampere":
-                    return "Ubuntu.2204.Arm64.Perf"
-                else:
-                    return "Ubuntu.1804.Arm64.Perf"
-            else:
-                queue_map = {
-                    "perfiphone12mini": "OSX.13.Amd64.Iphone.Perf",
-                    "perfowl": "Ubuntu.2204.Amd64.Owl.Perf",
-                    "perftiger_crossgen": "Ubuntu.1804.Amd64.Tiger.Perf",
-                    "perfviper": "Ubuntu.2204.Amd64.Viper.Perf",
-                    "cloudvm": "Ubuntu.2204.Amd64"
-                }
-                return queue_map.get(logical_machine, "Ubuntu.2204.Amd64.Tiger.Perf")
+            queue_map = {
+                "perfampere": "Ubuntu.2204.Arm64.Perf",
+                "perfiphone12mini": "OSX.13.Amd64.Iphone.Perf",
+                "perfowl": "Ubuntu.2204.Amd64.Owl.Perf",
+                "perftiger_crossgen": "Ubuntu.1804.Amd64.Tiger.Perf",
+                "perfviper": "Ubuntu.2204.Amd64.Viper.Perf",
+                "cloudvm": "Ubuntu.2204.Amd64"
+            }
+            return queue_map.get(logical_machine, "Ubuntu.2204.Amd64.Tiger.Perf")
 
 def run_performance_job(args: RunPerformanceJobArgs):
     setup_loggers(verbose=True)
@@ -377,8 +372,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.perflab_upload_token is None:
         env_var_name = "PerfCommandUploadToken" if args.os_group == "windows" else "PerfCommandUploadTokenLinux"
         args.perflab_upload_token = os.environ.get(env_var_name)
-        if args.perflab_upload_token is None:
-            getLogger().warn(f"{env_var_name} is not set. Results will not be uploaded.")
+        if args.perflab_upload_token is None and args.internal:
+            getLogger().info(f"{env_var_name} is not set. This may be needed for results to be uploaded.")
     
     args.performance_repo_dir = os.path.abspath(args.performance_repo_dir)
 
