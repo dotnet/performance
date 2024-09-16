@@ -440,8 +440,7 @@ def main(args: Any):
         output_file += extension
 
     dir_path = os.path.dirname(output_file)
-    if not os.path.isdir(dir_path):
-        os.mkdir(dir_path)
+    os.makedirs(dir_path, exist_ok=True)
 
     if not framework.startswith('net4'):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
