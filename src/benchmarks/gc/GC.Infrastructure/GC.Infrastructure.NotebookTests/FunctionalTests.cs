@@ -42,6 +42,7 @@ namespace GC.Infrastructure.NotebookTests
         [Test]
         [TestCase("GCAnalysisExamples.ipynb")]
         [TestCase("CustomDynamicEvents.ipynb")]
+        [TestCase("CPUAnalysisExamples.ipynb")]
         public void FunctionalTest_RunExamples_ExpectsSuccess(string notebookName)
             => Utils.RunNotebookThatsExpectedToPass(Path.Combine(Utils.GetNotebookDirectoryPath(), "Examples", notebookName));
 
