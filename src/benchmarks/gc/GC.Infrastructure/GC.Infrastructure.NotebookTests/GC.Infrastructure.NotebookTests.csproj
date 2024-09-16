@@ -27,7 +27,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestNotebooks\CompilationFailure.dib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestNotebooks\CompilationFailure.ipynb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestNotebooks\ExceptionFailure.dib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestNotebooks\ExceptionFailure.ipynb">

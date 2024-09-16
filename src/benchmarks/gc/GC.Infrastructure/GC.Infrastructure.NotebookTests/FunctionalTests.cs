@@ -1,3 +1,4 @@
+using GC.Infrastructure.NotebookTests.Exceptions;
 using System.Reflection;
 
 namespace GC.Infrastructure.NotebookTests
@@ -14,33 +15,51 @@ namespace GC.Infrastructure.NotebookTests
         }
 
         [Test]
-        public void FunctionalTest_RunGCAnalysisExamples_Success()
+        public void FunctionalTest_RunAllNotebooksToCheckForOutputs_NoOutputsExpected()
         {
-            // Conjecture: All examples should be functional.
-            string notebookPath = Path.Combine(Utils.GetNotebookDirectoryPath(), "Examples", "GCAnalysisExamples.ipynb");
-            Utils.RunNotebookThatsExpectedToPass(notebookPath);
-        }
+            string notebookPath = Utils.GetNotebookDirectoryPath();
+            List<string> notebooksWithOutputs = new();
+            // .dib files don't have any output to check.
+            // We don't want to enumerate what the notebooks will be before hand because this test should be 
+            // more stringent and should be done for all cases.
+            Directory.EnumerateFiles(notebookPath, "*.ipynb", SearchOption.AllDirectories)
+                .ToList()
+                .ForEach(notebook =>
+                {
+                    bool outputsDetected = Utils.CheckIfNotebookHasOutputs(notebook);
+                    if (outputsDetected)
+                    {
+                        notebooksWithOutputs.Add(Path.GetFileName(notebook));
+                    }
+                });
 
-        [Test]
-        public void FunctionalTest_RunBenchmarkAnalysis_Success()
-        {
-            // TODO: Parameterize the notebook paths.
-            string notebookPath = Path.Combine(Utils.GetNotebookDirectoryPath(), "BenchmarkAnalysis.dib");
-            Utils.RunNotebookThatsExpectedToPass(notebookPath);
-        }
-
-        [Test]
-        public void FunctionalTest_IntentionallyFailedNotebook_Failure()
-        {
-            string? executionPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            Assert.IsNotNull(executionPath);
-            string failureNotebookPath = Path.Combine(executionPath, "TestNotebooks");
-            string[] failedNotebookPaths = Directory.GetFiles(failureNotebookPath);
-
-            foreach (var failedNotebookPath in failedNotebookPaths)
+            if (notebooksWithOutputs.Count > 0)
             {
-                Utils.RunNotebookThatsExpectedToFail(failedNotebookPath);
+                throw new NotebookOutputDetectionException(notebooksWithOutputs);
             }
+        }
+
+        [Test]
+        [TestCase("GCAnalysisExamples.ipynb")]
+        [TestCase("CustomDynamicEvents.ipynb")]
+        public void FunctionalTest_RunExamples_ExpectsSuccess(string notebookName)
+            => Utils.RunNotebookThatsExpectedToPass(Path.Combine(Utils.GetNotebookDirectoryPath(), "Examples", notebookName));
+
+        [Test]
+        [TestCase("BenchmarkAnalysis.dib")]
+        public void FunctionalTest_RunAnalysisNotebooks_ExpectedSuccess(string notebookName)
+            => Utils.RunNotebookThatsExpectedToPass(Path.Combine(Utils.GetNotebookDirectoryPath(), notebookName));
+
+        [Test]
+        [TestCase("CompilationFailure.dib")]
+        [TestCase("CompilationFailure.ipynb")]
+        [TestCase("ExceptionFailure.dib")]
+        [TestCase("ExceptionFailure.ipynb")]
+        public void FunctionalTest_IntentionallyFailedNotebook_Failure(string notebookName)
+        {
+            string? executionDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string? notebookPath = Path.Combine(executionDirectory!, "TestNotebooks", notebookName);
+            Utils.RunNotebookThatsExpectedToFail(notebookPath);
         }
     }
 }

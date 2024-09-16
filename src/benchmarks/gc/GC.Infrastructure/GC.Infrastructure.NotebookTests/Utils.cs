@@ -1,8 +1,9 @@
 ﻿using FluentAssertions;
 using System.Reflection;
+using System.Diagnostics;
 using GC.Infrastructure.NotebookTests.NotebookParser;
 using Newtonsoft.Json;
-using System.Diagnostics;
+using GC.Infrastructure.NotebookTests.Exceptions;
 
 namespace GC.Infrastructure.NotebookTests
 {
@@ -44,82 +45,80 @@ namespace GC.Infrastructure.NotebookTests
             }
         }
 
-        public static Process SetupNotebookProcessRun(string notebookPath, string? outputNotebookPath = null)
+        public static void RunNotebookThatsExpectedToPass(string notebookPath)
         {
-            Process process = new Process();
-            process.StartInfo.FileName = "dotnet-repl";
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.Arguments = $"--run {notebookPath} --exit-after-run";
-
-            // Optionally include the output notebook path in case we care about the output.
-            if (!string.IsNullOrEmpty(outputNotebookPath))
+            using (NotebookRunner runner = new NotebookRunner(notebookPath))
             {
-                process.StartInfo.Arguments += $" --output-path {outputNotebookPath}";
-            }
-
-            // The working directory should be the directory that the notebook is in.
-            process.StartInfo.WorkingDirectory = Path.GetDirectoryName(notebookPath);
-            return process;
-        }
-
-        public static void RunNotebookThatsExpectedToPass(string notebookPath) 
-        {
-            string tempPathForOutputNotebook = Path.GetTempFileName();
-            using (Process dotnetReplProcess = SetupNotebookProcessRun(notebookPath, tempPathForOutputNotebook))
-            {
-                dotnetReplProcess.Start();
-                dotnetReplProcess.WaitForExit(TIMEOUT);
-
-                // If notebook execution fails, parse the notebook and find the error.
-                if (dotnetReplProcess.ExitCode != 0)
+                if (runner.HasExited.HasValue && !runner.HasExited.Value)
                 {
-                    ParseNotebookAndFindErrors(tempPathForOutputNotebook, notebookPath);
+                    // The test timed out => we should throw an exception here.
+                    throw new NotebookExecutionException(notebookPath, "Notebook execution timed out. Please try re-running the notebook locally to check for any errors.");
                 }
 
-                else
+                // Post condition of dotnet-repl is that the output notebook is created and therefore, we are able to deserialize it.
+                runner.NotebookRoot.Should().NotBeNull();
+                runner.HasExited.Should().BeTrue();
+
+                if (runner.ExitCode.HasValue && runner.ExitCode.Value != 0)
                 {
-                    dotnetReplProcess.HasExited.Should().BeTrue();
+                    ReportErrorInNotebook(runner);
                 }
             }
-
-            // Cleanup any temp notebooks.
-            File.Delete(tempPathForOutputNotebook);
         }
 
         public static void RunNotebookThatsExpectedToFail(string notebookPath)
         {
-            string tempPathForOutputNotebook = Path.GetTempFileName();
-            using (Process dotnetReplProcess = SetupNotebookProcessRun(notebookPath, tempPathForOutputNotebook))
+            using (NotebookRunner runner = new NotebookRunner(notebookPath))
             {
-                dotnetReplProcess.Start();
-                dotnetReplProcess.WaitForExit(TIMEOUT);
-                dotnetReplProcess.ExitCode.Should().NotBe(0);
+                runner.ExitCode.Should().NotBe(0);
+                bool foundError = false;
+
+                // Post condition of dotnet-repl is that the output notebook is created and therefore,
+                // we are able to deserialize it.
+                if (runner.ExitCode.HasValue && runner.ExitCode.Value != 0)
+                {
+                    foreach (var cell in runner.NotebookRoot!.Cells)
+                    {
+                        foreach (var output in cell.Outputs)
+                        {
+                            if (output.OutputType == "error")
+                            {
+                                foundError = true;
+                            }
+                        }
+                    }
+                }
+
+                foundError.Should().BeTrue();
             }
         }
 
-        public static NotebookRoot? ParseNotebook(string notebookPath)
+        public static void ReportErrorInNotebook(NotebookRunner runner)
         {
-            string failedNotebookText = File.ReadAllText(notebookPath);
-            NotebookRoot? deserializedNotebook = JsonConvert.DeserializeObject<NotebookRoot>(failedNotebookText);
-            deserializedNotebook.Should().NotBeNull();
-            return deserializedNotebook;
-        }
-
-        public static void ParseNotebookAndFindErrors(string outputNotebookPath, string baseNotebookPath)
-        {
-            NotebookRoot? deserializedNotebook = ParseNotebook(outputNotebookPath);
-            File.Delete(outputNotebookPath);
-
-            foreach (var cell in deserializedNotebook!.Cells)
+            foreach (var cell in runner.NotebookRoot!.Cells)
             {
                 foreach (var output in cell.Outputs)
                 {
-                    if (string.CompareOrdinal(output.Ename, "Error") == 0)
+                    if (output.OutputType == "error")
                     {
-                        throw new NotebookExecutionException(output.Evalue, baseNotebookPath);
+                        throw new NotebookExecutionException(output.Evalue, runner.NotebookPath);
                     }
                 }
             }
+        }
+
+        public static bool CheckIfNotebookHasOutputs(string notebookPath)
+        {
+            NotebookRoot? notebookRoot = JsonConvert.DeserializeObject<NotebookRoot>(File.ReadAllText(notebookPath));
+            foreach (var cell in notebookRoot!.Cells)
+            {
+                if (cell.Outputs.Count > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static string GetNotebookDirectoryPath()

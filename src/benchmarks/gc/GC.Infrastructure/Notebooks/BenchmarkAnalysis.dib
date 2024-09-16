@@ -10,3 +10,45 @@ dotnet build -c Release "..\GC.Analysis.API"
 
 #!import DataManager.dib
 #!import Reports.dib
+
+#!csharp
+
+string path = @"Q:\DATAS_Fixes\Win\All_Conserve";
+var dm = DataManager.CreateAspNetData(path);
+
+#!csharp
+
+Aggregation SafeAverage = new Aggregation((IEnumerable<double> data) => 
+{ 
+    var val = data.Where(d => d != 0 || !double.IsNaN(d)).ToList();
+    return val.Sum() / val.Count();
+}, "SafeAverage", "Safe Average");
+public static Metric<TraceGC> TCPToConsider = new(gc => gc.DynamicEvents().SizeAdaptationTuning?.TcpToConsider ?? double.NaN, "TCPToConsider", "%");
+Metric<IterationData> avgTcpToConsider = Metrics.Promote(Metrics.G.TCPToConsider, SafeAverage);
+Metric<BenchmarkData> avgAvgTcpToConsider = Metrics.Promote(avgTcpToConsider, Aggregation.Average);
+
+#!csharp
+
+var avgHeapCountSwitches = Metrics.Promote(Metrics.I.NumberOfHeapCountSwitches, Aggregation.Average);
+//TableIterations(dm, ML( Metrics.I.NumberOfHeapCountSwitches));
+TableBenchmarks(dm, ML( avgHeapCountSwitches ))
+
+#!csharp
+
+foreach (var run in dm.Data.Runs)
+{
+    foreach (var iteration in run.Value.Configs)
+    {
+        foreach (var benchmark in iteration.Value.Benchmarks)
+        {
+            var iterations = benchmark.Value.Iterations;
+            foreach (var it in iterations)
+            {
+                avgTcpToConsider.DoExtract(it).Display();
+            }
+        }
+    }
+}
+
+TableIterations(dm, Metrics.Promote(Metrics.G.TCPToConsider, Aggregation.Average));
+// TableIterations(dm, ML( avgTcpToConsider ))

@@ -99,7 +99,7 @@ namespace GC.Infrastructure.NotebookTests.NotebookParser
     public class Output
     {
         [JsonProperty("name")]
-        public required     string Name { get; set; }
+        public required string Name { get; set; }
 
         [JsonProperty("output_type")]
         public required string OutputType { get; set; }
