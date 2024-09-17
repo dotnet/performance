@@ -1111,7 +1111,7 @@ def main(argv: List[str]):
                 "--hybrid-globalization": "hybrid_globalization",
                 "--send-to-helix": "send_to_helix",
                 "--performance-repo-ci": "performance_repo_ci",
-                "--only-sanity-check": "only_sanity_check",
+                "--only-sanity": "only_sanity_check",
                 "--use-local-commit-time": "use_local_commit_time",
             }
 
