@@ -7,28 +7,54 @@ namespace System.Text.Json.Node.Tests
     [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_Create
     {
+        private readonly JsonNode[] _results = new JsonNode[50];
+
         [Benchmark]
-        public JsonNode Create_JsonBool()
+        public Span<JsonNode> Create_JsonBool()
         {
-            return true;
+            Span<JsonNode> results = _results.AsSpan();
+            for (int i = 0; i < results.Length; i++)
+            {
+                results[i] = (JsonNode)true;
+            }
+
+            return results;
         }
 
         [Benchmark]
-        public JsonNode Create_JsonNumber()
+        public Span<JsonNode> Create_JsonNumber()
         {
-            return 42;
+            Span<JsonNode> results = _results.AsSpan();
+            for (int i = 0; i < results.Length; i++)
+            {
+                results[i] = (JsonNode)42;
+            }
+
+            return results;
         }
 
         [Benchmark]
-        public JsonNode Create_JsonString()
+        public Span<JsonNode> Create_JsonString()
         {
-            return "Some string";
+            Span<JsonNode> results = _results.AsSpan();
+            for (int i = 0; i < results.Length; i++)
+            {
+                results[i] = (JsonNode)"some string";
+            }
+
+            return results;
         }
 
         [Benchmark]
-        public JsonNode Create_JsonArray()
+        public Span<JsonNode> Create_JsonArray()
         {
-            return new JsonArray { null, null, null, null };
+            Span<JsonNode> results = _results.AsSpan(0, 20);
+            for (int i = 0; i < results.Length; i++)
+            {
+                results[i] = new JsonArray { null, null, null, null };
+            }
+
+            return results;
         }
 
         [Benchmark]
