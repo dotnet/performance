@@ -227,7 +227,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             ]
 
     # Set MONO_ENV_OPTIONS with for Mono Interpreter runs
-    if args.codegen_type == "Interpreter" and args.runtime_type == "mono":
+    if args.codegen_type.lower() == "interpreter" and args.runtime_type == "mono":
         if args.os_group == "windows":
             helix_pre_commands += ['set MONO_ENV_OPTIONS="--interpreter"']
         else:
@@ -338,7 +338,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     helix_type_suffix = ""
     if args.runtime_type == "wasm":
-        if args.codegen_type == "AOT":
+        if args.codegen_type.lower() == "aot":
             helix_type_suffix = "/wasm/aot"
         else:
             helix_type_suffix = "/wasm"
@@ -377,7 +377,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     
     args.performance_repo_dir = os.path.abspath(args.performance_repo_dir)
 
-    mono_interpreter = args.codegen_type == "Interpreter" and args.runtime_type == "mono"
+    mono_interpreter = args.codegen_type.lower() == "interpreter" and args.runtime_type == "mono"
 
     if args.target_csproj is None:
         if args.os_group == "windows":
@@ -390,7 +390,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.libraries_download_dir is None and not args.performance_repo_ci and args.runtime_repo_dir is not None:
         args.libraries_download_dir = os.path.join(args.runtime_repo_dir, "artifacts")
 
-    llvm = args.codegen_type == "AOT" and args.runtime_type != "wasm"
+    llvm = args.codegen_type.lower() == "aot" and args.runtime_type != "wasm"
     android_mono = args.runtime_type == "AndroidMono"
     ios_mono = args.runtime_type == "iOSMono"
     ios_nativeaot = args.runtime_type == "iOSNativeAOT"
@@ -400,7 +400,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     wasm_bundle_dir = None
     wasm_aot = False
     if args.runtime_type == "mono":
-        if args.codegen_type == "AOT":
+        if args.codegen_type.lower() == "aot":
             if args.libraries_download_dir is None:
                 raise Exception("Libraries not downloaded for MonoAOT")
             
