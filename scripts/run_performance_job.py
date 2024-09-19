@@ -417,7 +417,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 raise Exception("Libraries not downloaded for WASM")
         
         wasm_bundle_dir = os.path.join(args.libraries_download_dir, "bin", "wasm")
-        if args.codegen_type == "AOT":
+        if args.codegen_type.lower() == "aot":
             wasm_aot = True
 
     working_dir = os.path.join(args.performance_repo_dir, "CorrelationStaging") # folder in which the payload and workitem directories will be made
@@ -474,7 +474,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     configurations = { "CompilationMode": "Tiered", "RunKind": args.run_kind }
 
     using_mono = False
-    if mono_dotnet is not None:
+    if mono_dotnet is not None or mono_aot:
         using_mono = True
         configurations["LLVM"] = str(llvm)
         configurations["MonoInterpreter"] = str(mono_interpreter)
@@ -568,7 +568,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if not args.internal and not args.performance_repo_ci:
         ci_setup_arguments.not_in_lab = True
 
-    if mono_dotnet is not None:
+    if mono_dotnet is not None and not mono_aot:
         mono_dotnet_path = os.path.join(payload_dir, "dotnet-mono")
         getLogger().info("Copying mono dotnet directory to payload directory")
         shutil.copytree(mono_dotnet, mono_dotnet_path)
