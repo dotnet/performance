@@ -482,13 +482,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
         # TODO: Validate if this exclusion filter is still needed
         extra_bdn_arguments += ["--exclusion-filter", "*Perf_Image*", "*Perf_NamedPipeStream*"]
-        category_exclusions += ["NoMono"]
+
+        # TODO: Identify why Mono AOT does not exclude NoMono, but instead excludes NoWASM
+        if mono_aot:
+            category_exclusions += ["NoAOT", "NoWASM"]
+        else:
+            category_exclusions += ["NoMono"]
 
         if mono_interpreter:
             category_exclusions += ["NoInterpreter"]
-
-        if mono_aot:
-            category_exclusions += ["NoAOT"]
 
     using_wasm = False
     if wasm_bundle_dir is not None:
