@@ -92,6 +92,8 @@ class FrameworkAction(Action):
             return 'net8.0'
         if framework == 'nativeaot9.0':
             return 'net9.0'
+        if framework == 'nativeaot10.0':
+            return 'net10.0'
         else:
             return framework
 
@@ -594,6 +596,9 @@ def get_dotnet_version_from_path(
         # Attempt 2: Increase the minor version by 1 and retry.
         sdk = next((f for f in sdks if f.startswith(
             "{}.{}".format(version.major, version.minor + 1))), None)
+    if not sdk:
+        if version.major == 9:
+            sdk = next((f for f in sdks if f.startswith("10.0")), None)
     if not sdk:
         sdk = next((f for f in sdks if f.startswith(
             "{}.{}".format('6', '0'))), None)
