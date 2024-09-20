@@ -528,7 +528,7 @@ class CSharpProject:
 FrameworkVersion = NamedTuple('FrameworkVersion', major=int, minor=int)
 @tracer.start_as_current_span("dotnet_get_framework_version") # type: ignore
 def get_framework_version(framework: str) -> FrameworkVersion:
-    groups = search(r".*(\d)\.(\d)$", framework)
+    groups = search(r".*(\d+)\.(\d+)$", framework)
     if not groups:
         raise ValueError("Unknown target framework: {}".format(framework))
 
