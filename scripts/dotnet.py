@@ -588,6 +588,8 @@ def get_dotnet_version_from_path(
     ]
     sdks.sort(reverse=True)
 
+    print(f"SDKs found in {sdk_path}: {sdks}")
+
     # Determine the SDK being used.
     # Attempt 1: Try to use exact match.
     sdk = next((f for f in sdks if f.startswith(
