@@ -121,7 +121,7 @@ class VersionsAction(Action):
     def __call__(self, parser, namespace, values, option_string=None):
         if values:
             for version in values:
-                if not search(r'^\d\.\d+\.\d+', version):
+                if not search(r'^\d+\.\d+\.\d+', version):
                     raise ArgumentTypeError(
                         'Version "{}" is in the wrong format'.format(version))
             setattr(namespace, self.dest, values)
