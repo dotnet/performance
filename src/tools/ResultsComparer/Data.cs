@@ -158,6 +158,10 @@ namespace ResultsComparer
                 return "nativeaot9.0-preview" + key[key.IndexOf("nativeaot9.0-preview") + "nativeaot9.0-preview".Length];
             if (key.Contains("net9.0"))
                 return "net9.0";
+            if (key.StartsWith("net10.0"))
+                return "net10.0";
+            if (key.StartsWith("nativeaot10.0"))
+                return key;
 
             return null;
         }
