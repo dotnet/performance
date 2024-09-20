@@ -588,9 +588,6 @@ def get_dotnet_version_from_path(
     ]
     sdks.sort(reverse=True)
 
-    print(f"SDKs found in {sdk_path}: {sdks}")
-    print(f"Major version: {version.major}")
-
     # Determine the SDK being used.
     # Attempt 1: Try to use exact match.
     sdk = next((f for f in sdks if f.startswith(
@@ -607,7 +604,8 @@ def get_dotnet_version_from_path(
             "{}.{}".format('6', '0'))), None)
     if not sdk:
         raise RuntimeError(
-            "Unable to determine the .NET SDK used for {}".format(framework)
+            f"Unable to determine the .NET SDK used for {framework}. "
+            f"SDKs found in {sdk_path}: {sdks}. Major version: {version.major}"
         )
 
     return sdk
