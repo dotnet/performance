@@ -473,9 +473,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     configurations = { "CompilationMode": "Tiered", "RunKind": args.run_kind }
 
-    using_mono = False
     if mono_dotnet is not None or mono_aot:
-        using_mono = True
         configurations["LLVM"] = str(llvm)
         configurations["MonoInterpreter"] = str(mono_interpreter)
         configurations["MonoAOT"] = str(mono_aot)
@@ -945,7 +943,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if using_wasm:
         cli_arguments += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
 
-    if using_mono:
+    if mono_dotnet is not None:
         if args.versions_props_path is None:
             if args.runtime_repo_dir is None:
                 raise Exception("Version.props must be present for mono runs")
