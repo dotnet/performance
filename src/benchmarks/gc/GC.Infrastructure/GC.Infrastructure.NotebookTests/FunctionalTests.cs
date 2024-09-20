@@ -14,29 +14,18 @@ namespace GC.Infrastructure.NotebookTests
             }
         }
 
-        [Test]
-        public void FunctionalTest_RunAllNotebooksToCheckForOutputs_NoOutputsExpected()
+        public static IEnumerable<string> GetAllNotebooks()
         {
             string notebookPath = Utils.GetNotebookDirectoryPath();
-            List<string> notebooksWithOutputs = new();
-            // .dib files don't have any output to check.
-            // We don't want to enumerate what the notebooks will be before hand because this test should be 
-            // more stringent and should be done for all cases.
-            Directory.EnumerateFiles(notebookPath, "*.ipynb", SearchOption.AllDirectories)
-                .ToList()
-                .ForEach(notebook =>
-                {
-                    bool outputsDetected = Utils.CheckIfNotebookHasOutputs(notebook);
-                    if (outputsDetected)
-                    {
-                        notebooksWithOutputs.Add(Path.GetFileName(notebook));
-                    }
-                });
+            return Directory.EnumerateFiles(notebookPath, "*.ipynb", SearchOption.AllDirectories);
+        }
 
-            if (notebooksWithOutputs.Count > 0)
-            {
-                throw new NotebookOutputDetectionException(notebooksWithOutputs);
-            }
+        [Test]
+        [TestCaseSource(nameof(GetAllNotebooks))]
+        public void FunctionalTest_RunAllNotebooksToCheckForOutputs_NoOutputsExpected(string notebook)
+        {
+            bool outputDetected = Utils.CheckIfNotebookHasOutputs(notebook);
+            Assert.False(outputDetected, $"Notebook {notebook} has outputs. No outputs are expected.");
         }
 
         [Test]
