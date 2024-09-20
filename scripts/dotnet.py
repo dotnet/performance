@@ -597,6 +597,9 @@ def get_dotnet_version_from_path(
         sdk = next((f for f in sdks if f.startswith(
             "{}.{}".format(version.major, version.minor + 1))), None)
     if not sdk:
+        if version.major == 9:
+            sdk = next((f for f in sdks if f.startswith("10.0")), None)
+    if not sdk:
         sdk = next((f for f in sdks if f.startswith(
             "{}.{}".format('6', '0'))), None)
     if not sdk:
