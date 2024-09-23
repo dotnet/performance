@@ -86,9 +86,10 @@
     </PreparePayloadWorkItem>
   </ItemGroup>
 
+  <!-- Startup scenarios are temporarily disabled on non-Windows runs as lttng kernel modules are failing to install: https://github.com/dotnet/performance/issues/4149 -->
 
   <!-- Startup FDD publish -->
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="@(Scenario -> 'Startup - %(Identity) - FDD Publish')">
       <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_fdd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
       <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_fdd $HELIX_WORKITEM_ROOT/pub</PreCommands>

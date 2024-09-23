@@ -103,22 +103,22 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - release/6.0
-  
-  # Ubuntu 2204 x64 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 2204
-      kind: sdk_scenarios
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      machinePool: Open
-      queue: Ubuntu.2204.Amd64.Open
-      container: ubuntu_x64_build_container
-      projectFile: sdk_scenarios.proj
-      channels:
-        - release/6.0
+
+  # reenable under new machine on new ubuntu once lttng/events are available
+  # - template: /eng/performance/scenarios.yml
+  #   parameters:
+  #     osName: ubuntu
+  #     osVersion: 2204
+  #     kind: sdk_scenarios
+  #     architecture: x64
+  #     pool: 
+  #       vmImage: ubuntu-latest
+  #     machinePool: Open
+  #     queue: Ubuntu.2204.Amd64.Open
+  #     container: ubuntu_x64_build_container
+  #     projectFile: sdk_scenarios.proj
+  #     channels:
+  #       - release/6.0
 
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -538,21 +538,22 @@ jobs:
       channels:
         - release/6.0
 
+  # reenable under new machine on new ubuntu once lttng/events are available
   # Ubuntu 2204 x64 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 2204
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      kind: sdk_scenarios
-      machinePool: Tiger
-      queue: Ubuntu.2204.Amd64.Tiger.Perf
-      container: ubuntu_x64_build_container
-      projectFile: sdk_scenarios.proj
-      channels:
-        - release/6.0
+  # - template: /eng/performance/scenarios.yml
+  #   parameters:
+  #     osName: ubuntu
+  #     osVersion: 2204
+  #     architecture: x64
+  #     pool: 
+  #       vmImage: ubuntu-latest
+  #     kind: sdk_scenarios
+  #     machinePool: Tiger
+  #     queue: Ubuntu.2204.Amd64.Tiger.Perf
+  #     container: ubuntu_x64_build_container
+  #     projectFile: sdk_scenarios.proj
+  #     channels:
+  #       - release/6.0
 
   # Windows x64 Blazor 3.2 scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -606,18 +607,19 @@ jobs:
       channels:
         - $(channel) # for manual runs we can specify channel variable 
 
+  # reenable under new machine on new ubuntu once lttng/events are available
   # Ubuntu 2204 x64 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 2204
-      architecture: x64
-      pool:
-        vmImage: ubuntu-latest
-      kind: sdk_scenarios
-      machinePool: Tiger
-      queue: Ubuntu.2204.Amd64.Tiger.Perf
-      container: ubuntu_x64_build_container
-      projectFile: sdk_scenarios.proj
-      channels:
-        - $(channel)
+  # - template: /eng/performance/scenarios.yml
+  #   parameters:
+  #     osName: ubuntu
+  #     osVersion: 2204
+  #     architecture: x64
+  #     pool:
+  #       vmImage: ubuntu-latest
+  #     kind: sdk_scenarios
+  #     machinePool: Tiger
+  #     queue: Ubuntu.2204.Amd64.Tiger.Perf
+  #     container: ubuntu_x64_build_container
+  #     projectFile: sdk_scenarios.proj
+  #     channels:
+  #       - $(channel)
