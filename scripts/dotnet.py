@@ -92,6 +92,8 @@ class FrameworkAction(Action):
             return 'net8.0'
         if framework == 'nativeaot9.0':
             return 'net9.0'
+        if framework == 'nativeaot10.0':
+            return 'net10.0'
         else:
             return framework
 
@@ -119,7 +121,7 @@ class VersionsAction(Action):
     def __call__(self, parser, namespace, values, option_string=None):
         if values:
             for version in values:
-                if not search(r'^\d\.\d+\.\d+', version):
+                if not search(r'^\d+\.\d+\.\d+', version):
                     raise ArgumentTypeError(
                         'Version "{}" is in the wrong format'.format(version))
             setattr(namespace, self.dest, values)
@@ -528,7 +530,7 @@ class CSharpProject:
 FrameworkVersion = NamedTuple('FrameworkVersion', major=int, minor=int)
 @tracer.start_as_current_span("dotnet_get_framework_version") # type: ignore
 def get_framework_version(framework: str) -> FrameworkVersion:
-    groups = search(r".*(\d)\.(\d)$", framework)
+    groups = search(r".*?(\d+)\.(\d+)$", framework)
     if not groups:
         raise ValueError("Unknown target framework: {}".format(framework))
 
@@ -595,11 +597,15 @@ def get_dotnet_version_from_path(
         sdk = next((f for f in sdks if f.startswith(
             "{}.{}".format(version.major, version.minor + 1))), None)
     if not sdk:
+        if version.major == 9:
+            sdk = next((f for f in sdks if f.startswith("10.0")), None)
+    if not sdk:
         sdk = next((f for f in sdks if f.startswith(
             "{}.{}".format('6', '0'))), None)
     if not sdk:
         raise RuntimeError(
-            "Unable to determine the .NET SDK used for {}".format(framework)
+            f"Unable to determine the .NET SDK used for {framework}. "
+            f"SDKs found in {sdk_path}: {sdks}. Major version: {version.major}"
         )
 
     return sdk
