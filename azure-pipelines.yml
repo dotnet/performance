@@ -146,7 +146,6 @@ jobs:
         runCategories: 'runtime libraries' 
         channels:
           - main
-          - nativeaot10.0
           - nativeaot9.0
           - nativeaot8.0
           - 8.0
