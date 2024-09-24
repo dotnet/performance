@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="9.0.0-rtm.24468.5">
+    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="9.0.0-rtm.24470.3">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>db95ac47f72d605e7676ad155db2bab00be889ed</Sha>
+      <Sha>9c9e77e8eec007a6cc5e7d14739b14974dbddc55</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="9.0.0-rtm.24468.5">
+    <Dependency Name="Microsoft.NET.ILLink" Version="9.0.0-rtm.24470.3">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>db95ac47f72d605e7676ad155db2bab00be889ed</Sha>
+      <Sha>9c9e77e8eec007a6cc5e7d14739b14974dbddc55</Sha>
     </Dependency>
-    <Dependency Name="System.Threading.Channels" Version="9.0.0-rtm.24468.5">
+    <Dependency Name="System.Threading.Channels" Version="9.0.0-rtm.24470.3">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>db95ac47f72d605e7676ad155db2bab00be889ed</Sha>
+      <Sha>9c9e77e8eec007a6cc5e7d14739b14974dbddc55</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.0-rtm.24468.5">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.0-rtm.24470.3">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>db95ac47f72d605e7676ad155db2bab00be889ed</Sha>
+      <Sha>9c9e77e8eec007a6cc5e7d14739b14974dbddc55</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
@@ -39,8 +39,8 @@
       Mapping_Microsoft.tvOS.Sdk:default
     -->
     <!-- Dependencies for .NET MAUI workload -->
-    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.0-rc.2.24469.5">
-      <Sha>132b4fe391214e36f7e093f263187c577c555471</Sha>
+    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.0-rc.2.24473.2">
+      <Sha>693e5440a3b8e76e64280d04f5ef51efd86dc5ff</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
     <Dependency Name="Microsoft.NET.Sdk" Version="9.0.100-rc.2.24426.11" CoherentParentDependency="Microsoft.Maui.Controls">
