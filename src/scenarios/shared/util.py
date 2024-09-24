@@ -43,9 +43,6 @@ def publisheddll(exename: str):
     'gets binary path for published dll'
     return os.path.join(const.PUBDIR, '%s%s' % (exename, ".dll"))
 
-def uploadtokenpresent():
-    return environ.get(UPLOAD_TOKEN_VAR) is not None
-
 def getruntimeidentifier():
     rid = None
     if iswin():

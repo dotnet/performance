@@ -14,7 +14,7 @@ from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_T
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from shared.androidhelper import AndroidHelper
-from shared.util import helixworkitempayload, helixuploaddir, uploadtokenpresent, getruntimeidentifier
+from shared.util import helixworkitempayload, helixuploaddir, getruntimeidentifier
 from shared.const import *
 from shared.testtraits import TestTraits
 from subprocess import CalledProcessError
@@ -88,9 +88,10 @@ class DevicePowerConsumptionHelper(object):
             # rethrow the original exception 
             raise
 
-        if runninginlab():
-            copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
-            if uploadtokenpresent():
+        helix_upload_dir = helixuploaddir()
+        if runninginlab() and helix_upload_dir is not None:
+            copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'))
+            if traits.upload_to_perflab_container:
                 import upload
                 upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
 
