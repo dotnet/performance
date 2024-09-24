@@ -133,7 +133,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     if args.os_sub_group == "_musl":    
         install_prerequisites += [
             "sudo apk add icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib cargo",
-            "sudo apk add libgdiplus --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing"
+            "sudo apk add libgdiplus --repository http://dl-cdn.alpinelinux.org/alpine/v3.18/community"
         ]
 
     if args.internal:
