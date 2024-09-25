@@ -60,11 +60,11 @@
   <ItemGroup>
     <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) IPA Size')">
       <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) Unzipped')">
       <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub; mv $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; unzip -d $HELIX_WORKITEM_ROOT/pub $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; rm $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
     <XHarnessAppBundleToTest Include="Device Startup - iOS .NET Default $(RunConfigsString)">
       <AppBundlePath>$(ScenariosDir)netios.zip</AppBundlePath>
@@ -85,7 +85,7 @@
             sign NetiOSDefault.app
 
             # Testing commands
-            $(Python) test.py devicestartup --device-type ios --package-path NetiOSDefault.app --package-name com.companyname.NetiOSDefault --scenario-name "%(Identity)"
+            $(Python) test.py devicestartup --device-type ios --package-path NetiOSDefault.app --package-name com.companyname.NetiOSDefault --scenario-name "%(Identity)" $(ScenarioArgs)
             ((result=$?))
 
             # Post commands
@@ -113,7 +113,7 @@
             sign MauiiOSDefault.app
 
             # Testing commands
-            $(Python) test.py devicestartup --device-type ios --package-path MauiiOSDefault.app --package-name net.dot.mauitesting --scenario-name "%(Identity)"
+            $(Python) test.py devicestartup --device-type ios --package-path MauiiOSDefault.app --package-name net.dot.mauitesting --scenario-name "%(Identity)" $(ScenarioArgs)
             ((result=$?))
 
             # Post commands
@@ -142,7 +142,7 @@
           sign MauiBlazoriOSDefault.app
 
           # Testing commands
-          $(Python) test.py devicestartup -1-device-type ios -1-package-path MauiBlazoriOSDefault.app -1-package-name net.dot.mauiblazortesting -1-scenario-name "%(Identity)" -1-use-fully-drawn-time -1-fully-drawn-magic-string __MAUI_Blazor_WebView_OnAfterRender__ -1-startup-iterations 5
+          $(Python) test.py devicestartup -1-device-type ios -1-package-path MauiBlazoriOSDefault.app -1-package-name net.dot.mauiblazortesting -1-scenario-name "%(Identity)" -1-use-fully-drawn-time -1-fully-drawn-magic-string __MAUI_Blazor_WebView_OnAfterRender__ -1-startup-iterations 5 $(ScenarioArgs)
           ((result=$?))
 
           # Post commands

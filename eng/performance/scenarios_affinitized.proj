@@ -34,7 +34,7 @@
     <HelixWorkItem Include="@(UIScenario -> 'Startup - %(Identity) - FDD Publish$(AffinityTestName)')">
       <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_fdd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
       <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_fdd $HELIX_WORKITEM_ROOT/pub</PreCommands>
-      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
   </ItemGroup>
 

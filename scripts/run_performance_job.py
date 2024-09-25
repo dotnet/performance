@@ -448,6 +448,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.internal:
         creator = ""
         perf_lab_arguments = ["--upload-to-perflab-container"]
+        scenario_arguments = ["--upload-to-perflab-container"]
         helix_source_prefix = "official"
         if args.helix_access_token is None:
             raise Exception("HelixAccessToken environment variable is not configured")
@@ -467,6 +468,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.performance_repo_ci:
             creator = "dotnet-performance"
         perf_lab_arguments = []
+        scenario_arguments = []
         helix_source_prefix = "pr"
 
     category_exclusions: list[str] = []
@@ -1059,10 +1061,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
         runtime_flavor=args.runtime_flavor or "",
         hybrid_globalization=args.hybrid_globalization,
         target_csproj=args.target_csproj,
-        work_item_command=work_item_command,
-        baseline_work_item_command=baseline_work_item_command,
-        bdn_arguments=bdn_arguments,
-        baseline_bdn_arguments=baseline_bdn_arguments,
+        work_item_command=work_item_command or None,
+        baseline_work_item_command=baseline_work_item_command or None,
+        bdn_arguments=bdn_arguments or None,
+        baseline_bdn_arguments=baseline_bdn_arguments or None,
         download_files_from_helix=True,
         targets_windows=args.os_group == "windows",
         helix_results_destination_dir=helix_results_destination_dir,
@@ -1073,7 +1075,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         only_sanity_check=args.only_sanity_check,
         ios_strip_symbols=args.ios_strip_symbols,
         ios_llvm_build=args.ios_llvm_build,
-        fail_on_test_failure=fail_on_test_failure)
+        fail_on_test_failure=fail_on_test_failure,
+        scenario_arguments=scenario_arguments or None)
     
     if args.send_to_helix:
         perf_send_to_helix(perf_send_to_helix_args)

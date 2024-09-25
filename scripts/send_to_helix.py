@@ -72,6 +72,7 @@ class PerfSendToHelixArgs:
     affinity: Optional[str] = None
     ios_strip_symbols: Optional[bool] = None
     ios_llvm_build: Optional[bool] = None
+    scenario_arguments: Optional[List[str]] = None
 
     def set_environment_variables(self, save_to_pipeline: bool = True):
         def set_env_var(name: str, value: Union[str, bool, List[str], timedelta, int, None], sep = " ", save_to_pipeline=save_to_pipeline):
@@ -124,6 +125,7 @@ class PerfSendToHelixArgs:
         set_env_var("Compare", self.compare)
         set_env_var("FailOnTestFailure", self.fail_on_test_failure)
         set_env_var("OnlySanityCheck", self.only_sanity_check)
+        set_env_var("ScenarioArgs", self.scenario_arguments, sep=" ")
 
         # The following will already be set in the CI pipeline, but are required to run Helix locally
         set_env_var("BUILD_REASON", self.env_build_reason, save_to_pipeline=False)
