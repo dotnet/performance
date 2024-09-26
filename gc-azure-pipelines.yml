@@ -1,0 +1,66 @@
+# Project: src\benchmarks\gc\GC.Infrastructure\GC.Infrastructure.NotebookTests\GC.Infrastructure.NotebookTests.csproj. 
+# Output: artifacts\bin\GC.Infrastructure.NotebookTests\Debug\net8.0\GC.Infrastructure.NotebookTests.dll
+
+resources:
+  containers:
+    - container: ubuntu_x64_build_container
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    exclude: # don't trigger if only docs and similar files changed
+    - docs/*
+    - '**/*.md'
+
+pr:
+  branches:
+    include:
+    - main
+  paths:
+    include: 
+    - src/benchmarks/gc/*
+
+jobs:
+
+  # TODO: Add back once we have validated windows.
+  # - job: GCNotebookValidation_Ubuntu
+  #     pool:
+  #       vmImage: ubuntu-latest
+  #     container: ubuntu_x64_build_container
+
+  # TODO: Add.
+  - job: GCNotebookValidation_Windows 
+      pool:
+        vmImage: windows-2019
+ 
+    steps:
+    # Install dotnet.
+    - task: UseDotNet@2
+      displayName: Install .NET 8.0 
+      inputs:
+        version: 8.x
+    - script: dotnet tool restore
+    - script: dotnet tool install --local dotnet-repl 
+
+    # Run tests. Template installed from: https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/vstest-v3?view=azure-pipelines
+    - task: VSTest@3
+      inputs:
+        # -------------- #
+        # Test selection #
+        # -------------- #
+        testAssemblyVer2: GC.Infrastructure.NotebookTests.dll
+        searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/bin/GC.Infrastructure.NotebookTests/Debug/net8.0'
+        # Uncomment to save results in the future.
+        # resultsFolder: '$(Agent.TempDirectory)\TestResults' # string. Test results folder. Default: $(Agent.TempDirectory)\TestResults.
+
+        # ----------------- #
+        # Reporting options #
+        # ----------------- #
+        testRunTitle: 'GC Notebook Test' 
+        # TODO: Double Check.
+        platform: 'Windows' ## string. Build platform. 
+        # TODO: Double Check.
+        configuration: 'Test Notebooks' # string. Build configuration. 
