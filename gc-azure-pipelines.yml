@@ -46,6 +46,7 @@ jobs:
       displayName: Install .NET 9.0 
       inputs:
         version: 9.0.x
+        includePreviewVersions: true
     - script: dotnet tool restore
     - script: dotnet tool install --local dotnet-repl 
 
