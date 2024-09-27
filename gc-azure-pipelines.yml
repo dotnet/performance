@@ -22,6 +22,7 @@ pr:
   paths:
     include: 
     - src/benchmarks/gc/*
+    - gc-azure-pipelines.yml
 
 jobs:
 
