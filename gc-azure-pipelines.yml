@@ -48,7 +48,7 @@ jobs:
         version: 9.0.x
         includePreviewVersions: true
     - script: dotnet tool restore
-    - script: dotnet tool install --local dotnet-repl 
+    - script: dotnet tool install --global dotnet-repl 
     - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure.NotebookTests/GC.Infrastructure.NotebookTests.csproj --configuration Debug --framework net8.0
 
     # Run tests. Template installed from: https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/vstest-v3?view=azure-pipelines
