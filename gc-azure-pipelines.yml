@@ -33,8 +33,8 @@ jobs:
 
   # TODO: Add.
   - job: GCNotebookValidation_Windows 
-      pool:
-        vmImage: windows-2019
+    pool:
+      vmImage: windows-2019
  
     steps:
     # Install dotnet.
