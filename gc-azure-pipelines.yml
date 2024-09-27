@@ -40,6 +40,8 @@ jobs:
     # Install dotnet.
     - task: UseDotNet@2
       displayName: Install .NET 8.0 
+      inputs:
+        version: 8.0.x
     - script: dotnet tool restore
     - script: dotnet tool install --local dotnet-repl 
 
