@@ -9,7 +9,7 @@ namespace GC.Infrastructure.NotebookTests
 {
     internal static class Utils
     {
-        internal const int TIMEOUT = 120_000;
+        internal const int TIMEOUT = 240_000;
         public static bool CheckDotnetReplInstalled()
         {
             using (Process process = new Process())
