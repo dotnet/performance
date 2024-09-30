@@ -37,7 +37,7 @@ jobs:
       vmImage: windows-2019
  
     steps:
-    # Install dotnet.
+    # Install dotnet. We temporarily need both .NET 8 (for building and running the projects) and .NET 9 (for installing deps).
     - task: UseDotNet@2
       displayName: Install .NET 8.0 
       inputs:
