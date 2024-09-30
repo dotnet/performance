@@ -23,7 +23,7 @@ trigger:
     - docs/*
     - '**/*.md'
     #- 'gc-azure-pipelines.yml'
-    - src/benchmarks/gc/*
+    #- src/benchmarks/gc/*
 
 pr:
   branches:
