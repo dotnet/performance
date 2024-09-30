@@ -34,6 +34,7 @@ pr:
     - docs/*
     - '**/*.md'
     - scripts/benchmarks_monthly.py
+    - 'gc-azure-pipelines.yml'
     - src/benchmarks/gc/*
 
 schedules:
