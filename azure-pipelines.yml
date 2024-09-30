@@ -22,6 +22,7 @@ trigger:
     exclude: # don't trigger if only docs and similar files changed
     - docs/*
     - '**/*.md'
+    - 'gc-azure-pipelines.yml'
 
 pr:
   branches:
