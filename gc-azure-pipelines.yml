@@ -13,7 +13,7 @@ trigger:
   paths:
     exclude: # don't trigger if only docs and similar files changed
     - docs/*
-    - '**/*.md'
+    #- '**/*.md'
 
 pr:
   branches:
@@ -50,6 +50,7 @@ jobs:
     - script: dotnet tool restore
     - script: dotnet tool install --global dotnet-repl 
     - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure.NotebookTests/GC.Infrastructure.NotebookTests.csproj --configuration Debug --framework net8.0
+    - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Analysis.API/GC.Analysis.API.csproj --configuration Release --framework net8.0
 
     # Run tests. Template installed from: https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/vstest-v3?view=azure-pipelines
     - task: VSTest@3
