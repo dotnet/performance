@@ -13,7 +13,7 @@ trigger:
   paths:
     exclude: # don't trigger if only docs and similar files changed
     - docs/*
-    #- '**/*.md'
+    - '**/*.md'
 
 pr:
   branches:
