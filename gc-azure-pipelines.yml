@@ -33,17 +33,24 @@ jobs:
 
   # TODO: Add.
   - job: GCNotebookValidation_Windows 
-      pool:
-        vmImage: windows-2019
+    pool:
+      vmImage: windows-2019
  
     steps:
-    # Install dotnet.
+    # Install dotnet. We temporarily need both .NET 8 (for building and running the projects) and .NET 9 (for installing deps).
     - task: UseDotNet@2
       displayName: Install .NET 8.0 
       inputs:
-        version: 8.x
+        version: 8.0.x
+    - task: UseDotNet@2
+      displayName: Install .NET 9.0 
+      inputs:
+        version: 9.0.x
+        includePreviewVersions: true
     - script: dotnet tool restore
-    - script: dotnet tool install --local dotnet-repl 
+    - script: dotnet tool install --global dotnet-repl 
+    - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure.NotebookTests/GC.Infrastructure.NotebookTests.csproj --configuration Debug --framework net8.0
+    - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Analysis.API/GC.Analysis.API.csproj --configuration Release --framework net8.0
 
     # Run tests. Template installed from: https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/vstest-v3?view=azure-pipelines
     - task: VSTest@3
