@@ -886,7 +886,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             os.environ["DOTNET_MULTILEVEL_LOOKUP"] = "0"
             os.environ["UseSharedCompilation"] = "false"
 
-            getLogger().info("Current dotnet directory:", ci_setup_arguments.install_dir)
+            getLogger().info("Current dotnet directory: %s", ci_setup_arguments.install_dir)
             getLogger().info("If more than one version exist in this directory, usually the latest runtime and sdk will be used.")
 
             # PreparePayloadWorkItems is only available for scenarios runs defined inside the performance repo
