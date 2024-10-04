@@ -1,6 +1,6 @@
 # Overview
 
-Arcade provides templates for public (`/templates`) and 1ES pipeline templates (`/templates-official`) scenarios.  Pipelines which are required to be managed by 1ES pipeline templates should reference `/templates-offical`, all other pipelines may reference `/templates`.
+Arcade provides templates for public (`/templates`) and 1ES pipeline templates (`/templates-official`) scenarios. Pipelines which are required to be managed by 1ES pipeline templates should reference `/templates-offical`, all other pipelines may reference `/templates`.
 
 ## How to use
 
@@ -12,7 +12,7 @@ Basic guidance is:
 
 See [azure-pipelines.yml](../../azure-pipelines.yml) (templates-official example) or [azure-pipelines-pr.yml](../../azure-pipelines-pr.yml) (templates example) for examples.
 
-#### The `templateIs1ESManaged` parameter
+### The `templateIs1ESManaged` parameter
 
 The `templateIs1ESManaged` is available on most templates and affects which of the variants is used for nested templates. See [Development Notes](#development-notes) below for more information on the `templateIs1ESManaged1 parameter.
 
@@ -23,6 +23,7 @@ The `templateIs1ESManaged` is available on most templates and affects which of t
 1ES pipeline templates impose a policy where every publish artifact execution results in additional security scans being injected into your pipeline.  When using `templates-official/jobs/jobs.yml`, Arcade reduces the number of additional security injections by gathering all publishing outputs into the [Build.ArtifactStagingDirectory](https://learn.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml#build-variables-devops-services), and utilizing the [outputParentDirectory](https://eng.ms/docs/cloud-ai-platform/devdiv/one-engineering-system-1es/1es-docs/1es-pipeline-templates/features/outputs#multiple-outputs) feature of 1ES pipeline templates.  When implementing your pipeline, if you ensure publish artifacts are located in the `$(Build.ArtifactStagingDirectory)`, and utilize the 1ES provided template context, then you can reduce the number of security scans for your pipeline.
 
 Example:
+
 ``` yaml
 # azure-pipelines.yml
 extends:
@@ -59,7 +60,7 @@ Note: Multiple outputs are ONLY applicable to 1ES PT publishing (only usable whe
 
 ## Development notes
 
-**Folder / file structure**
+### Folder / file structure
 
 ``` text
 eng\common\
