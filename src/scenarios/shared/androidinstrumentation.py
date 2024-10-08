@@ -8,13 +8,13 @@ from logging import getLogger
 from shutil import copytree
 from performance.common import runninginlab, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
-from shared.util import helixuploaddir, uploadtokenpresent, xharnesscommand
+from shared.util import helixuploaddir, xharnesscommand
 from shared.const import *
 from subprocess import CalledProcessError
 
 class AndroidInstrumentationHelper(object):
 
-    def runtests(self, packagepath: str, packagename: str, instrumentationname: str):
+    def runtests(self, packagepath: str, packagename: str, instrumentationname: str, upload_to_perflab_container: bool):
         '''
         Runs Android Instrumentation tests.
         '''
@@ -137,7 +137,7 @@ class AndroidInstrumentationHelper(object):
         helix_upload_dir = helixuploaddir()
         if runninginlab() and helix_upload_dir is not None:
             copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'))
-            if uploadtokenpresent():
+            if upload_to_perflab_container:
                 import upload
                 globpath = os.path.join(
                     TRACEDIR,

@@ -11,23 +11,21 @@ import json
 
 from genericpath import exists
 from datetime import datetime, timedelta
-from logging import exception, getLogger
-from collections import namedtuple
+from logging import getLogger
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
-from io import StringIO
-from shutil import move, rmtree, copytree
+from shutil import rmtree
+from typing import Optional
 from shared.androidhelper import AndroidHelper
 from shared.androidinstrumentation import AndroidInstrumentationHelper
 from shared.devicepowerconsumption import DevicePowerConsumptionHelper
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.memoryconsumption import MemoryConsumptionWrapper
-from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, publisheddll, helixuploaddir
+from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, publisheddll
 from shared.sod import SODWrapper
 from shared import const
-from performance.common import RunCommand, iswin, extension, helixworkitemroot, runninginlab
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
+from performance.common import RunCommand, iswin, extension, helixworkitemroot
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
 from subprocess import CalledProcessError
@@ -42,12 +40,13 @@ class Runner:
         self.traits = traits
         self.testtype = None
         self.sdktype = None
-        self.scenarioname = None
+        self.scenarioname: Optional[str] = None
         self.coreroot = None
         self.crossgenfile = None
         self.dirs = None
         self.crossgen_arguments = CrossgenArguments()
         self.affinity = None
+        self.upload_to_perflab_container = False
         setup_loggers(True)
 
     def parseargs(self):
@@ -224,6 +223,8 @@ ex: C:\repos\performance;C:\repos\runtime
         if args.scenarioname:
             self.scenarioname = args.scenarioname
 
+        self.upload_to_perflab_container = args.upload_to_perflab_container
+
         if self.testtype in [const.STARTUP, const.INNERLOOP, const.INNERLOOPMSBUILD, const.DOTNETWATCH, const.SDK, const.CROSSGEN, const.CROSSGEN2] and (args.affinity or os.environ.get('PERFLAB_DATA_AFFINITY')): # Set affinity if doing a Startup based test
             self.affinity = args.affinity if args.affinity else os.environ.get('PERFLAB_DATA_AFFINITY')
 
@@ -232,6 +233,12 @@ ex: C:\repos\performance;C:\repos\runtime
         "Common arguments to add to subparsers"
         parser.add_argument('--scenario-name',
                             dest='scenarioname')
+        
+        parser.add_argument('--upload-to-perflab-container',
+            dest="upload_to_perflab_container",
+            required=False,
+            help="Causes results files to be uploaded to perf container",
+            action='store_true')
         
     def add_affinity_argument(self, parser: ArgumentParser):
         "Affinity arguments to add to subparsers"
@@ -249,6 +256,8 @@ ex: C:\repos\performance;C:\repos\runtime
         python_command = pythoncommand().split(' ')
         python_exe = python_command[0]
         python_args = " ".join(python_command[1:])
+        self.traits.add_traits(upload_to_perflab_container=self.upload_to_perflab_container)
+        
         if self.testtype == const.INNERLOOP:
             startup = StartupWrapper()
             self.traits.add_traits(scenarioname=self.scenarioname,
@@ -406,7 +415,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
         elif self.testtype == const.ANDROIDINSTRUMENTATION:
             androidInstrumentation = AndroidInstrumentationHelper()
-            androidInstrumentation.runtests(self.packagepath, self.packagename, self.instrumentationname)
+            androidInstrumentation.runtests(self.packagepath, self.packagename, self.instrumentationname, self.upload_to_perflab_container)
 
         elif self.testtype == const.DEVICEPOWERCONSUMPTION:
             devicePowerConsumption = DevicePowerConsumptionHelper()
@@ -865,4 +874,4 @@ ex: C:\repos\performance;C:\repos\runtime
                 builtdir = const.BINDIR if os.path.exists(const.BINDIR) else None
             if not (self.dirs or builtdir):
                 raise Exception("Dirs was not passed in and neither %s nor %s exist" % (const.PUBDIR, const.BINDIR))
-            sod.runtests(scenarioname=self.scenarioname, dirs=self.dirs or builtdir, artifact=self.traits.artifact)
+            sod.runtests(scenarioname=self.scenarioname, dirs=self.dirs or builtdir, upload_to_perflab_container=self.upload_to_perflab_container, artifact=self.traits.artifact)

@@ -47,6 +47,7 @@ class TestTraits:
         self.tracefolder = ''
         self.runwithdotnet = ''
         self.affinity = ''
+        self.upload_to_perflab_container = False
 
         # add test types to traits
         for testtype in testtypes:

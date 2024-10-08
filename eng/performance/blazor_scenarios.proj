@@ -45,50 +45,50 @@
     <HelixWorkItem Include="SOD - Minimum Blazor Template - Publish">
       <PayloadDirectory>$(ScenariosDir)blazorminapp</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <Command>$(PublishCommand) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(PublishCommand) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
 
     <HelixWorkItem Include="SOD - Minimum Blazor Template - Publish - AOT">
       <PayloadDirectory>$(ScenariosDir)blazorminappaot</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <Command>$(PublishCommand) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(PublishCommand) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
 
     <HelixWorkItem Include="SOD - New Blazor Template - Publish">
       <PayloadDirectory>$(ScenariosDir)blazor</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <Command>$(PublishCommand) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(PublishCommand) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
 
     <HelixWorkItem Include="SOD - New Blazor Template - Publish - AOT">
       <PayloadDirectory>$(ScenariosDir)blazoraot</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <Command>$(PublishCommand) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(PublishCommand) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
     
     <HelixWorkItem Include="SOD - Pizza App - Publish">
       <PayloadDirectory>$(ScenariosDir)blazorpizza</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <Command>$(PublishCommand) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation)</Command>
+      <Command>$(PublishCommand) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation) $(ScenarioArgs)</Command>
     </HelixWorkItem>
 
     <HelixWorkItem Include="SOD - Pizza App - Publish - AOT"> 
       <PayloadDirectory>$(ScenariosDir)blazorpizzaaot</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <Command>$(PublishCommand) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation)</Command>
+      <Command>$(PublishCommand) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation) $(ScenarioArgs)</Command>
     </HelixWorkItem>
         
     <HelixWorkItem Include="SOD - Localized App - Publish">
       <PayloadDirectory>$(ScenariosDir)blazorlocalized</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <Command>$(PublishCommand) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation)</Command>
+      <Command>$(PublishCommand) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation) $(ScenarioArgs)</Command>
     </HelixWorkItem>
 
     <HelixWorkItem Include="SOD - Localized App - Publish - AOT"> 
       <_PublishArgsWithAOT>--msbuild &quot;$(_MSBuildArgs);/p:RunAOTCompilation=true&quot;</_PublishArgsWithAOT>
       <PayloadDirectory>$(ScenariosDir)blazorlocalized</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <Command>$(PublishCommand) $(_PublishArgsWithAOT) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation)</Command>
+      <Command>$(PublishCommand) $(_PublishArgsWithAOT) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation) $(ScenarioArgs)</Command>
     </HelixWorkItem>
   </ItemGroup>
   <Import Project="PreparePayloadWorkItems.targets" />

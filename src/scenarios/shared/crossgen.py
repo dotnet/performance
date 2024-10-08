@@ -7,7 +7,7 @@ import os
 
 from logging import getLogger
 from argparse import ArgumentParser
-from typing import Any, Optional
+from typing import Any, List, Optional
 from shared import const
 
 class CrossgenArguments:
@@ -103,7 +103,7 @@ Suppress internal Crossgen2 parallelism
         self.singlefile = args.single
         self.coreroot = args.coreroot
 
-        if self.coreroot is not None and not os.path.isdir(self.coreroot):
+        if self.coreroot and not os.path.isdir(self.coreroot):
             getLogger().error('Cannot find CORE_ROOT at %s', self.coreroot)
             sys.exit(1)
         if self.singlefile is None:
@@ -116,14 +116,14 @@ Suppress internal Crossgen2 parallelism
         self.compositefile = args.composite
         self.singlethreaded = args.singlethreaded
 
-        if self.coreroot is not None and not os.path.isdir(self.coreroot):
+        if self.coreroot and not os.path.isdir(self.coreroot):
             getLogger().error('Cannot find CORE_ROOT at %s', self.coreroot)
             sys.exit(1)
         if bool(self.singlefile) == bool(self.compositefile):
             getLogger().error("Please specify either --single <single assembly name> or --composite <absolute path of rsp file>")
             sys.exit(1)
 
-    def get_crossgen_command_line(self):
+    def get_crossgen_command_line(self) -> List[str]:
         "Returns the computed crossgen command line arguments"
         filename, ext = os.path.splitext(self.singlefile)
         outputdir = os.path.join(os.getcwd(), const.CROSSGENDIR)
@@ -186,7 +186,7 @@ Suppress internal Crossgen2 parallelism
     def crossgen2_compiletype(self):
         return const.CROSSGEN2_COMPOSITE if self.compositefile else const.CROSSGEN2_SINGLEFILE
 
-    def crossgen2_scenario_filename(self):
+    def crossgen2_scenario_filename(self) -> str:
         "Returns the name of the assembly being compiled or composite image generated, without file extension"
         compiletype = self.crossgen2_compiletype()
 
