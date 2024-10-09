@@ -7,7 +7,7 @@ This repository contains all the code responsible for conducting GC, CPU and Thr
 1. Install all dependencies by:
    1. [Installing VSCode](https://code.visualstudio.com/Download) - install vscode using the installer; downloading a zip file of the exe will result in issues with the ``Install.cmd`` script.
    2. [Installing the .NET6 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
-   3. Ensure you have Jupyter:
+   3. Ensure you have Jupyter (one of the following options):
       1. Install python using the Windows Store.
       2. Manually install Jupyter:
          1. ``pip`` is in your PATH:
