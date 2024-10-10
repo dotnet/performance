@@ -33,14 +33,14 @@
       Mapping_Microsoft.NETCore.App.Ref:default
       Mapping_Microsoft.NET.Workload.Emscripten.Current:default
       Mapping_Microsoft.Android.Sdk:default
-      Mapping_Microsoft.MacCatalyst.Sdk:default
-      Mapping_Microsoft.macOS.Sdk:default
-      Mapping_Microsoft.iOS.Sdk:default
-      Mapping_Microsoft.tvOS.Sdk:default
+      Mapping_Microsoft.MacCatalyst.Sdk:9.0.100-rc.2
+      Mapping_Microsoft.macOS.Sdk:9.0.100-rc.2
+      Mapping_Microsoft.iOS.Sdk:9.0.100-rc.2
+      Mapping_Microsoft.tvOS.Sdk:9.0.100-rc.2
     -->
     <!-- Dependencies for .NET MAUI workload -->
-    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.0-rtm.24508.2">
-      <Sha>24a553f15e3a3c10f208fb6497a05da72fa7e33c</Sha>
+    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.0-rtm.24509.5">
+      <Sha>0f4a170cfd3af55770ade65d3e5145c609c4abb9</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
     <Dependency Name="Microsoft.NET.Sdk" Version="9.0.100-rtm.24503.11" CoherentParentDependency="Microsoft.Maui.Controls">
