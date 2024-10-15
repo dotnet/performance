@@ -9,10 +9,15 @@ namespace Reporting;
 public class Counter
 {
     public string Name { get; set; }
+
     public bool TopCounter { get; set; }
+
     public bool DefaultCounter { get; set; }
+
     public bool HigherIsBetter { get; set; }
+
     public string MetricName { get; set; }
+
     public IList<double> Results { get; set; }
 
     public override string ToString() => $"{nameof(Name)}: {Name}, {nameof(TopCounter)}: {TopCounter}, {nameof(DefaultCounter)}: {DefaultCounter}, {nameof(MetricName)}: {MetricName}";
