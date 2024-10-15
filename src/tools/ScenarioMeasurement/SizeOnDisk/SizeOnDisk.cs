@@ -92,13 +92,13 @@ class SizeOnDisk
         counters.Add(new Counter { MetricName = "count", Name = $"{scenarioName} - Count", TopCounter = true, Results = new[] { (double)totalCount } });
 
 
-        var reporter = Reporter.CreateReporter();
+        var reporter = new Reporter();
         if (reporter != null)
         {
             var test = new Test();
             test.Categories.Add("SizeOnDisk");
             test.Name = scenarioName;
-            test.AddCounter(counters);
+            test.AddCounters(counters);
             reporter.AddTest(test);
             if (reporter.InLab && !string.IsNullOrEmpty(reportJsonPath))
             {

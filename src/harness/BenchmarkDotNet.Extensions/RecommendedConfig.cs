@@ -58,7 +58,7 @@ namespace BenchmarkDotNet.Extensions
                 .AddValidator(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
                 .WithSummaryStyle(SummaryStyle.Default.WithMaxParameterColumnWidth(36)); // the default is 20 and trims too aggressively some benchmark results
 
-            if (Reporter.CreateReporter().InLab)
+            if (new EnvironmentProvider().IsLabEnvironment())
             {
                 config = config.AddExporter(new PerfLabExporter());
             }
