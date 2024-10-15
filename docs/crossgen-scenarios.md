@@ -188,6 +188,7 @@ python3 post.py
 ## Command Matrix
 
 For the purpose of quick reference, the commands can be summarized into the following matrix:
+
 | Scenario                               | Asset Directory | Precommand                                                                     | Testcommand                                                                       | Postcommand | Supported Framework | Supported Platform      |
 |----------------------------------------|-----------------|--------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|-------------|---------------------|-------------------------|
 | Crossgen Throughput                    | crossgen        | N/A                                                                            | test.py crossgen --core-root \<path to Core_Root> --single \<assembly name>       | post.py     | N/A                 | Windows-x64;Windows-x86 |

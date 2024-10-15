@@ -82,6 +82,7 @@ Same instruction of [Step 4 in Scenario Tests Guide](scenarios-workflow.md#step-
 ## Command Matrix
 
 For the purpose of quick reference, the commands can be summarized into the following matrix:
+
 | Scenario                            | Asset Directory | Precommand                                                  | Testcommand                                                       | Postcommand | Supported Framework | Supported Platform |
 |-------------------------------------|-----------------|-------------------------------------------------------------|-------------------------------------------------------------------|-------------|---------------------|--------------------|
 | SOD - New Blazor Template - Publish | blazor          | pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" | test.py sod --scenario-name "SOD - New Blazor Template - Publish" | post.py     | net7.0; net8.0      | Windows;Linux      |
