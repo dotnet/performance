@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>$(LibrariesTargetFramework)</TargetFramework>
+    <TargetFramework>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFramework>
+    <!-- Supported target frameworks -->
+    <TargetFramework Condition="'$(TargetFramework)' == ''">$(FallbackTargetFramework)</TargetFramework>
     <RootNamespace>ScenarioMeasurement</RootNamespace>
   </PropertyGroup>
 
