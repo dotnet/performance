@@ -16,6 +16,7 @@
     <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>197db4ff0ded5f02e2d050f1310f297265d19e3d</Sha>
+    </Dependency>
     <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="9.0.0">
       <Uri>https://github.com/dotnet/windowsdesktop</Uri>
       <Sha>5307f2abc4387e29964c6f46cb1f63cfdc218602</Sha>
