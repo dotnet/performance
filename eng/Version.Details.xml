@@ -3,20 +3,19 @@
   <ProductDependencies>
     <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>b678c8a49022eb25e8c9de5ed3496d4a26b56e31</Sha>
+      <Sha>197db4ff0ded5f02e2d050f1310f297265d19e3d</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="9.0.0-rtm.24517.17">
+    <Dependency Name="Microsoft.NET.ILLink" Version="9.0.0-rtm.24518.13">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>b678c8a49022eb25e8c9de5ed3496d4a26b56e31</Sha>
+      <Sha>197db4ff0ded5f02e2d050f1310f297265d19e3d</Sha>
     </Dependency>
     <Dependency Name="System.Threading.Channels" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>b678c8a49022eb25e8c9de5ed3496d4a26b56e31</Sha>
+      <Sha>197db4ff0ded5f02e2d050f1310f297265d19e3d</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>b678c8a49022eb25e8c9de5ed3496d4a26b56e31</Sha>
-    </Dependency>
+      <Sha>197db4ff0ded5f02e2d050f1310f297265d19e3d</Sha>
     <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="9.0.0">
       <Uri>https://github.com/dotnet/windowsdesktop</Uri>
       <Sha>5307f2abc4387e29964c6f46cb1f63cfdc218602</Sha>
@@ -47,8 +46,8 @@
       Mapping_Microsoft.tvOS.Sdk:9.0.100-rc.2
     -->
     <!-- Dependencies for .NET MAUI workload -->
-    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.0-rtm.24517.7">
-      <Sha>33277f89b6ffc6ab4e3b203415f5f6bbded00b30</Sha>
+    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.0-rtm.24519.2">
+      <Sha>8be1a23dd69de81b08835ccfcf47e902b56eaa7f</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
     <Dependency Name="Microsoft.NET.Sdk" Version="9.0.100-rtm.24509.30" CoherentParentDependency="Microsoft.Maui.Controls">
