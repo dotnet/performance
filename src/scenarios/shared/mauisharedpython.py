@@ -42,7 +42,7 @@ def generate_maui_rollback_dict():
         full_band_version_holder = general_version_obj.get("Version")
         if full_band_version_holder is None:
             raise ValueError("Unable to find Microsoft.NET.Sdk with proper version in Version.Details.xml")
-        match = re.search(r'^\d+\.\d+\.\d+\-(preview|rc|alpha).\d+', full_band_version_holder)
+        match = re.search(r'^\d+\.\d+\.\d+(\-(preview|rc|alpha).\d+)?', full_band_version_holder)
         if match:
             default_band_version = match.group(0)
         else:
