@@ -3,7 +3,7 @@
     <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
     <PropertyGroup>
         <FallbackTargetFramework>net8.0</FallbackTargetFramework>
-        <NoWarn>$(NoWarn);CS8002</NoWarn>
+        <NoWarn>$(NoWarn);CS8002;NU1507</NoWarn> <!-- NU1507: Darc does not seem to support auto updating of packageSourceMapping causing tool publishes to fail without manual updating of the NuGet.config with package mappings, disable this check so we don't have to manually update the source mappings. -->
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
 </Project>
