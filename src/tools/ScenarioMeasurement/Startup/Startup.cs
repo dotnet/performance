@@ -535,11 +535,11 @@ public class Startup
 
     private static void CreateTestReport(string scenarioName, IEnumerable<Counter> counters, string reportJsonPath, Logger logger)
     {
-        var reporter = Reporter.CreateReporter();
+        var reporter = new Reporter();
         var test = new Test();
         test.Categories.Add("Startup");
         test.Name = scenarioName;
-        test.AddCounter(counters);
+        test.AddCounters(counters);
         reporter.AddTest(test);
         if (reporter.InLab && !string.IsNullOrEmpty(reportJsonPath))
         {
