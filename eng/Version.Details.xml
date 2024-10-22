@@ -23,7 +23,7 @@
     </Dependency>
     <Dependency Name="Microsoft.AspNetCore.App.Ref" Version="9.0.0">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>7748226be86bf632da270261456e7cf5fc1efd27</Sha>
+      <Sha>82199059bae482c603a377129699059c1386757f</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
