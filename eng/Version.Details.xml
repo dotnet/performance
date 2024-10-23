@@ -48,7 +48,7 @@
     -->
     <!-- Dependencies for .NET MAUI workload -->
     <Dependency Name="Microsoft.Maui.Controls" Version="9.0.0">
-      <Sha>53c7a3d953bfe4c516c645bc360b2788b2b562d7</Sha>
+      <Sha>3c2edd858d04900a9c678a2209744983f6e8a751</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
     <Dependency Name="Microsoft.NET.Sdk" Version="9.0.100-rtm.24522.3" CoherentParentDependency="Microsoft.Maui.Controls">
@@ -63,8 +63,8 @@
       <Sha>5054dd35a56010d8f6232408e56e31ad8ccc987a</Sha>
       <Uri>https://github.com/dotnet/emsdk</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="35.0.3" CoherentParentDependency="Microsoft.Maui.Controls">
-      <Sha>e93c9239aea752b71dca0cfbddd3d32a506079de</Sha>
+    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="35.0.7" CoherentParentDependency="Microsoft.Maui.Controls">
+      <Sha>278e101698269c9bc8840aa94d72e7f24066a96d</Sha>
       <Uri>https://github.com/dotnet/android</Uri>
     </Dependency>
     <Dependency Name="Microsoft.MacCatalyst.Sdk.net9.0_18.0" Version="18.0.9612" CoherentParentDependency="Microsoft.Maui.Controls">
