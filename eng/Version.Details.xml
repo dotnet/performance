@@ -48,7 +48,7 @@
     -->
     <!-- Dependencies for .NET MAUI workload -->
     <Dependency Name="Microsoft.Maui.Controls" Version="9.0.0">
-      <Sha>9939516e2f2a2681377d161097181587814a43d9</Sha>
+      <Sha>5eb0fc8c16be8c6b06b926f20ee98e6fd3832634</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
     <Dependency Name="Microsoft.NET.Sdk" Version="9.0.100-rtm.24522.3" CoherentParentDependency="Microsoft.Maui.Controls">
@@ -67,20 +67,20 @@
       <Sha>278e101698269c9bc8840aa94d72e7f24066a96d</Sha>
       <Uri>https://github.com/dotnet/android</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.MacCatalyst.Sdk.net9.0_18.0" Version="18.0.9612" CoherentParentDependency="Microsoft.Maui.Controls">
-      <Sha>a351bc9fa99af0406c7e1291ba565e232767c648</Sha>
+    <Dependency Name="Microsoft.MacCatalyst.Sdk.net9.0_18.0" Version="18.0.9614" CoherentParentDependency="Microsoft.Maui.Controls">
+      <Sha>ad7db649a56adee1ceb987c1ce4dba9343046985</Sha>
       <Uri>https://github.com/xamarin/xamarin-macios</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.macOS.Sdk.net9.0_15.0" Version="15.0.9612" CoherentParentDependency="Microsoft.Maui.Controls">
-      <Sha>a351bc9fa99af0406c7e1291ba565e232767c648</Sha>
+    <Dependency Name="Microsoft.macOS.Sdk.net9.0_15.0" Version="15.0.9614" CoherentParentDependency="Microsoft.Maui.Controls">
+      <Sha>ad7db649a56adee1ceb987c1ce4dba9343046985</Sha>
       <Uri>https://github.com/xamarin/xamarin-macios</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.iOS.Sdk.net9.0_18.0" Version="18.0.9612" CoherentParentDependency="Microsoft.Maui.Controls">
-      <Sha>a351bc9fa99af0406c7e1291ba565e232767c648</Sha>
+    <Dependency Name="Microsoft.iOS.Sdk.net9.0_18.0" Version="18.0.9614" CoherentParentDependency="Microsoft.Maui.Controls">
+      <Sha>ad7db649a56adee1ceb987c1ce4dba9343046985</Sha>
       <Uri>https://github.com/xamarin/xamarin-macios</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.tvOS.Sdk.net9.0_18.0" Version="18.0.9612" CoherentParentDependency="Microsoft.Maui.Controls">
-      <Sha>a351bc9fa99af0406c7e1291ba565e232767c648</Sha>
+    <Dependency Name="Microsoft.tvOS.Sdk.net9.0_18.0" Version="18.0.9614" CoherentParentDependency="Microsoft.Maui.Controls">
+      <Sha>ad7db649a56adee1ceb987c1ce4dba9343046985</Sha>
       <Uri>https://github.com/xamarin/xamarin-macios</Uri>
     </Dependency>
   </ToolsetDependencies>
