@@ -12,7 +12,7 @@ Finding these benchmarks in a separate repository might be surprising. Performan
 
 ## Documentation
 
-See the [documentation signpost](./docs/readme.md).
+See the [documentation signpost](./docs/README.md).
 
 ## Contributing to Repository
 
