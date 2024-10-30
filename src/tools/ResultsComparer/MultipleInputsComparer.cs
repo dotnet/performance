@@ -103,10 +103,10 @@ namespace ResultsComparer
 
         private static string GetAllocatedDiff(Benchmark diffResult, Benchmark baseResult)
         {
-            long baseline = baseResult.Memory.BytesAllocatedPerOperation;
+            long baseline = baseResult.Memory.BytesAllocatedPerOperation ?? 0;
             if (baseline == 0)
                 baseline = GetMetricValue(baseResult);
-            long diff = diffResult.Memory.BytesAllocatedPerOperation;
+            long diff = diffResult.Memory.BytesAllocatedPerOperation ?? 0;
             if (diff == 0)
                 diff = GetMetricValue(diffResult);
 
