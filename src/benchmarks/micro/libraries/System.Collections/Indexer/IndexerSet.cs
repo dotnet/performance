@@ -28,6 +28,9 @@ namespace System.Collections
         private SortedList<T, T> _sortedList;
         private SortedDictionary<T, T> _sortedDictionary;
         private ConcurrentDictionary<T, T> _concurrentDictionary;
+#if NET9_0_OR_GREATER
+        private OrderedDictionary<T, T> _orderedDictionary;
+#endif
 
         [GlobalSetup(Targets = new[] { nameof(Array), nameof(Span) })]
         public void SetupArray() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
@@ -143,5 +146,34 @@ namespace System.Collections
                 dictionary[keys[i]] = default;
             return dictionary;
         }
+
+#if NET9_0_OR_GREATER
+        [GlobalSetup(Targets = [ nameof(OrderedDictionary), nameof(OrderedDictionary_SetAt) ])]
+        public void SetupOrderedDictionary()
+        {
+            _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _orderedDictionary = new OrderedDictionary<T, T>(_keys.ToDictionary(i => i, i => i));
+        }
+
+        [Benchmark]
+        public OrderedDictionary<T, T> OrderedDictionary()
+        {
+            var dictionary = _orderedDictionary;
+            var keys = _keys;
+            for (int i = 0; i < keys.Length; i++)
+                dictionary[keys[i]] = default;
+            return dictionary;
+        }
+
+        [Benchmark]
+        public OrderedDictionary<T, T> OrderedDictionary_SetAt()
+        {
+            var dictionary = _orderedDictionary;
+            var keys = _keys;
+            for (int i = 0; i < keys.Length; i++)
+                dictionary.SetAt(i, keys[i], default);
+            return dictionary;
+        }
+#endif
     }
 }

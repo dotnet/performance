@@ -240,6 +240,10 @@
     <Compile Remove="libraries\System.Numerics.Tensors\*.cs" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '9.0')">
+    <Compile Remove="libraries\System.Collections\OrderedDictionary\*.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">
     <Compile Remove="libraries\System.Reflection.Metadata\*.cs" />
   </ItemGroup>
