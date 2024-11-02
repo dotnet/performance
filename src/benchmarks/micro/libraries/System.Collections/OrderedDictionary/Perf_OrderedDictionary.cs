@@ -19,19 +19,19 @@ namespace System.Collections
         public int Size;
 
         private T[] _keys;
-        private OrderedDictionary<T, T> _orderedDictionary;
+        private Dictionary<T, T> _dictionary;
 
         [GlobalSetup]
         public void SetupOrderedDictionary()
         {
             _keys = ValuesGenerator.ArrayOfUniqueValues<T>(2 * Size);
-            _orderedDictionary = new OrderedDictionary<T, T>(_keys.Take(Size).ToDictionary(i => i, _ => default(T)));
+            _dictionary = _keys.Take(Size).ToDictionary(i => i, _ => default(T));
         }
 
         [Benchmark]
         public OrderedDictionary<T, T> AddOrUpdate()
         {
-            var dictionary = _orderedDictionary;
+            var dictionary = new OrderedDictionary<T, T>(_dictionary);
             var keys = _keys;
             for (int i = 0; i < keys.Length; i++)
             {
@@ -51,7 +51,7 @@ namespace System.Collections
         [Benchmark]
         public OrderedDictionary<T, T> AddOrUpdate2()
         {
-            var dictionary = _orderedDictionary;
+            var dictionary = new OrderedDictionary<T, T>(_dictionary);
             var keys = _keys;
             for (int i = 0; i < keys.Length; i++)
             {
