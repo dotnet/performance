@@ -22,7 +22,7 @@ namespace BenchmarkDotNet.Extensions
 
         public override void ExportToLog(Summary summary, ILogger logger)
         {
-            var reporter = Reporter.CreateReporter();
+            var reporter = new Reporter();
 
             var hasCriticalErrors = summary.HasCriticalValidationErrors;
 
