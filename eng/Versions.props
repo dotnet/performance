@@ -12,7 +12,7 @@
     <SystemThreadingChannelsPackageVersion>9.0.0</SystemThreadingChannelsPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>9.0.0</MicrosoftExtensionsLoggingPackageVersion>
     <BenchmarkDotNetVersion>0.14.1-nightly.20240924.187</BenchmarkDotNetVersion>
-    <MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>9.0.0</MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>
+    <MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>9.0.1</MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
