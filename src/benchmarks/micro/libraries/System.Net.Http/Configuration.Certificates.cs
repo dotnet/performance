@@ -26,8 +26,9 @@ namespace System.Net.Test.Common
             private static X509Certificate2 GetCertificate(string certificateFileName)
             {
                 try
-                {
-                    return new X509Certificate2(
+				{
+#pragma warning disable SYSLIB0057 // Type or member is obsolete
+					return new X509Certificate2(
                          File.ReadAllBytes(
                              Path.Combine(
                                  AppContext.BaseDirectory,
@@ -36,8 +37,9 @@ namespace System.Net.Test.Common
                                  certificateFileName)),
                          CertificatePassword,
                          X509KeyStorageFlags.DefaultKeySet);
-                }
-                catch (Exception)
+				}
+#pragma warning restore SYSLIB0057
+				catch (Exception)
                 {
                     return null;
                 }
