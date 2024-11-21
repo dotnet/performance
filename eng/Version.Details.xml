@@ -31,13 +31,13 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.24570.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.24570.4">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>efdc52bb77eeadae5420eb48e66722c4fdcaa3be</Sha>
+      <Sha>0c8f4989db0251f49a4f37d1b35bf4da1e9d6415</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.24570.1">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.24570.4">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>efdc52bb77eeadae5420eb48e66722c4fdcaa3be</Sha>
+      <Sha>0c8f4989db0251f49a4f37d1b35bf4da1e9d6415</Sha>
     </Dependency>
     <!--
       Maui Rollback Version mappings, default means generated from sdk version. Allows for manual override of version similar to https://github.com/dotnet/maui/blob/df8cfcf635a590955a8cc3d6cf7ae6280449dd3f/eng/Versions.props#L138-L146, where the logic comes from:
