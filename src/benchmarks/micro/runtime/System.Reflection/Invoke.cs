@@ -24,6 +24,15 @@ namespace System.Reflection
         private static MethodInfo s_method_nullableInt;
         private static ConstructorInfo s_ctor_int_string_struct_class;
         private static ConstructorInfo s_ctor_NoParams;
+
+#if NET8_0_OR_GREATER
+        private static MethodInvoker s_method_invoker;
+        private static MethodInvoker s_method_int_string_struct_class_invoker;
+        private static MethodInvoker s_method_byref_int_string_struct_class_invoker;
+        private static ConstructorInvoker s_ctor_int_string_struct_class_invoker;
+        private static ConstructorInvoker s_ctor_NoParams_invoker;
+#endif
+
         private static PropertyInfo s_property_int;
         private static PropertyInfo s_property_class;
         private static FieldInfo s_field_int;
@@ -86,6 +95,14 @@ namespace System.Reflection
 
             s_staticField_struct = typeof(MyClass).
                 GetField(nameof(MyClass.s_blittableStruct));
+
+#if NET8_0_OR_GREATER
+            s_method_invoker = MethodInvoker.Create(s_method);
+            s_method_int_string_struct_class_invoker = MethodInvoker.Create(s_method_int_string_struct_class);
+            s_method_byref_int_string_struct_class_invoker = MethodInvoker.Create(s_method_byref_int_string_struct_class);
+            s_ctor_int_string_struct_class_invoker = ConstructorInvoker.Create(s_ctor_int_string_struct_class);
+            s_ctor_NoParams_invoker = ConstructorInvoker.Create(typeof(MyClass).GetConstructor(Array.Empty<Type>()));
+#endif
         }
 
         public static void Method_int_string_struct_class(int i, string s, MyBlittableStruct myStruct, MyClass myClass)
@@ -122,6 +139,18 @@ namespace System.Reflection
             }
         }
 
+
+#if NET8_0_OR_GREATER
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Method0_NoParms_MethodInvoker()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_method_invoker.Invoke(s_MyClass);
+            }
+        }
+#endif
+
         [Benchmark(OperationsPerInvoke = Iterations)]
         // Include the array allocation and population for a typical scenario.
         public void StaticMethod4_arrayNotCached_int_string_struct_class()
@@ -154,6 +183,34 @@ namespace System.Reflection
             }
         }
 
+#if NET8_0_OR_GREATER
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void StaticMethod4_int_string_struct_class_MethodInvoker()
+        {
+            // To make the test more comparable to the MethodBase tests, we need to pre-box the value types.
+            object boxedInt = 42;
+            object boxedStruct = default(MyBlittableStruct);
+
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_method_int_string_struct_class_invoker.Invoke(null, boxedInt, "Hello", boxedStruct, s_MyClass);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void StaticMethod4_int_string_struct_class_MethodInvokerWithSpan()
+        {
+            // To make the test more comparable to the MethodBase tests, we need to pre-box the value types.
+            object boxedInt = 42;
+            object boxedStruct = default(MyBlittableStruct);
+
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_method_int_string_struct_class_invoker.Invoke(null, new Span<object>(s_args4));
+            }
+        }
+#endif
+
         [Benchmark(OperationsPerInvoke = Iterations)]
         public void StaticMethod4_ByRefParams_int_string_struct_class()
         {
@@ -162,6 +219,21 @@ namespace System.Reflection
                 s_method_byref_int_string_struct_class.Invoke(null, s_args4);
             }
         }
+
+#if NET8_0_OR_GREATER
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void StaticMethod4_ByRefParams_int_string_struct_class_MethodInvoker()
+        {
+            // To make the test more comparable to the MethodBase tests, we need to pre-box the value types.
+            object boxedInt = 42;
+            object boxedStruct = default(MyBlittableStruct);
+
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_method_byref_int_string_struct_class_invoker.Invoke(null, boxedInt, "Hello", boxedStruct, s_MyClass);
+            }
+        }
+#endif
 
         [Benchmark(OperationsPerInvoke = Iterations)]
         // Starting with 5 parameters, stack allocations are replaced with heap allocations.
@@ -182,6 +254,31 @@ namespace System.Reflection
             }
         }
 
+#if NET8_0_OR_GREATER
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Ctor0_NoParams_ConstructorInvoker()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_ctor_NoParams_invoker.Invoke();
+            }
+        }
+#endif
+
+        /// <summary>
+        /// Reinvoke the constructor on the same object. Used by some serializers.
+        /// </summary>
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Ctor0_NoParams_Reinvoke()
+        {
+            MyClass obj = new MyClass();
+
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_ctor_NoParams.Invoke(obj, null);
+            }
+        }
+
         [Benchmark(OperationsPerInvoke = Iterations)]
         public void Ctor0_ActivatorCreateInstance_NoParams()
         {
@@ -199,6 +296,21 @@ namespace System.Reflection
                 s_ctor_int_string_struct_class.Invoke(s_args4);
             }
         }
+
+#if NET8_0_OR_GREATER
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Ctor4_int_string_struct_class_ConstructorInvoker()
+        {
+            // To make the test more comparable to the MethodBase tests, we need to pre-box the value types.
+            object boxedInt = 42;
+            object boxedStruct = default(MyBlittableStruct);
+
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_ctor_int_string_struct_class_invoker.Invoke(boxedInt, "Hello", boxedStruct, s_MyClass);
+            }
+        }
+#endif
 
         [Benchmark(OperationsPerInvoke = Iterations)]
         public void Ctor4_ActivatorCreateInstance()
