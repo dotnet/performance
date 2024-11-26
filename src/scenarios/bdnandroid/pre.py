@@ -49,26 +49,25 @@ else:
     copyfile(apkname, os.path.join(PUBDIR, apkname))
 
 if args.restart_device:
-    cmdline = xharnesscommand() + ['android', 'state', '--adb']
-    adb = RunCommand(cmdline, verbose=True)
-    adb.run()
+    # cmdline = xharnesscommand() + ['android', 'state', '--adb']
+    # adb = RunCommand(cmdline, verbose=True)
+    # adb.run()
+    
+    xadb = xharnesscommand() + ['android', 'adb', '--']
 
     # Do not remove, XHarness install seems to fail without an adb command called before the xharness command
     getLogger().info("Preparing ADB")
-    adbpath = adb.stdout.strip()
+    # adbpath = adb.stdout.strip()
 
-    reboot_cmd = [
-        adbpath,
+    reboot_cmd = xadb + [
         'reboot'
     ]
 
-    wait_for_device_cmd = [
-        adbpath,
+    wait_for_device_cmd = xadb + [
         'wait-for-device'
     ]
 
-    check_device_boot_cmd = [
-        adbpath,
+    check_device_boot_cmd = xadb + [
         'shell',
         'getprop',
         'sys.boot_completed'

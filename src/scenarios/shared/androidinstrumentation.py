@@ -20,28 +20,27 @@ class AndroidInstrumentationHelper(object):
         '''
         try:
             # Do the actual work here
-            cmdline = xharnesscommand() + ['android', 'state', '--adb']
-            adb = RunCommand(cmdline, verbose=True)
-            adb.run()
+            # cmdline = xharnesscommand() + ['android', 'state', '--adb']
+            # adb = RunCommand(cmdline, verbose=True)
+            # adb.run()
+
+            xadb = xharnesscommand() + ['android', 'adb', '--']
 
             # Do not remove, XHarness install seems to fail without an adb command called before the xharness command
             getLogger().info("Preparing ADB")
-            adbpath = adb.stdout.strip()
+            # adbpath = adb.stdout.strip()
             try:
-                installCmd = [
-                    adbpath,
+                installCmd = xadb + [
                     'install',
                     packagepath,
                 ]
                 
-                clearLogsCmd = [
-                    adbpath,
+                clearLogsCmd = xadb + [
                     'logcat',
                     '-c'
                 ]
 
-                startInstrumentationCmd = [
-                    adbpath,
+                startInstrumentationCmd = xadb + [
                     'shell',
                     'am',
                     'instrument',
@@ -49,8 +48,7 @@ class AndroidInstrumentationHelper(object):
                     f'{packagename}/{instrumentationname}'
                 ]
                 
-                printMauiLogsCmd = [
-                    adbpath,
+                printMauiLogsCmd = xadb + [
                     'shell',
                     'logcat',
                     '-d',
@@ -77,8 +75,7 @@ class AndroidInstrumentationHelper(object):
                 
                 ## Get logs off device and upload to helix (TODO: Make this optional, potentially add different methods of getting logs)
                 defaultDeviceBdnOutputDir = f'/sdcard/Android/data/{packagename}/files/'
-                pullFilesFromDeviceCmd = [
-                    adbpath,
+                pullFilesFromDeviceCmd = xadb + [
                     'pull',
                     defaultDeviceBdnOutputDir,
                     TRACEDIR

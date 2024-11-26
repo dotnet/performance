@@ -81,7 +81,7 @@ def pythoncommand():
         return 'python3'
 
 def xharnesscommand():
-    xharnesspath = os.environ.get('XHARNESSPATH')
+    xharnesspath = os.environ.get('XHARNESS_CLI_PATH')
     if xharnesspath is None or not os.path.exists(xharnesspath):
         return ['xharness']
     return ['dotnet','exec',xharnesspath]
