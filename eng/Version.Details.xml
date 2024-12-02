@@ -3,19 +3,19 @@
   <ProductDependencies>
     <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="9.0.1">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>940e395337ef32782723b789e530aa4abd72b054</Sha>
+      <Sha>f6615d27fdbef2e7216d9762aaea9a6aa49e1be5</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="9.0.1-rtm.24557.9">
+    <Dependency Name="Microsoft.NET.ILLink" Version="9.0.1-rtm.24576.8">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>940e395337ef32782723b789e530aa4abd72b054</Sha>
+      <Sha>f6615d27fdbef2e7216d9762aaea9a6aa49e1be5</Sha>
     </Dependency>
     <Dependency Name="System.Threading.Channels" Version="9.0.1">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>940e395337ef32782723b789e530aa4abd72b054</Sha>
+      <Sha>f6615d27fdbef2e7216d9762aaea9a6aa49e1be5</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.1">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>940e395337ef32782723b789e530aa4abd72b054</Sha>
+      <Sha>f6615d27fdbef2e7216d9762aaea9a6aa49e1be5</Sha>
     </Dependency>
     <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="9.0.1">
       <Uri>https://github.com/dotnet/windowsdesktop</Uri>
