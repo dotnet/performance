@@ -23,6 +23,7 @@ microbenchmark_configurations:
   bdn_arguments: --warmupCount 1 --iterationCount 20 --allStats --outliers DontRemove --keepFiles
 environment:
   default_max_seconds: 3000
+  iteration: 1
 output:
   cpu_columns: 
   additional_report_metrics: 
