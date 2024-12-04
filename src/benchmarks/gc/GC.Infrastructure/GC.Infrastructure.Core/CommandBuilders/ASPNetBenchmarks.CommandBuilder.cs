@@ -66,16 +66,25 @@ namespace GC.Infrastructure.Core.CommandBuilders
 
                 else
                 {
-                    if (configuration.TraceConfigurations.Type != "gc")
+                    if (configuration.TraceConfigurations.Type != "gc" || configuration.TraceConfigurations.Type != "cpu")
                     {
-                        throw new ArgumentException($"{nameof(ASPNetBenchmarksCommandBuilder)}: Currently only GCCollectOnly traces are allowed for Linux.");
+                        throw new ArgumentException($"{nameof(ASPNetBenchmarksCommandBuilder)}: Currently only GCCollectOnly and CPU traces are allowed for Linux.");
                     }
 
                     else
                     {
-                        traceFileSuffix = ".nettrace";
-                        commandStringBuilder.Append(" --application.dotnetTrace true ");
-                        commandStringBuilder.Append(" --application.dotnetTraceProviders gc-collect ");
+                        if (configuration.TraceConfigurations.Type == "gc")
+                        {
+                            traceFileSuffix = ".nettrace";
+                            commandStringBuilder.Append(" --application.dotnetTrace true ");
+                            commandStringBuilder.Append(" --application.dotnetTraceProviders gc-collect ");
+                        }
+
+                        else
+                        {
+                            commandStringBuilder.Append(" --application.collect true ");
+                            commandStringBuilder.Append(" --application.collectStartup true ");
+                        }
                     }
                 }
 
