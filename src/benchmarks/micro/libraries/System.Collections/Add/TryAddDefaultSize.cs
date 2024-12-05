@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
+using System.Drawing;
 
 namespace System.Collections
 {
@@ -44,5 +45,17 @@ namespace System.Collections
                 collection.TryAdd(uniqueValues[i], uniqueValues[i]);
             return collection;
         }
+
+#if NET9_0_OR_GREATER
+        [Benchmark]
+        public OrderedDictionary<T, T> OrderedDictionary()
+        {
+            var collection = new OrderedDictionary<T, T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.TryAdd(uniqueValues[i], uniqueValues[i]);
+            return collection;
+        }
+#endif
     }
 }
