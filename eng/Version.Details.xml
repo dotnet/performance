@@ -51,13 +51,13 @@
       Mapping_Microsoft.tvOS.Sdk:default
     -->
     <!-- Dependencies for .NET MAUI workload -->
-    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.20">
-      <Sha>73e0c98a863d5a0bdccedb28f3e7cf3c33abe115</Sha>
+    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.14">
+      <Sha>85f2a06ecd11e4ba5a9e567d86f9d2fb49a2c5ca</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.NET.Sdk" Version="9.0.101-servicing.24569.41" CoherentParentDependency="Microsoft.Maui.Controls">
-      <Sha>8e18c80a3926c2259f9d7211c5e2c5d2f53052a1</Sha>
-      <Uri>https://github.com/dotnet/sdk</Uri>
+    <Dependency Name="Microsoft.NET.Sdk" Version="9.0.100-rtm.24529.9" CoherentParentDependency="Microsoft.Maui.Controls">
+      <Sha>59db016f11bb27d359336cf37524b863d77e7fea</Sha>
+      <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-sdk</Uri>
     </Dependency>
     <Dependency Name="Microsoft.NETCore.App.Ref" Version="9.0.0" CoherentParentDependency="Microsoft.NET.Sdk">
       <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
@@ -67,8 +67,8 @@
       <Sha>763d10a1a251be35337ee736832bfde3f9200672</Sha>
       <Uri>https://github.com/dotnet/emsdk</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="35.0.28" CoherentParentDependency="Microsoft.Maui.Controls">
-      <Sha>5b103af0d16dc15ea6ca4eb1fb99eab9b9787a90</Sha>
+    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="35.0.7" CoherentParentDependency="Microsoft.Maui.Controls">
+      <Sha>278e101698269c9bc8840aa94d72e7f24066a96d</Sha>
       <Uri>https://github.com/dotnet/android</Uri>
     </Dependency>
     <Dependency Name="Microsoft.MacCatalyst.Sdk.net9.0_18.0" Version="18.0.9617" CoherentParentDependency="Microsoft.Maui.Controls">
