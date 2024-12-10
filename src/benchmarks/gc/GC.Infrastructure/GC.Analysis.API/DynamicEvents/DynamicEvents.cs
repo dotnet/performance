@@ -32,6 +32,7 @@ namespace GC.Analysis.API.DynamicEvents
             // These are the dynamic events that are currently emitted from the runtime.
             { GCDynamicEvents.SizeAdaptationSampleSchema.DynamicEventName, Compile(GCDynamicEvents.SizeAdaptationSampleSchema) },
             { GCDynamicEvents.SizeAdaptationTuningSchema.DynamicEventName, Compile(GCDynamicEvents.SizeAdaptationTuningSchema) },
+            { GCDynamicEvents.SizeAdaptationFullGCTuningSchema.DynamicEventName, Compile(GCDynamicEvents.SizeAdaptationFullGCTuningSchema) },
         };
 
         internal static bool allowPartialSchema;

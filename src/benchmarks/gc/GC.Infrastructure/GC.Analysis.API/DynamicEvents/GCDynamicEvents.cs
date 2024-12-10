@@ -43,5 +43,24 @@
                 KeyValuePair.Create("AdjMetric", typeof(bool))
             }
         };
+
+        public static DynamicEventSchema SizeAdaptationFullGCTuningSchema = new DynamicEventSchema
+        {
+            DynamicEventName = "SizeAdaptationFullGCTuning",
+            Fields = new List<KeyValuePair<string, Type>>
+            {
+                KeyValuePair.Create("version", typeof(ushort)),
+                KeyValuePair.Create("NewNHeaps", typeof(ushort)),
+                KeyValuePair.Create("CurrentGCIndex", typeof(ulong)),
+                KeyValuePair.Create("MedianThroughputCostPercent", typeof(float)),
+                KeyValuePair.Create("NumGcsSinceLastChange", typeof(uint)),
+                KeyValuePair.Create("DiffSamples0", typeof(uint)),
+                KeyValuePair.Create("GcPercent0", typeof(float)),
+                KeyValuePair.Create("DiffSamples1", typeof(uint)),
+                KeyValuePair.Create("GcPercent1", typeof(float)),
+                KeyValuePair.Create("DiffSamples2", typeof(uint)),
+                KeyValuePair.Create("GcPercent2", typeof(float)),
+            }
+        };
     }
 }
