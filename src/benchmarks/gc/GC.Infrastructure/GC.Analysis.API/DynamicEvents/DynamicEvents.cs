@@ -33,6 +33,7 @@ namespace GC.Analysis.API.DynamicEvents
             { GCDynamicEvents.SizeAdaptationSampleSchema.DynamicEventName, Compile(GCDynamicEvents.SizeAdaptationSampleSchema) },
             { GCDynamicEvents.SizeAdaptationTuningSchema.DynamicEventName, Compile(GCDynamicEvents.SizeAdaptationTuningSchema) },
             { GCDynamicEvents.SizeAdaptationFullGCTuningSchema.DynamicEventName, Compile(GCDynamicEvents.SizeAdaptationFullGCTuningSchema) },
+            { GCDynamicEvents.OOMDetailsSchema.DynamicEventName, Compile(GCDynamicEvents.OOMDetailsSchema) },
         };
 
         internal static bool allowPartialSchema;
