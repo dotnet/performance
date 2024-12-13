@@ -53,5 +53,10 @@ namespace System.Collections
 
         [Benchmark]
         public ConcurrentBag<T> ConcurrentBag() => new ConcurrentBag<T>();
+
+#if NET9_0_OR_GREATER
+        [Benchmark]
+        public OrderedDictionary<T, T> OrderedDictionary() => new OrderedDictionary<T, T>();
+#endif
     }
 }
