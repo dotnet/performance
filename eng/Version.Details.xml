@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="9.0.1">
+    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="10.0.0-alpha.1.24617.3">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>756e62050722c168cd3b753be73b7cbcd93f06d6</Sha>
+      <Sha>040cbe276907174316e2cc07b35814b3069874a6</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="9.0.1-servicing.24610.11">
+    <Dependency Name="Microsoft.NET.ILLink" Version="10.0.0-alpha.1.24617.3">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>756e62050722c168cd3b753be73b7cbcd93f06d6</Sha>
+      <Sha>040cbe276907174316e2cc07b35814b3069874a6</Sha>
     </Dependency>
-    <Dependency Name="System.Threading.Channels" Version="9.0.1">
+    <Dependency Name="System.Threading.Channels" Version="10.0.0-alpha.1.24617.3">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>756e62050722c168cd3b753be73b7cbcd93f06d6</Sha>
+      <Sha>040cbe276907174316e2cc07b35814b3069874a6</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.1">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="10.0.0-alpha.1.24617.3">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>756e62050722c168cd3b753be73b7cbcd93f06d6</Sha>
+      <Sha>040cbe276907174316e2cc07b35814b3069874a6</Sha>
     </Dependency>
     <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="9.0.1">
       <Uri>https://github.com/dotnet/windowsdesktop</Uri>
@@ -31,13 +31,13 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.24605.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.24617.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>110749ff6e8a43fcd7c8f0bd74c5fcb0da3562ed</Sha>
+      <Sha>4f2968fce08735a7e22fca6bd4c99d003221d716</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.24605.1">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.24617.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>110749ff6e8a43fcd7c8f0bd74c5fcb0da3562ed</Sha>
+      <Sha>4f2968fce08735a7e22fca6bd4c99d003221d716</Sha>
     </Dependency>
     <!--
       Maui Rollback Version mappings, default means generated from sdk version. Allows for manual override of version similar to https://github.com/dotnet/maui/blob/df8cfcf635a590955a8cc3d6cf7ae6280449dd3f/eng/Versions.props#L138-L146, where the logic comes from:
