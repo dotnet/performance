@@ -381,6 +381,11 @@ def main(args: Any):
         dotnet.setup_dotnet(args.dotnet_path)
 
     framework = ChannelMap.get_target_framework_moniker(args.channel)
+    if framework in ('net9.0', 'nativeaot9.0'):
+        global_json_path = os.path.join(get_repo_root_path(), 'global.json')
+        shutil.copy(os.path.join(get_repo_root_path(), 'global.net9.json'), global_json_path)
+        getLogger().info('Overwrote global.json with global.net9.json')
+        
     if framework in ('net8.0', 'nativeaot8.0'):
         global_json_path = os.path.join(get_repo_root_path(), 'global.json')
         shutil.copy(os.path.join(get_repo_root_path(), 'global.net8.json'), global_json_path)
