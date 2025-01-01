@@ -25,6 +25,10 @@ namespace System.Collections
         private ImmutableArray<T> _immutablearray;
         private ImmutableList<T> _immutablelist;
         private ImmutableSortedSet<T> _immutablesortedset;
+#if NET9_0_OR_GREATER
+        private OrderedDictionary<T, T> _ordereddictionary;
+#endif
+
 
         [GlobalSetup(Target = nameof(Array))]
         public void SetupArray() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
@@ -134,5 +138,20 @@ namespace System.Collections
                 result = collection[i];
             return result;
         }
+
+#if NET9_0_OR_GREATER
+        [GlobalSetup(Target = nameof(OrderedDictionary))]
+        public void SetupOrderedDictionary() => _ordereddictionary = new OrderedDictionary<T, T>(ValuesGenerator.Dictionary<T, T>(Size));
+
+        [Benchmark]
+        public KeyValuePair<T, T> OrderedDictionary()
+        {
+            KeyValuePair<T, T> result = default;
+            var collection = _ordereddictionary;
+            for (int i = 0; i < collection.Count; i++)
+                result = collection.GetAt(i);
+            return result;
+        }
+#endif
     }
 }

@@ -41,5 +41,10 @@ namespace System.Collections
 
         [Benchmark]
         public ConcurrentDictionary<T, T> ConcurrentDictionary() => new ConcurrentDictionary<T, T>(Utils.ConcurrencyLevel, Size);
+
+#if NET9_0_OR_GREATER
+        [Benchmark]
+        public OrderedDictionary<T, T> OrderedDictionary() => new OrderedDictionary<T, T>(Size);
+#endif
     }
 }
