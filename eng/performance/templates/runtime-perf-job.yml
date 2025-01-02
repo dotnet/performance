@@ -51,15 +51,20 @@ jobs:
           - ${{ 'build_ios_arm64_release_iOSNativeAOT' }}
 
     variables:
-      - _crossBuildPropertyArg: ''
+      - name: _crossBuildPropertyArg
+        value: ''
       - ${{ if eq(parameters.crossBuild, true) }}:
-        - _crossBuildPropertyArg: '-cross'
-
-      - librariesDownloadDir: '${{ parameters.runtimeRepoDir }}/artifacts'
-      - builtAppDir: ${{ parameters.runtimeRepoDir }}
-      - librariesOverrideArg: ''
+        - name: _crossBuildPropertyArg
+          value: '-cross'
+      - name: librariesDownloadDir
+        value: ${{ parameters.runtimeRepoDir }}/artifacts
+      - name: builtAppDir
+        value: ${{ parameters.runtimeRepoDir }}
+      - name: librariesOverrideArg
+        value: ''
       - ${{ if ne(parameters.liveLibrariesBuildConfig, '') }}:
-        - librariesOverrideArg : '/p:LibrariesConfiguration=${{ parameters.liveLibrariesBuildConfig }}'
+        - name: librariesOverrideArg
+          value: '/p:LibrariesConfiguration=${{ parameters.liveLibrariesBuildConfig }}'
 
       - name: buildConfigUpper
         ${{ if eq(parameters.buildConfig, 'debug') }}:
