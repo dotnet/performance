@@ -233,7 +233,7 @@ jobs:
           - ${{ if ne(parameters.additionalSetupParameters, '') }}:
             - '${{ parameters.additionalSetupParameters }}'
       - ${{ each variable in parameters.variables }}:
-        - ${{insert}}: ${{ variable }}
+        - ${{ variable }}
     steps:
       - ${{ each step in parameters.steps }}:
         - ${{ step }}
