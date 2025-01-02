@@ -27,17 +27,17 @@
     </Dependency>
     <Dependency Name="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="9.0.1">
       <Uri>https://github.com/dotnet/emsdk</Uri>
-      <Sha>4c9d1b112c16716c2479e054e9ad4db8b5b8c70c</Sha>
+      <Sha>fc43c6ad1e70c3180bf6a2353cb1f05a806bc943</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.24622.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.24626.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>8589bd2a216025d753b5f107081bfa28a2d51bb8</Sha>
+      <Sha>ae8d2a08f1021624ae37cdd5b65f6c05e58a051b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.24622.1">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.24626.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>8589bd2a216025d753b5f107081bfa28a2d51bb8</Sha>
+      <Sha>ae8d2a08f1021624ae37cdd5b65f6c05e58a051b</Sha>
     </Dependency>
     <!--
       Maui Rollback Version mappings, default means generated from sdk version. Allows for manual override of version similar to https://github.com/dotnet/maui/blob/df8cfcf635a590955a8cc3d6cf7ae6280449dd3f/eng/Versions.props#L138-L146, where the logic comes from:
@@ -51,8 +51,8 @@
       Mapping_Microsoft.tvOS.Sdk:default
     -->
     <!-- Dependencies for .NET MAUI workload -->
-    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.30-ci.main.24619.12">
-      <Sha>42c08095681ccffc4fad97cbae775f0bd87dd089</Sha>
+    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.30-ci.main.24620.12">
+      <Sha>f83baed3764e234e2152ab98eecd0b9bb0e2b0a9</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
     <Dependency Name="Microsoft.NET.Sdk" Version="9.0.102-servicing.24605.31" CoherentParentDependency="Microsoft.Maui.Controls">
@@ -67,8 +67,8 @@
       <Sha>763d10a1a251be35337ee736832bfde3f9200672</Sha>
       <Uri>https://github.com/dotnet/emsdk</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="35.0.35" CoherentParentDependency="Microsoft.Maui.Controls">
-      <Sha>bda1f4fba69ab7c640a38b5c7df461f1e8109790</Sha>
+    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="35.0.37" CoherentParentDependency="Microsoft.Maui.Controls">
+      <Sha>f6936a77dac699b6a361d5acb93c6b894de8941c</Sha>
       <Uri>https://github.com/dotnet/android</Uri>
     </Dependency>
     <Dependency Name="Microsoft.MacCatalyst.Sdk.net9.0_18.0" Version="18.0.9617" CoherentParentDependency="Microsoft.Maui.Controls">
