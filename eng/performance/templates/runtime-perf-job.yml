@@ -1,6 +1,6 @@
 parameters:
   steps: []
-  variables: {}
+  variables: []
   framework: net10.0 # Specify the appropriate framework when running release branches (ie net6.0 for release/6.0)
   buildConfig: ''
   archType: ''
