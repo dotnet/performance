@@ -173,7 +173,7 @@ jobs:
           - ${{ if or(ne(length(parameters.channels), 0), ne(length(parameters.dotnetVersionsLinks), 0)) }}:
             - '--performance-repo-ci'
             - '--channel $(_Channel)'
-          - ${{ else if ne(parameters.channel, '') }}:
+          - ${{ elseif ne(parameters.channel, '') }}:
             - '--performance-repo-ci'
             - '--channel ${{ parameters.channel }}'
           - ${{ if ne(parameters.affinity, '') }}:
