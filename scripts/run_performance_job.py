@@ -82,6 +82,7 @@ class RunPerformanceJobArgs:
     build_source_branch: str = os.environ.get("BUILD_SOURCEBRANCH", "main")
     build_number: str = os.environ.get("BUILD_BUILDNUMBER", "local")
     build_definition_name: Optional[str] = os.environ.get("BUILD_DEFINITIONNAME")
+    build_reason: Optional[str] = os.environ.get("BUILD_REASON")
     internal: bool = False
     pgo_run_type: Optional[str] = None
     physical_promotion_run_type: Optional[str] = None
@@ -469,7 +470,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
             creator = "dotnet-performance"
         perf_lab_arguments = []
         scenario_arguments = []
-        helix_source_prefix = "pr"
+        if args.build_reason == "PullRequest":
+            helix_source_prefix = "pr"
+        else:
+            helix_source_prefix = "ci"
 
     category_exclusions: list[str] = []
 
@@ -703,7 +707,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.built_app_dir is None:
         if args.runtime_repo_dir is not None:
             args.built_app_dir = args.runtime_repo_dir
-
     
     if android_mono:
         if args.built_app_dir is None:

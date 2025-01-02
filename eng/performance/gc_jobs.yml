@@ -1,8 +1,8 @@
 parameters:
-  osName: ''            # required -- windows | linux | macos
+  osGroup: ''           # required -- windows | linux | macos
   osVersion: ''         # required -- OS version
   kind: ''              # required -- benchmark kind. As of today, only "micro" and "mlnet" benchmarks are supported, we plan to add "scenarios" soon
-  architecture: ''      # required -- Architecture. Allowed values: x64, x86, arm, arm64
+  archType: ''          # required -- Architecture. Allowed values: x64, x86, arm, arm64
   pool: ''              # required -- name of the Helix pool
   queue: ''             # required -- name of the Helix queue
   container: ''         # optional -- id of the container
@@ -14,8 +14,8 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}'
-        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }}'
+      - job: '${{ parameters.osGroup }}_${{ parameters.osVersion }}_${{ parameters.archType }}_${{ parameters.kind }}'
+        displayName: '${{ parameters.osGroup }} ${{ parameters.osVersion }} ${{ parameters.archType }} ${{ parameters.kind }}'
         timeoutInMinutes: 320
         variables:
           - name: Python
@@ -43,10 +43,10 @@ jobs:
         #     HelixTargetQueues: ${{ parameters.queue }}
         #     HelixPreCommands: $(HelixPreCommand)
         #     Creator: $(Creator)
-        #     Architecture: ${{ parameters.architecture }}
+        #     Architecture: ${{ parameters.archType }}
         #     TargetCsproj: ${{ parameters.csproj }}
         #     WorkItemTimeout: 4:00 # 4 hours
         #     Python: $(Python)
-        #     ${{ if eq(parameters.osName, 'windows') }}:
+        #     ${{ if eq(parameters.osGroup, 'windows') }}:
         #       WorkItemDirectory: '$(Build.SourcesDirectory)\docs' # Need to update this
         #       CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\notLocked' # Need to update this

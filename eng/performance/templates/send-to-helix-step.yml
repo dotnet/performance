@@ -1,0 +1,23 @@
+# All other properties are passed through as environment variables
+parameters:
+  osGroup: ''                      # required -- OS group of the build agent
+  projectFile: ''                  # required -- Helix project file
+  condition: ''                    # optional -- condition for step to execute; defaults to succeeded()
+  displayName: 'Send job to Helix' # optional -- rename the beginning of the displayName of the steps in AzDO 
+  environment: {}                  # optional -- additional environment variables to pass to the step
+  shouldContinueOnError: false     # optional -- determines whether to continue the build if the step errors; defaults to false
+
+steps:
+- ${{ if eq(parameters.osGroup, 'windows') }}:
+  - powershell: $(Build.SourcesDirectory)\eng\common\msbuild.ps1 --restore -ci -warnaserror 0 ${{ parameters.projectFile }} /restore /t:Test /bl:$(Build.SourcesDirectory)\artifacts\log\$(BuildConfig)\SendToHelix.binlog
+    displayName: ${{ parameters.displayName }} (Windows)
+    condition: and(succeeded(), ${{ and(ne(parameters.condition, false), ne(parameters.projectFile, '')) }})
+    env: ${{ parameters.environment }}
+    continueOnError: ${{ eq(parameters.shouldContinueOnError, true) }}
+
+- ${{ if ne(parameters.osGroup, 'windows') }}:
+  - script: $(Build.SourcesDirectory)/eng/common/msbuild.sh --restore --ci --warnaserror false ${{ parameters.projectFile }} /restore /t:Test /bl:$(Build.SourcesDirectory)/artifacts/log/$(BuildConfig)/SendToHelix.binlog
+    displayName: ${{ parameters.displayName }} (Unix)
+    condition: and(succeeded(), ${{ and(ne(parameters.condition, false), ne(parameters.projectFile, '')) }})
+    env: ${{ parameters.environment }}
+    continueOnError: ${{ eq(parameters.shouldContinueOnError, true) }}

@@ -1,0 +1,259 @@
+parameters:
+  # Used to configure the job
+  jobTemplate: '/eng/common/templates/job/job.yml'
+  jobTemplateParameters: {}         # optional -- additional parameters to pass to the job template
+  dependsOn: ''                     # optional -- dependencies of the job
+  steps: []                         # optional -- list of steps to run before the job
+  pool: ''                          # required -- name of the Helix pool
+  container: ''                     # optional -- id of the container
+  channels: []                      # optional -- list of channels to download .NET from
+  dotnetVersionsLinks: []           # optional -- alternative to channels that uses 'channel: link' values to scrape the link's json for dotnet_version or version
+  frameworks: []                    # optional -- list of frameworks to run against
+  additionalJobIdentifier: ''       # optional -- Additional job identifier to append to the job name
+  downloadPdn: false                # optional -- Whether or not to download PDN
+  timeoutInMinutes: 320             # optional -- Timeout for the job
+  enableTelemetry: true             # optional -- Whether to enable telemetry
+  condition: ''                     # optional -- Condition to run the job
+  disableComponentGovernance: false # optional -- Whether to disable component governance
+  continueOnError: false            # optional -- Whether to continue on error
+  buildConfig: ''                   # optional -- Build configuration
+  variables: {}                     # optional -- Additional variables to set for the job
+
+  # Passed into run performance job script
+  runKind: ''                       # required -- micro, scenarios, blazor_scenarios ...
+  archType: ''                      # required -- Architecture of Helix machine
+  osGroup: ''                       # required -- OS of Helix machine
+  osSubGroup: ''                    # optional -- OS Subgroup of Helix machine
+  queue: ''                         # optional -- Helix queue to run on (required if logicalMachine is not set)
+  logicalMachine: ''                # optional -- Type of Helix machine to use (required if queue is not set)
+  channel: ''                       # optional -- .NET channel to test against (use channels). Ignored if channels or dotnetVersionLinks is non-empty
+  affinity: '0'                     # optional -- Affinity bitmask to a specific machine in the pool (e.g. 1, 2, etc)
+  targetCsproj: ''                  # optional -- Path to the csproj file to run benchmarks on
+  runCategories: ''                 # optional -- Categories to run benchmarks on
+  isScenario: false                 # optional -- Whether the job is a scenario job
+  runEnvVars: []                    # optional -- Environment variables to set for the benchmark
+  runtimeFlavor: ''                 # optional -- Runtime flavor used for scenarios
+  hybridGlobalization: false        # optional -- Globalization used for scenarios
+  osVersion: ''                     # optional -- OS version to run on
+  dotnetVersionLink: ''             # optional -- Link to file containing .NET Versions (use dotnetVersionsLinks). Ignored if dotnetVersionsLinks or channels is non-empty
+  projectFileName: 'helix.proj'     # optional -- Name of Helix project file in /eng/performance directory
+  projectFile: ''                   # optional -- Full path to project file
+  framework: ''                     # optional -- Framework to run against (use frameworks). Ignored if frameworks is non-empty.
+  performanceRepoDir: $(Build.SourcesDirectory) # optional -- Path to the performance repo
+  runtimeRepoDir: ''                # optional -- Path to the runtime repo
+  codeGenType: ''                   # optional -- CodeGen type (e.g. JIT, AOT)
+  runtimeType: ''                   # optional -- Runtime type (e.g. mono, wasm, coreclr)
+  useLocalCommitTime: false         # optional -- Whether to use the local commit time or fetch it from the remote repository
+  isCompare: false                  # optional -- If the job is comparing two configurations
+  onlySanityCheck: false            # optional -- Whether to only run a sanity check for pipeline validation, not performance testing
+  pgoRunType: ''                    # optional -- PGO run type (e.g. nodynamicpgo)
+  r2rRunType: ''                    # optional -- R2R run type (e.g. nor2r)
+  experimentName: ''                # optional -- Name of the experiment
+  javascriptEngine: ''              # optional -- JavaScript engine to use
+  iOSLlvmBuild: false               # optional -- Whether to build iOS with LLVM
+  iOSStripSymbols: false            # optional -- Whether to strip symbols from the iOS build
+  additionalSetupParameters: ''     # optional -- Additional arguments to pass to the script
+
+jobs:
+- template: ${{ parameters.jobTemplate }}
+  parameters: 
+    enableTelemetry: ${{ parameters.enableTelemetry }}
+    enablePublishBuildArtifacts: true
+    name: ${{ join('_', variables._jobIdentifierParts) }}
+    displayName: 'Performance ${{ join(' ', variables._jobIdentifierParts) }}'
+    timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
+    workspace:
+      clean: all
+    pool: ${{ parameters.pool }}
+    container: ${{ parameters.container }}
+    condition: ${{ parameters.condition }}
+    dependsOn:
+      - ${{ if ne(parameters.dependsOn, '') }}:
+        - ${{ parameters.dependsOn }}
+    continueOnError: ${{ parameters.continueOnError }}
+    artifacts:
+      publish:
+        logs:
+          name: Builds_${{ join('_', variables._jobIdentifierParts) }}
+
+    # Component governance does not work on musl machines
+    ${{ if eq(parameters.osSubGroup, '_musl') }}:
+      disableComponentGovernance: true
+    ${{ else }}:
+      disableComponentGovernance: ${{ parameters.disableComponentGovernance }}
+
+    ${{ if or(ne(length(parameters.channels), 0), ne(length(parameters.dotnetVersionsLinks), 0), ne(length(parameters.frameworks), 0)) }}:
+      strategy:
+        matrix:
+          ${{ if ne(length(parameters.channels), 0) }}:
+            ${{ each channel in parameters.channels }}:
+              ${{ channel }}:
+                _Channel: ${{ channel }}
+                _DotnetVersionParam: ''
+          ${{ if ne(length(parameters.dotnetVersionsLinks), 0) }}:
+            ${{ each versionPair in parameters.dotnetVersionsLinks }}:
+              ${{ versionPair.key }}_Link:
+                _Channel: ${{ versionPair.key }}
+                _DotnetVersionParam: ${{ versionPair.value }}
+          ${{ if ne(length(parameters.frameworks), 0) }}:
+            ${{ each framework in parameters.frameworks }}:
+              ${{ framework }}:
+                _Framework: ${{ framework }}
+    ${{ each parameter in parameters.jobTemplateParameters }}:
+      ${{ parameter.key }}: ${{ parameter.value }}
+    variables:
+      - name: _internal
+        value: ${{ and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}
+      - ${{ if eq(variables._internal, true)}}:
+        # for private runs, we want to upload perflab data
+        - group: DotNet-HelixApi-Access
+        # perflab upload tokens still exist in this variable group
+        - group: dotnet-benchview
+      # Create a list of all the parts of the job identifier. Will be joined with '_' to create the job name and ' ' to create the display name. This handles runs from both the performance and runtime repository.
+      - name: _jobIdentifierParts
+        value:
+          - ${{ parameters.osGroup }}
+          - ${{ if ne(parameters.osSubGroup, '') }}:
+            - ${{ parameters.osSubGroup }}
+          - ${{ if ne(parameters.osVersion, '') }}:
+            - ${{ parameters.osVersion }}
+          - ${{ parameters.archType }}
+          - ${{ if and(eq(parameters.isScenario, true), ne(parameters.runtimeFlavor, '')) }}:
+            - ${{ parameters.runtimeFlavor }}
+          - ${{ if ne(parameters.runtimeType, '') }}:
+            - ${{ parameters.runtimeType }}
+          - ${{ if ne(parameters.codeGenType, '') }}:
+            - ${{ parameters.codeGenType }}
+          - ${{ parameters.runKind }}
+          - ${{ if ne(parameters.machinePool, '') }}:
+            - ${{ parameters.machinePool }}
+          - ${{ if ne(parameters.logicalMachine, '') }}:
+            - ${{ parameters.logicalMachine }}
+          - ${{ if ne(parameters.javascriptEngine, '') }}:
+            - ${{ parameters.javascriptEngine }}
+          - ${{ if ne(parameters.pgoRunType, '') }}:
+            - ${{ parameters.pgoRunType }}
+          - ${{ if ne(parameters.r2rRunType, '') }}:
+            - ${{ parameters.r2rRunType }}
+          - ${{ if ne(parameters.experimentName, '') }}:
+            - ${{ parameters.experimentName }}
+          - ${{ if eq(parameters.iOSLlvmBuild, true) }}:
+            - 'iOSLlvmBuild'
+          - ${{ if eq(parameters.iOSStripSymbols, true) }}:
+            - 'iOSStripSymbols'
+          - ${{ if eq(parameters.hybridGlobalization, true) }}:
+            - 'hybridGlobalization'
+          - ${{ if ne(parameters.additionalJobIdentifier, '') }}:
+            - ${{ parameters.additionalJobIdentifier }}
+      - name: _BuildConfig
+        value: ${{ parameters.buildConfig }}
+      - name: _projectFile
+        ${{ if ne(parameters.projectFile, '') }}:
+          value: ${{ parameters.projectFile }}
+        ${{ else }}:
+          value: ${{ parameters.performanceRepoDir }}/eng/performance/${{ parameters.projectFileName }}
+      - name: _pdnPath
+        ${{ if and(eq(variables._internal, true), eq(parameters.downloadPdn, true)) }}:
+          value: '$(Build.ArtifactStagingDirectory)/PDN.zip'
+        ${{ else }}:
+          value: ''
+      - name: _runPerformanceJobArgList
+        value:
+          - ${{ if eq(variables._internal, true) }}:
+            - '--internal'
+          - '--run-kind ${{ parameters.runKind }}'
+          - '--architecture ${{ parameters.archType }}'
+          - '--os-group ${{ parameters.osGroup }}'
+          - ${{ if ne(parameters.osSubGroup, '') }}:
+            - '--os-sub-group ${{ parameters.osSubGroup }}'
+          - ${{ if ne(parameters.queue, '') }}:
+            - '--queue ${{ parameters.queue }}'
+          - ${{ if ne(parameters.logicalMachine, '') }}:
+            - '--logical-machine ${{ parameters.logicalMachine }}'
+          - ${{ if or(ne(length(parameters.channels), 0), ne(length(parameters.dotnetVersionsLinks), 0)) }}:
+            - '--performance-repo-ci'
+            - '--channel $(_Channel)'
+          - ${{ else if ne(parameters.channel, '') }}:
+            - '--performance-repo-ci'
+            - '--channel ${{ parameters.channel }}'
+          - ${{ if ne(parameters.affinity, '') }}:
+            - '--affinity ${{ parameters.affinity }}'
+          - ${{ if ne(parameters.targetCsproj, '') }}:
+            - '--target-csproj ${{ parameters.targetCsproj }}'
+          - ${{ if ne(parameters.runCategories, '') }}:
+            - '--run-categories ${{ parameters.runCategories }}'
+          - ${{ if eq(parameters.isScenario, true) }}:
+            - '--is-scenario'
+          - ${{ if ne(length(parameters.runEnvVars), 0) }}:
+            - '--run-env-vars ${{ join(' ', parameters.runEnvVars)}}'
+          - ${{ if ne(parameters.runtimeFlavor, '') }}:
+            - '--runtime-flavor ${{ parameters.runtimeFlavor }}'
+          - ${{ if eq(parameters.hybridGlobalization, true) }}:
+            - '--hybrid-globalization'
+          - ${{ if ne(parameters.osVersion, '') }}:
+            - '--os-version ${{ parameters.osVersion }}'
+          - ${{ if ne(length(parameters.dotnetVersionsLinks), 0) }}:
+            - '--dotnet-version-link $(_DotnetVersionParam)'
+          - ${{ elseif ne(parameters.dotnetVersionLink, '') }}:
+            - '--dotnet-version-link ${{ parameters.dotnetVersionLink }}'
+          - ${{ if ne(parameters.projectFile, '') }}:
+            - '--project-file $(_projectFile)'
+          - ${{ if ne(length(parameters.frameworks), 0) }}:
+            - '--framework $(_Framework)'
+          - ${{ elseif ne(parameters.framework, '') }}:
+            - '--framework ${{ parameters.framework }}'
+          - ${{ if ne(parameters.performanceRepoDir, '.') }}:
+            - '--performance-repo-dir ${{ parameters.performanceRepoDir }}'
+          - ${{ if ne(parameters.runtimeRepoDir, '') }}:
+            - '--runtime-repo-dir ${{ parameters.runtimeRepoDir }}'
+          - ${{ if ne(parameters.codeGenType, '') }}:
+            - '--codegen-type ${{ parameters.codeGenType }}'
+          - ${{ if ne(parameters.runtimeType, '') }}:
+            - '--runtime-type ${{ parameters.runtimeType }}'
+          - ${{ if eq(parameters.useLocalCommitTime, true) }}:
+            - '--use-local-commit-time'
+          - ${{ if eq(parameters.isCompare, true) }}:
+            - '--compare'
+          - ${{ if eq(parameters.onlySanityCheck, true) }}:
+            - '--only-sanity'
+          - ${{ if ne(parameters.pgoRunType, '') }}:
+            - '--pgo-run-type ${{ parameters.pgoRunType }}'
+          - ${{ if ne(parameters.r2rRunType, '') }}:
+            - '--r2r-run-type ${{ parameters.r2rRunType }}'
+          - ${{ if ne(parameters.experimentName, '') }}:
+            - '--experiment-name ${{ parameters.experimentName }}'
+          - ${{ if ne(parameters.javascriptEngine, '') }}:
+            - '--javascript-engine ${{ parameters.javascriptEngine }}'
+          - ${{ if eq(parameters.iOSLlvmBuild, true) }}:
+            - '--ios-llvm-build'
+          - ${{ if eq(parameters.iOSStripSymbols, true) }}:
+            - '--ios-strip-symbols'
+          - ${{ if ne(variables._pdnPath, '') }}:
+            - '--pdn-path $(_pdnPath)'
+          - ${{ if ne(parameters.additionalSetupParameters, '') }}:
+            - '${{ parameters.additionalSetupParameters }}'
+      - ${{ each variable in parameters.variables }}:
+        - ${{insert}}: ${{ variable }}
+    steps:
+      - ${{ each step in parameters.steps }}:
+        - ${{ step }}
+      - ${{ if eq(parameters.downloadPdn, true) }}:
+        - task: AzureCLI@2
+          condition: ne(variables._pdnPath, '')
+          displayName: 'Download PDN'
+          inputs:
+            azureSubscription: '.NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)'
+            scriptType: 'pscore'
+            scriptLocation: 'inlineScript'
+            inlineScript: |
+              az storage blob download --auth-mode login --account-name pvscmdupload --container-name assets --name paint.net.5.0.3.portable.${{ parameters.archType }}.zip --file $(_pdnPath)
+      - script: $(Python) ${{ parameters.performanceRepoDir }}/scripts/run_performance_job.py ${{ join(' ', variables._runPerformanceJobArgList) }}
+        displayName: Run performance job script
+        env:
+          PerfCommandUploadToken: '$(PerfCommandUploadToken)'
+          PerfCommandUploadTokenLinux: '$(PerfCommandUploadTokenLinux)'
+          HelixAccessToken: '$(HelixApiAccessToken)'
+      - template: ./send-to-helix-step.yml
+        parameters:
+          osGroup: ${{ parameters.osGroup }}
+          projectFile: $(_projectFile)

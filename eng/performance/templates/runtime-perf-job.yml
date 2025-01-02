@@ -1,0 +1,233 @@
+parameters:
+  steps: []
+  variables: {}
+  framework: net10.0 # Specify the appropriate framework when running release branches (ie net6.0 for release/6.0)
+  buildConfig: ''
+  archType: ''
+  osGroup: ''
+  osSubgroup: ''
+  runtimeFlavor: ''
+  liveLibrariesBuildConfig: ''
+  runtimeType: 'coreclr'
+  codeGenType: 'JIT'
+  iOSLlvmBuild: 'False'
+  iOSStripSymbols: 'False'
+  hybridGlobalization: 'False'
+  isScenario: false
+  downloadSpecificBuild: null # buildId, pipeline, branchName, project
+  crossBuild: false
+  runtimeRepoDir: ''
+  performanceRepoDir: ''
+  # Please see run-performance-job.yml for additional parameters that can be specified as they will be forwarded through
+
+jobs:
+- template: ./run-performance-job.yml
+  parameters:
+    ${{ each parameter in parameters }}:
+      ${{ if notIn(parameter.key, 'steps', 'variables', 'framework') }}:
+        ${{ parameter.key }}: ${{ parameter.value }}
+
+    useLocalCommitTime: true
+    frameworks:
+    - ${{ parameters.framework }}
+
+    # Test job depends on the corresponding build job
+    ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
+      dependsOn:
+        - ${{ if not(or(in(parameters.runtimeType, 'AndroidMono', 'iOSMono', 'iOSNativeAOT', 'wasm'), and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')))) }}:
+          - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'coreclr') }}
+        - ${{ if and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')) }}:
+          - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'mono') }}
+        - ${{ if eq(parameters.runtimeType, 'wasm')}}:
+          - ${{ format('build_{0}{1}_{2}_{3}_{4}_{5}', 'browser', '', 'wasm', 'linux', parameters.buildConfig, parameters.runtimeType) }}
+        - ${{ if and(eq(parameters.codeGenType, 'AOT'), ne(parameters.runtimeType, 'wasm'))}}:
+          - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, parameters.codeGenType) }}
+        - ${{ if eq(parameters.runtimeType, 'AndroidMono')}}:
+          - ${{ 'build_android_arm64_release_AndroidMono' }}
+          - ${{ 'Build_ios_arm64_release_PerfBDNApp' }}
+        - ${{ if eq(parameters.runtimeType, 'iOSMono')}}:
+          - ${{ 'build_ios_arm64_release_iOSMono' }}
+        - ${{ if eq(parameters.runtimeType, 'iOSNativeAOT')}}:
+          - ${{ 'build_ios_arm64_release_iOSNativeAOT' }}
+
+    variables:
+      - _crossBuildPropertyArg: ''
+      - ${{ if eq(parameters.crossBuild, true) }}:
+        - _crossBuildPropertyArg: '-cross'
+
+      - librariesDownloadDir: '${{ parameters.runtimeRepoDir }}/artifacts'
+      - builtAppDir: ${{ parameters.runtimeRepoDir }}
+      - librariesOverrideArg: ''
+      - ${{ if ne(parameters.liveLibrariesBuildConfig, '') }}:
+        - librariesOverrideArg : '/p:LibrariesConfiguration=${{ parameters.liveLibrariesBuildConfig }}'
+
+      - name: buildConfigUpper
+        ${{ if eq(parameters.buildConfig, 'debug') }}:
+          value: 'Debug'
+        ${{ if eq(parameters.buildConfig, 'release') }}:
+          value: 'Release'
+        ${{ if eq(parameters.buildConfig, 'checked') }}:
+          value: 'Checked'
+      
+      - ${{ if eq(parameters.osGroup, 'windows') }}:
+        - name: archiveExtension
+          value: '.zip'
+        - name: scriptExt
+          value: '.cmd'
+      - ${{ else }}:
+        - name: archiveExtension
+          value: '.tar.gz'
+        - name: scriptExt
+          value: '.sh'
+      
+      - ${{ each variable in parameters.variables }}:
+        - ${{ variable }}
+      
+    steps:
+      - ${{ each step in parameters.steps }}:
+        - ${{ step }}
+      - script: |
+          ${{ parameters.runtimeRepoDir }}/eng/common/msbuild.sh ${{ parameters.runtimeRepoDir }}/eng/testing/performance/add_properties_to_pipeline.proj /t:SetVariables
+        displayName: Add Properties To Pipeline Env
+
+      - ${{ if eq(parameters.runtimeType, 'wasm') }}:
+        # Download wasm
+        - ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
+          - template: ./download-artifact-step.yml
+            parameters:
+              unpackFolder: $(librariesDownloadDir)/BrowserWasm
+              artifactFileName: BrowserWasm.tar.gz
+              artifactName: BrowserWasm
+              displayName: BrowserWasm
+        - ${{ if ne(parameters.downloadSpecificBuild.buildId, '') }}:
+          - template: ./download-specific-artifact-step.yml
+            parameters:
+              unpackFolder: $(librariesDownloadDir)/BrowserWasm
+              artifactFileName: BrowserWasm.tar.gz
+              artifactName: BrowserWasm
+              displayName: BrowserWasm
+              ${{ insert }}: ${{ parameters.downloadSpecificBuild }}
+
+        - script: >-
+            mkdir -p $(librariesDownloadDir)/bin/wasm/wasm-data &&
+            mkdir -p $(librariesDownloadDir)/bin/wasm/dotnet &&
+            cp -r $(librariesDownloadDir)/BrowserWasm/staging/dotnet-latest/* $(librariesDownloadDir)/bin/wasm/dotnet &&
+            cp -r $(librariesDownloadDir)/BrowserWasm/staging/built-nugets $(librariesDownloadDir)/bin/wasm &&
+            cp src/mono/browser/test-main.js $(librariesDownloadDir)/bin/wasm/wasm-data/test-main.js &&
+            find $(librariesDownloadDir)/bin/wasm -type d &&
+            find $(librariesDownloadDir)/bin/wasm -type f -exec chmod 664 {} \;
+          displayName: "Create wasm directory (Linux)"
+      - ${{ elseif eq(parameters.codeGenType, 'AOT') }}:
+        # Download mono AOT
+        - template: ./download-artifact-step.yml
+          parameters:
+            unpackFolder: $(librariesDownloadDir)/bin
+            artifactFileName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_${{ parameters.buildConfig }}_coreclr$(archiveExtension)'
+            artifactName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_${{ parameters.buildConfig }}_coreclr'
+            displayName: 'Runtime artifacts'
+
+        - template: ./download-artifact-step.yml
+          parameters:
+            unpackFolder: $(librariesDownloadDir)/LinuxMonoAOT
+            artifactFileName: LinuxMonoAOT${{ parameters.archType }}.tar.gz
+            artifactName: LinuxMonoAOT${{ parameters.archType }}
+            displayName: AOT Mono Artifacts
+
+        - script: "mkdir -p $(librariesDownloadDir)/bin/aot;mkdir -p $(librariesDownloadDir)/bin/aot/pack;cp -r $(librariesDownloadDir)/LinuxMonoAOT/artifacts/bin/mono/linux.${{ parameters.archType }}.Release/cross/linux-${{ parameters.archType }}/* $(librariesDownloadDir)/bin/aot;cp -r $(librariesDownloadDir)/LinuxMonoAOT/artifacts/bin/microsoft.netcore.app.runtime.linux-${{ parameters.archType }}/Release/* $(librariesDownloadDir)/bin/aot/pack"
+          displayName: "Create aot directory (Linux)"
+      - ${{ elseif in(parameters.runtimeType, 'coreclr', 'mono') }}:
+        - template: ./download-artifact-step.yml
+          parameters:
+            unpackFolder: $(librariesDownloadDir)/bin
+            artifactFileName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_${{ parameters.buildConfig }}_${{ parameters.runtimeType }}$(archiveExtension)'
+            artifactName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_${{ parameters.buildConfig }}_${{ parameters.runtimeType }}'
+            displayName: 'Runtime artifacts'
+      - ${{ elseif eq(parameters.runtimeType, 'AndroidMono')}}:
+        # Download artifacts for Android Testing
+        - template: ./download-artifact-step.yml
+          parameters:
+            unpackFolder: $(builtAppDir)/androidHelloWorld
+            cleanUnpackFolder: false
+            artifactFileName: 'AndroidMonoarm64.tar.gz'
+            artifactName: 'AndroidMonoarm64'
+            displayName: 'Mono Android HelloWorld'
+        - template: ./download-artifact-step.yml
+          parameters:
+            unpackFolder: $(builtAppDir)
+            cleanUnpackFolder: false
+            artifactFileName: 'AndroidBDNApk.tar.gz'
+            artifactName: 'AndroidBDNApk'
+            displayName: 'Mono Android BDN Apk'
+      - ${{ elseif or(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.runtimeType, 'iOSNativeAOT')) }}:
+        # Download iOSMono and Native AOT tests
+        - template: ./download-artifact-step.yml
+          parameters:
+            unpackFolder: $(builtAppDir)/iosHelloWorld
+            cleanUnpackFolder: false
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'False')) }}:
+              artifactName: 'iOSSampleAppNoLLVMSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+              artifactFileName: 'iOSSampleAppNoLLVMSymbolsHybridGlobalization${{parameters.hybridGlobalization}}.zip'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppNoLLVMNoSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+              artifactFileName: 'iOSSampleAppNoLLVMNoSymbolsHybridGlobalization${{parameters.hybridGlobalization}}.zip'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'False')) }}:
+              artifactName: 'iOSSampleAppLLVMSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+              artifactFileName: 'iOSSampleAppLLVMSymbolsHybridGlobalization${{parameters.hybridGlobalization}}.zip'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppLLVMNoSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+              artifactFileName: 'iOSSampleAppLLVMNoSymbolsHybridGlobalization${{parameters.hybridGlobalization}}.zip'
+            ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'False')) }}:
+              artifactName: 'iOSSampleAppSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+              artifactFileName: 'iOSSampleAppSymbolsHybridGlobalization${{parameters.hybridGlobalization}}.zip'
+            ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppNoSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+              artifactFileName: 'iOSSampleAppNoSymbolsHybridGlobalization${{parameters.hybridGlobalization}}.zip'
+            displayName: 'iOS Sample App'
+        # same artifact as above but don't extract .zip
+        - task: DownloadBuildArtifacts@0
+          displayName: 'Download iOS Sample App'
+          inputs:
+            buildType: current
+            downloadType: single
+            downloadPath: '$(builtAppDir)/iosHelloWorldZip'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'False')) }}:
+              artifactName: 'iOSSampleAppNoLLVMSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppNoLLVMNoSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'False')) }}:
+              artifactName: 'iOSSampleAppLLVMSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppLLVMNoSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+            ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'False')) }}:
+              artifactName: 'iOSSampleAppSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+            ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppNoSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+            checkDownloadedFiles: true
+
+      - ${{ if notIn(parameters.runtimeType, 'wasm', 'AndroidMono', 'iOSMono', 'iOSNativeAOT') }}:
+        - ${{ if ne(parameters.runtimeFlavor, 'Mono') }}:
+          # Create Core_Root
+          - script: ${{ parameters.runtimeRepoDir }}/src/tests/build$(scriptExt) ${{ parameters.buildConfig }} ${{ parameters.archType }} generatelayoutonly $(librariesOverrideArg) $(_crossBuildPropertyArg)
+            displayName: Create Core_Root
+        - ${{ elseif ne(parameters.osGroup, 'windows') }}:
+          - task: CopyFiles@2
+            displayName: Create .dotnet-mono folder
+            inputs:
+              SourceFolder: $(librariesDownloadDir)/bin/testhost/${{ parameters.framework }}-${{ parameters.osGroup }}-$(buildConfigUpper)-${{ parameters.archType }}
+              TargetFolder: ${{ parameters.runtimeRepoDir }}/.dotnet-mono
+          - task: CopyFiles@2
+            displayName: Copy corerun to .dotnet-mono
+            inputs:
+              SourceFolder: $(librariesDownloadDir)/bin/coreclr/${{ parameters.osGroup }}.${{ parameters.archType }}.$(buildConfigUpper)
+              Contents: 'corerun*'
+              TargetFolder: ${{ parameters.runtimeRepoDir }}/.dotnet-mono/shared/Microsoft.NETCore.App/$(productVersion)
+
+        - ${{ if and(eq(parameters.isScenario, true), eq(parameters.runtimeType, 'wasm') }}:
+        - script: >-
+            mkdir -p $(librariesDownloadDir)/bin/wasm/data &&
+            cp -r $(librariesDownloadDir)/BrowserWasm/staging/dotnet-latest $(librariesDownloadDir)/bin/wasm &&
+            cp -r $(librariesDownloadDir)/BrowserWasm/staging/built-nugets $(librariesDownloadDir)/bin/wasm &&
+            cp src/mono/browser/test-main.js $(librariesDownloadDir)/bin/wasm/data/test-main.js &&
+            find $(librariesDownloadDir)/bin/wasm -type f -exec chmod 664 {} \;
+          displayName: "Create wasm directory (Linux)"
+          condition: succeeded()
