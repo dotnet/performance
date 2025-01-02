@@ -60,7 +60,7 @@ jobs:
     enableTelemetry: ${{ parameters.enableTelemetry }}
     enablePublishBuildArtifacts: true
     name: ${{ join('_', variables._jobIdentifierParts) }}
-    displayName: 'Performance ${{ join(' ', variables._jobIdentifierParts) }}'
+    displayName: Performance ${{ join(' ', variables._jobIdentifierParts) }}
     timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
     workspace:
       clean: all
@@ -185,7 +185,7 @@ jobs:
           - ${{ if eq(parameters.isScenario, true) }}:
             - '--is-scenario'
           - ${{ if ne(length(parameters.runEnvVars), 0) }}:
-            - '--run-env-vars ${{ join(' ', parameters.runEnvVars)}}'
+            - "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
           - ${{ if ne(parameters.runtimeFlavor, '') }}:
             - '--runtime-flavor ${{ parameters.runtimeFlavor }}'
           - ${{ if eq(parameters.hybridGlobalization, true) }}:
