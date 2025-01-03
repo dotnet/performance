@@ -59,8 +59,8 @@ jobs:
   parameters: 
     enableTelemetry: ${{ parameters.enableTelemetry }}
     enablePublishBuildArtifacts: true
-    name: ${{ join('_', variables._jobIdentifierParts) }}
-    displayName: Performance ${{ join(' ', variables._jobIdentifierParts) }}
+    name: ${{ replace(variables._jobName, ' ', '_') }}
+    displayName: Performance $(_jobName)
     timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
     workspace:
       clean: all
@@ -74,7 +74,7 @@ jobs:
     artifacts:
       publish:
         logs:
-          name: Builds_${{ join('_', variables._jobIdentifierParts) }}
+          name: Builds_${{ replace(variables._jobName, ' ', '_') }}
 
     # Component governance does not work on musl machines
     ${{ if eq(parameters.osSubGroup, '_musl') }}:
@@ -110,41 +110,28 @@ jobs:
         # perflab upload tokens still exist in this variable group
         - group: dotnet-benchview
       # Create a list of all the parts of the job identifier. Will be joined with '_' to create the job name and ' ' to create the display name. This handles runs from both the performance and runtime repository.
-      - name: _jobIdentifierParts
-        value:
-          - ${{ parameters.osGroup }}
-          - ${{ if ne(parameters.osSubGroup, '') }}:
-            - ${{ parameters.osSubGroup }}
-          - ${{ if ne(parameters.osVersion, '') }}:
-            - ${{ parameters.osVersion }}
-          - ${{ parameters.archType }}
-          - ${{ if and(eq(parameters.isScenario, true), ne(parameters.runtimeFlavor, '')) }}:
-            - ${{ parameters.runtimeFlavor }}
-          - ${{ if ne(parameters.runtimeType, '') }}:
-            - ${{ parameters.runtimeType }}
-          - ${{ if ne(parameters.codeGenType, '') }}:
-            - ${{ parameters.codeGenType }}
-          - ${{ parameters.runKind }}
-          - ${{ if ne(parameters.machinePool, '') }}:
-            - ${{ parameters.machinePool }}
-          - ${{ if ne(parameters.logicalMachine, '') }}:
-            - ${{ parameters.logicalMachine }}
-          - ${{ if ne(parameters.javascriptEngine, '') }}:
-            - ${{ parameters.javascriptEngine }}
-          - ${{ if ne(parameters.pgoRunType, '') }}:
-            - ${{ parameters.pgoRunType }}
-          - ${{ if ne(parameters.r2rRunType, '') }}:
-            - ${{ parameters.r2rRunType }}
-          - ${{ if ne(parameters.experimentName, '') }}:
-            - ${{ parameters.experimentName }}
-          - ${{ if eq(parameters.iOSLlvmBuild, true) }}:
-            - 'iOSLlvmBuild'
-          - ${{ if eq(parameters.iOSStripSymbols, true) }}:
-            - 'iOSStripSymbols'
-          - ${{ if eq(parameters.hybridGlobalization, true) }}:
-            - 'hybridGlobalization'
-          - ${{ if ne(parameters.additionalJobIdentifier, '') }}:
-            - ${{ parameters.additionalJobIdentifier }}
+      - name: _jobNameRuntimeFlavor
+        ${{ if and(eq(parameters.isScenario, true), ne(parameters.runtimeFlavor, '')) }}:
+          value: ${{ parameters.runtimeFlavor }}
+        ${{ else }}:
+          value: ''
+      - name: _jobNameIOSLlvmBuild
+        ${{ if eq(parameters.iOSLlvmBuild, true) }}:
+          value: iOSLlvmBuild
+        ${{ else }}:
+          value: ''
+      - name: _jobNameIOSStripSymbols
+        ${{ if eq(parameters.iOSStripSymbols, true) }}:
+          value: iOSStripSymbols
+        ${{ else }}:
+          value: ''
+      - name: _jobNameHybridGlobalization
+        ${{ if eq(parameters.hybridGlobalization, true) }}:
+          value: hybridGlobalization
+        ${{ else }}:
+          value: ''
+      - name: _jobName
+        value: ${{ replace('${{ parameters.osGroup }} ${{ parameters.osSubGroup }} ${{ parameters.osVersion }} ${{ parameters.archType }} $(_jobNameRuntimeFlavor) ${{ parameters.runtimeType }} ${{ parameters.codeGenType }} ${{ parameters.runKind }} ${{ parameters.machinePool }} ${{ parameters.logicalMachine }} ${{ parameters.javascriptEngine }} ${{ parameters.pgoRunType }} ${{ parameters.r2rRunType }} ${{ parameters.experimentName }} $(_jobNameIOSLlvmBuild) $(_jobNameIOSStripSymbols) $(_jobNameHybridGlobalization) ${{ parameters.additionalJobIdentifier }}', '  ', ' ') }}
       - name: _BuildConfig
         value: ${{ parameters.buildConfig }}
       - name: _projectFile
@@ -157,81 +144,12 @@ jobs:
           value: '$(Build.ArtifactStagingDirectory)/PDN.zip'
         ${{ else }}:
           value: ''
-      - name: _runPerformanceJobArgList
-        value:
-          - ${{ if eq(variables._internal, true) }}:
-            - '--internal'
-          - '--run-kind ${{ parameters.runKind }}'
-          - '--architecture ${{ parameters.archType }}'
-          - '--os-group ${{ parameters.osGroup }}'
-          - ${{ if ne(parameters.osSubGroup, '') }}:
-            - '--os-sub-group ${{ parameters.osSubGroup }}'
-          - ${{ if ne(parameters.queue, '') }}:
-            - '--queue ${{ parameters.queue }}'
-          - ${{ if ne(parameters.logicalMachine, '') }}:
-            - '--logical-machine ${{ parameters.logicalMachine }}'
-          - ${{ if or(ne(length(parameters.channels), 0), ne(length(parameters.dotnetVersionsLinks), 0)) }}:
-            - '--performance-repo-ci'
-            - '--channel $(_Channel)'
-          - ${{ elseif ne(parameters.channel, '') }}:
-            - '--performance-repo-ci'
-            - '--channel ${{ parameters.channel }}'
-          - ${{ if ne(parameters.affinity, '') }}:
-            - '--affinity ${{ parameters.affinity }}'
-          - ${{ if ne(parameters.targetCsproj, '') }}:
-            - '--target-csproj ${{ parameters.targetCsproj }}'
-          - ${{ if ne(parameters.runCategories, '') }}:
-            - '--run-categories ${{ parameters.runCategories }}'
-          - ${{ if eq(parameters.isScenario, true) }}:
-            - '--is-scenario'
-          - ${{ if ne(length(parameters.runEnvVars), 0) }}:
-            - "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
-          - ${{ if ne(parameters.runtimeFlavor, '') }}:
-            - '--runtime-flavor ${{ parameters.runtimeFlavor }}'
-          - ${{ if eq(parameters.hybridGlobalization, true) }}:
-            - '--hybrid-globalization'
-          - ${{ if ne(parameters.osVersion, '') }}:
-            - '--os-version ${{ parameters.osVersion }}'
-          - ${{ if ne(length(parameters.dotnetVersionsLinks), 0) }}:
-            - '--dotnet-version-link $(_DotnetVersionParam)'
-          - ${{ elseif ne(parameters.dotnetVersionLink, '') }}:
-            - '--dotnet-version-link ${{ parameters.dotnetVersionLink }}'
-          - ${{ if ne(parameters.projectFile, '') }}:
-            - '--project-file $(_projectFile)'
-          - ${{ if ne(length(parameters.frameworks), 0) }}:
-            - '--framework $(_Framework)'
-          - ${{ elseif ne(parameters.framework, '') }}:
-            - '--framework ${{ parameters.framework }}'
-          - ${{ if ne(parameters.performanceRepoDir, '.') }}:
-            - '--performance-repo-dir ${{ parameters.performanceRepoDir }}'
-          - ${{ if ne(parameters.runtimeRepoDir, '') }}:
-            - '--runtime-repo-dir ${{ parameters.runtimeRepoDir }}'
-          - ${{ if ne(parameters.codeGenType, '') }}:
-            - '--codegen-type ${{ parameters.codeGenType }}'
-          - ${{ if ne(parameters.runtimeType, '') }}:
-            - '--runtime-type ${{ parameters.runtimeType }}'
-          - ${{ if eq(parameters.useLocalCommitTime, true) }}:
-            - '--use-local-commit-time'
-          - ${{ if eq(parameters.isCompare, true) }}:
-            - '--compare'
-          - ${{ if eq(parameters.onlySanityCheck, true) }}:
-            - '--only-sanity'
-          - ${{ if ne(parameters.pgoRunType, '') }}:
-            - '--pgo-run-type ${{ parameters.pgoRunType }}'
-          - ${{ if ne(parameters.r2rRunType, '') }}:
-            - '--r2r-run-type ${{ parameters.r2rRunType }}'
-          - ${{ if ne(parameters.experimentName, '') }}:
-            - '--experiment-name ${{ parameters.experimentName }}'
-          - ${{ if ne(parameters.javascriptEngine, '') }}:
-            - '--javascript-engine ${{ parameters.javascriptEngine }}'
-          - ${{ if eq(parameters.iOSLlvmBuild, true) }}:
-            - '--ios-llvm-build'
-          - ${{ if eq(parameters.iOSStripSymbols, true) }}:
-            - '--ios-strip-symbols'
-          - ${{ if ne(variables._pdnPath, '') }}:
-            - '--pdn-path $(_pdnPath)'
-          - ${{ if ne(parameters.additionalSetupParameters, '') }}:
-            - '${{ parameters.additionalSetupParameters }}'
+      - ${{ if eq(parameters.osGroup, 'windows') }}:
+        - name: Python
+          value: 'py -3'
+      - ${{ if ne(parameters.osGroup, 'windows') }}:
+        - name: Python
+          value: 'python3'
       - ${{ each variable in parameters.variables }}:
         - ${{ variable }}
     steps:
@@ -247,12 +165,83 @@ jobs:
             scriptLocation: 'inlineScript'
             inlineScript: |
               az storage blob download --auth-mode login --account-name pvscmdupload --container-name assets --name paint.net.5.0.3.portable.${{ parameters.archType }}.zip --file $(_pdnPath)
-      - script: $(Python) ${{ parameters.performanceRepoDir }}/scripts/run_performance_job.py ${{ join(' ', variables._runPerformanceJobArgList) }}
-        displayName: Run performance job script
-        env:
-          PerfCommandUploadToken: '$(PerfCommandUploadToken)'
-          PerfCommandUploadTokenLinux: '$(PerfCommandUploadTokenLinux)'
-          HelixAccessToken: '$(HelixApiAccessToken)'
+      - template: ./run-performance-job-script-step.yml
+        parameters:
+          performanceRepoDir: ${{ parameters.performanceRepoDir }}
+          runPerformanceJobArgs:
+            - ${{ if eq(variables._internal, true) }}:
+              - '--internal'
+            - '--run-kind ${{ parameters.runKind }}'
+            - '--architecture ${{ parameters.archType }}'
+            - '--os-group ${{ parameters.osGroup }}'
+            - ${{ if ne(parameters.osSubGroup, '') }}:
+              - '--os-sub-group ${{ parameters.osSubGroup }}'
+            - ${{ if ne(parameters.queue, '') }}:
+              - '--queue ${{ parameters.queue }}'
+            - ${{ if ne(parameters.logicalMachine, '') }}:
+              - '--logical-machine ${{ parameters.logicalMachine }}'
+            - ${{ if or(ne(length(parameters.channels), 0), ne(length(parameters.dotnetVersionsLinks), 0)) }}:
+              - '--performance-repo-ci'
+              - '--channel $(_Channel)'
+            - ${{ elseif ne(parameters.channel, '') }}:
+              - '--performance-repo-ci'
+              - '--channel ${{ parameters.channel }}'
+            - ${{ if ne(parameters.affinity, '') }}:
+              - '--affinity ${{ parameters.affinity }}'
+            - ${{ if ne(parameters.targetCsproj, '') }}:
+              - '--target-csproj ${{ parameters.targetCsproj }}'
+            - ${{ if ne(parameters.runCategories, '') }}:
+              - '--run-categories ${{ parameters.runCategories }}'
+            - ${{ if eq(parameters.isScenario, true) }}:
+              - '--is-scenario'
+            - ${{ if ne(length(parameters.runEnvVars), 0) }}:
+              - "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
+            - ${{ if ne(parameters.runtimeFlavor, '') }}:
+              - '--runtime-flavor ${{ parameters.runtimeFlavor }}'
+            - ${{ if eq(parameters.hybridGlobalization, true) }}:
+              - '--hybrid-globalization'
+            - ${{ if ne(parameters.osVersion, '') }}:
+              - '--os-version ${{ parameters.osVersion }}'
+            - ${{ if ne(length(parameters.dotnetVersionsLinks), 0) }}:
+              - '--dotnet-version-link $(_DotnetVersionParam)'
+            - ${{ elseif ne(parameters.dotnetVersionLink, '') }}:
+              - '--dotnet-version-link ${{ parameters.dotnetVersionLink }}'
+            - ${{ if ne(parameters.projectFile, '') }}:
+              - '--project-file $(_projectFile)'
+            - ${{ if ne(length(parameters.frameworks), 0) }}:
+              - '--framework $(_Framework)'
+            - ${{ elseif ne(parameters.framework, '') }}:
+              - '--framework ${{ parameters.framework }}'
+            - ${{ if ne(parameters.performanceRepoDir, '.') }}:
+              - '--performance-repo-dir ${{ parameters.performanceRepoDir }}'
+            - ${{ if ne(parameters.runtimeRepoDir, '') }}:
+              - '--runtime-repo-dir ${{ parameters.runtimeRepoDir }}'
+            - ${{ if ne(parameters.codeGenType, '') }}:
+              - '--codegen-type ${{ parameters.codeGenType }}'
+            - ${{ if ne(parameters.runtimeType, '') }}:
+              - '--runtime-type ${{ parameters.runtimeType }}'
+            - ${{ if eq(parameters.useLocalCommitTime, true) }}:
+              - '--use-local-commit-time'
+            - ${{ if eq(parameters.isCompare, true) }}:
+              - '--compare'
+            - ${{ if eq(parameters.onlySanityCheck, true) }}:
+              - '--only-sanity'
+            - ${{ if ne(parameters.pgoRunType, '') }}:
+              - '--pgo-run-type ${{ parameters.pgoRunType }}'
+            - ${{ if ne(parameters.r2rRunType, '') }}:
+              - '--r2r-run-type ${{ parameters.r2rRunType }}'
+            - ${{ if ne(parameters.experimentName, '') }}:
+              - '--experiment-name ${{ parameters.experimentName }}'
+            - ${{ if ne(parameters.javascriptEngine, '') }}:
+              - '--javascript-engine ${{ parameters.javascriptEngine }}'
+            - ${{ if eq(parameters.iOSLlvmBuild, true) }}:
+              - '--ios-llvm-build'
+            - ${{ if eq(parameters.iOSStripSymbols, true) }}:
+              - '--ios-strip-symbols'
+            - ${{ if ne(variables._pdnPath, '') }}:
+              - '--pdn-path $(_pdnPath)'
+            - ${{ if ne(parameters.additionalSetupParameters, '') }}:
+              - '${{ parameters.additionalSetupParameters }}'
       - template: ./send-to-helix-step.yml
         parameters:
           osGroup: ${{ parameters.osGroup }}
