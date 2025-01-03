@@ -38,6 +38,9 @@ def get_machine_architecture():
 def iswin():
     return sys.platform == 'win32'
 
+def islinux():
+    return sys.platform == 'linux'
+
 def extension():
     'gets platform specific extension'
     return '.exe' if iswin() else ''
