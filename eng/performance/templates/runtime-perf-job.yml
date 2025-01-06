@@ -228,11 +228,11 @@ jobs:
               TargetFolder: ${{ parameters.runtimeRepoDir }}/.dotnet-mono/shared/Microsoft.NETCore.App/$(productVersion)
 
         - ${{ if and(eq(parameters.isScenario, true), eq(parameters.runtimeType, 'wasm')) }}:
-        - script: >-
-            mkdir -p $(librariesDownloadDir)/bin/wasm/data &&
-            cp -r $(librariesDownloadDir)/BrowserWasm/staging/dotnet-latest $(librariesDownloadDir)/bin/wasm &&
-            cp -r $(librariesDownloadDir)/BrowserWasm/staging/built-nugets $(librariesDownloadDir)/bin/wasm &&
-            cp src/mono/browser/test-main.js $(librariesDownloadDir)/bin/wasm/data/test-main.js &&
-            find $(librariesDownloadDir)/bin/wasm -type f -exec chmod 664 {} \;
-          displayName: "Create wasm directory (Linux)"
-          condition: succeeded()
+          - script: >-
+              mkdir -p $(librariesDownloadDir)/bin/wasm/data &&
+              cp -r $(librariesDownloadDir)/BrowserWasm/staging/dotnet-latest $(librariesDownloadDir)/bin/wasm &&
+              cp -r $(librariesDownloadDir)/BrowserWasm/staging/built-nugets $(librariesDownloadDir)/bin/wasm &&
+              cp src/mono/browser/test-main.js $(librariesDownloadDir)/bin/wasm/data/test-main.js &&
+              find $(librariesDownloadDir)/bin/wasm -type f -exec chmod 664 {} \;
+            displayName: "Create wasm directory (Linux)"
+            condition: succeeded()
