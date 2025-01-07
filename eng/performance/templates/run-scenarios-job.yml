@@ -7,6 +7,6 @@ jobs:
 - template: /eng/performance/templates/run-performance-job.yml
   parameters:
     isScenario: true
-    downloadPdn: ${{ if and(eq(parameters.osGroup, 'windows'), ne(parameters.archType, 'x86')) }}
+    downloadPdn: ${{ and(eq(parameters.osGroup, 'windows'), ne(parameters.archType, 'x86')) }}
     ${{ each parameter in parameters }}:
       ${{ parameter.key }}: ${{ parameter.value }}

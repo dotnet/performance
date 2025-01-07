@@ -54,6 +54,32 @@ parameters:
   iOSStripSymbols: false            # optional -- Whether to strip symbols from the iOS build
   additionalSetupParameters: ''     # optional -- Additional arguments to pass to the script
 
+variables:
+  - name: _jobNameRuntimeFlavor
+    ${{ if and(eq(parameters.isScenario, true), ne(parameters.runtimeFlavor, '')) }}:
+      value: ${{ parameters.runtimeFlavor }}
+    ${{ else }}:
+      value: ''
+  - name: _jobNameIOSLlvmBuild
+    ${{ if eq(parameters.iOSLlvmBuild, true) }}:
+      value: iOSLlvmBuild
+    ${{ else }}:
+      value: ''
+  - name: _jobNameIOSStripSymbols
+    ${{ if eq(parameters.iOSStripSymbols, true) }}:
+      value: iOSStripSymbols
+    ${{ else }}:
+      value: ''
+  - name: _jobNameHybridGlobalization
+    ${{ if eq(parameters.hybridGlobalization, true) }}:
+      value: hybridGlobalization
+    ${{ else }}:
+      value: ''
+  - name: _jobNameRaw
+    value: ${{ parameters.osGroup }} ${{ parameters.osSubGroup }} ${{ parameters.osVersion }} ${{ parameters.archType }} ${{ variables._jobNameRuntimeFlavor }} ${{ parameters.runtimeType }} ${{ parameters.codeGenType }} ${{ parameters.runKind }} ${{ parameters.machinePool }} ${{ parameters.logicalMachine }} ${{ parameters.javascriptEngine }} ${{ parameters.pgoRunType }} ${{ parameters.r2rRunType }} ${{ parameters.experimentName }} ${{ variables._jobNameIOSLlvmBuild }} ${{ variables._jobNameIOSStripSymbols }} ${{ variables._jobNameHybridGlobalization }} ${{ parameters.additionalJobIdentifier }}
+  - name: _jobName
+    value: ${{ replace(variables._jobNameRaw, '  ', ' ') }}
+
 jobs:
 - template: ${{ parameters.jobTemplate }}
   parameters: 
@@ -102,38 +128,15 @@ jobs:
     ${{ each parameter in parameters.jobTemplateParameters }}:
       ${{ parameter.key }}: ${{ parameter.value }}
     variables:
-      - name: _internal
-        value: ${{ and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}
-      - ${{ if eq(variables._internal, true) }}:
+      - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
         # for private runs, we want to upload perflab data
         - group: DotNet-HelixApi-Access
         # perflab upload tokens still exist in this variable group
         - group: dotnet-benchview
+        - ${{ if parameters.downloadPdn }}:
+          - name: _pdnPath
+            value: '$(Build.ArtifactStagingDirectory)/PDN.zip'
       # Create a list of all the parts of the job identifier. Will be joined with '_' to create the job name and ' ' to create the display name. This handles runs from both the performance and runtime repository.
-      - name: _jobNameRuntimeFlavor
-        ${{ if and(eq(parameters.isScenario, true), ne(parameters.runtimeFlavor, '')) }}:
-          value: ${{ parameters.runtimeFlavor }}
-        ${{ else }}:
-          value: ''
-      - name: _jobNameIOSLlvmBuild
-        ${{ if eq(parameters.iOSLlvmBuild, true) }}:
-          value: iOSLlvmBuild
-        ${{ else }}:
-          value: ''
-      - name: _jobNameIOSStripSymbols
-        ${{ if eq(parameters.iOSStripSymbols, true) }}:
-          value: iOSStripSymbols
-        ${{ else }}:
-          value: ''
-      - name: _jobNameHybridGlobalization
-        ${{ if eq(parameters.hybridGlobalization, true) }}:
-          value: hybridGlobalization
-        ${{ else }}:
-          value: ''
-      - name: _jobNameRaw
-        value: ${{ parameters.osGroup }} ${{ parameters.osSubGroup }} ${{ parameters.osVersion }} ${{ parameters.archType }} ${{ variables._jobNameRuntimeFlavor }} ${{ parameters.runtimeType }} ${{ parameters.codeGenType }} ${{ parameters.runKind }} ${{ parameters.machinePool }} ${{ parameters.logicalMachine }} ${{ parameters.javascriptEngine }} ${{ parameters.pgoRunType }} ${{ parameters.r2rRunType }} ${{ parameters.experimentName }} ${{ variables._jobNameIOSLlvmBuild }} ${{ variables._jobNameIOSStripSymbols }} ${{ variables._jobNameHybridGlobalization }} ${{ parameters.additionalJobIdentifier }}
-      - name: _jobName
-        value: ${{ replace(variables._jobNameRaw, '  ', ' ') }}
       - name: _BuildConfig
         value: ${{ parameters.buildConfig }}
       - name: _projectFile
@@ -141,11 +144,6 @@ jobs:
           value: ${{ parameters.projectFile }}
         ${{ else }}:
           value: ${{ parameters.performanceRepoDir }}/eng/performance/${{ parameters.projectFileName }}
-      - name: _pdnPath
-        ${{ if and(eq(variables._internal, true), eq(parameters.downloadPdn, true)) }}:
-          value: '$(Build.ArtifactStagingDirectory)/PDN.zip'
-        ${{ else }}:
-          value: ''
       - ${{ if eq(parameters.osGroup, 'windows') }}:
         - name: Python
           value: 'py -3'
@@ -157,9 +155,8 @@ jobs:
     steps:
       - ${{ each step in parameters.steps }}:
         - ${{ step }}
-      - ${{ if eq(parameters.downloadPdn, true) }}:
+      - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(parameters.downloadPdn, true)) }}:
         - task: AzureCLI@2
-          condition: ne(variables._pdnPath, '')
           displayName: 'Download PDN'
           inputs:
             azureSubscription: '.NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)'
@@ -171,8 +168,6 @@ jobs:
         parameters:
           performanceRepoDir: ${{ parameters.performanceRepoDir }}
           runPerformanceJobArgs:
-            - ${{ if eq(variables._internal, true) }}:
-              - '--internal'
             - '--run-kind ${{ parameters.runKind }}'
             - '--architecture ${{ parameters.archType }}'
             - '--os-group ${{ parameters.osGroup }}'
@@ -240,8 +235,10 @@ jobs:
               - '--ios-llvm-build'
             - ${{ if eq(parameters.iOSStripSymbols, true) }}:
               - '--ios-strip-symbols'
-            - ${{ if ne(variables._pdnPath, '') }}:
-              - '--pdn-path $(_pdnPath)'
+            - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+              - '--internal'
+              - ${{ if parameters.downloadPdn }}:
+                - '--pdn-path $(_pdnPath)'
             - ${{ if ne(parameters.additionalSetupParameters, '') }}:
               - '${{ parameters.additionalSetupParameters }}'
       - template: /eng/performance/templates/send-to-helix-step.yml
