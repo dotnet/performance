@@ -60,7 +60,7 @@ jobs:
     enableTelemetry: ${{ parameters.enableTelemetry }}
     enablePublishBuildArtifacts: true
     name: ${{ replace(variables._jobName, ' ', '_') }}
-    displayName: Performance $(_jobName)
+    displayName: Performance ${{ variables._jobName }}
     timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
     workspace:
       clean: all
@@ -130,8 +130,10 @@ jobs:
           value: hybridGlobalization
         ${{ else }}:
           value: ''
+      - name: _jobNameRaw
+        value: ${{ parameters.osGroup }} ${{ parameters.osSubGroup }} ${{ parameters.osVersion }} ${{ parameters.archType }} ${{ variables._jobNameRuntimeFlavor }} ${{ parameters.runtimeType }} ${{ parameters.codeGenType }} ${{ parameters.runKind }} ${{ parameters.machinePool }} ${{ parameters.logicalMachine }} ${{ parameters.javascriptEngine }} ${{ parameters.pgoRunType }} ${{ parameters.r2rRunType }} ${{ parameters.experimentName }} ${{ variables._jobNameIOSLlvmBuild }} ${{ variables._jobNameIOSStripSymbols }} ${{ variables._jobNameHybridGlobalization }} ${{ parameters.additionalJobIdentifier }}
       - name: _jobName
-        value: ${{ replace('${{ parameters.osGroup }} ${{ parameters.osSubGroup }} ${{ parameters.osVersion }} ${{ parameters.archType }} $(_jobNameRuntimeFlavor) ${{ parameters.runtimeType }} ${{ parameters.codeGenType }} ${{ parameters.runKind }} ${{ parameters.machinePool }} ${{ parameters.logicalMachine }} ${{ parameters.javascriptEngine }} ${{ parameters.pgoRunType }} ${{ parameters.r2rRunType }} ${{ parameters.experimentName }} $(_jobNameIOSLlvmBuild) $(_jobNameIOSStripSymbols) $(_jobNameHybridGlobalization) ${{ parameters.additionalJobIdentifier }}', '  ', ' ') }}
+        value: ${{ replace(variables._jobNameRaw, '  ', ' ') }}
       - name: _BuildConfig
         value: ${{ parameters.buildConfig }}
       - name: _projectFile
