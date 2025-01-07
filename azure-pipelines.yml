@@ -402,6 +402,7 @@ jobs:
         channels:
           - 8.0
         runtimeFlavor: mono
+        additionalJobIdentifier: Mono
 
   # Maui iOS Native AOT scenario benchmarks
   - template: /eng/performance/templates/build-machine-matrix.yml
@@ -418,6 +419,7 @@ jobs:
         channels:
           - 8.0
         runtimeFlavor: coreclr
+        additionalJobIdentifier: CoreCLR
 
   ## Maui scenario benchmarks
   #- template: /eng/performance/templates/build-machine-matrix.yml
