@@ -59,7 +59,7 @@ jobs:
   parameters: 
     enableTelemetry: ${{ parameters.enableTelemetry }}
     enablePublishBuildArtifacts: true
-    name: run_performance_test_${{ replace(format('{0}_{1}_{2}_{3}_{4}_{5}{6}_{7}_{8}_{9}', parameters.runKind, coalesce(parameters.runtimeFlavor, 'NULL'), coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(parameters.additionalJobIdentifier, 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine)), '_NULL', '') }}
+    name: run_performance_test_${{ replace(format('{0}_{1}_{2}_{3}_{4}_{5}{6}_{7}_{8}_{9}', parameters.runKind, coalesce(parameters.runtimeFlavor, 'NULL'), coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(replace(parameters.additionalJobIdentifier, ' ', '_'), 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine)), '_NULL', '') }}
     displayName: Performance ${{ replace(format('{0} {1} {2} {3} {4} {5}{6} {7} {8} {9}', parameters.runKind, coalesce(parameters.runtimeFlavor, 'NULL'), coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(parameters.additionalJobIdentifier, 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine)), ' NULL', '') }}
     timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
     workspace:
@@ -74,7 +74,7 @@ jobs:
     artifacts:
       publish:
         logs:
-          name: Builds_${{ replace(format('{0}_{1}_{2}_{3}_{4}_{5}{6}_{7}_{8}_{9}', parameters.runKind, coalesce(parameters.runtimeFlavor, 'NULL'), coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(parameters.additionalJobIdentifier, 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine)), '_NULL', '') }}
+          name: Builds_${{ replace(format('{0}_{1}_{2}_{3}_{4}_{5}{6}_{7}_{8}_{9}', parameters.runKind, coalesce(parameters.runtimeFlavor, 'NULL'), coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(replace(parameters.additionalJobIdentifier, ' ', '_'), 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine)), '_NULL', '') }}
 
     # Component governance does not work on musl machines
     ${{ if eq(parameters.osSubGroup, '_musl') }}:
