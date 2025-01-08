@@ -6,7 +6,7 @@ from azure.core.exceptions import ResourceExistsError, ClientAuthenticationError
 from azure.identity import DefaultAzureCredential, ClientAssertionCredential, CertificateCredential
 from traceback import format_exc
 from glob import glob
-from performance.common import retry_on_exception, iswin, islinux
+from performance.common import retry_on_exception, iswin, islinux, RunCommand, helixpayload, base64_to_bytes
 from performance.constants import TENANT_ID, ARC_CLIENT_ID, CERT_SUBJECT, CERT_CLIENT_ID
 import os
 import json
@@ -37,34 +37,22 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
             credential = ClientAssertionCredential(TENANT_ID, ARC_CLIENT_ID, lambda: dac.get_token("api://AzureADTokenExchange/.default").token)
             credential.get_token("https://storage.azure.com/.default")
         except ClientAuthenticationError as ex:
+            credential = None
             getLogger().info("Unable to use managed identity. Falling back to certificate.")
-            cert_collection = list()
-            if iswin():
-                for bin_cert in ssl.enum_certificates("MY"):
-                    cert = x509.load_pem_x509_certificate(bin_cert[0])
-                    if cert and cert.subject == CERT_SUBJECT:
-                        cert_collection.append(cert)
-            elif islinux():
-                user_dir = os.path.expanduser("~")
-                cert_dir = os.path.join(user_dir, ".dotnet/corefx/cryptography/x509stores/my")
-                pfx_files = glob(os.path.join(cert_dir, "*.pfx"))
-
-                for pfx_file in pfx_files:
-                    with open(pfx_file, "rb") as f:
-                        pfx_data = f.read()
-                        cert = x509.load_pem_x509_certificate(pfx_data)
-                        if cert and cert.subject == CERT_SUBJECT:
-                            cert_collection.append(cert)
-            for cert in cert_collection:
+            cmd_line = list((os.path.join(str(helixpayload()), 'Microsoft.Dotnet.Performance.CertHelper.exe')))
+            cert_helper = RunCommand(cmd_line, None, False, 0)
+            cert_helper.run()
+            for cert in cert_helper.stdout.splitlines():
+                credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert))
                 try:
-                    credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, cert)
                     credential.get_token("https://storage.azure.com/.default")
-                    break
                 except ClientAuthenticationError as ex:
-                    getLogger().info("Certificate not valid for client id: {0}".format(ARC_CLIENT_ID))
+                    credential = None
+                    continue
         if credential is None:
-            getLogger().error("Sas token environment variable {} was not defined.".format(sas_token_env))
-            return 1
+            getLogger().error("Unable to authenticate with managed identity or certificates.")
+            getLogger().info("Falling back to environment variable.")
+            credential = os.getenv(sas_token_env)
 
         files = glob(globpath, recursive=True)
         any_upload_or_queue_failed = False

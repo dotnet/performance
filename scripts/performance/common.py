@@ -18,6 +18,7 @@ from platform import machine
 import os
 import sys
 import time
+import base64
 from typing import Callable, List, Optional, Tuple, Type, TypeVar
 
 
@@ -141,6 +142,10 @@ def get_packages_directory() -> str:
     The path to directory where packages should get restored
     '''
     return os.path.join(get_artifacts_directory(), 'packages')
+
+def base64_to_bytes(base64_string: str) -> bytes:
+    byte_data = base64.b64decode(base64_string)
+    return byte_data
 
 @contextmanager
 def push_dir(path: Optional[str] = None):
