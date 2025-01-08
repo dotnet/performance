@@ -433,17 +433,17 @@ ex: C:\repos\performance;C:\repos\runtime
             try:
                 androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
 
+                xadb = xharnesscommand() + ['android', 'adb', '--']
+
                 # Create the fullydrawn command
-                clearProcStatsCmd = [ 
-                    androidHelper.adbpath,
+                clearProcStatsCmd = xadb + [
                     'shell',
                     'dumpsys',
                     'procstats',
                     '--clear'
                 ]
 
-                captureProcStatsCmd = [ 
-                    androidHelper.adbpath,
+                captureProcStatsCmd = xadb + [
                     'shell',
                     'dumpsys',
                     'procstats',
@@ -452,8 +452,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'proc'
                 ]
 
-                clearLogsCmd = [
-                    androidHelper.adbpath,
+                clearLogsCmd = xadb + [
                     'logcat',
                     '-c'
                 ]
@@ -534,20 +533,17 @@ ex: C:\repos\performance;C:\repos\runtime
                 androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
                 
                 # Create the fullydrawn command
-                fullyDrawnRetrieveCmd = [ 
-                    androidHelper.adbpath,
+                fullyDrawnRetrieveCmd = xadb + [ 
                     'shell',
                     f"logcat -d | grep 'ActivityTaskManager: Fully drawn {self.packagename}'"
                 ]
 
-                basicStartupRetrieveCmd = [ 
-                    androidHelper.adbpath,
+                basicStartupRetrieveCmd = xadb + [ 
                     'shell',
                     f"logcat -d | grep 'ActivityTaskManager: Displayed {androidHelper.activityname}'"
                 ]
 
-                clearLogsCmd = [
-                    androidHelper.adbpath,
+                clearLogsCmd = xadb + [
                     'logcat',
                     '-c'
                 ]

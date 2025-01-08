@@ -14,7 +14,7 @@ from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_T
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from shared.androidhelper import AndroidHelper
-from shared.util import helixworkitempayload, helixuploaddir, getruntimeidentifier
+from shared.util import helixworkitempayload, helixuploaddir, getruntimeidentifier, xharnesscommand
 from shared.const import *
 from shared.testtraits import TestTraits
 from subprocess import CalledProcessError
@@ -105,6 +105,8 @@ class DevicePowerConsumptionHelper(object):
         androidHelper = AndroidHelper()
         try:
             androidHelper.setup_device(packagename, packagepath, False, False)
+            
+            xadb = xharnesscommand() + ['android', 'adb', '--']
 
             listYepkitBoardsCmd = [
                 'ykushcmd',
@@ -113,8 +115,7 @@ class DevicePowerConsumptionHelper(object):
             ]
 
             # Create the fullydrawn command
-            clearBatteryStatsCmd = [ 
-                androidHelper.adbpath,
+            clearBatteryStatsCmd = xadb + [ 
                 'shell',
                 'dumpsys',
                 'batterystats',
@@ -133,14 +134,12 @@ class DevicePowerConsumptionHelper(object):
                 '-u'
             ]
 
-            clearLogsCmd = [
-                androidHelper.adbpath,
+            clearLogsCmd = xadb + [
                 'logcat',
                 '-c'
             ]
 
-            getUidOfPackageCmd = [
-                androidHelper.adbpath,
+            getUidOfPackageCmd = xadb + [
                 'shell',
                 'cmd',
                 'package',
@@ -151,8 +150,7 @@ class DevicePowerConsumptionHelper(object):
             ]
 
             # Gets information about the battery (https://cs.android.com/android/platform/superproject/main/+/main:frameworks/base/services/core/java/com/android/server/BatteryService.java;l=1117-1119?q=%22Current%20Battery%20Service%20state%22)
-            getGeneralBatteryInformation = [
-                androidHelper.adbpath,
+            getGeneralBatteryInformation = xadb + [
                 'shell',
                 'dumpsys',
                 'battery'
@@ -195,8 +193,7 @@ class DevicePowerConsumptionHelper(object):
                 uid = uidCapture.group(1)
 
                 # Include the uid filter to keep the output smaller
-                captureBatteryStatsCmd = [
-                    androidHelper.adbpath,
+                captureBatteryStatsCmd = xadb + [
                     'shell',
                     'dumpsys',
                     'batterystats',
