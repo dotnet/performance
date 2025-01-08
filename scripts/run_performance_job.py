@@ -807,6 +807,19 @@ def run_performance_job(args: RunPerformanceJobArgs):
             f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'Startup.binlog')}",
             "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
             verbose=True).run()
+        
+        # build CertHelper
+        RunCommand([
+            dotnet_executable_path, "publish", 
+            "-c", "Release", 
+            "-o", os.path.join(payload_dir, "certhelper"),
+            "-f", framework,
+            "-r", runtime_id,
+            "--self-contained",
+            os.path.join(args.performance_repo_dir, "src", "tools", "CertHelper", "CertHelper.csproj"),
+            f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'CertHelper.binlog')}",
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
+            verbose=True).run()
 
         # build SizeOnDisk
         RunCommand([

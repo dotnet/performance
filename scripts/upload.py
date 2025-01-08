@@ -7,7 +7,7 @@ from azure.identity import DefaultAzureCredential, ClientAssertionCredential, Ce
 from traceback import format_exc
 from glob import glob
 from performance.common import retry_on_exception, iswin, islinux, RunCommand, helixpayload, base64_to_bytes
-from performance.constants import TENANT_ID, ARC_CLIENT_ID, CERT_SUBJECT, CERT_CLIENT_ID
+from performance.constants import TENANT_ID, ARC_CLIENT_ID, CERT_CLIENT_ID
 import os
 import json
 import ssl
