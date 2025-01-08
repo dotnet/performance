@@ -167,7 +167,7 @@ jobs:
               - '--is-scenario'
             - ${{ if ne(length(parameters.runEnvVars), 0) }}:
               - "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
-            - ${{ if and(eq(parameters.runKind, 'maui_scenarios_ios'), ne(parameters.runtimeFlavor, '') }}:
+            - ${{ if and(eq(parameters.runKind, 'maui_scenarios_ios'), ne(parameters.runtimeFlavor, '')) }}:
               - '--runtime-flavor ${{ parameters.runtimeFlavor }}'
             - ${{ if eq(parameters.hybridGlobalization, true) }}:
               - '--hybrid-globalization'
