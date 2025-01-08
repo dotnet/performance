@@ -257,7 +257,8 @@ ex: C:\repos\performance;C:\repos\runtime
         python_exe = python_command[0]
         python_args = " ".join(python_command[1:])
         self.traits.add_traits(upload_to_perflab_container=self.upload_to_perflab_container)
-        
+        xadb = xharnesscommand() + ['android', 'adb', '--']
+
         if self.testtype == const.INNERLOOP:
             startup = StartupWrapper()
             self.traits.add_traits(scenarioname=self.scenarioname,
@@ -432,9 +433,7 @@ ex: C:\repos\performance;C:\repos\runtime
             androidHelper = AndroidHelper()
             try:
                 androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
-
-                xadb = xharnesscommand() + ['android', 'adb', '--']
-
+                
                 # Create the fullydrawn command
                 clearProcStatsCmd = xadb + [
                     'shell',
@@ -531,7 +530,7 @@ ex: C:\repos\performance;C:\repos\runtime
             androidHelper = AndroidHelper()
             try:
                 androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
-                
+
                 # Create the fullydrawn command
                 fullyDrawnRetrieveCmd = xadb + [ 
                     'shell',
