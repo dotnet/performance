@@ -107,7 +107,7 @@ jobs:
         - group: DotNet-HelixApi-Access
         # perflab upload tokens still exist in this variable group
         - group: dotnet-benchview
-        - ${{ if parameters.downloadPdn }}:
+        - ${{ if eq(parameters.downloadPdn, true) }}:
           - name: _pdnPath
             value: '$(Build.ArtifactStagingDirectory)/PDN.zip'
       # Create a list of all the parts of the job identifier. Will be joined with '_' to create the job name and ' ' to create the display name. This handles runs from both the performance and runtime repository.
@@ -157,7 +157,7 @@ jobs:
             - ${{ elseif ne(parameters.channel, '') }}:
               - '--performance-repo-ci'
               - '--channel ${{ parameters.channel }}'
-            - ${{ if ne(parameters.affinity, '') }}:
+            - ${{ if notIn(parameters.affinity, '', '0') }}:
               - '--affinity ${{ parameters.affinity }}'
             - ${{ if ne(parameters.targetCsproj, '') }}:
               - '--target-csproj ${{ parameters.targetCsproj }}'
@@ -167,7 +167,7 @@ jobs:
               - '--is-scenario'
             - ${{ if ne(length(parameters.runEnvVars), 0) }}:
               - "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
-            - ${{ if ne(parameters.runtimeFlavor, '') }}:
+            - ${{ if and(eq(parameters.runKind, 'maui_scenarios_ios'), ne(parameters.runtimeFlavor, '') }}:
               - '--runtime-flavor ${{ parameters.runtimeFlavor }}'
             - ${{ if eq(parameters.hybridGlobalization, true) }}:
               - '--hybrid-globalization'
@@ -211,7 +211,7 @@ jobs:
               - '--ios-strip-symbols'
             - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
               - '--internal'
-              - ${{ if parameters.downloadPdn }}:
+              - ${{ if eq(parameters.downloadPdn, true) }}:
                 - '--pdn-path $(_pdnPath)'
             - ${{ if ne(parameters.additionalSetupParameters, '') }}:
               - '${{ parameters.additionalSetupParameters }}'
