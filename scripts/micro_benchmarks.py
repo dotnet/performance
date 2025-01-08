@@ -274,6 +274,8 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> List[str]:
             run_args += ['--runtimes', 'wasmnet80']
         elif framework == "net9.0":
             run_args += ['--runtimes', 'wasmnet90']
+        elif framework == "net10.0":
+            run_args += ['--runtimes', 'wasmnet100']
         else:
             raise ArgumentTypeError('Framework {} is not supported for wasm'.format(framework))
 
