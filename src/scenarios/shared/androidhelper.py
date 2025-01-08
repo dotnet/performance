@@ -28,6 +28,15 @@ class AndroidHelper:
         # adb.run()
         self.xadb = xharnesscommand() + ['android', 'adb', '--']
 
+        # Try calling xharness with stdout=None and stderr=None to hopefully bypass the hang
+        getLogger().info("Clearing xharness stdout and stderr to avoid hang")
+        cmdline = self.xadb + [
+            'shell',
+            'echo', 'Hello World'
+        ]
+        RunCommand(cmdline, verbose=False).run_without_out_err()
+        getLogger().info("Running echo command to clear stdout and stderr")
+
         # Do not remove, XHarness install seems to fail without an adb command called before the xharness command
         getLogger().info("Preparing ADB")
         #self.adbpath = adb.stdout.strip()
