@@ -167,9 +167,9 @@ jobs:
             - ${{ if notIn(parameters.affinity, '', '0') }}:
               - '--affinity ${{ parameters.affinity }}'
             - ${{ if ne(parameters.targetCsproj, '') }}:
-              - '--target-csproj ${{ parameters.targetCsproj }}'
+              - '--target-csproj "${{ parameters.targetCsproj }}"'
             - ${{ if ne(parameters.runCategories, '') }}:
-              - '--run-categories ${{ parameters.runCategories }}'
+              - '--run-categories "${{ parameters.runCategories }}"'
             - ${{ if eq(parameters.isScenario, true) }}:
               - '--is-scenario'
             - ${{ if ne(length(parameters.runEnvVars), 0) }}:
@@ -184,7 +184,7 @@ jobs:
               - '--dotnet-version-link $(_DotnetVersionParam)'
             - ${{ elseif ne(parameters.dotnetVersionLink, '') }}:
               - '--dotnet-version-link ${{ parameters.dotnetVersionLink }}'
-            - ${{ if ne(parameters.projectFile, '') }}:
+            - ${{ if or(ne(parameters.projectFile, ''), ne(parameters.projectFileName, 'helix.proj')) }}:
               - '--project-file $(_projectFile)'
             - ${{ if ne(length(parameters.frameworks), 0) }}:
               - '--framework $(_Framework)'
@@ -219,7 +219,7 @@ jobs:
             - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
               - '--internal'
               - ${{ if eq(parameters.downloadPdn, true) }}:
-                - '--pdn-path $(_pdnPath)'
+                - '--pdn-path "$(_pdnPath)"'
             - ${{ if ne(parameters.additionalSetupParameters, '') }}:
               - '${{ parameters.additionalSetupParameters }}'
       - template: /eng/performance/templates/send-to-helix-step.yml
