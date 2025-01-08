@@ -127,8 +127,8 @@ jobs:
         - template: /eng/performance/templates/download-artifact-step.yml
           parameters:
             unpackFolder: $(librariesDownloadDir)/bin
-            artifactFileName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_${{ parameters.buildConfig }}_coreclr$(archiveExtension)'
-            artifactName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_${{ parameters.buildConfig }}_coreclr'
+            artifactFileName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_coreclr$(archiveExtension)'
+            artifactName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_coreclr'
             displayName: 'Runtime artifacts'
 
         - template: /eng/performance/templates/download-artifact-step.yml
@@ -144,8 +144,8 @@ jobs:
         - template: /eng/performance/templates/download-artifact-step.yml
           parameters:
             unpackFolder: $(librariesDownloadDir)/bin
-            artifactFileName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_${{ parameters.buildConfig }}_${{ parameters.runtimeType }}$(archiveExtension)'
-            artifactName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_${{ parameters.buildConfig }}_${{ parameters.runtimeType }}'
+            artifactFileName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_${{ parameters.runtimeType }}$(archiveExtension)'
+            artifactName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_${{ parameters.runtimeType }}'
             displayName: 'Runtime artifacts'
       - ${{ elseif eq(parameters.runtimeType, 'AndroidMono')}}:
         # Download artifacts for Android Testing
