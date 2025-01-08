@@ -73,7 +73,7 @@ jobs:
     artifacts:
       publish:
         logs:
-          name: Logs_$[replace(variables['Agent.JobName'], ' ', '_')]$[replace(format('_Attempt{0}', variables['System.JobAttempt']), '_Attemp1', '')]
+          name: $[replace(replace(format('Logs_{0}_Attempt{1}', variables['Agent.JobName'], variables['System.JobAttempt']), '_Attemp1', ''), ' ', '_')]
 
     # Component governance does not work on musl machines
     ${{ if eq(parameters.osSubGroup, '_musl') }}:
