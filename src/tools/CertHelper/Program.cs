@@ -9,12 +9,9 @@ namespace CertHelper
         {
             using(var store = new X509Store(StoreName.My, StoreLocation.CurrentUser, OpenFlags.ReadWrite))
             {
-                foreach(var cert in store.Certificates)
+                foreach(var cert in store.Certificates.Find(X509FindType.FindBySubjectName, "dotnetperf.microsoft.com", false))
                 {
-                    if (cert.Subject.Contains("CN=dotnetperf.microsoft.com"))
-                    {
-                        Console.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Pfx)));
-                    }
+                    Console.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Pfx)));
                 }
             }
         }

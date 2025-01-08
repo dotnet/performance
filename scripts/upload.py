@@ -6,12 +6,10 @@ from azure.core.exceptions import ResourceExistsError, ClientAuthenticationError
 from azure.identity import DefaultAzureCredential, ClientAssertionCredential, CertificateCredential
 from traceback import format_exc
 from glob import glob
-from performance.common import retry_on_exception, iswin, islinux, RunCommand, helixpayload, base64_to_bytes
+from performance.common import retry_on_exception, RunCommand, helixpayload, base64_to_bytes, extension
 from performance.constants import TENANT_ID, ARC_CLIENT_ID, CERT_CLIENT_ID
 import os
 import json
-import ssl
-from cryptography import x509
 
 from logging import getLogger
 
@@ -39,7 +37,7 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
         except ClientAuthenticationError as ex:
             credential = None
             getLogger().info("Unable to use managed identity. Falling back to certificate.")
-            cmd_line = list((os.path.join(str(helixpayload()), 'certhelper', 'CertHelper.exe')))
+            cmd_line = list((os.path.join(str(helixpayload()), 'certhelper', "CertHelper%s" % extension())))
             cert_helper = RunCommand(cmd_line, None, False, 0)
             cert_helper.run()
             for cert in cert_helper.stdout.splitlines():
