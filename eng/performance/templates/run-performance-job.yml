@@ -94,7 +94,7 @@ jobs:
             ${{ each versionPair in parameters.dotnetVersionsLinks }}:
               ${{ versionPair.key }}_Link:
                 _Channel: ${{ versionPair.key }}
-                _DotnetVersionParam: ${{ versionPair.value }}
+                _DotnetVersionParam: --dotnet-version-link ${{ versionPair.value }}
           ${{ if ne(length(parameters.frameworks), 0) }}:
             ${{ each framework in parameters.frameworks }}:
               ${{ framework }}:
@@ -161,6 +161,7 @@ jobs:
             - ${{ if or(ne(length(parameters.channels), 0), ne(length(parameters.dotnetVersionsLinks), 0)) }}:
               - '--performance-repo-ci'
               - '--channel $(_Channel)'
+              - $(_DotnetVersionParam)
             - ${{ elseif ne(parameters.channel, '') }}:
               - '--performance-repo-ci'
               - '--channel ${{ parameters.channel }}'
@@ -180,9 +181,7 @@ jobs:
               - '--hybrid-globalization'
             - ${{ if ne(parameters.osVersion, '') }}:
               - '--os-version ${{ parameters.osVersion }}'
-            - ${{ if ne(length(parameters.dotnetVersionsLinks), 0) }}:
-              - '--dotnet-version-link $(_DotnetVersionParam)'
-            - ${{ elseif ne(parameters.dotnetVersionLink, '') }}:
+            - ${{ if ne(parameters.dotnetVersionLink, '') }}:
               - '--dotnet-version-link ${{ parameters.dotnetVersionLink }}'
             - ${{ if or(ne(parameters.projectFile, ''), ne(parameters.projectFileName, 'helix.proj')) }}:
               - '--project-file $(_projectFile)'
