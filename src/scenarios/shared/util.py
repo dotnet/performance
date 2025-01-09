@@ -85,3 +85,6 @@ def xharnesscommand():
     if xharnesspath is None or not os.path.exists(xharnesspath):
         return ['xharness']
     return ['dotnet','exec',xharnesspath]
+
+def xharness_adb():
+    return xharnesscommand() + ['android', 'adb', '--']

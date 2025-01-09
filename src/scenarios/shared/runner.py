@@ -22,7 +22,7 @@ from shared.devicepowerconsumption import DevicePowerConsumptionHelper
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.memoryconsumption import MemoryConsumptionWrapper
-from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, publisheddll
+from shared.util import publishedexe, pythoncommand, appfolder, xharness_adb, publisheddll
 from shared.sod import SODWrapper
 from shared import const
 from performance.common import RunCommand, iswin, extension, helixworkitemroot
@@ -257,7 +257,6 @@ ex: C:\repos\performance;C:\repos\runtime
         python_exe = python_command[0]
         python_args = " ".join(python_command[1:])
         self.traits.add_traits(upload_to_perflab_container=self.upload_to_perflab_container)
-        xadb = xharnesscommand() + ['android', 'adb', '--']
 
         if self.testtype == const.INNERLOOP:
             startup = StartupWrapper()
@@ -433,16 +432,16 @@ ex: C:\repos\performance;C:\repos\runtime
             androidHelper = AndroidHelper()
             try:
                 androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
-                
+
                 # Create the fullydrawn command
-                clearProcStatsCmd = xadb + [
+                clearProcStatsCmd = xharness_adb() + [
                     'shell',
                     'dumpsys',
                     'procstats',
                     '--clear'
                 ]
 
-                captureProcStatsCmd = xadb + [
+                captureProcStatsCmd = xharness_adb() + [
                     'shell',
                     'dumpsys',
                     'procstats',
@@ -451,7 +450,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'proc'
                 ]
 
-                clearLogsCmd = xadb + [
+                clearLogsCmd = xharness_adb() + [
                     'logcat',
                     '-c'
                 ]
@@ -532,17 +531,17 @@ ex: C:\repos\performance;C:\repos\runtime
                 androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
 
                 # Create the fullydrawn command
-                fullyDrawnRetrieveCmd = xadb + [ 
+                fullyDrawnRetrieveCmd = xharness_adb() + [ 
                     'shell',
                     f"logcat -d | grep 'ActivityTaskManager: Fully drawn {self.packagename}'"
                 ]
 
-                basicStartupRetrieveCmd = xadb + [ 
+                basicStartupRetrieveCmd = xharness_adb() + [ 
                     'shell',
                     f"logcat -d | grep 'ActivityTaskManager: Displayed {androidHelper.activityname}'"
                 ]
 
-                clearLogsCmd = xadb + [
+                clearLogsCmd = xharness_adb() + [
                     'logcat',
                     '-c'
                 ]

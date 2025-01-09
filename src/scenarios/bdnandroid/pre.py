@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 from zipfile import ZipFile
 from shutil import copyfile
 from shared.const import PUBDIR
-from shared.util import xharnesscommand
+from shared.util import xharness_adb
 
 from performance.common import RunCommand
 from performance.logger import setup_loggers, getLogger
@@ -49,25 +49,24 @@ else:
     copyfile(apkname, os.path.join(PUBDIR, apkname))
 
 if args.restart_device:
-    # cmdline = xharnesscommand() + ['android', 'state', '--adb']
-    # adb = RunCommand(cmdline, verbose=True)
-    # adb.run()
-    
-    xadb = xharnesscommand() + ['android', 'adb', '--']
+    # Try calling xharness with stdout=None and stderr=None to hopefully bypass the hang
+    getLogger().info("Clearing xharness stdout and stderr to avoid hang")
+    cmdline = xharness_adb() + [
+        'shell',
+        'echo', 'Hello World'
+    ]
+    RunCommand(cmdline, verbose=False).run_without_out_err()
+    getLogger().info("Ran echo command to clear stdout and stderr")
 
-    # Do not remove, XHarness install seems to fail without an adb command called before the xharness command
-    getLogger().info("Preparing ADB")
-    # adbpath = adb.stdout.strip()
-
-    reboot_cmd = xadb + [
+    reboot_cmd = xharness_adb() + [
         'reboot'
     ]
 
-    wait_for_device_cmd = xadb + [
+    wait_for_device_cmd = xharness_adb() + [
         'wait-for-device'
     ]
 
-    check_device_boot_cmd = xadb + [
+    check_device_boot_cmd = xharness_adb() + [
         'shell',
         'getprop',
         'sys.boot_completed'
