@@ -11,13 +11,11 @@ from subprocess import CalledProcessError
 from subprocess import list2cmdline
 from subprocess import PIPE, STDOUT, DEVNULL
 from subprocess import Popen
-from typing import IO
 from io import StringIO
 from platform import machine
 
 import os
 import sys
-import threading
 import time
 from typing import Callable, List, Optional, Tuple, Type, TypeVar
 
@@ -224,18 +222,6 @@ def set_environment_variable(name: str, value: str, save_to_pipeline: bool = Tru
         __write_pipeline_variable(name, value)
     os.environ[name] = value
 
-def read_output(pipe: IO[bytes], output_buffer: StringIO):
-    counter = 0
-    with pipe:
-        for raw_line in iter(pipe.readline, b''):
-            #getLogger().info("[RDOUT %d] Reading output line", counter)
-            line = raw_line.decode('utf-8', errors='backslashreplace')
-            output_buffer.write(line)
-            line = line.rstrip()
-            #getLogger().info("[RDOUT %d]: %s", counter, line)
-            getLogger().info(line)
-            counter += 1
-        
 class RunCommand:
     '''
     This is a class wrapper around `subprocess.Popen` with an additional set
@@ -283,9 +269,8 @@ class RunCommand:
     @property
     def stdout(self) -> str:
         return self.__stdout.getvalue()
-    
+
     def __runinternal(self, working_directory: Optional[str] = None) -> Tuple[int, str]:
-        #getLogger().info("[RUNINTERNAL] START")
         should_pipe = self.verbose
         with push_dir(working_directory):
             quoted_cmdline = '$ '
@@ -293,9 +278,9 @@ class RunCommand:
 
             if '-AzureFeed' in self.cmdline or '-FeedCredential' in self.cmdline:
                 quoted_cmdline = "<dotnet-install command contains secrets, skipping log>"
-            
+
             getLogger().info(quoted_cmdline)
-          #  getLogger().info("[RUNINTERNAL] START POPEN")
+
             with Popen(
                     self.cmdline,
                     stdout=PIPE if should_pipe else DEVNULL,
@@ -304,33 +289,15 @@ class RunCommand:
                     encoding=None,
                     bufsize=0
             ) as proc:
-                thread_set = False
                 if proc.stdout is not None:
-                    self.__stdout = StringIO()
-                    thread = threading.Thread(target=read_output, args=(proc.stdout, self.__stdout))
-                    thread.start()
-                    thread_set = True
-
-                poll_status = proc.poll()
-                while poll_status is None:
-               #     getLogger().info("[PROC] Process is still running...")
-                    time.sleep(1)
-                    poll_status = proc.poll()
-              #  getLogger().info("[PROC] Process has completed with status %s", poll_status)
-
-                if proc.stdout is not None:
-             #       getLogger().info("[PROC] Closing stdout(s)")
-                    proc.stdout.close()
-                    
-                if thread_set:
-            #        getLogger().info("[PROC] Joining thread")
-                    thread_count = 0
-                    while thread.is_alive(): #type: ignore
-                        thread.join(5.0) # type: ignore
-           #             getLogger().info("[PROC] Thread is still alive, waiting... %d", thread_count)
-                        thread_count += 1
-          #      getLogger().info("[PROC] Returning process return code %s for command line %s", proc.returncode, quoted_cmdline)
-         #       getLogger().info("[RUNINTERNAL] Returning from POPEN")
+                    with proc.stdout:
+                        self.__stdout = StringIO()
+                        for raw_line in iter(proc.stdout.readline, b''):
+                            line = raw_line.decode('utf-8', errors='backslashreplace')
+                            self.__stdout.write(line)
+                            line = line.rstrip()
+                            getLogger().info(line)
+                proc.wait()
                 return (proc.returncode, quoted_cmdline)
 
 
@@ -338,79 +305,9 @@ class RunCommand:
         '''Executes specified shell command.'''
 
         retrycount = 0
-        #getLogger().info("[RUN] Running command: %s in %s", self.cmdline, working_directory)
         (returncode, quoted_cmdline) = self.__runinternal(working_directory)
-        #getLogger().info("[RUN] Command completed with return code %s", returncode)
         while returncode not in self.success_exit_codes and self.__retry != 0 and retrycount < self.__retry:
             (returncode, _) = self.__runinternal(working_directory)
-            retrycount += 1
-
-        if returncode not in self.success_exit_codes:
-            getLogger().error(
-                "Process exited with status %s", returncode)
-            raise CalledProcessError(
-                returncode, quoted_cmdline)
-        
-        return returncode
-    
-    def __runinternal_without_out_err(self, working_directory: Optional[str] = None) -> Tuple[int, str]:
-        #getLogger().info("[RUNINTERNAL] START")
-        with push_dir(working_directory):
-            quoted_cmdline = '$ '
-            quoted_cmdline += list2cmdline(self.cmdline)
-
-            if '-AzureFeed' in self.cmdline or '-FeedCredential' in self.cmdline:
-                quoted_cmdline = "<dotnet-install command contains secrets, skipping log>"
-            
-            getLogger().info(quoted_cmdline)
-          #  getLogger().info("[RUNINTERNAL] START POPEN")
-            with Popen(
-                    self.cmdline,
-                    stdout=None,
-                    stderr=None,
-                    universal_newlines=False,
-                    encoding=None,
-                    bufsize=0
-            ) as proc:
-                thread_set = False
-                if proc.stdout is not None:
-                    self.__stdout = StringIO()
-                    thread = threading.Thread(target=read_output, args=(proc.stdout, self.__stdout))
-                    thread.start()
-                    thread_set = True
-
-                poll_status = proc.poll()
-                while poll_status is None:
-               #     getLogger().info("[PROC] Process is still running...")
-                    time.sleep(1)
-                    poll_status = proc.poll()
-              #  getLogger().info("[PROC] Process has completed with status %s", poll_status)
-
-                if proc.stdout is not None:
-             #       getLogger().info("[PROC] Closing stdout(s)")
-                    proc.stdout.close()
-                    
-                if thread_set:
-            #        getLogger().info("[PROC] Joining thread")
-                    thread_count = 0
-                    while thread.is_alive(): #type: ignore
-                        thread.join(5.0) # type: ignore
-           #             getLogger().info("[PROC] Thread is still alive, waiting... %d", thread_count)
-                        thread_count += 1
-          #      getLogger().info("[PROC] Returning process return code %s for command line %s", proc.returncode, quoted_cmdline)
-         #       getLogger().info("[RUNINTERNAL] Returning from POPEN")
-                return (proc.returncode, quoted_cmdline)
-
-
-    def run_without_out_err(self, working_directory: Optional[str] = None) -> int:
-        '''Executes specified shell command.'''
-
-        retrycount = 0
-        #getLogger().info("[RUN] Running command: %s in %s", self.cmdline, working_directory)
-        (returncode, quoted_cmdline) = self.__runinternal_without_out_err(working_directory)
-        #getLogger().info("[RUN] Command completed with return code %s", returncode)
-        while returncode not in self.success_exit_codes and self.__retry != 0 and retrycount < self.__retry:
-            (returncode, _) = self.__runinternal_without_out_err(working_directory)
             retrycount += 1
 
         if returncode not in self.success_exit_codes:
