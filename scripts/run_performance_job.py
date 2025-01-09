@@ -1202,4 +1202,5 @@ def main(argv: List[str]):
     return 1
 
 if __name__ == "__main__":
-    main(sys.argv)
+    return_code = main(sys.argv)
+    sys.exit(return_code)
