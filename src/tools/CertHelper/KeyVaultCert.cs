@@ -83,7 +83,11 @@ public class KeyVaultCert
             throw new Exception("Certificate secret not found in Key Vault");
         }
         var certBytes = Convert.FromBase64String(secret.Value.Value);
+#if NET9_0_OR_GREATER        
+        var cert = X509CertificateLoader.LoadPkcs12(certBytes, "", X509KeyStorageFlags.Exportable);
+#else
         var cert = new X509Certificate2(certBytes, "", X509KeyStorageFlags.Exportable);
+#endif
         return cert;
     }
 

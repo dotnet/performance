@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
       <TargetFramework>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFramework>
       <!-- Supported target frameworks -->
-      <TargetFramework Condition="'$(TargetFramework)' == ''">net8.0</TargetFramework>
+      <TargetFramework Condition="'$(TargetFramework)' == ''">net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>

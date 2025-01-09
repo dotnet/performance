@@ -68,17 +68,21 @@ public class KeyVaultCertTests
         //var secret1 = new KeyVaultSecret(Constants.Cert1Name, Convert.ToBase64String(certCollection[0].Export(X509ContentType.Cert)));
         //var secret2 = new KeyVaultSecret(Constants.Cert2Name, Convert.ToBase64String(certCollection[1].Export(X509ContentType.Cert)));
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
-        var secret1 = new KeyVaultSecret(Constants.Cert1Name, Convert.ToBase64String(mockCert1.Cer));
+        var secret1 = new KeyVaultSecret(Constants.Cert1Name, Convert.ToBase64String(cert1.Export(X509ContentType.Pfx)));
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
-        var secret2 = new KeyVaultSecret(Constants.Cert1Name, Convert.ToBase64String(mockCert2.Cer));
+        var secret2 = new KeyVaultSecret(Constants.Cert1Name, Convert.ToBase64String(cert1.Export(X509ContentType.Pfx)));
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
         mockSecretClient.Setup(s => s.GetSecretAsync(Constants.Cert1Name, mockCert1.SecretId.Segments.Last(), default)).ReturnsAsync(Response.FromValue(secret1, null));
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
         mockSecretClient.Setup(s => s.GetSecretAsync(Constants.Cert2Name, mockCert2.SecretId.Segments.Last(), default)).ReturnsAsync(Response.FromValue(secret2, null));
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
         mockLocalCert = new Mock<ILocalCert>();
@@ -87,11 +91,11 @@ public class KeyVaultCertTests
 
     private static void MakeCerts(out KeyVaultCertificateWithPolicy? mockCert1, out KeyVaultCertificateWithPolicy? mockCert2, out X509Certificate2 cert1, out X509Certificate2 cert2, bool localAndKeyVaultDifferent = false)
     {
-        var ecdsa1 = ECDsa.Create(); // generate asymmetric key pair
-        var req1 = new CertificateRequest("cn=perflabtest", ecdsa1, HashAlgorithmName.SHA256);
+        using var rsa1 = RSA.Create(); // generate asymmetric key pair
+        var req1 = new CertificateRequest("cn=perflabtest", rsa1, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         var tmpCert1 = req1.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
-        var ecdsa2 = ECDsa.Create(); // generate asymmetric key pair
-        var req2 = new CertificateRequest("cn=perflabtest", ecdsa2, HashAlgorithmName.SHA256);
+        using var rsa2 = RSA.Create(); // generate asymmetric key pair
+        var req2 = new CertificateRequest("cn=perflabtest", rsa2, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         var tmpCert2 = req2.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
         cert1 = tmpCert1;
         cert2 = tmpCert2;
@@ -100,7 +104,7 @@ public class KeyVaultCertTests
         {
             var ecdsa = ECDsa.Create(); // generate asymmetric key pair
             var req = new CertificateRequest("cn=perflabtest", ecdsa, HashAlgorithmName.SHA256);
-            tmpCert1 = req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
+            tmpCert1 = X509CertificateLoader.LoadPkcs12(req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5)).Export(X509ContentType.Pkcs12), "");
         }
 
         mockCert1 = CertificateModelFactory.KeyVaultCertificateWithPolicy(CertificateModelFactory.CertificateProperties(Constants.Cert1Id, Constants.Cert1Name, x509thumbprint: Convert.FromHexString(tmpCert1.Thumbprint)),
