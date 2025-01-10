@@ -3,7 +3,7 @@ import time
 from performance.common import RunCommand
 from logging import getLogger
 from shared import const
-from shared.util import xharness_adb
+from shared.util import xharness_adb, xharnesscommand
 
 class AndroidHelper:
     def __init__(self):
