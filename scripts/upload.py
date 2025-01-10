@@ -37,7 +37,7 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
         except ClientAuthenticationError as ex:
             credential = None
             getLogger().info("Unable to use managed identity. Falling back to certificate.")
-            cmd_line = list((os.path.join(str(helixpayload()), 'certhelper', "CertHelper%s" % extension())))
+            cmd_line = list([(os.path.join(str(helixpayload()), 'certhelper', "CertHelper%s" % extension()))])
             cert_helper = RunCommand(cmd_line, None, False, 0)
             cert_helper.run()
             for cert in cert_helper.stdout.splitlines():
