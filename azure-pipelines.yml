@@ -377,15 +377,15 @@ jobs:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
         - win-x64-android-arm64-pixel
-        # - win-x64-android-arm64-galaxy
+        - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
         kind: maui_scenarios_android
         projectFile: maui_scenarios_android.proj
         dotnetVersionsLinks:
           9.0: ./eng/Version.Details.xml
-        # channels:
-        #   - 8.0
+        channels:
+          - 8.0
 
   # Maui iOS Mono scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
