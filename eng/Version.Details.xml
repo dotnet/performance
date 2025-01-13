@@ -23,7 +23,7 @@
     </Dependency>
     <Dependency Name="Microsoft.AspNetCore.App.Ref" Version="9.0.2">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>b439f9bd782f2889978471480da21de1bcaabbf1</Sha>
+      <Sha>7d10ee96928d1169c1f2035baefa5666496b82b8</Sha>
     </Dependency>
     <Dependency Name="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="9.0.2">
       <Uri>https://github.com/dotnet/emsdk</Uri>
