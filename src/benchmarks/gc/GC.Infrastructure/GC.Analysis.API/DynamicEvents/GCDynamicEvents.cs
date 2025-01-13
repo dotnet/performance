@@ -70,14 +70,13 @@
             {
                 KeyValuePair.Create("version", typeof(ushort)),
                 KeyValuePair.Create("GCIndex", typeof(ulong)),
-                KeyValuePair.Create("Allocated", typeof(byte)),
-                KeyValuePair.Create("Reserved", typeof(byte)),
                 KeyValuePair.Create("AllocSize", typeof(ulong)),
                 KeyValuePair.Create("Reason", typeof(byte)),
                 KeyValuePair.Create("FailureGetMemory", typeof(byte)),
                 KeyValuePair.Create("Size", typeof(ulong)),
                 KeyValuePair.Create("IsLOH", typeof(byte)),
                 KeyValuePair.Create("MemoryLoad", typeof(uint)),
+                KeyValuePair.Create("AvailablePageMemoryMB", typeof(ulong)),
             },
             MaxOccurrence = 1000 // TODO: This should be the max of the number of heaps allowed.
         };
