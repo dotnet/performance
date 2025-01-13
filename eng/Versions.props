@@ -11,7 +11,7 @@
     <MicrosoftNETILLinkPackageVersion>10.0.0-alpha.1.24617.3</MicrosoftNETILLinkPackageVersion>
     <SystemThreadingChannelsPackageVersion>10.0.0-alpha.1.24617.3</SystemThreadingChannelsPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>10.0.0-alpha.1.24617.3</MicrosoftExtensionsLoggingPackageVersion>
-    <BenchmarkDotNetVersion>0.14.1-nightly.20240924.187</BenchmarkDotNetVersion>
+    <BenchmarkDotNetVersion>0.14.1-nightly.20250107.205</BenchmarkDotNetVersion>
     <MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>9.0.2</MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>
   </PropertyGroup>
   <!--Package names-->

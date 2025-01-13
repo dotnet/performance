@@ -60,6 +60,7 @@ namespace CompilerBenchmarks
                 new List<DiagnosticInfo>(),
                 MessageProvider.Instance,
                 new DefaultAnalyzerAssemblyLoader(),
+                cmdLineArgs.CompilationOptions,
                 skipAnalyzers: false,
                 out var analyzers,
                 out var generators);

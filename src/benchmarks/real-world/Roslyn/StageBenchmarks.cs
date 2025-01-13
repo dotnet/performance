@@ -102,8 +102,6 @@ namespace CompilerBenchmarks
             success = _comp.CompileMethods(
                 _moduleBeingBuilt,
                 emittingPdb: embedPdb,
-                emitMetadataOnly: _options.EmitMetadataOnly,
-                emitTestCoverageData: _options.EmitTestCoverageData,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: default);
