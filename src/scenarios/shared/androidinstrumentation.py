@@ -25,7 +25,7 @@ class AndroidInstrumentationHelper(object):
                 'shell',
                 'echo', 'Hello World'
             ]
-            RunCommand(cmdline, verbose=False).run_without_out_err()
+            RunCommand(cmdline, verbose=False).run()
             getLogger().info("Ran echo command to clear stdout and stderr")
 
             installCmd = xharness_adb() + [

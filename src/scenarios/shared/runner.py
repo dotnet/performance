@@ -22,7 +22,7 @@ from shared.devicepowerconsumption import DevicePowerConsumptionHelper
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.memoryconsumption import MemoryConsumptionWrapper
-from shared.util import publishedexe, pythoncommand, appfolder, xharness_adb, publisheddll
+from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, xharness_adb, publisheddll
 from shared.sod import SODWrapper
 from shared import const
 from performance.common import RunCommand, iswin, extension, helixworkitemroot
@@ -456,38 +456,43 @@ ex: C:\repos\performance;C:\repos\runtime
                 ]
 
                 allResults = []
-                for i in range(self.testiterations):
-                    # Clear logs
-                    RunCommand(clearLogsCmd, verbose=True).run()
-                    RunCommand(clearProcStatsCmd, verbose=True).run()
-                    startStats = RunCommand(androidHelper.startappcommand, verbose=True)
-                    startStats.run()
-                    time.sleep(self.runtimeseconds)
-                    captureProcStats = RunCommand(captureProcStatsCmd, verbose=True)
-                    captureProcStats.run()
+                try:
+                    for i in range(self.testiterations):
+                        # Clear logs
+                        RunCommand(clearLogsCmd, verbose=True).run()
+                        RunCommand(clearProcStatsCmd, verbose=True).run()
+                        startStats = RunCommand(androidHelper.startappcommand, verbose=True)
+                        startStats.run()
+                        time.sleep(self.runtimeseconds)
+                        captureProcStats = RunCommand(captureProcStatsCmd, verbose=True)
+                        captureProcStats.run()
 
-                    # Save the results and get them from the log
-                    RunCommand(androidHelper.stopappcommand, verbose=True).run()
-                    
-                    # Part of the output we are regexing:
-                    # Process summary:
-                    # * net.dot.HelloAndroid / u0a1219 / v1:
-                    #        TOTAL: ###% (<Part we want>52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1</Part we want>)
-                    #        Top: 100% (52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1)
-                    regexSearchString = r"TOTAL: [0-9]{2,3}% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB over \d+)\)"
-                    dirtyCapture = re.search(regexSearchString, captureProcStats.stdout)
-                    if not dirtyCapture:
-                        raise Exception("Failed to capture the reported start time!")
-                    splitNumber = dirtyCapture.group(1).replace("MB", "").strip().split(" over ")
-                    splitMemory = splitNumber[0].split("/")
-                    pss = splitMemory[0].split("-")
-                    uss = splitMemory[1].split("-")
-                    rss = splitMemory[2].split("-")
-                    memoryCapture = f"PSS: min {pss[0]}, avg {pss[1]}, max {pss[2]}; USS: min {uss[0]}, avg {uss[1]}, max {uss[2]}; RSS: min {rss[0]}, avg {rss[1]}, max {rss[2]}; Number: {splitNumber[1]}\n"
-                    print(f"Memory Capture: {memoryCapture}")
-                    allResults.append(memoryCapture)
-                    time.sleep(self.closeToStartDelay) # Delay in seconds for ensuring a cold start
-                
+                        # Save the results and get them from the log
+                        RunCommand(androidHelper.stopappcommand, verbose=True).run()
+                        
+                        # Part of the output we are regexing:
+                        # Process summary:
+                        # * net.dot.HelloAndroid / u0a1219 / v1:
+                        #        TOTAL: ###% (<Part we want>52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1</Part we want>)
+                        #        Top: 100% (52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1)
+                        regexSearchString = r"TOTAL: [0-9]{2,3}% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB over \d+)\)"
+                        dirtyCapture = re.search(regexSearchString, captureProcStats.stdout)
+                        if not dirtyCapture:
+                            raise Exception("Failed to capture the reported start time!")
+                        splitNumber = dirtyCapture.group(1).replace("MB", "").strip().split(" over ")
+                        splitMemory = splitNumber[0].split("/")
+                        pss = splitMemory[0].split("-")
+                        uss = splitMemory[1].split("-")
+                        rss = splitMemory[2].split("-")
+                        memoryCapture = f"PSS: min {pss[0]}, avg {pss[1]}, max {pss[2]}; USS: min {uss[0]}, avg {uss[1]}, max {uss[2]}; RSS: min {rss[0]}, avg {rss[1]}, max {rss[2]}; Number: {splitNumber[1]}\n"
+                        print(f"Memory Capture: {memoryCapture}")
+                        allResults.append(memoryCapture)
+                        time.sleep(self.closeToStartDelay) # Delay in seconds for ensuring a cold start
+                except CalledProcessError as e:
+                    getLogger().error(f"Error running command: {e}")
+                    # Call adb logcat print the logs to the console
+                    # This is to help debug the issue
+                    RunCommand(xharness_adb() + ['logcat', '-d'], verbose=True).run()   
             finally:
                 androidHelper.close_device()
 
