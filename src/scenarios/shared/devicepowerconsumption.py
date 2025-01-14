@@ -14,7 +14,7 @@ from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_T
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from shared.androidhelper import AndroidHelper
-from shared.util import helixworkitempayload, helixuploaddir, getruntimeidentifier
+from shared.util import helixworkitempayload, helixuploaddir, getruntimeidentifier, xharness_adb
 from shared.const import *
 from shared.testtraits import TestTraits
 from subprocess import CalledProcessError
@@ -113,8 +113,7 @@ class DevicePowerConsumptionHelper(object):
             ]
 
             # Create the fullydrawn command
-            clearBatteryStatsCmd = [ 
-                androidHelper.adbpath,
+            clearBatteryStatsCmd = xharness_adb() + [ 
                 'shell',
                 'dumpsys',
                 'batterystats',
@@ -133,14 +132,12 @@ class DevicePowerConsumptionHelper(object):
                 '-u'
             ]
 
-            clearLogsCmd = [
-                androidHelper.adbpath,
+            clearLogsCmd = xharness_adb() + [
                 'logcat',
                 '-c'
             ]
 
-            getUidOfPackageCmd = [
-                androidHelper.adbpath,
+            getUidOfPackageCmd = xharness_adb() + [
                 'shell',
                 'cmd',
                 'package',
@@ -151,8 +148,7 @@ class DevicePowerConsumptionHelper(object):
             ]
 
             # Gets information about the battery (https://cs.android.com/android/platform/superproject/main/+/main:frameworks/base/services/core/java/com/android/server/BatteryService.java;l=1117-1119?q=%22Current%20Battery%20Service%20state%22)
-            getGeneralBatteryInformation = [
-                androidHelper.adbpath,
+            getGeneralBatteryInformation = xharness_adb() + [
                 'shell',
                 'dumpsys',
                 'battery'
@@ -195,8 +191,7 @@ class DevicePowerConsumptionHelper(object):
                 uid = uidCapture.group(1)
 
                 # Include the uid filter to keep the output smaller
-                captureBatteryStatsCmd = [
-                    androidHelper.adbpath,
+                captureBatteryStatsCmd = xharness_adb() + [
                     'shell',
                     'dumpsys',
                     'batterystats',
