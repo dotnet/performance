@@ -586,7 +586,7 @@ jobs:
         # - win-x64
         # - ubuntu-x64
         - win-arm64
-        - win-arm64-ampere
+        # - win-arm64-ampere
         # - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
