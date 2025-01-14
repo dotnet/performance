@@ -239,6 +239,7 @@ class RunCommand:
             cmdline: List[str],
             success_exit_codes: Optional[List[int]] = None,
             verbose: bool = False,
+            echo: bool = True,
             retry: int = 0):
         if cmdline is None:
             raise TypeError('Unspecified command line to be executed.')
@@ -248,6 +249,7 @@ class RunCommand:
         self.__cmdline = cmdline
         self.__verbose = verbose
         self.__retry = retry
+        self.__echo = echo
 
         if success_exit_codes is None:
             self.__success_exit_codes = [0]
@@ -266,6 +268,11 @@ class RunCommand:
         terminated.
         '''
         return self.__success_exit_codes
+
+    @property
+    def echo(self) -> bool:
+        '''Enables/Disables echoing of STDOUT'''
+        return self.__echo
 
     @property
     def verbose(self) -> bool:
@@ -302,7 +309,8 @@ class RunCommand:
                             line = raw_line.decode('utf-8', errors='backslashreplace')
                             self.__stdout.write(line)
                             line = line.rstrip()
-                            getLogger().info(line)
+                            if self.echo:
+                                getLogger().info(line)
                 proc.wait()
                 return (proc.returncode, quoted_cmdline)
 

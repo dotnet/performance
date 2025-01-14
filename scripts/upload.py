@@ -38,7 +38,7 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
             credential = None
             getLogger().info("Unable to use managed identity. Falling back to certificate.")
             cmd_line = [(os.path.join(str(helixpayload()), 'certhelper', "CertHelper%s" % extension()))]
-            cert_helper = RunCommand(cmd_line, None, True, 0)
+            cert_helper = RunCommand(cmd_line, None, True, False, 0)
             cert_helper.run()
             for cert in cert_helper.stdout.splitlines():
                 credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert))
