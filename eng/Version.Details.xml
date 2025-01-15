@@ -19,25 +19,25 @@
     </Dependency>
     <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="9.0.2">
       <Uri>https://github.com/dotnet/windowsdesktop</Uri>
-      <Sha>8139d665179fa0b245525d477e2997a4ae8f4e57</Sha>
+      <Sha>da7273a5fdd6f30c583d86b302fd7ca30a5c73d1</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.App.Ref" Version="9.0.1">
+    <Dependency Name="Microsoft.AspNetCore.App.Ref" Version="9.0.2">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>401ae7cb55f1460e038f7f8be0e8c782bfeec1ef</Sha>
+      <Sha>74fecc30f27aa79191ab7cfa417b422397f6ad23</Sha>
     </Dependency>
     <Dependency Name="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="9.0.2">
       <Uri>https://github.com/dotnet/emsdk</Uri>
-      <Sha>d0ada57ec31c85b11515364311c66c5e54f444f8</Sha>
+      <Sha>2c27e405e17595694d91892159593d6dd10e61e2</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.25057.5">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.25061.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>43494f7be1c54e6a065f02f92842e08f29a1ff6f</Sha>
+      <Sha>98b4ae348fa01b99dc6fbfc8f601efd9b90090db</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.25057.5">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.25061.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>43494f7be1c54e6a065f02f92842e08f29a1ff6f</Sha>
+      <Sha>98b4ae348fa01b99dc6fbfc8f601efd9b90090db</Sha>
     </Dependency>
     <!--
       Maui Rollback Version mappings, default means generated from sdk version. Allows for manual override of version similar to https://github.com/dotnet/maui/blob/df8cfcf635a590955a8cc3d6cf7ae6280449dd3f/eng/Versions.props#L138-L146, where the logic comes from:
@@ -51,8 +51,8 @@
       Mapping_Microsoft.tvOS.Sdk:default
     -->
     <!-- Dependencies for .NET MAUI workload -->
-    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.22">
-      <Sha>f2caf8afc4fa6144aafea3e2d397c6c3fcf839c3</Sha>
+    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.30-ci.main.25061.5">
+      <Sha>7575fada451b410221aa3347fdce24e9ab814780</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
     <Dependency Name="Microsoft.NET.Sdk" Version="9.0.102-servicing.24605.31" CoherentParentDependency="Microsoft.Maui.Controls">

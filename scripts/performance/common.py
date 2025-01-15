@@ -9,9 +9,8 @@ from shutil import rmtree
 from stat import S_IWRITE
 from subprocess import CalledProcessError
 from subprocess import list2cmdline
-from subprocess import PIPE, DEVNULL
+from subprocess import PIPE, STDOUT, DEVNULL
 from subprocess import Popen
-from subprocess import STDOUT
 from io import StringIO
 from platform import machine
 
@@ -279,7 +278,7 @@ class RunCommand:
 
             if '-AzureFeed' in self.cmdline or '-FeedCredential' in self.cmdline:
                 quoted_cmdline = "<dotnet-install command contains secrets, skipping log>"
-            
+
             getLogger().info(quoted_cmdline)
 
             with Popen(
