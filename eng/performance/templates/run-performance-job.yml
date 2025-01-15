@@ -121,11 +121,13 @@ jobs:
           value: 'Checked'
       - name: _BuildConfig
         value: $(buildConfigUpper)
+      - name: performanceRepoDir
+        value: $(Pipeline.Workspace)/s/performance
       - name: _projectFile
         ${{ if ne(parameters.projectFile, '') }}:
           value: ${{ parameters.projectFile }}
         ${{ else }}:
-          value: $(Build.SourcesDirectory)/performance/eng/performance/${{ parameters.projectFileName }}
+          value: $(performanceRepoDir)/eng/performance/${{ parameters.projectFileName }}
       - ${{ if eq(parameters.osGroup, 'windows') }}:
         - name: Python
           value: 'py -3'
@@ -157,7 +159,7 @@ jobs:
               az storage blob download --auth-mode login --account-name pvscmdupload --container-name assets --name paint.net.5.0.3.portable.${{ parameters.archType }}.zip --file $(_pdnPath)
       - template: /eng/performance/templates/run-performance-job-script-step.yml
         parameters:
-          performanceRepoDir: $(Build.SourcesDirectory)/performance
+          performanceRepoDir: $(performanceRepoDir)
           runPerformanceJobArgs:
             - '--run-kind ${{ parameters.runKind }}'
             - '--architecture ${{ parameters.archType }}'
@@ -199,7 +201,7 @@ jobs:
               - '--framework $(_Framework)'
             - ${{ elseif ne(parameters.framework, '') }}:
               - '--framework ${{ parameters.framework }}'
-            - '--performance-repo-dir $(Build.SourcesDirectory)/performance'
+            - '--performance-repo-dir $(performanceRepoDir)'
             - ${{ if eq(parameters.isRuntimeJob, true) }}:
               - '--runtime-repo-dir $(Build.SourcesDirectory)'
             - ${{ if ne(parameters.codeGenType, '') }}:
