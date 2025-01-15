@@ -6,7 +6,7 @@ parameters:
   jobParameters: {}
 
 jobs:
-  - ${{ if eq*parameters.runScheduledJobs, true) }}:
+  - ${{ if eq(parameters.runScheduledJobs, true) }}:
     - template: /eng/pipelines/coreclr/templates/perf-arm64-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         mono: true
