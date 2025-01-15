@@ -135,7 +135,7 @@ jobs:
       - ${{ each variable in parameters.variables }}:
         - ${{ variable }}
     steps:
-      - ${{ if parameters.isRuntimeJob }}:
+      - ${{ if eq(parameters.isRuntimeJob, true) }}:
         - checkout: ${{ parameters.runtimeRepoAlias }}
           path: s
           clean: true
@@ -200,7 +200,7 @@ jobs:
             - ${{ elseif ne(parameters.framework, '') }}:
               - '--framework ${{ parameters.framework }}'
             - '--performance-repo-dir $(Build.SourcesDirectory)/performance'
-            - ${{ if parameters.isRuntimeJob }}:
+            - ${{ if eq(parameters.isRuntimeJob, true) }}:
               - '--runtime-repo-dir $(Build.SourcesDirectory)'
             - ${{ if ne(parameters.codeGenType, '') }}:
               - '--codegen-type ${{ parameters.codeGenType }}'
