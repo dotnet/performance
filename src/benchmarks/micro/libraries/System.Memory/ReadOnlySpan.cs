@@ -95,6 +95,26 @@ namespace System.Memory
             yield return "abcdefg";
         }
 
+        [Benchmark]
+        [ArgumentsSource(nameof(IsWhiteSpaceArguments))]
+        [MemoryRandomization]
+        public bool IsWhiteSpace(string input) => input.AsSpan().IsWhiteSpace();
+
+        public static IEnumerable<object> IsWhiteSpaceArguments()
+        {
+            yield return "";
+            yield return "0abcdefg";
+            yield return " 1abcdefg";
+            yield return "  2abcdefg";
+            yield return "    4abcdefg";
+            yield return "     5abcdefg";
+            yield return "      6abcdefg";
+            yield return "       7abcdefg";
+            yield return "        8abcdefg";
+            yield return "                16abcdefg";
+            yield return "                                32abcdefg";
+        }
+
         private static string GenerateInputString(char source, int count, char replaceChar, int replacePos)
         {
             char[] str = new char[count];
