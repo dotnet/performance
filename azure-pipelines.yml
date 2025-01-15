@@ -60,7 +60,7 @@ jobs:
       ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
         runPublicJobs: ${{ parameters.runPublicJobs }}
       ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        ${{ if or(and(notin(variables['Build.Reason'], 'PullRequest', 'Manual'), parameters.runPrivateJobs) }}:
+        ${{ if or(notin(variables['Build.Reason'], 'PullRequest', 'Manual'), parameters.runPrivateJobs) }}:
           runPrivateJobs: ${{ parameters.runPrivateJobs }}
         ${{ if or(eq(variables['Build.CronSchedule.DisplayName'], 'Every 12 hours build'), parameters.runScheduledPrivateJobs) }}:
           runScheduledPrivateJobs: ${{ parameters.runScheduledPrivateJobs }}
