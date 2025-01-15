@@ -157,7 +157,7 @@ jobs:
             scriptLocation: 'inlineScript'
             inlineScript: |
               az storage blob download --auth-mode login --account-name pvscmdupload --container-name assets --name paint.net.5.0.3.portable.${{ parameters.archType }}.zip --file $(_pdnPath)
-      - template: /eng/performance/templates/run-performance-job-script-step.yml
+      - template: /eng/pipelines/templates/run-performance-job-script-step.yml
         parameters:
           performanceRepoDir: $(performanceRepoDir)
           runPerformanceJobArgs:
@@ -232,7 +232,7 @@ jobs:
                 - '--pdn-path "$(_pdnPath)"'
             - ${{ if ne(parameters.additionalSetupParameters, '') }}:
               - '${{ parameters.additionalSetupParameters }}'
-      - template: /eng/performance/templates/send-to-helix-step.yml
+      - template: /eng/pipelines/templates/send-to-helix-step.yml
         parameters:
           osGroup: ${{ parameters.osGroup }}
           projectFile: $(_projectFile)

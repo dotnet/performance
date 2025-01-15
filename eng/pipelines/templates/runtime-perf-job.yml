@@ -22,7 +22,7 @@ parameters:
   # Please see run-performance-job.yml for additional parameters that can be specified as they will be forwarded through
 
 jobs:
-- template: /eng/performance/templates/run-performance-job.yml
+- template: /eng/pipelines/templates/run-performance-job.yml
   parameters:
     ${{ each parameter in parameters }}:
       ${{ if notIn(parameter.key, 'steps', 'variables', 'framework') }}:
@@ -102,14 +102,14 @@ jobs:
       - ${{ if eq(parameters.runtimeType, 'wasm') }}:
         # Download wasm
         - ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
-          - template: /eng/performance/templates/download-artifact-step.yml
+          - template: /eng/pipelines/templates/runtime-perf-job.yml
             parameters:
               unpackFolder: $(librariesDownloadDir)/BrowserWasm
               artifactFileName: BrowserWasm.tar.gz
               artifactName: BrowserWasm
               displayName: BrowserWasm
         - ${{ if ne(parameters.downloadSpecificBuild.buildId, '') }}:
-          - template: /eng/performance/templates/download-specific-artifact-step.yml
+          - template: /eng/pipelines/templates/download-specific-artifact-step.yml
             parameters:
               unpackFolder: $(librariesDownloadDir)/BrowserWasm
               artifactFileName: BrowserWasm.tar.gz
@@ -128,14 +128,14 @@ jobs:
           displayName: "Create wasm directory (Linux)"
       - ${{ elseif eq(parameters.codeGenType, 'AOT') }}:
         # Download mono AOT
-        - template: /eng/performance/templates/download-artifact-step.yml
+        - template: /eng/pipelines/templates/runtime-perf-job.yml
           parameters:
             unpackFolder: $(librariesDownloadDir)/bin
             artifactFileName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_coreclr$(archiveExtension)'
             artifactName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_coreclr'
             displayName: 'Runtime artifacts'
 
-        - template: /eng/performance/templates/download-artifact-step.yml
+        - template: /eng/pipelines/templates/runtime-perf-job.yml
           parameters:
             unpackFolder: $(librariesDownloadDir)/LinuxMonoAOT
             artifactFileName: LinuxMonoAOT${{ parameters.archType }}.tar.gz
@@ -145,7 +145,7 @@ jobs:
         - script: "mkdir -p $(librariesDownloadDir)/bin/aot;mkdir -p $(librariesDownloadDir)/bin/aot/pack;cp -r $(librariesDownloadDir)/LinuxMonoAOT/artifacts/bin/mono/linux.${{ parameters.archType }}.Release/cross/linux-${{ parameters.archType }}/* $(librariesDownloadDir)/bin/aot;cp -r $(librariesDownloadDir)/LinuxMonoAOT/artifacts/bin/microsoft.netcore.app.runtime.linux-${{ parameters.archType }}/Release/* $(librariesDownloadDir)/bin/aot/pack"
           displayName: "Create aot directory (Linux)"
       - ${{ elseif in(parameters.runtimeType, 'coreclr', 'mono') }}:
-        - template: /eng/performance/templates/download-artifact-step.yml
+        - template: /eng/pipelines/templates/runtime-perf-job.yml
           parameters:
             unpackFolder: $(librariesDownloadDir)/bin
             artifactFileName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_${{ parameters.runtimeType }}$(archiveExtension)'
@@ -153,14 +153,14 @@ jobs:
             displayName: 'Runtime artifacts'
       - ${{ elseif eq(parameters.runtimeType, 'AndroidMono')}}:
         # Download artifacts for Android Testing
-        - template: /eng/performance/templates/download-artifact-step.yml
+        - template: /eng/pipelines/templates/runtime-perf-job.yml
           parameters:
             unpackFolder: $(builtAppDir)/androidHelloWorld
             cleanUnpackFolder: false
             artifactFileName: 'AndroidMonoarm64.tar.gz'
             artifactName: 'AndroidMonoarm64'
             displayName: 'Mono Android HelloWorld'
-        - template: /eng/performance/templates/download-artifact-step.yml
+        - template: /eng/pipelines/templates/runtime-perf-job.yml
           parameters:
             unpackFolder: $(builtAppDir)
             cleanUnpackFolder: false
@@ -169,7 +169,7 @@ jobs:
             displayName: 'Mono Android BDN Apk'
       - ${{ elseif or(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.runtimeType, 'iOSNativeAOT')) }}:
         # Download iOSMono and Native AOT tests
-        - template: /eng/performance/templates/download-artifact-step.yml
+        - template: /eng/pipelines/templates/runtime-perf-job.yml
           parameters:
             unpackFolder: $(builtAppDir)/iosHelloWorld
             cleanUnpackFolder: false

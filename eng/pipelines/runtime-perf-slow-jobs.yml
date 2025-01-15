@@ -14,7 +14,7 @@ jobs:
     # run arm64 interpreter jobs for mono
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
-        jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: mono
         platforms:
@@ -34,7 +34,7 @@ jobs:
     # run arm64 jit jobs for mono
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
-        jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: mono
         platforms:
@@ -59,7 +59,7 @@ jobs:
     # run mono aot microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
-        jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # NOTE: should we move this file out of coreclr tempelates because it contains mono jobs?
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # NOTE: should we move this file out of coreclr tempelates because it contains mono jobs?
         buildConfig: release
         runtimeFlavor: aot
         platforms:
@@ -79,7 +79,7 @@ jobs:
     # run coreclr Linux arm64 ampere microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
-        jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: coreclr
         platforms:
@@ -97,7 +97,7 @@ jobs:
     #run coreclr Linux arm64 ampere no dynamic pgo microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
-        jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: coreclr
         platforms:
@@ -117,7 +117,7 @@ jobs:
     #run coreclr Linux arm64 ampere no R2R microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
-        jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: coreclr
         platforms:
@@ -137,7 +137,7 @@ jobs:
     # run coreclr Windows arm64 microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
-        jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: coreclr
         platforms:
@@ -154,7 +154,7 @@ jobs:
     # run coreclr Windows arm64 ampere microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
-        jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: coreclr
         platforms:
@@ -172,7 +172,7 @@ jobs:
     # run coreclr Windows arm64 ampere no dynamic pgo microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
-        jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: coreclr
         platforms:
@@ -192,7 +192,7 @@ jobs:
     # run coreclr Windows arm64 ampere no R2R microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
-        jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: coreclr
         platforms:
@@ -210,40 +210,41 @@ jobs:
             ${{ parameter.key }}: ${{ parameter.value }}
 
     # Uncomment once we fix https://github.com/dotnet/performance/issues/1950
-    # # run coreclr linux crossgen perf job
-    # - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    #   parameters:
-    #     jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-    #     buildConfig: release
-    #     runtimeFlavor: coreclr
-    #     platforms:
-    #     - linux_arm64
-    #     jobParameters:
-    #       liveLibrariesBuildConfig: Release
-    #       projectFile: $(Build.SourcesDirectory)/eng/testing/performance/crossgen_perf.proj
-    #       runKind: crossgen_scenarios
-    #       isScenario: true
-    #       logicalMachine: 'perfa64'
-    #       runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-    #       performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-    #       ${{ each parameter in parameters.jobParameters }}:
-    #         ${{ parameter.key }}: ${{ parameter.value }}
+    - ${{ if false }}:
+      # run coreclr linux crossgen perf job
+      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+        parameters:
+          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+          buildConfig: release
+          runtimeFlavor: coreclr
+          platforms:
+          - linux_arm64
+          jobParameters:
+            liveLibrariesBuildConfig: Release
+            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/crossgen_perf.proj
+            runKind: crossgen_scenarios
+            isScenario: true
+            logicalMachine: 'perfa64'
+            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+            ${{ each parameter in parameters.jobParameters }}:
+              ${{ parameter.key }}: ${{ parameter.value }}
 
-    # # run coreclr windows crossgen perf job
-    # - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    #   parameters:
-    #     jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-    #     buildConfig: release
-    #     runtimeFlavor: coreclr
-    #     platforms:
-    #     - windows_arm64
-    #     jobParameters:
-    #       liveLibrariesBuildConfig: Release
-    #       projectFile: $(Build.SourcesDirectory)/eng/testing/performance/crossgen_perf.proj
-    #       runKind: crossgen_scenarios
-    #       isScenario: true
-    #       logicalMachine: 'perfsurf'
-    #       runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-    #       performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-    #       ${{ each parameter in parameters.jobParameters }}:
-    #         ${{ parameter.key }}: ${{ parameter.value }}
+      # run coreclr windows crossgen perf job
+      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+        parameters:
+          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+          buildConfig: release
+          runtimeFlavor: coreclr
+          platforms:
+          - windows_arm64
+          jobParameters:
+            liveLibrariesBuildConfig: Release
+            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/crossgen_perf.proj
+            runKind: crossgen_scenarios
+            isScenario: true
+            logicalMachine: 'perfsurf'
+            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+            ${{ each parameter in parameters.jobParameters }}:
+              ${{ parameter.key }}: ${{ parameter.value }}
