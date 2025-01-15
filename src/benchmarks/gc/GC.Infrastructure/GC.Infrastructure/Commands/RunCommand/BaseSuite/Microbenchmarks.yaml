@@ -6,6 +6,7 @@ microbenchmark_configurations:
 
 environment:
     default_max_seconds: 3000
+    iteration: 1
 
 # Configurations that involve capturing a trace.
 trace_configurations:

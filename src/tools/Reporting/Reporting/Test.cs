@@ -3,21 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Reporting;
 
 public class Test
 {
-    public IList<string> Categories { get; set; } = new List<string>();
+    public IList<string> Categories { get; set; } = [];
 
     public string Name { get; set; }
-    public Dictionary<string, string> AdditionalData { get; set; } = new Dictionary<string, string>();
 
-    public IList<Counter> Counters { get; set; } = new List<Counter>();
+    public Dictionary<string, string> AdditionalData { get; set; } = [];
+
+    public IList<Counter> Counters { get; set; } = [];
 
     public void AddCounter(Counter counter)
     {
@@ -34,9 +33,11 @@ public class Test
         Counters.Add(counter);
     }
 
-    public void AddCounter(IEnumerable<Counter> counters)
+    public void AddCounters(IEnumerable<Counter> counters)
     {
         foreach (var counter in counters)
+        {
             AddCounter(counter);
+        }
     }
 }

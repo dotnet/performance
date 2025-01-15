@@ -8,7 +8,7 @@ from shutil import copytree
 from performance.common import extension, helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import helixworkitempayload, helixuploaddir, uploadtokenpresent, getruntimeidentifier
+from shared.util import helixworkitempayload, helixuploaddir, getruntimeidentifier
 from shared.const import *
 from shared.testtraits import TestTraits
 from subprocess import CalledProcessError
@@ -81,9 +81,10 @@ class MemoryConsumptionWrapper(object):
             # rethrow the original exception 
             raise
 
-        if runninginlab():
-            copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
-            if uploadtokenpresent():
+        helix_upload_dir = helixuploaddir()
+        if runninginlab() and helix_upload_dir is not None:
+            copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'))
+            if traits.upload_to_perflab_container:
                 import upload
                 upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
 
@@ -96,7 +97,7 @@ class MemoryConsumptionWrapper(object):
             if not getattr(traits, key):
                 raise Exception('memoryconsumption tests require %s' % key)
         
-        defaultiterations = '1' if runninginlab() and not uploadtokenpresent() else '5' # only run 1 iteration for PR-triggered build
+        defaultiterations = '1' if runninginlab() and not traits.upload_to_perflab_container else '5' # only run 1 iteration for PR-triggered build
         # required arguments & optional arguments with default values
         memoryconsumption_args = [
             self.memoryconsumptionpath,
@@ -153,9 +154,10 @@ class MemoryConsumptionWrapper(object):
             # rethrow the original exception 
             raise
 
-        if runninginlab():
-            copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
-            if uploadtokenpresent():
+        helix_upload_dir = helixuploaddir()
+        if runninginlab() and helix_upload_dir is not None:
+            copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'))
+            if traits.upload_to_perflab_container:
                 import upload
                 upload_code = upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
                 getLogger().info("memoryconsumption Upload Code: " + str(upload_code))

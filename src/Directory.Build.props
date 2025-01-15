@@ -13,6 +13,7 @@
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
     
     <!-- every warning is important, we want to enforce best practices here to keep high quality of the code and avoid common mistakes -->
+    <NoWarn>$(NoWarn);NU1507</NoWarn> <!-- Darc does not seem to support auto updating of packageSourceMapping causing tool publishes to fail without manual updating of the NuGet.config with package mappings, disable this check so we don't have to manually update the source mappings. -->
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
     

@@ -12,10 +12,7 @@ Finding these benchmarks in a separate repository might be surprising. Performan
 
 ## Documentation
 
-* [Microbenchmarks Guide](./src/benchmarks/micro/README.md) for information on running our microbenchmarks
-* [Scenario Tests Guide](./docs/scenarios-workflow.md) for information on running our real-world scenario benchmarks
-* [Benchmarking workflow for dotnet/runtime repository](./docs/benchmarking-workflow-dotnet-runtime.md) for information on benchmarking local [dotnet/runtime](https://github.com/dotnet/runtime) builds
-* [Profiling workflow for dotnet/runtime repository](./docs/profiling-workflow-dotnet-runtime.md) for information on profiling local [dotnet/runtime](https://github.com/dotnet/runtime) builds
+See the [documentation signpost](./docs/README.md).
 
 ## Contributing to Repository
 

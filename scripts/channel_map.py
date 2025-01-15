@@ -3,11 +3,31 @@ from typing import List, Optional, Set
 class ChannelMap():
     channel_map = {
         'main': {
+            'tfm': 'net10.0',
+            'branch': '10.0',
+            'quality': 'daily'
+        },
+        '10.0': {
+            'tfm': 'net10.0',
+            'branch': '10.0',
+            'quality': 'daily'
+        },
+        'release/10.0': {
+            'tfm': 'net10.0',
+            'branch': '10.0',
+            'quality': 'daily'
+        },
+        'nativeaot10.0': {
+            'tfm': 'nativeaot10.0',
+            'branch': '10.0',
+            'quality': 'daily'
+        },
+        '9.0': {
             'tfm': 'net9.0',
             'branch': '9.0',
             'quality': 'daily'
         },
-        '9.0': {
+        'release/9.0': {
             'tfm': 'net9.0',
             'branch': '9.0',
             'quality': 'daily'

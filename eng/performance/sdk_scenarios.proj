@@ -127,10 +127,10 @@
 
   <ItemGroup>
     <HelixWorkItem Include="@(SDKWorkItem -> '%(Identity) Clean Build')">
-      <Command>%(Command) clean_build --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>%(Command) clean_build --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(SDKWorkItem -> '%(Identity) Build(No Change)')">
-      <Command>%(Command) build_no_change --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>%(Command) build_no_change --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
   </ItemGroup>
 
@@ -138,7 +138,7 @@
     <HelixWorkItem Include="SDK New Console">
       <ScenarioDirectoryName>emptyconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <Command>$(Python) test.py sdk new_console --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py sdk new_console --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
   </ItemGroup>
@@ -148,28 +148,28 @@
       <ScenarioDirectoryName>emptyconsoletemplateinnerloop</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
-      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop MVC">
       <ScenarioDirectoryName>mvcinnerloop</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
-      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop MsBuild Console">
       <ScenarioDirectoryName>emptyconsoletemplateinnerloopmsbuild</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
-      <Command>$(Python) test.py innerloopmsbuild --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py innerloopmsbuild --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop Blazor Client">
       <ScenarioDirectoryName>blazorwasminnerloop</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
-      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
     <!--
@@ -177,7 +177,7 @@
       <ScenarioDirectoryName>blazorwasmdotnetwatch</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>$(Python) pre.py build -f net$(FrameworkVersion) -c Release</PreCommands>
-      <Command>$(Python) test.py dotnetwatch -(-fixme when uncommenting!!)scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py dotnetwatch -(-fixme when uncommenting!!)scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
     -->
@@ -185,7 +185,7 @@
       <ScenarioDirectoryName>mvcdotnetwatch</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>$(Python) pre.py build -f net$(FrameworkVersion) -c Release</PreCommands>
-      <Command>$(Python) test.py dotnetwatch --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py dotnetwatch --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
   </ItemGroup>

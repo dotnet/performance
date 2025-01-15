@@ -9,9 +9,8 @@ from shutil import rmtree
 from stat import S_IWRITE
 from subprocess import CalledProcessError
 from subprocess import list2cmdline
-from subprocess import PIPE, DEVNULL
+from subprocess import PIPE, STDOUT, DEVNULL
 from subprocess import Popen
-from subprocess import STDOUT
 from io import StringIO
 from platform import machine
 
@@ -66,8 +65,7 @@ def make_directory(path: str):
     '''Creates a directory.'''
     if not path:
         raise TypeError('Undefined path.')
-    if not os.path.isdir(path):
-        os.makedirs(path)
+    os.makedirs(path, exist_ok=True)
 
 
 def remove_directory(path: str) -> None:
@@ -280,7 +278,7 @@ class RunCommand:
 
             if '-AzureFeed' in self.cmdline or '-FeedCredential' in self.cmdline:
                 quoted_cmdline = "<dotnet-install command contains secrets, skipping log>"
-            
+
             getLogger().info(quoted_cmdline)
 
             with Popen(

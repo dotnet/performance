@@ -43,9 +43,6 @@ def publisheddll(exename: str):
     'gets binary path for published dll'
     return os.path.join(const.PUBDIR, '%s%s' % (exename, ".dll"))
 
-def uploadtokenpresent():
-    return environ.get(UPLOAD_TOKEN_VAR) is not None
-
 def getruntimeidentifier():
     rid = None
     if iswin():
@@ -84,7 +81,10 @@ def pythoncommand():
         return 'python3'
 
 def xharnesscommand():
-    xharnesspath = os.environ.get('XHARNESSPATH')
+    xharnesspath = os.environ.get('XHARNESS_CLI_PATH')
     if xharnesspath is None or not os.path.exists(xharnesspath):
         return ['xharness']
     return ['dotnet','exec',xharnesspath]
+
+def xharness_adb():
+    return xharnesscommand() + ['android', 'adb', '--']

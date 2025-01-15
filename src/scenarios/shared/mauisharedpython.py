@@ -17,7 +17,7 @@ def generate_maui_rollback_dict():
     # Generate and use rollback based on Version.Details.xml
     # Generate the list of versions starts to get and the names to save them as in the rollback.
     # These mapping values were taken from the previously generated rollback files for the maui workload. There should be at least one entry for each
-    # of the Maui Workload dependencies in the /eng/Version.Details.xml file, aside from VS.Tools.Net.Core.SDK.Resolver.
+    # of the Maui Workload dependencies in the /eng/Version.Details.xml file, aside from Microsoft.NET.Sdk.
     # If there are errors in the future, reach out to the maui team.
     rollback_name_to_xml_name_mappings: dict[str, str] = {
         "microsoft.net.sdk.android" : "Microsoft.Android.Sdk",
@@ -37,12 +37,12 @@ def generate_maui_rollback_dict():
         root = ET.fromstring(version_details_xml)
 
     # Get the General Band version from the Version.Details.xml file sdk version
-    general_version_obj = root.find(".//Dependency[@Name='VS.Tools.Net.Core.SDK.Resolver']")
+    general_version_obj = root.find(".//Dependency[@Name='Microsoft.NET.Sdk']")
     if general_version_obj is not None:
         full_band_version_holder = general_version_obj.get("Version")
         if full_band_version_holder is None:
-            raise ValueError("Unable to find VS.Tools.Net.Core.SDK.Resolver with proper version in Version.Details.xml")
-        match = re.search(r'^\d+\.\d+\.\d+\-(preview|rc|alpha).\d+', full_band_version_holder)
+            raise ValueError("Unable to find Microsoft.NET.Sdk with proper version in Version.Details.xml")
+        match = re.search(r'^\d+\.\d+\.\d+(\-(preview|rc|alpha).\d+)?', full_band_version_holder)
         if match:
             default_band_version = match.group(0)
         else:

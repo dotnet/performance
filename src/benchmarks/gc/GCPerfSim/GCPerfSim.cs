@@ -160,6 +160,8 @@ induces an exception at the end so you can do some post mortem debugging.
 
 -compute/-c: Do some extra computation between allocations, 1000 will reduce the allocation rate by a factor of 2-4
 
+-finishWithFullCollect: Do collections until all allocated finalizable objects have been finalized
+
 The default for these args are specified in "Default parameters".
 
 ---
@@ -385,6 +387,14 @@ sealed class Rand
 
 interface ITypeWithPayload
 {
+    class Totals
+    {
+        public static long NumCreatedWithFinalizers
+            => Item.NumCreatedWithFinalizers + ReferenceItemWithSize.NumCreatedWithFinalizers;
+        public static long NumFinalized
+            => Item.NumFinalized + ReferenceItemWithSize.NumFinalized;
+    }
+
     byte[] GetPayload();
     ulong TotalSize { get; }
     void Free();
@@ -412,12 +422,14 @@ enum ItemState
     WeakLong = 4
 };
 
-class Item : ITypeWithPayload
+abstract class Item : ITypeWithPayload
 {
 #if DEBUG
     public static long NumConstructed = 0;
     public static long NumFreed = 0;
 #endif
+    public static long NumCreatedWithFinalizers = 0;
+    public static long NumFinalized = 0;
 
     public byte[]? payload; // Only null if this item has been freed
     public ItemState state;
@@ -431,13 +443,9 @@ class Item : ITypeWithPayload
 
     // TODO: isWeakLong never used
     public static Item New(uint size, bool isPinned, bool isFinalizable, bool isWeakLong = false, bool isPoh = false)
-    {
-        if (isFinalizable)
-        {
-            throw new Exception("TODO");
-        }
-        return new Item(size, isPinned, isWeakLong, isPoh);
-    }
+        => isFinalizable
+            ? (Item) new ItemFinalizable(size, isPinned, isWeakLong, isPoh)
+            : new ItemNonFinalizable(size, isPinned, isWeakLong, isPoh);
 
     private Item(uint size, bool isPinned, bool isWeakLong, bool isPoh)
     {
@@ -533,6 +541,26 @@ class Item : ITypeWithPayload
 
     public byte[] GetPayload() =>
         Util.NonNull(payload);
+
+    sealed class ItemFinalizable : Item
+    {
+        public ItemFinalizable(uint size, bool isPinned, bool isWeakLong, bool isPoh)
+            : base(size, isPinned, isWeakLong, isPoh)
+        {
+            Interlocked.Increment(ref NumCreatedWithFinalizers);
+        }
+
+        ~ItemFinalizable()
+        {
+            Interlocked.Increment(ref NumFinalized);
+        }
+    }
+
+    sealed class ItemNonFinalizable : Item
+    {
+        public ItemNonFinalizable(uint size, bool isPinned, bool isWeakLong, bool isPoh)
+            : base(size, isPinned, isWeakLong, isPoh) { }
+    }
 };
 
 // This just contains a byte array to take up space
@@ -652,18 +680,9 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
     public static uint SimpleOverhead = ReferenceItemWithSizeSize;
 
     public static ReferenceItemWithSize New(uint size, bool isPinned, bool isFinalizable, bool isPoh)
-    {
-        // Can't use conditional expression as these are two different classes
-        if (isFinalizable)
-        {
-            return new ReferenceItemWithSizeFinalizable(size, isPinned, isPoh);
-        }
-        else
-        {
-            return new ReferenceItemWithSizeNonFinalizable(size, isPinned, isPoh);
-        }
-
-    }
+        => isFinalizable
+            ? (ReferenceItemWithSize) new ReferenceItemWithSizeFinalizable(size, isPinned, isPoh)
+            : new ReferenceItemWithSizeNonFinalizable(size, isPinned, isPoh);
 
     protected ReferenceItemWithSize(uint size, bool isPinned, bool isPoh)
     {
@@ -729,7 +748,7 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
 #endif
     }
 
-    class ReferenceItemWithSizeFinalizable : ReferenceItemWithSize
+    sealed class ReferenceItemWithSizeFinalizable : ReferenceItemWithSize
     {
         public ReferenceItemWithSizeFinalizable(uint size, bool isPinned, bool isPoh)
             : base(size, isPinned, isPoh)
@@ -743,7 +762,7 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
         }
     }
 
-    class ReferenceItemWithSizeNonFinalizable : ReferenceItemWithSize
+    sealed class ReferenceItemWithSizeNonFinalizable : ReferenceItemWithSize
     {
         public ReferenceItemWithSizeNonFinalizable(uint size, bool isPinned, bool isPoh)
             : base(size, isPinned, isPoh) { }
@@ -805,7 +824,7 @@ readonly struct BucketSpec
 
     public override string ToString()
     {
-        string result = $"{sizeRange}; surv every {survInterval}; pin every {pinInterval}; weight {weight}";
+        string result = $"{sizeRange}; surv every {survInterval}; pin every {pinInterval}; finalize every {finalizableInterval}; weight {weight}";
 
 #if NET5_0_OR_GREATER
         result += $"; isPoh {isPoh}";
@@ -978,6 +997,7 @@ readonly struct Phase
         uint compute)
     {
         Util.AlwaysAssert(totalAllocBytes != 0); // Must be set
+        Util.AlwaysAssert(buckets.Length != 0);
 
         this.testKind = testKind;
         this.totalLiveBytes = totalLiveBytes;
@@ -1321,6 +1341,7 @@ class ArgsParser
         uint printEveryNthIter = 0;
         uint threadCount = 1;
         uint compute = 0;
+        bool finishWithFullCollect = false;
         text.SkipBlankLines();
         while (true)
         {
@@ -1343,7 +1364,7 @@ class ArgsParser
                         verifyLiveSize: verifyLiveSize,
                         printEveryNthIter: printEveryNthIter,
                         phases: phases),
-                    finishWithFullCollect: false,
+                    finishWithFullCollect: finishWithFullCollect,
                     endException: false);
             }
             CharSpan word = text.TakeWord();
@@ -1363,6 +1384,10 @@ class ArgsParser
             else if (word == "compute")
             {
                 compute = text.TakeUInt();
+            }
+            else if (word == "finishWithFullCollect")
+            {
+                finishWithFullCollect = true;
             }
             else
             {
@@ -2713,7 +2738,7 @@ class MemoryAlloc
         return testResult;
     }
 
-    public static int Main(string[] argsStrs)
+    public static int Test(string[] argsStrs)
     {
         try
         {
@@ -2734,13 +2759,13 @@ class MemoryAlloc
 
             if (args.finishWithFullCollect)
             {
-                while (ReferenceItemWithSize.NumFinalized < ReferenceItemWithSize.NumCreatedWithFinalizers)
+                while (ITypeWithPayload.Totals.NumFinalized < ITypeWithPayload.Totals.NumCreatedWithFinalizers)
                 {
-                    Console.WriteLine($"{ReferenceItemWithSize.NumFinalized} out of {ReferenceItemWithSize.NumCreatedWithFinalizers} finalizers have run, doing a full collect");
+                    Console.WriteLine($"{ITypeWithPayload.Totals.NumFinalized} out of {ITypeWithPayload.Totals.NumCreatedWithFinalizers} finalizers have run, doing a full collect");
                     GC.Collect(2, GCCollectionMode.Forced, blocking: true);
                     GC.WaitForPendingFinalizers();
                 }
-                Util.AlwaysAssert(ReferenceItemWithSize.NumFinalized == ReferenceItemWithSize.NumCreatedWithFinalizers);
+                Util.AlwaysAssert(ITypeWithPayload.Totals.NumFinalized == ITypeWithPayload.Totals.NumCreatedWithFinalizers);
             }
 
             PrintResult(testResult);
@@ -2758,6 +2783,7 @@ class MemoryAlloc
     public static TestResult MainInner(Args args)
     {
         Console.WriteLine($"Running 64-bit? {Environment.Is64BitProcess}");
+        Console.WriteLine($"Running SVR GC? {System.Runtime.GCSettings.IsServerGC}");
 
         int currentPid = Process.GetCurrentProcess().Id;
         Console.WriteLine("PID: {0}", currentPid);
@@ -2800,11 +2826,17 @@ class MemoryAlloc
         }
         Console.WriteLine("]");
 
-        Console.WriteLine($"num_created_with_finalizers: {ReferenceItemWithSize.NumCreatedWithFinalizers}");
-        Console.WriteLine($"num_finalized: {ReferenceItemWithSize.NumFinalized}");
+        Console.WriteLine($"num_created_with_finalizers: {ITypeWithPayload.Totals.NumCreatedWithFinalizers}");
+        Console.WriteLine($"num_finalized: {ITypeWithPayload.Totals.NumFinalized}");
         Console.WriteLine($"final_total_memory_bytes: {GC.GetTotalMemory(forceFullCollection: false)}");
 
-        // Use reflection to detect GC.GetGCMemoryInfo because it doesn't exist in dotnet core 2.0 or in .NET framework.
+#if NET5_0_OR_GREATER
+        GCMemoryInfo info = GC.GetGCMemoryInfo();
+        long heapSizeBytes = info.HeapSizeBytes;
+        long fragmentedBytes = info.FragmentedBytes;
+        Console.WriteLine($"final_heap_size_bytes: {heapSizeBytes}");
+        Console.WriteLine($"final_fragmentation_bytes: {fragmentedBytes}");
+#else
         var getGCMemoryInfo = typeof(GC).GetMethod("GetGCMemoryInfo", new Type[] { });
         if (getGCMemoryInfo != null)
         {
@@ -2814,11 +2846,14 @@ class MemoryAlloc
             Console.WriteLine($"final_heap_size_bytes: {heapSizeBytes}");
             Console.WriteLine($"final_fragmentation_bytes: {fragmentedBytes}");
         }
+#endif
     }
 
+#if !NET5_0_OR_GREATER
     private static T GetProperty<T>(object instance, string name)
     {
         PropertyInfo property = Util.NonNull(instance.GetType().GetProperty(name));
         return (T)Util.NonNull(Util.NonNull(property.GetGetMethod()).Invoke(instance, parameters: null));
     }
+#endif
 }

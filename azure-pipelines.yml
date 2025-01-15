@@ -18,22 +18,23 @@ trigger:
   branches:
     include:
     - main
-    - release/7.0
   paths:
     exclude: # don't trigger if only docs and similar files changed
     - docs/*
     - '**/*.md'
+    - 'gc-azure-pipelines.yml'
+    - src/benchmarks/gc/*
 
 pr:
   branches:
     include:
     - main
-    - release/7.0
   paths:
     exclude: # don't trigger if only docs and similar files changed
     - docs/*
     - '**/*.md'
     - scripts/benchmarks_monthly.py
+    - 'gc-azure-pipelines.yml'
     - src/benchmarks/gc/*
 
 schedules:
@@ -42,7 +43,6 @@ schedules:
   branches:
     include:
     - main
-    - release/7.0
   always: true
 - cron: "0 21 * * THU"
   displayName: Weekly Build
@@ -111,7 +111,7 @@ jobs:
       buildMachines:
         - win-x64
         - win-x86
-        - ubuntu-x64-1804
+        #- ubuntu-x64-1804 reenable under new machine on new ubuntu once lttng/events are available
       isPublic: true
       jobParameters:
         kind: sdk_scenarios
@@ -466,7 +466,7 @@ jobs:
       buildMachines:
         - win-x64
         - win-x86
-        - ubuntu-x64-1804
+        #- ubuntu-x64-1804 reenable under new machine on new ubuntu once lttng/events are available
       isPublic: false
       jobParameters:
         kind: sdk_scenarios
