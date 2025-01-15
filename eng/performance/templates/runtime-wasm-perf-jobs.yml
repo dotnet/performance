@@ -58,7 +58,7 @@ jobs:
 
 - ${{ if eq(parameters.runProfile, 'v8') }}:
   # run mono wasm interpreter (default) microbenchmarks perf job
-  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/performance/templates/runtime-perf-job.yml # NOTE: should we move this file out of coreclr tempelates because it contains mono jobs?
       buildConfig: release
@@ -84,7 +84,7 @@ jobs:
   #run mono wasm aot microbenchmarks perf job
   # Disabled for runtime-wasm-perf on PRs due to https://github.com/dotnet/runtime/issues/95101
   - ${{if not(in(variables['Build.DefinitionName'], 'runtime-wasm-perf')) }}:
-    - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         jobTemplate: /eng/performance/templates/runtime-perf-job.yml # note: should we move this file out of coreclr tempelates because it contains mono jobs?
         buildconfig: release
@@ -108,7 +108,7 @@ jobs:
             ${{ parameter.key }}: ${{ parameter.value }}
 
   # run mono wasm blazor perf job
-  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/performance/templates/runtime-perf-job.yml
       buildConfig: release

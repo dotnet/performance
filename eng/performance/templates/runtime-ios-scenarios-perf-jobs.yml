@@ -10,7 +10,7 @@ jobs:
       hybridGlobalization: ${{ parameters.hybridGlobalization }}
 
   # run mono iOS scenarios scenarios HybridGlobalization
-  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/performance/templates/runtime-perf-job.yml
       buildConfig: release
@@ -31,7 +31,7 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/performance/templates/runtime-perf-job.yml
       buildConfig: release
@@ -53,7 +53,7 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/performance/templates/runtime-perf-job.yml
       buildConfig: release
@@ -75,7 +75,7 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/performance/templates/runtime-perf-job.yml
       buildConfig: release
@@ -98,7 +98,7 @@ jobs:
           ${{ parameter.key }}: ${{ parameter.value }}
 
   # run NativeAOT iOS scenarios HybridGlobalization
-  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/performance/templates/runtime-perf-job.yml
       buildConfig: release
@@ -118,7 +118,7 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/performance/templates/runtime-perf-job.yml
       buildConfig: release
