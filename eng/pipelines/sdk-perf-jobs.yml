@@ -428,22 +428,22 @@ jobs:
   # Maui scenario benchmarks
   - ${{ if false }}:
     - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-        - win-arm64
-        - ubuntu-arm64-ampere
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios
-        projectFileName: maui_scenarios.proj
-        channels:
-          - main
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64
+          - ubuntu-x64
+          - win-arm64
+          - ubuntu-arm64-ampere
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios
+          projectFileName: maui_scenarios.proj
+          channels:
+            - main
+            - 8.0
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # NativeAOT scenario benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
