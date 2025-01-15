@@ -20,7 +20,7 @@ jobs:
   # run android scenarios
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: mono
       platforms:
@@ -39,7 +39,7 @@ jobs:
   # run mono microbenchmarks perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: mono
       platforms:
@@ -57,7 +57,7 @@ jobs:
   # run mono interpreter perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: mono
       platforms:
@@ -76,7 +76,7 @@ jobs:
   # run mono aot microbenchmarks perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml # NOTE: should we move this file out of coreclr tempelates because it contains mono jobs?
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # NOTE: should we move this file out of coreclr tempelates because it contains mono jobs?
       buildConfig: release
       runtimeFlavor: aot
       platforms:
@@ -95,7 +95,7 @@ jobs:
   # run coreclr perftiger microbenchmarks perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: coreclr
       platforms:
@@ -115,7 +115,7 @@ jobs:
   # run coreclr perftiger microbenchmarks no dynamic pgo perf jobs
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: coreclr
       platforms:
@@ -133,7 +133,7 @@ jobs:
 
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: coreclr
       platforms:
@@ -152,7 +152,7 @@ jobs:
   # run coreclr perftiger microbenchmarks no R2R perf jobs
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: coreclr
       platforms:
@@ -170,7 +170,7 @@ jobs:
 
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: coreclr
       platforms:
@@ -189,7 +189,7 @@ jobs:
   # run coreclr perfowl microbenchmarks perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: coreclr
       platforms:
@@ -207,7 +207,7 @@ jobs:
   # run coreclr perfviper microbenchmarks perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: coreclr
       platforms:
@@ -225,7 +225,7 @@ jobs:
   # run coreclr perfviper microbenchmarks perf jitoptrepeat jobs
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: coreclr
       platforms:
@@ -245,7 +245,7 @@ jobs:
   # run coreclr crossgen perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: coreclr
       platforms:
