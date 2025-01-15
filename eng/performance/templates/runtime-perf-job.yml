@@ -16,8 +16,9 @@ parameters:
   isScenario: false
   downloadSpecificBuild: null # buildId, pipeline, branchName, project
   crossBuild: false
-  runtimeRepoDir: ''
-  performanceRepoDir: ''
+  runtimeRepoAlias: runtime
+  performanceRepoAlias: self
+  selfIsRuntime: true
   # Please see run-performance-job.yml for additional parameters that can be specified as they will be forwarded through
 
 jobs:
@@ -27,6 +28,7 @@ jobs:
       ${{ if notIn(parameter.key, 'steps', 'variables', 'framework') }}:
         ${{ parameter.key }}: ${{ parameter.value }}
 
+    isRuntimeJob: true
     useLocalCommitTime: true
     frameworks:
     - ${{ parameters.framework }}
@@ -57,9 +59,9 @@ jobs:
         - name: _crossBuildPropertyArg
           value: '-cross'
       - name: librariesDownloadDir
-        value: ${{ parameters.runtimeRepoDir }}/artifacts
+        value: $(Build.SourcesDirectory)/artifacts
       - name: builtAppDir
-        value: ${{ parameters.runtimeRepoDir }}
+        value: $(Build.SourcesDirectory)
       - name: librariesOverrideArg
         value: ''
       - ${{ if ne(parameters.liveLibrariesBuildConfig, '') }}:
@@ -91,8 +93,10 @@ jobs:
     steps:
       - ${{ each step in parameters.steps }}:
         - ${{ step }}
+      - ${{ if eq(parameters.osGroup, 'windows') }}:
+        - template: /eng/pipelines/common/templates/disable-vsupdate-or-failfast.yml@${{ parameters.runtimeRepoAlias }}
       - script: |
-          ${{ parameters.runtimeRepoDir }}/eng/common/msbuild.sh ${{ parameters.runtimeRepoDir }}/eng/testing/performance/add_properties_to_pipeline.proj /t:SetVariables
+          $(Build.SourcesDirectory)/eng/common/msbuild.sh $(Build.SourcesDirectory)/eng/testing/performance/add_properties_to_pipeline.proj /t:SetVariables
         displayName: Add Properties To Pipeline Env
 
       - ${{ if eq(parameters.runtimeType, 'wasm') }}:
@@ -212,20 +216,20 @@ jobs:
       - ${{ if notIn(parameters.runtimeType, 'wasm', 'AndroidMono', 'iOSMono', 'iOSNativeAOT') }}:
         - ${{ if ne(parameters.runtimeFlavor, 'Mono') }}:
           # Create Core_Root
-          - script: ${{ parameters.runtimeRepoDir }}/src/tests/build$(scriptExt) ${{ parameters.buildConfig }} ${{ parameters.archType }} generatelayoutonly $(librariesOverrideArg) $(_crossBuildPropertyArg)
+          - script: $(Build.SourcesDirectory)/src/tests/build$(scriptExt) ${{ parameters.buildConfig }} ${{ parameters.archType }} generatelayoutonly $(librariesOverrideArg) $(_crossBuildPropertyArg)
             displayName: Create Core_Root
         - ${{ elseif ne(parameters.osGroup, 'windows') }}:
           - task: CopyFiles@2
             displayName: Create .dotnet-mono folder
             inputs:
               SourceFolder: $(librariesDownloadDir)/bin/testhost/${{ parameters.framework }}-${{ parameters.osGroup }}-$(buildConfigUpper)-${{ parameters.archType }}
-              TargetFolder: ${{ parameters.runtimeRepoDir }}/.dotnet-mono
+              TargetFolder: $(Build.SourcesDirectory)/.dotnet-mono
           - task: CopyFiles@2
             displayName: Copy corerun to .dotnet-mono
             inputs:
               SourceFolder: $(librariesDownloadDir)/bin/coreclr/${{ parameters.osGroup }}.${{ parameters.archType }}.$(buildConfigUpper)
               Contents: 'corerun*'
-              TargetFolder: ${{ parameters.runtimeRepoDir }}/.dotnet-mono/shared/Microsoft.NETCore.App/$(productVersion)
+              TargetFolder: $(Build.SourcesDirectory)/.dotnet-mono/shared/Microsoft.NETCore.App/$(productVersion)
 
         - ${{ if and(eq(parameters.isScenario, true), eq(parameters.runtimeType, 'wasm')) }}:
           - script: >-

@@ -1,0 +1,140 @@
+parameters:
+  hybridGlobalization: True
+  runtimeRepoAlias: runtime
+  performanceRepoAlias: self
+  jobParameters: {}
+
+jobs:
+  - template: /eng/pipelines/coreclr/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      hybridGlobalization: ${{ parameters.hybridGlobalization }}
+
+  # run mono iOS scenarios scenarios HybridGlobalization
+  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      buildConfig: release
+      runtimeFlavor: mono
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSMono
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone12mini'
+        iOSLlvmBuild: False
+        iOSStripSymbols: False
+        hybridGlobalization: ${{ parameters.hybridGlobalization }}
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      buildConfig: release
+      runtimeFlavor: mono
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSMono
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone12mini'
+        iOSLlvmBuild: False
+        iOSStripSymbols: True
+        hybridGlobalization: ${{ parameters.hybridGlobalization }}
+        additionalJobIdentifier: iOSStripSymbols
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      buildConfig: release
+      runtimeFlavor: mono
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSMono
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone12mini'
+        iOSLlvmBuild: True
+        iOSStripSymbols: False
+        hybridGlobalization: ${{ parameters.hybridGlobalization }}
+        additionalJobIdentifier: iOSLlvmBuild
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      buildConfig: release
+      runtimeFlavor: mono
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSMono
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone12mini'
+        iOSLlvmBuild: True
+        iOSStripSymbols: True
+        hybridGlobalization: ${{ parameters.hybridGlobalization }}
+        additionalJobIdentifier: iOSLlvmBuild iOSStripSymbols
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # run NativeAOT iOS scenarios HybridGlobalization
+  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      buildConfig: release
+      runtimeFlavor: coreclr
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSNativeAOT
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone12mini'
+        iOSStripSymbols: False
+        hybridGlobalization: ${{ parameters.hybridGlobalization }}
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  - template: /eng/pipelines/common/platform-matrix.yml${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/performance/templates/runtime-perf-job.yml
+      buildConfig: release
+      runtimeFlavor: coreclr
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSNativeAOT
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone12mini'
+        iOSStripSymbols: True
+        hybridGlobalization: ${{ parameters.hybridGlobalization }}
+        additionalJobIdentifier: iOSStripSymbols
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}

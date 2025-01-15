@@ -18,6 +18,10 @@ parameters:
   continueOnError: false            # optional -- Whether to continue on error
   buildConfig: ''                   # optional -- Build configuration
   variables: []                     # optional -- Additional variables to set for the job
+  performanceRepoAlias: self        # optional -- The alias for the performance repository
+  runtimeRepoAlias: runtime         # optional -- The alias for the runtime repository
+  isRuntimeJob: false               # optional -- Whether the performance job runs against a build of the runtime repository
+  checkoutFetchDepth: 20            # optional -- Fetch depth for the checkout
 
   # Passed into run performance job script
   runKind: ''                       # required -- micro, scenarios, blazor_scenarios ...
@@ -39,8 +43,6 @@ parameters:
   projectFileName: 'helix.proj'     # optional -- Name of Helix project file in /eng/performance directory
   projectFile: ''                   # optional -- Full path to project file
   framework: ''                     # optional -- Framework to run against (use frameworks). Ignored if frameworks is non-empty.
-  performanceRepoDir: $(Build.SourcesDirectory) # optional -- Path to the performance repo
-  runtimeRepoDir: ''                # optional -- Path to the runtime repo
   codeGenType: ''                   # optional -- CodeGen type (e.g. JIT, AOT)
   runtimeType: ''                   # optional -- Runtime type (e.g. mono, wasm, coreclr)
   useLocalCommitTime: false         # optional -- Whether to use the local commit time or fetch it from the remote repository
@@ -123,7 +125,7 @@ jobs:
         ${{ if ne(parameters.projectFile, '') }}:
           value: ${{ parameters.projectFile }}
         ${{ else }}:
-          value: ${{ parameters.performanceRepoDir }}/eng/performance/${{ parameters.projectFileName }}
+          value: $(Build.SourcesDirectory)/performance/eng/performance/${{ parameters.projectFileName }}
       - ${{ if eq(parameters.osGroup, 'windows') }}:
         - name: Python
           value: 'py -3'
@@ -133,6 +135,15 @@ jobs:
       - ${{ each variable in parameters.variables }}:
         - ${{ variable }}
     steps:
+      - checkout: ${{ parameters.performanceRepoAlias }}
+        path: s/performance
+        clean: true
+        fetchDepth: ${{ parameters.checkoutFetchDepth }}
+      - ${{ if parameters.isRuntimeJob }}:
+        - checkout: ${{ parameters.runtimeRepoAlias }}
+          path: s
+          clean: true
+          fetchDepth: ${{ parameters.checkoutFetchDepth }}
       - ${{ each step in parameters.steps }}:
         - ${{ step }}
       - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(parameters.downloadPdn, true)) }}:
@@ -146,7 +157,7 @@ jobs:
               az storage blob download --auth-mode login --account-name pvscmdupload --container-name assets --name paint.net.5.0.3.portable.${{ parameters.archType }}.zip --file $(_pdnPath)
       - template: /eng/performance/templates/run-performance-job-script-step.yml
         parameters:
-          performanceRepoDir: ${{ parameters.performanceRepoDir }}
+          performanceRepoDir: $(Build.SourcesDirectory)/performance
           runPerformanceJobArgs:
             - '--run-kind ${{ parameters.runKind }}'
             - '--architecture ${{ parameters.archType }}'
@@ -188,10 +199,9 @@ jobs:
               - '--framework $(_Framework)'
             - ${{ elseif ne(parameters.framework, '') }}:
               - '--framework ${{ parameters.framework }}'
-            - ${{ if ne(parameters.performanceRepoDir, '.') }}:
-              - '--performance-repo-dir ${{ parameters.performanceRepoDir }}'
-            - ${{ if ne(parameters.runtimeRepoDir, '') }}:
-              - '--runtime-repo-dir ${{ parameters.runtimeRepoDir }}'
+            - '--performance-repo-dir $(Build.SourcesDirectory)/performance'
+            - ${{ if parameters.isRuntimeJob }}:
+              - '--runtime-repo-dir $(Build.SourcesDirectory)'
             - ${{ if ne(parameters.codeGenType, '') }}:
               - '--codegen-type ${{ parameters.codeGenType }}'
             - ${{ if ne(parameters.runtimeType, '') }}:
