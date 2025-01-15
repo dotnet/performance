@@ -135,15 +135,15 @@ jobs:
       - ${{ each variable in parameters.variables }}:
         - ${{ variable }}
     steps:
-      - checkout: ${{ parameters.performanceRepoAlias }}
-        path: s/performance
-        clean: true
-        fetchDepth: ${{ parameters.checkoutFetchDepth }}
       - ${{ if parameters.isRuntimeJob }}:
         - checkout: ${{ parameters.runtimeRepoAlias }}
           path: s
           clean: true
           fetchDepth: ${{ parameters.checkoutFetchDepth }}
+      - checkout: ${{ parameters.performanceRepoAlias }}
+        path: s/performance
+        clean: true
+        fetchDepth: ${{ parameters.checkoutFetchDepth }}
       - ${{ each step in parameters.steps }}:
         - ${{ step }}
       - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(parameters.downloadPdn, true)) }}:
