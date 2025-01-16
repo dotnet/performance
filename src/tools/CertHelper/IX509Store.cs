@@ -25,7 +25,7 @@ public class TestableX509Store : IX509Store
     private X509Store store;
     public TestableX509Store(OpenFlags flags = OpenFlags.ReadOnly)
     {
-        store = new X509Store(StoreName.My, StoreLocation.LocalMachine, flags);
+        store = new X509Store(StoreName.My, StoreLocation.CurrentUser, flags);
     }
 
     public X509Store GetX509Store()

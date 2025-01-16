@@ -44,52 +44,43 @@ public class KeyVaultCertTests
         mockCertClient = new Mock<CertificateClient>(new Uri("https://dotnetperfkeyvault.vault.azure.net/"), mockTokenCred.Object);
         mockSecretClient = new Mock<SecretClient>(new Uri("https://dotnetperfkeyvault.vault.azure.net/"), mockTokenCred.Object);
         KeyVaultCertificateWithPolicy? mockCert1, mockCert2;
-        X509Certificate2 cert1, cert2;
-        MakeCerts(out mockCert1, out mockCert2, out cert1, out cert2, localAndKeyVaultDifferent);
+        X509Certificate2 cert1, cert2, cert3;
+        MakeCerts(out mockCert1, out mockCert2, out cert1, out cert2, out cert3, localAndKeyVaultDifferent);
 
         var certCollection = new X509Certificate2Collection { cert1, cert2 };
 
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-        mockCertClient.Setup(c => c.GetCertificateAsync(Constants.Cert1Name, default)).ReturnsAsync(Response.FromValue(mockCert1, null));
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+        mockCertClient.Setup(c => c.GetCertificateAsync(Constants.Cert1Name, default)).ReturnsAsync(Response.FromValue(mockCert1, null!));
         if (missingKeyVaultCerts)
         {
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-            mockCertClient.Setup(c => c.GetCertificateAsync(Constants.Cert2Name, default)).ReturnsAsync(Response.FromValue<KeyVaultCertificateWithPolicy>(null, null));
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+            mockCertClient.Setup(c => c.GetCertificateAsync(Constants.Cert2Name, default)).ReturnsAsync(Response.FromValue<KeyVaultCertificateWithPolicy>(null!, null!));
         }
         else
         {
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-            mockCertClient.Setup(c => c.GetCertificateAsync(Constants.Cert2Name, default)).ReturnsAsync(Response.FromValue(mockCert2, null));
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+            mockCertClient.Setup(c => c.GetCertificateAsync(Constants.Cert2Name, default)).ReturnsAsync(Response.FromValue(mockCert2, null!));
         }
 
         //var secret1 = new KeyVaultSecret(Constants.Cert1Name, Convert.ToBase64String(certCollection[0].Export(X509ContentType.Cert)));
         //var secret2 = new KeyVaultSecret(Constants.Cert2Name, Convert.ToBase64String(certCollection[1].Export(X509ContentType.Cert)));
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-        var secret1 = new KeyVaultSecret(Constants.Cert1Name, Convert.ToBase64String(cert1.Export(X509ContentType.Pfx)));
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-        var secret2 = new KeyVaultSecret(Constants.Cert1Name, Convert.ToBase64String(cert1.Export(X509ContentType.Pfx)));
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-        mockSecretClient.Setup(s => s.GetSecretAsync(Constants.Cert1Name, mockCert1.SecretId.Segments.Last(), default)).ReturnsAsync(Response.FromValue(secret1, null));
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-        mockSecretClient.Setup(s => s.GetSecretAsync(Constants.Cert2Name, mockCert2.SecretId.Segments.Last(), default)).ReturnsAsync(Response.FromValue(secret2, null));
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+        KeyVaultSecret secret1;
+        if(localAndKeyVaultDifferent)
+        {
+            secret1 = new KeyVaultSecret(Constants.Cert1Name, Convert.ToBase64String(cert3.Export(X509ContentType.Pfx)));
+        }
+        else
+        {
+            secret1 = new KeyVaultSecret(Constants.Cert1Name, Convert.ToBase64String(cert1.Export(X509ContentType.Pfx)));
+        }
+        var secret2 = new KeyVaultSecret(Constants.Cert2Name, Convert.ToBase64String(cert2.Export(X509ContentType.Pfx)));
+
+        mockSecretClient.Setup(s => s.GetSecretAsync(Constants.Cert1Name, mockCert1!.SecretId.Segments.Last(), default)).ReturnsAsync(Response.FromValue(secret1, null!));
+        mockSecretClient.Setup(s => s.GetSecretAsync(Constants.Cert2Name, mockCert2!.SecretId.Segments.Last(), default)).ReturnsAsync(Response.FromValue(secret2, null!));
 
         mockLocalCert = new Mock<ILocalCert>();
         mockLocalCert.Setup(lc => lc.Certificates).Returns(certCollection);
     }
 
-    private static void MakeCerts(out KeyVaultCertificateWithPolicy? mockCert1, out KeyVaultCertificateWithPolicy? mockCert2, out X509Certificate2 cert1, out X509Certificate2 cert2, bool localAndKeyVaultDifferent = false)
+    private static void MakeCerts(out KeyVaultCertificateWithPolicy? mockCert1, out KeyVaultCertificateWithPolicy? mockCert2, out X509Certificate2 cert1, out X509Certificate2 cert2, out X509Certificate2 cert3, bool localAndKeyVaultDifferent = false)
     {
         using var rsa1 = RSA.Create(); // generate asymmetric key pair
         var req1 = new CertificateRequest("cn=perflabtest", rsa1, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
@@ -97,15 +88,16 @@ public class KeyVaultCertTests
         using var rsa2 = RSA.Create(); // generate asymmetric key pair
         var req2 = new CertificateRequest("cn=perflabtest", rsa2, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         var tmpCert2 = req2.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
-        cert1 = tmpCert1;
-        cert2 = tmpCert2;
+        cert1 = new X509Certificate2(tmpCert1);
+        cert2 = new X509Certificate2(tmpCert2);
 
         if(localAndKeyVaultDifferent)
         {
-            var ecdsa = ECDsa.Create(); // generate asymmetric key pair
-            var req = new CertificateRequest("cn=perflabtest", ecdsa, HashAlgorithmName.SHA256);
-            tmpCert1 = X509CertificateLoader.LoadPkcs12(req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5)).Export(X509ContentType.Pkcs12), "");
+            using var rsa3 = RSA.Create(); // generate asymmetric key pair
+            var req = new CertificateRequest("cn=perflabtest", rsa3, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            tmpCert1 = req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
         }
+        cert3 = new X509Certificate2(tmpCert1);
 
         mockCert1 = CertificateModelFactory.KeyVaultCertificateWithPolicy(CertificateModelFactory.CertificateProperties(Constants.Cert1Id, Constants.Cert1Name, x509thumbprint: Convert.FromHexString(tmpCert1.Thumbprint)),
             Constants.Cert1Id, Constants.Cert1Id, tmpCert1.GetRawCertData());

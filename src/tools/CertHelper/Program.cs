@@ -7,32 +7,25 @@ internal class Program
 {
     static async Task<int> Main(string[] args)
     {
-        var kvc = new KeyVaultCert();
-        await kvc.GetKeyVaultCerts();
-        var updated = false;
-        if (kvc.ShouldRotateCerts())
+        try
         {
-            using (var localMachineCerts = new X509Store(StoreName.My, StoreLocation.LocalMachine))
+            var kvc = new KeyVaultCert();
+            await kvc.GetKeyVaultCerts();
+            if (kvc.ShouldRotateCerts())
             {
-                try
+                using (var localMachineCerts = new X509Store(StoreName.My, StoreLocation.CurrentUser))
                 {
                     localMachineCerts.Open(OpenFlags.ReadWrite);
-                }
-                catch (System.Security.Cryptography.CryptographicException ex) when (ex.Message.Contains("Unix"))
-                {
-                    var localMachineCertsCurrentUser = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-                    localMachineCertsCurrentUser.Open(OpenFlags.ReadWrite);
-                    localMachineCertsCurrentUser.RemoveRange(kvc.LocalCerts.Certificates);
-                    localMachineCertsCurrentUser.AddRange(kvc.KeyVaultCertificates);
-                    localMachineCertsCurrentUser.Close();
-                    updated = true;
-                }
-                if(!updated)
-                {
                     localMachineCerts.RemoveRange(kvc.LocalCerts.Certificates);
                     localMachineCerts.AddRange(kvc.KeyVaultCertificates);
                 }
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Failed to rotate certificates");
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.StackTrace);
         }
 
         using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser, OpenFlags.ReadWrite))
