@@ -59,9 +59,6 @@ public class KeyVaultCertTests
             mockCertClient.Setup(c => c.GetCertificateAsync(Constants.Cert2Name, default)).ReturnsAsync(Response.FromValue(mockCert2, null!));
         }
 
-        //var secret1 = new KeyVaultSecret(Constants.Cert1Name, Convert.ToBase64String(certCollection[0].Export(X509ContentType.Cert)));
-        //var secret2 = new KeyVaultSecret(Constants.Cert2Name, Convert.ToBase64String(certCollection[1].Export(X509ContentType.Cert)));
-
         KeyVaultSecret secret1;
         if(localAndKeyVaultDifferent)
         {
