@@ -578,7 +578,7 @@ jobs:
         channels:
           - main
 
-  ML.NET benchmarks
+  # ML.NET benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/benchmark_jobs.yml
@@ -626,23 +626,23 @@ jobs:
           - DOTNET_GCHeapCount=4
           - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
 
-  ILLink benchmarks
-  disabled because of: https://github.com/dotnet/performance/issues/3569
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-        # Illink.Utilities is not supported on ARM: The type initializer for 'ILLinkBenchmarks.Utilities' threw a NotSupportedException (Unsupported architecture). (06/2023)
-      isPublic: false
-      jobParameters:
-        kind: illink
-        csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
-        runCategories: 'illink'
-        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-          - main
-          - 8.0
+  # ILLink benchmarks
+  # disabled because of: https://github.com/dotnet/performance/issues/3569
+  # - template: /eng/performance/build_machine_matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/performance/benchmark_jobs.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #       # Illink.Utilities is not supported on ARM: The type initializer for 'ILLinkBenchmarks.Utilities' threw a NotSupportedException (Unsupported architecture). (06/2023)
+  #     isPublic: false
+  #     jobParameters:
+  #       kind: illink
+  #       csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
+  #       runCategories: 'illink'
+  #       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+  #         - main
+  #         - 8.0
 
   # Powershell benchmarks
   - template: /eng/performance/build_machine_matrix.yml
