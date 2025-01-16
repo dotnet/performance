@@ -649,10 +649,10 @@ jobs:
     parameters:
       jobTemplate: /eng/performance/benchmark_jobs.yml
       buildMachines:
-        # - win-x64
-        # - ubuntu-x64
+        - win-x64
+        - ubuntu-x64
         - win-arm64
-        # - ubuntu-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: powershell
