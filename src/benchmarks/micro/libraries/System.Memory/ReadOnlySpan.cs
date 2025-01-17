@@ -107,14 +107,10 @@ namespace System.Memory
             yield return " 1abcdefg";
             yield return "  2abcdefg";
             yield return "    4abcdefg";
-            yield return "     5abcdefg";
             yield return "      6abcdefg";
             yield return "       7abcdefg";
             yield return "        8abcdefg";
             yield return "         9abcdefg";
-            yield return "          10abcdefg";
-            yield return "           11abcdefg";
-            yield return "            12abcdefg";
             yield return "                16abcdefg";
             yield return "                                32abcdefg";
         }
