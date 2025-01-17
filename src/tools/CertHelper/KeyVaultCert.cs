@@ -34,12 +34,12 @@ public class KeyVaultCert
         KeyVaultCertificates = new X509Certificate2Collection();
     }
 
-    public async Task GetKeyVaultCerts()
+    public async Task LoadKeyVaultCertsAsync()
     {
-        KeyVaultCertificates.Add(await FindCertificateInKeyVault(Constants.Cert1Name));
-        KeyVaultCertificates.Add(await FindCertificateInKeyVault(Constants.Cert2Name));
+        KeyVaultCertificates.Add(await FindCertificateInKeyVaultAsync(Constants.Cert1Name));
+        KeyVaultCertificates.Add(await FindCertificateInKeyVaultAsync(Constants.Cert2Name));
 
-        if (KeyVaultCertificates.Count != 2 || KeyVaultCertificates.Where(c => c == null).Count() > 0)
+        if (KeyVaultCertificates.Where(c => c == null).Count() > 0)
         {
             throw new Exception("One or more certificates not found");
         }
@@ -70,7 +70,7 @@ public class KeyVaultCert
         return ccc;
     }
 
-    private async Task<X509Certificate2> FindCertificateInKeyVault(string certName)
+    private async Task<X509Certificate2> FindCertificateInKeyVaultAsync(string certName)
     {
         var keyVaultCert = await CertClient.GetCertificateAsync(certName);
         if(keyVaultCert.Value == null)

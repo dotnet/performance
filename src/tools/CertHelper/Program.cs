@@ -15,7 +15,7 @@ internal class Program
         try
         {
             var kvc = new KeyVaultCert();
-            await kvc.GetKeyVaultCerts();
+            await kvc.LoadKeyVaultCertsAsync();
             if (kvc.ShouldRotateCerts())
             {
                 using (var localMachineCerts = new X509Store(StoreName.My, StoreLocation.CurrentUser))

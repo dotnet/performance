@@ -18,7 +18,7 @@ namespace CertHelper.Tests;
 public class KeyVaultCertTests
 {
     [Fact]
-    public async Task GetKeyVaultCerts_ShouldAddCertificatesToCollection()
+    public async Task LoadKeyVaultCertsAsync_ShouldAddCertificatesToCollection()
     {
         // Arrange
         Mock<TokenCredential> mockTokenCred;
@@ -30,7 +30,7 @@ public class KeyVaultCertTests
         var keyVaultCert = new KeyVaultCert(mockTokenCred.Object, mockCertClient.Object, mockSecretClient.Object, mockLocalCert.Object);
 
         // Act
-        await keyVaultCert.GetKeyVaultCerts();
+        await keyVaultCert.LoadKeyVaultCertsAsync();
 
         // Assert
         Assert.Equal(2, keyVaultCert.KeyVaultCertificates.Count);
@@ -103,7 +103,7 @@ public class KeyVaultCertTests
     }
 
     [Fact]
-    public async Task GetKeyVaultCerts_ShouldThrowException_WhenCertificatesNotFound()
+    public async Task LoadKeyVaultCertsAsync_ShouldThrowException_WhenCertificatesNotFound()
     {
         // Arrange
         Mock<TokenCredential> mockTokenCred;
@@ -115,7 +115,7 @@ public class KeyVaultCertTests
         var keyVaultCert = new KeyVaultCert(mockTokenCred.Object, mockCertClient.Object, mockSecretClient.Object, mockLocalCert.Object);
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(() => keyVaultCert.GetKeyVaultCerts());
+        await Assert.ThrowsAsync<Exception>(() => keyVaultCert.LoadKeyVaultCertsAsync());
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class KeyVaultCertTests
         var keyVaultCert = new KeyVaultCert(mockTokenCred.Object, mockCertClient.Object, mockSecretClient.Object, mockLocalCert.Object);
 
         // Act
-        await keyVaultCert.GetKeyVaultCerts();
+        await keyVaultCert.LoadKeyVaultCertsAsync();
 
         var result = keyVaultCert.ShouldRotateCerts();
 
@@ -152,7 +152,7 @@ public class KeyVaultCertTests
         var keyVaultCert = new KeyVaultCert(mockTokenCred.Object, mockCertClient.Object, mockSecretClient.Object, mockLocalCert.Object);
 
         // Act
-        await keyVaultCert.GetKeyVaultCerts();
+        await keyVaultCert.LoadKeyVaultCertsAsync();
 
         var result = keyVaultCert.ShouldRotateCerts();
 
