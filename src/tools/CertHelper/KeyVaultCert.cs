@@ -15,22 +15,22 @@ namespace CertHelper;
 
 public class KeyVaultCert
 {
-    private readonly string KeyVaultUrl = "https://dotnetperfkeyvault.vault.azure.net/";
-    private readonly string TenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";
-    private readonly string ClientId = "8c4b65ef-5a73-4d5a-a298-962d4a4ef7bc";
+    private readonly string _keyVaultUrl = "https://dotnetperfkeyvault.vault.azure.net/";
+    private readonly string _tenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";
+    private readonly string _clientId = "8c4b65ef-5a73-4d5a-a298-962d4a4ef7bc";
 
     public X509Certificate2Collection KeyVaultCertificates { get; set; }
     public ILocalCert LocalCerts { get; set; }
-    private TokenCredential Credential { get; set; }
-    private CertificateClient CertClient { get; set; }
-    private SecretClient SecretClient { get; set; }
+    private TokenCredential _credential { get; set; }
+    private CertificateClient _certClient { get; set; }
+    private SecretClient _secretClient { get; set; }
 
     public KeyVaultCert(TokenCredential? cred = null, CertificateClient? certClient = null, SecretClient? secretClient = null, ILocalCert? localCerts = null)
     {
         LocalCerts = localCerts ?? new LocalCert();
-        Credential = cred ?? GetCertifcateCredentialAsync(TenantId, ClientId, LocalCerts.Certificates).Result;
-        CertClient = certClient ?? new CertificateClient(new Uri(KeyVaultUrl), Credential);
-        SecretClient = secretClient ?? new SecretClient(new Uri(KeyVaultUrl), Credential);
+        _credential = cred ?? GetCertifcateCredentialAsync(_tenantId, _clientId, LocalCerts.Certificates).Result;
+        _certClient = certClient ?? new CertificateClient(new Uri(_keyVaultUrl), _credential);
+        _secretClient = secretClient ?? new SecretClient(new Uri(_keyVaultUrl), _credential);
         KeyVaultCertificates = new X509Certificate2Collection();
     }
 
@@ -72,12 +72,12 @@ public class KeyVaultCert
 
     private async Task<X509Certificate2> FindCertificateInKeyVaultAsync(string certName)
     {
-        var keyVaultCert = await CertClient.GetCertificateAsync(certName);
+        var keyVaultCert = await _certClient.GetCertificateAsync(certName);
         if(keyVaultCert.Value == null)
         {
             throw new Exception("Certificate not found in Key Vault");
         }
-        var secret = await SecretClient.GetSecretAsync(keyVaultCert.Value.Name, keyVaultCert.Value.SecretId.Segments.Last());
+        var secret = await _secretClient.GetSecretAsync(keyVaultCert.Value.Name, keyVaultCert.Value.SecretId.Segments.Last());
         if(secret.Value == null)
         {
             throw new Exception("Certificate secret not found in Key Vault");
