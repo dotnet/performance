@@ -8,8 +8,8 @@ jobs:
 - ${{ if containsValue(parameters.buildMachines, 'win-x64') }}:
   - template: ${{ parameters.jobTemplate }}
     parameters:
-      osName: windows
-      architecture: x64
+      osGroup: windows
+      archType: x64
       pool:
         vmImage: windows-2019
       ${{ insert }}: ${{ parameters.jobParameters }}
@@ -25,9 +25,9 @@ jobs:
 - ${{ if and(containsValue(parameters.buildMachines, 'win-rs5-x64'), eq(parameters.isPublic, true)) }}: # RS5 only used in public builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
-      osName: windows
+      osGroup: windows
       osVersion: RS5
-      architecture: x64
+      archType: x64
       pool:
         vmImage: windows-2019
       machinePool: Open
@@ -37,8 +37,8 @@ jobs:
 - ${{ if containsValue(parameters.buildMachines, 'win-x86') }}:
   - template: ${{ parameters.jobTemplate }}
     parameters:
-      osName: windows
-      architecture: x86
+      osGroup: windows
+      archType: x86
       pool:
         vmImage: windows-2019
       ${{ insert }}: ${{ parameters.jobParameters }}
@@ -54,9 +54,9 @@ jobs:
 - ${{ if containsValue(parameters.buildMachines, 'ubuntu-x64') }}:
   - template: ${{ parameters.jobTemplate }}
     parameters:
-      osName: ubuntu
+      osGroup: ubuntu
       osVersion: 2204
-      architecture: x64
+      archType: x64
       pool: 
         vmImage: ubuntu-latest
       container: ubuntu_x64_build_container
@@ -71,9 +71,9 @@ jobs:
 - ${{ if and(containsValue(parameters.buildMachines, 'win-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
-      osName: windows
+      osGroup: windows
       osVersion: 20H1
-      architecture: arm64
+      archType: arm64
       pool:
         vmImage: windows-2019
       machinePool: Tiger
@@ -83,9 +83,9 @@ jobs:
 - ${{ if and(containsValue(parameters.buildMachines, 'win-arm64-ampere'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
-      osName: windows
+      osGroup: windows
       osVersion: 22H2
-      architecture: arm64
+      archType: arm64
       pool:
         vmImage: windows-2019
       machinePool: Ampere
@@ -95,9 +95,9 @@ jobs:
 - ${{ if and(containsValue(parameters.buildMachines, 'ubuntu-arm64-ampere'), not(eq(parameters.isPublic, true))) }}: # Ubuntu ARM64 only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
-      osName: ubuntu
+      osGroup: ubuntu
       osVersion: 2204
-      architecture: arm64
+      archType: arm64
       pool:
         vmImage: ubuntu-latest
       container: ubuntu_x64_build_container
@@ -108,8 +108,8 @@ jobs:
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-pixel'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
-      osName: windows
-      architecture: x64
+      osGroup: windows
+      archType: x64
       osVersion: 22H2
       pool:
         vmImage: 'windows-2022'
@@ -120,8 +120,8 @@ jobs:
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-galaxy'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Galaxy only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
-      osName: windows
-      architecture: x64
+      osGroup: windows
+      archType: x64
       osVersion: 22H2
       pool:
         vmImage: 'windows-2022'
@@ -132,8 +132,8 @@ jobs:
 - ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 12mini only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
-      osName: osx
-      architecture: x64
+      osGroup: osx
+      archType: x64
       osVersion: 14
       pool:
         vmImage: 'macos-14'
