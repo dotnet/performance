@@ -2,17 +2,21 @@
 using GC.Infrastructure.Core.Analysis;
 using GC.Infrastructure.Core.Configurations.GCPerfSim;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 {
     public static class Json
     {
+        private static readonly Dictionary<string, Func<ComparisonResult, bool>> diffLevelPredicate = new() {
+            { "LargeRegressions", c => c.PercentageDelta > 20 },
+            { "LargeImprovements", c => c.PercentageDelta < -20 },
+            { "Regressions", c => c.PercentageDelta > 5 && c.PercentageDelta < 20 },
+            { "Improvements", c => c.PercentageDelta < -5 && c.PercentageDelta > -20 },
+            { "StaleRegressions", c => c.PercentageDelta >= 0 && c.PercentageDelta < 5 },
+            { "StaleImprovements", c => c.PercentageDelta < 0 && c.PercentageDelta > -5 },
+        };
+
         public static void GenerateComparisonDictionary(ResultItem baseResultItem, ResultItem comparandResultItem, string path)
         {
             Dictionary<string, List<ComparisonResult>> comparisonResultsJson = new();
@@ -32,53 +36,14 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 comparisonResults.Add(result);
             }
 
-            string key;
-            // Large Regressions
-            key = "LargeRegressions";
-            foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta > 20)))
+            foreach (var item in diffLevelPredicate)
             {
+                string key = item.Key;
+                Func<ComparisonResult, bool> predicate = item.Value;
                 comparisonResultsJson[key] = comparisonResultsJson.GetValueOrDefault(key, new List<ComparisonResult>());
-                comparisonResultsJson[key].Add(r);
-            }
-
-            // Large Improvements
-            key = "LargeImprovements";
-            foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta < -20)))
-            {
-                comparisonResultsJson[key] = comparisonResultsJson.GetValueOrDefault(key, new List<ComparisonResult>());
-                comparisonResultsJson[key].Add(r);
-            }
-
-            // Regressions
-            key = "Regressions";
-            foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta > 5 && c.PercentageDelta < 20)))
-            {
-                comparisonResultsJson[key] = comparisonResultsJson.GetValueOrDefault(key, new List<ComparisonResult>());
-                comparisonResultsJson[key].Add(r);
-            }
-
-            // Improvements
-            key = "Improvements";
-            foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta < -5 && c.PercentageDelta > -20)))
-            {
-                comparisonResultsJson[key] = comparisonResultsJson.GetValueOrDefault(key, new List<ComparisonResult>());
-                comparisonResultsJson[key].Add(r);
-            }
-
-            // Stale Regressions
-            key = "StaleRegressions";
-            foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta >= 0 && c.PercentageDelta < 5)))
-            {
-                comparisonResultsJson[key] = comparisonResultsJson.GetValueOrDefault(key, new List<ComparisonResult>());
-                comparisonResultsJson[key].Add(r);
-            }
-
-            // Stale Improvements
-            key = "StaleImprovements";
-            foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta < 0 && c.PercentageDelta > -5)))
-            {
-                comparisonResultsJson[key] = comparisonResultsJson.GetValueOrDefault(key, new List<ComparisonResult>());
-                comparisonResultsJson[key].Add(r);
+                GoodLinq
+                    .Where(comparisonResults, predicate)
+                    .ForEach(r => comparisonResultsJson[key].Add(r));
             }
 
             string json = JsonConvert.SerializeObject(comparisonResultsJson);
@@ -132,54 +97,15 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 }
 
                 Dictionary<string, List<ComparisonResult>> comparisonResultsJson = new();
-                string key;
 
-                // Large Regressions
-                key = "LargeRegressions";
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta > 20)))
+                foreach (var item in diffLevelPredicate)
                 {
+                    string key = item.Key;
+                    Func<ComparisonResult, bool> predicate = item.Value;
                     comparisonResultsJson[key] = comparisonResultsJson.GetValueOrDefault(key, new List<ComparisonResult>());
-                    comparisonResultsJson[key].Add(r);
-                }
-
-                // Large Improvements
-                key = "LargeImprovements";
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta < -20)))
-                {
-                    comparisonResultsJson[key] = comparisonResultsJson.GetValueOrDefault(key, new List<ComparisonResult>());
-                    comparisonResultsJson[key].Add(r);
-                }
-
-                // Regressions
-                key = "Regressions";
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta > 5 && c.PercentageDelta < 20)))
-                {
-                    comparisonResultsJson[key] = comparisonResultsJson.GetValueOrDefault(key, new List<ComparisonResult>());
-                    comparisonResultsJson[key].Add(r);
-                }
-
-                // Improvements
-                key = "Improvements";
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta < -5 && c.PercentageDelta > -20)))
-                {
-                    comparisonResultsJson[key] = comparisonResultsJson.GetValueOrDefault(key, new List<ComparisonResult>());
-                    comparisonResultsJson[key].Add(r);
-                }
-
-                // Stale Regressions
-                key = "StaleRegressions";
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta >= 0 && c.PercentageDelta < 5)))
-                {
-                    comparisonResultsJson[key] = comparisonResultsJson.GetValueOrDefault(key, new List<ComparisonResult>());
-                    comparisonResultsJson[key].Add(r);
-                }
-
-                // Stale Improvements
-                key = "StaleImprovements";
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.PercentageDelta < 0 && c.PercentageDelta > -5)))
-                {
-                    comparisonResultsJson[key] = comparisonResultsJson.GetValueOrDefault(key, new List<ComparisonResult>());
-                    comparisonResultsJson[key].Add(r);
+                    GoodLinq
+                        .Where(comparisonResults, predicate)
+                        .ForEach(r => comparisonResultsJson[key].Add(r));
                 }
 
                 allComparisonResultsJson[run.Key] = comparisonResultsJson;
