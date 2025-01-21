@@ -9,7 +9,7 @@ parameters:
 jobs:
 - ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
   # build mono on wasm - if not using an existing build
-  - template: /eng/pipelines/coreclr/templates/perf-wasm-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+  - template: /eng/pipelines/performance/templates/perf-wasm-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
 
 - ${{ if eq(parameters.runProfile, 'non-v8') }}:
   #run mono wasm microbenchmarks perf job

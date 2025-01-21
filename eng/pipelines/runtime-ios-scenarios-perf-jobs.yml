@@ -5,11 +5,11 @@ parameters:
   jobParameters: {}
 
 jobs:
-  - template: /eng/pipelines/coreclr/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+  - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       hybridGlobalization: ${{ parameters.hybridGlobalization }}
 
-  # run mono iOS scenarios scenarios HybridGlobalization
+  # run mono iOS scenarios HybridGlobalization
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}

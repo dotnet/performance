@@ -88,7 +88,7 @@ parameters:
         - android_arm64
 
 jobs:
-  - template: /eng/pipelines/coreclr/templates/perf-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+  - template: /eng/pipelines/performance/templates/perf-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       perfBranch: ${{ parameters.perfBranch }}
 

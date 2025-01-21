@@ -128,11 +128,10 @@ jobs:
           value: ${{ parameters.projectFile }}
         ${{ else }}:
           value: $(performanceRepoDir)/eng/performance/${{ parameters.projectFileName }}
-      - ${{ if eq(parameters.osGroup, 'windows') }}:
-        - name: Python
+      - name: Python
+        - ${{ if eq(parameters.osGroup, 'windows') }}:
           value: 'py -3'
-      - ${{ if ne(parameters.osGroup, 'windows') }}:
-        - name: Python
+        - ${{ else }}:
           value: 'python3'
       - ${{ each variable in parameters.variables }}:
         - ${{ variable }}
