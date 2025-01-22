@@ -113,7 +113,7 @@ namespace System.Memory
             yield return new object[] { 060, new string(' ', 03) + WhiteSpaceChars.Substring(0, 03) + "6abcdefg" };
             yield return new object[] { 070, new string(' ', 04) + WhiteSpaceChars.Substring(0, 03) + "7abcdefg" };
             yield return new object[] { 080, new string(' ', 04) + WhiteSpaceChars.Substring(0, 04) + "8abcdefg" };
-            yield return new object[] { 090, new string(' ', 04) + WhiteSpaceChars.Substring(0, 05) + "9abcdefg" };
+            yield return new object[] { 090, new string(' ', 05) + WhiteSpaceChars.Substring(0, 04) + "9abcdefg" };
             yield return new object[] { 160, new string(' ', 08) + WhiteSpaceChars.Substring(0, 08) + "16abcdefg" };
             yield return new object[] { 320, new string(' ', 16) + WhiteSpaceChars.Substring(0, 16) + "32abcdefg" };
         }
