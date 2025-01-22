@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using Consumer = BenchmarkDotNet.Engines.Consumer;
@@ -98,21 +99,23 @@ namespace System.Memory
         [Benchmark]
         [ArgumentsSource(nameof(IsWhiteSpaceArguments))]
         [MemoryRandomization]
-        public bool IsWhiteSpace(string input) => input.AsSpan().IsWhiteSpace();
+        public bool IsWhiteSpace(int _, string input) => input.AsSpan().IsWhiteSpace();
 
-        public static IEnumerable<object> IsWhiteSpaceArguments()
+        public static IEnumerable<object[]> IsWhiteSpaceArguments()
         {
-            yield return "";
-            yield return "0abcdefg";
-            yield return " 1abcdefg";
-            yield return "  2abcdefg";
-            yield return "    4abcdefg";
-            yield return "      6abcdefg";
-            yield return "       7abcdefg";
-            yield return "        8abcdefg";
-            yield return "         9abcdefg";
-            yield return "                16abcdefg";
-            yield return "                                32abcdefg";
+            const string WhiteSpaceChars = "\t\n\v\f\r\u0085\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000";
+
+            yield return new object[] { 001, ""};
+            yield return new object[] { 002, "0abcdefg" };
+            yield return new object[] { 010, new string(' ', 01) + "1abcdefg" };
+            yield return new object[] { 020, new string(' ', 01) + WhiteSpaceChars.Substring(0, 01) + "2abcdefg" };
+            yield return new object[] { 040, new string(' ', 02) + WhiteSpaceChars.Substring(0, 02) + "4abcdefg" };
+            yield return new object[] { 060, new string(' ', 03) + WhiteSpaceChars.Substring(0, 03) + "6abcdefg" };
+            yield return new object[] { 070, new string(' ', 04) + WhiteSpaceChars.Substring(0, 03) + "7abcdefg" };
+            yield return new object[] { 080, new string(' ', 04) + WhiteSpaceChars.Substring(0, 04) + "8abcdefg" };
+            yield return new object[] { 090, new string(' ', 04) + WhiteSpaceChars.Substring(0, 05) + "9abcdefg" };
+            yield return new object[] { 160, new string(' ', 08) + WhiteSpaceChars.Substring(0, 08) + "16abcdefg" };
+            yield return new object[] { 320, new string(' ', 16) + WhiteSpaceChars.Substring(0, 16) + "32abcdefg" };
         }
 
         private static string GenerateInputString(char source, int count, char replaceChar, int replacePos)
