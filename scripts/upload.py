@@ -39,14 +39,17 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
             getLogger().info("Unable to use managed identity. Falling back to certificate.")
             cmd_line = [(os.path.join(str(helixpayload()), 'certhelper', "CertHelper%s" % extension()))]
             cert_helper = RunCommand(cmd_line, None, True, False, 0)
-            cert_helper.run()
-            for cert in cert_helper.stdout.splitlines():
-                credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert))
-                try:
-                    credential.get_token("https://storage.azure.com/.default")
-                except ClientAuthenticationError as ex:
-                    credential = None
-                    continue
+            try:
+                cert_helper.run()
+                for cert in cert_helper.stdout.splitlines():
+                    credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert))
+                    try:
+                        credential.get_token("https://storage.azure.com/.default")
+                    except ClientAuthenticationError as ex:
+                        credential = None
+                        continue
+            except Exception as ex:
+                credential = None
         if credential is None:
             getLogger().error("Unable to authenticate with managed identity or certificates.")
             getLogger().info("Falling back to environment variable.")
