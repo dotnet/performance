@@ -786,7 +786,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     else:
         runtime_id = "linux" + f"-{args.os_sub_group}" if args.os_sub_group else "" + f"-{args.architecture}"
 
-    dotnet_executable_path = os.path.join(ci_setup_arguments.install_dir, "dotnet")
+    dotnet_executable_path = ci_setup_arguments.dotnet_path if ci_setup_arguments.dotnet_path else os.path.join(ci_setup_arguments.install_dir, "dotnet")
 
     RunCommand([
         dotnet_executable_path, "publish", 
