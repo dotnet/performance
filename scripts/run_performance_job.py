@@ -784,7 +784,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     elif args.os_group == "osx":
         runtime_id = f"osx-{args.architecture}"
     else:
-        runtime_id = "linux" + (f"{args.os_sub_group.replace("_", "-")}" if args.os_sub_group else "") + f"-{args.architecture}"
+        runtime_id = "linux" + (f"{args.os_sub_group.replace('_', '-')}" if args.os_sub_group else "") + f"-{args.architecture}"
 
     dotnet_executable_path = os.path.join(ci_setup_arguments.dotnet_path, "dotnet") if ci_setup_arguments.dotnet_path else os.path.join(ci_setup_arguments.install_dir, "dotnet")
 
