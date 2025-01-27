@@ -4,7 +4,6 @@
 
   <PropertyGroup>
     <IncludeXHarnessCli>true</IncludeXHarnessCli>
-    <MicrosoftDotNetXHarnessCLIVersion>10.0.0-prerelease.24524.9</MicrosoftDotNetXHarnessCLIVersion>
   </PropertyGroup>
 
   <PropertyGroup>
