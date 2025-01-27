@@ -7,6 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Security.Cryptography.Tests
 {
+#if !NET10_0_OR_GREATER
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class Perf_Rfc2898DeriveBytes
     {
@@ -15,4 +16,5 @@ namespace System.Security.Cryptography.Tests
         [Benchmark]
         public byte[] DeriveBytes() => s_db.GetBytes(32);
     }
+#endif
 }
