@@ -13,14 +13,13 @@
 
     ```sh
     cd src/scenarios
-    . ./init.sh  # or .\init.ps1 on Windows
-    cd ../
+    . ./init.sh  # or `.\init.ps1` on Windows
     ```
 
 2. Navigate to the `helloandroid` scenario directory:
 
     ```sh
-    cd ./scenarios/helloandroid
+    cd helloandroid
     ```
 
 3. Copy the APK into the `helloandroid` directory.
