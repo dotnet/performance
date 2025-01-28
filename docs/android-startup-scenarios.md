@@ -12,7 +12,7 @@
 1. Initialize the environment (note the . for bash):
 
     ```sh
-    cd src/scripts
+    cd src/scenarios
     . ./init.sh  # or .\init.ps1 on Windows
     cd ../
     ```
