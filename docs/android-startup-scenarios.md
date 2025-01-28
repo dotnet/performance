@@ -6,6 +6,7 @@
 - Ensure `dotnet` is installed and available with the `dotnet` command for easy xharness installation. Any supported .NET Core version should work. [Dotnet Download](https://dotnet.microsoft.com/en-us/download) or [Daily Dotnet Download](https://github.com/dotnet/sdk/blob/main/documentation/package-table.md)
 - Ensure `xharness` is installed and available with the `xharness` command. The current version in use can be found in the `eng/performance/maui_scenarios_android.proj` file at line 7 (under the tag `MicrosoftDotNetXHarnessCLIVersion`), although any recent version should work. [XHarness Install Instructions](https://github.com/dotnet/xharness?tab=readme-ov-file#installation-and-usage).
 - Have an Android app APK available for testing.
+- Have an Android Device (with developer mode enabled) or emulator connected to computer, and viewable with `xharness android device` or `xharness android adb -- devices -l`.
 
 ## Steps
 
