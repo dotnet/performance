@@ -43,7 +43,14 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             ResultItem baseline = comparisons.First().Value.Baseline;
             ResultItem run = comparisons.First().Value.Comparand;
 
-            Markdown.GenerateComparisonTable(baseline, run, settings.OutputPath);
+            if (Path.GetExtension(settings.OutputPath) == ".json")
+            {
+                Json.GenerateComparisonDictionary(baseline, run, settings.OutputPath);
+            }
+            else
+            {
+                Markdown.GenerateComparisonTable(baseline, run, settings.OutputPath);
+            }
             AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to {settings.OutputPath} [/]");
             return 0;
         }
