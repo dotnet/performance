@@ -6,7 +6,7 @@ from azure.core.exceptions import ResourceExistsError, ClientAuthenticationError
 from azure.identity import DefaultAzureCredential, ClientAssertionCredential, CertificateCredential
 from traceback import format_exc
 from glob import glob
-from performance.common import retry_on_exception, RunCommand, helixpayload, base64_to_bytes, extension
+from performance.common import retry_on_exception, RunCommand, helixpayload, base64_to_bytes, extension, get_certificates
 from performance.constants import TENANT_ID, ARC_CLIENT_ID, CERT_CLIENT_ID
 import os
 import json
@@ -37,18 +37,21 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
         except ClientAuthenticationError as ex:
             credential = None
             getLogger().info("Unable to use managed identity. Falling back to certificate.")
-            cmd_line = [(os.path.join(str(helixpayload()), 'certhelper', "CertHelper%s" % extension()))]
-            cert_helper = RunCommand(cmd_line, None, True, False, 0)
             try:
-                cert_helper.run()
-                for cert in cert_helper.stdout.splitlines():
+                certs = get_certificates()
+                for cert in certs:
+                    print(cert)
                     credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert))
                     try:
                         credential.get_token("https://storage.azure.com/.default")
                     except ClientAuthenticationError as ex:
+                        print(cert)
+                        getLogger().error(ex.message)
+                        getLogger().error(ex.exc_traceback)
                         credential = None
                         continue
             except Exception as ex:
+                print("Get certs failed")
                 credential = None
         if credential is None:
             getLogger().error("Unable to authenticate with managed identity or certificates.")
