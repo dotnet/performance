@@ -774,6 +774,32 @@ def run_performance_job(args: RunPerformanceJobArgs):
     getLogger().info("Copying global.json to payload directory")
     shutil.copy(os.path.join(args.performance_repo_dir, 'global.json'), os.path.join(performance_payload_dir, 'global.json'))
 
+    # Building CertHelper needs to happen here as we need it on every run. This also means that we will need to move the calculation
+    # of the parameters needed outside of the if block
+
+    framework = os.environ["PERFLAB_Framework"]
+    os.environ["PERFLAB_TARGET_FRAMEWORKS"] = framework
+    if args.os_group == "windows":
+        runtime_id = f"win-{args.architecture}"
+    elif args.os_group == "osx":
+        runtime_id = f"osx-{args.architecture}"
+    else:
+        runtime_id = "linux" + (f"{args.os_sub_group.replace('_', '-')}" if args.os_sub_group else "") + f"-{args.architecture}"
+
+    dotnet_executable_path = os.path.join(ci_setup_arguments.dotnet_path, "dotnet") if ci_setup_arguments.dotnet_path else os.path.join(ci_setup_arguments.install_dir, "dotnet")
+
+    RunCommand([
+        dotnet_executable_path, "publish", 
+        "-c", "Release", 
+        "-o", os.path.join(payload_dir, "certhelper"),
+        "-f", framework,
+        "-r", runtime_id,
+        "--self-contained",
+        os.path.join(args.performance_repo_dir, "src", "tools", "CertHelper", "CertHelper.csproj"),
+        f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'CertHelper.binlog')}",
+        "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
+        verbose=True).run()
+
     if args.is_scenario:
         set_environment_variable("DOTNET_ROOT", ci_setup_arguments.install_dir, save_to_pipeline=True)
         getLogger().info(f"Set DOTNET_ROOT to {ci_setup_arguments.install_dir}")
@@ -781,17 +807,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         new_path = f"{ci_setup_arguments.install_dir}{os.pathsep}{os.environ['PATH']}"
         set_environment_variable("PATH", new_path, save_to_pipeline=True)
         getLogger().info(f"Set PATH to {new_path}")
-
-        framework = os.environ["PERFLAB_Framework"]
-        os.environ["PERFLAB_TARGET_FRAMEWORKS"] = framework
-        if args.os_group == "windows":
-            runtime_id = f"win-{args.architecture}"
-        elif args.os_group == "osx":
-            runtime_id = f"osx-{args.architecture}"
-        else:
-            runtime_id = f"linux-{args.architecture}"
-
-        dotnet_executable_path = os.path.join(ci_setup_arguments.install_dir, "dotnet")
 
         os.environ["MSBUILDDISABLENODEREUSE"] = "1" # without this, MSbuild will be kept alive
 
