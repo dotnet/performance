@@ -3,11 +3,11 @@ import uuid
 from azure.storage.blob import BlobClient, ContentSettings
 from azure.storage.queue import QueueClient, TextBase64EncodePolicy
 from azure.core.exceptions import ResourceExistsError, ClientAuthenticationError
-from azure.identity import DefaultAzureCredential, ClientAssertionCredential
+from azure.identity import DefaultAzureCredential, ClientAssertionCredential, CertificateCredential
 from traceback import format_exc
 from glob import glob
-from performance.common import retry_on_exception
-from performance.constants import TENANT_ID, CLIENT_ID
+from performance.common import retry_on_exception, RunCommand, helixpayload, base64_to_bytes, extension
+from performance.constants import TENANT_ID, ARC_CLIENT_ID, CERT_CLIENT_ID
 import os
 import json
 
@@ -32,14 +32,28 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
         credential = None
         try:
             dac = DefaultAzureCredential()
-            credential = ClientAssertionCredential(TENANT_ID, CLIENT_ID, lambda: dac.get_token("api://AzureADTokenExchange/.default").token)
+            credential = ClientAssertionCredential(TENANT_ID, ARC_CLIENT_ID, lambda: dac.get_token("api://AzureADTokenExchange/.default").token)
             credential.get_token("https://storage.azure.com/.default")
         except ClientAuthenticationError as ex:
-            getLogger().info("Unable to use managed identity. Falling back to environment variable.")
-            credential = os.getenv(sas_token_env)
+            credential = None
+            getLogger().info("Unable to use managed identity. Falling back to certificate.")
+            cmd_line = [(os.path.join(str(helixpayload()), 'certhelper', "CertHelper%s" % extension()))]
+            cert_helper = RunCommand(cmd_line, None, True, False, 0)
+            try:
+                cert_helper.run()
+                for cert in cert_helper.stdout.splitlines():
+                    credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert))
+                    try:
+                        credential.get_token("https://storage.azure.com/.default")
+                    except ClientAuthenticationError as ex:
+                        credential = None
+                        continue
+            except Exception as ex:
+                credential = None
         if credential is None:
-            getLogger().error("Sas token environment variable {} was not defined.".format(sas_token_env))
-            return 1
+            getLogger().error("Unable to authenticate with managed identity or certificates.")
+            getLogger().info("Falling back to environment variable.")
+            credential = os.getenv(sas_token_env)
 
         files = glob(globpath, recursive=True)
         any_upload_or_queue_failed = False
