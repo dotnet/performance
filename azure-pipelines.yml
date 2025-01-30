@@ -58,12 +58,12 @@ jobs:
   - template: /eng/pipelines/sdk-perf-jobs.yml
     parameters:
       ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
-        runPublicJobs: ${{ parameters.runPublicJobs }}
+        runPublicJobs: true
       ${{ if ne(variables['System.TeamProject'], 'public') }}:
         ${{ if or(notin(variables['Build.Reason'], 'PullRequest', 'Manual'), parameters.runPrivateJobs) }}:
-          runPrivateJobs: ${{ parameters.runPrivateJobs }}
+          runPrivateJobs: true
         ${{ if or(eq(variables['Build.CronSchedule.DisplayName'], 'Every 12 hours build'), parameters.runScheduledPrivateJobs) }}:
-          runScheduledPrivateJobs: ${{ parameters.runScheduledPrivateJobs }}
+          runScheduledPrivateJobs: true
       jobParameters:
         ${{ if parameters.onlySanityCheck }}:
           onlySanityCheck: true
