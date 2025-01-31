@@ -18,13 +18,13 @@
     . ./init.sh  # or `.\init.ps1` on Windows. Can specify custom dotnet install with -dotnetdir <dir>, but dotnet install should not impact Android Startup testing itself.
     ```
 
-2. Navigate to the `helloandroid` scenario directory:
+2. Navigate to the `genericandroidstartup` scenario directory:
 
     ```sh
-    cd helloandroid
+    cd genericandroidstartup
     ```
 
-3. Copy the APK into the `helloandroid` directory.
+3. Copy the APK into the `genericandroidstartup` directory.
 4. Run the test:
 
     ```sh
