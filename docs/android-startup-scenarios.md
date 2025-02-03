@@ -28,8 +28,10 @@
 4. Run the test:
 
     ```sh
-    python/(py -3 on Linux) test.py devicestartup --device-type android --package-path <path to apk (e.g. .)>/<apkname>.apk --package-name <apk package name> [--disable-animations] [--use-fully-drawn-time --fully-drawn-extra-delay <delay in sec> (**see below for note**)]
+    python test.py devicestartup --device-type android --package-path <path-to-apk> --package-name <apk-package-name> [--disable-animations] [--use-fully-drawn-time --fully-drawn-extra-delay <delay-in-sec>]
     ```
+
+* Refer to the [Notes](./android-startup-scenarios.md#notes) below about specifying --use-fully-drawn-time --fully-drawn-extra-delay parameters.
 
 5. Read the output:
 
