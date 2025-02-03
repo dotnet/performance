@@ -1,0 +1,12 @@
+parameters:
+  osGroup: ''      # required -- windows | linux | macos
+  archType: ''     # required -- Architecture. Allowed values: x64, x86, arm, arm64
+  # Please see run-performance-job.yml for additional parameters that can be specified as they will be forwarded through
+
+jobs:
+- template: /eng/pipelines/templates/run-performance-job.yml
+  parameters:
+    isScenario: true
+    downloadPdn: ${{ and(eq(parameters.osGroup, 'windows'), ne(parameters.archType, 'x86')) }}
+    ${{ each parameter in parameters }}:
+      ${{ parameter.key }}: ${{ parameter.value }}
