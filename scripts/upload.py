@@ -40,18 +40,15 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
             try:
                 certs = get_certificates()
                 for cert in certs:
-                    print(cert)
                     credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert))
                     try:
                         credential.get_token("https://storage.azure.com/.default")
                     except ClientAuthenticationError as ex:
-                        print(cert)
                         getLogger().error(ex.message)
                         getLogger().error(ex.exc_traceback)
                         credential = None
                         continue
             except Exception as ex:
-                print("Get certs failed")
                 credential = None
         if credential is None:
             getLogger().error("Unable to authenticate with managed identity or certificates.")
