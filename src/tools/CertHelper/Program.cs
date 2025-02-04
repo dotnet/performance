@@ -15,48 +15,44 @@ internal class Program
 
     static async Task<int> Main(string[] args)
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        try
         {
-            Console.WriteLine("Not Here");
-            try
+            var kvc = new KeyVaultCert();
+            await kvc.LoadKeyVaultCertsAsync();
+            if (kvc.ShouldRotateCerts())
             {
-                var kvc = new KeyVaultCert();
-                await kvc.LoadKeyVaultCertsAsync();
-                if (kvc.ShouldRotateCerts())
+                using (var localMachineCerts = new X509Store(StoreName.My, StoreLocation.CurrentUser))
                 {
-                    using (var localMachineCerts = new X509Store(StoreName.My, StoreLocation.CurrentUser))
-                    {
-                        localMachineCerts.Open(OpenFlags.ReadWrite);
-                        localMachineCerts.RemoveRange(kvc.LocalCerts.Certificates);
-                        localMachineCerts.AddRange(kvc.KeyVaultCertificates);
-                    }
-                }
-                var bcc = new BlobContainerClient(new Uri("https://pvscmdupload.blob.core.windows.net/certstatus"),
-                    new ClientCertificateCredential(TENANT_ID, CERT_CLIENT_ID, kvc.KeyVaultCertificates.First()));
-                var currentKeyValutCertThumbprints = "";
-                foreach (var cert in kvc.KeyVaultCertificates)
-                {
-                    currentKeyValutCertThumbprints += $"[{DateTimeOffset.UtcNow}] {cert.Thumbprint}{Environment.NewLine}";
-                }
-                var blob = bcc.GetBlobClient(System.Environment.MachineName);
-                if (blob.Exists())
-                {
-                    var result = blob.DownloadContent();
-                    var currentBlob = result.Value.Content.ToString();
-                    currentBlob = currentBlob + currentKeyValutCertThumbprints;
-                    blob.Upload(new MemoryStream(Encoding.UTF8.GetBytes(currentBlob)), overwrite: true);
-                }
-                else
-                {
-                    blob.Upload(new MemoryStream(Encoding.UTF8.GetBytes(currentKeyValutCertThumbprints)), overwrite: false);
+                    localMachineCerts.Open(OpenFlags.ReadWrite);
+                    localMachineCerts.RemoveRange(kvc.LocalCerts.Certificates);
+                    localMachineCerts.AddRange(kvc.KeyVaultCertificates);
                 }
             }
-            catch (Exception ex)
+            var bcc = new BlobContainerClient(new Uri("https://pvscmdupload.blob.core.windows.net/certstatus"),
+                new ClientCertificateCredential(TENANT_ID, CERT_CLIENT_ID, kvc.KeyVaultCertificates.First()));
+            var currentKeyValutCertThumbprints = "";
+            foreach (var cert in kvc.KeyVaultCertificates)
             {
-                Console.WriteLine("Failed to rotate certificates");
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.StackTrace);
+                currentKeyValutCertThumbprints += $"[{DateTimeOffset.UtcNow}] {cert.Thumbprint}{Environment.NewLine}";
             }
+            var blob = bcc.GetBlobClient(System.Environment.MachineName);
+            if (blob.Exists())
+            {
+                var result = blob.DownloadContent();
+                var currentBlob = result.Value.Content.ToString();
+                currentBlob = currentBlob + currentKeyValutCertThumbprints;
+                blob.Upload(new MemoryStream(Encoding.UTF8.GetBytes(currentBlob)), overwrite: true);
+            }
+            else
+            {
+                blob.Upload(new MemoryStream(Encoding.UTF8.GetBytes(currentKeyValutCertThumbprints)), overwrite: false);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Failed to rotate certificates");
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.StackTrace);
         }
 
         using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser, OpenFlags.ReadWrite))
