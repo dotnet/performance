@@ -29,6 +29,7 @@ namespace System.Reflection
         private static MethodInvoker s_method_invoker;
         private static MethodInvoker s_method_int_string_struct_class_invoker;
         private static MethodInvoker s_method_byref_int_string_struct_class_invoker;
+        private static MethodInvoker s_method_byref_int_string_struct_class_bool_invoker;
         private static ConstructorInvoker s_ctor_int_string_struct_class_invoker;
         private static ConstructorInvoker s_ctor_NoParams_invoker;
 #endif
@@ -100,6 +101,7 @@ namespace System.Reflection
             s_method_invoker = MethodInvoker.Create(s_method);
             s_method_int_string_struct_class_invoker = MethodInvoker.Create(s_method_int_string_struct_class);
             s_method_byref_int_string_struct_class_invoker = MethodInvoker.Create(s_method_byref_int_string_struct_class);
+            s_method_byref_int_string_struct_class_bool_invoker = MethodInvoker.Create(s_method_byref_int_string_struct_class_bool);
             s_ctor_int_string_struct_class_invoker = ConstructorInvoker.Create(s_ctor_int_string_struct_class);
             s_ctor_NoParams_invoker = ConstructorInvoker.Create(typeof(MyClass).GetConstructor(Array.Empty<Type>()));
 #endif
@@ -187,23 +189,21 @@ namespace System.Reflection
         [Benchmark(OperationsPerInvoke = Iterations)]
         public void StaticMethod4_int_string_struct_class_MethodInvoker()
         {
-            // To make the test more comparable to the MethodBase tests, we need to pre-box the value types.
-            object boxedInt = 42;
-            object boxedStruct = default(MyBlittableStruct);
+            // To make the test more comparable to the MethodBase tests, set up the references and pre-boxed types.
+            object boxedInt = s_args4[0];
+            object stringRef = s_args4[1];
+            object boxedStruct = s_args4[2];
+            object myClassRef = s_args4[3];
 
             for (int i = 0; i < Iterations; i++)
             {
-                s_method_int_string_struct_class_invoker.Invoke(null, boxedInt, "Hello", boxedStruct, s_MyClass);
+                s_method_int_string_struct_class_invoker.Invoke(null, boxedInt, stringRef, boxedStruct, myClassRef);
             }
         }
 
         [Benchmark(OperationsPerInvoke = Iterations)]
         public void StaticMethod4_int_string_struct_class_MethodInvokerWithSpan()
         {
-            // To make the test more comparable to the MethodBase tests, we need to pre-box the value types.
-            object boxedInt = 42;
-            object boxedStruct = default(MyBlittableStruct);
-
             for (int i = 0; i < Iterations; i++)
             {
                 s_method_int_string_struct_class_invoker.Invoke(null, new Span<object>(s_args4));
@@ -224,13 +224,15 @@ namespace System.Reflection
         [Benchmark(OperationsPerInvoke = Iterations)]
         public void StaticMethod4_ByRefParams_int_string_struct_class_MethodInvoker()
         {
-            // To make the test more comparable to the MethodBase tests, we need to pre-box the value types.
-            object boxedInt = 42;
-            object boxedStruct = default(MyBlittableStruct);
+            // To make the test more comparable to the MethodBase tests, set up the references and pre-boxed types.
+            object boxedInt = s_args4[0];
+            object stringRef = s_args4[1];
+            object boxedStruct = s_args4[2];
+            object myClassRef = s_args4[3];
 
             for (int i = 0; i < Iterations; i++)
             {
-                s_method_byref_int_string_struct_class_invoker.Invoke(null, boxedInt, "Hello", boxedStruct, s_MyClass);
+                s_method_byref_int_string_struct_class_invoker.Invoke(null, boxedInt, stringRef, boxedStruct, myClassRef);
             }
         }
 #endif
@@ -244,6 +246,17 @@ namespace System.Reflection
                 s_method_byref_int_string_struct_class_bool.Invoke(null, s_args5);
             }
         }
+
+#if NET8_0_OR_GREATER
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void StaticMethod5_ByRefParams_int_string_struct_class_bool_MethodInvoker()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_method_byref_int_string_struct_class_bool_invoker.Invoke(null, new Span<object>(s_args5));
+            }
+        }
+#endif
 
         [Benchmark(OperationsPerInvoke = Iterations)]
         public void Ctor0_NoParams()
@@ -301,13 +314,15 @@ namespace System.Reflection
         [Benchmark(OperationsPerInvoke = Iterations)]
         public void Ctor4_int_string_struct_class_ConstructorInvoker()
         {
-            // To make the test more comparable to the MethodBase tests, we need to pre-box the value types.
-            object boxedInt = 42;
-            object boxedStruct = default(MyBlittableStruct);
+            // To make the test more comparable to the MethodBase tests, set up the references and pre-boxed types.
+            object boxedInt = s_args4[0];
+            object stringRef = s_args4[1];
+            object boxedStruct = s_args4[2];
+            object myClassRef = s_args4[3];
 
             for (int i = 0; i < Iterations; i++)
             {
-                s_ctor_int_string_struct_class_invoker.Invoke(boxedInt, "Hello", boxedStruct, s_MyClass);
+                s_ctor_int_string_struct_class_invoker.Invoke(boxedInt, stringRef, boxedStruct, myClassRef);
             }
         }
 #endif
