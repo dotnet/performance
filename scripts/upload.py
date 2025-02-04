@@ -44,8 +44,6 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
                     try:
                         credential.get_token("https://storage.azure.com/.default")
                     except ClientAuthenticationError as ex:
-                        getLogger().error(ex.message)
-                        getLogger().error(ex.exc_traceback)
                         credential = None
                         continue
             except Exception as ex:
