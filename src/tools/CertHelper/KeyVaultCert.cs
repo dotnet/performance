@@ -84,9 +84,9 @@ public class KeyVaultCert
         }
         var certBytes = Convert.FromBase64String(secret.Value.Value);
 #if NET9_0_OR_GREATER        
-        var cert = X509CertificateLoader.LoadPkcs12(certBytes, "", X509KeyStorageFlags.Exportable);
+        var cert = X509CertificateLoader.LoadPkcs12(certBytes, "", X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
 #else
-        var cert = new X509Certificate2(certBytes, "", X509KeyStorageFlags.Exportable);
+        var cert = new X509Certificate2(certBytes, "", X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
 #endif
         return cert;
     }
