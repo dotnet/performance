@@ -40,7 +40,7 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
             try:
                 certs = get_certificates()
                 for cert in certs:
-                    credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert))
+                    credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert), send_certificate_chain=True)
                     try:
                         credential.get_token("https://storage.azure.com/.default")
                     except ClientAuthenticationError as ex:
