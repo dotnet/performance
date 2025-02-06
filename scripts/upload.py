@@ -32,7 +32,7 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
         credential = None
         try:
             dac = DefaultAzureCredential()
-            credential = ClientAssertionCredential(TENANT_ID, ARC_CLIENT_ID, lambda: dac.get_token("api://AzureADTokenExchange/.default").token, send_certificate_chain=True)
+            credential = ClientAssertionCredential(TENANT_ID, ARC_CLIENT_ID, lambda: dac.get_token("api://AzureADTokenExchange/.default").token)
             credential.get_token("https://storage.azure.com/.default")
         except ClientAuthenticationError as ex:
             credential = None
