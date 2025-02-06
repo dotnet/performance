@@ -6,7 +6,7 @@ from azure.core.exceptions import ResourceExistsError, ClientAuthenticationError
 from azure.identity import DefaultAzureCredential, ClientAssertionCredential, CertificateCredential
 from traceback import format_exc
 from glob import glob
-from performance.common import retry_on_exception, RunCommand, helixpayload, base64_to_bytes, extension, get_certificates
+from performance.common import retry_on_exception, RunCommand, helixpayload, base64_to_bytes, extension
 from performance.constants import TENANT_ID, ARC_CLIENT_ID, CERT_CLIENT_ID
 import os
 import json
@@ -32,14 +32,16 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
         credential = None
         try:
             dac = DefaultAzureCredential()
-            credential = ClientAssertionCredential(TENANT_ID, ARC_CLIENT_ID, lambda: dac.get_token("api://AzureADTokenExchange/.default").token, send_certificate_chain=True)
+            credential = ClientAssertionCredential(TENANT_ID, ARC_CLIENT_ID, lambda: dac.get_token("api://AzureADTokenExchange/.default").token)
             credential.get_token("https://storage.azure.com/.default")
         except ClientAuthenticationError as ex:
             credential = None
             getLogger().info("Unable to use managed identity. Falling back to certificate.")
+            cmd_line = [(os.path.join(str(helixpayload()), 'certhelper', "CertHelper%s" % extension()))]
+            cert_helper = RunCommand(cmd_line, None, True, False, 0)
             try:
-                certs = get_certificates()
-                for cert in certs:
+                cert_helper.run()
+                for cert in cert_helper.stdout.splitlines():
                     credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert))
                     try:
                         credential.get_token("https://storage.azure.com/.default")
