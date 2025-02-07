@@ -176,15 +176,31 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 
                         string key = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
                         string traceName = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
-                        using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, outputPath))
+
+                        if (OperatingSystem.IsWindows())
+                        {
+                            using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, outputPath))
+                            {
+                                gcperfsimProcess.Start();
+                                output = gcperfsimProcess.StandardOutput.ReadToEnd();
+                                error = gcperfsimProcess.StandardError.ReadToEnd();
+                                gcperfsimProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                                File.WriteAllText(Path.Combine(outputPath, key + ".txt"), "Standard Out: \n" + output + "\n Standard Error: \n" + error);
+                            }
+                        }
+                        else
                         {
                             gcperfsimProcess.Start();
-                            output = gcperfsimProcess.StandardOutput.ReadToEnd();
-                            error = gcperfsimProcess.StandardError.ReadToEnd();
-                            gcperfsimProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
-                            File.WriteAllText(Path.Combine(outputPath, key + ".txt"), "Standard Out: \n" + output + "\n Standard Error: \n" + error);
+                            using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, outputPath, gcperfsimProcess.Id))
+                            {
+                                output = gcperfsimProcess.StandardOutput.ReadToEnd();
+                                error = gcperfsimProcess.StandardError.ReadToEnd();
+                                gcperfsimProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                                File.WriteAllText(Path.Combine(outputPath, key + ".txt"), "Standard Out: \n" + output + "\n Standard Error: \n" + error);
+                            }
                         }
-
+                        
+                        
                         // If a trace is requested, ensure the file exists. If not, there is was an error and alert the user.
                         if (configuration.TraceConfigurations?.Type != "none")
                         {

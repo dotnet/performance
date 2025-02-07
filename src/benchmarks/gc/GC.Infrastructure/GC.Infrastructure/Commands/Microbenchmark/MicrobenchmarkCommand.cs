@@ -177,12 +177,25 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                             };
 
                             string traceName = $"{benchmarkCleanedName}_{index}";
-                            using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath))
+                            if (OperatingSystem.IsWindows())
+                            {
+                                using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath))
+                                {
+                                    bdnProcess.Start();
+                                    bdnProcess.BeginOutputReadLine();
+                                    bdnProcess.BeginErrorReadLine();
+                                    bdnProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                                }
+                            }
+                            else
                             {
                                 bdnProcess.Start();
-                                bdnProcess.BeginOutputReadLine();
-                                bdnProcess.BeginErrorReadLine();
-                                bdnProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                                using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath, bdnProcess.Id))
+                                {
+                                    bdnProcess.BeginOutputReadLine();
+                                    bdnProcess.BeginErrorReadLine();
+                                    bdnProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                                }
                             }
 
                             string processDetailsKey = $"{run.Key}_{benchmark}_{index}";

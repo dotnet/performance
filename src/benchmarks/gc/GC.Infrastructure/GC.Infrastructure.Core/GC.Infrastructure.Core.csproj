@@ -5,7 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute> 
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+	<IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsWindows)'=='true'">
+	<DefineConstants>Windows</DefineConstants>
   </PropertyGroup>
 
   <Import Project="../Versions.props" />

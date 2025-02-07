@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Diagnostics.Utilities;
+using System.Diagnostics;
 using System.Net;
 
 namespace GC.Infrastructure.Core.TraceCollection
@@ -19,12 +20,10 @@ namespace GC.Infrastructure.Core.TraceCollection
     {
         private bool disposedValue;
 
-        private static readonly Lazy<WebClient> _client = new();
+        private static readonly string DependenciesFolder = "./dependencies";
+        
+        public string Name { get; init; }
 
-        // TODO: Make this URL configurable.
-        private const string PERFVIEW_URL = "https://github.com/microsoft/perfview/releases/download/v3.0.0/PerfView.exe";
-
-        private readonly string ALWAYS_ARGS = @$" /AcceptEULA /NoGUI /Merge:true";
         internal static readonly Dictionary<CollectType, string> WindowsCollectTypeMap = new()
         {
             { CollectType.gc, "/GCCollectOnly" },
@@ -38,9 +37,9 @@ namespace GC.Infrastructure.Core.TraceCollection
 
         internal static readonly Dictionary<CollectType, string> LinuxCollectTypeMap = new()
         {
-            { CollectType.gc, "gcCollectOnly" },
-            { CollectType.cpu,  "collect_cpu" },
-            { CollectType.threadtime, "collect_threadTime" },
+            { CollectType.gc, "--clrevents gc" },
+            { CollectType.cpu,  "--clrevents gc+stack --clreventlevel informational" },
+            { CollectType.threadtime, "--clrevents gc --clreventlevel Verbose" },
         };
 
         internal static readonly Dictionary<string, CollectType> StringToCollectTypeMap = new(StringComparer.OrdinalIgnoreCase)
@@ -55,54 +54,122 @@ namespace GC.Infrastructure.Core.TraceCollection
             { "none", CollectType.none }
         };
 
-        private readonly string arguments;
-        private readonly Guid _sessionName;
-        private readonly Process _traceProcess;
         private readonly CollectType _collectType;
+        private readonly Process _traceProcess;
+        private readonly string arguments;
+        private readonly string _collectorPath;
+#if Windows
+        private readonly Guid _sessionName;
+#endif
 
-        public TraceCollector(string name, string collectType, string outputPath)
+        private static void InstallTraceCollector(string dependenciesFolder)
         {
-            // Get Perfview if it doesn't exist.
-            if (!Directory.Exists("./dependencies"))
+#if Windows
+            string perfviewPath = Path.Combine(DependenciesFolder, "Perfview.exe");
+            if (File.Exists(perfviewPath))
             {
-                Directory.CreateDirectory("./dependencies");
+                return;
+            }
+            
+            // TODO: Make this URL configurable.
+            const string perfviewUrl = "https://github.com/microsoft/perfview/releases/download/v3.0.0/PerfView.exe";
+            using (HttpClient client = new())
+            {
+                HttpResponseMessage response = client.GetAsync(perfviewUrl).Result;
+                response.EnsureSuccessStatusCode();
+
+                using (FileStream writer = File.OpenWrite(perfviewPath))
+                {
+                    response.Content.ReadAsStream().CopyTo(writer);
+                }
+            }
+#else
+            string dotNetTracePath = Path.Combine(DependenciesFolder, "dotnet-trace");
+            if (File.Exists(dotNetTracePath))
+            {
+                return;
             }
 
-            if (!File.Exists(Path.Combine("./dependencies", "PerfView.exe")))
+            using (Process dotNetTraceInstaller = new())
             {
-                _client.Value.DownloadFile(PERFVIEW_URL, Path.Combine("./dependencies", "PerfView.exe"));
+                dotNetTraceInstaller.StartInfo.FileName = "dotnet";
+                dotNetTraceInstaller.StartInfo.Arguments = $"tool install dotnet-trace --tool-path {dependenciesFolder}";
+                dotNetTraceInstaller.StartInfo.UseShellExecute = false;
+                dotNetTraceInstaller.StartInfo.CreateNoWindow = true;
+                dotNetTraceInstaller.StartInfo.RedirectStandardError = true;
+                dotNetTraceInstaller.StartInfo.RedirectStandardOutput = true;
+                dotNetTraceInstaller.Start();
+                dotNetTraceInstaller.WaitForExit();
             }
+#endif
+        }
+
+        public TraceCollector(string name, string collectType, string outputPath, int? pid = null)
+        {
+            if (!Directory.Exists(DependenciesFolder))
+            {
+                Directory.CreateDirectory(DependenciesFolder);
+            }
+
+            InstallTraceCollector(DependenciesFolder);
 
             _collectType = StringToCollectTypeMap[collectType];
 
-            if (_collectType != CollectType.none)
+            if (_collectType == CollectType.none)
             {
-                _sessionName = Guid.NewGuid();
-                foreach (var invalid in Path.GetInvalidPathChars())
-                {
-                    name = name.Replace(invalid.ToString(), string.Empty);
-                }
-
-                name = name.Replace("<", "");
-                name = name.Replace(">", "");
-
-                Name = Path.Combine(outputPath, $"{name}.etl");
-
-                arguments = $"{ALWAYS_ARGS} /sessionName:{_sessionName} {WindowsCollectTypeMap[_collectType]} /LogFile:{Path.Combine(outputPath, name)}.txt /DataFile:{Path.Combine(outputPath, $"{name}.etl")}";
-                string command = $"start {arguments}";
-
-                _traceProcess = new();
-                _traceProcess.StartInfo.FileName = "./dependencies/PerfView.exe";
-                _traceProcess.StartInfo.Arguments = command;
-                _traceProcess.StartInfo.UseShellExecute = false;
-                _traceProcess.StartInfo.CreateNoWindow = true;
-                _traceProcess.StartInfo.RedirectStandardError = true;
-                _traceProcess.StartInfo.RedirectStandardOutput = true;
-                _traceProcess.Start();
-
-                // Give PerfView about a second to get started.
-                Thread.Sleep(1000);
+                return;
             }
+
+            foreach (var invalid in Path.GetInvalidPathChars())
+            {
+                name = name.Replace(invalid.ToString(), string.Empty);
+            }
+
+            name = name.Replace("<", "");
+            name = name.Replace(">", "");
+
+#if Windows
+            _collectorPath = Path.Combine(DependenciesFolder, "Perfview.exe");
+            _sessionName = Guid.NewGuid();
+
+            Name = Path.Combine(outputPath, $"{name}.etl");
+            string ALWAYS_ARGS = @$" /AcceptEULA /NoGUI /Merge:true";
+            arguments = $"{ALWAYS_ARGS} /sessionName:{_sessionName} {WindowsCollectTypeMap[_collectType]} /LogFile:{Path.Combine(outputPath, name)}.txt /DataFile:{Name}";
+            string command = $"start {arguments}";
+
+            _traceProcess = new();
+            _traceProcess.StartInfo.FileName = _collectorPath;
+            _traceProcess.StartInfo.Arguments = command;
+            _traceProcess.StartInfo.UseShellExecute = false;
+            _traceProcess.StartInfo.CreateNoWindow = true;
+            _traceProcess.StartInfo.RedirectStandardError = true;
+            _traceProcess.StartInfo.RedirectStandardOutput = true;
+            _traceProcess.Start();
+
+            // Give PerfView about a second to get started.
+            Thread.Sleep(1000);
+            
+#else
+            if (pid == null)
+            {
+                throw new Exception($"{nameof(TraceCollector)}: Must provide prcoess id in Linux case");
+            }
+
+            _collectorPath = Path.Combine(DependenciesFolder, "dotnet-trace");
+
+            Name = Path.Combine(outputPath, $"{name}.nettrace");
+            arguments = $"-p {pid} -o {Name} {LinuxCollectTypeMap[_collectType]}";
+            string command = $"collect {arguments}";
+
+            _traceProcess = new();
+            _traceProcess.StartInfo.FileName = _collectorPath;
+            _traceProcess.StartInfo.Arguments = command;
+            _traceProcess.StartInfo.UseShellExecute = false;
+            _traceProcess.StartInfo.CreateNoWindow = true;
+            _traceProcess.StartInfo.RedirectStandardError = true;
+            _traceProcess.StartInfo.RedirectStandardOutput = true;
+            _traceProcess.Start();
+#endif
         }
 
         private void Dispose(bool disposing)
@@ -115,11 +182,12 @@ namespace GC.Infrastructure.Core.TraceCollection
 
             // TODO: Parameterize the wait for exit time.
 
+#if Windows
             if (!disposedValue)
             {
                 using (Process stopProcess = new())
                 {
-                    stopProcess.StartInfo.FileName = Path.Combine("./dependencies", "PerfView.exe");
+                    stopProcess.StartInfo.FileName = _collectorPath;
                     string command = $"stop {arguments}";
                     stopProcess.StartInfo.Arguments = command;
                     stopProcess.StartInfo.UseShellExecute = false;
@@ -160,9 +228,15 @@ namespace GC.Infrastructure.Core.TraceCollection
 
                 disposedValue = true;
             }
+#else
+            if (!disposedValue)
+            {
+                _traceProcess.WaitForExit();
+                _traceProcess.Dispose();
+            }
+#endif
         }
 
-        public string Name { get; init; }
 
         ~TraceCollector()
         {
