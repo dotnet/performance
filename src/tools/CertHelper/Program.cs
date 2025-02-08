@@ -29,7 +29,7 @@ internal class Program
                 }
             }
             var bcc = new BlobContainerClient(new Uri("https://pvscmdupload.blob.core.windows.net/certstatus"),
-                new ClientCertificateCredential(TENANT_ID, CERT_CLIENT_ID, kvc.KeyVaultCertificates.First()));
+                new ClientCertificateCredential(TENANT_ID, CERT_CLIENT_ID, kvc.KeyVaultCertificates.First(), new() {SendCertificateChain = true}));
             var currentKeyValutCertThumbprints = "";
             foreach (var cert in kvc.KeyVaultCertificates)
             {
