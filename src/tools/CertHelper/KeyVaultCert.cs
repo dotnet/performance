@@ -53,7 +53,7 @@ public class KeyVaultCert
         {
             try
             {
-                ccc = new ClientCertificateCredential(tenantId, clientId, cert);
+                ccc = new ClientCertificateCredential(tenantId, clientId, cert, new() {SendCertificateChain = true});
                 await ccc.GetTokenAsync(new TokenRequestContext(new string[] { "https://vault.azure.net/.default" }));
                 break;
             }
