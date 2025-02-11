@@ -21,7 +21,7 @@ namespace GC.Analysis.API
 
         private readonly Lazy<JoinAnalysis> _joinAnalysis;
 
-        public GCProcessData(TraceProcess process, TraceLoadedDotNetRuntime managedProcess, Dictionary<int, int> gcThreadsToHeapNumber, Analyzer parent, double durationMSec)
+        public GCProcessData(TraceProcess process, TraceLoadedDotNetRuntime managedProcess, Dictionary<int, int> gcThreadsToHeapNumber, Analyzer parent, double durationMSec,string runtimeVersion)
         {
             ProcessName = process.Name;
             ProcessID = process.ProcessID;
@@ -33,6 +33,7 @@ namespace GC.Analysis.API
             Gen2Blocking = GCs.Where(gc => gc.Generation == 2 && gc.Type != GCType.BackgroundGC);
             BGCs = GCs.Where(gc => gc.Generation == 2 && gc.Type == GCType.BackgroundGC);
             Parent = parent;
+            RuntimeVersion = runtimeVersion;
 
             // Check if the process was running as SRV. 
             if (Stats.IsServerGCUsed == 1)
@@ -70,6 +71,7 @@ namespace GC.Analysis.API
         public Dictionary<int, int> GCThreadIDsToHeapNumbers { get; }
         public double DurationMSec { get; }
         public Analyzer Parent { get; }
+        public string RuntimeVersion { get; }
 
         public static double? LookupAggregateCalculation(string calculation, GCProcessData processData)
         {
