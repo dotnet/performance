@@ -32,15 +32,19 @@ namespace System.Reflection.Metadata
         [ArgumentsSource(nameof(TypeArguments))]
         public TypeName Parse_FullNames(Type input) => TypeName.Parse(input.FullName);
 
-        // The FullName property is lazy and cached, so we need to parse a new TypName instance
-        // in order to get the FullName property calculated.
+        [Benchmark]
+        [ArgumentsSource(nameof(TypeArguments))]
+        public TypeName Parse_AssemblyQualifiedName(Type input) => TypeName.Parse(input.AssemblyQualifiedName);
+
+        // The Name, FullName and AssemblyQualifiedName properties are lazy and cached,
+        // so we need to parse a new TypName instance in order to get these properties calculated.
         [Benchmark]
         [ArgumentsSource(nameof(TypeArguments))]
         public string ParseAndGetFullName(Type input) => TypeName.Parse(input.FullName).FullName;
 
         [Benchmark]
         [ArgumentsSource(nameof(TypeArguments))]
-        public TypeName Parse_AssemblyQualifiedName(Type input) => TypeName.Parse(input.AssemblyQualifiedName);
+        public string ParseAndGetAssemblyQualifiedName(Type input) => TypeName.Parse(input.AssemblyQualifiedName).AssemblyQualifiedName;
 
         public IEnumerable<string> InvalidArguments()
         {
