@@ -45,6 +45,7 @@ namespace GC.Analysis.API
                 }
 
             }
+
             return result;
         }
 
