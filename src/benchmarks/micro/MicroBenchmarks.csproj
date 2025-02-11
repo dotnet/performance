@@ -100,6 +100,8 @@
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt;= '8.0'">
     <!-- we want both net8.0 and net9.0 targets to use the 9.0.0 version of the NuGet package (since this is where the generic math APIs were first added) -->
     <PackageReference Include="System.Numerics.Tensors" Version="$(SystemThreadingChannelsPackageVersion)" />
+    <!-- The TypeName API was introduced in System.ReflectioMetadata 9.0, so we include it only for 9.0 and above -->
+    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -229,6 +231,10 @@
     <Compile Remove="libraries\System.Buffers\SearchValuesCharTests.cs" />
     <Compile Remove="libraries\System.Text.Encoding\Perf.Ascii.cs" />
     <Compile Remove="libraries\System.Numerics.Tensors\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '9.0')">
+    <Compile Remove="libraries\System.Reflection.Metadata\*.cs" />
   </ItemGroup>
 
   <!-- This is not removing things from older Net versions, it is removing from newer Net versions -->
