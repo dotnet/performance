@@ -189,8 +189,19 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                             }
                             else
                             {
+                                Process microBenchmarksProcess = new();
                                 bdnProcess.Start();
-                                using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath, bdnProcess.Id))
+                                // wait for Microbenchmark to start
+                                while (true)
+                                {
+                                    Process[] microBenchmarksProcessList = Process.GetProcessesByName("MicroBenchmarks");
+                                    if (microBenchmarksProcessList.Count() != 0)
+                                    {
+                                        microBenchmarksProcess = microBenchmarksProcessList.First();
+                                        break;
+                                    }
+                                }
+                                using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath, microBenchmarksProcess.Id))
                                 {
                                     bdnProcess.BeginOutputReadLine();
                                     bdnProcess.BeginErrorReadLine();

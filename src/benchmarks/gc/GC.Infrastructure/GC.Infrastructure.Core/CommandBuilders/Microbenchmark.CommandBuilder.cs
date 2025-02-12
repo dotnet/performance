@@ -11,7 +11,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
             string filter = benchmark ?? configuration.MicrobenchmarkConfigurations.Filter;
 
             // Base command: Add mandatory commands.
-            string command = $"run -f {frameworkVersion} --filter \"{filter}\" -c Release --noOverwrite --no-build";
+            string command = $"run -f {frameworkVersion} --filter \"{filter}\" -c Release --inProcess --noOverwrite --no-build";
 
             // [Optional] Add corerun.
             if (!string.IsNullOrEmpty(run.Value.corerun))
