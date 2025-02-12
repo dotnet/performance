@@ -177,12 +177,36 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                             };
 
                             string traceName = $"{benchmarkCleanedName}_{index}";
-                            using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath))
+                            if (OperatingSystem.IsWindows())
                             {
+                                using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath))
+                                {
+                                    bdnProcess.Start();
+                                    bdnProcess.BeginOutputReadLine();
+                                    bdnProcess.BeginErrorReadLine();
+                                    bdnProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                                }
+                            }
+                            else
+                            {
+                                Process microBenchmarksProcess = new();
                                 bdnProcess.Start();
-                                bdnProcess.BeginOutputReadLine();
-                                bdnProcess.BeginErrorReadLine();
-                                bdnProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                                // wait for Microbenchmark to start
+                                while (true)
+                                {
+                                    Process[] microBenchmarksProcessList = Process.GetProcessesByName("MicroBenchmarks");
+                                    if (microBenchmarksProcessList.Count() != 0)
+                                    {
+                                        microBenchmarksProcess = microBenchmarksProcessList.First();
+                                        break;
+                                    }
+                                }
+                                using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath, microBenchmarksProcess.Id))
+                                {
+                                    bdnProcess.BeginOutputReadLine();
+                                    bdnProcess.BeginErrorReadLine();
+                                    bdnProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                                }
                             }
 
                             string processDetailsKey = $"{run.Key}_{benchmark}_{index}";
