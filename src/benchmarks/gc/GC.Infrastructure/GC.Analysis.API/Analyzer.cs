@@ -92,7 +92,7 @@ namespace GC.Analysis.API
                         AllGCProcessData[p.Name] = values = new();
                     }
 
-                    values.Add(new GCProcessData(p, managedProcess, processIdToGCThreads.GetValueOrDefault(p.ProcessID) ?? new(), this, p.EndTimeRelativeMsec - p.StartTimeRelativeMsec,managedProcess.RuntimeVersion));
+                    values.Add(new GCProcessData(p, managedProcess, processIdToGCThreads.GetValueOrDefault(p.ProcessID) ?? new(), this, p.EndTimeRelativeMsec - p.StartTimeRelativeMsec, managedProcess.RuntimeVersion));
                 }
             }
         }

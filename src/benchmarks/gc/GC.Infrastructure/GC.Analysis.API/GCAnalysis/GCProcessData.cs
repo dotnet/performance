@@ -21,7 +21,7 @@ namespace GC.Analysis.API
 
         private readonly Lazy<JoinAnalysis> _joinAnalysis;
 
-        public GCProcessData(TraceProcess process, TraceLoadedDotNetRuntime managedProcess, Dictionary<int, int> gcThreadsToHeapNumber, Analyzer parent, double durationMSec,string runtimeVersion)
+        public GCProcessData(TraceProcess process, TraceLoadedDotNetRuntime managedProcess, Dictionary<int, int> gcThreadsToHeapNumber, Analyzer parent, double durationMSec, string runtimeVersion)
         {
             ProcessName = process.Name;
             ProcessID = process.ProcessID;
@@ -71,7 +71,7 @@ namespace GC.Analysis.API
         public Dictionary<int, int> GCThreadIDsToHeapNumbers { get; }
         public double DurationMSec { get; }
         public Analyzer Parent { get; }
-        public string RuntimeVersion { get; }
+        public string? RuntimeVersion { get; }
 
         public static double? LookupAggregateCalculation(string calculation, GCProcessData processData)
         {
