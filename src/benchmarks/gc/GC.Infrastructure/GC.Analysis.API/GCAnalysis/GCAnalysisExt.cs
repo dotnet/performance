@@ -43,7 +43,6 @@ namespace GC.Analysis.API
                         result.Add(gc);
                     }
                 }
-
             }
 
             return result;
