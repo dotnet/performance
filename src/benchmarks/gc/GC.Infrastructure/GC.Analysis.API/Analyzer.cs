@@ -38,7 +38,7 @@ namespace GC.Analysis.API
                     AllGCProcessData[p.Name] = values = new();
                 }
 
-                values.Add(new GCProcessData(p, managedProcess, processIdToGCThreads.GetValueOrDefault(p.ProcessID) ?? new(), this, p.EndTimeRelativeMsec - p.StartTimeRelativeMsec));
+                values.Add(new GCProcessData(p, managedProcess, processIdToGCThreads.GetValueOrDefault(p.ProcessID) ?? new(), this, p.EndTimeRelativeMsec - p.StartTimeRelativeMsec, managedProcess.RuntimeVersion));
             }
         }
 
@@ -64,7 +64,7 @@ namespace GC.Analysis.API
                 }
 
                 // TODO: Clean up the Linux traces.
-                gcprocesses.Add(new GCProcessData(process, managed, new(), this, process.EndTimeRelativeMsec - process.StartTimeRelativeMsec));
+                gcprocesses.Add(new GCProcessData(process, managed, new(), this, process.EndTimeRelativeMsec - process.StartTimeRelativeMsec, managed.RuntimeVersion));
             }
 
             else
@@ -92,7 +92,7 @@ namespace GC.Analysis.API
                         AllGCProcessData[p.Name] = values = new();
                     }
 
-                    values.Add(new GCProcessData(p, managedProcess, processIdToGCThreads.GetValueOrDefault(p.ProcessID) ?? new(), this, p.EndTimeRelativeMsec - p.StartTimeRelativeMsec));
+                    values.Add(new GCProcessData(p, managedProcess, processIdToGCThreads.GetValueOrDefault(p.ProcessID) ?? new(), this, p.EndTimeRelativeMsec - p.StartTimeRelativeMsec, managedProcess.RuntimeVersion));
                 }
             }
         }
