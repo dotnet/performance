@@ -94,46 +94,6 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-    #run coreclr Linux arm64 ampere no dynamic pgo microbenchmarks perf job
-    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-        buildConfig: release
-        runtimeFlavor: coreclr
-        platforms:
-        - linux_arm64
-        jobParameters:
-          liveLibrariesBuildConfig: Release
-          runKind: micro
-          logicalMachine: 'perfampere'
-          timeoutInMinutes: 780
-          pgoRunType: nodynamicpgo
-          additionalJobIdentifier: nodynamicpgo
-          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
-
-    #run coreclr Linux arm64 ampere no R2R microbenchmarks perf job
-    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-        buildConfig: release
-        runtimeFlavor: coreclr
-        platforms:
-        - linux_arm64
-        jobParameters:
-          liveLibrariesBuildConfig: Release
-          runKind: micro
-          logicalMachine: 'perfampere'
-          timeoutInMinutes: 780
-          r2rRunType: nor2r
-          additionalJobIdentifier: nor2r
-          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
-
     # run coreclr Windows arm64 microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
@@ -164,46 +124,6 @@ jobs:
           runKind: micro
           logicalMachine: 'perfampere'
           timeoutInMinutes: 780
-          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
-
-    # run coreclr Windows arm64 ampere no dynamic pgo microbenchmarks perf job
-    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-        buildConfig: release
-        runtimeFlavor: coreclr
-        platforms:
-        - windows_arm64
-        jobParameters:
-          liveLibrariesBuildConfig: Release
-          runKind: micro
-          logicalMachine: 'perfampere'
-          pgoRunType: nodynamicpgo
-          timeoutInMinutes: 780
-          additionalJobIdentifier: nodynamicpgo
-          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
-
-    # run coreclr Windows arm64 ampere no R2R microbenchmarks perf job
-    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-        buildConfig: release
-        runtimeFlavor: coreclr
-        platforms:
-        - windows_arm64
-        jobParameters:
-          liveLibrariesBuildConfig: Release
-          runKind: micro
-          logicalMachine: 'perfampere'
-          r2rRunType: nor2r
-          timeoutInMinutes: 780
-          additionalJobIdentifier: nor2r
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
