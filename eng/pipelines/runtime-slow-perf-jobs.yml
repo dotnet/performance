@@ -59,7 +59,7 @@ jobs:
     # run mono aot microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
-        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # NOTE: should we move this file out of coreclr tempelates because it contains mono jobs?
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: aot
         platforms:
