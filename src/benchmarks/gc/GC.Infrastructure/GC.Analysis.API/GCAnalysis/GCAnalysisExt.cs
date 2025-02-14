@@ -16,6 +16,38 @@ namespace GC.Analysis.API
             return vals;
         }
 
+        public static GCProcessData? GetProcessGCData(this Analyzer analyzer, int processId)
+        {
+            // Go through the analyzer and find the process with the given process id.
+            foreach (var p in analyzer.AllGCProcessData)
+            {
+                var first = p.Value.FirstOrDefault(gc => gc.ProcessID == processId);
+                if (first != null)
+                {
+                    return first;
+                }
+            }
+
+            return null;
+        }
+
+        public static List<GCProcessData> GetProcessGCDataList(this Analyzer analyzer, int processId)
+        {
+            List<GCProcessData> result = new();
+            foreach (var p in analyzer.AllGCProcessData)
+            {
+                foreach (var gc in p.Value)
+                {
+                    if (gc.ProcessID == processId)
+                    {
+                        result.Add(gc);
+                    }
+                }
+            }
+
+            return result;
+        }
+
         public static DataFrame Summarize(this GCProcessData processData, IEnumerable<TraceGC> gcs)
         {
             // Remove any duplicates.
