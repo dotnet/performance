@@ -37,6 +37,13 @@ namespace GC.Infrastructure.Core.TraceCollection
 
         internal static readonly Dictionary<CollectType, string> LinuxCollectTypeMap = new()
         {
+            { CollectType.gc, "gcCollectOnly" },
+            { CollectType.cpu,  "collect_cpu" },
+            { CollectType.threadtime, "collect_threadTime" }
+        };
+
+        internal static readonly Dictionary<CollectType, string> LinuxLocalRunCollectTypeMap = new()
+        {
             { CollectType.gc, "--clrevents gc" },
             { CollectType.cpu,  "--clrevents gc+stack --clreventlevel informational" },
             { CollectType.threadtime, "--clrevents gc --clreventlevel Verbose" },
@@ -158,7 +165,7 @@ namespace GC.Infrastructure.Core.TraceCollection
             _collectorPath = Path.Combine(DependenciesFolder, "dotnet-trace");
 
             Name = Path.Combine(outputPath, $"{name}.nettrace");
-            arguments = $"-p {pid} -o {Name} {LinuxCollectTypeMap[_collectType]}";
+            arguments = $"-p {pid} -o {Name} {LinuxLocalRunCollectTypeMap[_collectType]}";
             string command = $"collect {arguments}";
 
             _traceProcess = new();

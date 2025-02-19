@@ -204,7 +204,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         // If a trace is requested, ensure the file exists. If not, there is was an error and alert the user.
                         if (configuration.TraceConfigurations?.Type != "none")
                         {
-                            // Not checking Linux here since the local run only allows for Windows.
+                            // On Windows, the trace file path ends with ".etl.zip"; On Linux, it ends with ".nettrace".
                             if (!File.Exists(Path.Combine(outputPath, traceName + ".etl.zip")) && !File.Exists(Path.Combine(outputPath, traceName + ".nettrace")))
                             {
                                 AnsiConsole.MarkupLine($"[yellow bold] ({DateTime.Now}) The trace for the run wasn't successfully captured. Please check the log file for more details: {Markup.Escape(output)} Full run details: {Path.GetFileNameWithoutExtension(configuration.Name)}: {runInfo.CorerunDetails.Key} for {runInfo.RunDetails.Key} [/]");
