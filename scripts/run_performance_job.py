@@ -393,6 +393,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     llvm = args.codegen_type.lower() == "aot" and args.runtime_type != "wasm"
     android_mono = args.runtime_type == "AndroidMono"
+    android_coreclr = args.runtime_type == "AndroidCoreCLR"
     ios_mono = args.runtime_type == "iOSMono"
     ios_nativeaot = args.runtime_type == "iOSNativeAOT"
     mono_aot = False
@@ -529,6 +530,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
             extra_bdn_arguments += ["--memoryRandomization", "true"]
 
     runtime_type = ""
+
+    if android_mono:
+        runtime_type = "Mono"
+        configurations["RuntimeType"] = str(runtime_type)
+
+    if android_coreclr:
+        runtime_type = "CoreCLR"
+        configurations["RuntimeType"] = str(runtime_type)
 
     if ios_mono:
         runtime_type = "Mono"
@@ -708,13 +717,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.runtime_repo_dir is not None:
             args.built_app_dir = args.runtime_repo_dir
     
-    if android_mono:
+    if android_mono or android_coreclr:
         if args.built_app_dir is None:
-            raise Exception("Built apps directory must be present for Android Mono benchmarks")
+            raise Exception("Built apps directory must be present for Android benchmarks")
         getLogger().info("Copying Android apps to payload directory")
-        # Disabled due to not successfully building at the moment. https://github.com/dotnet/performance/issues/4729
-        #shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), os.path.join(root_payload_dir, "MonoBenchmarksDroid.apk"))
         shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorld", "HelloAndroid.apk"), os.path.join(root_payload_dir, "HelloAndroid.apk"))
+        # Disabled due to not successfully building at the moment. https://github.com/dotnet/performance/issues/4729
+        # if android_mono:
+            # shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), os.path.join(root_payload_dir, "MonoBenchmarksDroid.apk"))
         ci_setup_arguments.architecture = "arm64"
 
     if ios_mono or ios_nativeaot:
