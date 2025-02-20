@@ -8,7 +8,7 @@
   <!--Package versions-->
   <PropertyGroup>
     <MicrosoftNETILLinkTasksVersion>9.0.3</MicrosoftNETILLinkTasksVersion>
-    <MicrosoftNETILLinkPackageVersion>9.0.3-servicing.25105.18</MicrosoftNETILLinkPackageVersion>
+    <MicrosoftNETILLinkPackageVersion>9.0.3-servicing.25111.4</MicrosoftNETILLinkPackageVersion>
     <SystemThreadingChannelsPackageVersion>9.0.3</SystemThreadingChannelsPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>9.0.3</MicrosoftExtensionsLoggingPackageVersion>
     <BenchmarkDotNetVersion>0.14.1-nightly.20250107.205</BenchmarkDotNetVersion>
