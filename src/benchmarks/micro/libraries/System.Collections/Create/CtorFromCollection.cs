@@ -29,7 +29,11 @@ namespace System.Collections
             nameof(FrozenSet)})]
         public void SetupCollection() => _collection = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
-        [GlobalSetup(Targets = new[] { nameof(Dictionary), nameof(SortedList), nameof(SortedDictionary), nameof(ConcurrentDictionary), nameof(ImmutableDictionary), nameof(ImmutableSortedDictionary), nameof(FrozenDictionaryOptimized) })]
+        [GlobalSetup(Targets = new[] { nameof(Dictionary), nameof(SortedList), nameof(SortedDictionary), nameof(ConcurrentDictionary), nameof(ImmutableDictionary), nameof(ImmutableSortedDictionary), nameof(FrozenDictionaryOptimized),
+#if NET9_0_OR_GREATER
+            nameof(OrderedDictionary)
+#endif
+        })]
         public void SetupDictionary() => _dictionary = ValuesGenerator.Dictionary<T, T>(Size);
 
         [GlobalSetup(Targets = new[] { nameof(SortedDictionaryDeepCopy) })]
@@ -107,5 +111,10 @@ namespace System.Collections
 
         [Benchmark]
         public FrozenSet<T> FrozenSet() => _collection.ToFrozenSet();
+
+#if NET9_0_OR_GREATER
+        [Benchmark]
+        public OrderedDictionary<T, T> OrderedDictionary() => new OrderedDictionary<T, T>(_dictionary);
+#endif
     }
 }

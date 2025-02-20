@@ -157,5 +157,22 @@ namespace System.Collections
             }
             return queue;
         }
+
+#if NET9_0_OR_GREATER
+        [Benchmark]
+        public OrderedDictionary<T, T> OrderedDictionary()
+        {
+            OrderedDictionary<T, T> orderedDictionary = new OrderedDictionary<T, T>();
+            foreach (T key in _keys)
+            {
+                orderedDictionary.Add(key, key);
+            }
+            foreach (T key in _keys)
+            {
+                orderedDictionary.Remove(key);
+            }
+            return orderedDictionary;
+        }
+#endif
     }
 }

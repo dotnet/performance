@@ -233,6 +233,10 @@
     <Compile Remove="libraries\System.Numerics.Tensors\*.cs" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '9.0')">
+    <Compile Remove="libraries\System.Collections\OrderedDictionary\*.cs" />
+  </ItemGroup>
+
   <!-- This is not removing things from older Net versions, it is removing from newer Net versions -->
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt;= '8.0')">
     <Compile Remove="libraries\System.Drawing\*.cs" />
