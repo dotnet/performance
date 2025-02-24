@@ -160,13 +160,14 @@ jobs:
             artifactFileName: 'AndroidMonoarm64.tar.gz'
             artifactName: 'AndroidMonoarm64'
             displayName: 'Mono Android HelloWorld'
-        - template: /eng/pipelines/templates/download-artifact-step.yml
-          parameters:
-            unpackFolder: $(builtAppDir)
-            cleanUnpackFolder: false
-            artifactFileName: 'AndroidBDNApk.tar.gz'
-            artifactName: 'AndroidBDNApk'
-            displayName: 'Mono Android BDN Apk'
+        # Disabled due to not working and needing consistent normal android results. https://github.com/dotnet/performance/issues/4729
+        # - template: /eng/pipelines/templates/download-artifact-step.yml 
+        #   parameters:
+        #     unpackFolder: $(builtAppDir)
+        #     cleanUnpackFolder: false
+        #     artifactFileName: 'AndroidBDNApk.tar.gz'
+        #     artifactName: 'AndroidBDNApk'
+        #     displayName: 'Mono Android BDN Apk'
       - ${{ elseif or(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.runtimeType, 'iOSNativeAOT')) }}:
         # Download iOSMono and Native AOT tests
         - template: /eng/pipelines/templates/download-artifact-step.yml
