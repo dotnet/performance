@@ -49,7 +49,8 @@ namespace GC.Infrastructure.Core.Analysis
                 foreach (var analyzer in analyzers)
                 {
                     // Format: runName.corerunName.iterationIdx
-                    string[] splitName = analyzer.Key.Split(".", StringSplitOptions.RemoveEmptyEntries);
+                    string[] splitName = Path.GetFileNameWithoutExtension(analyzer.Key)
+                        .Split(".", StringSplitOptions.RemoveEmptyEntries);
                     string runName = splitName[0];
                     string corerunName = splitName[1];
                     string idx = splitName[2];
