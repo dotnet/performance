@@ -110,7 +110,7 @@ jobs:
     parameters:
       jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
-      runtimeFlavor: mono
+      runtimeFlavor: coreclr
       platforms:
         - windows_x64
       jobParameters:
