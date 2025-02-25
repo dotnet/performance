@@ -11,6 +11,7 @@
       <Framework Include="net7.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '6.0'"/>
       <Framework Include="net8.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '7.0'"/>
       <Framework Include="net9.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '8.0'"/>
+      <Framework Include="net10.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '9.0'"/>
   </ItemGroup>
 
   <ItemDefinitionGroup>
@@ -22,7 +23,7 @@
   </ItemDefinitionGroup>
   
   <ItemGroup>
-    <SDKWorkItem Include="@(Framework -> 'SDK Console Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;*8.0">
+    <SDKWorkItem Include="@(Framework -> 'SDK Console Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;*8.0;*9.0">
       <ScenarioDirectoryName>emptyconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
@@ -87,7 +88,7 @@
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
 
-    <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;*8.0">
+    <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;*8.0;*9.0">
       <ScenarioDirectoryName>mvcapptemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
@@ -190,9 +191,5 @@
     </HelixWorkItem>
   </ItemGroup>
 
-
   <Import Project="PreparePayloadWorkItems.targets" />
-
-
 </Project>
-
