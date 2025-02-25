@@ -36,7 +36,7 @@ jobs:
     # Test job depends on the corresponding build job
     ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
       dependsOn:
-        - ${{ if not(or(in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR' 'iOSMono', 'iOSNativeAOT', 'wasm'), and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')))) }}:
+        - ${{ if not(or(in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSNativeAOT', 'wasm'), and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')))) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'coreclr') }}
         - ${{ if and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'mono') }}
