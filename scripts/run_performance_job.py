@@ -533,10 +533,12 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     if android_mono:
         runtime_type = "Mono"
+        configurations["CompilationMode"] = "JIT"
         configurations["RuntimeType"] = str(runtime_type)
 
     if android_coreclr:
         runtime_type = "CoreCLR"
+        configurations["CompilationMode"] = "JIT"
         configurations["RuntimeType"] = str(runtime_type)
 
     if ios_mono:
