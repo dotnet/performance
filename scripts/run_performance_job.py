@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional
 
 import ci_setup
-from performance.common import RunCommand, set_environment_variable
+from performance.common import RunCommand, set_environment_variable, get_target_framework_moniker_from_framework
 from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
@@ -791,12 +791,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
         runtime_id = "linux" + (f"{args.os_sub_group.replace('_', '-')}" if args.os_sub_group else "") + f"-{args.architecture}"
 
     dotnet_executable_path = os.path.join(ci_setup_arguments.dotnet_path, "dotnet") if ci_setup_arguments.dotnet_path else os.path.join(ci_setup_arguments.install_dir, "dotnet")
-
+    tool_framework = get_target_framework_moniker_from_framework(framework)
+    
     RunCommand([
         dotnet_executable_path, "publish", 
         "-c", "Release", 
         "-o", os.path.join(payload_dir, "certhelper"),
-        "-f", framework,
+        "-f", tool_framework,
         "-r", runtime_id,
         "--self-contained",
         os.path.join(args.performance_repo_dir, "src", "tools", "CertHelper", "CertHelper.csproj"),
@@ -819,7 +820,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             dotnet_executable_path, "publish", 
             "-c", "Release", 
             "-o", os.path.join(payload_dir, "startup"),
-            "-f", framework,
+            "-f", tool_framework,
             "-r", runtime_id,
             "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "Startup", "Startup.csproj"),
@@ -832,7 +833,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             dotnet_executable_path, "publish", 
             "-c", "Release", 
             "-o", os.path.join(payload_dir, "SOD"),
-            "-f", framework,
+            "-f", tool_framework,
             "-r", runtime_id,
             "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "SizeOnDisk", "SizeOnDisk.csproj"),
@@ -846,7 +847,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 dotnet_executable_path, "publish", 
                 "-c", "Release", 
                 "-o", os.path.join(payload_dir, "MemoryConsumption"),
-                "-f", framework,
+                "-f", tool_framework,
                 "-r", runtime_id,
                 "--self-contained",
                 os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"),
@@ -859,7 +860,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 dotnet_executable_path, "publish", 
                 "-c", "Release", 
                 "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder"),
-                "-f", framework,
+                "-f", tool_framework,
                 "-r", runtime_id,
                 os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder.csproj"),
                 f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PerfLabGenericEventSourceForwarder.binlog')}",
