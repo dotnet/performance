@@ -12,6 +12,7 @@
   </ItemDefinitionGroup>
 
   <PropertyGroup>
+    <FrameworkVersion>$([System.Text.RegularExpressions.Regex]::Match($(PERFLAB_Framework), '(\d+\.\d+)$').Groups[1].Value)</FrameworkVersion>
     <HelixResultsDestinationDir>$(CorrelationPayloadDirectory)performance/artifacts/helix-results</HelixResultsDestinationDir>
   </PropertyGroup>
 
