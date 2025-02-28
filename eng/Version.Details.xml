@@ -55,7 +55,7 @@
       Mapping_Microsoft.tvOS.Sdk:default
     -->
     <!-- Dependencies for .NET MAUI workload -->
-    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.50-ci.main.25127.7">
+    <Dependency Name="Microsoft.Maui.Controls" Version="9.0.50-ci.main.25128.1">
       <Sha>0529a3d048913ac09a5f4c17b2d61b5243778d4f</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
