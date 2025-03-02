@@ -597,7 +597,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
                     perfetto_cmd = xharness_adb() + [
                         'shell',
-                        f'perfetto --time {max_startup_time_sec + 3}s --background -o {perfetto_device_save_file}'
+                        f'perfetto --background --txt -o {perfetto_device_save_file} --time {max_startup_time_sec + 3}s -b 64mb sched freq idle am wm gfx view binder_driver hal dalvik camera input res memory'
                     ]
                     RunCommand(perfetto_cmd, verbose=True).run()
 
