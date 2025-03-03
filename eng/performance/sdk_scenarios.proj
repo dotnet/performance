@@ -9,7 +9,7 @@
       <Framework Include="netcoreapp5.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.1'"/>
       <Framework Include="net6.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '5.0'"/>
       <Framework Include="net7.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '6.0'"/>
-      <Framework Include="net8.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '7.0'"/>
+      <Framework Include="net8.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '7.0' and '$(PERFLAB_Framework)' != 'net9.0'"/>
       <Framework Include="net9.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '8.0'"/>
       <Framework Include="net10.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '9.0'"/>
   </ItemGroup>
