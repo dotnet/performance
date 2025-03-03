@@ -23,7 +23,6 @@
   </ItemDefinitionGroup>
   
   <ItemGroup>
-  <!-- This does not appear to be run at all currently, and is covered by the SDK Console Template just below. -->
     <SDKWorkItem Include="@(Framework -> 'SDK Console Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;">
       <ScenarioDirectoryName>emptyconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
@@ -92,7 +91,7 @@
     <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;">
       <ScenarioDirectoryName>mvcapptemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>%(PreCommands) -f $(PERFLAB_Framework)</PreCommands>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
 
     <!-- WebLarge3.0 asset is specific to netcoreapp3.0 and netcoreapp3.1
