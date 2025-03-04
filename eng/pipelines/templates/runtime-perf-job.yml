@@ -36,7 +36,7 @@ jobs:
     # Test job depends on the corresponding build job
     ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
       dependsOn:
-        - ${{ if not(or(in(parameters.runtimeType, 'AndroidMono', 'iOSMono', 'iOSNativeAOT', 'wasm'), and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')))) }}:
+        - ${{ if not(or(in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSNativeAOT', 'wasm'), and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')))) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'coreclr') }}
         - ${{ if and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'mono') }}
@@ -47,6 +47,8 @@ jobs:
         - ${{ if eq(parameters.runtimeType, 'AndroidMono')}}:
           - ${{ 'build_android_arm64_release_AndroidMono' }}
           # - ${{ 'Build_ios_arm64_release_PerfBDNApp' }} # Disabled due to not working and needing consistent normal android results. https://github.com/dotnet/performance/issues/4729
+        - ${{ if eq(parameters.runtimeType, 'AndroidCoreCLR')}}:
+          - ${{ 'build_android_arm64_release_AndroidCoreCLR' }}
         - ${{ if eq(parameters.runtimeType, 'iOSMono')}}:
           - ${{ 'build_ios_arm64_release_iOSMono' }}
         - ${{ if eq(parameters.runtimeType, 'iOSNativeAOT')}}:
@@ -157,8 +159,8 @@ jobs:
           parameters:
             unpackFolder: $(builtAppDir)/androidHelloWorld
             cleanUnpackFolder: false
-            artifactFileName: 'AndroidMonoarm64.tar.gz'
-            artifactName: 'AndroidMonoarm64'
+            artifactFileName: 'AndroidHelloWorldArm64Mono.tar.gz'
+            artifactName: 'AndroidHelloWorldArm64Mono'
             displayName: 'Mono Android HelloWorld'
         # Disabled due to not working and needing consistent normal android results. https://github.com/dotnet/performance/issues/4729
         # - template: /eng/pipelines/templates/download-artifact-step.yml 
@@ -168,6 +170,15 @@ jobs:
         #     artifactFileName: 'AndroidBDNApk.tar.gz'
         #     artifactName: 'AndroidBDNApk'
         #     displayName: 'Mono Android BDN Apk'
+      - ${{ elseif eq(parameters.runtimeType, 'AndroidCoreCLR')}}:
+        # Download artifacts for Android Testing
+        - template: /eng/pipelines/templates/download-artifact-step.yml
+          parameters:
+            unpackFolder: $(builtAppDir)/androidHelloWorld
+            cleanUnpackFolder: false
+            artifactFileName: 'AndroidHelloWorldArm64CoreCLR.tar.gz'
+            artifactName: 'AndroidHelloWorldArm64CoreCLR'
+            displayName: 'CoreCLR Android HelloWorld'
       - ${{ elseif or(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.runtimeType, 'iOSNativeAOT')) }}:
         # Download iOSMono and Native AOT tests
         - template: /eng/pipelines/templates/download-artifact-step.yml
@@ -214,7 +225,7 @@ jobs:
               artifactName: 'iOSSampleAppNoSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
             checkDownloadedFiles: true
 
-      - ${{ if notIn(parameters.runtimeType, 'wasm', 'AndroidMono', 'iOSMono', 'iOSNativeAOT') }}:
+      - ${{ if notIn(parameters.runtimeType, 'wasm', 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSNativeAOT') }}:
         - ${{ if ne(parameters.runtimeFlavor, 'Mono') }}:
           # Create Core_Root
           - script: $(Build.SourcesDirectory)/src/tests/build$(scriptExt) ${{ parameters.buildConfig }} ${{ parameters.archType }} generatelayoutonly $(librariesOverrideArg) $(_crossBuildPropertyArg)
