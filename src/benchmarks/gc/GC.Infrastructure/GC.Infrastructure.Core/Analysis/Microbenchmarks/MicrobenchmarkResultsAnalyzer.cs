@@ -48,10 +48,23 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
                     foreach (var analyzer in analyzers)
                     {
+                        List<GCProcessData> allPertinentProcesses = analyzer.Value.GetProcessGCData("dotnet");
+                        List<GCProcessData> corerunProcesses = analyzer.Value.GetProcessGCData("corerun");
+                        allPertinentProcesses.AddRange(corerunProcesses);
                         foreach (var benchmark in runsToResults[run.Value])
                         {
-                            GCProcessData? benchmarkGCData = analyzer.Value.GetProcessGCData("MicroBenchmarks").FirstOrDefault();
-                            
+                            GCProcessData? benchmarkGCData = null;
+                            foreach (var process in allPertinentProcesses)
+                            {
+                                string commandLine = process.CommandLine.Replace("\"", "").Replace("\\", "");
+                                string runCleaned = benchmark.Key.Replace("\"", "").Replace("\\", "");
+                                if (commandLine.Contains(runCleaned) && commandLine.Contains("--benchmarkName"))
+                                {
+                                    benchmarkGCData = process;
+                                    break;
+                                }
+                            }
+
                             if (benchmarkGCData != null)
                             {
                                 int processID = benchmarkGCData.ProcessID;
