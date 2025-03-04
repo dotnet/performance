@@ -104,6 +104,10 @@ namespace GC.Infrastructure.Core.CommandBuilders
             if (configuration.TraceConfigurations != null && !string.Equals(configuration.TraceConfigurations.Type, "none", StringComparison.OrdinalIgnoreCase))
             {
                 CollectType collectType = TraceCollector.StringToCollectTypeMap[configuration.TraceConfigurations.Type];
+                if (os == OS.Linux && !TraceCollector.LinuxServerRunCollectTypeMap.Keys.Contains(collectType))
+                {
+                    throw new Exception($"{nameof(GCPerfSimCommandBuilder)}: Trace collect type {configuration.TraceConfigurations.Type} is not supported for GCPerfsim Linux server run.");
+                }
                 string collectionCommand = os == OS.Windows ? TraceCollector.WindowsCollectTypeMap[collectType] : TraceCollector.LinuxServerRunCollectTypeMap[collectType];
 
                 collectionCommand = collectionCommand.Replace(" ", ";").Replace("/", "");

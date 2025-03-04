@@ -44,8 +44,7 @@ namespace GC.Infrastructure.Core.TraceCollection
 
         internal static readonly Dictionary<CollectType, string> LinuxLocalRunCollectTypeMap = new()
         {
-            { CollectType.gc, "--profile gc-collect" },
-            { CollectType.cpu,  "--clrevents gc+stack --clreventlevel informational" }
+            { CollectType.gc, "--profile gc-collect" }
         };
 
         internal static readonly Dictionary<string, CollectType> StringToCollectTypeMap = new(StringComparer.OrdinalIgnoreCase)
@@ -154,11 +153,16 @@ namespace GC.Infrastructure.Core.TraceCollection
 
             // Give PerfView about a second to get started.
             Thread.Sleep(1000);
-            
+
 #else
             if (pid == null)
             {
                 throw new Exception($"{nameof(TraceCollector)}: Must provide prcoess id in Linux case");
+            }
+
+            if (_collectType != CollectType.none && !LinuxLocalRunCollectTypeMap.Keys.Contains(_collectType))
+            {
+                throw new Exception($"{nameof(TraceCollector)}: Trace collect type {collectType} is not supported for Linux local run.");
             }
 
             _collectorPath = Path.Combine(DependenciesFolder, "dotnet-trace");
