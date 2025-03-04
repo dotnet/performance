@@ -35,7 +35,7 @@ namespace GC.Infrastructure.Core.TraceCollection
             { CollectType.join, " /BufferSizeMB:4096 /CircularMB:4096 /KernelEvents:Process+Thread+ImageLoad  /ClrEvents:GC+Threading /ClrEventLevel=Verbose " },
         };
 
-        internal static readonly Dictionary<CollectType, string> LinuxCollectTypeMap = new()
+        internal static readonly Dictionary<CollectType, string> LinuxServerRunCollectTypeMap = new()
         {
             { CollectType.gc, "gcCollectOnly" },
             { CollectType.cpu,  "collect_cpu" },
@@ -44,9 +44,8 @@ namespace GC.Infrastructure.Core.TraceCollection
 
         internal static readonly Dictionary<CollectType, string> LinuxLocalRunCollectTypeMap = new()
         {
-            { CollectType.gc, "--clrevents gc" },
-            { CollectType.cpu,  "--clrevents gc+stack --clreventlevel informational" },
-            { CollectType.threadtime, "--clrevents gc --clreventlevel Verbose" },
+            { CollectType.gc, "--profile gc-collect" },
+            { CollectType.cpu,  "--clrevents gc+stack --clreventlevel informational" }
         };
 
         internal static readonly Dictionary<string, CollectType> StringToCollectTypeMap = new(StringComparer.OrdinalIgnoreCase)

@@ -104,7 +104,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
             if (configuration.TraceConfigurations != null && !string.Equals(configuration.TraceConfigurations.Type, "none", StringComparison.OrdinalIgnoreCase))
             {
                 CollectType collectType = TraceCollector.StringToCollectTypeMap[configuration.TraceConfigurations.Type];
-                string collectionCommand = os == OS.Windows ? TraceCollector.WindowsCollectTypeMap[collectType] : TraceCollector.LinuxCollectTypeMap[collectType];
+                string collectionCommand = os == OS.Windows ? TraceCollector.WindowsCollectTypeMap[collectType] : TraceCollector.LinuxServerRunCollectTypeMap[collectType];
 
                 collectionCommand = collectionCommand.Replace(" ", ";").Replace("/", "");
 
