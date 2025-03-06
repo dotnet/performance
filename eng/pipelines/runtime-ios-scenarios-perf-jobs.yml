@@ -8,6 +8,8 @@ jobs:
   - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       hybridGlobalization: ${{ parameters.hybridGlobalization }}
+      mono: true
+      nativeAot: true
 
   # run mono iOS scenarios HybridGlobalization
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
