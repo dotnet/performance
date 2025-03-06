@@ -1,0 +1,19 @@
+parameters:
+  buildConfiguration: ''
+  buildId: ''
+
+jobs:
+  - job: RegisterBuild_${{ parameters.buildConfiguration }}
+    displayName: 'Register Build (${{ parameters.buildConfiguration }})'
+    steps:
+    - checkout: none
+    - script: echo "pvscmdupload/builds/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildConfiguration }}/buildInfo.json"
+      displayName: 'Build info path'
+    - task: AzureCLI@2
+      displayName: 'Upload build info file'
+      inputs:
+        azureSubscription: '.NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)'
+        scriptType: 'pscore'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az storage blob upload --auth-mode login --account-name pvscmdupload --container-name builds --data '{"buildId":"${{ parameters.buildId }}"}' --name "buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildConfiguration }}/buildInfo.json" --overwrite true

@@ -1,0 +1,26 @@
+parameters:
+  buildConfiguration: ''
+  dependencyJobName: ''
+  artifacts: []
+
+jobs:
+- ${{ each artifact in parameters.artifacts }}:
+  - job: UploadBuildArtifact_${{ artifact.artifactName }}
+    displayName: 'Upload Build Artifact ${{ artifact.artifactName }}\'
+    condition: eq(stageDependencies.Build.${{ parameters.dependencyJobName }}.result, 'Succeeded')
+    steps:
+    - checkout: none
+    - download: current
+      displayName: Download Build Artifact ${{ artifact.artifactName }}
+      artifact: ${{ artifact.artifactName }}
+    - ${{ each fileName in artifact.files }}:
+      - script: echo "pvscmdupload/builds/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildConfiguration }}/${{ fileName }}"
+        displayName: 'Artifact upload path'
+      - task: AzureCLI@2
+        displayName: 'Upload ${{ fileName }} file'
+        inputs:
+          azureSubscription: '.NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)'
+          scriptType: 'pscore'
+          scriptLocation: 'inlineScript'
+          inlineScript: |
+            az storage blob upload --auth-mode login --account-name pvscmdupload --container-name builds --file "$(Pipeline.Workspace)/${{ artifact.artifactName }}/${{ fileName }}" --name "buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildConfiguration }}/${{ fileName }}" --overwrite true

@@ -1,0 +1,84 @@
+parameters:
+  runtimeRepoAlias: runtime
+  performanceRepoAlias: self
+  buildConfiguration: []
+  mauiFramework: ''
+
+jobs:
+  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_arm64_linux') }}:
+    - template: /eng/pipelines/performance/templates/perf-coreclr-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        linux_arm64: true
+          
+  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_arm64_windows') }}:
+    - template: /eng/pipelines/performance/templates/perf-coreclr-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        windows_arm64: true
+         
+  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_muslx64_linux') }}:
+    - template: /eng/pipelines/performance/templates/perf-coreclr-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        linux_musl_x64: true
+          
+  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_x64_linux') }}:
+    - template: /eng/pipelines/performance/templates/perf-coreclr-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        linux_x64: true
+          
+  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_x64_windows') }}:
+    - template: /eng/pipelines/performance/templates/perf-coreclr-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        windows_x64: true
+          
+  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_x86_windows') }}:
+    - template: /eng/pipelines/performance/templates/perf-coreclr-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        windows_x86: true
+          
+  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_arm64_android') }}:
+    - template: /eng/pipelines/performance/templates/perf-coreclr-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        android_arm64: true
+          
+  - ${{ if containsValue(parameters.buildConfiguration, 'wasm') }}:
+    - template: /eng/pipelines/performance/templates/perf-wasm-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+    
+  - ${{ if containsValue(parameters.buildConfiguration, 'monoAot_arm64_linux') }}:
+    - template: /eng/pipelines/performance/templates/perf-mono-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        monoAot_arm64: true
+        
+  - ${{ if containsValue(parameters.buildConfiguration, 'monoAot_x64_linux') }}:
+    - template: /eng/pipelines/performance/templates/perf-mono-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        monoAot_x64: true
+        
+  - ${{ if containsValue(parameters.buildConfiguration, 'mono_x64_linux') }}:
+    - template: /eng/pipelines/performance/templates/perf-mono-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        mono_x64: true
+          
+  - ${{ if containsValue(parameters.buildConfiguration, 'mono_arm64_linux') }}:
+    - template: /eng/pipelines/performance/templates/perf-mono-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        mono_arm64: true
+        
+  - ${{ if containsValue(parameters.buildConfiguration, 'mono_arm64_android') }}:
+    - template: /eng/pipelines/performance/templates/perf-mono-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        monoAndroid: true
+       
+  - ${{ if containsValue(parameters.buildConfiguration, 'mono_arm64_ios') }}:
+    - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        mono: true
+        
+  - ${{ if containsValue(parameters.buildConfiguration, 'android_arm64') }}:
+    - template: /eng/pipelines/performance/templates/perf-bdn-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        mauiFramework: ${{ parameters.mauiFramework }}
+          
+  - ${{ if containsValue(parameters.buildConfiguration, 'ios_arm64') }}:
+    - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        nativeAot: true

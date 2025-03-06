@@ -1,0 +1,12 @@
+parameters:
+  runtimeRepoAlias: runtime
+  performanceRepoAlias: self
+  buildConfiguration: []
+  mauiFramework: ''
+
+jobs:
+- ${{ each configuration in parameters.buildConfiguration }}:
+  - template: /eng/pipelines/templates/register-build-job.yml@${{ parameters.performanceRepoAlias }}
+    parameters:
+      buildConfiguration: ${{ configuration }}
+      buildId: $(Build.BuildId)
