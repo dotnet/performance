@@ -17,9 +17,9 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>689f4e9a5a2f8430455266a27921444ec1605eb6</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="9.0.3">
+    <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="9.0.4">
       <Uri>https://github.com/dotnet/windowsdesktop</Uri>
-      <Sha>192ae85f186d0aead89c901bbb6dd7096138fed3</Sha>
+      <Sha>95539dd7d2eeb24f149c9c7fcaa1ec3b0cde0222</Sha>
     </Dependency>
     <Dependency Name="Microsoft.AspNetCore.App.Ref" Version="9.0.3">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
