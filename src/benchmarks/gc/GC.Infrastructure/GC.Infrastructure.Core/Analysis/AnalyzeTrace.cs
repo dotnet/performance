@@ -41,15 +41,17 @@ namespace GC.Infrastructure.Core.Analysis
             List<ComparisonResult> allComparisonResults = new();
 
             // Concurrently get all the traces.
-            Parallel.ForEach(configuration.Runs, run =>
+            Parallel.ForEach(configuration.coreruns, corerunDetail =>
             {
-                Dictionary<string, Analyzer> analyzers = AnalyzerManager.GetAllAnalyzers(Path.Combine(configuration.Output.Path, run.Key));
+                // List analyzers in baseline or run
+                Dictionary<string, Analyzer> analyzers = AnalyzerManager.GetAllAnalyzers(Path.Combine(configuration.Output.Path, corerunDetail.Key));
 
                 foreach (var analyzer in analyzers)
                 {
                     // Format: runName.corerunName.iterationIdx
-                    string runName = run.Key;
-                    string[] splitName = analyzer.Key.Split(".", StringSplitOptions.RemoveEmptyEntries);
+                    string[] splitName = Path.GetFileNameWithoutExtension(analyzer.Key)
+                        .Split(".", StringSplitOptions.RemoveEmptyEntries);
+                    string runName = splitName[0];
                     string corerunName = splitName[1];
                     string idx = splitName[2];
 
@@ -69,12 +71,12 @@ namespace GC.Infrastructure.Core.Analysis
                             // If the process isn't found in the trace, substitute a null ResultItem.
                             if (p == null)
                             {
-                                d[corerunName] = processData = ResultItem.GetNullItem(run.Key, corerun);
+                                d[corerunName] = processData = ResultItem.GetNullItem(runName, corerun);
                             }
 
                             else
                             {
-                                d[corerunName] = processData = new ResultItem(p, run.Key, corerun);
+                                d[corerunName] = processData = new ResultItem(p, runName, corerun);
                             }
                         }
                     }
