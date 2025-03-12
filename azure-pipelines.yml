@@ -28,14 +28,6 @@ pr:
     - src/tools/ResultsComparer/README.md
     - README.md
 
-schedules:
-- cron: "0 */12 * * *"
-  displayName: Every 12 hours build
-  branches:
-    include:
-    - release/6.0
-  always: true
-
 jobs:
 
 ######################################################
