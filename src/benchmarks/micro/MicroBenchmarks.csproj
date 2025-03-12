@@ -8,7 +8,7 @@
     <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' != 'Windows_NT'">net6.0;net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
     <NoWarn>$(NoWarn);CS8002</NoWarn>
     <!-- Suppress binaryformatter obsolete warning -->
-    <NoWarn>$(NoWarn);NU1510;SYSLIB0011</NoWarn>
+    <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
     <OutputType>Exe</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>portable</DebugType>
