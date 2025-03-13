@@ -76,7 +76,6 @@ class Runner:
         devicestartupparser.add_argument('--fully-drawn-extra-delay', help='Set an additional delay time for an Android app to reportFullyDrawn (seconds), not on iOS. This should be greater than the greatest amount of extra time expected between first frame draw and reportFullyDrawn being called. Default = 3 seconds', type=int, default=3, dest='fullyDrawnDelaySecMax')
         devicestartupparser.add_argument('--fully-drawn-magic-string', help='Set the magic string that is logged by the app to indicate when the app is fully drawn. Required when using --use-fully-drawn-time on iOS.', type=str, dest='fullyDrawnMagicString')
         devicestartupparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
-        devicestartupparser.add_argument('--trace-perfetto', help='Android Only. Trace the startup with Perfetto and save to the "traces" directory.', action='store_true', dest='traceperfetto')
         self.add_common_arguments(devicestartupparser)
 
         devicememoryconsumptionparser = subparsers.add_parser(const.DEVICEMEMORYCONSUMPTION,
@@ -198,7 +197,6 @@ ex: C:\repos\performance;C:\repos\runtime
             self.fullyDrawnDelaySecMax = args.fullyDrawnDelaySecMax
             self.fullyDrawnMagicString = args.fullyDrawnMagicString
             self.closeToStartDelay = args.closeToStartDelay
-            self.traceperfetto = args.traceperfetto
 
         if self.testtype == const.DEVICEMEMORYCONSUMPTION:
             self.packagepath = args.packagepath
@@ -579,59 +577,7 @@ ex: C:\repos\performance;C:\repos\runtime
                         raise Exception("Android Time Capture Failed! Incorrect number of captures found.")
                     allResults.append(formattedTime) # append TotalTime: (TIME)
                     time.sleep(self.closeToStartDelay) # Delay in seconds for ensuring a cold start
-
-                if self.traceperfetto:
-                    perfetto_device_save_file = f'/data/misc/perfetto-traces/perfetto_trace_{time.time()}' # Try a different trace location from #f'/sdcard/Android/data/{self.packagename}/files/perfetto_startup_trace'
-
-                    # Setup the phone props to allow perfetto to run properly
-                    getLogger().info("Setting up the device for Perfetto")
-                    setup_perfetto_cmd = xharness_adb() + [
-                        'shell',
-                        'setprop persist.traced.enable 1'
-                    ]
-                    RunCommand(setup_perfetto_cmd, verbose=True).run()
-
-                    getLogger().info("Tracing with Perfetto")
-                    # Get the max TotalTime from the allResults list in seconds
-                    max_startup_time_sec = int(max(int(re.search(r"TotalTime: (\d+)", str(result)).group(1)) for result in allResults) / 1000)
-
-                    perfetto_cmd = xharness_adb() + [
-                        'shell',
-                        f'perfetto --time {max_startup_time_sec + 3}s --background -o {perfetto_device_save_file}'
-                    ]
-                    RunCommand(perfetto_cmd, verbose=True).run()
-
-                    # Start a stop watch to ensure the trace has been captured
-                    perfetto_start_time_sec = time.time()
-
-                    # Run the startup test with the trace running (only once)
-                    getLogger().info("Running startup test with Perfetto trace running")
-                    traced_start = RunCommand(androidHelper.startappcommand, verbose=True)
-                    traced_start.run()
-
-                    # Wait until the total time taken to start the app is greater than the max startup time + 3
-                    # This is to ensure that the trace has captured the entire startup process
-                    getLogger().info("Ensuring the trace capture has been completed.")
-                    while time.time() - perfetto_start_time_sec < max_startup_time_sec + 3:
-                        time.sleep(1)
-                        getLogger().info("Waiting for trace capture to complete. Time elapsed (Sec): %s, Max time (sec): %s", (time.time() - perfetto_start_time_sec), (max_startup_time_sec + 3))
-
-                    # Pull the trace from the device and store in the traceperfetto directory
-                    pull_trace_cmd = xharness_adb() + [
-                        'pull',
-                        perfetto_device_save_file,
-                        os.path.join(os.getcwd(), const.TRACEDIR, f'perfetto_startup_trace_{self.packagename}_{time.time()}.trace')
-                    ]
-                    RunCommand(pull_trace_cmd, verbose=True).run()
-
-                    # Delete the trace file on the android device
-                    getLogger().info("Deleting the trace file on the device.")
-                    delete_trace_cmd = xharness_adb() + [
-                        'shell',
-                        f'rm -rf {perfetto_device_save_file}'
-                    ]
-                    RunCommand(delete_trace_cmd, verbose=True).run()
-
+                
             finally:
                 androidHelper.close_device()
 
