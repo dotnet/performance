@@ -13,7 +13,17 @@ from test import EXENAME
 setup_loggers(True)
 
 precommands = PreCommands()
-install_versioned_maui(precommands)
+
+# Setup nuget.config
+feeds = {
+    "nuget.org": "https://api.nuget.org/v3/index.json",
+    "dotnet10": "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet10/nuget/v3/index.json"
+}
+precommands.create_nuget_config(feeds)
+
+precommands.setup_workload_update_mode("manifests")
+
+precommands.install_workload('android', [])
 
 # Setup the app folder
 precommands.new(template='android',
@@ -24,7 +34,6 @@ precommands.new(template='android',
                 no_restore=False)
 
 # Build the APK
-shutil.copy('./MauiNuGet.config', './app/Nuget.config')
 precommands.execute([])
 
 # Remove the aab files as we don't need them, this saves space
