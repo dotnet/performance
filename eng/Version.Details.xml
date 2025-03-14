@@ -39,9 +39,9 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>dbb4142ebc34d0a4b9f26136f86065c037dc4b80</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="10.0.0-prerelease.25152.1">
+    <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="10.0.0-prerelease.25164.1">
       <Uri>https://github.com/dotnet/xharness</Uri>
-      <Sha>359511d20ba9fcbc2549d3788c043ab5c23399ca</Sha>
+      <Sha>6df4f3a2cd57adbde1607bba67f50613102d8bd9</Sha>
     </Dependency>
     <!--
       Maui Rollback Version mappings, default means generated from sdk version. Allows for manual override of version similar to https://github.com/dotnet/maui/blob/df8cfcf635a590955a8cc3d6cf7ae6280449dd3f/eng/Versions.props#L138-L146, where the logic comes from:
