@@ -1,13 +1,13 @@
 parameters:
-  buildConfiguration: ''
+  buildType: ''
   buildId: ''
 
 jobs:
-  - job: RegisterBuild_${{ parameters.buildConfiguration }}
-    displayName: 'Register Build (${{ parameters.buildConfiguration }})'
+  - job: RegisterBuild_${{ parameters.buildType }}
+    displayName: 'Register Build (${{ parameters.buildType }})'
     steps:
     - checkout: none
-    - script: echo "pvscmdupload/builds/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildConfiguration }}/buildInfo.json"
+    - script: echo "pvscmdupload/builds/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/buildInfo.json"
       displayName: 'Build info path'
     - task: AzureCLI@2
       displayName: 'Upload build info file'
@@ -16,4 +16,4 @@ jobs:
         scriptType: 'pscore'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          az storage blob upload --auth-mode login --account-name pvscmdupload --container-name builds --data '{"buildId":"${{ parameters.buildId }}"}' --name "buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildConfiguration }}/buildInfo.json" --overwrite true
+          az storage blob upload --auth-mode login --account-name pvscmdupload --container-name builds --data '{"buildId":"${{ parameters.buildId }}"}' --name "buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/buildInfo.json" --overwrite true

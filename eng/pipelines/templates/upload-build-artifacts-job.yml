@@ -1,5 +1,5 @@
 parameters:
-  buildConfiguration: ''
+  buildType: ''
   dependencyJobName: ''
   artifacts: []
 
@@ -14,7 +14,7 @@ jobs:
       displayName: Download Build Artifact ${{ artifact.artifactName }}
       artifact: ${{ artifact.artifactName }}
     - ${{ each fileName in artifact.files }}:
-      - script: echo "pvscmdupload/builds/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildConfiguration }}/${{ fileName }}"
+      - script: echo "pvscmdupload/builds/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}"
         displayName: 'Artifact upload path'
       - task: AzureCLI@2
         displayName: 'Upload ${{ fileName }} file'
@@ -23,4 +23,4 @@ jobs:
           scriptType: 'pscore'
           scriptLocation: 'inlineScript'
           inlineScript: |
-            az storage blob upload --auth-mode login --account-name pvscmdupload --container-name builds --file "$(Pipeline.Workspace)/${{ artifact.artifactName }}/${{ fileName }}" --name "buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildConfiguration }}/${{ fileName }}" --overwrite true
+            az storage blob upload --auth-mode login --account-name pvscmdupload --container-name builds --file "$(Pipeline.Workspace)/${{ artifact.artifactName }}/${{ fileName }}" --name "buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}" --overwrite true

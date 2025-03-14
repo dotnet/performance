@@ -1,131 +1,131 @@
 parameters:
   runtimeRepoAlias: runtime
   performanceRepoAlias: self
-  buildConfiguration: []
+  buildType: []
   mauiFramework: ''
 
 jobs:
-  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_arm64_linux') }}:
+  - ${{ if containsValue(parameters.buildType, 'coreclr_arm64_linux') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'coreclr_arm64_linux'
+        buildType: 'coreclr_arm64_linux'
         dependencyJobName: build_linux_arm64_release_coreclr
         artifacts:
         - artifactName: 'BuildArtifacts_linux_arm64_Release_coreclr'
           files: [ 'BuildArtifacts_linux_arm64_Release_coreclr.tar.gz' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_arm64_windows') }}:
+  - ${{ if containsValue(parameters.buildType, 'coreclr_arm64_windows') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'coreclr_arm64_windows'
+        buildType: 'coreclr_arm64_windows'
         dependencyJobName: build_windows_arm64_release_coreclr
         artifacts:
         - artifactName: 'BuildArtifacts_windows_arm64_Release_coreclr'
           files: [ 'BuildArtifacts_windows_arm64_Release_coreclr.zip' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_muslx64_linux') }}:
+  - ${{ if containsValue(parameters.buildType, 'coreclr_muslx64_linux') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'coreclr_muslx64_linux'
+        buildType: 'coreclr_muslx64_linux'
         dependencyJobName: build_linux_musl_x64_release_coreclr
         artifacts:
         - artifactName: 'BuildArtifacts_linux_musl_x64_Release_coreclr'
           files: [ 'BuildArtifacts_linux_musl_x64_Release_coreclr.tar.gz' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_x64_linux') }}:
+  - ${{ if containsValue(parameters.buildType, 'coreclr_x64_linux') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'coreclr_x64_linux'
+        buildType: 'coreclr_x64_linux'
         dependencyJobName: build_linux_x64_release_coreclr
         artifacts:
         - artifactName: 'BuildArtifacts_linux_x64_Release_coreclr'
           files: [ 'BuildArtifacts_linux_x64_Release_coreclr.tar.gz' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_x64_windows') }}:
+  - ${{ if containsValue(parameters.buildType, 'coreclr_x64_windows') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'coreclr_x64_windows'
+        buildType: 'coreclr_x64_windows'
         dependencyJobName: build_windows_x64_release_coreclr
         artifacts:
         - artifactName: 'BuildArtifacts_windows_x64_Release_coreclr'
           files: [ 'BuildArtifacts_windows_x64_Release_coreclr.zip' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_x86_windows') }}:
+  - ${{ if containsValue(parameters.buildType, 'coreclr_x86_windows') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'coreclr_x86_windows'
+        buildType: 'coreclr_x86_windows'
         dependencyJobName: build_windows_x86_release_coreclr
         artifacts:
         - artifactName: 'BuildArtifacts_windows_x86_Release_coreclr'
           files: [ 'BuildArtifacts_windows_x86_Release_coreclr.zip' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'coreclr_arm64_android') }}:
+  - ${{ if containsValue(parameters.buildType, 'coreclr_arm64_android') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'coreclr_arm64_android'
+        buildType: 'coreclr_arm64_android'
         dependencyJobName: build_android_arm64_release_AndroidCoreCLR
         artifacts:
         - artifactName: 'AndroidHelloWorldArm64CoreCLR'
           files: [ 'AndroidHelloWorldArm64CoreCLR.tar.gz' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'wasm') }}:
+  - ${{ if containsValue(parameters.buildType, 'wasm') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'wasm'
+        buildType: 'wasm'
         dependencyJobName: build_browser_wasm_linux_Release_wasm
         artifacts:
         - artifactName: 'BrowserWasm'
           files: [ 'BrowserWasm.tar.gz' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'monoAot_arm64_linux') }}:
+  - ${{ if containsValue(parameters.buildType, 'monoAot_arm64_linux') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'monoAot_arm64_linux'
+        buildType: 'monoAot_arm64_linux'
         dependencyJobName: build_linux_arm64_release_AOT
         artifacts:
         - artifactName: 'LinuxMonoAOTarm64'
           files: [ 'LinuxMonoAOTarm64.tar.gz' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'monoAot_x64_linux') }}:
+  - ${{ if containsValue(parameters.buildType, 'monoAot_x64_linux') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'monoAot_x64_linux'
+        buildType: 'monoAot_x64_linux'
         dependencyJobName: build_linux_x64_release_AOT
         artifacts:
         - artifactName: 'LinuxMonoAOTx64'
           files: [ 'LinuxMonoAOTx64.tar.gz' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'mono_x64_linux') }}:
+  - ${{ if containsValue(parameters.buildType, 'mono_x64_linux') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'mono_x64_linux'
+        buildType: 'mono_x64_linux'
         dependencyJobName: build_linux_x64_release_mono
         artifacts:
         - artifactName: 'BuildArtifacts_linux_x64_Release_mono'
           files: [ 'BuildArtifacts_linux_x64_Release_mono.tar.gz' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'mono_arm64_linux') }}:
+  - ${{ if containsValue(parameters.buildType, 'mono_arm64_linux') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'mono_arm64_linux'
+        buildType: 'mono_arm64_linux'
         dependencyJobName: build_linux_arm64_release_mono
         artifacts:
         - artifactName: 'BuildArtifacts_linux_arm64_Release_mono'
           files: [ 'BuildArtifacts_linux_arm64_Release_mono.tar.gz' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'mono_arm64_android') }}:
+  - ${{ if containsValue(parameters.buildType, 'mono_arm64_android') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'mono_arm64_android'
+        buildType: 'mono_arm64_android'
         dependencyJobName: build_android_arm64_release_AndroidMono
         artifacts:
         - artifactName: 'AndroidHelloWorldArm64Mono'
           files: [ 'AndroidHelloWorldArm64Mono.tar.gz' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'mono_arm64_ios') }}:
+  - ${{ if containsValue(parameters.buildType, 'mono_arm64_ios') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'mono_arm64_ios'
+        buildType: 'mono_arm64_ios'
         dependencyJobName: build_ios_arm64_release_iOSMono
         artifacts:
         - artifactName: 'iOSSampleAppLLVMNoSymbolsHybridGlobalizationtrue'
@@ -136,29 +136,20 @@ jobs:
           files: [ 'iOSSampleAppNoLLVMNoSymbolsHybridGlobalizationtrue.zip' ]
         - artifactName: 'iOSSampleAppNoLLVMSymbolsHybridGlobalizationtrue'
           files: [ 'iOSSampleAppNoLLVMSymbolsHybridGlobalizationtrue.zip' ]
-          
-  - ${{ if containsValue(parameters.buildConfiguration, 'android_arm64') }}:
+                    
+  - ${{ if containsValue(parameters.buildType, 'monoBDN_arm64_android') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'android_arm64'
-        dependencyJobName: build_ios_arm64_release_PerfBDNApp
-        artifacts:
-        - artifactName: 'IntermediateArtifacts'
-          files: [ 'IntermediateArtifacts.tar.gz' ]
-          
-  - ${{ if containsValue(parameters.buildConfiguration, 'android_arm64') }}:
-    - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
-      parameters:
-        buildConfiguration: 'android_arm64'
-        dependencyJobName: build_android_arm64_release_Mono_Packs
+        buildType: 'monoBDN_arm64_android'
+        dependencyJobName: build_ios_arm64_release_PerfBDNApp #build_android_arm64_release_Mono_Packs
         artifacts:
         - artifactName: 'AndroidBDNApk'
           files: [ 'AndroidBDNApk.tar.gz' ]
           
-  - ${{ if containsValue(parameters.buildConfiguration, 'ios_arm64') }}:
+  - ${{ if containsValue(parameters.buildType, 'nativeAot_arm64_ios') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
-        buildConfiguration: 'ios_arm64'
+        buildType: 'nativeAot_arm64_ios'
         dependencyJobName: build_ios_arm64_release_iOSNativeAOT
         artifacts:
         - artifactName: 'iOSSampleAppSymbolsHybridGlobalizationtrue'
