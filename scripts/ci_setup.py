@@ -421,8 +421,6 @@ def main(args: Any):
 
     if args.experiment_name == "jitoptrepeat":
         experiment_config = variable_format % ('DOTNET_JitOptRepeat', '*')
-    elif args.experiment_name == "rpolayout":
-        experiment_config = variable_format % ('DOTNET_JitDoReversePostOrderLayout', '1')
 
     output = ''
 
