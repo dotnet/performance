@@ -37,6 +37,6 @@ from the ASP.NET benchmarks obtained using crank as well as ETL data.
 
 - [Scenarios workflow](scenarios-workflow.md) - An introduction of how to run scenario tests.
 - [Basic scenarios](basic-scenarios.md) - Specific instruction of how to run various basic scenarios.
-- [Blazor scenarios](blazor-scenarios) - Specific instruction of how to run _New Blazorwasm Template Size On Disk_ scenarios.
+- [Blazor scenarios](blazor-scenarios.md) - Specific instruction of how to run _New Blazorwasm Template Size On Disk_ scenarios.
 - [Cross-gen scenarios](crossgen-scenarios.md) - Specific instruction of how to run _crossgen_ scenarios.
 - [SDK scenarios](sdk-scenarios.md) - Specific instruction of how to run _SDK Build Throughput Scenario_ scenarios.
