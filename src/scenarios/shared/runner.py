@@ -582,55 +582,77 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 if self.traceperfetto:
                     perfetto_device_save_file = f'/data/misc/perfetto-traces/perfetto_trace_{time.time()}'
+                    original_traced_enable = None
 
-                    # Setup the phone props to allow perfetto to run properly
-                    getLogger().info("Setting up the device for Perfetto")
-                    setup_perfetto_cmd = xharness_adb() + [
-                        'shell',
-                        'setprop persist.traced.enable 1'
-                    ]
-                    RunCommand(setup_perfetto_cmd, verbose=True).run()
+                    try:
+                        # Get the current value of persist.traced.enable
+                        getLogger().info("Getting current persist.traced.enable value")
+                        get_traced_cmd = xharness_adb() + [
+                            'shell',
+                            'getprop persist.traced.enable'
+                        ]
+                        get_traced_result = RunCommand(get_traced_cmd, verbose=True)
+                        get_traced_result.run()
+                        original_traced_enable = get_traced_result.stdout.strip()
 
-                    getLogger().info("Tracing with Perfetto")
-                    # Get the max TotalTime from the allResults list in seconds
-                    max_startup_time_sec = int(max(int(re.search(r"TotalTime: (\d+)", str(result)).group(1)) for result in allResults) / 1000)
+                        # Setup the phone props to allow perfetto to run properly
+                        getLogger().info("Setting up the device for Perfetto")
+                        setup_perfetto_cmd = xharness_adb() + [
+                            'shell',
+                            'setprop persist.traced.enable 1'
+                        ]
+                        RunCommand(setup_perfetto_cmd, verbose=True).run()
 
-                    perfetto_cmd = xharness_adb() + [
-                        'shell',
-                        f'perfetto --background --txt -o {perfetto_device_save_file} --time {max_startup_time_sec + 3}s -b 64mb sched freq idle am wm gfx view binder_driver hal dalvik camera input res memory'
-                    ]
-                    RunCommand(perfetto_cmd, verbose=True).run()
+                        getLogger().info("Tracing with Perfetto")
+                        # Get the max TotalTime from the allResults list in seconds
+                        max_startup_time_sec = int(max(int(re.search(r"TotalTime: (\d+)", str(result)).group(1)) for result in allResults) / 1000)
 
-                    # Start a stop watch to ensure the trace has been captured
-                    perfetto_start_time_sec = time.time()
+                        perfetto_cmd = xharness_adb() + [
+                            'shell',
+                            f'perfetto --background --txt -o {perfetto_device_save_file} --time {max_startup_time_sec + 3}s -b 64mb sched freq idle am wm gfx view binder_driver hal dalvik camera input res memory'
+                        ]
+                        RunCommand(perfetto_cmd, verbose=True).run()
 
-                    # Run the startup test with the trace running (only once)
-                    getLogger().info("Running startup test with Perfetto trace running")
-                    traced_start = RunCommand(androidHelper.startappcommand, verbose=True)
-                    traced_start.run()
+                        # Start a stop watch to ensure the trace has been captured
+                        perfetto_start_time_sec = time.time()
 
-                    # Wait until the total time taken to start the app is greater than the max startup time + 3
-                    # This is to ensure that the trace has captured the entire startup process
-                    getLogger().info("Ensuring the trace capture has been completed.")
-                    while time.time() - perfetto_start_time_sec < max_startup_time_sec + 3:
-                        time.sleep(1)
-                        getLogger().info("Waiting for trace capture to complete. Time elapsed (Sec): %s, Max time (sec): %s", (time.time() - perfetto_start_time_sec), (max_startup_time_sec + 3))
+                        # Run the startup test with the trace running (only once)
+                        getLogger().info("Running startup test with Perfetto trace running")
+                        traced_start = RunCommand(androidHelper.startappcommand, verbose=True)
+                        traced_start.run()
 
-                    # Pull the trace from the device and store in the traceperfetto directory
-                    pull_trace_cmd = xharness_adb() + [
-                        'pull',
-                        perfetto_device_save_file,
-                        os.path.join(os.getcwd(), const.TRACEDIR, f'perfetto_startup_trace_{self.packagename}_{time.time()}.trace')
-                    ]
-                    RunCommand(pull_trace_cmd, verbose=True).run()
+                        # Wait until the total time taken to start the app is greater than the max startup time + 3
+                        # This is to ensure that the trace has captured the entire startup process
+                        getLogger().info("Ensuring the trace capture has been completed.")
+                        while time.time() - perfetto_start_time_sec < max_startup_time_sec + 3:
+                            time.sleep(1)
+                            getLogger().info("Waiting for trace capture to complete. Time elapsed (Sec): %s, Max time (sec): %s", (time.time() - perfetto_start_time_sec), (max_startup_time_sec + 3))
 
-                    # Delete the trace file on the android device
-                    getLogger().info("Deleting the trace file on the device.")
-                    delete_trace_cmd = xharness_adb() + [
-                        'shell',
-                        f'rm -rf {perfetto_device_save_file}'
-                    ]
-                    RunCommand(delete_trace_cmd, verbose=True).run()
+                        # Pull the trace from the device and store in the traceperfetto directory
+                        pull_trace_cmd = xharness_adb() + [
+                            'pull',
+                            perfetto_device_save_file,
+                            os.path.join(os.getcwd(), const.TRACEDIR, f'perfetto_startup_trace_{self.packagename}_{time.time()}.trace')
+                        ]
+                        RunCommand(pull_trace_cmd, verbose=True).run()
+
+                        # Delete the trace file on the android device
+                        getLogger().info("Deleting the trace file on the device.")
+                        delete_trace_cmd = xharness_adb() + [
+                            'shell',
+                            f'rm -rf {perfetto_device_save_file}'
+                        ]
+                        RunCommand(delete_trace_cmd, verbose=True).run()
+
+                    finally:
+                        # Restore original persist.traced.enable value if we saved one
+                        if original_traced_enable is not None and original_traced_enable != "1":
+                            getLogger().info(f"Restoring persist.traced.enable to original value: {original_traced_enable}")
+                            restore_traced_cmd = xharness_adb() + [
+                                'shell',
+                                f'setprop persist.traced.enable {original_traced_enable}'
+                            ]
+                            RunCommand(restore_traced_cmd, verbose=True).run()
 
             finally:
                 androidHelper.close_device()
