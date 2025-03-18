@@ -28,7 +28,7 @@
 4. Run the test:
 
     ```sh
-    python test.py devicestartup --device-type android --package-path <path-to-apk> --package-name <apk-package-name> [--disable-animations] [--use-fully-drawn-time --fully-drawn-extra-delay <delay-in-sec>]
+    python test.py devicestartup --device-type android --package-path <path-to-apk> --package-name <apk-package-name> [--disable-animations] [--use-fully-drawn-time --fully-drawn-extra-delay <delay-in-sec>] [--trace-perfetto]
     ```
 
 * Refer to the [Notes](./android-startup-scenarios.md#notes) below about specifying --use-fully-drawn-time --fully-drawn-extra-delay parameters.
@@ -62,3 +62,4 @@
 - Specific example command such as when using the runtime android example app: `python test.py devicestartup --device-type android --package-path HelloAndroid.apk --package-name net.dot.HelloAndroid`.
 - Other example commands and additional logic can be found in the `maui_scenarios_android.proj` and `runner.py` files in the `performance` repository.
 - If using `[--use-fully-drawn-time --fully-drawn-extra-delay <delay in sec>]` arguments, the Android app must have reportFullyDrawn() called on a ComponentActivity. Reference: https://developer.android.com/topic/performance/vitals/launch-time#retrieve-TTFD.
+- `[--trace-perfetto]` will take a perfetto trace after the execution of the normal startup testing to ensure it does not impact results. The resulting trace will then be saved off of the android device and into `tracedir` in the same directory as test.py. If running in a pipeline, this file should also be uploaded as a result.
