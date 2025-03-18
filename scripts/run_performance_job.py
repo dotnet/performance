@@ -541,6 +541,17 @@ def run_performance_job(args: RunPerformanceJobArgs):
         configurations["CompilationMode"] = "JIT"
         configurations["RuntimeType"] = str(runtime_type)
 
+    if args.run_kind == "maui_scenarios_android":
+        if args.runtime_flavor == "mono":
+            runtime_type = "Mono"
+            configurations["CompilationMode"] = "ProfiledAOT"
+        elif args.runtime_flavor == "coreclr":
+            runtime_type = "CoreCLR"
+            configurations["CompilationMode"] = "JIT"
+        else:
+            raise Exception("Runtime flavor must be specified for maui_scenarios_android")
+        configurations["RuntimeType"] = str(runtime_type)
+
     if ios_mono:
         runtime_type = "Mono"
         configurations["iOSLlvmBuild"] = str(args.ios_llvm_build)

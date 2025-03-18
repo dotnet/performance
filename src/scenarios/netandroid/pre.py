@@ -11,9 +11,14 @@ from shared.versionmanager import versions_write_json, get_version_from_dll_powe
 from test import EXENAME
 
 setup_loggers(True)
+logger = getLogger(__name__)
+logger.info("Starting pre-command for .NET Android Default App")
 
 precommands = PreCommands()
-install_versioned_maui(precommands)
+
+precommands.setup_workload_update_mode("manifests")
+precommands.install_workload('android', [])
+precommands.print_dotnet_info()
 
 # Setup the app folder
 precommands.new(template='android',
@@ -24,7 +29,6 @@ precommands.new(template='android',
                 no_restore=False)
 
 # Build the APK
-shutil.copy('./MauiNuGet.config', './app/Nuget.config')
 precommands.execute([])
 
 # Remove the aab files as we don't need them, this saves space

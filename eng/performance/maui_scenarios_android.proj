@@ -11,6 +11,10 @@
     <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
+
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false;/p:AndroidEnableMarshalMethods=false</_MSBuildArgs>
+    <RunConfigsString>$(RuntimeFlavor)</RunConfigsString>
   </PropertyGroup>
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
@@ -25,19 +29,19 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <MAUIAndroidScenario Include="Maui Android Default">
-      <ScenarioDirectoryName>mauiandroid</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <ApkName>com.companyname.mauiandroiddefault-Signed</ApkName>
-      <PackageName>com.companyname.mauiandroiddefault</PackageName>
-    </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include=".NET Android Default">
+    <MAUIAndroidScenario Include=".NET Android Default $(RunConfigsString)">
       <ScenarioDirectoryName>netandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.netandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.NetAndroidDefault</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="Maui Blazor Android Default">
+    <MAUIAndroidScenario Include="Maui Android Default $(RunConfigsString)" Condition="'$(RuntimeFlavor)' == 'mono'">
+      <ScenarioDirectoryName>mauiandroid</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <ApkName>com.companyname.mauiandroiddefault-Signed</ApkName>
+      <PackageName>com.companyname.mauiandroiddefault</PackageName>
+    </MAUIAndroidScenario>
+    <MAUIAndroidScenario Include="Maui Blazor Android Default (TTFD) $(RunConfigsString)" Condition="'$(RuntimeFlavor)' == 'mono'">
       <ScenarioDirectoryName>mauiblazorandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiblazorandroiddefault-Signed</ApkName>
@@ -49,7 +53,7 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIAndroidScenario)">
-      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-android -r android-arm64 --self-contained -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-android -r android-arm64 --self-contained --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog %(PreparePayloadWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog  -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>

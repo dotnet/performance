@@ -288,6 +288,37 @@ class PreCommands:
         if self.has_workload and not self.readonly_dotnet:
             subprocess.run(["dotnet", "workload", "uninstall", workloadid])
 
+    def create_nuget_config(self, feeds: dict[str, str]={"nuget.org": "https://api.nuget.org/v3/index.json"}):
+        'Creates a NuGet.config file with the given feeds'
+        nuget_config = os.path.join('nuget.config')
+        if os.path.exists(nuget_config):
+            os.remove(nuget_config)
+
+        with open(nuget_config, 'w') as f:
+            f.write('<?xml version="1.0" encoding="utf-8"?>\n')
+            f.write('<configuration>\n')
+            f.write('  <packageSources>\n')
+            f.write('    <clear />\n')
+            for key, url in feeds.items():
+                f.write(f'    <add key="{key}" value="{url}" />\n')
+            f.write('  </packageSources>\n')
+            f.write('</configuration>\n')
+            f.close()
+
+    def setup_workload_update_mode(self, update_mode: str):
+        'Sets the workload update mode to the given value <manifests|workload-set>'
+        if update_mode != 'manifests' and update_mode != 'workload-set':
+            raise Exception('workload config --update-mode must be either manifests or workload-set')
+        
+        if self.readonly_dotnet:
+            raise Exception('workload config --update-mode not supported with readonly-dotnet=true')
+        
+        subprocess.run(["dotnet", "workload", "config", "--update-mode", update_mode], check=True)
+
+    def print_dotnet_info(self):
+        'Prints the dotnet info'
+        subprocess.run(["dotnet", "--info"], check=True)
+
     def _addstaticmsbuildproperty(self, projectfile: str):
         'Insert static msbuild property in the specified project file'
         if self.msbuildstatic:
