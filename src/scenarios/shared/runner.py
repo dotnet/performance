@@ -581,7 +581,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     time.sleep(self.closeToStartDelay) # Delay in seconds for ensuring a cold start
 
                 if self.traceperfetto:
-                    perfetto_device_save_file = f'/data/misc/perfetto-traces/perfetto_trace_{time.time()}' # Try a different trace location from #f'/sdcard/Android/data/{self.packagename}/files/perfetto_startup_trace'
+                    perfetto_device_save_file = f'/data/misc/perfetto-traces/perfetto_trace_{time.time()}'
 
                     # Setup the phone props to allow perfetto to run properly
                     getLogger().info("Setting up the device for Perfetto")
