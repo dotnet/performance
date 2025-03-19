@@ -27,6 +27,21 @@ download_dotnet() {
     python3 $dotnetScript install --channels $1 -v
 }
 
+# Function to determine CPU architecture
+get_cpu_architecture() {
+    local arch
+    arch=$(uname -m)
+    
+    if [ "$arch" = "x86_64" ]; then
+        echo "x64"
+    elif [ "$arch" = "aarch64" ]; then
+        echo "arm64"
+    else
+        echo "Unsupported architecture: $arch"
+        exit 1
+    fi
+}
+
 # Add scripts and current directory to PYTHONPATH
 absolutePath="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 scriptPath="$absolutePath/../../scripts"
@@ -48,7 +63,7 @@ elif [ "$1" = "-channel" ] && [ "$2" != "" ]
 then
     channel="$2"
     download_dotnet $channel
-    dotnetDirectory="$absolutePath/../../tools/dotnet/x64"
+    dotnetDirectory="$absolutePath/../../tools/dotnet/$(get_cpu_architecture)"
     setup_env $dotnetDirectory
 elif [ "$#" -gt 0 ]
 then 
