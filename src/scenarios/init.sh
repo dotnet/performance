@@ -31,13 +31,14 @@ download_dotnet() {
 get_cpu_architecture() {
     local arch
     arch=$(uname -m)
-    
-    if [ "$arch" = "x86_64" ]; then
+    if [[ $arch == "x86_64" ]]; then
         echo "x64"
-    elif [ "$arch" = "aarch64" ]; then
+    elif [[ $arch == i*86 ]]; then
+        echo "x86"
+    elif [[ $arch == "arm64" || $arch == "aarch64" ]]; then
         echo "arm64"
     else
-        echo "Unsupported architecture: $arch"
+        echo "Unknown architecture: $arch"
         exit 1
     fi
 }
