@@ -44,7 +44,9 @@ namespace GC.Infrastructure.Core.TraceCollection
 
         internal static readonly Dictionary<CollectType, string> LinuxLocalRunCollectTypeMap = new()
         {
-            { CollectType.gc, "--profile gc-collect" }
+            { CollectType.gc, "--profile gc-collect" },
+            { CollectType.cpu, "" },
+            { CollectType.verbose, "--clrevents gc+stack --clreventlevel verbose" }
         };
 
         internal static readonly Dictionary<string, CollectType> StringToCollectTypeMap = new(StringComparer.OrdinalIgnoreCase)
