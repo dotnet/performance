@@ -575,7 +575,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     elif len(captureList) == 2: # Have s and ms, but maybe not padded ms, pad and combine (zfill left pads with 0)
                         formattedTime = f"TotalTime: {captureList[0]}{captureList[1].zfill(3)}\n"
                     else:
-                        getLogger().error("Time capture failed, found {len(captureList)}")
+                        getLogger().error(f"Time capture failed, found {len(captureList)}")
                         raise Exception("Android Time Capture Failed! Incorrect number of captures found.")
                     allResults.append(formattedTime) # append TotalTime: (TIME)
                     time.sleep(self.closeToStartDelay) # Delay in seconds for ensuring a cold start
@@ -606,33 +606,35 @@ ex: C:\repos\performance;C:\repos\runtime
                         getLogger().info("Tracing with Perfetto")
                         # Get the max TotalTime from the allResults list in seconds
                         max_startup_time_sec = int(max(int(re.search(r"TotalTime: (\d+)", str(result)).group(1)) for result in allResults) / 1000)
+                        perfetto_max_trace_time_sec = max_startup_time_sec * 2 # Set the max trace time to be double the max startup time
+                        if max_startup_time_sec > 60:
+                            getLogger().error(f"Max startup time is greater than 60 seconds (Max startup time: {max_startup_time_sec}), this means something probably went wrong.")
+                            raise Exception("Max startup time is greater than 60 seconds, this means something probably went wrong.")
 
                         perfetto_cmd = xharness_adb() + [
                             'shell',
-                            f'perfetto --background --txt -o {perfetto_device_save_file} --time {max_startup_time_sec + 3}s -b 64mb sched freq idle am wm gfx view binder_driver hal dalvik camera input res memory'
+                            f'perfetto --background --txt -o {perfetto_device_save_file} --time {perfetto_max_trace_time_sec}s -b 64mb sched freq idle am wm gfx view binder_driver hal dalvik camera input res memory'
                         ]
                         RunCommand(perfetto_cmd, verbose=True).run()
-
-                        # Start a stop watch to ensure the trace has been captured
-                        perfetto_start_time_sec = time.time()
 
                         # Run the startup test with the trace running (only once)
                         getLogger().info("Running startup test with Perfetto trace running")
                         traced_start = RunCommand(androidHelper.startappcommand, verbose=True)
                         traced_start.run()
 
-                        # Wait until the total time taken to start the app is greater than the max startup time + 3
-                        # This is to ensure that the trace has captured the entire startup process
-                        getLogger().info("Ensuring the trace capture has been completed.")
-                        while time.time() - perfetto_start_time_sec < max_startup_time_sec + 3:
-                            time.sleep(1)
-                            getLogger().info("Waiting for trace capture to complete. Time elapsed (Sec): %s, Max time (sec): %s", (time.time() - perfetto_start_time_sec), (max_startup_time_sec + 3))
+                        # Stop perfetto now that the app has started. Sending a Terminate signal should be enough per the longer trace capturing guidance here: https://perfetto.dev/docs/concepts/config#android.
+                        getLogger().info("Stopping perfetto trace capture")
+                        stop_perfetto_cmd = xharness_adb() + [
+                            'shell',
+                            'pkill -TERM perfetto'
+                        ]
+                        RunCommand(stop_perfetto_cmd, verbose=True).run()
 
                         # Pull the trace from the device and store in the traceperfetto directory
                         pull_trace_cmd = xharness_adb() + [
                             'pull',
                             perfetto_device_save_file,
-                            os.path.join(os.getcwd(), const.TRACEDIR, f'perfetto_startup_trace_{self.packagename}_{time.time()}.trace')
+                            os.path.join(os.getcwd(), const.TRACEDIR, f'perfetto_startup_trace_{self.packagename}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.trace')
                         ]
                         RunCommand(pull_trace_cmd, verbose=True).run()
 
