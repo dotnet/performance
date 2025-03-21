@@ -583,8 +583,17 @@ ex: C:\repos\performance;C:\repos\runtime
                 if self.traceperfetto:
                     perfetto_device_save_file = f'/data/misc/perfetto-traces/perfetto_trace_{time.time()}'
                     original_traced_enable = None
+                    perfetto_terminated = False
+
+                    stop_perfetto_cmd = xharness_adb() + [ # Stop perfetto now that the app. Sending a Terminate signal should be enough per the longer trace capturing guidance here: https://perfetto.dev/docs/concepts/config#android.
+                        'shell',
+                        'pkill -TERM perfetto'
+                    ]
 
                     try:
+                        getLogger().info("Clearing potential previous running perfetto traces")
+                        RunCommand(stop_perfetto_cmd, verbose=True).run()
+
                         # Get the current value of persist.traced.enable
                         getLogger().info("Getting current persist.traced.enable value")
                         get_traced_cmd = xharness_adb() + [
@@ -622,13 +631,9 @@ ex: C:\repos\performance;C:\repos\runtime
                         traced_start = RunCommand(androidHelper.startappcommand, verbose=True)
                         traced_start.run()
 
-                        # Stop perfetto now that the app has started. Sending a Terminate signal should be enough per the longer trace capturing guidance here: https://perfetto.dev/docs/concepts/config#android.
                         getLogger().info("Stopping perfetto trace capture")
-                        stop_perfetto_cmd = xharness_adb() + [
-                            'shell',
-                            'pkill -TERM perfetto'
-                        ]
                         RunCommand(stop_perfetto_cmd, verbose=True).run()
+                        perfetto_terminated = True
 
                         # Pull the trace from the device and store in the traceperfetto directory
                         pull_trace_cmd = xharness_adb() + [
@@ -647,6 +652,11 @@ ex: C:\repos\performance;C:\repos\runtime
                         RunCommand(delete_trace_cmd, verbose=True).run()
 
                     finally:
+                        if not perfetto_terminated:
+                            # If we didn't terminate perfetto, we need to stop it now, although it will time out as well if this manages to fail.
+                            getLogger().info("Perfetto not terminated, stopping it now")
+                            RunCommand(stop_perfetto_cmd, verbose=True).run()
+
                         # Restore original persist.traced.enable value if we saved one
                         if original_traced_enable is not None and original_traced_enable != "1":
                             getLogger().info(f"Restoring persist.traced.enable to original value: {original_traced_enable}")
