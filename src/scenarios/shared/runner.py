@@ -533,12 +533,12 @@ ex: C:\repos\performance;C:\repos\runtime
                 # Create the fullydrawn command
                 fullyDrawnRetrieveCmd = xharness_adb() + [ 
                     'shell',
-                    f"logcat -d | grep 'ActivityTaskManager: Fully drawn {self.packagename}'"
+                    f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager: Fully drawn {self.packagename}'"
                 ]
 
                 basicStartupRetrieveCmd = xharness_adb() + [ 
                     'shell',
-                    f"logcat -d | grep 'ActivityTaskManager: Displayed {androidHelper.activityname}'"
+                    f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager: Displayed {androidHelper.activityname}'"
                 ]
 
                 clearLogsCmd = xharness_adb() + [
