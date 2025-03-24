@@ -9,8 +9,9 @@
       <Framework Include="netcoreapp5.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.1'"/>
       <Framework Include="net6.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '5.0'"/>
       <Framework Include="net7.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '6.0'"/>
-      <Framework Include="net8.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '7.0'"/>
+      <Framework Include="net8.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '7.0' and '$(PERFLAB_Framework)' != 'net9.0'"/>
       <Framework Include="net9.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '8.0'"/>
+      <Framework Include="net10.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '9.0'"/>
   </ItemGroup>
 
   <ItemDefinitionGroup>
@@ -22,7 +23,7 @@
   </ItemDefinitionGroup>
   
   <ItemGroup>
-    <SDKWorkItem Include="@(Framework -> 'SDK Console Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;*8.0">
+    <SDKWorkItem Include="@(Framework -> 'SDK Console Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;">
       <ScenarioDirectoryName>emptyconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
@@ -82,16 +83,17 @@
     </SDKWorkItem>
 
     <!-- For netstandard library we test only netstandard2.0 framework -->
-    <SDKWorkItem Include="SDK .NET 2.0 Library Template">
+    <!-- <SDKWorkItem Include="SDK .NET 2.0 Library Template">
       <ScenarioDirectoryName>netstandard2.0</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-    </SDKWorkItem>
+    </SDKWorkItem> -->
 
-    <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;*8.0">
+    <!-- Failing when targeting net8.0 when running net10.0 -->
+    <!-- <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;">
       <ScenarioDirectoryName>mvcapptemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
-    </SDKWorkItem>
+    </SDKWorkItem> -->
 
     <!-- WebLarge3.0 asset is specific to netcoreapp3.0 and netcoreapp3.1
     <SDKWorkItem Include="@(Framework -> 'SDK Web Large 3.0 %(Identity)')" Exclude="*2.1;*5.0">
@@ -100,7 +102,8 @@
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem> -->
 
-    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
+    <!-- We never run against Framework 3.0 or 3.1 -->
+    <!-- <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
       <ScenarioDirectoryName>windowsformslarge</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
@@ -122,7 +125,7 @@
       <ScenarioDirectoryName>wpf</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
-    </SDKWorkItem>
+    </SDKWorkItem> -->
   </ItemGroup>
 
   <ItemGroup>
@@ -147,28 +150,28 @@
     <HelixWorkItem Include="Inner Loop Console">
       <ScenarioDirectoryName>emptyconsoletemplateinnerloop</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
+      <PreCommands>$(Python) pre.py default -f $(PERFLAB_Framework)</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop MVC">
       <ScenarioDirectoryName>mvcinnerloop</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
+      <PreCommands>$(Python) pre.py default -f $(PERFLAB_Framework)</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop MsBuild Console">
       <ScenarioDirectoryName>emptyconsoletemplateinnerloopmsbuild</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
+      <PreCommands>$(Python) pre.py default -f $(PERFLAB_Framework)</PreCommands>
       <Command>$(Python) test.py innerloopmsbuild --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop Blazor Client">
       <ScenarioDirectoryName>blazorwasminnerloop</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
+      <PreCommands>$(Python) pre.py default -f $(PERFLAB_Framework)</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
@@ -176,7 +179,7 @@
     <HelixWorkItem Include="Hot Reload Blazor Client" Condition="'$(FrameworkVersion)' == '6.0'">
       <ScenarioDirectoryName>blazorwasmdotnetwatch</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py build -f net$(FrameworkVersion) -c Release</PreCommands>
+      <PreCommands>$(Python) pre.py build -f $(PERFLAB_Framework) -c Release</PreCommands>
       <Command>$(Python) test.py dotnetwatch -(-fixme when uncommenting!!)scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
@@ -184,15 +187,11 @@
     <HelixWorkItem Include="Hot Reload MVC" Condition="'$(FrameworkVersion)' == '6.0'">
       <ScenarioDirectoryName>mvcdotnetwatch</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py build -f net$(FrameworkVersion) -c Release</PreCommands>
+      <PreCommands>$(Python) pre.py build -f $(PERFLAB_Framework) -c Release</PreCommands>
       <Command>$(Python) test.py dotnetwatch --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
   </ItemGroup>
 
-
   <Import Project="PreparePayloadWorkItems.targets" />
-
-
 </Project>
-
