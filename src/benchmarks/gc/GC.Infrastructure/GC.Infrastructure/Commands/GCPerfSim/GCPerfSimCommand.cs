@@ -108,8 +108,8 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             {
                 (string, string) processAndParameters = GCPerfSimCommandBuilder.BuildForLocal(configuration, runInfo.RunDetails, runInfo.CorerunDetails.Value);
 
-                // Create the run path directory.
-                string outputPath = Path.Combine(configuration.Output!.Path, runInfo.RunDetails.Key);
+                // Create the baseline and run directory.
+                string outputPath = Path.Combine(configuration.Output!.Path, runInfo.CorerunDetails.Key);
                 Core.Utilities.TryCreateDirectory(outputPath);
 
                 for (int iterationIdx = 0; iterationIdx < configuration.Environment.Iterations; iterationIdx++)
@@ -239,7 +239,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             foreach (var run in runInfos)
             {
                 // Create the run path directory.
-                string outputPath = Path.Combine(configuration.Output!.Path, run.RunDetails.Key);
+                string outputPath = Path.Combine(configuration.Output!.Path, run.CorerunDetails.Key);
                 Core.Utilities.TryCreateDirectory(outputPath);
 
                 for (int iterationIdx = 0; iterationIdx < configuration.Environment.Iterations; iterationIdx++)

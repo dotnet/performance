@@ -39,20 +39,6 @@ parameters:
       configs:
         - windows_x64
         - linux_x64
-  - name: tigerNoR2R
-    type: object
-    default:
-      enabled: true
-      configs:
-        - windows_x64
-        - linux_x64
-  - name: tigerNoPGO
-    type: object
-    default:
-      enabled: true
-      configs:
-        - windows_x64
-        - linux_x64
   - name: tigerMicro
     type: object
     default:
@@ -100,7 +86,7 @@ jobs:
       performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
       jobParameters: ${{ parameters.jobParameters }}
 
-  # run android scenarios
+  # run android scenarios - Mono
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
@@ -110,6 +96,25 @@ jobs:
         - windows_x64
       jobParameters:
         runtimeType: AndroidMono
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
+        runKind: android_scenarios
+        isScenario: true
+        logicalMachine: 'perfpixel4a'
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # run android scenarios - CoreCLR
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: coreclr
+      platforms:
+        - windows_x64
+      jobParameters:
+        runtimeType: AndroidCoreCLR
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
         runKind: android_scenarios
         isScenario: true
@@ -137,6 +142,24 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
+  # run mono microbenchmarks perf job - perfviper
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: mono
+      platforms:
+      - linux_x64
+      jobParameters:
+        liveLibrariesBuildConfig: Release
+        runtimeType: mono
+        runKind: micro_mono
+        logicalMachine: 'perfviper'
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
   # run mono interpreter perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
@@ -156,10 +179,29 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
+  # run mono interpreter perf job - perfviper
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: mono
+      platforms:
+      - linux_x64
+      jobParameters:
+        liveLibrariesBuildConfig: Release
+        runtimeType: mono
+        codeGenType: 'Interpreter'
+        runKind: micro_mono
+        logicalMachine: 'perfviper'
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
   # run mono aot microbenchmarks perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # NOTE: should we move this file out of coreclr tempelates because it contains mono jobs?
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
       buildConfig: release
       runtimeFlavor: aot
       platforms:
@@ -170,6 +212,25 @@ jobs:
         codeGenType: 'AOT'
         runKind: micro_mono
         logicalMachine: 'perftiger'
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # run mono aot microbenchmarks perf job - perfviper
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: aot
+      platforms:
+      - linux_x64
+      jobParameters:
+        liveLibrariesBuildConfig: Release
+        runtimeType: mono
+        codeGenType: 'AOT'
+        runKind: micro_mono
+        logicalMachine: 'perfviper'
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         ${{ each parameter in parameters.jobParameters }}:
@@ -190,80 +251,6 @@ jobs:
         liveLibrariesBuildConfig: Release
         runKind: micro
         logicalMachine: 'perftiger'
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # run coreclr perftiger microbenchmarks no dynamic pgo perf jobs
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: coreclr
-      platforms:
-      - windows_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runKind: micro
-        logicalMachine: 'perftiger'
-        pgoRunType: nodynamicpgo
-        additionalJobIdentifier: nodynamicpgo
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: coreclr
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runKind: micro
-        logicalMachine: 'perftiger'
-        pgoRunType: nodynamicpgo
-        additionalJobIdentifier: nodynamicpgo
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # run coreclr perftiger microbenchmarks no R2R perf jobs
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: coreclr
-      platforms:
-      - windows_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runKind: micro
-        logicalMachine: 'perftiger'
-        r2rRunType: nor2r
-        additionalJobIdentifier: nor2r
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: coreclr
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runKind: micro
-        logicalMachine: 'perftiger'
-        r2rRunType: nor2r
-        additionalJobIdentifier: nor2r
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         ${{ each parameter in parameters.jobParameters }}:
@@ -296,30 +283,11 @@ jobs:
       platforms:
       - linux_x64
       - windows_x64
+      - windows_x86
       jobParameters:
         liveLibrariesBuildConfig: Release
         runKind: micro
         logicalMachine: 'perfviper'
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # run coreclr perfviper microbenchmarks perf jitoptrepeat jobs
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: coreclr
-      platforms:
-      - linux_x64
-      - windows_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runKind: micro
-        logicalMachine: 'perfviper'
-        experimentName: 'jitoptrepeat'
-        additionalJobIdentifier: jitoptrepeat
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         ${{ each parameter in parameters.jobParameters }}:
