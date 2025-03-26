@@ -363,8 +363,9 @@ def main(argv: List[str]):
                             all_reports.append(json.load(report_file))
                     json.dump(all_reports, all_reports_file)
 
+                # ensure binlogs directory exists
                 for file in glob(binlogs_globpath, recursive=True):
-                    shutil.copy(file, os.path.join(helix_upload_root, 'binlogs', file.split(os.sep)[-1]))
+                    shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
 
                 shutil.make_archive(os.path.join(helix_upload_root, "bdn-artifacts"), 'zip', artifacts_dir)
                 getLogger().info("Created \"bdn-artifacts\".zip")
