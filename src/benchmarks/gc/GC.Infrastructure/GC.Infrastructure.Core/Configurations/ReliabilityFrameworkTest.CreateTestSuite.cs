@@ -1,7 +1,6 @@
-﻿using GC.Infrastructure.Core.Functionality;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
-namespace GC.Infrastructure.Core.TaskRunner.ReliabilityFrameworkTest
+namespace GC.Infrastructure.Core.Configurations
 {
     public static class ReliabilityFrameworkTestSuiteCreator
     {
@@ -15,10 +14,10 @@ namespace GC.Infrastructure.Core.TaskRunner.ReliabilityFrameworkTest
             try
             {
                 Console.WriteLine($"====== Copy ReliabilityFramework.dll and Tests to `outputFolder` ======");
-                UtilitiesCommon.CopyFile(ReliabilityFrameworkDll, outputFolder);                
+                Utilities.CopyFile(ReliabilityFrameworkDll, outputFolder);                
 
                 Console.WriteLine($"====== Copy gcperfsim.dll to Tests ======");
-                UtilitiesCommon.CopyFolderRecursively(TestFolder, outputFolder);
+                Utilities.CopyFolderRecursively(TestFolder, outputFolder);
             }
             catch (Exception ex)
             {

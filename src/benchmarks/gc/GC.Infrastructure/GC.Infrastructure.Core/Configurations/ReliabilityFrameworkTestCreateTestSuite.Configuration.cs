@@ -1,6 +1,6 @@
 ﻿using YamlDotNet.Serialization;
 
-namespace GC.Infrastructure.Core.Configurations.ReliabilityFrameworkTest
+namespace GC.Infrastructure.Core.Configurations
 {
     public sealed class ReliabilityFrameworkTestCreateTestSuiteConfiguration
     {
@@ -36,12 +36,12 @@ namespace GC.Infrastructure.Core.Configurations.ReliabilityFrameworkTest
                 throw new ArgumentException($"{nameof(ReliabilityFrameworkTestCreateTestSuiteConfiguration)}: Unable to parse the yaml file because of an error in the syntax. Exception: {ex.Message} \n Call Stack: {ex.StackTrace}");
             }
 
-            if (String.IsNullOrEmpty(configuration.OutputFolder))
+            if (string.IsNullOrEmpty(configuration.OutputFolder))
             {
                 throw new ArgumentException($"{nameof(ReliabilityFrameworkTestCreateTestSuiteConfiguration)}: Please specify output folder");
             }
 
-            if (String.IsNullOrEmpty(configuration.ReliabilityFrameworkDll) )
+            if (string.IsNullOrEmpty(configuration.ReliabilityFrameworkDll) )
             {
                 throw new ArgumentException($"{nameof(ReliabilityFrameworkTestCreateTestSuiteConfiguration)}: Please specify ReliabilityFrameworkDll");
             }
@@ -51,7 +51,7 @@ namespace GC.Infrastructure.Core.Configurations.ReliabilityFrameworkTest
                 throw new ArgumentException($"{nameof(ReliabilityFrameworkTestCreateTestSuiteConfiguration)}: Given CoreRoot path is not valid");
             }
 
-            if (String.IsNullOrEmpty(configuration.GCPerfSimDll))
+            if (string.IsNullOrEmpty(configuration.GCPerfSimDll))
             {
                 throw new ArgumentException($"{nameof(ReliabilityFrameworkTestCreateTestSuiteConfiguration)}: Please specify GCPerfSimDll");
             }
