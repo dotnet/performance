@@ -288,6 +288,20 @@ class PreCommands:
         if self.has_workload and not self.readonly_dotnet:
             subprocess.run(["dotnet", "workload", "uninstall", workloadid])
 
+    def setup_workload_update_mode(self, update_mode: str):
+        'Sets the workload update mode to the given value <manifests|workload-set>'
+        if update_mode != 'manifests' and update_mode != 'workload-set':
+            raise Exception('workload config --update-mode must be either manifests or workload-set')
+        
+        if self.readonly_dotnet:
+            raise Exception('workload config --update-mode not supported with readonly-dotnet=true')
+        
+        subprocess.run(["dotnet", "workload", "config", "--update-mode", update_mode], check=True)
+
+    def print_dotnet_info(self):
+        'Prints the dotnet info'
+        subprocess.run(["dotnet", "--info"], check=True)
+
     def _addstaticmsbuildproperty(self, projectfile: str):
         'Insert static msbuild property in the specified project file'
         if self.msbuildstatic:

@@ -388,7 +388,7 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui Android scenario benchmarks
+  # Maui Android scenario benchmarks (Mono)
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -399,10 +399,28 @@ jobs:
       jobParameters:
         runKind: maui_scenarios_android
         projectFileName: maui_scenarios_android.proj
-        dotnetVersionsLinks:
-          9.0: ./eng/Version.Details.xml
         channels:
-          - 8.0
+          - main
+        runtimeFlavor: mono
+        additionalJobIdentifier: Mono
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui Android scenario benchmarks (CoreCLR)
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_android
+        projectFileName: maui_scenarios_android.proj
+        channels:
+          - main
+        runtimeFlavor: coreclr
+        additionalJobIdentifier: CoreCLR
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 

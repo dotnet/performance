@@ -531,14 +531,28 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     runtime_type = ""
 
+    # dotnet/runtime AndroidSampleApp using Mono runtime
     if android_mono:
         runtime_type = "Mono"
         configurations["CompilationMode"] = "JIT"
         configurations["RuntimeType"] = str(runtime_type)
 
+    # dotnet/runtime AndroidSampleApp using CoreCLR runtime
     if android_coreclr:
         runtime_type = "CoreCLR"
         configurations["CompilationMode"] = "JIT"
+        configurations["RuntimeType"] = str(runtime_type)
+
+    # .NET Android and .NET MAUI Android sample app scenarios
+    if args.run_kind == "maui_scenarios_android":
+        if args.runtime_flavor == "mono":
+            runtime_type = "Mono"
+            configurations["CompilationMode"] = "ProfiledAOT"
+        elif args.runtime_flavor == "coreclr":
+            runtime_type = "CoreCLR"
+            configurations["CompilationMode"] = "JIT"
+        else:
+            raise Exception("Runtime flavor must be specified for maui_scenarios_android")
         configurations["RuntimeType"] = str(runtime_type)
 
     if ios_mono:
