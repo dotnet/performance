@@ -1,7 +1,5 @@
-﻿using System.Xml.Linq;
-
-using GC.Infrastructure.Core.Functionality;
-
+﻿using GC.Infrastructure.Core.Functionality;
+using System.Xml.Linq;
 
 namespace GC.Infrastructure.Core.TaskRunner.ReliabilityFrameworkTest
 {
@@ -180,6 +178,5 @@ output_folder=$script_root
             { "non_induced", new() { { "Server", "00:25:00"}, { "Workstation", "01:10:00"}, { "Datas", "00:30:00"} } },
             { "finalization", new() { { "Server", "00:20:00"}, { "Workstation", "00:50:00"}, { "Datas", "04:00:00" } } }
         };
-
     }
 }

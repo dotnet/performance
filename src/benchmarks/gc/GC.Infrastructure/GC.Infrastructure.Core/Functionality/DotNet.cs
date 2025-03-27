@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace GC.Infrastructure.Core.Functionality
 {
@@ -40,44 +35,5 @@ namespace GC.Infrastructure.Core.Functionality
                 return "";
             }
         }
-
-        //public static string GetCompressionExtensionByRID(string targetRID)
-        //{
-        //    CheckRID(targetRID);
-        //    if (targetRID.StartsWith("win"))
-        //    {
-        //        return ".zip";
-        //    }
-        //    else
-        //    {
-        //        return ".tar.gz";
-        //    }
-        //}
-
-        //public static string GetDotNetExecutableFromEnv(Dictionary<string, string> env, string? targetRID = null)
-        //{
-        //    if (!env.ContainsKey("DOTNET_ROOT"))
-        //    {
-        //        throw new Exception($"{nameof(DotNetInfrastructure)}: Please set DOTNET_ROOT");
-        //    }
-
-        //    string dotNetRoot = env["DOTNET_ROOT"];
-        //    if (string.IsNullOrEmpty(targetRID))
-        //    {
-        //        targetRID = CurrentRID;
-        //    }
-        //    string exeExtension = GetExcutableFileExtensionByRID(targetRID);
-        //    string dotNetExe = Path.Combine(dotNetRoot, $"dotnet{exeExtension}");
-
-        //    return dotNetExe;
-        //}
-
-        //public static void ActiveDotNetDumpGeneratingEnvironment(Dictionary<string, string> env,
-        //                                                         string dumpPath)
-        //{
-        //    env["DOTNET_DbgEnableMiniDump"] = "1";
-        //    env["DOTNET_DbgMiniDumpType"] = "4";
-        //    env["DOTNET_DbgMiniDumpName"] = dumpPath;
-        //}
     }
 }

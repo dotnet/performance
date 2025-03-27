@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GC.Infrastructure.Core.Functionality
+﻿namespace GC.Infrastructure.Core.Functionality
 {
     public static class UtilitiesCommon
     {
@@ -52,37 +46,5 @@ namespace GC.Infrastructure.Core.Functionality
                 File.Copy(srcFile, dstFile, true);
             }
         }
-
-        //public static async Task Download(string downloadLink, string downloadPath)
-        //{
-        //    using (HttpClient httpClient = new())
-        //    {
-        //        HttpResponseMessage response = await httpClient.GetAsync(downloadLink);
-        //        response.EnsureSuccessStatusCode();
-        //        using (Stream reader = await response.Content.ReadAsStreamAsync())
-        //        {
-        //            using (Stream writer = File.OpenWrite(downloadPath))
-        //            {
-        //                await reader.CopyToAsync(writer);
-        //            }
-        //        }
-        //    }
-        //}
-
-        //public static string GetUserProfileDirectory()
-        //{
-        //    if (OperatingSystem.IsWindows())
-        //    {
-        //        return Environment.GetEnvironmentVariable("USERPROFILE");
-        //    }
-        //    else if (OperatingSystem.IsLinux())
-        //    {
-        //        return Environment.GetEnvironmentVariable("HOME");
-        //    }
-        //    else
-        //    {
-        //        throw new Exception("Unsuppported platform");
-        //    }
-        //}
     }
 }

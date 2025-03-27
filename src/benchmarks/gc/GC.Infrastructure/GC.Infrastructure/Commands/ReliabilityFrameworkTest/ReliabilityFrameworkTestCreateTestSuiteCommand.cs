@@ -1,14 +1,11 @@
-﻿using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
-
-using Spectre.Console;
-using Spectre.Console.Cli;
-
-using GC.Infrastructure.Core.Configurations;
+﻿using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.ReliabilityFrameworkTest;
 using GC.Infrastructure.Core.TaskRunner.ReliabilityFrameworkTest;
-using GC.Infrastructure.Core.Functionality;
+using Spectre.Console;
+using Spectre.Console.Cli;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
 {
@@ -89,10 +86,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                             "linux" => ".sh"
                         };
                     string scriptPath = Path.Combine(gcModeFolder, $"TestingScript-{configName}-{gcMode}{scriptExtension}");
-                    //string clrtestFolderForCorerun = ReliabilityFrameworkTestSuiteCreator.GetGCTestFolder(
-                    //    configuration.RuntimeRoot, configuration.CoreRunBuildConfig, RID);
 
-                    //string coreRoot = Path.Combine(clrtestFolderForCorerun, "Tests", "Core_Root");
                     ReliabilityFrameworkTestSuiteCreator.GenerateTestScript(RID,
                                                                             _baseSuitePath,
                                                                             configuration.CoreRoot,

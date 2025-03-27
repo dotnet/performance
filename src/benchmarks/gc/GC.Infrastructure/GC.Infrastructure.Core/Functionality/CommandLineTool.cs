@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace GC.Infrastructure.Core.Functionality
 {
@@ -25,73 +21,73 @@ namespace GC.Infrastructure.Core.Functionality
         }
     }
 
-    //public static class CommandInvokeTaskRunner
-    //{
-    //    public static void Run(string loggerPath,
-    //                           IEnumerable<CommandInvokeResult> commandInvokeTask,
-    //                           bool ignoreError = false)
-    //    {
-    //        IEnumerator<CommandInvokeResult> enumrator = commandInvokeTask.GetEnumerator();
-    //        while (true)
-    //        {
-    //            try
-    //            {
-    //                if (!enumrator.MoveNext())
-    //                {
-    //                    // Break when move to end
-    //                    break;
-    //                }
-    //                CommandInvokeResult result = enumrator.Current;
-    //                StringBuilder logContent = new();
-    //                logContent.AppendLine($"Run Command: {result.Command}");
-    //                logContent.AppendLine(result.StandardOutput);
-    //                logContent.AppendLine(result.StandardError);
-    //                if (result.Exn != null)
-    //                {
-    //                    logContent.AppendLine($"Error Message:{result.Exn.Message}");
-    //                    logContent.AppendLine($"Stack Trace:\n{result.Exn.StackTrace}");
-    //                    logContent.AppendLine($"Inner Exception:\n:{result.Exn.InnerException}");
-    //                }
-    //                logContent.AppendLine("\n");
-    //                File.AppendAllText(loggerPath, logContent.ToString());
+    public static class CommandInvokeTaskRunner
+    {
+        public static void Run(string loggerPath,
+                               IEnumerable<CommandInvokeResult> commandInvokeTask,
+                               bool ignoreError = false)
+        {
+            IEnumerator<CommandInvokeResult> enumrator = commandInvokeTask.GetEnumerator();
+            while (true)
+            {
+                try
+                {
+                    if (!enumrator.MoveNext())
+                    {
+                        // Break when move to end
+                        break;
+                    }
+                    CommandInvokeResult result = enumrator.Current;
+                    StringBuilder logContent = new();
+                    logContent.AppendLine($"Run Command: {result.Command}");
+                    logContent.AppendLine(result.StandardOutput);
+                    logContent.AppendLine(result.StandardError);
+                    if (result.Exn != null)
+                    {
+                        logContent.AppendLine($"Error Message:{result.Exn.Message}");
+                        logContent.AppendLine($"Stack Trace:\n{result.Exn.StackTrace}");
+                        logContent.AppendLine($"Inner Exception:\n:{result.Exn.InnerException}");
+                    }
+                    logContent.AppendLine("\n");
+                    File.AppendAllText(loggerPath, logContent.ToString());
 
-    //                if (!String.IsNullOrEmpty(result.StandardError) || result.Exn != null)
-    //                {
-    //                    if (!ignoreError)
-    //                    {
-    //                        Console.WriteLine($"Run Command {result.Command} but get error! See {loggerPath} for details.");
-    //                        break;
-    //                    }
-    //                }
-    //            }
-    //            catch (Exception ex)
-    //            {
-    //                StringBuilder logContent = new();
-    //                logContent.AppendLine($"Run into error: {ex.Message}");
-    //                logContent.AppendLine($"Stack Trace:\n{ex.StackTrace}");
-    //                logContent.AppendLine($"Inner Exception:\n{ex.InnerException}");
-    //                File.AppendAllText(loggerPath, logContent.ToString());
-    //                break;
-    //            }
-    //        }
-    //    }
+                    if (!String.IsNullOrEmpty(result.StandardError) || result.Exn != null)
+                    {
+                        if (!ignoreError)
+                        {
+                            Console.WriteLine($"Run Command {result.Command} but get error! See {loggerPath} for details.");
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StringBuilder logContent = new();
+                    logContent.AppendLine($"Run into error: {ex.Message}");
+                    logContent.AppendLine($"Stack Trace:\n{ex.StackTrace}");
+                    logContent.AppendLine($"Inner Exception:\n{ex.InnerException}");
+                    File.AppendAllText(loggerPath, logContent.ToString());
+                    break;
+                }
+            }
+        }
 
-    //    public static void RecordSingle(string loggerPath, CommandInvokeResult result)
-    //    {
-    //        StringBuilder logContent = new();
-    //        logContent.AppendLine($"Run Command: {result.Command}");
-    //        logContent.AppendLine(result.StandardOutput);
-    //        logContent.AppendLine(result.StandardError);
-    //        if (result.Exn != null)
-    //        {
-    //            logContent.AppendLine($"Error Message:{result.Exn.Message}");
-    //            logContent.AppendLine($"Stack Trace:\n{result.Exn.StackTrace}");
-    //            logContent.AppendLine($"Inner Exception:\n:{result.Exn.InnerException}");
-    //        }
-    //        logContent.AppendLine("\n");
-    //        File.AppendAllText(loggerPath, logContent.ToString());
-    //    }
-    //}
+        public static void RecordSingle(string loggerPath, CommandInvokeResult result)
+        {
+            StringBuilder logContent = new();
+            logContent.AppendLine($"Run Command: {result.Command}");
+            logContent.AppendLine(result.StandardOutput);
+            logContent.AppendLine(result.StandardError);
+            if (result.Exn != null)
+            {
+                logContent.AppendLine($"Error Message:{result.Exn.Message}");
+                logContent.AppendLine($"Stack Trace:\n{result.Exn.StackTrace}");
+                logContent.AppendLine($"Inner Exception:\n:{result.Exn.InnerException}");
+            }
+            logContent.AppendLine("\n");
+            File.AppendAllText(loggerPath, logContent.ToString());
+        }
+    }
 
     public class CommandInvoker : Process, IDisposable
     {
@@ -117,10 +113,10 @@ namespace GC.Infrastructure.Core.Functionality
             get { return stdout.ToString(); }
         }
 
-        //public string ConsoleError
-        //{
-        //    get { return stderr.ToString(); }
-        //}
+        public string ConsoleError
+        {
+            get { return stderr.ToString(); }
+        }
 
         public CommandInvoker(string fileName,
                               string argument,
