@@ -1,0 +1,16 @@
+parameters:
+  branchName: ''
+
+jobs:
+- job: RegisterBuildAsLatest
+  displayName: 'Register Build as latest for branch ${{ parameters.branchName }}'
+  steps:
+  - checkout: none
+  - task: AzureCLI@2
+    displayName: 'Upload latest build info to blob container'
+    inputs:
+      azureSubscription: '.NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)'
+      scriptType: 'pscore'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az storage blob upload --auth-mode login --account-name pvscmdupload --container-name builds --data '{"commitSha":"${{ variables['Build.SourceVersion'] }}"}' --name "latest/${{ parameters.branchName }}/latestBuildInfo.json" --overwrite true
