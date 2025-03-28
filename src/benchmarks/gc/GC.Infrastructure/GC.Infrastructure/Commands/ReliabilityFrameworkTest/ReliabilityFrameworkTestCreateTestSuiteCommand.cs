@@ -37,12 +37,9 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
 
             List<string> gcModeList = new() { "Datas", "Server", "Workstation" };
 
-            // Build ReliabilityFramework.dll, gcperfsim.dll and Tests
+            // Copy ReliabilityFramework.dll and gcperfsim.dll
             ReliabilityFrameworkTestSuiteCreator.CreateTestingAssets(configuration.ReliabilityFrameworkDll,
-                                                                     RID,
-                                                                     configuration.CoreRoot,
                                                                      configuration.OutputFolder,
-                                                                     configuration.GCPerfSimDll,
                                                                      configuration.TestFolder);
 
             // Create config file

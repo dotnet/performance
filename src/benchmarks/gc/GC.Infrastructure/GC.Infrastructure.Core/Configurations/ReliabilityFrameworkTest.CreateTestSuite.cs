@@ -5,10 +5,7 @@ namespace GC.Infrastructure.Core.Configurations
     public static class ReliabilityFrameworkTestSuiteCreator
     {
         public static void CreateTestingAssets(string ReliabilityFrameworkDll, 
-                                               string targetRID,
-                                               string CoreRoot,
                                                string outputFolder,
-                                               string GCPerfSimDll,
                                                string TestFolder)
         {            
             try
