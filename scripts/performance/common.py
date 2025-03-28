@@ -253,6 +253,25 @@ def set_environment_variable(name: str, value: str, save_to_pipeline: bool = Tru
         __write_pipeline_variable(name, value)
     os.environ[name] = value
 
+def get_target_framework_moniker_from_framework(framework: str) -> str:
+    '''
+    Translates framework name to target framework moniker (TFM)
+    This maps the frameworks to the TFMs to be used to build support tooling.
+    '''
+    if framework == 'nativeaot6.0':
+        return 'net6.0'
+    if framework == 'nativeaot7.0':
+        return 'net7.0'
+    if framework == 'nativeaot8.0':
+        return 'net8.0'
+    if framework == 'nativeaot9.0':
+        return 'net9.0'
+    if framework == 'nativeaot10.0':
+        return 'net10.0'
+    if framework == 'net462':
+        return 'net10.0' # This needs to be kept up to date with the version in channel_map.py, both should also be the latest version
+    return framework
+
 class RunCommand:
     '''
     This is a class wrapper around `subprocess.Popen` with an additional set
