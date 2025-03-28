@@ -16,7 +16,7 @@ namespace GC.Infrastructure.Core.Configurations
                 Utilities.CopyFolderRecursively(TestFolder, outputFolder);
 
                 Console.WriteLine($"====== Copy gcperfsim.dll to Tests ======");
-                string destTestsFolder = Path.Combine(TestFolder, "Tests");
+                string destTestsFolder = Path.Combine(outputFolder, "Tests");
                 Utilities.CopyFile(GCPerfSimDll, destTestsFolder);
             }
             catch (Exception ex)
