@@ -31,13 +31,13 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.25175.4">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.25178.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>1560b3406a8ebf9e267f7a1dddbf5238dd378081</Sha>
+      <Sha>4bb78555b1275bc6cb21f6d61f7de60b0605edc3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.25175.4">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.25178.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>1560b3406a8ebf9e267f7a1dddbf5238dd378081</Sha>
+      <Sha>4bb78555b1275bc6cb21f6d61f7de60b0605edc3</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="10.0.0-prerelease.25176.1">
       <Uri>https://github.com/dotnet/xharness</Uri>
