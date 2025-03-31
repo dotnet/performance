@@ -538,7 +538,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 basicStartupRetrieveCmd = xharness_adb() + [ 
                     'shell',
-                    f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager: Displayed {androidHelper.activityname}'"
+                    f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {androidHelper.activityname}'"
                 ]
 
                 clearLogsCmd = xharness_adb() + [
