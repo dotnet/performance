@@ -13,8 +13,8 @@
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
 
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
-    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false;/p:AndroidEnableMarshalMethods=false</_MSBuildArgs>
-    <RunConfigsString>$(RuntimeFlavor)</RunConfigsString>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false;</_MSBuildArgs>
+    <RunConfigsString>"$(RuntimeFlavor) $(CodegenType)"</RunConfigsString>
   </PropertyGroup>
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
@@ -35,13 +35,13 @@
       <ApkName>com.companyname.netandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.NetAndroidDefault</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="Maui Android Default $(RunConfigsString)" Condition="'$(RuntimeFlavor)' == 'mono'">
+    <MAUIAndroidScenario Include="Maui Android Default $(RunConfigsString)">
       <ScenarioDirectoryName>mauiandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.mauiandroiddefault</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="Maui Blazor Android Default (TTFD) $(RunConfigsString)" Condition="'$(RuntimeFlavor)' == 'mono'">
+    <MAUIAndroidScenario Include="Maui Blazor Android Default (TTFD) $(RunConfigsString)">
       <ScenarioDirectoryName>mauiblazorandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiblazorandroiddefault-Signed</ApkName>

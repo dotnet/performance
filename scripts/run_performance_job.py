@@ -545,15 +545,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     # .NET Android and .NET MAUI Android sample app scenarios
     if args.run_kind == "maui_scenarios_android":
-        if args.runtime_flavor == "mono":
-            runtime_type = "Mono"
-            configurations["CompilationMode"] = "ProfiledAOT"
-        elif args.runtime_flavor == "coreclr":
-            runtime_type = "CoreCLR"
-            configurations["CompilationMode"] = "JIT"
-        else:
+        if not args.runtime_flavor in ("mono", "coreclr"):
+
             raise Exception("Runtime flavor must be specified for maui_scenarios_android")
-        configurations["RuntimeType"] = str(runtime_type)
+        configurations["CodegenType"] = str(args.codegen_type)
+        configurations["RuntimeType"] = str(args.runtime_flavor)
 
     if ios_mono:
         runtime_type = "Mono"
@@ -916,6 +912,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             os.environ["HelixTargetQueues"] = args.queue
             os.environ["Python"] = agent_python
             os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
+            os.environ["CodegenType"] = args.codegen_type or ''
             os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
