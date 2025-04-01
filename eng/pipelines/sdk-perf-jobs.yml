@@ -402,7 +402,7 @@ jobs:
         channels:
           - main
         runtimeFlavor: mono
-        codeGenType: 'ProfiledAOT'
+        codeGenType: ProfiledAOT
         additionalJobIdentifier: Mono
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -421,7 +421,7 @@ jobs:
         channels:
           - main
         runtimeFlavor: coreclr
-        codeGenType: 'JIT'
+        codeGenType: JIT
         additionalJobIdentifier: CoreCLR
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}

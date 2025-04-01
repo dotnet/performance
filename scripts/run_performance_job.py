@@ -546,7 +546,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     # .NET Android and .NET MAUI Android sample app scenarios
     if args.run_kind == "maui_scenarios_android":
         if not args.runtime_flavor in ("mono", "coreclr"):
-
             raise Exception("Runtime flavor must be specified for maui_scenarios_android")
         configurations["CodegenType"] = str(args.codegen_type)
         configurations["RuntimeType"] = str(args.runtime_flavor)
@@ -1101,6 +1100,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         helix_build=args.build_number,
         partition_count=args.partition_count,
         runtime_flavor=args.runtime_flavor or "",
+        codegen_type=args.codegen_type or "",
         hybrid_globalization=args.hybrid_globalization,
         target_csproj=args.target_csproj,
         work_item_command=work_item_command or None,

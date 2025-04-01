@@ -145,7 +145,6 @@ def install_latest_maui(precommands: PreCommands, feed="https://pkgs.dev.azure.c
             else:
                 raise Exception("Unable to find .NET SDK version in package ID")
             
-        print(f"Packages after filtering: {packages}")
         # Filter out packages that have lower 'dotnet_version' than the rest of the packages
         # Sometimes feed can contain packages from previous release versions, so we need to filter them out
         highest_dotnet_version = max(float(pkg['dotnet_version']) for pkg in packages)
