@@ -8,12 +8,12 @@
   <!--Package versions-->
   <PropertyGroup>
     <MicrosoftNETILLinkTasksVersion>9.0.4</MicrosoftNETILLinkTasksVersion>
-    <MicrosoftNETILLinkPackageVersion>9.0.4-servicing.25160.21</MicrosoftNETILLinkPackageVersion>
+    <MicrosoftNETILLinkPackageVersion>9.0.4-servicing.25163.4</MicrosoftNETILLinkPackageVersion>
     <SystemThreadingChannelsPackageVersion>9.0.4</SystemThreadingChannelsPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>9.0.4</MicrosoftExtensionsLoggingPackageVersion>
     <BenchmarkDotNetVersion>0.14.1-nightly.20250107.205</BenchmarkDotNetVersion>
     <MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>9.0.4</MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>
-    <MicrosoftDotNetXHarnessCLIVersion>10.0.0-prerelease.25152.1</MicrosoftDotNetXHarnessCLIVersion>
+    <MicrosoftDotNetXHarnessCLIVersion>10.0.0-prerelease.25181.1</MicrosoftDotNetXHarnessCLIVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
