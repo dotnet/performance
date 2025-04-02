@@ -5,14 +5,19 @@ import shutil
 import sys
 from performance.logger import setup_loggers, getLogger
 from shared import const
-from shared.mauisharedpython import remove_aab_files, install_versioned_maui
+from shared.mauisharedpython import remove_aab_files, install_latest_maui
 from shared.precommands import PreCommands
 from shared.versionmanager import versions_write_json, get_version_from_dll_powershell
 from test import EXENAME
 
 setup_loggers(True)
+logger = getLogger(__name__)
+logger.info("Starting pre-command for Maui Blazor Android Default App")
+
 precommands = PreCommands()
-install_versioned_maui(precommands)
+
+install_latest_maui(precommands)
+precommands.print_dotnet_info()
 
 # Setup the Maui folder
 precommands.new(template='maui-blazor',
@@ -54,7 +59,6 @@ with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "w") as mainActiv
             mainActivityFile.write(line)
 
 # Build the APK
-shutil.copy('./MauiNuGet.config', './app/Nuget.config')
 precommands.execute([])
 
 output_dir = const.PUBDIR
