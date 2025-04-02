@@ -7,8 +7,6 @@ jobs:
     displayName: 'Register Build (${{ parameters.buildType }})'
     steps:
     - checkout: none
-    - script: echo "pvscmdupload/builds/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/buildInfo.json"
-      displayName: 'Build info path'
     - task: AzureCLI@2
       displayName: 'Upload build info file'
       inputs:
