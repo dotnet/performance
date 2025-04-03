@@ -25,9 +25,9 @@
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
       <Sha>cd7e571b413096e4fedbf18f733723ab9b6611ef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="9.0.4">
+    <Dependency Name="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="9.0.5">
       <Uri>https://github.com/dotnet/emsdk</Uri>
-      <Sha>b8d8fec81291264a825ba4c803ad50577b9d2265</Sha>
+      <Sha>3df5eac9e2dfcf5ff544c1a83f2a07ce9270b2f6</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
