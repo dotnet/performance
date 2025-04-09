@@ -86,7 +86,7 @@ jobs:
       performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
       jobParameters: ${{ parameters.jobParameters }}
 
-  # run android scenarios - Mono
+  # run android scenarios - Mono JIT
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
@@ -96,6 +96,7 @@ jobs:
         - windows_x64
       jobParameters:
         runtimeType: AndroidMono
+        codeGenType: JIT
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
         runKind: android_scenarios
         isScenario: true
@@ -105,7 +106,27 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # run android scenarios - CoreCLR
+  # run android scenarios - Mono AOT
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: mono
+      platforms:
+        - windows_x64
+      jobParameters:
+        runtimeType: AndroidMono
+        codeGenType: AOT
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
+        runKind: android_scenarios
+        isScenario: true
+        logicalMachine: 'perfpixel4a'
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # run android scenarios - CoreCLR JIT
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
@@ -115,6 +136,27 @@ jobs:
         - windows_x64
       jobParameters:
         runtimeType: AndroidCoreCLR
+        codeGenType: JIT
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
+        runKind: android_scenarios
+        isScenario: true
+        logicalMachine: 'perfpixel4a'
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # run android scenarios - CoreCLR R2R
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: coreclr
+      platforms:
+        - windows_x64
+      jobParameters:
+        runtimeType: AndroidCoreCLR
+        codeGenType: R2R
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
         runKind: android_scenarios
         isScenario: true
