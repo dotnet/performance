@@ -96,8 +96,44 @@ def install_versioned_maui(precommands: PreCommands):
 
     precommands.install_workload('maui', workload_install_args)
 
-# TODO: the feed should be updated to the latest
-def install_latest_maui(precommands: PreCommands, feed="https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet10/nuget/v3/index.json"):
+def extract_latest_dotnet_feed_from_nuget_config(path: str) -> str:
+    '''
+        Extract the latest dotnet feed from the NuGet.config file.
+        The latest feed is the one that has the highest version number.
+        Supports only single number versioning (dotnet9, dotnet10, etc.)
+    '''
+    tree = ET.parse(path)
+    root = tree.getroot()
+
+    # Find the <packageSources> element
+    package_sources = root.find(".//packageSources")
+    if package_sources is None:
+        raise ValueError("No <packageSources> element found in NuGet.config")
+
+    # Extract all <add> elements with keys starting with "dotnet" followed by a number
+    dotnet_feeds = dict[int, str]()
+    for add_element in package_sources.findall("add"):
+        key = add_element.get("key")
+        value = add_element.get("value")
+        if key and value:
+            match = re.match(r"dotnet(\d+)$", key)
+            if match:
+                version = int(match.group(1))
+                dotnet_feeds[version] = value
+
+    # Find the highest version
+    if not dotnet_feeds:
+        raise ValueError("No dotnet feeds found in NuGet.config")
+
+    latest_version = max(dotnet_feeds.keys())
+    latest_feed = dotnet_feeds[latest_version]
+
+    return latest_feed
+
+def install_latest_maui(
+        precommands: PreCommands, 
+        feed=extract_latest_dotnet_feed_from_nuget_config(path=os.path.join(get_repo_root_path(), "NuGet.config"))
+        ):
     '''
         Install the latest maui workload using the provided feed. 
         This function will create a rollback file and install the maui workload using that file.

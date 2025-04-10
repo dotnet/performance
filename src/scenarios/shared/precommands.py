@@ -306,6 +306,8 @@ class PreCommands:
     def get_packages_for_sdk_from_feed(self, sdk_name: str, feed: str):
         'Gets the packages for the given sdk from the given feed'
 
+        getLogger().debug(f"dotnet package search {sdk_name} --prerelease --take 999 --format json --source {feed}")
+
         # Query the given feed for published SDKs using the `dotnet package search` command
         result = subprocess.run(
             ["dotnet", "package", "search", sdk_name, "--prerelease", "--take", "999", "--format", "json", "--source", feed], check=True, capture_output=True, text=True)
