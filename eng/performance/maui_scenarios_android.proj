@@ -41,12 +41,6 @@
       <ApkName>com.companyname.mauiandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.mauiandroiddefault</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="MAUI Blazor Android Default (TTID)">
-      <ScenarioDirectoryName>mauiblazorandroid</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <ApkName>com.companyname.mauiblazorandroiddefault-Signed</ApkName>
-      <PackageName>com.companyname.mauiblazorandroiddefault</PackageName>
-    </MAUIAndroidScenario>
     <MAUIAndroidScenario Include="MAUI Blazor Android Default (TTFD)">
       <ScenarioDirectoryName>mauiblazorandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
