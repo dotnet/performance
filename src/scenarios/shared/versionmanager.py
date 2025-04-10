@@ -91,6 +91,6 @@ def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> d
 
         version, commit = parse_version_output(result)
         results[f"{sdk}_version"] = version
-        results[f"{sdk}_commit_hash"] = commit
+        results[f"PERFLAB_DATA_{sdk}_commit_hash"] = commit
             
     return results
