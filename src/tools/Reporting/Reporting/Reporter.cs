@@ -146,6 +146,10 @@ public class Reporter
             {
                 build.AdditionalData[entry.Key.ToString().Substring("PERFLAB_DATA_".Length)] = entry.Value.ToString();
             }
+            else if (entry.Key.ToString().EndsWith("_commit_hash", true, CultureInfo.InvariantCulture))
+            {
+                build.AdditionalData[entry.Key.ToString()] = entry.Value.ToString();
+            }
         }
 
         return build;
