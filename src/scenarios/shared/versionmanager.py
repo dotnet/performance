@@ -36,9 +36,9 @@ def get_version_from_dll_powershell_ios(dll_path: str):
     result = subprocess.run(['pwsh', '-Command', rf'Get-ChildItem {dll_path} | Select-Object -ExpandProperty VersionInfo | Select-Object -ExpandProperty ProductVersion'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
     return result.stdout.decode('utf-8').strip()
 
-def get_mobile_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> dict[str, str]:
+def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> dict[str, str]:
     '''
-    Get the .NET mobile SDK versions from the used dlls
+    Get the SDK versions from the used dlls
     :param dll_folder_path: The folder path where the dlls are located
     :return: A dictionary with the SDK version identifiers and commit hashes
     '''
@@ -52,11 +52,11 @@ def get_mobile_sdk_versions(dll_folder_path: str, windows_powershell: bool = Tru
         version = None
         commit = None
 
-        if '+' in output: # Handle MAUI format (split by '+')
+        if '+' in output: # Handle "versi<version>+<commit>" format
             parts = output.split('+')
             version = parts[0].strip()
             commit = parts[1].strip()
-        else: # Handle Xamarin format (split by ';')
+        else: # Handle "<version>; git-rev-head:<commit>; git-branch:<branch>" format
             parts = output.split(';')
             version = parts[0].strip()
 
@@ -75,7 +75,8 @@ def get_mobile_sdk_versions(dll_folder_path: str, windows_powershell: bool = Tru
     mobile_sdks = {
         "net_android": "Mono.Android.dll",
         "net_ios": "Mono.iOS.dll",
-        "net_maui": "Microsoft.Maui.dll"
+        "net_maui": "Microsoft.Maui.dll",
+        "runtime": "System.Runtime.dll"
     }
     results = dict[str, str]()
 
