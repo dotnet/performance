@@ -12,7 +12,7 @@ from test import EXENAME
 
 setup_loggers(True)
 logger = getLogger(__name__)
-logger.info("Starting pre-command for .NET Android Default App")
+logger.info("Starting pre-command for .NET Android sample app (dotnet new android)")
 
 precommands = PreCommands()
 
