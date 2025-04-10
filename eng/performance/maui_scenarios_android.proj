@@ -29,19 +29,19 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <MAUIAndroidScenario Include=".NET Android Default">
+    <MAUIAndroidScenario Include=".NET Android Template">
       <ScenarioDirectoryName>netandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.netandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.NetAndroidDefault</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="MAUI Android Default">
+    <MAUIAndroidScenario Include="MAUI Android Template">
       <ScenarioDirectoryName>mauiandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.mauiandroiddefault</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="MAUI Blazor Android Default (TTFD)">
+    <MAUIAndroidScenario Include="MAUI Blazor Android Template (TTFD)">
       <ScenarioDirectoryName>mauiblazorandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiblazorandroiddefault-Signed</ApkName>

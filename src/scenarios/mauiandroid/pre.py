@@ -7,12 +7,12 @@ from performance.logger import setup_loggers, getLogger
 from shared import const
 from shared.mauisharedpython import remove_aab_files, install_latest_maui
 from shared.precommands import PreCommands
-from shared.versionmanager import versions_write_json, get_version_from_dll_powershell
+from shared.versionmanager import versions_write_json, get_mobile_sdk_versions
 from test import EXENAME
 
 setup_loggers(True)
 logger = getLogger(__name__)
-logger.info("Starting pre-command for MAUI Android sample app (dotnet new maui)")
+logger.info("Starting pre-command for MAUI Android template app (dotnet new maui)")
 
 precommands = PreCommands()
 
@@ -36,8 +36,7 @@ if precommands.output:
     output_dir = precommands.output
 remove_aab_files(output_dir)
 
-# Copy the MauiVersion to a file so we have it on the machine
-maui_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Microsoft.Maui.dll")
-version_dict = { "mauiVersion": maui_version }
+# Extract the mobile SDK versions from the linked folder DLLs
+version_dict = get_mobile_sdk_versions(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked")
 versions_write_json(version_dict, rf"{output_dir}\versions.json")
-print(f"Versions: {version_dict}")
+print(f"Versions: {version_dict} from location " + rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked")

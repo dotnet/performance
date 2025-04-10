@@ -7,12 +7,12 @@ from performance.logger import setup_loggers, getLogger
 from shared import const
 from shared.mauisharedpython import remove_aab_files,install_latest_maui
 from shared.precommands import PreCommands
-from shared.versionmanager import versions_write_json, get_version_from_dll_powershell
+from shared.versionmanager import versions_write_json, get_mobile_sdk_versions
 from test import EXENAME
 
 setup_loggers(True)
 logger = getLogger(__name__)
-logger.info("Starting pre-command for .NET Android sample app (dotnet new android)")
+logger.info("Starting pre-command for .NET Android template app (dotnet new android)")
 
 precommands = PreCommands()
 
@@ -36,8 +36,7 @@ if precommands.output:
     output_dir = precommands.output
 remove_aab_files(output_dir)
 
-# Copy the netAndroidVersion to a file so we have it on the machine
-net_android_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Mono.Android.dll")
-version_dict = { "netAndroidVersion": net_android_version }
+# Extract the mobile SDK versions from the linked folder DLLs
+version_dict = get_mobile_sdk_versions(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked")
 versions_write_json(version_dict, rf"{output_dir}\versions.json")
-print(f"Versions: {version_dict} from location " + rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Mono.Android.dll")
+print(f"Versions: {version_dict} from location " + rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked")

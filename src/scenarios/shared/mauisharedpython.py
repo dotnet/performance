@@ -152,6 +152,8 @@ def install_latest_maui(
         "microsoft.net.sdk.tvos" : ""
     }
 
+    getLogger().info(f"Installing the latest maui workload from feed {feed}")
+
     # Get the latest published version of the maui workloads
     for workload in maui_rollback_dict.keys():
         packages = precommands.get_packages_for_sdk_from_feed(workload, feed)
