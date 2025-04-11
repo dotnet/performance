@@ -27,7 +27,7 @@
     </Dependency>
     <Dependency Name="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="9.0.5">
       <Uri>https://github.com/dotnet/emsdk</Uri>
-      <Sha>3cddc1fe20f0a0c08a1c3942a82c46413e5cc00a</Sha>
+      <Sha>3ba77e02f1f68056fca95497c0694931db43270e</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
