@@ -4,7 +4,7 @@ Version File Manager
 import json
 import os
 import subprocess
-
+from performance.logger import getLogger
 from typing import Dict
 
 def versions_write_json(versiondict: Dict[str, str], outputfile: str = 'versions.json'):
@@ -35,3 +35,62 @@ def get_version_from_dll_powershell(dll_path: str):
 def get_version_from_dll_powershell_ios(dll_path: str):
     result = subprocess.run(['pwsh', '-Command', rf'Get-ChildItem {dll_path} | Select-Object -ExpandProperty VersionInfo | Select-Object -ExpandProperty ProductVersion'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
     return result.stdout.decode('utf-8').strip()
+
+def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> dict[str, str]:
+    '''
+    Get the SDK versions from the used dlls
+    :param dll_folder_path: The folder path where the dlls are located
+    :return: A dictionary with the SDK version identifiers and commit hashes
+    '''
+
+    def parse_version_output(output: str) -> tuple[str, str]:
+        """
+        Parse the output of the PowerShell command to extract version and commit hash.
+        :param output: The output string from the PowerShell command.
+        :return: A tuple containing the version and commit hash.
+        """
+        version = None
+        commit = None
+
+        if '+' in output: # Handle "versi<version>+<commit>" format
+            parts = output.split('+')
+            version = parts[0].strip()
+            commit = parts[1].strip()
+        else: # Handle "<version>; git-rev-head:<commit>; git-branch:<branch>" format
+            parts = output.split(';')
+            version = parts[0].strip()
+
+            for part in parts:
+                if 'git-rev-head:' in part:
+                    commit = part.split(':', 1)[1].strip()
+                    break
+        
+        assert version is not None, "Version parsing failed"
+        assert commit is not None, "Commit parsing failed"
+
+        return version, commit
+
+    powershell_cmd = get_version_from_dll_powershell if windows_powershell else get_version_from_dll_powershell_ios
+
+    mobile_sdks = {
+        "net_android": "Mono.Android.dll",
+        "net_ios": "Mono.iOS.dll",
+        "net_maui": "Microsoft.Maui.dll",
+        "runtime": "System.Runtime.dll"
+    }
+    results = dict[str, str]()
+
+    for sdk, dll_name in mobile_sdks.items():
+        dll_path = os.path.join(dll_folder_path, dll_name)
+        print(f"Getting version from {dll_path}")
+        result = powershell_cmd(dll_path)
+        
+        if "Cannot find path" in result:
+            getLogger().warning(f"Cannot find {dll_name} in {dll_folder_path}. Skipping version extraction.")
+            continue
+
+        version, commit = parse_version_output(result)
+        results[f"{sdk}_version"] = version
+        results[f"PERFLAB_DATA_{sdk}_commit_hash"] = commit
+            
+    return results
