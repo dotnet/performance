@@ -431,7 +431,7 @@ jobs:
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
-        - osx-arm64-ios-arm64
+        - osx-x64-ios-arm64
       isPublic: false
       jobParameters:
         runKind: maui_scenarios_ios
@@ -448,7 +448,7 @@ jobs:
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
-        - osx-arm64-ios-arm64
+        - osx-x64-ios-arm64
       isPublic: false
       jobParameters:
         runKind: maui_scenarios_ios

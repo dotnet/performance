@@ -129,11 +129,11 @@ jobs:
       machinePool: Galaxy
       ${{ insert }}: ${{ parameters.jobParameters }}
 
-- ${{ if and(containsValue(parameters.buildMachines, 'osx-arm64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 12mini only used in private builds currently
+- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 12mini only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osGroup: osx
-      archType: arm64
+      archType: x64
       osVersion: 15
       pool:
         vmImage: 'macos-15'
