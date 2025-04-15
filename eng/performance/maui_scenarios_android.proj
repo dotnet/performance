@@ -76,16 +76,16 @@
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity)')">
-      <_StartupAdditionalArguments>%(HelixWorkItem.StartupAdditionalArguments)</_StartupAdditionalArguments>
-      <_StartupTTFD Condition="$(_StartupAdditionalArguments.Contains('--use-fully-drawn-time'))"> (TTFD)</_StartupTTFD>
+      <_ScenarioName Condition="%(HelixWorkItem.StartupAdditionalArguments) == ''">%(Identity)</_ScenarioName>
+      <_ScenarioName Condition="%(HelixWorkItem.StartupAdditionalArguments) != ''">%(Identity) [%(HelixWorkItem.StartupAdditionalArguments)]</_ScenarioName>
       <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
-      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)%(_StartupTTFD)&quot; $(_StartupAdditionalArguments) $(ScenarioArgs)</Command>
+      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;$(_ScenarioName)&quot; $(_StartupAdditionalArguments) $(ScenarioArgs)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity) NoAnimation')">
-      <_StartupAdditionalArguments>%(HelixWorkItem.StartupAdditionalArguments)</_StartupAdditionalArguments>
-      <_StartupTTFD Condition="$(_StartupAdditionalArguments.Contains('--use-fully-drawn-time'))"> (TTFD)</_StartupTTFD>
+      <_ScenarioName Condition="%(HelixWorkItem.StartupAdditionalArguments) == ''">%(Identity)</_ScenarioName>
+      <_ScenarioName Condition="%(HelixWorkItem.StartupAdditionalArguments) != ''">%(Identity) [%(HelixWorkItem.StartupAdditionalArguments)]</_ScenarioName>
       <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
-      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)%(_StartupTTFD)&quot; --disable-animations $(_StartupAdditionalArguments) $(ScenarioArgs)</Command>
+      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;$(_ScenarioName)&quot; --disable-animations $(_StartupAdditionalArguments) $(ScenarioArgs)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Memory Consumption - %(Identity)')" Condition="!$(HelixTargetQueue.ToLowerInvariant().Contains('galaxy'))">
       <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
