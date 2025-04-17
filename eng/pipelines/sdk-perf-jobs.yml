@@ -436,11 +436,10 @@ jobs:
       jobParameters:
         runKind: maui_scenarios_ios
         projectFileName: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          9.0: ./eng/Version.Details.xml
         channels:
-          - 8.0
+          - main
         runtimeFlavor: mono
+        codeGenType: FullAOT
         additionalJobIdentifier: Mono
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -455,11 +454,10 @@ jobs:
       jobParameters:
         runKind: maui_scenarios_ios
         projectFileName: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          9.0: ./eng/Version.Details.xml
         channels:
-          - 8.0
+          - main
         runtimeFlavor: coreclr
+        codeGenType: NativeAOT
         additionalJobIdentifier: CoreCLR
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}

@@ -548,6 +548,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
         configurations["CodegenType"] = str(args.codegen_type)
         configurations["RuntimeType"] = str(args.runtime_flavor)
 
+    # .NET iOS and .NET MAUI iOS sample app scenarios
+    if args.run_kind == "maui_scenarios_ios":
+        if not args.runtime_flavor in ("mono", "coreclr"):
+            raise Exception("Runtime flavor must be specified for maui_scenarios_ios")
+        configurations["CodegenType"] = str(args.codegen_type)
+        configurations["RuntimeType"] = str(args.runtime_flavor)
+
     if ios_mono:
         runtime_type = "Mono"
         configurations["iOSLlvmBuild"] = str(args.ios_llvm_build)

@@ -75,7 +75,7 @@ def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> d
 
     mobile_sdks = {
         "net_android": "Mono.Android.dll",
-        "net_ios": "Mono.iOS.dll",
+        "net_ios": "Microsoft.iOS.dll",
         "net_maui": "Microsoft.Maui.dll",
         "runtime": "System.Runtime.dll"
     }
