@@ -439,6 +439,7 @@ jobs:
         channels:
           - main
         runtimeFlavor: mono
+        codeGenType: FullAOT
         additionalJobIdentifier: Mono
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -456,6 +457,7 @@ jobs:
         channels:
           - main
         runtimeFlavor: coreclr
+        codeGenType: NativeAOT
         additionalJobIdentifier: CoreCLR
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
