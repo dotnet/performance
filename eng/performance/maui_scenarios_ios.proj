@@ -38,7 +38,7 @@
       <IPAName>MauiiOSDefault</IPAName>
       <PackageName>net.dot.mauitesting</PackageName>
     </MAUIiOSScenario>
-    <MAUIiOSScenario Include="Maui Blazor iOS Default Template (TTFD)">
+    <MAUIiOSScenario Include="Maui Blazor iOS Default Template">
       <ScenarioDirectoryName>mauiblazorios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiBlazoriOSDefault</IPAName>
