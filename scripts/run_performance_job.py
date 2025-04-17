@@ -391,9 +391,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.libraries_download_dir is None and not args.performance_repo_ci and args.runtime_repo_dir is not None:
         args.libraries_download_dir = os.path.join(args.runtime_repo_dir, "artifacts")
 
-    llvm = args.codegen_type.lower() == "aot" and args.runtime_type != "wasm"
-    android_mono = args.runtime_type == "AndroidMono"
-    android_coreclr = args.runtime_type == "AndroidCoreCLR"
+    llvm = args.codegen_type.lower() == "aot" and args.runtime_type != "wasm" and not args.run_kind == "android_scenarios"
     ios_mono = args.runtime_type == "iOSMono"
     ios_nativeaot = args.runtime_type == "iOSNativeAOT"
     mono_aot = False
@@ -531,15 +529,24 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     runtime_type = ""
 
-    if android_mono:
-        runtime_type = "Mono"
-        configurations["CompilationMode"] = "JIT"
-        configurations["RuntimeType"] = str(runtime_type)
+    # dotnet/runtime Android sample app scenarios
+    if args.run_kind == "android_scenarios":
+        # Mapping runtime_type to runtime_flavor before sending to helix
+        if args.runtime_type == "AndroidMono":
+            args.runtime_flavor = "mono"
+        elif args.runtime_type == "AndroidCoreCLR":
+            args.runtime_flavor = "coreclr"
+        else:
+            raise Exception("Android scenarios only support Mono and CoreCLR runtimes")
+        configurations["CodegenType"] = str(args.codegen_type)
+        configurations["RuntimeType"] = str(args.runtime_flavor)
 
-    if android_coreclr:
-        runtime_type = "CoreCLR"
-        configurations["CompilationMode"] = "JIT"
-        configurations["RuntimeType"] = str(runtime_type)
+    # .NET Android and .NET MAUI Android sample app scenarios
+    if args.run_kind == "maui_scenarios_android":
+        if not args.runtime_flavor in ("mono", "coreclr"):
+            raise Exception("Runtime flavor must be specified for maui_scenarios_android")
+        configurations["CodegenType"] = str(args.codegen_type)
+        configurations["RuntimeType"] = str(args.runtime_flavor)
 
     if ios_mono:
         runtime_type = "Mono"
@@ -719,7 +726,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.runtime_repo_dir is not None:
             args.built_app_dir = args.runtime_repo_dir
     
-    if android_mono or android_coreclr:
+    if args.run_kind == "android_scenarios":
         if args.built_app_dir is None:
             raise Exception("Built apps directory must be present for Android benchmarks")
         getLogger().info("Copying Android apps to payload directory")
@@ -902,6 +909,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             os.environ["HelixTargetQueues"] = args.queue
             os.environ["Python"] = agent_python
             os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
+            os.environ["CodegenType"] = args.codegen_type or ''
             os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
@@ -1090,6 +1098,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         helix_build=args.build_number,
         partition_count=args.partition_count,
         runtime_flavor=args.runtime_flavor or "",
+        codegen_type=args.codegen_type or "",
         hybrid_globalization=args.hybrid_globalization,
         target_csproj=args.target_csproj,
         work_item_command=work_item_command or None,
