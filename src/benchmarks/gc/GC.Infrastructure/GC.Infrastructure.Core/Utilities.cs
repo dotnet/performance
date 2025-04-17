@@ -4,15 +4,24 @@
     {
         public static void CopyFilesRecursively(string sourcePath, string targetPath)
         {
-            string targetPathAsDirectory = targetPath + "\\";
+            sourcePath = Path.GetFullPath(sourcePath).TrimEnd(Path.DirectorySeparatorChar);
+            targetPath = Path.GetFullPath(targetPath).TrimEnd(Path.DirectorySeparatorChar);
+
+            Directory.CreateDirectory(targetPath);
+
             foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
             {
-                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPathAsDirectory));
+                string relativePath = Path.GetRelativePath(sourcePath, dirPath);
+                string newDirPath = Path.Combine(targetPath, relativePath);
+                Directory.CreateDirectory(newDirPath);
             }
 
-            foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
+            foreach (string filePath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
             {
-                File.Copy(newPath, newPath.Replace(sourcePath, targetPathAsDirectory), true);
+                string relativePath = Path.GetRelativePath(sourcePath, filePath);
+                string newFilePath = Path.Combine(targetPath, relativePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
+                File.Copy(filePath, newFilePath, true);
             }
         }
 
@@ -50,33 +59,6 @@
             }
         }
 
-        public static void CopyFolderRecursively(string sourcePath, string destinationPath)
-        {
-            string realDestinationPath = String.Empty;
-            // If destinationPath is a folder
-            if (Directory.Exists(destinationPath))
-            {
-                string folderName = Path.GetFileName(sourcePath);
-                realDestinationPath = Path.Combine(destinationPath, folderName);
-            }
-            else
-            {
-                realDestinationPath = destinationPath;
-            }
-            Directory.CreateDirectory(realDestinationPath);
-
-            foreach (string srcSubDir in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
-            {
-                string dstSubDir = srcSubDir.Replace(sourcePath, realDestinationPath);
-                Directory.CreateDirectory(dstSubDir);
-            }
-
-            foreach (string srcFile in Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories))
-            {
-                string dstFile = srcFile.Replace(sourcePath, realDestinationPath);
-                File.Copy(srcFile, dstFile, true);
-            }
-        }
         public static void CopyFile(string srcPath, string dstPath)
         {
             string realDestPath = String.Empty;

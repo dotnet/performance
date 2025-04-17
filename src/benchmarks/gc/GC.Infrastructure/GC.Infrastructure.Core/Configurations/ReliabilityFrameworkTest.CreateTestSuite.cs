@@ -13,7 +13,9 @@ namespace GC.Infrastructure.Core.Configurations
             {
                 Console.WriteLine($"====== Copy ReliabilityFramework.dll and Tests to `outputFolder` ======");
                 Utilities.CopyFile(ReliabilityFrameworkDll, outputFolder);
-                Utilities.CopyFolderRecursively(TestFolder, outputFolder);
+                DirectoryInfo testDir = Directory.CreateDirectory(Path.Combine(outputFolder, "Tests"));
+                string testfolderPath = testDir.FullName;
+                Utilities.CopyFilesRecursively(TestFolder, testfolderPath);
 
                 Console.WriteLine($"====== Copy gcperfsim.dll to Tests ======");
                 string destTestsFolder = Path.Combine(outputFolder, "Tests");
