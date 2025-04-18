@@ -14,6 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />
     <PackageReference Include="System.Security.Principal.Windows" />
+    <PackageReference Include="MSBuild.StructuredLogger" VersionOverride="2.2.386" />
   </ItemGroup>
 
   <ItemGroup>

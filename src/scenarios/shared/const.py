@@ -18,6 +18,7 @@ DEVICESTARTUP = "devicestartup"
 DEVICEMEMORYCONSUMPTION = "devicememoryconsumption"
 ANDROIDINSTRUMENTATION = "androidinstrumentation"
 DEVICEPOWERCONSUMPTION = "devicepowerconsumption"
+DEVICEBUILD = "devicebuild"
 
 SCENARIO_NAMES = {STARTUP: 'Startup',
                   SDK: 'SDK',
@@ -25,7 +26,8 @@ SCENARIO_NAMES = {STARTUP: 'Startup',
                   CROSSGEN2: 'Crossgen2',
                   INNERLOOP: 'Innerloop',
                   INNERLOOPMSBUILD: 'InnerLoopMsBuild',
-                  DOTNETWATCH: 'DotnetWatch'}
+                  DOTNETWATCH: 'DotnetWatch',
+                  DEVICEBUILD: 'DeviceBuild'}
 
 BINDIR = 'bin'
 PUBDIR = 'pub'
@@ -51,6 +53,7 @@ ITERATION_SETUP_FILE = os.path.join(os.path.dirname(shared.__file__), 'sdk_itera
 STARTUP_PROCESSTIME = "ProcessTime"
 STARTUP_CROSSGEN2 = "Crossgen2"
 STARTUP_DEVICETIMETOMAIN = "DeviceTimeToMain"
+BUILD_TIME = "BuildTime"
 
 MEMORYCONSUMPTION_ANDROID = "AndroidMemoryConsumption"
 
