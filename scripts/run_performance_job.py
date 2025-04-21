@@ -738,6 +738,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             raise Exception("Built apps directory must be present for Android benchmarks")
         getLogger().info("Copying Android apps to payload directory")
         shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorld", "HelloAndroid.apk"), os.path.join(root_payload_dir, "HelloAndroid.apk"))
+        shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorldBinlog", "msbuild.binlog"), os.path.join(root_payload_dir, "msbuild.binlog"))
         # Disabled due to not successfully building at the moment. https://github.com/dotnet/performance/issues/4729
         # if android_mono:
             # shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), os.path.join(root_payload_dir, "MonoBenchmarksDroid.apk"))
@@ -758,6 +759,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
         # Find the zip file in the directory and move it to iOSSampleApp.zip
         for file in glob(os.path.join(ios_hello_world_zip_dir, "**", "*.zip")):
             dest = os.path.join(ios_hello_world_zip_dir, "iOSSampleApp.zip")
+            getLogger().info(f"Moving {file} to {dest}")
+            shutil.move(file, dest)
+            break
+
+        ios_hello_world_binlog_dir = os.path.join(payload_dir, "iosHelloWorldBinlog")
+        shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldBinlog"), ios_hello_world_binlog_dir)
+
+        for file in glob(os.path.join(ios_hello_world_binlog_dir, "**", "*.binlog")):
+            dest = os.path.join(ios_hello_world_binlog_dir, "msbuild.binlog")
             getLogger().info(f"Moving {file} to {dest}")
             shutil.move(file, dest)
             break
