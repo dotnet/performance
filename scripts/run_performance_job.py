@@ -739,8 +739,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         getLogger().info("Copying Android apps to payload directory")
         shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorld", "HelloAndroid.apk"), os.path.join(root_payload_dir, "HelloAndroid.apk"))
         matches = glob(os.path.join(args.built_app_dir, "androidHelloWorldBinlog", "**", "msbuild.binlog"), recursive=True)
-        if matches:
-            shutil.copy(matches[0], os.path.join(root_payload_dir, "msbuild.binlog"))
+        shutil.copy(matches[0], os.path.join(root_payload_dir, "msbuild.binlog"))
         # Disabled due to not successfully building at the moment. https://github.com/dotnet/performance/issues/4729
         # if android_mono:
             # shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), os.path.join(root_payload_dir, "MonoBenchmarksDroid.apk"))
