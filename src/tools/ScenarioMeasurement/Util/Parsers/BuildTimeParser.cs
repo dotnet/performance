@@ -2,20 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Build.Logging.StructuredLogger;  // BinaryLog, FindChildrenRecursive<T>
-using StructuredLogViewer;                         // BuildAnalyzer
+using Microsoft.Build.Logging.StructuredLogger;
+using StructuredLogViewer;
 using Microsoft.Diagnostics.Tracing;
 using Reporting;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace ScenarioMeasurement;
 
 /// <summary>
-///
+/// Parses the build time from a binary log file.
 /// </summary>
 public class BuildTimeParser : IParser
 {
@@ -44,7 +39,7 @@ public class BuildTimeParser : IParser
             foreach (var task in build.FindChildrenRecursive<Task>())
             {
                 var name = task.Name;
-                var ms   = task.Duration.TotalMilliseconds;
+                var ms = task.Duration.TotalMilliseconds;
 
                 if (name.Equals("ILLink", StringComparison.OrdinalIgnoreCase))
                 {
@@ -59,10 +54,18 @@ public class BuildTimeParser : IParser
                     appleappbuilderTimes.Add(ms);
                 }
             }
+
+            publishTimes.Add(build.Duration.TotalMilliseconds);
         }
 
-        yield return new Counter { Name = "ILLink Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = illinkTimes.ToArray() };
-        yield return new Counter { Name = "MonoAOTCompiler Time", MetricName = "ms", DefaultCounter = true, TopCounter = true, Results = monoaotcompilerTimes.ToArray() };
-        yield return new Counter { Name = "AppleAppBuilderTask Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = appleappbuilderTimes.ToArray() };
+
+        if (illinkTimes.Count > 0)
+            yield return new Counter { Name = "ILLink Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = illinkTimes.ToArray() };
+        if (monoaotcompilerTimes.Count > 0)
+            yield return new Counter { Name = "MonoAOTCompiler Time", MetricName = "ms", DefaultCounter = true, TopCounter = true, Results = monoaotcompilerTimes.ToArray() };
+        if (appleappbuilderTimes.Count > 0)
+            yield return new Counter { Name = "AppleAppBuilderTask Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = appleappbuilderTimes.ToArray() };
+        if (publishTimes.Count > 0)
+            yield return new Counter { Name = "Publish Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = publishTimes.ToArray() };
     }
 }
