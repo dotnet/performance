@@ -75,11 +75,11 @@
 
 <!-- We only run the android tests from Windows machines (at least for now) -->
   <ItemGroup>
-    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) APK Size')">
+    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) APK Size')" Condition="!$(HelixTargetQueue.ToLowerInvariant().Contains('pixel'))">
       <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
-    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) Extracted Size')">
+    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) Extracted Size')" Condition="!$(HelixTargetQueue.ToLowerInvariant().Contains('pixel'))">
       <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y; ren %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).apk %(HelixWorkItem.ApkName).zip; powershell.exe -nologo -noprofile -command "&amp; {Expand-Archive %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip -DestinationPath %HELIX_WORKITEM_ROOT%\pub\}"; del %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
