@@ -20,7 +20,7 @@
     <!-- CoreCLR R2R -->
     <_MSBuildArgs Condition="'$(CodegenType)' == 'R2R'">$(_MSBuildArgs);/p:PublishReadyToRun=true</_MSBuildArgs>
     <!-- CoreCLR R2R composite -->
-    <_MSBuildArgs Condition="'$(CodegenType)' == 'R2R_composite'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=true</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(CodegenType)' == 'R2RComposite'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=true</_MSBuildArgs>
 
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
   </PropertyGroup>

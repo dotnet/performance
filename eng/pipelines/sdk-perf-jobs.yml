@@ -478,7 +478,7 @@ jobs:
         channels:
           - main
         runtimeFlavor: coreclr
-        codeGenType: R2R_composite
+        codeGenType: R2RComposite
         additionalJobIdentifier: CoreCLR
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
