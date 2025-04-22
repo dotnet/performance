@@ -483,6 +483,25 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
+  # Maui Android scenario benchmarks (CoreCLR NativeAOT)
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_android
+        projectFileName: maui_scenarios_android.proj
+        channels:
+          - main
+        runtimeFlavor: coreclr
+        codeGenType: NativeAOT
+        additionalJobIdentifier: CoreCLR
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
   # Maui iOS Mono scenario benchmarks
   # - template: /eng/pipelines/templates/build-machine-matrix.yml
   #   parameters:

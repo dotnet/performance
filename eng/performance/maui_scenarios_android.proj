@@ -21,6 +21,8 @@
     <_MSBuildArgs Condition="'$(CodegenType)' == 'R2R'">$(_MSBuildArgs);/p:PublishReadyToRun=true</_MSBuildArgs>
     <!-- CoreCLR R2R composite -->
     <_MSBuildArgs Condition="'$(CodegenType)' == 'R2RComposite'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=true</_MSBuildArgs>
+    <!-- CoreCLR NativeAOT -->
+    <_MSBuildArgs Condition="'$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true</_MSBuildArgs>
 
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
   </PropertyGroup>
