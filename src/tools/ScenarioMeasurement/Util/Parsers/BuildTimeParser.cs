@@ -29,6 +29,7 @@ public class BuildTimeParser : IParser
         var illinkTimes = new List<double>();
         var monoaotcompilerTimes = new List<double>();
         var appleappbuilderTimes = new List<double>();
+        var androidappbuilderTimes = new List<double>();
         var publishTimes = new List<double>();
 
         if (File.Exists(binlogFile))
@@ -53,6 +54,10 @@ public class BuildTimeParser : IParser
                 {
                     appleappbuilderTimes.Add(ms);
                 }
+                else if (name.Equals("AndroidAppBuilderTask", StringComparison.OrdinalIgnoreCase))
+                {
+                    androidappbuilderTimes.Add(ms);
+                }
             }
 
             publishTimes.Add(build.Duration.TotalMilliseconds);
@@ -65,6 +70,8 @@ public class BuildTimeParser : IParser
             yield return new Counter { Name = "MonoAOTCompiler Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = monoaotcompilerTimes.ToArray() };
         if (appleappbuilderTimes.Count > 0)
             yield return new Counter { Name = "AppleAppBuilderTask Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = appleappbuilderTimes.ToArray() };
+        if (androidappbuilderTimes.Count > 0)
+            yield return new Counter { Name = "AndroidAppBuilderTask Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = androidappbuilderTimes.ToArray() };
         if (publishTimes.Count > 0)
             yield return new Counter { Name = "Publish Time", MetricName = "ms", DefaultCounter = true, TopCounter = true, Results = publishTimes.ToArray() };
     }
