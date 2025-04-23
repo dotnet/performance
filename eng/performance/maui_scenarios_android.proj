@@ -45,19 +45,19 @@
       <ApkName>com.companyname.netandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.NetAndroidDefault</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="MAUI Android Default Template">
+    <MAUIAndroidScenario Include="MAUI Android Default Template" Condition="'$(CodegenType)' != 'NativeAOT'">
       <ScenarioDirectoryName>mauiandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.mauiandroiddefault</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="MAUI Android Sample Content Template">
+    <MAUIAndroidScenario Include="MAUI Android Sample Content Template" Condition="'$(CodegenType)' != 'NativeAOT'">
       <ScenarioDirectoryName>mauisamplecontentandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauisamplecontentandroid-Signed</ApkName>
       <PackageName>com.companyname.mauisamplecontentandroid</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="MAUI Blazor Android Default Template">
+    <MAUIAndroidScenario Include="MAUI Blazor Android Default Template" Condition="'$(CodegenType)' != 'NativeAOT'">
       <ScenarioDirectoryName>mauiblazorandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiblazorandroiddefault-Signed</ApkName>
