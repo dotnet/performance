@@ -62,10 +62,10 @@ public class BuildTimeParser : IParser
         if (illinkTimes.Count > 0)
             yield return new Counter { Name = "ILLink Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = illinkTimes.ToArray() };
         if (monoaotcompilerTimes.Count > 0)
-            yield return new Counter { Name = "MonoAOTCompiler Time", MetricName = "ms", DefaultCounter = true, TopCounter = true, Results = monoaotcompilerTimes.ToArray() };
+            yield return new Counter { Name = "MonoAOTCompiler Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = monoaotcompilerTimes.ToArray() };
         if (appleappbuilderTimes.Count > 0)
             yield return new Counter { Name = "AppleAppBuilderTask Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = appleappbuilderTimes.ToArray() };
         if (publishTimes.Count > 0)
-            yield return new Counter { Name = "Publish Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = publishTimes.ToArray() };
+            yield return new Counter { Name = "Publish Time", MetricName = "ms", DefaultCounter = true, TopCounter = true, Results = publishTimes.ToArray() };
     }
 }
