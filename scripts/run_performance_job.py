@@ -740,7 +740,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorld", "HelloAndroid.apk"), os.path.join(root_payload_dir, "HelloAndroid.apk"))
 
         android_binlog_dir = os.path.join(root_payload_dir, "androidHelloWorldBinlog")
-        shutil.copytree(os.path.join(args.built_app_dir, "androidHelloWorldBinlog"),android_binlog_dir)
+        shutil.copytree(os.path.join(args.built_app_dir, "androidHelloWorldBinlog"), android_binlog_dir)
 
         for file in glob(os.path.join(android_binlog_dir, "**", "*.binlog"), recursive=True):
             dest = os.path.join(android_binlog_dir, "msbuild.binlog")
