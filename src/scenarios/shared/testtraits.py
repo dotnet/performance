@@ -9,7 +9,7 @@ testtypes = [const.STARTUP,
              const.SOD,
              const.INNERLOOP,
              const.DEVICESTARTUP,
-             const.DEVICEBUILD]
+             const.BUILDTIME]
 
 class TestTraits:
 

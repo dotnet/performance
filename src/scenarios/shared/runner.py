@@ -169,7 +169,7 @@ ex: C:\repos\performance;C:\repos\runtime
 '''                            )
         self.add_common_arguments(sodparser)
 
-        buildtimeparser = subparsers.add_parser(const.DEVICEBUILD,
+        buildtimeparser = subparsers.add_parser(const.BUILDTIME,
                                               description='measure build time from a binlog')
         buildtimeparser.add_argument('--binlog-path', help='Location of binlog', dest='binlogpath')
         self.add_common_arguments(buildtimeparser)
@@ -194,7 +194,7 @@ ex: C:\repos\performance;C:\repos\runtime
         if self.testtype == const.SOD:
             self.dirs = args.dirs
 
-        if self.testtype == const.DEVICEBUILD:
+        if self.testtype == const.BUILDTIME:
             self.binlogpath = args.binlogpath
         
         if self.testtype == const.DEVICESTARTUP:
@@ -967,9 +967,9 @@ ex: C:\repos\performance;C:\repos\runtime
                 raise Exception("Dirs was not passed in and neither %s nor %s exist" % (const.PUBDIR, const.BINDIR))
             sod.runtests(scenarioname=self.scenarioname, dirs=self.dirs or builtdir, upload_to_perflab_container=self.upload_to_perflab_container, artifact=self.traits.artifact)
 
-        elif self.testtype == const.DEVICEBUILD:
+        elif self.testtype == const.BUILDTIME:
             startup = StartupWrapper()
             if not (self.binlogpath):
                 raise Exception("Binlog path was not passed provided.")
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.BUILD_TIME, tracename=self.binlogpath, scenarioname=self.scenarioname)
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.BUILDTIME, tracename=self.binlogpath, scenarioname=self.scenarioname)
             startup.parsetraces(self.traits)
