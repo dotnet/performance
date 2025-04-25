@@ -969,7 +969,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
         elif self.testtype == const.BUILDTIME:
             startup = StartupWrapper()
-            if not (self.binlogpath):
-                raise Exception("Binlog path was not passed provided.")
+            if not (self.binlogpath and os.path.exists(self.binlogpath)):
+                raise Exception("For build time measurements a valid binlog path must be provided.")
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.BUILDTIME, tracename=self.binlogpath, scenarioname=self.scenarioname)
             startup.parsetraces(self.traits)
