@@ -10,6 +10,7 @@ using MicroBenchmarks;
 namespace SveBenchmarks
 {
     [BenchmarkCategory(Categories.Runtime)]
+    [OperatingSystemsArchitectureFilter(allowed: true, System.Runtime.InteropServices.Architecture.Arm64)]
     public class StrIndexOf
     {
         [Params(15, 127, 527, 10015)]
