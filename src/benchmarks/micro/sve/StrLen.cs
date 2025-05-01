@@ -111,33 +111,37 @@ namespace SveBenchmarks
         [Benchmark]
         public unsafe ulong SveStrLen()
         {
-            Vector<byte> ptrue = Sve.CreateTrueMaskByte();
-            Vector<byte> cmp, data;
-
-            ulong i = 0;
-            ulong elemsInVector = Sve.Count8BitElements();
-
-            Vector<byte> pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit((int)i, Size);
-
-            fixed (byte* arr_ptr = _array)
+            if (Sve.IsSupported)
             {
-                while (true)
+                Vector<byte> ptrue = Sve.CreateTrueMaskByte();
+                Vector<byte> cmp, data;
+
+                ulong i = 0;
+                ulong elemsInVector = Sve.Count8BitElements();
+
+                Vector<byte> pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit((int)i, Size);
+
+                fixed (byte* arr_ptr = _array)
                 {
-                    data = Sve.LoadVector(pLoop, arr_ptr + i);
-                    cmp = Sve.CompareEqual(data, Vector<byte>.Zero);
-
-                    if (Sve.TestAnyTrue(ptrue, cmp))
-                        break;
-                    else
+                    while (true)
                     {
-                        i += elemsInVector;
-                        pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit((int)i, Size);
-                    }
-                }
+                        data = Sve.LoadVector(pLoop, arr_ptr + i);
+                        cmp = Sve.CompareEqual(data, Vector<byte>.Zero);
 
-                i += Sve.GetActiveElementCount(pLoop, data);
-                return i;
+                        if (Sve.TestAnyTrue(ptrue, cmp))
+                            break;
+                        else
+                        {
+                            i += elemsInVector;
+                            pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit((int)i, Size);
+                        }
+                    }
+
+                    i += Sve.GetActiveElementCount(pLoop, data);
+                    return i;
+                }
             }
+            return 0;
         }
     }
 }

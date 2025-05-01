@@ -88,79 +88,86 @@ namespace SveBenchmarks
         [Benchmark]
         public unsafe int SveIndexOf()
         {
-            int i = 0;
-
-            fixed (char* arr_ptr = _array)
+            if (Sve.IsSupported)
             {
-                Vector<ushort> target = new Vector<ushort>((ushort)_searchValue);
-                var pLoop = (Vector<ushort>)Sve.CreateWhileLessThanMask16Bit(i, Size);
+                int i = 0;
 
-                for (; Sve.TestFirstTrue(Sve.CreateTrueMaskUInt16(), pLoop);  i += (int)Sve.Count16BitElements())
+                fixed (char* arr_ptr = _array)
                 {
-                    Vector<ushort> vals = Sve.LoadVector(pLoop, ((ushort*)arr_ptr) + i);
-                    Vector<ushort> cmpVec = Sve.CompareEqual(vals, target);
+                    Vector<ushort> target = new Vector<ushort>((ushort)_searchValue);
+                    var pLoop = (Vector<ushort>)Sve.CreateWhileLessThanMask16Bit(i, Size);
 
-                    ushort cmpSum = (ushort)Sve.AddAcross(cmpVec).ToScalar();
-
-                    if (cmpSum > 0)
+                    for (; Sve.TestFirstTrue(Sve.CreateTrueMaskUInt16(), pLoop);  i += (int)Sve.Count16BitElements())
                     {
-                        // find index of matching item
-                        for (int j = 0; j < Vector<ushort>.Count; j++)
+                        Vector<ushort> vals = Sve.LoadVector(pLoop, ((ushort*)arr_ptr) + i);
+                        Vector<ushort> cmpVec = Sve.CompareEqual(vals, target);
+
+                        ushort cmpSum = (ushort)Sve.AddAcross(cmpVec).ToScalar();
+
+                        if (cmpSum > 0)
                         {
-                            if (cmpVec.GetElement(j) == 1)
+                            // find index of matching item
+                            for (int j = 0; j < Vector<ushort>.Count; j++)
                             {
-                                return i + j;
+                                if (cmpVec.GetElement(j) == 1)
+                                {
+                                    return i + j;
+                                }
                             }
                         }
-                    }
 
-                    pLoop = (Vector<ushort>)Sve.CreateWhileLessThanMask16Bit(i, Size);
+                        pLoop = (Vector<ushort>)Sve.CreateWhileLessThanMask16Bit(i, Size);
+                    }
                 }
             }
 
             return -1;
-
         }
 
         [Benchmark]
         public unsafe int SveIndexOfTail()
         {
-            int i = 0;
-
-            fixed (char* arr_ptr = _array)
+            if (Sve.IsSupported)
             {
-                Vector<ushort> target = new Vector<ushort>((ushort)_searchValue);
-                var pLoop = (Vector<ushort>)Sve.CreateTrueMaskInt16();
+                int i = 0;
 
-
-                for (; (Size - i) > (int)Sve.Count16BitElements(); i += (int)Sve.Count16BitElements())
+                fixed (char* arr_ptr = _array)
                 {
-                    Vector<ushort> vals = Sve.LoadVector(pLoop, ((ushort*)arr_ptr) + i);
-                    Vector<ushort> cmpVec = Sve.CompareEqual(vals, target);
+                    Vector<ushort> target = new Vector<ushort>((ushort)_searchValue);
+                    var pLoop = (Vector<ushort>)Sve.CreateTrueMaskInt16();
 
-                    ushort cmpSum = (ushort)Sve.AddAcross(cmpVec).ToScalar();
 
-                    if (cmpSum > 0)
+                    for (; (Size - i) > (int)Sve.Count16BitElements(); i += (int)Sve.Count16BitElements())
                     {
-                        // find index of matching item
-                        for (int j = 0; j < Vector<ushort>.Count; j++)
+                        Vector<ushort> vals = Sve.LoadVector(pLoop, ((ushort*)arr_ptr) + i);
+                        Vector<ushort> cmpVec = Sve.CompareEqual(vals, target);
+
+                        ushort cmpSum = (ushort)Sve.AddAcross(cmpVec).ToScalar();
+
+                        if (cmpSum > 0)
                         {
-                            if (cmpVec.GetElement(j) == 1)
+                            // find index of matching item
+                            for (int j = 0; j < Vector<ushort>.Count; j++)
                             {
-                                return i + j;
+                                if (cmpVec.GetElement(j) == 1)
+                                {
+                                    return i + j;
+                                }
                             }
                         }
                     }
-                }
 
-                for (; i < Size; i++)
-                {
-                    if (_array[i] == _searchValue)
-                        return i;
-                }
+                    for (; i < Size; i++)
+                    {
+                        if (_array[i] == _searchValue)
+                            return i;
+                    }
 
-                return -1;
+                    return -1;
+                }
             }
+
+            return -1;
         }
 
     }
