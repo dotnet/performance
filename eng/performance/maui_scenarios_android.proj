@@ -14,6 +14,16 @@
 
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
+
+    <!-- Mono AOT -->
+    <_MSBuildArgs Condition="'$(CodegenType)' == 'AOT'">$(_MSBuildArgs);/p:RunAOTCompilation=true;/p:AndroidEnableProfiledAot=false</_MSBuildArgs>
+    <!-- CoreCLR R2R -->
+    <_MSBuildArgs Condition="'$(CodegenType)' == 'R2R'">$(_MSBuildArgs);/p:PublishReadyToRun=true</_MSBuildArgs>
+    <!-- CoreCLR R2R composite -->
+    <_MSBuildArgs Condition="'$(CodegenType)' == 'R2RComposite'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=true</_MSBuildArgs>
+    <!-- CoreCLR NativeAOT -->
+    <_MSBuildArgs Condition="'$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true</_MSBuildArgs>
+
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
   </PropertyGroup>
 
@@ -35,19 +45,19 @@
       <ApkName>com.companyname.netandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.NetAndroidDefault</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="MAUI Android Default Template">
+    <MAUIAndroidScenario Include="MAUI Android Default Template" Condition="'$(CodegenType)' != 'NativeAOT'">
       <ScenarioDirectoryName>mauiandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.mauiandroiddefault</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="MAUI Android Sample Content Template">
+    <MAUIAndroidScenario Include="MAUI Android Sample Content Template" Condition="'$(CodegenType)' != 'NativeAOT'">
       <ScenarioDirectoryName>mauisamplecontentandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauisamplecontentandroid-Signed</ApkName>
       <PackageName>com.companyname.mauisamplecontentandroid</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="MAUI Blazor Android Default Template">
+    <MAUIAndroidScenario Include="MAUI Blazor Android Default Template" Condition="'$(CodegenType)' != 'NativeAOT'">
       <ScenarioDirectoryName>mauiblazorandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiblazorandroiddefault-Signed</ApkName>
@@ -67,11 +77,11 @@
 
 <!-- We only run the android tests from Windows machines (at least for now) -->
   <ItemGroup>
-    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) APK Size')">
+    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) APK Size')" Condition="!$(HelixTargetQueue.ToLowerInvariant().Contains('pixel'))">
       <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
-    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) Extracted Size')">
+    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) Extracted Size')" Condition="!$(HelixTargetQueue.ToLowerInvariant().Contains('pixel'))">
       <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y; ren %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).apk %(HelixWorkItem.ApkName).zip; powershell.exe -nologo -noprofile -command "&amp; {Expand-Archive %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip -DestinationPath %HELIX_WORKITEM_ROOT%\pub\}"; del %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
