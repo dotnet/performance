@@ -40,7 +40,7 @@ namespace SveBenchmarks
         }
 
         [Benchmark]
-        public int ScalarIndexOf()
+        public int Scalar()
         {
             for (int i = 0; i < _array.Length; i++)
             {
@@ -136,7 +136,7 @@ namespace SveBenchmarks
         }
 
         [Benchmark]
-        public unsafe int SveIndexOfTail()
+        public unsafe int SveTail()
         {
             if (Sve.IsSupported)
             {

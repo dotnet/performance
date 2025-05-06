@@ -28,8 +28,8 @@ namespace SveBenchmarks
         [Params(15, 127, 527, 10015)]
         public int Size;
 
-        [Params("ChangeArr1", "ChangeArr2", "Zero")]
-        public string Scenario;
+        [Params("Middle", "End", "None")]
+        public string Modify;
 
         private byte[] _arr1, _arr2;
 
@@ -39,26 +39,26 @@ namespace SveBenchmarks
             _arr1 = ValuesGenerator.Array<byte>(Size);
             _arr2 = ValuesGenerator.Array<byte>(Size);
 
-            switch (Scenario)
+            switch (Modify)
             {
-                case "ChangeArr1":
+                case "Middle":
                     // modify arr1 value in the middle of the array
-                    _arr1[Size / 2] = ValuesGenerator.GetNonDefaultValue<byte>();
+                    _arr1[Size / 2] += 1;
                     break;
 
-                case "ChangeArr2":
+                case "End":
                     // modify arr2 value near the end of the array
-                    _arr2[Size - 1] = ValuesGenerator.GetNonDefaultValue<byte>();
+                    _arr2[Size - 1] += 1;
                     break;
 
-                case "Zero":
+                case "None":
                     // keep both arrays equal
                     break;
             }
         }
 
         [Benchmark]
-        public int ScalarStrCmp()
+        public int Scalar()
         {
             if (_arr1.Length == _arr2.Length)
             {
@@ -168,7 +168,7 @@ namespace SveBenchmarks
         }
 
         [Benchmark]
-        public unsafe long SveStrCmpTail()
+        public unsafe long SveTail()
         {
             if (Sve.IsSupported)
             {

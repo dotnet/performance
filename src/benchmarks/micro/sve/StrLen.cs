@@ -50,7 +50,7 @@ namespace SveBenchmarks
         }
 
         [Benchmark]
-        public unsafe ulong ScalarStrLen()
+        public unsafe ulong Scalar()
         {
             fixed (byte* arr_ptr = _array)
             {
