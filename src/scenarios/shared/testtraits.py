@@ -8,7 +8,8 @@ testtypes = [const.STARTUP,
              const.CROSSGEN2,
              const.SOD,
              const.INNERLOOP,
-             const.DEVICESTARTUP]
+             const.DEVICESTARTUP,
+             const.BUILDTIME]
 
 class TestTraits:
 
