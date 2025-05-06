@@ -5,14 +5,25 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Filters;
 using MicroBenchmarks;
 
 namespace SveBenchmarks
 {
     [BenchmarkCategory(Categories.Runtime)]
     [OperatingSystemsArchitectureFilter(allowed: true, System.Runtime.InteropServices.Architecture.Arm64)]
+    [Config(typeof(Config))]
     public class StrIndexOf
     {
+        private class Config : ManualConfig
+        {
+            public Config()
+            {
+                AddFilter(new SimpleFilter(_ => Sve.IsSupported));
+            }
+        }
+
         [Params(15, 127, 527, 10015)]
         public int Size;
 
