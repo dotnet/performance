@@ -40,39 +40,39 @@ public class BuildTimeParser : IParser
             foreach (var task in build.FindChildrenRecursive<Task>())
             {
                 var name = task.Name;
-                var ms = task.Duration.TotalMilliseconds;
+                var s = task.Duration.TotalMilliseconds / 1000.0;
 
                 if (name.Equals("ILLink", StringComparison.OrdinalIgnoreCase))
                 {
-                    illinkTimes.Add(ms);
+                    illinkTimes.Add(s);
                 }
                 else if (name.Equals("MonoAOTCompiler", StringComparison.OrdinalIgnoreCase))
                 {
-                    monoaotcompilerTimes.Add(ms);
+                    monoaotcompilerTimes.Add(s);
                 }
                 else if (name.Equals("AppleAppBuilderTask", StringComparison.OrdinalIgnoreCase))
                 {
-                    appleappbuilderTimes.Add(ms);
+                    appleappbuilderTimes.Add(s);
                 }
                 else if (name.Equals("AndroidAppBuilderTask", StringComparison.OrdinalIgnoreCase))
                 {
-                    androidappbuilderTimes.Add(ms);
+                    androidappbuilderTimes.Add(s);
                 }
             }
 
-            publishTimes.Add(build.Duration.TotalMilliseconds);
+            publishTimes.Add(build.Duration.TotalMilliseconds / 1000.0);
         }
 
 
         if (illinkTimes.Count > 0)
-            yield return new Counter { Name = "ILLink Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = illinkTimes.ToArray() };
+            yield return new Counter { Name = "ILLink Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = illinkTimes.ToArray() };
         if (monoaotcompilerTimes.Count > 0)
-            yield return new Counter { Name = "MonoAOTCompiler Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = monoaotcompilerTimes.ToArray() };
+            yield return new Counter { Name = "MonoAOTCompiler Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = monoaotcompilerTimes.ToArray() };
         if (appleappbuilderTimes.Count > 0)
-            yield return new Counter { Name = "AppleAppBuilderTask Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = appleappbuilderTimes.ToArray() };
+            yield return new Counter { Name = "AppleAppBuilderTask Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = appleappbuilderTimes.ToArray() };
         if (androidappbuilderTimes.Count > 0)
-            yield return new Counter { Name = "AndroidAppBuilderTask Time", MetricName = "ms", DefaultCounter = false, TopCounter = true, Results = androidappbuilderTimes.ToArray() };
+            yield return new Counter { Name = "AndroidAppBuilderTask Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = androidappbuilderTimes.ToArray() };
         if (publishTimes.Count > 0)
-            yield return new Counter { Name = "Publish Time", MetricName = "ms", DefaultCounter = true, TopCounter = true, Results = publishTimes.ToArray() };
+            yield return new Counter { Name = "Publish Time", MetricName = "s", DefaultCounter = true, TopCounter = true, Results = publishTimes.ToArray() };
     }
 }
