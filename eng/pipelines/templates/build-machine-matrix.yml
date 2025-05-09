@@ -134,9 +134,9 @@ jobs:
     parameters:
       osGroup: osx
       archType: x64
-      osVersion: 14
+      osVersion: 15
       pool:
-        vmImage: 'macos-14'
+        vmImage: 'macos-15'
       queue: OSX.13.Amd64.Iphone.Perf
       machinePool: iPhoneMini12
       ${{ insert }}: ${{ parameters.jobParameters }}

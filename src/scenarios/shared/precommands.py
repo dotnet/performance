@@ -122,7 +122,8 @@ class PreCommands:
             working_directory: str,
             language: Optional[str] = None,
             no_https: bool = False,
-            no_restore: bool = True):
+            no_restore: bool = True,
+            extra_args: Optional[List[str]] = None):
         'makes a new app with the given template'
         self.project = CSharpProject.new(template=template,
                                  output_dir=output_dir,
@@ -133,7 +134,8 @@ class PreCommands:
                                  verbose=True,
                                  language=language,
                                  no_https=no_https,
-                                 no_restore=no_restore)
+                                 no_restore=no_restore,
+                                 extra_args=extra_args)
         self._updateframework(self.project.csproj_file)
         self._addstaticmsbuildproperty(self.project.csproj_file)
 
@@ -287,6 +289,35 @@ class PreCommands:
         'Uninstalls the workload, if possible'
         if self.has_workload and not self.readonly_dotnet:
             subprocess.run(["dotnet", "workload", "uninstall", workloadid])
+
+    def setup_workload_update_mode(self, update_mode: str):
+        'Sets the workload update mode to the given value <manifests|workload-set>'
+        if update_mode != 'manifests' and update_mode != 'workload-set':
+            raise Exception('workload config --update-mode must be either manifests or workload-set')
+        
+        if self.readonly_dotnet:
+            raise Exception('workload config --update-mode not supported with readonly-dotnet=true')
+        
+        subprocess.run(["dotnet", "workload", "config", "--update-mode", update_mode], check=True)
+
+    def print_dotnet_info(self):
+        'Prints the dotnet info'
+        subprocess.run(["dotnet", "--info"], check=True)
+
+
+    def get_packages_for_sdk_from_feed(self, sdk_name: str, feed: str):
+        'Gets the packages for the given sdk from the given feed'
+
+        getLogger().debug(f"dotnet package search {sdk_name} --prerelease --take 999 --format json --source {feed}")
+
+        # Query the given feed for published SDKs using the `dotnet package search` command
+        result = subprocess.run(
+            ["dotnet", "package", "search", sdk_name, "--prerelease", "--take", "999", "--format", "json", "--source", feed], check=True, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            raise Exception(f"Error querying package feed: {result.stderr}")
+        
+        return result.stdout
 
     def _addstaticmsbuildproperty(self, projectfile: str):
         'Insert static msbuild property in the specified project file'

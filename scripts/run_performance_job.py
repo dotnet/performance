@@ -529,6 +529,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     runtime_type = ""
 
+    # dotnet/runtime Android sample app scenarios
     if args.run_kind == "android_scenarios":
         # Mapping runtime_type to runtime_flavor before sending to helix
         if args.runtime_type == "AndroidMono":
@@ -537,6 +538,20 @@ def run_performance_job(args: RunPerformanceJobArgs):
             args.runtime_flavor = "coreclr"
         else:
             raise Exception("Android scenarios only support Mono and CoreCLR runtimes")
+        configurations["CodegenType"] = str(args.codegen_type)
+        configurations["RuntimeType"] = str(args.runtime_flavor)
+
+    # .NET Android and .NET MAUI Android sample app scenarios
+    if args.run_kind == "maui_scenarios_android":
+        if not args.runtime_flavor in ("mono", "coreclr"):
+            raise Exception("Runtime flavor must be specified for maui_scenarios_android")
+        configurations["CodegenType"] = str(args.codegen_type)
+        configurations["RuntimeType"] = str(args.runtime_flavor)
+
+    # .NET iOS and .NET MAUI iOS sample app scenarios
+    if args.run_kind == "maui_scenarios_ios":
+        if not args.runtime_flavor in ("mono", "coreclr"):
+            raise Exception("Runtime flavor must be specified for maui_scenarios_ios")
         configurations["CodegenType"] = str(args.codegen_type)
         configurations["RuntimeType"] = str(args.runtime_flavor)
 
@@ -723,6 +738,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
             raise Exception("Built apps directory must be present for Android benchmarks")
         getLogger().info("Copying Android apps to payload directory")
         shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorld", "HelloAndroid.apk"), os.path.join(root_payload_dir, "HelloAndroid.apk"))
+
+        android_binlog_dir = os.path.join(root_payload_dir, "androidHelloWorldBinlog")
+        shutil.copytree(os.path.join(args.built_app_dir, "androidHelloWorldBinlog"), android_binlog_dir)
+
+        binlog_files = glob(os.path.join(android_binlog_dir, "**", "*.binlog"))
+        if binlog_files:
+            dest = os.path.join(android_binlog_dir, "msbuild.binlog")
+            getLogger().info(f"Moving {binlog_files[0]} to {dest}")
+            shutil.move(binlog_files[0], dest)
         # Disabled due to not successfully building at the moment. https://github.com/dotnet/performance/issues/4729
         # if android_mono:
             # shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), os.path.join(root_payload_dir, "MonoBenchmarksDroid.apk"))
@@ -741,11 +765,20 @@ def run_performance_job(args: RunPerformanceJobArgs):
         shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldZip"), ios_hello_world_zip_dir)
 
         # Find the zip file in the directory and move it to iOSSampleApp.zip
-        for file in glob(os.path.join(ios_hello_world_zip_dir, "**", "*.zip")):
+        zip_files = glob(os.path.join(ios_hello_world_zip_dir, "**", "*.zip"))
+        if zip_files:
             dest = os.path.join(ios_hello_world_zip_dir, "iOSSampleApp.zip")
-            getLogger().info(f"Moving {file} to {dest}")
-            shutil.move(file, dest)
-            break
+            getLogger().info(f"Moving {zip_files[0]} to {dest}")
+            shutil.move(zip_files[0], dest)
+
+        ios_hello_world_binlog_dir = os.path.join(payload_dir, "iosHelloWorldBinlog")
+        shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldBinlog"), ios_hello_world_binlog_dir)
+
+        binlog_files = glob(os.path.join(ios_hello_world_binlog_dir, "**", "*.binlog"))
+        if binlog_files:
+            dest = os.path.join(ios_hello_world_binlog_dir, "msbuild.binlog")
+            getLogger().info(f"Moving {binlog_files[0]} to {dest}")
+            shutil.move(binlog_files[0], dest)
 
     # ensure work item directory is not empty
     getLogger().info("Copying docs to work item directory so it isn't empty")
@@ -901,6 +934,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             os.environ["HelixTargetQueues"] = args.queue
             os.environ["Python"] = agent_python
             os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
+            os.environ["CodegenType"] = args.codegen_type or ''
             os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
@@ -1089,7 +1123,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         helix_build=args.build_number,
         partition_count=args.partition_count,
         runtime_flavor=args.runtime_flavor or "",
-        codegen_type=args.codegen_type,
+        codegen_type=args.codegen_type or "",
         hybrid_globalization=args.hybrid_globalization,
         target_csproj=args.target_csproj,
         work_item_command=work_item_command or None,

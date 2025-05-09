@@ -180,6 +180,27 @@ jobs:
             
             displayName: 'Android Sample App'
 
+        - task: DownloadBuildArtifacts@0
+          displayName: 'Download binlog files'
+          inputs:
+            buildType: current
+            downloadType: single
+            downloadPath: '$(builtAppDir)/androidHelloWorldBinlog'
+            # AndroidMono
+            ${{ if eq(parameters.runtimeType, 'AndroidMono')}}:
+              ${{ if eq(parameters.codeGenType, 'JIT') }}:
+                artifactName: 'AndroidMonoArm64BuildLog'
+              ${{ if eq(parameters.codeGenType, 'AOT') }}:
+                artifactName: 'AndroidMonoAOTArm64BuildLog'
+
+            # AndroidCoreCLR
+            ${{ if eq(parameters.runtimeType, 'AndroidCoreCLR')}}:
+              ${{ if eq(parameters.codeGenType, 'JIT') }}:
+                artifactName: 'AndroidCoreCLRArm64BuildLog'
+              ${{ if eq(parameters.codeGenType, 'R2R') }}:
+                artifactName: 'AndroidCoreCLRR2RArm64BuildLog'
+            checkDownloadedFiles: true
+
         # Disabled due to not working and needing consistent normal android results. https://github.com/dotnet/performance/issues/4729
         # - template: /eng/pipelines/templates/download-artifact-step.yml 
         #   parameters:
@@ -232,6 +253,25 @@ jobs:
               artifactName: 'iOSSampleAppSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppNoSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+            checkDownloadedFiles: true
+        - task: DownloadBuildArtifacts@0
+          displayName: 'Download binlog files'
+          inputs:
+            buildType: current
+            downloadType: single
+            downloadPath: '$(builtAppDir)/iosHelloWorldBinlog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'False')) }}:
+              artifactName: 'iOSMonoArm64NoLLVMNoStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSMonoArm64NoLLVMStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'False')) }}:
+              artifactName: 'iOSMonoArm64LLVMNoStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSMonoArm64LLVMStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'False')) }}:
+              artifactName: 'iOSNativeAOTArm64NoStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSNativeAOTArm64StripSymbolsBuildLog'
             checkDownloadedFiles: true
 
       - ${{ if notIn(parameters.runtimeType, 'wasm', 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSNativeAOT') }}:

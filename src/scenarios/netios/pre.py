@@ -3,17 +3,18 @@ pre-command
 '''
 import shutil
 import sys
-from performance.logger import setup_loggers
+from performance.logger import setup_loggers, getLogger
 from shared import const
-from shared.mauisharedpython import remove_aab_files, install_versioned_maui
+from shared.mauisharedpython import remove_aab_files, install_latest_maui
 from shared.precommands import PreCommands
-from shared.versionmanager import versions_write_json, get_version_from_dll_powershell_ios
+from shared.versionmanager import versions_write_json, get_sdk_versions
 from test import EXENAME
 
 setup_loggers(True)
 
 precommands = PreCommands()
-install_versioned_maui(precommands)
+install_latest_maui(precommands)
+precommands.print_dotnet_info()
 
 # Setup the .NET iOS folder
 precommands.new(template='ios',
@@ -24,7 +25,6 @@ precommands.new(template='ios',
                 no_restore=False)
 
 # Build the APK
-shutil.copy('./MauiNuGet.config', './app/Nuget.config')
 precommands.execute(['/p:_RequireCodeSigning=false', '/p:ApplicationId=net.dot.xamarintesting'])
 
 # Remove the aab files as we don't need them, this saves space
@@ -33,8 +33,7 @@ if precommands.output:
     output_dir = precommands.output
 remove_aab_files(output_dir)
 
-# Copy the XamarinVersion to a file so we have it on the machine
-net_ios_version = get_version_from_dll_powershell_ios(rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked/Microsoft.iOS.dll")
-version_dict = { "netIosVersion": net_ios_version }
+# Extract the versions of used SDKs from the linked folder DLLs
+version_dict = get_sdk_versions(rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked", False)
 versions_write_json(version_dict, rf"{output_dir}/versions.json")
-print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked/Microsoft.iOS.dll")
+print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked")
