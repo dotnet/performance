@@ -14,9 +14,9 @@ jobs:
         vmImage: windows-2019
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
-        osVersion: 22H2
+        osVersion: 24H2
         machinePool: Open
-        queue: Windows.10.Amd64.Client.Open
+        queue: Windows.11.Amd64.Client.Open
       ${{ else }}:
         osVersion: Win11
         machinePool: Tiger
@@ -43,9 +43,9 @@ jobs:
         vmImage: windows-2019
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
-        osVersion: 22H2
+        osVersion: 24H2
         machinePool: Open
-        queue: Windows.10.Amd64.Client.Open
+        queue: Windows.11.Amd64.Client.Open
       ${{ else }}:
         osVersion: Win11
         machinePool: Tiger
