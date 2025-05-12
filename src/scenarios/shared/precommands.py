@@ -122,7 +122,8 @@ class PreCommands:
             working_directory: str,
             language: Optional[str] = None,
             no_https: bool = False,
-            no_restore: bool = True):
+            no_restore: bool = True,
+            extra_args: Optional[List[str]] = None):
         'makes a new app with the given template'
         self.project = CSharpProject.new(template=template,
                                  output_dir=output_dir,
@@ -133,7 +134,8 @@ class PreCommands:
                                  verbose=True,
                                  language=language,
                                  no_https=no_https,
-                                 no_restore=no_restore)
+                                 no_restore=no_restore,
+                                 extra_args=extra_args)
         self._updateframework(self.project.csproj_file)
         self._addstaticmsbuildproperty(self.project.csproj_file)
 

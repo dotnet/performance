@@ -188,14 +188,15 @@ def install_latest_maui(
         highest_dotnet_version = max(float(pkg['dotnet_version']) for pkg in packages)
         packages = [pkg for pkg in packages if float(pkg['dotnet_version']) == highest_dotnet_version]
 
-        # Check if we have non-preview packages available, if so, check if the version is greater than the preview version
+        # Check if we have non-preview packages available and use them
         non_preview_packages = [pkg for pkg in packages if not re.search(r'\-(preview|rc|alpha)\.\d+$', pkg['id'])]
         if non_preview_packages:
             packages = non_preview_packages
 
-        # Sort the packages first by by 'sdk_version'
+        # Sort the packages by 'sdk_version'
         packages.sort(key=lambda x: x['sdk_version'], reverse=True)
 
+        # Get the latest package
         latest_package = packages[0]
 
         getLogger().info(f"Latest package for {workload} found: {latest_package['id']} {latest_package['latestVersion']}")

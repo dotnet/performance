@@ -405,7 +405,8 @@ class CSharpProject:
             exename: Optional[str] = None,
             language: Optional[str] = None,
             no_https: bool = False,
-            no_restore: bool = True
+            no_restore: bool = True,
+            extra_args: Optional[List[str]] = None
             ):
         '''
         Creates a new project with the specified template
@@ -429,6 +430,9 @@ class CSharpProject:
 
         if no_https:
             cmdline += ['--no-https']
+
+        if extra_args:
+            cmdline += extra_args
 
         RunCommand(cmdline, verbose=verbose).run(
             working_directory
