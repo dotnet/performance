@@ -17,8 +17,8 @@
 		<PackageReference Include="Microsoft.Net.ILLink" Version="$(MicrosoftNetILLinkPackageVersion)" />
 		<PackageReference Include="Microsoft.Net.ILLink.Tasks" Version="$(MicrosoftNetILLinkTasksVersion)" />
 		<PackageReference Include="Microsoft.Build" Version="17.3.1" />
-		<PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.3.1" />
-		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.3.1" />
+		<PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.14.7" />
+		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.14.7" />
 	</ItemGroup>
 
 	<!-- Make a copy of the sample project with the latest version of ILLink.Tasks -->
