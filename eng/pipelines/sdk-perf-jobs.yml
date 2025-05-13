@@ -123,28 +123,28 @@ jobs:
         runCategories: 'runtime libraries' 
         channels:
           - main
-          - nativeaot9.0
-          - nativeaot8.0
+          # - nativeaot9.0 # Disable until I have time to properly fix the issues and can merge https://github.com/dotnet/performance/pull/4741
+          # - nativeaot8.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # net462 micro benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-rs5-x64
-      isPublic: true
-      jobParameters:
-        runKind: micro_net462
-        targetCsproj: src\benchmarks\micro\MicroBenchmarks.csproj
-        runCategories: 'runtime libraries'
-        channels:
-          - net462
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # # net462 micro benchmarks # Disable until I have time to properly fix the issues and can merge https://github.com/dotnet/performance/pull/4741
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #     buildMachines:
+  #       - win-rs5-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: micro_net462
+  #       targetCsproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #       runCategories: 'runtime libraries'
+  #       channels:
+  #         - net462
+  #       ${{ each parameter in parameters.jobParameters }}:
+  #         ${{ parameter.key }}: ${{ parameter.value }}
 
   # ML.NET benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
