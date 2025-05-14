@@ -5,12 +5,6 @@ using System.Text;
 
 namespace GC.Infrastructure.Core.CommandBuilders
 {
-    public enum OS
-    {
-        Windows,
-        Linux
-    }
-
     public static class GCPerfSimCommandBuilder
     {
         // Example output:
@@ -52,108 +46,57 @@ namespace GC.Infrastructure.Core.CommandBuilders
             string processName = "crank";
             StringBuilder commandStringBuilder = new();
 
+            List<KeyValuePair<string, string>> keyValueArgsList = new();
+
             // Add the configuration and the scenario to be run.
             string pathOfAssembly = Directory.GetParent(System.Reflection.Assembly.GetAssembly(typeof(GCPerfSimCommandBuilder)).Location).FullName;
-            commandStringBuilder.Append($"--config {Path.Combine(pathOfAssembly, "Commands", "RunCommand", "BaseSuite", "CrankConfiguration.yaml")} --scenario gcperfsim");
+            string configPath = Path.Combine(pathOfAssembly, "Commands", "RunCommand", "BaseSuite", "CrankConfiguration.yaml");
+
+            keyValueArgsList.AddRange(
+                ServerRunCommandBuilder.GenerateKeyValuePairListForConfig(configPath));
+            keyValueArgsList.AddRange(
+                ServerRunCommandBuilder.GenerateKeyValuePairListForScenario("gcperfsim"));
 
             // Environment Variables.
             // Add the environment variables from the configuration.
-            Dictionary<string, string> environmentVariables = new();
-            foreach (var env in configuration.Environment.environment_variables)
-            {
-                environmentVariables[env.Key] = env.Value;
-            }
-
-            // Add overrides, if available.
-            if (run.Value.environment_variables != null)
-            {
-                foreach (var env in run.Value.environment_variables)
-                {
-                    environmentVariables[env.Key] = env.Value;
-                }
-            }
-
-            foreach (var env in environmentVariables)
-            {
-                commandStringBuilder.Append($" --application.environmentVariables {env.Key}={env.Value} ");
-            }
+            Dictionary<string, string> environmentVariables = ServerRunCommandBuilder.OverrideDictionary(
+                configuration.Environment.environment_variables, corerunOverride.Value.environment_variables);
+            environmentVariables = ServerRunCommandBuilder.OverrideDictionary(
+                environmentVariables, run.Value.environment_variables!);
+            keyValueArgsList.AddRange(
+                ServerRunCommandBuilder.GenerateKeyValuePairListForEnvironmentVariables(environmentVariables));
 
             // GCPerfSim Configurations.
-            Dictionary<string, string> parameters = new();
-            foreach (var p in configuration.gcperfsim_configurations!.Parameters)
-            {
-                parameters[p.Key] = p.Value;
-            }
+            Dictionary<string, string> parameters = ServerRunCommandBuilder.OverrideDictionary(
+                configuration.gcperfsim_configurations!.Parameters, run.Value.override_parameters);
 
-            // Add overrides, if available.
-            if (run.Value?.override_parameters != null)
-            {
-                foreach (var p in run.Value.override_parameters)
-                {
-                    parameters[p.Key] = p.Value;
-                }
-            }
-
-            foreach (var @params in parameters)
-            {
-                commandStringBuilder.Append($" --application.variables.{@params.Key} {@params.Value} ");
-            }
+            keyValueArgsList.AddRange(
+                ServerRunCommandBuilder.GenerateKeyValuePairListFoParameters(parameters));
 
             // Trace Collection. 
             // If the TraceConfiguration Key is specified in the yaml and 
             if (configuration.TraceConfigurations != null && !string.Equals(configuration.TraceConfigurations.Type, "none", StringComparison.OrdinalIgnoreCase))
             {
                 CollectType collectType = TraceCollector.StringToCollectTypeMap[configuration.TraceConfigurations.Type];
-                string collectionCommand = os == OS.Windows ? TraceCollector.WindowsCollectTypeMap[collectType] : TraceCollector.LinuxCollectTypeMap[collectType];
+                string extension = os == OS.Windows ? ".etl.zip" : ".nettrace";
+                string tracePath = Path.Combine(configuration.Output!.Path, run.Key, run.Key + "." + corerunOverride.Key + "." + iterationIdx + "." + collectType + extension);
 
-                collectionCommand = collectionCommand.Replace(" ", ";").Replace("/", "");
-
-                // Add specific commands.
-                if (os == OS.Windows)
-                {
-                    commandStringBuilder.Append(" --application.collect true ");
-                    commandStringBuilder.Append(" --application.collectStartup true ");
-                    commandStringBuilder.Append($" --application.collectArguments {collectionCommand} ");
-                }
-
-                else
-                {
-                    if (!string.Equals(configuration.TraceConfigurations.Type, "gc", StringComparison.OrdinalIgnoreCase))
-                    {
-                        throw new ArgumentException($"{nameof(GCPerfSimCommandBuilder)}: Currently only GCCollectOnly traces are allowed for Linux.");
-                    }
-
-                    commandStringBuilder.Append(" --application.dotnetTrace true ");
-                    commandStringBuilder.Append(" --application.dotnetTraceProviders gc-collect ");
-                }
-
-                commandStringBuilder.Append($" --application.framework net8.0 ");
-
-                // Add name of output.
-                string extension = os == OS.Windows ? "etl.zip" : "nettrace";
-                commandStringBuilder.Append($" --application.options.traceOutput {Path.Combine(configuration.Output!.Path, run.Key, run.Key + "." + corerunOverride.Key + "." + iterationIdx + "." + collectType + "." + extension)} ");
+                keyValueArgsList.AddRange(
+                    ServerRunCommandBuilder.GenerateKeyValuePairListForTrace(configuration.TraceConfigurations.Type, tracePath, os));
+                keyValueArgsList.AddRange(
+                    ServerRunCommandBuilder.GenerateKeyValuePairListForFramework("net8.0"));
             }
 
-            if (corerunOverride.Value.environment_variables != null)
-            {
-                foreach (var env in corerunOverride.Value.environment_variables)
-                {
-                    commandStringBuilder.Append($" --application.environmentVariables {env.Key}={env.Value} ");
-                }
-            }
+            // Upload corerun or Core_Root
+            keyValueArgsList.AddRange(
+                ServerRunCommandBuilder.GenerateKeyValuePairListForUploadFiles(corerunOverride.Value.Path));
 
-            // If Path is a file, upload single file.
-            if (File.Exists(corerunOverride.Value.Path))
-            {
-                commandStringBuilder.Append($" --application.options.outputFiles {corerunOverride.Value.Path}");
-            }
-            // If Path is a folder, upload entire folder.
-            if (Directory.Exists(corerunOverride.Value.Path))
-            {
-                commandStringBuilder.Append($" --application.options.outputFiles {Path.Combine(corerunOverride.Value.Path, "*")} ");
-            }
+            // Set profile
+            keyValueArgsList.AddRange(
+                    ServerRunCommandBuilder.GenerateKeyValuePairListForProfile(serverName));
 
-            commandStringBuilder.Append($" --profile {serverName} ");
+            // Add key-Value arguments to commandStringBuilder
+            commandStringBuilder.Append(ServerRunCommandBuilder.ConvertKeyValueArgsListToString(keyValueArgsList));
             return (processName, commandStringBuilder.ToString());
         }
     }
