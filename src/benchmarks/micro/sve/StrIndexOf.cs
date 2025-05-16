@@ -1,3 +1,5 @@
+#pragma warning disable SYSLIB5003
+
 using System;
 using System.Numerics;
 using System.Linq;
@@ -183,3 +185,5 @@ namespace SveBenchmarks
 
     }
 }
+
+#pragma warning restore SYSLIB5003

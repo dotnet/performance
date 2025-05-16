@@ -1,3 +1,5 @@
+#pragma warning disable SYSLIB5003
+
 using System;
 using System.Numerics;
 using System.Runtime.Intrinsics;
@@ -36,7 +38,7 @@ namespace SveBenchmarks
             _length = 0;
 
             var random = new Random();
-            for (int i=0; i < _array.Length; i++)
+            for (int i = 0; i < _array.Length; i++)
             {
                 // Replaces any zero elements with a random value
                 if (_array[i] == 0)
@@ -77,14 +79,14 @@ namespace SveBenchmarks
             ulong i = 0;
             ulong alignOffset = 0;
 
-            fixed(byte* ptr = _array)
+            fixed (byte* ptr = _array)
             {
                 byte* arr_ptr = ptr;
 
                 // Check for a zero in first 16 bytes
                 for (i = 0; i < 16; i++)
                 {
-                    if(arr_ptr[i] == 0)
+                    if (arr_ptr[i] == 0)
                     {
                         return i;
                     }
@@ -156,3 +158,5 @@ namespace SveBenchmarks
         }
     }
 }
+
+#pragma warning restore SYSLIB5003

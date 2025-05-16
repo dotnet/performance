@@ -1,3 +1,5 @@
+#pragma warning disable SYSLIB5003
+
 using System;
 using System.Numerics;
 using System.Linq;
@@ -64,7 +66,7 @@ namespace SveBenchmarks
             {
                 for (int i = 0; i < Size; i++)
                 {
-                    if (_arr1[i] != _arr2[i] )
+                    if (_arr1[i] != _arr2[i])
                         return _arr1[i] - _arr2[i];
                 }
 
@@ -99,7 +101,7 @@ namespace SveBenchmarks
                 // fall back to scalar for remaining values
                 for (; i < Size; i++)
                 {
-                    if (_arr1[i] != _arr2[i] )
+                    if (_arr1[i] != _arr2[i])
                         return _arr1[i] - _arr2[i];
                 }
                 return 0;
@@ -155,7 +157,7 @@ namespace SveBenchmarks
                         int zeroCount = BitOperations.TrailingZeroCount(mask);
 
                         if (zeroCount < elemsInVector)
-                            return _arr1[i+zeroCount] - _arr2[i+zeroCount];
+                            return _arr1[i + zeroCount] - _arr2[i + zeroCount];
 
                         return 0;
                     }
@@ -200,7 +202,7 @@ namespace SveBenchmarks
 
                         for (; i < Size; i++)
                         {
-                            if (_arr1[i] != _arr2[i] )
+                            if (_arr1[i] != _arr2[i])
                                 return _arr1[i] - _arr2[i];
                         }
 
@@ -216,3 +218,5 @@ namespace SveBenchmarks
         }
     }
 }
+
+#pragma warning restore SYSLIB5003
