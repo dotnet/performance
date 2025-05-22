@@ -6,246 +6,252 @@ parameters:
   performanceRepoAlias: self
   jobParameters: {}
 
-jobs:
-- ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
-  # build mono on wasm - if not using an existing build
-  - template: /eng/pipelines/performance/templates/perf-wasm-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
 
-- ${{ if eq(parameters.runProfile, 'non-v8') }}:
-  #run mono wasm microbenchmarks perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # NOTE: should we move this file out of coreclr tempelates because it contains mono jobs?
-      buildConfig: Release
-      runtimeFlavor: wasm
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: wasm
-        codeGenType: 'wasm'
-        runKind: micro
-        logicalMachine: 'perftiger'
-        javascriptEngine: 'javascriptcore'
-        additionalJobIdentifier: javascriptcore
-        downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+extends:
+  template: /eng/pipelines/common/templates/pipeline-with-resources.yml@${{ parameters.runtimeRepoAlias }}
+  parameters:
+    stages:
+    - stage: Build
+      jobs:
+      - ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
+        # build mono on wasm - if not using an existing build
+        - template: /eng/pipelines/performance/templates/perf-wasm-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
 
-  #run mono wasm aot microbenchmarks perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # note: should we move this file out of coreclr tempelates because it contains mono jobs?
-      buildconfig: Release
-      runtimeflavor: wasm
-      platforms:
-      - linux_x64
-      jobparameters:
-        livelibrariesbuildconfig: Release
-        runtimetype: wasm
-        codegentype: 'aot'
-        runkind: micro
-        logicalMachine: 'perftiger'
-        javascriptengine: 'javascriptcore'
-        additionalJobIdentifier: javascriptcore
-        downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+      - ${{ if eq(parameters.runProfile, 'non-v8') }}:
+        #run mono wasm microbenchmarks perf job
+        - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+          parameters:
+            jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # NOTE: should we move this file out of coreclr tempelates because it contains mono jobs?
+            buildConfig: Release
+            runtimeFlavor: wasm
+            platforms:
+            - linux_x64
+            jobParameters:
+              liveLibrariesBuildConfig: Release
+              runtimeType: wasm
+              codeGenType: 'wasm'
+              runKind: micro
+              logicalMachine: 'perftiger'
+              javascriptEngine: 'javascriptcore'
+              additionalJobIdentifier: javascriptcore
+              downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+              runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+              performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+              ${{ each parameter in parameters.jobParameters }}:
+                ${{ parameter.key }}: ${{ parameter.value }}
+
+        #run mono wasm aot microbenchmarks perf job
+        - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+          parameters:
+            jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # note: should we move this file out of coreclr tempelates because it contains mono jobs?
+            buildconfig: Release
+            runtimeflavor: wasm
+            platforms:
+            - linux_x64
+            jobparameters:
+              livelibrariesbuildconfig: Release
+              runtimetype: wasm
+              codegentype: 'aot'
+              runkind: micro
+              logicalMachine: 'perftiger'
+              javascriptengine: 'javascriptcore'
+              additionalJobIdentifier: javascriptcore
+              downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+              runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+              performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+              ${{ each parameter in parameters.jobParameters }}:
+                ${{ parameter.key }}: ${{ parameter.value }}
 
 
-  ### PerfViper copy of the above jobs ###
-  #run mono wasm microbenchmarks perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # NOTE: should we move this file out of coreclr tempelates because it contains mono jobs?
-      buildConfig: Release
-      runtimeFlavor: wasm
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: wasm
-        codeGenType: 'wasm'
-        runKind: micro
-        logicalMachine: 'perfviper'
-        javascriptEngine: 'javascriptcore'
-        additionalJobIdentifier: javascriptcore
-        downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+        ### PerfViper copy of the above jobs ###
+        #run mono wasm microbenchmarks perf job
+        - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+          parameters:
+            jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # NOTE: should we move this file out of coreclr tempelates because it contains mono jobs?
+            buildConfig: Release
+            runtimeFlavor: wasm
+            platforms:
+            - linux_x64
+            jobParameters:
+              liveLibrariesBuildConfig: Release
+              runtimeType: wasm
+              codeGenType: 'wasm'
+              runKind: micro
+              logicalMachine: 'perfviper'
+              javascriptEngine: 'javascriptcore'
+              additionalJobIdentifier: javascriptcore
+              downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+              runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+              performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+              ${{ each parameter in parameters.jobParameters }}:
+                ${{ parameter.key }}: ${{ parameter.value }}
 
-  #run mono wasm aot microbenchmarks perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # note: should we move this file out of coreclr tempelates because it contains mono jobs?
-      buildconfig: Release
-      runtimeflavor: wasm
-      platforms:
-      - linux_x64
-      jobparameters:
-        livelibrariesbuildconfig: Release
-        runtimetype: wasm
-        codegentype: 'aot'
-        runkind: micro
-        logicalMachine: 'perfviper'
-        javascriptengine: 'javascriptcore'
-        additionalJobIdentifier: javascriptcore
-        downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+        #run mono wasm aot microbenchmarks perf job
+        - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+          parameters:
+            jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # note: should we move this file out of coreclr tempelates because it contains mono jobs?
+            buildconfig: Release
+            runtimeflavor: wasm
+            platforms:
+            - linux_x64
+            jobparameters:
+              livelibrariesbuildconfig: Release
+              runtimetype: wasm
+              codegentype: 'aot'
+              runkind: micro
+              logicalMachine: 'perfviper'
+              javascriptengine: 'javascriptcore'
+              additionalJobIdentifier: javascriptcore
+              downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+              runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+              performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+              ${{ each parameter in parameters.jobParameters }}:
+                ${{ parameter.key }}: ${{ parameter.value }}
 
-- ${{ if eq(parameters.runProfile, 'v8') }}:
-  # run mono wasm interpreter (default) microbenchmarks perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: wasm
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: wasm
-        codeGenType: 'wasm'
-        runKind: micro
-        logicalMachine: 'perftiger'
-        javascriptEngine: 'v8'
-        # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
-        #additionalSetupParameters: '--dotnet-versions 8.0.0'
-        additionalJobIdentifier: v8
-        downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+      - ${{ if eq(parameters.runProfile, 'v8') }}:
+        # run mono wasm interpreter (default) microbenchmarks perf job
+        - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+          parameters:
+            jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+            buildConfig: release
+            runtimeFlavor: wasm
+            platforms:
+            - linux_x64
+            jobParameters:
+              liveLibrariesBuildConfig: Release
+              runtimeType: wasm
+              codeGenType: 'wasm'
+              runKind: micro
+              logicalMachine: 'perftiger'
+              javascriptEngine: 'v8'
+              # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
+              #additionalSetupParameters: '--dotnet-versions 8.0.0'
+              additionalJobIdentifier: v8
+              downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+              runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+              performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+              ${{ each parameter in parameters.jobParameters }}:
+                ${{ parameter.key }}: ${{ parameter.value }}
 
-  #run mono wasm aot microbenchmarks perf job
-  # Disabled for runtime-wasm-perf on PRs due to https://github.com/dotnet/runtime/issues/95101
-  - ${{if not(in(variables['Build.DefinitionName'], 'runtime-wasm-perf')) }}:
-    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # note: should we move this file out of coreclr tempelates because it contains mono jobs?
-        buildconfig: release
-        runtimeflavor: wasm
-        platforms:
-        - linux_x64
-        jobparameters:
-          livelibrariesbuildconfig: Release
-          runtimetype: wasm
-          codegentype: 'aot'
-          runkind: micro
-          logicalMachine: 'perftiger'
-          javascriptEngine: 'v8'
-          # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
-          #additionalSetupParameters: '--dotnet-versions 8.0.0' # passed to ci_setup.py
-          additionalJobIdentifier: v8
-          downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
-          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
+        #run mono wasm aot microbenchmarks perf job
+        # Disabled for runtime-wasm-perf on PRs due to https://github.com/dotnet/runtime/issues/95101
+        - ${{if not(in(variables['Build.DefinitionName'], 'runtime-wasm-perf')) }}:
+          - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+            parameters:
+              jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # note: should we move this file out of coreclr tempelates because it contains mono jobs?
+              buildconfig: release
+              runtimeflavor: wasm
+              platforms:
+              - linux_x64
+              jobparameters:
+                livelibrariesbuildconfig: Release
+                runtimetype: wasm
+                codegentype: 'aot'
+                runkind: micro
+                logicalMachine: 'perftiger'
+                javascriptEngine: 'v8'
+                # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
+                #additionalSetupParameters: '--dotnet-versions 8.0.0' # passed to ci_setup.py
+                additionalJobIdentifier: v8
+                downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+                runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+                performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+                ${{ each parameter in parameters.jobParameters }}:
+                  ${{ parameter.key }}: ${{ parameter.value }}
 
-  # run mono wasm blazor perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: wasm
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: wasm
-        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/blazor_perf.proj
-        runKind: blazor_scenarios
-        isScenario: true
-        # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
-        #additionalSetupParameters: '--dotnetversions 8.0.0' # passed to run-performance-job.py
-        logicalMachine: 'perftiger'
-        downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+        # run mono wasm blazor perf job
+        - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+          parameters:
+            jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+            buildConfig: release
+            runtimeFlavor: wasm
+            platforms:
+            - linux_x64
+            jobParameters:
+              liveLibrariesBuildConfig: Release
+              runtimeType: wasm
+              projectFile: $(Build.SourcesDirectory)/eng/testing/performance/blazor_perf.proj
+              runKind: blazor_scenarios
+              isScenario: true
+              # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
+              #additionalSetupParameters: '--dotnetversions 8.0.0' # passed to run-performance-job.py
+              logicalMachine: 'perftiger'
+              downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+              runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+              performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+              ${{ each parameter in parameters.jobParameters }}:
+                ${{ parameter.key }}: ${{ parameter.value }}
 
-  ### PerfViper copy of the above jobs ###
-  # run mono wasm interpreter (default) microbenchmarks perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: wasm
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: wasm
-        codeGenType: 'wasm'
-        runKind: micro
-        logicalMachine: 'perfviper'
-        javascriptEngine: 'v8'
-        # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
-        #additionalSetupParameters: '--dotnet-versions 8.0.0'
-        additionalJobIdentifier: v8
-        downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+        ### PerfViper copy of the above jobs ###
+        # run mono wasm interpreter (default) microbenchmarks perf job
+        - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+          parameters:
+            jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+            buildConfig: release
+            runtimeFlavor: wasm
+            platforms:
+            - linux_x64
+            jobParameters:
+              liveLibrariesBuildConfig: Release
+              runtimeType: wasm
+              codeGenType: 'wasm'
+              runKind: micro
+              logicalMachine: 'perfviper'
+              javascriptEngine: 'v8'
+              # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
+              #additionalSetupParameters: '--dotnet-versions 8.0.0'
+              additionalJobIdentifier: v8
+              downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+              runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+              performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+              ${{ each parameter in parameters.jobParameters }}:
+                ${{ parameter.key }}: ${{ parameter.value }}
 
-  #run mono wasm aot microbenchmarks perf job
-  # Disabled for runtime-wasm-perf on PRs due to https://github.com/dotnet/runtime/issues/95101
-  - ${{if not(in(variables['Build.DefinitionName'], 'runtime-wasm-perf')) }}:
-    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # note: should we move this file out of coreclr tempelates because it contains mono jobs?
-        buildconfig: release
-        runtimeflavor: wasm
-        platforms:
-        - linux_x64
-        jobparameters:
-          livelibrariesbuildconfig: Release
-          runtimetype: wasm
-          codegentype: 'aot'
-          runkind: micro
-          logicalMachine: 'perfviper'
-          javascriptEngine: 'v8'
-          # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
-          #additionalSetupParameters: '--dotnet-versions 8.0.0' # passed to ci_setup.py
-          additionalJobIdentifier: v8
-          downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
-          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
+        #run mono wasm aot microbenchmarks perf job
+        # Disabled for runtime-wasm-perf on PRs due to https://github.com/dotnet/runtime/issues/95101
+        - ${{if not(in(variables['Build.DefinitionName'], 'runtime-wasm-perf')) }}:
+          - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+            parameters:
+              jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }} # note: should we move this file out of coreclr tempelates because it contains mono jobs?
+              buildconfig: release
+              runtimeflavor: wasm
+              platforms:
+              - linux_x64
+              jobparameters:
+                livelibrariesbuildconfig: Release
+                runtimetype: wasm
+                codegentype: 'aot'
+                runkind: micro
+                logicalMachine: 'perfviper'
+                javascriptEngine: 'v8'
+                # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
+                #additionalSetupParameters: '--dotnet-versions 8.0.0' # passed to ci_setup.py
+                additionalJobIdentifier: v8
+                downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+                runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+                performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+                ${{ each parameter in parameters.jobParameters }}:
+                  ${{ parameter.key }}: ${{ parameter.value }}
 
-  # run mono wasm blazor perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: wasm
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: wasm
-        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/blazor_perf.proj
-        runKind: blazor_scenarios
-        isScenario: true
-        # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
-        #additionalSetupParameters: '--dotnetversions 8.0.0' # passed to run-performance-job.py
-        logicalMachine: 'perfviper'
-        downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+        # run mono wasm blazor perf job
+        - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+          parameters:
+            jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+            buildConfig: release
+            runtimeFlavor: wasm
+            platforms:
+            - linux_x64
+            jobParameters:
+              liveLibrariesBuildConfig: Release
+              runtimeType: wasm
+              projectFile: $(Build.SourcesDirectory)/eng/testing/performance/blazor_perf.proj
+              runKind: blazor_scenarios
+              isScenario: true
+              # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
+              #additionalSetupParameters: '--dotnetversions 8.0.0' # passed to run-performance-job.py
+              logicalMachine: 'perfviper'
+              downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+              runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+              performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+              ${{ each parameter in parameters.jobParameters }}:
+                ${{ parameter.key }}: ${{ parameter.value }}

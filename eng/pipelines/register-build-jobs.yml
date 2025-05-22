@@ -4,9 +4,14 @@ parameters:
   buildType: []
   mauiFramework: ''
 
-jobs:
-- ${{ each type in parameters.buildType }}:
-  - template: /eng/pipelines/templates/register-build-job.yml@${{ parameters.performanceRepoAlias }}
-    parameters:
-      buildType: ${{ type }}
-      buildId: $(Build.BuildId)
+extends:
+  template: /eng/pipelines/common/templates/pipeline-with-resources.yml@${{ parameters.runtimeRepoAlias }}
+  parameters:
+    stages:
+    - stage: Build
+      jobs:
+      - ${{ each type in parameters.buildType }}:
+        - template: /eng/pipelines/templates/register-build-job.yml@${{ parameters.performanceRepoAlias }}
+          parameters:
+            buildType: ${{ type }}
+            buildId: $(Build.BuildId)

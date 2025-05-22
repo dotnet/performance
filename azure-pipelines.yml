@@ -16,6 +16,11 @@ resources:
   containers:
     - container: ubuntu_x64_build_container
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
 
 trigger:
   branches:
@@ -54,42 +59,47 @@ schedules:
     - main
   always: true
 
-jobs:
-  - template: /eng/pipelines/sdk-perf-jobs.yml
-    parameters:
-      ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
-        runPublicJobs: true
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        ${{ if or(notin(variables['Build.Reason'], 'PullRequest', 'Manual'), parameters.runPrivateJobs) }}:
-          runPrivateJobs: true
-        ${{ if or(eq(variables['Build.CronSchedule.DisplayName'], 'Every 12 hours build'), parameters.runScheduledPrivateJobs) }}:
-          runScheduledPrivateJobs: true
-      jobParameters:
-        ${{ if parameters.onlySanityCheck }}:
-          onlySanityCheck: true
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    stages:
+    - stage: Run
+      jobs:
+        - template: /eng/pipelines/sdk-perf-jobs.yml
+          parameters:
+            ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
+              runPublicJobs: true
+            ${{ if ne(variables['System.TeamProject'], 'public') }}:
+              ${{ if or(notin(variables['Build.Reason'], 'PullRequest', 'Manual'), parameters.runPrivateJobs) }}:
+                runPrivateJobs: true
+              ${{ if or(eq(variables['Build.CronSchedule.DisplayName'], 'Every 12 hours build'), parameters.runScheduledPrivateJobs) }}:
+                runScheduledPrivateJobs: true
+            jobParameters:
+              ${{ if parameters.onlySanityCheck }}:
+                onlySanityCheck: true
 
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule', 'Manual')) }}:
-    # Secret Sync
-    - job: Synchronize
-      pool:
-        name: NetCore1ESPool-Internal-NoMSI
-        demands: ImageOverride -equals 1es-windows-2019
-      steps:
-      - task: UseDotNet@2
-        displayName: Install .NET 6.0 
-        inputs:
-          version: 6.x
+        - ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule', 'Manual')) }}:
+          # Secret Sync
+          - job: Synchronize
+            pool:
+              name: NetCore1ESPool-Internal-NoMSI
+              demands: ImageOverride -equals 1es-windows-2019
+            steps:
+            - task: UseDotNet@2
+              displayName: Install .NET 6.0 
+              inputs:
+                version: 6.x
 
-      - task: DeleteFiles@1
-        inputs:
-          Contents: global.json
+            - task: DeleteFiles@1
+              inputs:
+                Contents: global.json
 
-      - script: dotnet tool restore
+            - script: dotnet tool restore
 
-      - task: AzureCLI@2
-        inputs:
-          azureSubscription: .NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)
-          scriptType: ps
-          scriptLocation: inlineScript
-          inlineScript: |
-            Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
+            - task: AzureCLI@2
+              inputs:
+                azureSubscription: .NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)
+                scriptType: ps
+                scriptLocation: inlineScript
+                inlineScript: |
+                  Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
