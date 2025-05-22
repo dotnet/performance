@@ -7,6 +7,11 @@ class ChannelMap():
             'branch': '10.0',
             'quality': 'daily'
         },
+        'net462': {
+            'tfm': 'net462',
+            'branch': '10.0', # This needs to be kept up to date with main or whatever the global.json will require.
+            'quality': 'daily'
+        },
         '10.0': {
             'tfm': 'net10.0',
             'branch': '10.0',
@@ -157,11 +162,6 @@ class ChannelMap():
         '3.1': {
             'tfm': 'netcoreapp3.1',
             'branch': '3.1.4xx',
-            'quality': 'daily'
-        },
-        'net462': {
-            'tfm': 'net462',
-            'branch': '9.0',
             'quality': 'daily'
         },
         'net48': {
