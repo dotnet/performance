@@ -71,7 +71,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 configuration.gcperfsim_configurations!.Parameters, run.Value.override_parameters);
 
             keyValueArgsList.AddRange(
-                ServerRunCommandBuilder.GenerateKeyValuePairListFoParameters(parameters));
+                ServerRunCommandBuilder.GenerateKeyValuePairListForParameters(parameters));
 
             // Trace Collection. 
             // If the TraceConfiguration Key is specified in the yaml and 

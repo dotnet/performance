@@ -43,7 +43,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 .ToList();
         }
 
-        public static List<KeyValuePair<string, string>> GenerateKeyValuePairListFoParameters(Dictionary<string, string> parameters)
+        public static List<KeyValuePair<string, string>> GenerateKeyValuePairListForParameters(Dictionary<string, string> parameters)
         {
             return parameters
                 .Select(kv => new KeyValuePair<string, string>($"application.variables.{kv.Key}", kv.Value))
@@ -128,18 +128,17 @@ namespace GC.Infrastructure.Core.CommandBuilders
 
             foreach (var item in overrideKVPList)
             {
-                var existing = baseKVPList.Where(kv => kv.Key == item.Key).ToList();
+                var existing = kvpList.Where(kv => kv.Key == item.Key).ToList();
                 foreach (var kv in existing)
                 {
                     if (kv.Key != null)
                     {
-                        baseKVPList.Remove(kv);
+                        kvpList.Remove(kv);
                     }
                 }
 
-                baseKVPList.Add(item);
+                kvpList.Add(item);
             }
-            
             return kvpList;
         }
 
