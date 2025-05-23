@@ -62,7 +62,7 @@ namespace GC.Infrastructure
                     configuration.AddCommand<AspNetBenchmarksAnalyzeCommand>("aspnetbenchmarks-analyze");
 
                     // ReliabilityFramework
-                    configuration.AddCommand<ReliabilityFrameworkTestCreateTestsSuiteCommand>("rftest-createtestsuite");
+                    configuration.AddCommand<ReliabilityFrameworkTestCreateTestSuiteCommand>("rftest-createtestsuite");
                 });
 
                 app.Run(args);

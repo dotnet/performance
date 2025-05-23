@@ -7,8 +7,8 @@ using System.Runtime.InteropServices;
 
 namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
 {
-    public sealed class ReliabilityFrameworkTestCreateTestsSuiteCommand :
-        Command<ReliabilityFrameworkTestCreateTestsSuiteCommand.ReliabilityFrameworkTestCreateTestSuiteSettings>
+    public sealed class ReliabilityFrameworkTestCreateTestSuiteCommand :
+        Command<ReliabilityFrameworkTestCreateTestSuiteCommand.ReliabilityFrameworkTestCreateTestSuiteSettings>
     {
         private static readonly string RID = RuntimeInformation.RuntimeIdentifier;
         
