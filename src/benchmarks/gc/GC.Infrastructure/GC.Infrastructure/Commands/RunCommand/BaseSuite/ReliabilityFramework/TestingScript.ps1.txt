@@ -1,0 +1,60 @@
+# create output folder
+if (-not (Test-Path $output_folder))
+{
+    New-Item -ItemType "directory" -Path $output_folder
+}
+
+$dump_folder=Join-Path -Path $output_folder -ChildPath "dumps"
+if (-not (Test-Path $dump_folder))
+{
+    New-Item -ItemType "directory" -Path $dump_folder
+}
+
+$log_folder=Join-Path -Path $output_folder -ChildPath "logs"
+if (-not (Test-Path $log_folder))
+{
+    New-Item -ItemType "directory" -Path $log_folder
+}
+
+# copy tests folder and ReliabilityFramework.dll to core_root
+Copy-Item -Force -Path $test_folder -Destination $CORE_ROOT -Recurse
+Copy-Item -Force -Path $reliability_framework_dll -Destination $CORE_ROOT
+
+# dump
+$Env:DOTNET_DbgEnableMiniDump=1
+$Env:DOTNET_DbgMiniDumpType=4
+
+# gc log
+$Env:DOTNET_GCLogEnabled=1
+$Env:DOTNET_GCLogFileSize=100
+$Env:DOTNET_StressLog=0
+
+$corerun = Join-Path -Path $CORE_ROOT -ChildPath "corerun"
+$RFTestDll = Join-Path -Path $CORE_ROOT -ChildPath "ReliabilityFramework.dll"
+
+$config_content = Get-Content -Path $config_path -Raw
+
+# Run for 24 hours.
+$index=0
+while (1) {
+    $Env:DOTNET_GCLogFile= Join-Path -Path $log_folder -ChildPath "gclog_$index"
+    $Env:DOTNET_DbgMiniDumpName=Join-Path -Path $dump_folder -ChildPath "stress_$index.dmp"
+
+    $debugConditionList = @(
+        "debugBreakOnTestHang=`"true`"",
+        "debugBreakOnBadTest=`"true`"",
+        "debugBreakOnOutOfMemory=`"true`"",
+        "debugBreakOnPathTooLong=`"true`"",
+        "debugBreakOnMissingTest=`"true`"")
+
+    $debugBreak = $debugConditionList | Where-Object { $config_content.Contains($_) }
+    if ($debugBreak)
+    {
+        Start-Process -NoNewWindow -Wait -WorkingDirectory $CORE_ROOT -FilePath windbgx -ArgumentList "-g", $corerun, $RFTestDll, $config_path
+    }
+    else 
+    {
+        Start-Process -NoNewWindow -Wait -WorkingDirectory $CORE_ROOT -FilePath $corerun -ArgumentList $RFTestDll, $config_path
+    }
+    $index += 1
+}
