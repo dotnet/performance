@@ -48,7 +48,7 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <Command>sudo xcode-select -s /Applications/Xcode_16.3.app; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(NativeAOTCommandProps) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <Command>sudo xcode-select -s /Applications/Xcode_16.3.app; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(NativeAOTCommandProps) --binlog %(PreparePayloadWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
@@ -61,6 +61,10 @@
     <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) Extracted Size')">
       <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub; mv $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; unzip -d $HELIX_WORKITEM_ROOT/pub $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; rm $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="@(MAUIiOSScenario -> 'Build Time - %(Identity)')">
+      <PreCommands>mkdir $HELIX_WORKITEM_ROOT/pub/traces;cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog $HELIX_WORKITEM_ROOT/pub/traces</PreCommands>
+      <Command>$(Python) test.py buildtime --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs) --binlog-path ./%(HelixWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog</Command>
     </HelixWorkItem>
     <XHarnessAppBundleToTest Include="Device Startup - iOS .NET Default Template">
       <AppBundlePath>$(ScenariosDir)netios.zip</AppBundlePath>
