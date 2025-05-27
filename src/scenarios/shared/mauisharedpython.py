@@ -234,7 +234,20 @@ def install_latest_maui(
                 getLogger().warning(f"Failed to read SDK version from global.json: {e}")
             
             # Compare versions to see if the MAUI SDK version is earlier
-            if current_sdk_version and maui_sdk_version < current_sdk_version:
+            # We need to be careful with version comparison, especially with preview versions
+            is_earlier_version = False
+            try:
+                # First, try to parse the versions using packaging.version for proper semantic version comparison
+                from packaging import version
+                maui_ver = version.parse(maui_sdk_version)
+                current_ver = version.parse(current_sdk_version)
+                is_earlier_version = maui_ver < current_ver
+            except (ImportError, Exception) as e:
+                # Fallback to simple string comparison if packaging module is not available
+                getLogger().warning(f"Using simple string comparison for versions due to: {e}")
+                is_earlier_version = maui_sdk_version < current_sdk_version
+            
+            if current_sdk_version and is_earlier_version:
                 getLogger().info(f"MAUI SDK version {maui_sdk_version} is earlier than global.json version {current_sdk_version}. Temporarily moving global.json.")
                 if os.path.exists(global_json_path):
                     try:
