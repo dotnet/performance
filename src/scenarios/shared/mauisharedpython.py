@@ -3,6 +3,7 @@ import os
 import xml.etree.ElementTree as ET
 import re
 import urllib.request
+import shutil
 from performance.common import get_repo_root_path
 from shared.precommands import PreCommands
 from logging import getLogger
@@ -137,6 +138,9 @@ def install_latest_maui(
     '''
         Install the latest maui workload using the provided feed. 
         This function will create a rollback file and install the maui workload using that file.
+        
+        If the SDK version from MAUI is earlier than the one in global.json, we temporarily
+        move global.json out of the way to allow the earlier version to be installed.
     '''
 
     if precommands.has_workload:
@@ -154,6 +158,11 @@ def install_latest_maui(
 
     getLogger().info(f"Installing the latest maui workload from feed {feed}")
 
+    # Get the global.json file path
+    global_json_path = os.path.join(get_repo_root_path(), "global.json")
+    global_json_backup_path = os.path.join(get_repo_root_path(), "global.json.bak")
+    global_json_needs_restore = False
+    
     # Get the latest published version of the maui workloads
     for workload in maui_rollback_dict.keys():
         packages = precommands.get_packages_for_sdk_from_feed(workload, feed)
@@ -203,10 +212,64 @@ def install_latest_maui(
         
         maui_rollback_dict[workload] = f"{latest_package['latestVersion']}/{latest_package['sdk_version']}"
 
-    # Create the rollback file
-    with open("rollback_maui.json", "w", encoding="utf-8") as f:
-        f.write(json.dumps(maui_rollback_dict, indent=4))
+    # Check if we need to temporarily move global.json out of the way
+    try:
+        # Get the SDK version from the first workload
+        maui_sdk_version = ""
+        for workload, version_info in maui_rollback_dict.items():
+            if version_info:
+                maui_sdk_version = version_info.split("/")[1]
+                break
+        
+        if maui_sdk_version:
+            # Read the current SDK version from global.json
+            import json as json_lib
+            current_sdk_version = ""
+            try:
+                with open(global_json_path, "r") as f:
+                    global_json_data = json_lib.load(f)
+                    current_sdk_version = global_json_data.get("tools", {}).get("dotnet", "")
+                    getLogger().info(f"Current SDK version in global.json: {current_sdk_version}")
+            except Exception as e:
+                getLogger().warning(f"Failed to read SDK version from global.json: {e}")
+            
+            # Compare versions to see if the MAUI SDK version is earlier
+            if current_sdk_version and maui_sdk_version < current_sdk_version:
+                getLogger().info(f"MAUI SDK version {maui_sdk_version} is earlier than global.json version {current_sdk_version}. Temporarily moving global.json.")
+                if os.path.exists(global_json_path):
+                    try:
+                        # Backup global.json
+                        shutil.copy2(global_json_path, global_json_backup_path)
+                        # Remove global.json
+                        os.rename(global_json_path, f"{global_json_path}.tmp")
+                        global_json_needs_restore = True
+                    except Exception as e:
+                        getLogger().warning(f"Failed to temporarily move global.json: {e}")
+        
+        # Create the rollback file
+        with open("rollback_maui.json", "w", encoding="utf-8") as f:
+            f.write(json.dumps(maui_rollback_dict, indent=4))
 
-    # Install the workload using the rollback file
-    getLogger().info("Installing maui workload with rollback file")
-    precommands.install_workload('maui', ['--from-rollback-file', 'rollback_maui.json'])
+        # Install the workload using the rollback file
+        getLogger().info("Installing maui workload with rollback file")
+        precommands.install_workload('maui', ['--from-rollback-file', 'rollback_maui.json'])
+    
+    finally:
+        # Restore global.json if needed
+        if global_json_needs_restore:
+            getLogger().info("Restoring global.json")
+            try:
+                if os.path.exists(f"{global_json_path}.tmp"):
+                    os.rename(f"{global_json_path}.tmp", global_json_path)
+                elif os.path.exists(global_json_backup_path):
+                    shutil.copy2(global_json_backup_path, global_json_path)
+                getLogger().info("Successfully restored global.json")
+            except Exception as e:
+                getLogger().error(f"Failed to restore global.json: {e}")
+                # Try one more time with the backup
+                try:
+                    if os.path.exists(global_json_backup_path):
+                        shutil.copy2(global_json_backup_path, global_json_path)
+                        getLogger().info("Successfully restored global.json from backup")
+                except Exception as e2:
+                    getLogger().error(f"Failed to restore global.json from backup: {e2}")
