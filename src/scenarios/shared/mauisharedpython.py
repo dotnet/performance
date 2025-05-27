@@ -265,7 +265,12 @@ def install_latest_maui(
 
         # Install the workload using the rollback file
         getLogger().info("Installing maui workload with rollback file")
-        precommands.install_workload('maui', ['--from-rollback-file', 'rollback_maui.json'])
+        try:
+            precommands.install_workload('maui', ['--from-rollback-file', 'rollback_maui.json'])
+        except Exception as e:
+            getLogger().error(f"Failed to install MAUI workload: {e}")
+            # Re-raise to ensure the finally block runs and then propagate the error
+            raise
     
     finally:
         # Restore global.json if needed
