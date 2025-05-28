@@ -237,6 +237,11 @@
     <Compile Remove="libraries\System.Reflection.Metadata\*.cs" />
   </ItemGroup>
 
+  <!-- Remove Sve microbenchmarks when running on net versions < 9.0 -->
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '9.0')">
+    <Compile Remove="sve\*.cs" />
+  </ItemGroup>
+
   <!-- This is not removing things from older Net versions, it is removing from newer Net versions -->
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt;= '8.0')">
     <Compile Remove="libraries\System.Drawing\*.cs" />
