@@ -10,7 +10,7 @@ parameters:
   liveLibrariesBuildConfig: ''
   runtimeType: 'coreclr'
   codeGenType: 'JIT'
-  linkingType: 'dynamic'
+  linkingType: '' # dynamic is default
   iOSLlvmBuild: 'False'
   iOSStripSymbols: 'False'
   hybridGlobalization: 'False'
@@ -172,13 +172,13 @@ jobs:
 
             # AndroidCoreCLR
             ${{ if eq(parameters.runtimeType, 'AndroidCoreCLR')}}:
-              ${{ if and(eq(parameters.codeGenType, 'JIT'), eq(parameters.linkingType, 'dynamic')) }}:
+              ${{ if and(eq(parameters.codeGenType, 'JIT'), eq(parameters.linkingType, '')) }}:
                 artifactFileName: 'AndroidHelloWorldArm64CoreCLR.tar.gz'
                 artifactName: 'AndroidHelloWorldArm64CoreCLR'
               ${{ if and(eq(parameters.codeGenType, 'JIT'), eq(parameters.linkingType, 'static')) }}:
                 artifactFileName: 'AndroidHelloWorldArm64CoreCLRStaticLinking.tar.gz'
                 artifactName: 'AndroidHelloWorldArm64CoreCLRStaticLinking'
-              ${{ if and(eq(parameters.codeGenType, 'R2R'), eq(parameters.linkingType, 'dynamic')) }}:
+              ${{ if and(eq(parameters.codeGenType, 'R2R'), eq(parameters.linkingType, '')) }}:
                 artifactFileName: 'AndroidHelloWorldArm64CoreCLRR2R.tar.gz'
                 artifactName: 'AndroidHelloWorldArm64CoreCLRR2R'
             
