@@ -57,12 +57,19 @@ parameters:
   iOSStripSymbols: false            # optional -- Whether to strip symbols from the iOS build
   additionalSetupParameters: ''     # optional -- Additional arguments to pass to the script
 
+variables:
+- name: linkingTypeString
+  ${{ if eq(parameters.linkingType, 'dynamic') }}:
+    value: ''
+  ${{ else }}:
+    value: ${{ coalesce(parameters.linkingType, 'NULL') }}
+
 jobs:
 - template: ${{ parameters.jobTemplate }}
   parameters: 
     enableTelemetry: ${{ parameters.enableTelemetry }}
-    name: run_performance_test_${{ replace(format('{0}_{1}_{2}_{3}_{4}{5}_{6}_{7}_{8}_{9}', parameters.runKind, coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(replace(parameters.additionalJobIdentifier, ' ', '_'), 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine), if(eq(parameters.linkingType, 'dynamic'), '', coalesce(parameters.linkingType, 'NULL'))), '_NULL', '') }}
-    displayName: Performance ${{ replace(format('{0} {1} {2} {3} {4}{5} {6} {7} {8} {9}', parameters.runKind, coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(parameters.additionalJobIdentifier, 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine), if(eq(parameters.linkingType, 'dynamic'), '', coalesce(parameters.linkingType, 'NULL'))), ' NULL', '') }}
+    name: run_performance_test_${{ replace(format('{0}_{1}_{2}_{3}_{4}{5}_{6}_{7}_{8}_{9}', parameters.runKind, coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(replace(parameters.additionalJobIdentifier, ' ', '_'), 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine), coalesce(parameters.linkingTypeString, 'NULL')), '_NULL', '') }}
+    displayName: Performance ${{ replace(format('{0} {1} {2} {3} {4}{5} {6} {7} {8} {9}', parameters.runKind, coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(parameters.additionalJobIdentifier, 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine), coalesce(parameters.linkingTypeString, 'NULL')), ' NULL', '') }}
     timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
     workspace:
       clean: all
