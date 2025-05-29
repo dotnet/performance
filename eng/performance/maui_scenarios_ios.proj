@@ -63,7 +63,7 @@
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIiOSScenario -> 'Build Time - %(Identity)')">
-      <PreCommands>cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/versions.json $HELIX_WORKITEM_ROOT/pub/versions.json; mkdir -p $HELIX_WORKITEM_ROOT/pub/traces; cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName).binlog $HELIX_WORKITEM_ROOT/pub/traces</PreCommands>
+      <PreCommands>cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/versions.json $HELIX_WORKITEM_ROOT/pub/versions.json; mkdir -p $HELIX_WORKITEM_ROOT/traces; cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName).binlog $HELIX_WORKITEM_ROOT/traces</PreCommands>
       <Command>$(Python) test.py buildtime --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs) --binlog-path ./%(HelixWorkItem.ScenarioDirectoryName).binlog</Command>
     </HelixWorkItem>
     <XHarnessAppBundleToTest Include="Device Startup - iOS .NET Default Template">
