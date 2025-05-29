@@ -99,7 +99,7 @@
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Memory Consumption - %(Identity)')" Condition="!$(HelixTargetQueue.ToLowerInvariant().Contains('galaxy'))">
       <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
-      <Command>$(Python) test.py devicememoryconsumption --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --runtime 30 --test-iteration 2 $(ScenarioArgs)</Command>
+      <Command>$(Python) test.py devicememoryconsumption --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --runtime 90 --test-iteration 2 $(ScenarioArgs)</Command>
     </HelixWorkItem>
   </ItemGroup>
 
