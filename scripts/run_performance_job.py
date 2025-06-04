@@ -89,7 +89,7 @@ class RunPerformanceJobArgs:
     r2r_run_type: Optional[str] = None
     experiment_name: Optional[str] = None
     codegen_type: str = "JIT"
-    linking_type: str = "Dynamic"
+    linking_type: str = "dynamic"
     runtime_type: str = "coreclr"
     affinity: Optional[str] = "0"
     run_env_vars: Dict[str, str] = field(default_factory=dict) # type: ignore
