@@ -206,6 +206,8 @@ jobs:
               - '--runtime-repo-dir $(Build.SourcesDirectory)'
             - ${{ if ne(parameters.codeGenType, '') }}:
               - '--codegen-type ${{ parameters.codeGenType }}'
+            - ${{ if ne(parameters.linkingType, '') }}:
+              - '--linking-type ${{ parameters.linkingType }}'
             - ${{ if ne(parameters.runtimeType, '') }}:
               - '--runtime-type ${{ parameters.runtimeType }}'
             - ${{ if eq(parameters.useLocalCommitTime, true) }}:
