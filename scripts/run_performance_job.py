@@ -89,6 +89,7 @@ class RunPerformanceJobArgs:
     r2r_run_type: Optional[str] = None
     experiment_name: Optional[str] = None
     codegen_type: str = "JIT"
+    linking_type: str = "dynamic"
     runtime_type: str = "coreclr"
     affinity: Optional[str] = "0"
     run_env_vars: Dict[str, str] = field(default_factory=dict) # type: ignore
@@ -539,6 +540,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         else:
             raise Exception("Android scenarios only support Mono and CoreCLR runtimes")
         configurations["CodegenType"] = str(args.codegen_type)
+        configurations["LinkingType"] = str(args.linking_type)
         configurations["RuntimeType"] = str(args.runtime_flavor)
 
     # .NET Android and .NET MAUI Android sample app scenarios
@@ -1124,6 +1126,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         partition_count=args.partition_count,
         runtime_flavor=args.runtime_flavor or "",
         codegen_type=args.codegen_type or "",
+        linking_type=args.linking_type or "",
         hybrid_globalization=args.hybrid_globalization,
         target_csproj=args.target_csproj,
         work_item_command=work_item_command or None,
@@ -1210,6 +1213,7 @@ def main(argv: List[str]):
                 "--pgo-run-type": "pgo_run_type",
                 "--r2r-run-type": "r2r_run_type",
                 "--codegen-type": "codegen_type",
+                "--linking-type": "linking_type",
                 "--runtime-type": "runtime_type",
                 "--run-categories": "run_categories",
                 "--extra-bdn-args": "extra_bdn_args",
