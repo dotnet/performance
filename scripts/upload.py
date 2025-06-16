@@ -27,7 +27,7 @@ def get_unique_name(filename: str, unique_id: str) -> str:
         newname = "{0}-perf-lab-report.json".format(randint(1000, 9999))
     return newname
 
-def upload(globpath: str, container: str, queue: str, sas_token_env: str, storage_account_uri: str):
+def upload(globpath: str, container: str, queue: str, storage_account_uri: str):
     try:
         credential = None
         try:
@@ -50,9 +50,7 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
             except Exception as ex:
                 credential = None
         if credential is None:
-            getLogger().error("Unable to authenticate with managed identity or certificates.")
-            getLogger().info("Falling back to environment variable.")
-            credential = os.getenv(sas_token_env)
+            raise RuntimeError("Authentication failed with managed identity and certificates. No valid authentication method available.")
 
         files = glob(globpath, recursive=True)
         any_upload_or_queue_failed = False

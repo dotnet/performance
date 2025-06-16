@@ -7,7 +7,6 @@ import platform
 from os import environ, path
 from shared import const
 from performance.common import iswin, extension
-from performance.constants import UPLOAD_TOKEN_VAR
 
 def helixworkitempayload():
     '''

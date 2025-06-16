@@ -33,7 +33,7 @@ jobs:
     dockerImageName: helix_sender
     dockerCommand: python ./performance/scripts/run_performance_job.py --queue {{ queue }} --framework {{ framework }} --run-kind {{ kind }} --core-root-dir /performance/coreRoot --performance-repo-dir /performance/performance --architecture {{ architecture }} --os-group {{ osGroup }} --os-sub-group {{ osSubGroup }} {% if internal %}--internal{% endif %} --run-categories "{{ runCategories }}" {% if bdnArgs != blank and bdnArgs != empty %} --extra-bdn-args "{{ bdnArgs }}" {% endif %} --partition-count {{ partitionCount }} --project-file {{ projectFile }} {% if isScenario %} --is-scenario {% endif %} {% if isLocalBuild %} --local-build {% endif %}
     dockerContextDirectory: .
-    arguments: '--env HelixAccessToken --env SYSTEM_ACCESSTOKEN --env PerfCommandUploadToken --env PerfCommandUploadTokenLinux'
+    arguments: '--env HelixAccessToken --env SYSTEM_ACCESSTOKEN'
     environmentVariables:
       BUILD_BUILDNUMBER: '{{ buildNumber }}'
       BUILD_SOURCEVERSION: '{{ buildSourceVersion }}'

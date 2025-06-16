@@ -73,7 +73,6 @@ class RunPerformanceJobArgs:
     built_app_dir: Optional[str] = None
     extra_bdn_args: Optional[str] = None
     run_categories: str = 'Libraries Runtime'
-    perflab_upload_token: Optional[str] = None
     helix_access_token: Optional[str] = os.environ.get("HelixAccessToken")
     os_sub_group: Optional[str] = None
     project_file: Optional[str] = None
@@ -207,13 +206,6 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
             "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
         ]
-
-    # Ensure that the upload token is set so that the results can be uploaded to the storage account
-    if args.internal:
-        if args.os_group == "windows":
-            install_prerequisites += [f"set \"PERFLAB_UPLOAD_TOKEN={args.perflab_upload_token}\""]
-        else:
-            install_prerequisites += [f"export PERFLAB_UPLOAD_TOKEN=\"{args.perflab_upload_token}\""]
 
     # Add the install_prerequisites to the pre_commands
     if args.os_group == "windows":
@@ -371,12 +363,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.project_file is None:
         args.project_file = os.path.join(args.performance_repo_dir, "eng", "performance", "helix.proj")
     
-    if args.perflab_upload_token is None:
-        env_var_name = "PerfCommandUploadToken" if args.os_group == "windows" else "PerfCommandUploadTokenLinux"
-        args.perflab_upload_token = os.environ.get(env_var_name)
-        if args.perflab_upload_token is None and args.internal:
-            getLogger().info(f"{env_var_name} is not set. This may be needed for results to be uploaded.")
-    
     args.performance_repo_dir = os.path.abspath(args.performance_repo_dir)
 
     mono_interpreter = args.codegen_type.lower() == "interpreter" and args.runtime_type == "mono"
@@ -456,7 +442,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     else:
         args.helix_access_token = None
         os.environ.pop("HelixAccessToken", None) # in case the environment variable is set on the system already
-        args.perflab_upload_token = ""
         extra_bdn_arguments += [
             "--iterationCount", "1", 
             "--warmupCount", "0", 
@@ -1204,7 +1189,6 @@ def main(argv: List[str]):
                 "--versions-props-path": "versions_props_path",
                 "--browser-versions-props-path": "browser_versions_props_path",
                 "--built-app-dir": "built_app_dir",
-                "--perflab-upload-token": "perflab_upload_token",
                 "--helix-access-token": "helix_access_token",
                 "--project-file": "project_file",
                 "--build-repository-name": "build_repository_name",

@@ -8,7 +8,7 @@ import json
 from shutil import copytree, copy
 from typing import Optional
 from performance.common import helixpayload, extension, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
 from shared.util import helixworkitempayload, helixuploaddir, getruntimeidentifier
 from shared.const import *
@@ -97,7 +97,7 @@ class SODWrapper(object):
                 
             if upload_to_perflab_container:
                 import upload
-                upload_code = upload.upload(reportjson, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                upload_code = upload.upload(reportjson, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
                 getLogger().info("SoD Upload Code: " + str(upload_code))
                 if upload_code != 0:
                     sys.exit(upload_code)
