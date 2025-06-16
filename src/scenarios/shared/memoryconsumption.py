@@ -6,7 +6,7 @@ import os
 from logging import getLogger
 from shutil import copytree
 from performance.common import extension, helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
 from shared.util import helixworkitempayload, helixuploaddir, getruntimeidentifier
 from shared.const import *
@@ -86,7 +86,7 @@ class MemoryConsumptionWrapper(object):
             copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'))
             if traits.upload_to_perflab_container:
                 import upload
-                upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
 
     def runtests(self, traits: TestTraits):
         '''
@@ -159,7 +159,7 @@ class MemoryConsumptionWrapper(object):
             copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'))
             if traits.upload_to_perflab_container:
                 import upload
-                upload_code = upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                upload_code = upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
                 getLogger().info("memoryconsumption Upload Code: " + str(upload_code))
                 if upload_code != 0:
                     sys.exit(upload_code)

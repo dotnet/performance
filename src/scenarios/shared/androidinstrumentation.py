@@ -7,7 +7,7 @@ import json
 from logging import getLogger
 from shutil import copytree
 from performance.common import runninginlab, RunCommand
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
 from shared.util import helixuploaddir, xharnesscommand, xharness_adb
 from shared.const import *
 from subprocess import CalledProcessError
@@ -139,7 +139,7 @@ class AndroidInstrumentationHelper(object):
                     TRACEDIR,
                     '**',
                     '*perf-lab-report.json')
-                upload_code = upload.upload(globpath, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                upload_code = upload.upload(globpath, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
                 getLogger().info("Device Benchmarks Upload Code: " + str(upload_code))
                 if upload_code != 0:
                     sys.exit(upload_code)

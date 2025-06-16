@@ -33,7 +33,7 @@ from typing import Any, List, Optional
 from performance.common import get_repo_root_path, validate_supported_runtime, get_artifacts_directory, helixuploadroot
 from performance.logger import setup_loggers
 from performance.tracer import setup_tracing, enable_trace_console_exporter, get_tracer
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
 from channel_map import ChannelMap
 from subprocess import CalledProcessError
 from glob import glob
@@ -382,7 +382,7 @@ def main(argv: List[str]):
         if args.upload_to_perflab_container:
             reports_globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
             import upload
-            upload_code = upload.upload(reports_globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+            upload_code = upload.upload(reports_globpath, upload_container, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
             getLogger().info("Benchmarks Upload Code: " + str(upload_code))
             if upload_code != 0:
                 sys.exit(upload_code)
