@@ -11,7 +11,7 @@ jobs:
       osGroup: windows
       archType: x64
       pool:
-        vmImage: windows-2025
+        vmImage: windows-2022
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
         osVersion: 24H2
@@ -29,7 +29,7 @@ jobs:
       osVersion: RS5
       archType: x64
       pool:
-        vmImage: windows-2025
+        vmImage: windows-2022
       machinePool: Open
       queue: Windows.10.Amd64.ClientRS5.Open
       ${{ insert }}: ${{ parameters.jobParameters }}
@@ -40,7 +40,7 @@ jobs:
       osGroup: windows
       archType: x86
       pool:
-        vmImage: windows-2025
+        vmImage: windows-2022
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
         osVersion: 24H2
@@ -75,7 +75,7 @@ jobs:
       osVersion: 20H1
       archType: arm64
       pool:
-        vmImage: windows-2025
+        vmImage: windows-2022
       machinePool: Tiger
       queue: Windows.11.Arm64.Surf.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
@@ -87,7 +87,7 @@ jobs:
       osVersion: 22H2
       archType: arm64
       pool:
-        vmImage: windows-2025
+        vmImage: windows-2022
       machinePool: Ampere
       queue: Windows.Server.Arm64.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
