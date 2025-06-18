@@ -3,4 +3,4 @@ azure.storage.queue==12.4.0
 azure.identity==1.16.1
 dataclasses==0.8
 gitpython<=3.1.41
-urllib3==1.26.19
+urllib3==2.5.0
