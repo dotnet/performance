@@ -17,8 +17,10 @@
 
     <!-- Mono AOT -->
     <_MSBuildArgs Condition="'$(CodegenType)' == 'AOT'">$(_MSBuildArgs);/p:RunAOTCompilation=true;/p:AndroidEnableProfiledAot=false</_MSBuildArgs>
+    <!-- CoreCLR JIT -->
+    <_MSBuildArgs Condition="'$(CodegenType)' == 'JIT'">$(_MSBuildArgs);/p:PublishReadyToRun=false;/p:PublishReadyToRunComposite=false</_MSBuildArgs>
     <!-- CoreCLR R2R -->
-    <_MSBuildArgs Condition="'$(CodegenType)' == 'R2R'">$(_MSBuildArgs);/p:PublishReadyToRun=true</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(CodegenType)' == 'R2R'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=false</_MSBuildArgs>
     <!-- CoreCLR R2R composite -->
     <_MSBuildArgs Condition="'$(CodegenType)' == 'R2RComposite'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=true</_MSBuildArgs>
     <!-- CoreCLR NativeAOT -->
