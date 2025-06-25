@@ -66,7 +66,7 @@ jobs:
         queue: Ubuntu.2204.Amd64.Open
       ${{ else }}:
         machinePool: Tiger
-        queue: Ubuntu.2204.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+        queue: Ubuntu.2204.Amd64.Tiger.Perf
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
@@ -139,4 +139,41 @@ jobs:
         vmImage: 'macos-15'
       queue: OSX.13.Amd64.Iphone.Perf
       machinePool: iPhoneMini12
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-viper'), not(eq(parameters.isPublic, true))) }}: # Windows x64 Viper only used in private builds
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: windows
+      osVersion: Win11
+      archType: x64
+      pool:
+        vmImage: windows-2019
+      machinePool: Viper
+      queue: windows.11.amd64.viper.perf
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x86-viper'), not(eq(parameters.isPublic, true))) }}: # Windows x86 Viper only used in private builds
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: windows
+      osVersion: Win11
+      archType: x86
+      pool:
+        vmImage: windows-2019
+      machinePool: Viper
+      queue: windows.11.amd64.viper.perf
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'ubuntu-x64-viper'), not(eq(parameters.isPublic, true))) }}: # Ubuntu x64 Viper only used in private builds
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: ubuntu
+      osVersion: 2204
+      archType: x64
+      pool: 
+        vmImage: ubuntu-latest
+      container: ubuntu_x64_build_container
+      machinePool: Viper
+      queue: ubuntu.2204.amd64.viper.perf
       ${{ insert }}: ${{ parameters.jobParameters }}

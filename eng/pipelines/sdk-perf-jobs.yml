@@ -351,6 +351,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
       isPublic: false
@@ -370,6 +372,7 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64
+        - win-x64-viper
         - win-arm64
         - win-arm64-ampere
       isPublic: false
@@ -547,6 +550,8 @@ jobs:
         buildMachines:
           - win-x64
           - ubuntu-x64
+          - win-x64-viper
+          - ubuntu-x64-viper
           - win-arm64
           - ubuntu-arm64-ampere
         isPublic: false
@@ -567,6 +572,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
       isPublic: false
       jobParameters:
@@ -592,7 +599,9 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64
+        - win-x64-viper
         - win-x86
+        - win-x86-viper
         #- ubuntu-x64-1804 reenable under new machine on new ubuntu once lttng/events are available
       isPublic: false
       jobParameters:
@@ -611,6 +620,7 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64
+        - win-x64-viper
       isPublic: false
       jobParameters:
         runKind: blazor_scenarios
@@ -630,6 +640,8 @@ jobs:
         buildMachines:
           - win-x64
           - ubuntu-x64
+          - win-x64-viper
+          - ubuntu-x64-viper
           - win-arm64
           - ubuntu-arm64-ampere
         isPublic: false
@@ -650,6 +662,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
       isPublic: false
@@ -671,6 +685,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
       isPublic: false
@@ -692,6 +708,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
       isPublic: false
@@ -713,6 +731,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
       isPublic: false
@@ -733,6 +753,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - win-arm64-ampere
         - ubuntu-arm64-ampere
@@ -760,6 +782,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - win-arm64-ampere
         - ubuntu-arm64-ampere
@@ -789,6 +813,8 @@ jobs:
         buildMachines:
           - win-x64
           - ubuntu-x64
+          - win-x64-viper
+          - ubuntu-x64-viper
           # Illink.Utilities is not supported on ARM: The type initializer for 'ILLinkBenchmarks.Utilities' threw a NotSupportedException (Unsupported architecture). (06/2023)
         isPublic: false
         jobParameters:
@@ -807,6 +833,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64
       isPublic: false
