@@ -94,23 +94,6 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-    # run coreclr Windows arm64 microbenchmarks perf job
-    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-        buildConfig: release
-        runtimeFlavor: coreclr
-        platforms:
-        - windows_arm64
-        jobParameters:
-          liveLibrariesBuildConfig: Release
-          runKind: micro
-          logicalMachine: 'perfsurf'
-          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
-
     # run coreclr Windows arm64 ampere microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
@@ -150,21 +133,3 @@ jobs:
             ${{ each parameter in parameters.jobParameters }}:
               ${{ parameter.key }}: ${{ parameter.value }}
 
-      # run coreclr windows crossgen perf job
-      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-        parameters:
-          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-          buildConfig: release
-          runtimeFlavor: coreclr
-          platforms:
-          - windows_arm64
-          jobParameters:
-            liveLibrariesBuildConfig: Release
-            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/crossgen_perf.proj
-            runKind: crossgen_scenarios
-            isScenario: true
-            logicalMachine: 'perfsurf'
-            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-            ${{ each parameter in parameters.jobParameters }}:
-              ${{ parameter.key }}: ${{ parameter.value }}
