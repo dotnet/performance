@@ -68,18 +68,6 @@ jobs:
         machinePool: Tiger
         queue: Ubuntu.2204.Amd64.Tiger.Perf
 
-- ${{ if and(containsValue(parameters.buildMachines, 'win-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
-  - template: ${{ parameters.jobTemplate }}
-    parameters:
-      osGroup: windows
-      osVersion: 20H1
-      archType: arm64
-      pool:
-        vmImage: windows-2025
-      machinePool: Tiger
-      queue: Windows.11.Arm64.Surf.Perf
-      ${{ insert }}: ${{ parameters.jobParameters }}
-
 - ${{ if and(containsValue(parameters.buildMachines, 'win-arm64-ampere'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
