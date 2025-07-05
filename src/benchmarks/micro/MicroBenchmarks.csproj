@@ -118,6 +118,9 @@
     <None Update="libraries\System.IO.Compression\TestData\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="libraries\System.IO.Compression\TestZipFile.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="libraries\System.Text.RegularExpressions\TestData\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
