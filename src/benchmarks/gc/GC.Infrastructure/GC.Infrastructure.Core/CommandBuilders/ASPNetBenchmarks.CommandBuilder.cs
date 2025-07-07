@@ -1,5 +1,6 @@
 ﻿using GC.Infrastructure.Core.Configurations.ASPNetBenchmarks;
 using GC.Infrastructure.Core.TraceCollection;
+using System.Linq;
 using System.Text;
 
 namespace GC.Infrastructure.Core.CommandBuilders
@@ -10,41 +11,27 @@ namespace GC.Infrastructure.Core.CommandBuilders
         {
             string processName = "crank";
             StringBuilder commandStringBuilder = new();
-
-            // Load the base configuration.
             commandStringBuilder.Append(benchmarkNameToCommand.Value);
+
+            List<KeyValuePair<string, string>> keyValueArgsList = new();
 
             // Environment Variables.
             // Add the environment variables from the configuration.
-            Dictionary<string, string> environmentVariables = new();
-            foreach (var env in configuration.Environment!.environment_variables)
+            var environmentVariables = ServerRunCommandBuilder.OverrideDictionary(
+                configuration.Environment!.environment_variables!,
+                run.Value!.environment_variables!);
+
+            keyValueArgsList.AddRange(
+                ServerRunCommandBuilder.GenerateKeyValuePairListForEnvironmentVariables(environmentVariables));
+
+            // Check if the log file is specified, also add the fact that we want to retrieve the log file back.
+            // This log file should be named in concordance with the name of the run and the benchmark.
+            string? fileNameOfLog = environmentVariables!.GetValueOrDefault("DOTNET_GCLogFile", null);
+            if (!String.IsNullOrEmpty(fileNameOfLog))
             {
-                environmentVariables[env.Key] = env.Value;
-            }
-
-            // Add overrides, if available.
-            if (run.Value.environment_variables != null)
-            {
-                foreach (var env in run.Value.environment_variables)
-                {
-                    environmentVariables[env.Key] = env.Value;
-                }
-            }
-
-            foreach (var env in environmentVariables)
-            {
-                string variable = env.Value;
-
-                // Check if the log file is specified, also add the fact that we want to retrieve the log file back.
-                // This log file should be named in concordance with the name of the run and the benchmark.
-                if (string.CompareOrdinal(env.Key, "DOTNET_GCLogFile") == 0)
-                {
-                    string fileNameOfLog = Path.GetFileName(env.Value);
-                    commandStringBuilder.Append($" --application.options.downloadFiles \"*{fileNameOfLog}.log\" ");
-                    commandStringBuilder.Append($" --application.options.downloadFilesOutput \"{Path.Combine(configuration.Output!.Path, run.Key, $"{benchmarkNameToCommand.Key}_GCLog")}\" ");
-                }
-
-                commandStringBuilder.Append($" --application.environmentVariables {env.Key}={variable} ");
+                string gcLogDownloadPath = Path.Combine(configuration.Output!.Path, run.Key, $"{benchmarkNameToCommand.Key}_GCLog");
+                keyValueArgsList.AddRange(
+                    ServerRunCommandBuilder.GenerateKeyValuePairListForGCLog(fileNameOfLog, gcLogDownloadPath));
             }
 
             // Trace Collection. 
@@ -52,66 +39,47 @@ namespace GC.Infrastructure.Core.CommandBuilders
             if (configuration.TraceConfigurations != null && !string.Equals(configuration.TraceConfigurations.Type, "none", StringComparison.OrdinalIgnoreCase))
             {
                 CollectType collectType = TraceCollector.StringToCollectTypeMap[configuration.TraceConfigurations.Type];
-                string collectionCommand = TraceCollector.WindowsCollectTypeMap[collectType];
-                collectionCommand = collectionCommand.Replace(" ", ";").Replace("/", "");
+                string traceFileSuffix = os == OS.Windows? ".etl.zip": ".nettrace";
+                string tracePath = Path.Combine(configuration.Output.Path, run.Key, (benchmarkNameToCommand.Key + "." + collectType)) + traceFileSuffix;
 
-                string traceFileSuffix = ".etl.zip";
-                // Add specific commands.
-                if (os == OS.Windows)
-                {
-                    commandStringBuilder.Append(" --application.collect true ");
-                    commandStringBuilder.Append(" --application.collectStartup true ");
-                    commandStringBuilder.Append($" --application.collectArguments \"{collectionCommand}\" ");
-                }
-
-                else
-                {
-                    if (configuration.TraceConfigurations.Type != "gc")
-                    {
-                        throw new ArgumentException($"{nameof(ASPNetBenchmarksCommandBuilder)}: Currently only GCCollectOnly traces are allowed for Linux.");
-                    }
-
-                    else
-                    {
-                        traceFileSuffix = ".nettrace";
-                        commandStringBuilder.Append(" --application.dotnetTrace true ");
-                        commandStringBuilder.Append(" --application.dotnetTraceProviders gc-collect ");
-                    }
-                }
-
-                // Add name of output.
-                commandStringBuilder.Append($" --application.options.traceOutput {Path.Combine(configuration.Output.Path, run.Key, (benchmarkNameToCommand.Key + "." + collectType)) + traceFileSuffix}");
+                keyValueArgsList.AddRange(
+                    ServerRunCommandBuilder.GenerateKeyValuePairListForTrace(configuration.TraceConfigurations.Type, tracePath, os));
             }
 
-            string frameworkVersion = configuration.Environment.framework_version;
             // Override the framework version if it's specified at the level of the run.
-            if (!string.IsNullOrEmpty(run.Value.framework_version))
-            {
-                frameworkVersion = run.Value.framework_version;
-            }
-            commandStringBuilder.Append($" --application.framework {frameworkVersion} ");
-
-            string artifactsToUpload = run.Value.corerun!;
+            string frameworkVersion = string.IsNullOrEmpty(run.Value.framework_version) ? 
+                configuration.Environment.framework_version : run.Value.framework_version;
+            keyValueArgsList.AddRange(
+                    ServerRunCommandBuilder.GenerateKeyValuePairListForFramework(frameworkVersion));
 
             // If the corerun specified is a directory, upload the entire directory.
             // Else, we upload just the file.
-            if (Directory.Exists(run.Value.corerun!))
-            {
-                artifactsToUpload = Path.Combine(artifactsToUpload, "*.*");
-            }
-            commandStringBuilder.Append($" --application.options.outputFiles {artifactsToUpload} ");
+            keyValueArgsList.AddRange(
+                    ServerRunCommandBuilder.GenerateKeyValuePairListForUploadFiles(run.Value.corerun));
 
             // Get the logs.
-            commandStringBuilder.Append(" --application.options.downloadOutput true ");
-            commandStringBuilder.Append($" --application.options.downloadOutputOutput {Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkNameToCommand.Key}_{run.Key}.output.log")} ");
-
-            commandStringBuilder.Append(" --application.options.downloadBuildLog true ");
-            commandStringBuilder.Append($" --application.options.downloadBuildLogOutput {Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkNameToCommand.Key}_{run.Key}.build.log")} ");
-
-            commandStringBuilder.Append($" --json {Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkNameToCommand.Key}_{run.Key}.json")}");
+            string logDownloadPathWithoutExtension = Path.Combine(
+                configuration.Output.Path, run.Key, $"{benchmarkNameToCommand.Key}_{run.Key}");
+            keyValueArgsList.AddRange(
+                    ServerRunCommandBuilder.GenerateKeyValuePairListForGettingLogs(logDownloadPathWithoutExtension));
 
             // Add the extra metrics by including the configuration.
-            commandStringBuilder.Append($" --config {Path.Combine("Commands", "RunCommand", "BaseSuite", "PercentileBasedMetricsConfiguration.yml")} ");
+            string configPath = Path.Combine("Commands", "RunCommand", "BaseSuite", "PercentileBasedMetricsConfiguration.yml");
+            keyValueArgsList.AddRange(
+                    ServerRunCommandBuilder.GenerateKeyValuePairListForConfig(configPath));
+
+            // Apply overrides.
+            if (!string.IsNullOrEmpty(configuration.benchmark_settings.override_arguments))
+            {
+                List<KeyValuePair<string, string>> overrideCommands = ServerRunCommandBuilder.GetCrankArgsAsList(
+                    configuration.benchmark_settings.override_arguments);
+
+                keyValueArgsList = ServerRunCommandBuilder.OverrideKeyValuePairList(
+                    keyValueArgsList, overrideCommands);
+            }
+
+            // Add key-Value arguments to commandStringBuilder
+            commandStringBuilder.Append(ServerRunCommandBuilder.ConvertKeyValueArgsListToString(keyValueArgsList));
 
             // Add any additional arguments specified.
             if (!string.IsNullOrEmpty(configuration.benchmark_settings.additional_arguments))
@@ -120,52 +88,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
             }
 
             string commandString = commandStringBuilder.ToString();
-
-            // Apply overrides.
-            if (!string.IsNullOrEmpty(configuration.benchmark_settings.override_arguments))
-            {
-                List<KeyValuePair<string, string>> overrideCommands = GetCrankArgsAsList(configuration.benchmark_settings.override_arguments);
-                if (overrideCommands.Count > 0)
-                {
-                    // Take the current commands and first replace all the keys that match the override commands.
-                    // Subsequently, add the new overrides and then convert the key-value pair list back to a string.
-                    List<KeyValuePair<string, string>> currentCommands = GetCrankArgsAsList(commandString);
-                    foreach (var item in overrideCommands)
-                    {
-                        var existing = currentCommands.Where(kv => kv.Key == item.Key).ToList();
-                        foreach (var kv in existing)
-                        {
-                            if (kv.Key != null)
-                            {
-                                currentCommands.Remove(kv);
-                            }
-                        }
-
-                        currentCommands.Add(item);
-                    }
-
-                    commandString = string.Join(" ", currentCommands.Select(c => $"--{c.Key} {c.Value}"));
-                }
-            }
-
             return (processName, commandString);
-        }
-
-        internal static List<KeyValuePair<string, string>> GetCrankArgsAsList(string input)
-        {
-            var keyValuePairs = new List<KeyValuePair<string, string>>();
-            var splitStr = input.Split(new[] { "--" }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var item in splitStr)
-            {
-                var keyValue = item.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (keyValue.Length == 2)
-                {
-                    keyValuePairs.Add(new KeyValuePair<string, string>(keyValue[0], keyValue[1]));
-                }
-            }
-
-            return keyValuePairs;
         }
     }
 }
