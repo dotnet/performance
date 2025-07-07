@@ -319,24 +319,6 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # run coreclr perfowl microbenchmarks perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: coreclr
-      platforms:
-      - linux_x64
-      - windows_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runKind: micro
-        logicalMachine: 'perfowl'
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
   # run coreclr perfviper microbenchmarks perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
