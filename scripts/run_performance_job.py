@@ -299,8 +299,6 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
             queue_map = {
                 "perftiger": "Windows.11.Amd64.Tiger.Perf",
                 "perftiger_crossgen": "Windows.11.Amd64.Tiger.Perf",
-                "perfowl": "Windows.11.Amd64.Owl.Perf",
-                "perfsurf": "Windows.11.Arm64.Surf.Perf",
                 "perfpixel4a": "Windows.11.Amd64.Pixel.Perf",
                 "perfampere": "Windows.Server.Arm64.Perf",
                 "perfviper": "Windows.11.Amd64.Viper.Perf",
@@ -320,7 +318,6 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
             queue_map = {
                 "perfampere": "Ubuntu.2204.Arm64.Perf",
                 "perfiphone12mini": "OSX.13.Amd64.Iphone.Perf",
-                "perfowl": "Ubuntu.2204.Amd64.Owl.Perf",
                 "perftiger_crossgen": "Ubuntu.1804.Amd64.Tiger.Perf",
                 "perfviper": "Ubuntu.2204.Amd64.Viper.Perf",
                 "cloudvm": "Ubuntu.2204.Amd64"
