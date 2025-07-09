@@ -19,7 +19,7 @@
     </Dependency>
     <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="9.0.8">
       <Uri>https://github.com/dotnet/windowsdesktop</Uri>
-      <Sha>b474c38c1bd4893d61e1ca795ef04cbe7b73ce8f</Sha>
+      <Sha>9471f85113638d494190b1b1f69df44f22924ce4</Sha>
     </Dependency>
     <Dependency Name="Microsoft.AspNetCore.App.Ref" Version="9.0.5">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
