@@ -107,8 +107,6 @@ jobs:
       - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
         # for private runs, we want to upload perflab data
         - group: DotNet-HelixApi-Access
-        # perflab upload tokens still exist in this variable group
-        - group: dotnet-benchview
         - ${{ if eq(parameters.downloadPdn, true) }}:
           - name: _pdnPath
             value: '$(Build.ArtifactStagingDirectory)/PDN.zip'
