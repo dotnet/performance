@@ -136,7 +136,7 @@ jobs:
       osVersion: Win11
       archType: x64
       pool:
-        vmImage: windows-2019
+        vmImage: windows-2025
       machinePool: Viper
       queue: windows.11.amd64.viper.perf
       ${{ insert }}: ${{ parameters.jobParameters }}
@@ -148,7 +148,7 @@ jobs:
       osVersion: Win11
       archType: x86
       pool:
-        vmImage: windows-2019
+        vmImage: windows-2025
       machinePool: Viper
       queue: windows.11.amd64.viper.perf
       ${{ insert }}: ${{ parameters.jobParameters }}
