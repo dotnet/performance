@@ -276,7 +276,7 @@ jobs:
           projectFile: $(Build.SourcesDirectory)/eng/testing/performance/crossgen_perf.proj
           runKind: crossgen_scenarios
           isScenario: true
-          logicalMachine: 'perftiger_crossgen' # Update when re-enabling as PerfTiger is now fewer machines
+          logicalMachine: 'perftiger_crossgen' # Update when re-enabling as PerfTiger is now fewer machines (or completely decommissioned)
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:

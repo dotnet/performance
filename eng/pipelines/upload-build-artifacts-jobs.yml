@@ -23,15 +23,6 @@ jobs:
         - artifactName: 'BuildArtifacts_windows_arm64_Release_coreclr'
           files: [ 'BuildArtifacts_windows_arm64_Release_coreclr.zip' ]
           
-  - ${{ if containsValue(parameters.buildType, 'coreclr_muslx64_linux') }}:
-    - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
-      parameters:
-        buildType: 'coreclr_muslx64_linux'
-        dependencyJobName: build_linux_musl_x64_release_coreclr
-        artifacts:
-        - artifactName: 'BuildArtifacts_linux_musl_x64_Release_coreclr'
-          files: [ 'BuildArtifacts_linux_musl_x64_Release_coreclr.tar.gz' ]
-          
   - ${{ if containsValue(parameters.buildType, 'coreclr_x64_linux') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:

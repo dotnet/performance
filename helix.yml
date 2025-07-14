@@ -151,10 +151,3 @@ profiles:
         variables:
           osGroup: osx
           queue: OSX.13.Amd64.Iphone.Perf
-
-  alpine:
-    jobs:
-      benchmark:
-        variables:
-          osGroup: linux
-          queue: alpine.amd64.tiger.perf
