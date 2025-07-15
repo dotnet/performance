@@ -116,10 +116,6 @@ class RunPerformanceJobArgs:
 def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     helix_pre_commands: list[str] = []
 
-    # Increase file handle limit for Alpine: https://github.com/dotnet/runtime/pull/94439
-    if args.os_sub_group == "_musl":
-        helix_pre_commands += ["ulimit -n 4096"]
-
     # Remember the previous PYTHONPATH that was set so it can be restored in the post commands
     if args.os_group == "windows":
         helix_pre_commands += ["set ORIGPYPATH=%PYTHONPATH%"]
@@ -130,13 +126,6 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     # On non-Windows, these commands are chained together with && so they will stop if any fail
     install_prerequisites: list[str] = []
 
-    # Install libgdiplus on Alpine
-    if args.os_sub_group == "_musl":    
-        install_prerequisites += [
-            "sudo apk add icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib cargo",
-            "sudo apk add libgdiplus --repository http://dl-cdn.alpinelinux.org/alpine/v3.18/community"
-        ]
-
     if args.internal:
         # Run inside a python venv
         if args.os_group == "windows":
@@ -146,7 +135,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
                 "echo on" # venv activate script turns echo off, so turn it back on
             ]
         else:
-            if args.os_group != "osx" and args.os_sub_group != "_musl":
+            if args.os_group != "osx":
                 install_prerequisites += [
                     'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
                     'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
@@ -178,7 +167,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
 
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
         # TODO: is this still needed? It seems like it was added to support wasm which is already setting up everything
-        if args.os_group != "windows" and args.os_group != "osx" and args.os_sub_group != "_musl":
+        if args.os_group != "windows" and args.os_group != "osx":
             install_prerequisites += [
                 "sudo apt-get update",
                 "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
@@ -291,7 +280,7 @@ def get_post_commands(args: RunPerformanceJobArgs):
 
     return helix_post_commands
 
-def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str, architecture: str, alpine: bool):
+def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str, architecture: str):
     if os_group == "windows":
         if not internal:
             return "Windows.10.Amd64.ClientRS4.DevEx.15.8.Open"
@@ -306,10 +295,7 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
             }
             return queue_map.get(logical_machine, "Windows.11.Amd64.Tiger.Perf")
     else:
-        if alpine:
-            # this is the same for both public and internal
-            return "alpine.amd64.tiger.perf"
-        elif not internal:
+        if not internal:
             if architecture == "arm64":
                 return "ubuntu.1804.armarch.open"
             else:
@@ -334,11 +320,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
         else:
             helix_type_suffix = "/wasm"
 
-    alpine = args.runtime_type == "coreclr" and args.os_sub_group == "_musl"
     if args.queue is None:
         if args.logical_machine is None:
             raise Exception("Either queue or logical machine must be specifed")
-        args.queue = logical_machine_to_queue(args.logical_machine, args.internal, args.os_group, args.architecture, alpine)
+        args.queue = logical_machine_to_queue(args.logical_machine, args.internal, args.os_group, args.architecture)
 
     if args.performance_repo_ci:
         # needs to be unique to avoid logs overwriting in mc.dot.net

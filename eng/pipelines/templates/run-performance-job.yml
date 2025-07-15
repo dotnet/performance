@@ -78,11 +78,7 @@ jobs:
         logs:
           name: Logs_$(Agent.JobName)_Attempt_$(System.JobAttempt)
 
-    # Component governance does not work on musl machines
-    ${{ if eq(parameters.osSubGroup, '_musl') }}:
-      disableComponentGovernance: true
-    ${{ else }}:
-      disableComponentGovernance: ${{ parameters.disableComponentGovernance }}
+    disableComponentGovernance: ${{ parameters.disableComponentGovernance }}
 
     ${{ if or(ne(length(parameters.channels), 0), ne(length(parameters.dotnetVersionsLinks), 0), ne(length(parameters.frameworks), 0)) }}:
       strategy:

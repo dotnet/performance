@@ -46,26 +46,6 @@ parameters:
       configs:
         - windows_x64
         - linux_x64
-        - windown_x86
-        - linux_musl_x64
-  - name: tigerMonoAOT
-    type: object
-    default:
-      enabled: true
-      configs:
-        - linux_x64
-  - name: tigerMonoInterpreter
-    type: object
-    default:
-      enabled: true
-      configs:
-        - linux_x64
-  - name: tigerMono
-    type: object
-    default:
-      enabled: true
-      configs:
-        - linux_x64
   - name: androidMono
     type: object
     default:
@@ -199,50 +179,14 @@ jobs:
         liveLibrariesBuildConfig: Release
         runtimeType: mono
         runKind: micro_mono
-        logicalMachine: 'perftiger'
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # run mono microbenchmarks perf job - perfviper
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: mono
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: mono
-        runKind: micro_mono
         logicalMachine: 'perfviper'
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # run mono interpreter perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: mono
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: mono
-        codeGenType: 'Interpreter'
-        runKind: micro_mono
-        logicalMachine: 'perftiger'
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
 
-  # run mono interpreter perf job - perfviper
+  # run mono interpreter perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
@@ -274,25 +218,6 @@ jobs:
         runtimeType: mono
         codeGenType: 'AOT'
         runKind: micro_mono
-        logicalMachine: 'perftiger'
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # run mono aot microbenchmarks perf job - perfviper
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: aot
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: mono
-        codeGenType: 'AOT'
-        runKind: micro_mono
         logicalMachine: 'perfviper'
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
@@ -308,8 +233,6 @@ jobs:
       platforms:
       - linux_x64
       - windows_x64
-      - windows_x86
-      - linux_musl_x64
       jobParameters:
         liveLibrariesBuildConfig: Release
         runKind: micro
@@ -353,7 +276,7 @@ jobs:
           projectFile: $(Build.SourcesDirectory)/eng/testing/performance/crossgen_perf.proj
           runKind: crossgen_scenarios
           isScenario: true
-          logicalMachine: 'perftiger_crossgen'
+          logicalMachine: 'perftiger_crossgen' # Update when re-enabling as PerfTiger is now fewer machines (or completely decommissioned)
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
