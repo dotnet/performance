@@ -5,6 +5,9 @@
 **Date:** 2025-06-10 17:32:30
 **Commit:** [da809372c5](https://github.com/dotnet/runtime/commit/da809372c59edb1986e0c865e098eeaf004675ef)
 **Affected Tests:** 227
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [e16eeab38b](https://github.com/dotnet/runtime/commit/e16eeab38b7540bb02b85448f4c6bb66700dabbf) to [9a6b6c8716](https://github.com/dotnet/runtime/commit/9a6b6c8716266b258394315924983c873e91891b) - [View Range](https://github.com/dotnet/runtime/compare/e16eeab38b7540bb02b85448f4c6bb66700dabbf...9a6b6c8716266b258394315924983c873e91891b)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -690,6 +693,9 @@
 **Date:** 2025-06-01 04:58:05
 **Commit:** [50bf1685bd](https://github.com/dotnet/runtime/commit/50bf1685bdb685ef0304c7686e92e2da9f02b2de)
 **Affected Tests:** 59
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [cb45af9731](https://github.com/dotnet/runtime/commit/cb45af9731a52901404cf15f7d39c9dabd1e0d44) to [50bf1685bd](https://github.com/dotnet/runtime/commit/50bf1685bdb685ef0304c7686e92e2da9f02b2de) - [View Range](https://github.com/dotnet/runtime/compare/cb45af9731a52901404cf15f7d39c9dabd1e0d44...50bf1685bdb685ef0304c7686e92e2da9f02b2de)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -871,6 +877,9 @@
 **Date:** 2024-09-11 08:03:42
 **Commit:** [b8d7ec0ad3](https://github.com/dotnet/runtime/commit/b8d7ec0ad3e73b8f21a9905fb4ab8714b27d45fd)
 **Affected Tests:** 29
+**Extra Info:**
+
+- Some of these regressions are just undoing the improvement from the reverted PR.
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -1140,6 +1149,9 @@
 **Date:** 2024-11-25 20:14:00
 **Commit:** [6cacfa7b5c](https://github.com/dotnet/runtime/commit/6cacfa7b5c77392e7002bd49fd49625c8b47427e)
 **Affected Tests:** 9
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [1e6311a979](https://github.com/dotnet/runtime/commit/1e6311a9795556149b5a051c5f5b2159d5a9765c) to [8f68b59723](https://github.com/dotnet/runtime/commit/8f68b59723bfabe168dad34d4db29d31c85b195f) - [View Range](https://github.com/dotnet/runtime/compare/1e6311a9795556149b5a051c5f5b2159d5a9765c...8f68b59723bfabe168dad34d4db29d31c85b195f)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -1218,6 +1230,9 @@
 **Date:** 2024-12-20 18:29:14
 **Commit:** [d08dff5b31](https://github.com/dotnet/runtime/commit/d08dff5b310c6d643a896704f99d99127779a206)
 **Affected Tests:** 7
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [9e7d746638](https://github.com/dotnet/runtime/commit/9e7d746638dd5facb456d50427e293f25c79a12d) to [004f205412](https://github.com/dotnet/runtime/commit/004f2054128e000a8ee4a327b4f429e10e4275b8) - [View Range](https://github.com/dotnet/runtime/compare/9e7d746638dd5facb456d50427e293f25c79a12d...004f2054128e000a8ee4a327b4f429e10e4275b8)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -1236,6 +1251,9 @@
 **Date:** 2025-05-14 02:16:27
 **Commit:** [76fda4da6b](https://github.com/dotnet/runtime/commit/76fda4da6bed9510d2eef9f017d9a5b4cad697cf)
 **Affected Tests:** 6
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [b3f9fb67fe](https://github.com/dotnet/runtime/commit/b3f9fb67feef3d8c0d9c6b28802eebc896466174) to [d798c051b6](https://github.com/dotnet/runtime/commit/d798c051b6bd0e9227b2bea76838532764f98732) - [View Range](https://github.com/dotnet/runtime/compare/b3f9fb67feef3d8c0d9c6b28802eebc896466174...d798c051b6bd0e9227b2bea76838532764f98732)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -1286,6 +1304,9 @@
 **Date:** 2025-04-11 03:30:40
 **Commit:** [8c9b1f8e05](https://github.com/dotnet/runtime/commit/8c9b1f8e05dda2bc66949525d9b950e7aca3786f)
 **Affected Tests:** 5
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [5966995de2](https://github.com/dotnet/runtime/commit/5966995de27fd04c2f46aaf50c1c6f348a04fa60) to [4bfdd53a62](https://github.com/dotnet/runtime/commit/4bfdd53a625de820396d5476a84aafa9f19a7a96) - [View Range](https://github.com/dotnet/runtime/compare/5966995de27fd04c2f46aaf50c1c6f348a04fa60...4bfdd53a625de820396d5476a84aafa9f19a7a96)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -1302,6 +1323,9 @@
 **Date:** 2025-04-14 16:32:39
 **Commit:** [9d2b23b3a0](https://github.com/dotnet/runtime/commit/9d2b23b3a00c3796ba9e8af45d7427894a72e2f9)
 **Affected Tests:** 5
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [2f5c61c78c](https://github.com/dotnet/runtime/commit/2f5c61c78c05825665c76da423e9c648bfd1e407) to [f93aa8a3d7](https://github.com/dotnet/runtime/commit/f93aa8a3d74304ea3bc58a1127afdbed1e2398dc) - [View Range](https://github.com/dotnet/runtime/compare/2f5c61c78c05825665c76da423e9c648bfd1e407...f93aa8a3d74304ea3bc58a1127afdbed1e2398dc)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -1334,6 +1358,9 @@
 **Date:** 2024-12-16 18:49:10
 **Commit:** [373f048bae](https://github.com/dotnet/runtime/commit/373f048bae3c46810bc030ed7c1ee0568ee5ecc0)
 **Affected Tests:** 4
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [efb8a8fe626](https://github.com/dotnet/runtime/commit/efb8a8fe6263cb66c154576c859523e885dc5a24) to [1d69684de8](https://github.com/dotnet/runtime/commit/1d69684de8801d500e12de8efd86e7ecfa5ed168) - [View Range](https://github.com/dotnet/runtime/compare/efb8a8fe6263cb66c154576c859523e885dc5a24...1d69684de8801d500e12de8efd86e7ecfa5ed168)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -1423,6 +1450,9 @@
 **Date:** 2024-11-25 23:52:05
 **Commit:** [aaa7ba8e93](https://github.com/dotnet/runtime/commit/aaa7ba8e937e9de51d8011a65a0a308e9d88210f)
 **Affected Tests:** 2
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [8f68b59723](https://github.com/dotnet/runtime/commit/8f68b59723bfabe168dad34d4db29d31c85b195f) to [89adcf9209](https://github.com/dotnet/runtime/commit/89adcf9209ef13c9ea598eb0b70ef1a42f02d284) - [View Range](https://github.com/dotnet/runtime/compare/8f68b59723bfabe168dad34d4db29d31c85b195f...89adcf9209ef13c9ea598eb0b70ef1a42f02d284)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -1488,6 +1518,9 @@
 **Date:** 2024-08-08 23:39:45
 **Commit:** [679a284f54](https://github.com/dotnet/runtime/commit/679a284f54365145a3c178fe4b79914dc32f7380)
 **Affected Tests:** 1
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [105bf4dd4d](https://github.com/dotnet/runtime/commit/105bf4dd4dedfe9dfb067427cbca34f76ddfaa44) to [68511fd27f](https://github.com/dotnet/runtime/commit/68511fd27fe4055ce5203742998ba12019dfcbd4) - [View Range](https://github.com/dotnet/runtime/compare/105bf4dd4dedfe9dfb067427cbca34f76ddfaa44...68511fd27fe4055ce5203742998ba12019dfcbd4)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -1500,6 +1533,9 @@
 **Date:** 2024-09-10 14:16:51
 **Commit:** [b06d5e241c](https://github.com/dotnet/runtime/commit/b06d5e241c8cbc6b991b901dacc8bcc354984b1d)
 **Affected Tests:** 1
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [ad6c18f687](https://github.com/dotnet/runtime/commit/ad6c18f6874b3382a8f96a6021616fa71c918aeb) to [636c86342a](https://github.com/dotnet/runtime/commit/636c86342a29dfa8f419414bbd4877b882198ed3) - [View Range](https://github.com/dotnet/runtime/compare/ad6c18f6874b3382a8f96a6021616fa71c918aeb...636c86342a29dfa8f419414bbd4877b882198ed3)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -1536,6 +1572,9 @@
 **Date:** 2025-01-20 10:45:18
 **Commit:** [8c4c381dad](https://github.com/dotnet/runtime/commit/8c4c381dad9b0338675298391c4a69e6b548f7e6)
 **Affected Tests:** 1
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [af25787dac](https://github.com/dotnet/runtime/commit/af25787dac9b2cba8a2d4a830f280e59782878a8) to [32b4ba3df7](https://github.com/dotnet/runtime/commit/32b4ba3df72fa61fb7455f935dee92a2cce2ad0d) - [View Range](https://github.com/dotnet/runtime/compare/af25787dac9b2cba8a2d4a830f280e59782878a8...32b4ba3df72fa61fb7455f935dee92a2cce2ad0d)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
@@ -1584,6 +1623,9 @@
 **Date:** 2025-05-28 22:10:13
 **Commit:** [3d1af41f58](https://github.com/dotnet/runtime/commit/3d1af41f58ff706f1cad1f209554143ac784360f)
 **Affected Tests:** 1
+**Extra Info:**
+
+- Range: This commit represents a range of commits from [ffcd1c5442](https://github.com/dotnet/runtime/commit/ffcd1c5442a0c6e5317efa46d6ce381003397476) to [141b2bb7f1](https://github.com/dotnet/runtime/commit/141b2bb7f1c50918359f42bee8bf0971514868fe) - [View Range](https://github.com/dotnet/runtime/compare/ffcd1c5442a0c6e5317efa46d6ce381003397476...141b2bb7f1c50918359f42bee8bf0971514868fe)
 
 | Test Name | Link | Change | Before | After | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
