@@ -1,10 +1,5 @@
 # Changepoint Impact Report - linux-arm64-ampere
 
-Generated on: 2025-07-16 14:29:28
-
-Total changepoints: 41
-Total tests: 3271
-
 ## 1. 0fe82fbd8e - Reduce spin-waiting in the thread pool on Arm processors (#115402)
 
 **Date:** 2025-05-12 14:13:35
@@ -823,8 +818,3 @@ Total tests: 3271
 | System.Buffers.Text.Tests.Base64Tests.ConvertToBase64CharArray(NumberOfBytes: 1000) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Buffers.Text.Tests.Base64Tests.ConvertToBase64CharArray%28NumberOfBytes%3A%201000%29.html) | +11.63% | 263.802434 | 295.922009 | [7](#7-2a2b7dc72b---jit-fix-profile-maintenance-in-optsetblockweights-funclet-creation-111736) |
 
 ---
-
-## Legend
-
-- **Change %** Positive = regression (slower), Negative = improvement (faster)
-- **Other Changepoints** Links to other changepoints affecting the same test
