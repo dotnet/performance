@@ -1,4 +1,4 @@
-# Changepoint Impact Report - windows-x64-tiger
+# Regression Report - windows-x64-tiger
 
 ## 1. ffcd1c5442 - Trust single-edge synthetic profile (#116054)
 

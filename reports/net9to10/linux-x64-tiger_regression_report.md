@@ -1,4 +1,4 @@
-# Changepoint Impact Report - linux-x64-tiger
+# Regression Report - linux-x64-tiger
 
 ## 1. 41be5e229b - JIT: Graph-based loop inversion (#116017)
 
