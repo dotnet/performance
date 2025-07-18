@@ -6,7 +6,7 @@
 **Commit:** [4020e05](https://github.com/dotnet/runtime/commit/4020e05)
 **Affected Tests:** 105
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_UInt32.TryFormat(value: 4294967295) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_UInt32.TryFormat%28value%3A%204294967295%29.html) | +150.78% | 56.752323 | 142.321299 | None |
 | System.Tests.Perf_Int32.TryFormat(value: 2147483647) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Int32.TryFormat%28value%3A%202147483647%29.html) | +141.80% | 61.604902 | 148.958519 | None |
@@ -122,7 +122,7 @@
 **Commit:** [3f0a23d76d](https://github.com/dotnet/runtime/commit/3f0a23d76d6133f2d507f69d2158afcf54ae7e76)
 **Affected Tests:** 71
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Memory.Span<Byte>.LastIndexOfValue(Size: 33) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Memory.Span%28Byte%29.LastIndexOfValue%28Size%3A%2033%29.html) | +34.21% | 20.213406 | 27.127752 | None |
 | System.Memory.Span<Int32>.LastIndexOfValue(Size: 4) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Memory.Span%28Int32%29.LastIndexOfValue%28Size%3A%204%29.html) | +33.05% | 17.908391 | 23.827309 | None |
@@ -204,7 +204,7 @@
 **Commit:** [0fa747a](https://github.com/dotnet/runtime/commit/0fa747a)
 **Affected Tests:** 31
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16(arguments: UnsafeRelaxed,no <escaping /> required,512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16%28arguments%3A%20UnsafeRelaxed%2Cno%20%28escaping%20/%29%20required%2C512%29.html) | +229.66% | 626.030459 | 2063.776055 | None |
 | System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16(arguments: JavaScript,no escaping required,512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16%28arguments%3A%20JavaScript%2Cno%20escaping%20required%2C512%29.html) | +227.79% | 623.747312 | 2044.563920 | None |
@@ -246,7 +246,7 @@
 **Commit:** [50bf168](https://github.com/dotnet/runtime/commit/50bf168)
 **Affected Tests:** 27
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Guid.Parse | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Guid.Parse.html) | +635.02% | 58.758332 | 431.883608 | None |
 | System.Tests.Perf_Guid.ctor_str | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Guid.ctor_str.html) | +622.89% | 60.391206 | 436.559461 | None |
@@ -284,7 +284,7 @@
 **Commit:** [ac6152838e](https://github.com/dotnet/runtime/commit/ac6152838ebdcb7ca5765b908a4e15956d0e0f91)
 **Affected Tests:** 21
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.Perf_SingleCharFrozenDictionary.TryGetValue_False_FrozenDictionary(Count: 1000) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Collections.Perf_SingleCharFrozenDictionary.TryGetValue_False_FrozenDictionary%28Count%3A%201000%29.html) | +25.60% | 14528.091244 | 18246.901124 | None |
 | System.Collections.Perf_SingleCharFrozenDictionary.TryGetValue_False_FrozenDictionary(Count: 10000) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Collections.Perf_SingleCharFrozenDictionary.TryGetValue_False_FrozenDictionary%28Count%3A%2010000%29.html) | +25.26% | 145636.080545 | 182420.691164 | None |
@@ -319,7 +319,7 @@
 
 - Range: This commit represents a range of commits from [04538da4fc](https://github.com/dotnet/runtime/commit/04538da4fc4dca4a5f1184708fe95a16dd947d17) to [3d27554262](https://github.com/dotnet/runtime/commit/3d275542626ac6420269168ecbebe2bcb8e6ae54) - [View Range](https://github.com/dotnet/runtime/compare/04538da4fc4dca4a5f1184708fe95a16dd947d17...3d275542626ac6420269168ecbebe2bcb8e6ae54)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Runtime.Intrinsics.Tests.Perf_Vector128Of<Double>.ExclusiveOrOperatorBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Runtime.Intrinsics.Tests.Perf_Vector128Of%28Double%29.ExclusiveOrOperatorBenchmark.html) | +10.57% | 3.350880 | 3.705209 | [30](#30-737a7d22aa---use-ref-readonly-in-unsafeaspointer-114406) |
 | System.Numerics.Tests.Perf_Vector2.NormalizeBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_Vector2.NormalizeBenchmark.html) | +10.26% | 1.901078 | 2.096076 | [16](#16-f1901a00df---cross-product-for-vector2-and-vector4-111265) |
@@ -348,7 +348,7 @@
 **Commit:** [8091e60](https://github.com/dotnet/runtime/commit/8091e60)
 **Affected Tests:** 18
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Memory.Span<Int32>.IndexOfAnyFiveValues(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Memory.Span%28Int32%29.IndexOfAnyFiveValues%28Size%3A%20512%29.html) | +33.89% | 2449.068055 | 3279.137990 | None |
 | System.Memory.Span<Int32>.IndexOfAnyFourValues(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Memory.Span%28Int32%29.IndexOfAnyFourValues%28Size%3A%20512%29.html) | +33.05% | 2081.706222 | 2769.728844 | None |
@@ -377,7 +377,7 @@
 **Commit:** [76dbb27608](https://github.com/dotnet/runtime/commit/76dbb27608765ac75fe2a06166271520fdab85fe)
 **Affected Tests:** 17
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Uri.Ctor(input: "https://contoso.com") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Uri.Ctor%28input%3A%20%22https%3A//contoso.com%22%29.html) | +23.95% | 247.547542 | 306.842775 | None |
 | System.Tests.Perf_Uri.Ctor(input: "https://CONTOSO.com") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Uri.Ctor%28input%3A%20%22https%3A//CONTOSO.com%22%29.html) | +23.75% | 249.774234 | 309.083628 | None |
@@ -405,7 +405,7 @@
 **Commit:** [617f9ee](https://github.com/dotnet/runtime/commit/617f9ee)
 **Affected Tests:** 16
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Type.GetType_FullyQualifiedNames(input: typeof(System.Tests.NestedGeneric<String, Boolean>)) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Type.GetType_FullyQualifiedNames%28input%3A%20typeof%28System.Tests.NestedGeneric%28String%2C%20Boolean%29%29%29.html) | +411.18% | 6391.907475 | 32674.268135 | None |
 | System.Tests.Perf_Type.GetType_FullyQualifiedNames(input: typeof(System.Collections.Generic.Dictionary<String, Boolean>)) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Type.GetType_FullyQualifiedNames%28input%3A%20typeof%28System.Collections.Generic.Dictionary%28String%2C%20Boolean%29%29%29.html) | +334.24% | 6811.111706 | 29576.384483 | None |
@@ -435,7 +435,7 @@
 
 - Range: This commit represents a range of commits from [1dd10350bb](https://github.com/dotnet/runtime/commit/1dd10350bbbfa5850709179df7a0ae70601adf28) to [960e063430](https://github.com/dotnet/runtime/commit/960e063430c26e5dc48cd4395e8f092fa6ba98a0) - [View Range](https://github.com/dotnet/runtime/compare/1dd10350bbbfa5850709179df7a0ae70601adf28...960e063430c26e5dc48cd4395e8f092fa6ba98a0)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_VectorOf<Int32>.OnesComplementOperatorBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_VectorOf%28Int32%29.OnesComplementOperatorBenchmark.html) | +15.09% | 2.124699 | 2.445403 | [4](#4-50bf168---implement-iutf8spanparsable-on-guid-105654) |
 | System.Numerics.Tests.Perf_VectorOf<Int16>.MultiplyOperatorBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_VectorOf%28Int16%29.MultiplyOperatorBenchmark.html) | +12.70% | 2.833390 | 3.193354 | [32](#32-e82789be73---remove-double---intuint-cast-helpers-116484) |
@@ -463,7 +463,7 @@
 
 - Range: This commit represents a range of commits from [16506b76e8](https://github.com/dotnet/runtime/commit/16506b76e865e5afae7fdffab6ea4a111c866c73) to [0154a2f340](https://github.com/dotnet/runtime/commit/0154a2f3403d94ea6d6f93f5a774b6e366969e0a) - [View Range](https://github.com/dotnet/runtime/compare/16506b76e865e5afae7fdffab6ea4a111c866c73...0154a2f3403d94ea6d6f93f5a774b6e366969e0a)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Memory.Span<Byte>.IndexOfValue(Size: 33) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Memory.Span%28Byte%29.IndexOfValue%28Size%3A%2033%29.html) | +14.87% | 20.920744 | 24.030715 | [2](#2-3f0a23d76d---dedup-remaining-memoryextensions-span-overloads-109501) |
 | System.Runtime.Intrinsics.Tests.Perf_Vector128Of<UInt32>.LessThanBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Runtime.Intrinsics.Tests.Perf_Vector128Of%28UInt32%29.LessThanBenchmark.html) | +12.74% | 3.147692 | 3.548654 | [20](#20-4cc1155e6a---revert-make-mutable-generic-collection-interfaces-implement-read-only-collection-interfaces-and-related-changes-116497), [22](#22-37b1764e19---optimize-bigintegerdivide-96895) |
@@ -487,7 +487,7 @@
 **Commit:** [e3c6605a1e](https://github.com/dotnet/runtime/commit/e3c6605a1e67df1b69bd9ea18a9de995b138ef2b)
 **Affected Tests:** 13
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Json.Tests.Perf_Basic.WriteBasicUtf8(Formatted: False, SkipValidation: False, DataSize: 10) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Text.Json.Tests.Perf_Basic.WriteBasicUtf8%28Formatted%3A%20False%2C%20SkipValidation%3A%20False%2C%20DataSize%3A%2010%29.html) | +20.72% | 1615.182997 | 1949.854088 | [1](#1-4020e05---clean-up-in-numberformattingcs-110955), [3](#3-0fa747a---replace-optimizedinboxtextencoder-vectorization-with-searchvalues-114494) |
 | System.Numerics.Tests.Perf_VectorOf<Byte>.ConditionalSelectBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_VectorOf%28Byte%29.ConditionalSelectBenchmark.html) | +15.97% | 2.980702 | 3.456826 | None |
@@ -511,7 +511,7 @@
 **Commit:** [75b550d7d3](https://github.com/dotnet/runtime/commit/75b550d7d3b5b27a74b5bff9c1cb09c42f4fb3ab)
 **Affected Tests:** 11
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Enum.InterpolateIntoSpan_NonFlags(value: 42) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Enum.InterpolateIntoSpan_NonFlags%28value%3A%2042%29.html) | +17.65% | 1133.474292 | 1333.569049 | [29](#29-11f3549e83---optimize-datetimeoffset-111112) |
 | System.Text.Json.Tests.Perf_Basic.WriteBasicUtf8(Formatted: True, SkipValidation: False, DataSize: 10) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Text.Json.Tests.Perf_Basic.WriteBasicUtf8%28Formatted%3A%20True%2C%20SkipValidation%3A%20False%2C%20DataSize%3A%2010%29.html) | +16.86% | 1842.964871 | 2153.764578 | [1](#1-4020e05---clean-up-in-numberformattingcs-110955), [3](#3-0fa747a---replace-optimizedinboxtextencoder-vectorization-with-searchvalues-114494) |
@@ -533,7 +533,7 @@
 **Commit:** [cb45af9731](https://github.com/dotnet/runtime/commit/cb45af9731a52901404cf15f7d39c9dabd1e0d44)
 **Affected Tests:** 10
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Char.Char_ToLowerInvariant(input: "Hello World!") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Char.Char_ToLowerInvariant%28input%3A%20%22Hello%20World%21%22%29.html) | +13.02% | 57.319645 | 64.783851 | [43](#43-d1f333e9b2---fix-a-couple-issues-with-vectorwithelement-115648) |
 | System.IO.Tests.StreamReaderReadToEndTests.ReadToEnd(LineLengthRange: [1025, 2048]) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.IO.Tests.StreamReaderReadToEndTests.ReadToEnd%28LineLengthRange%3A%20%5B1025%2C%202048%5D%29.html) | +9.88% | 130627052.777778 | 143531713.322917 | [4](#4-50bf168---implement-iutf8spanparsable-on-guid-105654), [15](#15-1af7c2370b---add-a-number-of-additional-apis-to-the-various-simd-accelerated-vector-types-111179), [35](#35-670db5c718---remove-redundant-unsafe-context-110953) |
@@ -554,7 +554,7 @@
 **Commit:** [1af7c2370b](https://github.com/dotnet/runtime/commit/1af7c2370bce80cba73d442d69f4a2f1b02dcbef)
 **Affected Tests:** 9
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Memory.Span<Int32>.LastIndexOfValue(Size: 33) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Memory.Span%28Int32%29.LastIndexOfValue%28Size%3A%2033%29.html) | +29.76% | 25.242363 | 32.755247 | [2](#2-3f0a23d76d---dedup-remaining-memoryextensions-span-overloads-109501) |
 | System.Memory.Span<Char>.LastIndexOfValue(Size: 33) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Memory.Span%28Char%29.LastIndexOfValue%28Size%3A%2033%29.html) | +29.08% | 21.492235 | 27.741710 | [2](#2-3f0a23d76d---dedup-remaining-memoryextensions-span-overloads-109501) |
@@ -574,7 +574,7 @@
 **Commit:** [f1901a00df](https://github.com/dotnet/runtime/commit/f1901a00dfcfbcf0a4f8b6aa7459fec30846d1ab)
 **Affected Tests:** 9
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_Vector3.CreateFromScalar | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_Vector3.CreateFromScalar.html) | +14.84% | 0.562917 | 0.646442 | [27](#27-d2c458727e---instrumentation-mostly-for-datas-107853) |
 | System.Numerics.Tests.Perf_Vector2.LengthBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_Vector2.LengthBenchmark.html) | +12.04% | 1.773411 | 1.986851 | None |
@@ -594,7 +594,7 @@
 **Commit:** [4b98d32](https://github.com/dotnet/runtime/commit/4b98d32)
 **Affected Tests:** 8
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.Perf_Frozen<Int16>.ToFrozenDictionary(Count: 4) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Collections.Perf_Frozen%28Int16%29.ToFrozenDictionary%28Count%3A%204%29.html) | +128.53% | 261.144056 | 596.788122 | None |
 | System.Collections.Perf_Frozen<NotKnownComparable>.ToFrozenDictionary(Count: 4) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Collections.Perf_Frozen%28NotKnownComparable%29.ToFrozenDictionary%28Count%3A%204%29.html) | +108.16% | 278.608445 | 579.961571 | None |
@@ -613,7 +613,7 @@
 **Commit:** [e0e9f15d06](https://github.com/dotnet/runtime/commit/e0e9f15d06b775325c874674bfca51d18c8f5075)
 **Affected Tests:** 8
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_Matrix4x4.MultiplyByMatrixBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_Matrix4x4.MultiplyByMatrixBenchmark.html) | +46.66% | 20.314376 | 29.792338 | None |
 | System.Numerics.Tests.Perf_Matrix4x4.MultiplyByMatrixOperatorBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_Matrix4x4.MultiplyByMatrixOperatorBenchmark.html) | +23.13% | 20.374049 | 25.087304 | None |
@@ -635,7 +635,7 @@
 
 - Range: This commit represents a range of commits from [9531cf81a3](https://github.com/dotnet/runtime/commit/9531cf81a361c5b53651672a5df897cadd6e89e8) to [b12dc6c549](https://github.com/dotnet/runtime/commit/b12dc6c549853725fd8f1ca4f8ddd3a6f830f0ae) - [View Range](https://github.com/dotnet/runtime/compare/9531cf81a361c5b53651672a5df897cadd6e89e8...b12dc6c549853725fd8f1ca4f8ddd3a6f830f0ae)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Linq.Tests.Perf_Enumerable.CastToSameType(input: IEnumerable) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Linq.Tests.Perf_Enumerable.CastToSameType%28input%3A%20IEnumerable%29.html) | +8.60% | 1067.281615 | 1159.034676 | [30](#30-737a7d22aa---use-ref-readonly-in-unsafeaspointer-114406) |
 | System.Collections.Perf_Frozen<Int16>.ToFrozenSet(Count: 4) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Collections.Perf_Frozen%28Int16%29.ToFrozenSet%28Count%3A%204%29.html) | +6.92% | 429.918198 | 459.650191 | [20](#20-4cc1155e6a---revert-make-mutable-generic-collection-interfaces-implement-read-only-collection-interfaces-and-related-changes-116497), [33](#33-38c8e8f4cc---add-collectionsmarshalasbytesbitarray-116308), [39](#39-9fe86ca2be---arm64-sve-optimise-zeroallbits-vectors-the-same-as-masks-115566) |
@@ -654,7 +654,7 @@
 **Commit:** [4cc1155e6a](https://github.com/dotnet/runtime/commit/4cc1155e6af3a6f0b733b8900bf2f0d1495be7e0)
 **Affected Tests:** 8
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Runtime.Intrinsics.Tests.Perf_Vector128Of<SByte>.SubtractionOperatorBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Runtime.Intrinsics.Tests.Perf_Vector128Of%28SByte%29.SubtractionOperatorBenchmark.html) | +14.22% | 2.885041 | 3.295202 | None |
 | System.Runtime.Intrinsics.Tests.Perf_Vector128Of<UInt32>.AddOperatorBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Runtime.Intrinsics.Tests.Perf_Vector128Of%28UInt32%29.AddOperatorBenchmark.html) | +14.06% | 2.845117 | 3.245185 | None |
@@ -678,7 +678,7 @@
 - Range: This commit represents a range of commits from [e690777838](https://github.com/dotnet/runtime/commit/e69077783870ffcb9e6ebf7d2d33e919d9e5431b) to [6406b578b4](https://github.com/dotnet/runtime/commit/6406b578b43646b0b1d348da00a32d2f61860cf7) - [View Range](https://github.com/dotnet/runtime/compare/e69077783870ffcb9e6ebf7d2d33e919d9e5431b...6406b578b43646b0b1d348da00a32d2f61860cf7)
 
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Uri.DnsSafeHost | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Uri.DnsSafeHost.html) | +16.02% | 807.653996 | 937.046674 | [8](#8-76dbb27608---use-searchvalues-in-uricheckforunicodeorescapedunreserved-107357) |
 | System.Numerics.Tests.Perf_VectorOf<Int32>.ZeroBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_VectorOf%28Int32%29.ZeroBenchmark.html) | +13.59% | 2.366401 | 2.688100 | None |
@@ -696,7 +696,7 @@
 **Commit:** [37b1764e19](https://github.com/dotnet/runtime/commit/37b1764e19aceaa545d8433c490b850538b8905a)
 **Affected Tests:** 6
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Runtime.Intrinsics.Tests.Perf_Vector128Of<UInt32>.LessThanBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Runtime.Intrinsics.Tests.Perf_Vector128Of%28UInt32%29.LessThanBenchmark.html) | +12.74% | 3.147692 | 3.548654 | [11](#11-cdc8418a7f---monomini-prefer-calling-llvmaot-compiled-method-instead-of-inlining-it-with-jit-107401), [20](#20-4cc1155e6a---revert-make-mutable-generic-collection-interfaces-implement-read-only-collection-interfaces-and-related-changes-116497) |
 | System.Tests.Perf_Uri.CtorIdnHostPathAndQuery(input: "http://xn--hst-sna.with.xn--nicode-2ya/path/with?key=value#fragment") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Uri.CtorIdnHostPathAndQuery%28input%3A%20%22http%3A//xn--hst-sna.with.xn--nicode-2ya/path/with%3Fkey%3Dvalue%23fragment%22%29.html) | +10.93% | 1564.747279 | 1735.773719 | [8](#8-76dbb27608---use-searchvalues-in-uricheckforunicodeorescapedunreserved-107357), [42](#42-3a99c64fe2---arm64-add-support-for-bitwise-or-not-xor-not-111893) |
@@ -716,7 +716,7 @@
 
 - Range: This commit represents a range of commits from [01e5fa15aa](https://github.com/dotnet/runtime/commit/01e5fa15aa1cfb22f98bd4dc1d3d20154e71d629) to [76fda4da6b](https://github.com/dotnet/runtime/commit/76fda4da6bed9510d2eef9f017d9a5b4cad697cf) - [View Range](https://github.com/dotnet/runtime/compare/01e5fa15aa1cfb22f98bd4dc1d3d20154e71d629...76fda4da6bed9510d2eef9f017d9a5b4cad697cf)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.ContainsTrue<String>.Array(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Collections.ContainsTrue%28String%29.Array%28Size%3A%20512%29.html) | +16.48% | 622546.035891 | 725142.476047 | [4](#4-50bf168---implement-iutf8spanparsable-on-guid-105654) |
 | System.Collections.ContainsTrue<String>.Span(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Collections.ContainsTrue%28String%29.Span%28Size%3A%20512%29.html) | +15.14% | 634357.785083 | 730403.804363 | [4](#4-50bf168---implement-iutf8spanparsable-on-guid-105654) |
@@ -733,7 +733,7 @@
 **Commit:** [2d5a2ee095](https://github.com/dotnet/runtime/commit/2d5a2ee09518e3afad75ea9bc40df0a548bcfa36)
 **Affected Tests:** 6
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Threading.Channels.Tests.BoundedChannelPerfTests.TryWriteThenTryRead | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Threading.Channels.Tests.BoundedChannelPerfTests.TryWriteThenTryRead.html) | +15.88% | 114.805060 | 133.030953 | None |
 | System.Threading.Channels.Tests.UnboundedChannelPerfTests.TryWriteThenTryRead | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Threading.Channels.Tests.UnboundedChannelPerfTests.TryWriteThenTryRead.html) | +14.12% | 97.064742 | 110.774773 | [25](#25-fcd197c9a4---support-bounded-channel-with-bound-of-0-rendezvous-116097) |
@@ -750,7 +750,7 @@
 **Commit:** [fcd197c9a4](https://github.com/dotnet/runtime/commit/fcd197c9a4ea9def2049fdb302eede3e044fba5f)
 **Affected Tests:** 6
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Threading.Channels.Tests.UnboundedChannelPerfTests.TryWriteThenTryRead | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Threading.Channels.Tests.UnboundedChannelPerfTests.TryWriteThenTryRead.html) | +14.12% | 97.064742 | 110.774773 | [24](#24-2d5a2ee095---remove-canceled-asyncoperations-from-channel-queues-116021) |
 | System.Numerics.Tests.Perf_VectorOf<Single>.GreaterThanAnyBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_VectorOf%28Single%29.GreaterThanAnyBenchmark.html) | +10.33% | 1.798074 | 1.983731 | [7](#7-8091e60---replace-unsafeas-with-unsafebitcast-in-spanhelpersfill-116221) |
@@ -767,7 +767,7 @@
 **Commit:** [e55370e31e](https://github.com/dotnet/runtime/commit/e55370e31e8095f49482a2fb54a442610eb30e71)
 **Affected Tests:** 5
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.CtorFromCollection<Int32>.ImmutableArray(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Collections.CtorFromCollection%28Int32%29.ImmutableArray%28Size%3A%20512%29.html) | +6.07% | 554.088965 | 587.707142 | None |
 | System.Linq.Tests.Perf_Enumerable.WhereSelect(input: Array) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Linq.Tests.Perf_Enumerable.WhereSelect%28input%3A%20Array%29.html) | +5.91% | 2648.474399 | 2804.996808 | [19](#19-efa2f5478f---remove-arrlen-propagation-from-earlyprop-116410) |
@@ -786,7 +786,7 @@
 
 - Range: This commit represents a range of commits from [9eef7761e8](https://github.com/dotnet/runtime/commit/9eef7761e814895fa87c66eed1f364d7f11fe987) to [06f0b37ea9](https://github.com/dotnet/runtime/commit/06f0b37ea9474a793103b5413dd930ef3dabd0d2) - [View Range](https://github.com/dotnet/runtime/compare/9eef7761e814895fa87c66eed1f364d7f11fe987...06f0b37ea9474a793103b5413dd930ef3dabd0d2)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_Vector3.CreateFromScalar | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_Vector3.CreateFromScalar.html) | +14.84% | 0.562917 | 0.646442 | [16](#16-f1901a00df---cross-product-for-vector2-and-vector4-111265) |
 | System.Linq.Tests.Perf_Enumerable.Aggregate(input: IEnumerable) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Linq.Tests.Perf_Enumerable.Aggregate%28input%3A%20IEnumerable%29.html) | +6.35% | 1312.141124 | 1395.496512 | [19](#19-efa2f5478f---remove-arrlen-propagation-from-earlyprop-116410) |
@@ -801,7 +801,7 @@
 **Commit:** [a1b81e1417](https://github.com/dotnet/runtime/commit/a1b81e1417a5e30fc9d4d45937520f9d7794dcd0)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Version.TryParse2 | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Version.TryParse2.html) | +10.71% | 88.273096 | 97.722933 | [21](#21-f0e7c3d211---mono-use-sync-unwind-tables-on-all-arm64-targets-109406) |
 | System.Tests.Perf_Version.Parse4 | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Version.Parse4.html) | +10.32% | 177.475360 | 195.789444 | None |
@@ -816,7 +816,7 @@
 **Commit:** [11f3549e83](https://github.com/dotnet/runtime/commit/11f3549e8392f2220aeadfa34aa578ccb47b80c0)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_DateTime.Year | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_DateTime.Year.html) | +34.21% | 4.329921 | 5.811387 | None |
 | System.Tests.Perf_Enum.InterpolateIntoSpan_NonFlags(value: 42) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Enum.InterpolateIntoSpan_NonFlags%28value%3A%2042%29.html) | +17.65% | 1133.474292 | 1333.569049 | [13](#13-75b550d7d3---implement-writestringvaluesegment-defined-in-issue-67337-101356) |
@@ -834,7 +834,7 @@
 
 - Range: This commit represents a range of commits from [5966995de2](https://github.com/dotnet/runtime/commit/5966995de27fd04c2f46aaf50c1c6f348a04fa60) to [265727cce0](https://github.com/dotnet/runtime/commit/265727cce09d422c9a4c322757e2e6629f83b25c) - [View Range](https://github.com/dotnet/runtime/compare/5966995de27fd04c2f46aaf50c1c6f348a04fa60...265727cce09d422c9a4c322757e2e6629f83b25c)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Runtime.Intrinsics.Tests.Perf_Vector128Of<Double>.ExclusiveOrOperatorBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Runtime.Intrinsics.Tests.Perf_Vector128Of%28Double%29.ExclusiveOrOperatorBenchmark.html) | +10.57% | 3.350880 | 3.705209 | [6](#6-dfac023285---add-approved-tensorprimitives-surface-area-112933) |
 | System.Linq.Tests.Perf_Enumerable.CastToSameType(input: IEnumerable) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Linq.Tests.Perf_Enumerable.CastToSameType%28input%3A%20IEnumerable%29.html) | +8.60% | 1067.281615 | 1159.034676 | [19](#19-efa2f5478f---remove-arrlen-propagation-from-earlyprop-116410) |
@@ -849,7 +849,7 @@
 **Commit:** [727eb51](https://github.com/dotnet/runtime/commit/727eb51)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Guid.EqualsSame | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Guid.EqualsSame.html) | +262.10% | 0.540885 | 1.958522 | None |
 | System.Tests.Perf_Guid.EqualsNotSame | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Guid.EqualsNotSame.html) | +250.42% | 0.572543 | 2.006290 | None |
@@ -864,7 +864,7 @@
 **Commit:** [e82789be73](https://github.com/dotnet/runtime/commit/e82789be7360c936df7553cc84213c9e829789d0)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Runtime.Intrinsics.Tests.Perf_Vector128Of<UInt32>.AndNotBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Runtime.Intrinsics.Tests.Perf_Vector128Of%28UInt32%29.AndNotBenchmark.html) | +14.61% | 2.808819 | 3.219080 | None |
 | System.Numerics.Tests.Perf_VectorOf<Int16>.MultiplyOperatorBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_VectorOf%28Int16%29.MultiplyOperatorBenchmark.html) | +12.70% | 2.833390 | 3.193354 | [10](#10-960e063430---add-asyncenumerableinfinitesequence-116538) |
@@ -879,7 +879,7 @@
 **Commit:** [38c8e8f4cc](https://github.com/dotnet/runtime/commit/38c8e8f4cc1be3abd20f675771f208360b11b52c)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Net.Primitives.Tests.CredentialCacheTests.GetCredential_Uri(uriString: "http://notfound", uriCount: 10) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Net.Primitives.Tests.CredentialCacheTests.GetCredential_Uri%28uriString%3A%20%22http%3A//notfound%22%2C%20uriCount%3A%2010%29.html) | +8.28% | 1905.071195 | 2062.750358 | [4](#4-50bf168---implement-iutf8spanparsable-on-guid-105654), [14](#14-cb45af9731---implement-iutf8spanparsable-on-char-and-rune-105773) |
 | System.Collections.Perf_Frozen<Int16>.ToFrozenSet(Count: 4) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Collections.Perf_Frozen%28Int16%29.ToFrozenSet%28Count%3A%204%29.html) | +6.92% | 429.918198 | 459.650191 | [19](#19-efa2f5478f---remove-arrlen-propagation-from-earlyprop-116410), [20](#20-4cc1155e6a---revert-make-mutable-generic-collection-interfaces-implement-read-only-collection-interfaces-and-related-changes-116497), [39](#39-9fe86ca2be---arm64-sve-optimise-zeroallbits-vectors-the-same-as-masks-115566) |
@@ -894,7 +894,7 @@
 **Commit:** [16506b76e8](https://github.com/dotnet/runtime/commit/16506b76e865e5afae7fdffab6ea4a111c866c73)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Runtime.Intrinsics.Tests.Perf_Vector128Of<UInt16>.MaxBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Runtime.Intrinsics.Tests.Perf_Vector128Of%28UInt16%29.MaxBenchmark.html) | +6.42% | 2.442030 | 2.598837 | [10](#10-960e063430---add-asyncenumerableinfinitesequence-116538) |
 | System.Runtime.Intrinsics.Tests.Perf_Vector128Of<Int64>.SubtractBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Runtime.Intrinsics.Tests.Perf_Vector128Of%28Int64%29.SubtractBenchmark.html) | +5.89% | 3.353050 | 3.550649 | [11](#11-cdc8418a7f---monomini-prefer-calling-llvmaot-compiled-method-instead-of-inlining-it-with-jit-107401), [30](#30-737a7d22aa---use-ref-readonly-in-unsafeaspointer-114406), [37](#37-bcf880c1c5---add-immutablecollectionsmarshalasmemory-112177) |
@@ -908,7 +908,7 @@
 **Commit:** [670db5c718](https://github.com/dotnet/runtime/commit/670db5c71851946b9ec3f669f4a67d4339836a0e)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.StreamReaderReadToEndTests.ReadToEnd(LineLengthRange: [1025, 2048]) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.IO.Tests.StreamReaderReadToEndTests.ReadToEnd%28LineLengthRange%3A%20%5B1025%2C%202048%5D%29.html) | +9.88% | 130627052.777778 | 143531713.322917 | [4](#4-50bf168---implement-iutf8spanparsable-on-guid-105654), [14](#14-cb45af9731---implement-iutf8spanparsable-on-char-and-rune-105773), [15](#15-1af7c2370b---add-a-number-of-additional-apis-to-the-various-simd-accelerated-vector-types-111179) |
 | System.Text.Json.Tests.Perf_Ctor.Ctor(Formatted: True, SkipValidation: False) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Text.Json.Tests.Perf_Ctor.Ctor%28Formatted%3A%20True%2C%20SkipValidation%3A%20False%29.html) | +6.67% | 59.216653 | 63.164455 | [13](#13-75b550d7d3---implement-writestringvaluesegment-defined-in-issue-67337-101356) |
@@ -925,7 +925,7 @@
 
 - Range: This commit represents a range of commits from [5667c2887f](https://github.com/dotnet/runtime/commit/5667c2887f607939e5ce054137481f877530a279) to [f2363c7886](https://github.com/dotnet/runtime/commit/f2363c7886a8cb221ff4b43350e31be239845ac6) - [View Range](https://github.com/dotnet/runtime/compare/5667c2887f607939e5ce054137481f877530a279...f2363c7886a8cb221ff4b43350e31be239845ac6)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.StreamReaderReadToEndTests.ReadToEnd(LineLengthRange: [   1,    1]) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.IO.Tests.StreamReaderReadToEndTests.ReadToEnd%28LineLengthRange%3A%20%5B%20%20%201%2C%20%20%20%201%5D%29.html) | +7.72% | 132568476.288889 | 142804173.427124 | [4](#4-50bf168---implement-iutf8spanparsable-on-guid-105654), [15](#15-1af7c2370b---add-a-number-of-additional-apis-to-the-various-simd-accelerated-vector-types-111179) |
 | System.IO.Tests.StreamReaderReadToEndTests.ReadToEnd(LineLengthRange: [   1,    8]) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.IO.Tests.StreamReaderReadToEndTests.ReadToEnd%28LineLengthRange%3A%20%5B%20%20%201%2C%20%20%20%208%5D%29.html) | +7.62% | 132875712.000000 | 143003964.716544 | [4](#4-50bf168---implement-iutf8spanparsable-on-guid-105654), [13](#13-75b550d7d3---implement-writestringvaluesegment-defined-in-issue-67337-101356) |
@@ -942,7 +942,7 @@
 
 - Range: This commit represents a range of commits from [ff604c2393](https://github.com/dotnet/runtime/commit/ff604c23939bc59f856ef67f1f3d18dd685ff7a2) to [16782a4481](https://github.com/dotnet/runtime/commit/16782a4481f389e68314b16ea628c5af80f22783) - [View Range](https://github.com/dotnet/runtime/compare/ff604c23939bc59f856ef67f1f3d18dd685ff7a2...16782a4481f389e68314b16ea628c5af80f22783)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Runtime.Intrinsics.Tests.Perf_Vector128Of<Int16>.ConditionalSelectBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Runtime.Intrinsics.Tests.Perf_Vector128Of%28Int16%29.ConditionalSelectBenchmark.html) | +11.23% | 3.478004 | 3.868594 | [1](#1-4020e05---clean-up-in-numberformattingcs-110955) |
 | System.Runtime.Intrinsics.Tests.Perf_Vector128Of<Int64>.SubtractBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Runtime.Intrinsics.Tests.Perf_Vector128Of%28Int64%29.SubtractBenchmark.html) | +5.89% | 3.353050 | 3.550649 | [11](#11-cdc8418a7f---monomini-prefer-calling-llvmaot-compiled-method-instead-of-inlining-it-with-jit-107401), [30](#30-737a7d22aa---use-ref-readonly-in-unsafeaspointer-114406), [34](#34-16506b76e8---fixing-systemarray-constructor-107266) |
@@ -959,7 +959,7 @@
 
 - Range: This commit represents a range of commits from [a5d647300d](https://github.com/dotnet/runtime/commit/a5d647300db77359cbbf13c4f6c767ebe52853d1) to [199ae88204](https://github.com/dotnet/runtime/commit/199ae8820492f05169529da1f262e9736007448a) - [View Range](https://github.com/dotnet/runtime/compare/a5d647300db77359cbbf13c4f6c767ebe52853d1...199ae8820492f05169529da1f262e9736007448a)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_BigInteger.ToStringD(numberString: 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678... | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_BigInteger.ToStringD%28numberString%3A%20123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678.html) | +6.45% | 7195296.447650 | 7659091.941600 | None |
 | System.Numerics.Tests.Perf_BigInteger.ToStringD(numberString: 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678... | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_BigInteger.ToStringD%28numberString%3A%20123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678.html) | +6.30% | 7201800.939253 | 7655480.991388 | None |
@@ -973,7 +973,7 @@
 **Commit:** [9fe86ca2be](https://github.com/dotnet/runtime/commit/9fe86ca2beebd1b5878110d310e068accd6050a1)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_VectorOf<SByte>.EqualsAllBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_VectorOf%28SByte%29.EqualsAllBenchmark.html) | +7.30% | 1.802325 | 1.933829 | None |
 | System.Collections.Perf_Frozen<Int16>.ToFrozenSet(Count: 4) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Collections.Perf_Frozen%28Int16%29.ToFrozenSet%28Count%3A%204%29.html) | +6.92% | 429.918198 | 459.650191 | [19](#19-efa2f5478f---remove-arrlen-propagation-from-earlyprop-116410), [20](#20-4cc1155e6a---revert-make-mutable-generic-collection-interfaces-implement-read-only-collection-interfaces-and-related-changes-116497), [33](#33-38c8e8f4cc---add-collectionsmarshalasbytesbitarray-116308) |
@@ -987,7 +987,7 @@
 **Commit:** [64e178b771](https://github.com/dotnet/runtime/commit/64e178b7719a71cb920931ca69f25cd0bb1ab290)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Microsoft.Extensions.Logging.EventSourceLogger.NestedScopes_TwoMessages(HasSubscribers: True, Json: True) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/Microsoft.Extensions.Logging.EventSourceLogger.NestedScopes_TwoMessages%28HasSubscribers%3A%20True%2C%20Json%3A%20True%29.html) | +19.89% | 14774.070542 | 17712.770705 | None |
 | System.Diagnostics.Tracing.Perf_EventListener.WriteEvent_MixedParams | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Diagnostics.Tracing.Perf_EventListener.WriteEvent_MixedParams.html) | +15.70% | 383.779219 | 444.021426 | None |
@@ -1004,7 +1004,7 @@
 
 - Range: This commit represents a range of commits from [7693b6d020](https://github.com/dotnet/runtime/commit/7693b6d0202281dc38dcfb9562e9064fcd13bc61) to [7afd807da7](https://github.com/dotnet/runtime/commit/7afd807da79b99c2d1b4b2e03b5e147836178fe2) - [View Range](https://github.com/dotnet/runtime/compare/7693b6d0202281dc38dcfb9562e9064fcd13bc61...7afd807da79b99c2d1b4b2e03b5e147836178fe2)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_VectorOf<Int32>.SubtractionOperatorBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_VectorOf%28Int32%29.SubtractionOperatorBenchmark.html) | +6.66% | 3.131666 | 3.340306 | None |
 | System.Numerics.Tests.Perf_VectorOf<UInt16>.MultiplyBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Numerics.Tests.Perf_VectorOf%28UInt16%29.MultiplyBenchmark.html) | +6.54% | 3.398139 | 3.620512 | [1](#1-4020e05---clean-up-in-numberformattingcs-110955) |
@@ -1020,7 +1020,7 @@
 
 - Range: This commit represents a range of commits from [05d94d9402](https://github.com/dotnet/runtime/commit/05d94d94028b5622b19734e0e1b60d7aca4667b3) to [dea928c98e](https://github.com/dotnet/runtime/commit/dea928c98e6355c8dc6cd6e94ef5686000edca8d) - [View Range](https://github.com/dotnet/runtime/compare/05d94d94028b5622b19734e0e1b60d7aca4667b3...dea928c98e6355c8dc6cd6e94ef5686000edca8d)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Uri.CtorIdnHostPathAndQuery(input: "https://contoso.com/path/with?key=value#fragment") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Uri.CtorIdnHostPathAndQuery%28input%3A%20%22https%3A//contoso.com/path/with%3Fkey%3Dvalue%23fragment%22%29.html) | +11.86% | 1157.717892 | 1294.993144 | [8](#8-76dbb27608---use-searchvalues-in-uricheckforunicodeorescapedunreserved-107357) |
 | System.Tests.Perf_Uri.CtorIdnHostPathAndQuery(input: "http://xn--hst-sna.with.xn--nicode-2ya/path/with?key=value#fragment") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Uri.CtorIdnHostPathAndQuery%28input%3A%20%22http%3A//xn--hst-sna.with.xn--nicode-2ya/path/with%3Fkey%3Dvalue%23fragment%22%29.html) | +10.93% | 1564.747279 | 1735.773719 | [8](#8-76dbb27608---use-searchvalues-in-uricheckforunicodeorescapedunreserved-107357), [22](#22-37b1764e19---optimize-bigintegerdivide-96895) |
@@ -1033,7 +1033,7 @@
 **Commit:** [d1f333e9b2](https://github.com/dotnet/runtime/commit/d1f333e9b23ecd5c5bd0f6a81065cf1df355e8bd)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Char.Char_ToLowerInvariant(input: "Hello World!") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Char.Char_ToLowerInvariant%28input%3A%20%22Hello%20World%21%22%29.html) | +13.02% | 57.319645 | 64.783851 | [14](#14-cb45af9731---implement-iutf8spanparsable-on-char-and-rune-105773) |
 | System.Memory.Slice<String>.MemorySpanStartLength | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Memory.Slice%28String%29.MemorySpanStartLength.html) | +5.07% | 6.448579 | 6.775417 | None |
@@ -1046,7 +1046,7 @@
 **Commit:** [e2874f53ff](https://github.com/dotnet/runtime/commit/e2874f53ff8ba0d15cc552e380419f2e7c1217fa)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Globalization.Tests.StringSearch.LastIndexOf_Word_NotFound(Options: (en-US, OrdinalIgnoreCase, False)) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Globalization.Tests.StringSearch.LastIndexOf_Word_NotFound%28Options%3A%20%28en-US%2C%20OrdinalIgnoreCase%2C%20False%29%29.html) | +7.00% | 1082.334156 | 1158.119460 | None |
 
@@ -1061,7 +1061,7 @@
 
 - Range: This commit represents a range of commits from [505e317100](https://github.com/dotnet/runtime/commit/505e3171007810999a7f56672b9f70332609273f) to [45caaf85fa](https://github.com/dotnet/runtime/commit/45caaf85faa654114f7a3744910df86d8e92882f) - [View Range](https://github.com/dotnet/runtime/compare/505e3171007810999a7f56672b9f70332609273f...45caaf85faa654114f7a3744910df86d8e92882f)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Uri.CtorIdnHostPathAndQuery(input: "http://host/path%20with%20escapable%20values?key=va%20lue") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Tests.Perf_Uri.CtorIdnHostPathAndQuery%28input%3A%20%22http%3A//host/path%2520with%2520escapable%2520values%3Fkey%3Dva%2520lue%22%29.html) | +5.35% | 1147.656574 | 1209.046957 | [8](#8-76dbb27608---use-searchvalues-in-uricheckforunicodeorescapedunreserved-107357), [37](#37-bcf880c1c5---add-immutablecollectionsmarshalasmemory-112177) |
 
@@ -1073,7 +1073,7 @@
 **Commit:** [c44f6a9ea7](https://github.com/dotnet/runtime/commit/c44f6a9ea713a43005401231261f9139e0a122d4)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.TryAddGiventSize<String>.Dictionary(Count: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Collections.TryAddGiventSize%28String%29.Dictionary%28Count%3A%20512%29.html) | +5.67% | 38623.226782 | 40813.707668 | [4](#4-50bf168---implement-iutf8spanparsable-on-guid-105654), [14](#14-cb45af9731---implement-iutf8spanparsable-on-char-and-rune-105773), [27](#27-d2c458727e---instrumentation-mostly-for-datas-107853) |
 
@@ -1088,7 +1088,7 @@
 
 - Range: This commit represents a range of commits from [6fa4227c62](https://github.com/dotnet/runtime/commit/6fa4227c625199cd0194613068f78e8db61967ba) to [fcbc76add2](https://github.com/dotnet/runtime/commit/fcbc76add236b383b78d789c7fab7598f6405be3) - [View Range](https://github.com/dotnet/runtime/compare/6fa4227c625199cd0194613068f78e8db61967ba...fcbc76add236b383b78d789c7fab7598f6405be3)
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Benchstone.BenchI.Permutate.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/Benchstone.BenchI.Permutate.Test.html) | +5.57% | 896887765.311111 | 946867849.197436 | None |
 
@@ -1100,7 +1100,7 @@
 **Commit:** [ec11903827](https://github.com/dotnet/runtime/commit/ec11903827fc28847d775ba17e0cd1ff56cfbc2e)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Runtime.Intrinsics.Tests.Perf_Vector128Of<Single>.MultiplyBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04_LLVM=true_MonoAOT=true_MonoInterpreter=false_RunKind=micro_mono/System.Runtime.Intrinsics.Tests.Perf_Vector128Of%28Single%29.MultiplyBenchmark.html) | +9.19% | 2.843933 | 3.105167 | None |
 

@@ -6,7 +6,7 @@
 **Commit:** [0fe82fbd8e](https://github.com/dotnet/runtime/commit/0fe82fbd8e107a0b7c2a79f458229aea5632c999)
 **Affected Tests:** 50
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.Perf_File.WriteAllTextAsync(size: 10000) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.IO.Tests.Perf_File.WriteAllTextAsync%28size%3A%2010000%29.html) | +41.66% | 88893.208479 | 124973.000719 | None |
 | System.Net.Security.Tests.SslStreamTests.LargeReadWriteAsync | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Net.Security.Tests.SslStreamTests.LargeReadWriteAsync.html) | +40.83% | 60786.478609 | 70470.586767 | None |
@@ -67,7 +67,7 @@
 **Commit:** [ffcd1c5442](https://github.com/dotnet/runtime/commit/ffcd1c5442a0c6e5317efa46d6ce381003397476)
 **Affected Tests:** 49
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Int32.ParseHex(value: "80000000") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Tests.Perf_Int32.ParseHex%28value%3A%20%2280000000%22%29.html) | +161.05% | 20.493603 | 53.429202 | None |
 | System.Tests.Perf_Int32.ParseHex(value: "7FFFFFFF") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Tests.Perf_Int32.ParseHex%28value%3A%20%227FFFFFFF%22%29.html) | +161.02% | 20.461906 | 53.368506 | None |
@@ -127,7 +127,7 @@
 **Commit:** [41be5e229b](https://github.com/dotnet/runtime/commit/41be5e229b30fc3e7aaed9361b9db4487c5bb7f8)
 **Affected Tests:** 36
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Burgers.Test0 | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/Burgers.Test0.html) | +654.97% | 331324004.160714 | 2475280704.857143 | None |
 | Benchstone.BenchF.Simpsn.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/Benchstone.BenchF.Simpsn.Test.html) | +78.96% | 179804915.339286 | 342799731.089286 | None |
@@ -174,7 +174,7 @@
 **Commit:** [b146d7512c](https://github.com/dotnet/runtime/commit/b146d7512ce67051e127ab48dc2d4f65d30e818f)
 **Affected Tests:** 36
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Byte.TryParse(value: "255") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Tests.Perf_Byte.TryParse%28value%3A%20%22255%22%29.html) | +57.05% | 13.704667 | 21.515341 | None |
 | System.Tests.Perf_UInt64.TryParse(value: "12345") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Tests.Perf_UInt64.TryParse%28value%3A%20%2212345%22%29.html) | +49.80% | 15.464010 | 23.171181 | None |
@@ -221,7 +221,7 @@
 **Commit:** [34545d790e](https://github.com/dotnet/runtime/commit/34545d790e0f92be34b13f0d41b7df93f04bbe02)
 **Affected Tests:** 25
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Json.Tests.Perf_Basic.WriteBasicUtf8(Formatted: False, SkipValidation: False, DataSize: 100000) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Text.Json.Tests.Perf_Basic.WriteBasicUtf8%28Formatted%3A%20False%2C%20SkipValidation%3A%20False%2C%20DataSize%3A%20100000%29.html) | +44.48% | 1967788.783324 | 2845587.121766 | [2](#2-ffcd1c5442---trust-single-edge-synthetic-profile-116054) |
 | System.Buffers.Tests.RentReturnArrayPoolTests<Byte>.MultipleSerial(RentalSize: 4096, ManipulateArray: False, Async: False, UseSharedPool: False) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Buffers.Tests.RentReturnArrayPoolTests%28Byte%29.MultipleSerial%28RentalSize%3A%204096%2C%20ManipulateArray%3A%20False%2C%20Async%3A%20False%2C%20UseSharedPool%3A%20False%29.html) | +42.85% | 346.376216 | 497.890873 | [10](#10-34f1db49db---jit-use-root-compiler-instance-for-sufficient-pgo-observation-115119) |
@@ -257,7 +257,7 @@
 **Commit:** [f9b2a6d4b3](https://github.com/dotnet/runtime/commit/f9b2a6d4b3f0ea910e8f3b881cd88603eedfe8a3)
 **Affected Tests:** 23
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.BinaryWriterTests.DefaultCtor | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.IO.Tests.BinaryWriterTests.DefaultCtor.html) | +16.78% | 19.620213 | 21.552331 | None |
 | System.Threading.Tests.Perf_Timer.ShortScheduleAndDisposeWithFiringTimers | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Threading.Tests.Perf_Timer.ShortScheduleAndDisposeWithFiringTimers.html) | +15.85% | 205.182322 | 240.806630 | None |
@@ -291,7 +291,7 @@
 **Commit:** [2a2b7dc72b](https://github.com/dotnet/runtime/commit/2a2b7dc72b5642dd24ca37623327e765a9730dd7)
 **Affected Tests:** 17
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Memory.Span<Byte>.Reverse(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Memory.Span%28Byte%29.Reverse%28Size%3A%20512%29.html) | +46.48% | 19.128117 | 27.936702 | None |
 | System.Numerics.Tests.Perf_Vector4.ClampBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Numerics.Tests.Perf_Vector4.ClampBenchmark.html) | +20.12% | N/A | N/A | None |
@@ -319,7 +319,7 @@
 **Commit:** [e2ad5fcc17](https://github.com/dotnet/runtime/commit/e2ad5fcc1702105d9cb9c32802181976df1b97ba)
 **Affected Tests:** 14
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | PerfLabTests.CastingPerf.ObjObjIsFoo | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/PerfLabTests.CastingPerf.ObjObjIsFoo.html) | +44.72% | 271844.904018 | 253793.924951 | None |
 | XmlDocumentTests.XmlNodeListTests.Perf_XmlNodeList.Enumerator | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/XmlDocumentTests.XmlNodeListTests.Perf_XmlNodeList.Enumerator.html) | +22.43% | 133.600614 | 141.463806 | None |
@@ -344,7 +344,7 @@
 **Commit:** [a484803332](https://github.com/dotnet/runtime/commit/a4848033324be5a3e0f7f0a901e222cdcadce07b)
 **Affected Tests:** 12
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.MathBenchmarks.Single.Log10P1 | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.MathBenchmarks.Single.Log10P1.html) | +11.35% | N/A | N/A | None |
 | System.Collections.CreateAddAndClear<String>.Array(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Collections.CreateAddAndClear%28String%29.Array%28Size%3A%20512%29.html) | +11.27% | 3526.147718 | 3981.978381 | None |
@@ -367,7 +367,7 @@
 **Commit:** [34f1db49db](https://github.com/dotnet/runtime/commit/34f1db49dbf702697483ee2809d493f5ef441768)
 **Affected Tests:** 11
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Globalization.Tests.StringEquality.Compare_DifferentFirstChar(Count: 1024, Options: (en-US, OrdinalIgnoreCase)) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Globalization.Tests.StringEquality.Compare_DifferentFirstChar%28Count%3A%201024%2C%20Options%3A%20%28en-US%2C%20OrdinalIgnoreCase%29%29.html) | +56.36% | 11.041748 | 17.239539 | None |
 | System.Globalization.Tests.StringEquality.Compare_DifferentFirstChar(Count: 1024, Options: (en-US, Ordinal)) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Globalization.Tests.StringEquality.Compare_DifferentFirstChar%28Count%3A%201024%2C%20Options%3A%20%28en-US%2C%20Ordinal%29%29.html) | +56.00% | 12.479778 | 19.395112 | None |
@@ -389,7 +389,7 @@
 **Commit:** [14cd365a64](https://github.com/dotnet/runtime/commit/14cd365a64c00724d8029e32f5fe35e733a81c30)
 **Affected Tests:** 10
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Buffers.Tests.RentReturnArrayPoolTests<Byte>.ProducerConsumer(RentalSize: 4096, ManipulateArray: False, Async: True, UseSharedPool: True) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Buffers.Tests.RentReturnArrayPoolTests%28Byte%29.ProducerConsumer%28RentalSize%3A%204096%2C%20ManipulateArray%3A%20False%2C%20Async%3A%20True%2C%20UseSharedPool%3A%20True%29.html) | +22.95% | 2324.769134 | 2872.567647 | None |
 | System.Formats.Tar.Tests.Perf_TarWriter.UstarTarEntry_WriteEntry_Async | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Formats.Tar.Tests.Perf_TarWriter.UstarTarEntry_WriteEntry_Async.html) | +20.31% | 473.538648 | 574.918280 | None |
@@ -410,7 +410,7 @@
 **Commit:** [ddf8075a2f](https://github.com/dotnet/runtime/commit/ddf8075a2fa3044554ded41c375a82a318ae01eb)
 **Affected Tests:** 8
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Memory.Span<Byte>.Clear(Size: 33) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Memory.Span%28Byte%29.Clear%28Size%3A%2033%29.html) | +59.22% | 4.994657 | 8.123683 | None |
 | System.Linq.Tests.Perf_OrderBy.OrderByCustomComparer(NumberOfPeople: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Linq.Tests.Perf_OrderBy.OrderByCustomComparer%28NumberOfPeople%3A%20512%29.html) | +54.31% | 49119.133473 | 76057.154972 | None |
@@ -429,7 +429,7 @@
 **Commit:** [1c10ceecbf](https://github.com/dotnet/runtime/commit/1c10ceecbf5356c33c67f6325072d753707f854e)
 **Affected Tests:** 7
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Benchstone.BenchI.IniArray.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/Benchstone.BenchI.IniArray.Test.html) | +20.59% | 114074829.562500 | 137377821.633929 | [26](#26-6d12a304b3---jit-do-greedy-4-opt-for-backward-jumps-in-3-opt-layout-110277), [27](#27-d410898949---jit-skip-fgcomputemissingblockweights-when-we-have-profile-data-111873) |
 | SciMark2.kernel.benchSparseMult | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/SciMark2.kernel.benchSparseMult.html) | +18.24% | 919930046.910714 | 1087784852.250000 | [3](#3-41be5e229b---jit-graph-based-loop-inversion-116017) |
@@ -447,7 +447,7 @@
 **Commit:** [5f652c2887](https://github.com/dotnet/runtime/commit/5f652c2887c0ae0b96a0a9e3602a72e50713b520)
 **Affected Tests:** 7
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.StreamReaderReadToEndTests.ReadToEndAsync(LineLengthRange: [ 129, 1024]) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.IO.Tests.StreamReaderReadToEndTests.ReadToEndAsync%28LineLengthRange%3A%20%5B%20129%2C%201024%5D%29.html) | +8.25% | 64913134.226190 | 69688607.571429 | None |
 | System.IO.Tests.StreamReaderReadToEndTests.ReadToEnd(LineLengthRange: [ 129, 1024]) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.IO.Tests.StreamReaderReadToEndTests.ReadToEnd%28LineLengthRange%3A%20%5B%20129%2C%201024%5D%29.html) | +7.07% | 62608014.952381 | 69595054.156463 | None |
@@ -465,7 +465,7 @@
 **Commit:** [0fa747abd5](https://github.com/dotnet/runtime/commit/0fa747abd5224373adbbece9a5ddc0325e373d7a)
 **Affected Tests:** 7
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16(arguments: UnsafeRelaxed,hello "there",16) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16%28arguments%3A%20UnsafeRelaxed%2Chello%20%22there%22%2C16%29.html) | +38.12% | 41.774188 | 57.118293 | [2](#2-ffcd1c5442---trust-single-edge-synthetic-profile-116054) |
 | System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16(arguments: Url,�2020,16) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16%28arguments%3A%20Url%2C%EF%BF%BD2020%2C16%29.html) | +36.06% | 48.200426 | 65.625433 | [2](#2-ffcd1c5442---trust-single-edge-synthetic-profile-116054) |
@@ -483,7 +483,7 @@
 **Commit:** [a950953d00](https://github.com/dotnet/runtime/commit/a950953d0019b2df11d3bdc3f93bbad272438640)
 **Affected Tests:** 5
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Int64.ToString(value: 9223372036854775807) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Tests.Perf_Int64.ToString%28value%3A%209223372036854775807%29.html) | +25.28% | 41.278166 | 51.962026 | None |
 | System.Tests.Perf_Int64.ToString(value: 12345) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Tests.Perf_Int64.ToString%28value%3A%2012345%29.html) | +24.08% | 18.516576 | 24.021955 | None |
@@ -499,7 +499,7 @@
 **Commit:** [1af7c2370b](https://github.com/dotnet/runtime/commit/1af7c2370bce80cba73d442d69f4a2f1b02dcbef)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.MathBenchmarks.Double.ILogB | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.MathBenchmarks.Double.ILogB.html) | +10.67% | 6703.835831 | 7421.691683 | None |
 | System.Net.Sockets.Tests.SocketSendReceivePerfTest.ReceiveFromAsyncThenSendToAsync_SocketAddress | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Net.Sockets.Tests.SocketSendReceivePerfTest.ReceiveFromAsyncThenSendToAsync_SocketAddress.html) | +8.86% | 335335715.928571 | 390568944.535714 | None |
@@ -514,7 +514,7 @@
 **Commit:** [254b55a49e](https://github.com/dotnet/runtime/commit/254b55a49e04ef6c63b68174c0f11d96223136fb)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_BigInteger.ToStringD(numberString: 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678... | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Numerics.Tests.Perf_BigInteger.ToStringD%28numberString%3A%20123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678.html) | +13.85% | 7167250.090861 | 8191053.367647 | [6](#6-f9b2a6d4b3---jit-optimize-for-cost-instead-of-score-in-3-opt-layout-109741) |
 | System.Numerics.Tests.Perf_BigInteger.ToStringD(numberString: 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678... | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Numerics.Tests.Perf_BigInteger.ToStringD%28numberString%3A%20123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678.html) | +13.78% | 7161780.735294 | 8176144.062500 | [6](#6-f9b2a6d4b3---jit-optimize-for-cost-instead-of-score-in-3-opt-layout-109741) |
@@ -529,7 +529,7 @@
 **Commit:** [d7347b5bbb](https://github.com/dotnet/runtime/commit/d7347b5bbb5f174d6261952205661eda752c84b7)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Net.Security.Tests.SslStreamTests.ConcurrentReadWriteLargeBuffer | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Net.Security.Tests.SslStreamTests.ConcurrentReadWriteLargeBuffer.html) | +17.95% | 52172.529125 | 58552.282941 | None |
 | System.IO.MemoryMappedFiles.Tests.Perf_MemoryMappedFile.CreateFromFile_Read(capacity: 10000) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.IO.MemoryMappedFiles.Tests.Perf_MemoryMappedFile.CreateFromFile_Read%28capacity%3A%2010000%29.html) | +17.28% | 10258.931205 | 10968.123156 | None |
@@ -544,7 +544,7 @@
 **Commit:** [39a31f082e](https://github.com/dotnet/runtime/commit/39a31f082e77fb8893016c30c0858f0e5f8c89ea)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.CreateAddAndRemove<String>.SortedList(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Collections.CreateAddAndRemove%28String%29.SortedList%28Size%3A%20512%29.html) | +12.15% | 548852.718917 | 614600.950432 | [6](#6-f9b2a6d4b3---jit-optimize-for-cost-instead-of-score-in-3-opt-layout-109741) |
 | System.Collections.AddGivenSize<String>.SortedList(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Collections.AddGivenSize%28String%29.SortedList%28Size%3A%20512%29.html) | +12.14% | 310155.522775 | 343758.040632 | [6](#6-f9b2a6d4b3---jit-optimize-for-cost-instead-of-score-in-3-opt-layout-109741) |
@@ -559,7 +559,7 @@
 **Commit:** [f72179a0f6](https://github.com/dotnet/runtime/commit/f72179a0f60c2fc81dee944b8f081a020cd5f8ea)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.Perf_FileStream.WriteAsync(fileSize: 1048576, userBufferSize: 512, options: Asynchronous) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.IO.Tests.Perf_FileStream.WriteAsync%28fileSize%3A%201048576%2C%20userBufferSize%3A%20512%2C%20options%3A%20Asynchronous%29.html) | +17.81% | 2741737.462927 | 3481398.846856 | None |
 | System.Buffers.Tests.RentReturnArrayPoolTests<Object>.SingleParallel(RentalSize: 4096, ManipulateArray: True, Async: True, UseSharedPool: True) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Buffers.Tests.RentReturnArrayPoolTests%28Object%29.SingleParallel%28RentalSize%3A%204096%2C%20ManipulateArray%3A%20True%2C%20Async%3A%20True%2C%20UseSharedPool%3A%20True%29.html) | +15.09% | 8873.537647 | 9774.856882 | None |
@@ -573,7 +573,7 @@
 **Commit:** [c653208332](https://github.com/dotnet/runtime/commit/c65320833210f3df7412e2fcd11d6751fa374adc)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Microsoft.Extensions.Configuration.ConfigurationBinderBenchmarks.Get(ConfigurationProvidersCount: 16, KeysCountPerProvider: 20) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/Microsoft.Extensions.Configuration.ConfigurationBinderBenchmarks.Get%28ConfigurationProvidersCount%3A%2016%2C%20KeysCountPerProvider%3A%2020%29.html) | +7.18% | 2652458.018047 | 2851250.973784 | None |
 | System.Text.Json.Node.Tests.Perf_Create.Create_JsonNumber | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Text.Json.Node.Tests.Perf_Create.Create_JsonNumber.html) | +6.95% | 813.652575 | 854.431759 | None |
@@ -587,7 +587,7 @@
 **Commit:** [1f06729327](https://github.com/dotnet/runtime/commit/1f067293272ab6d42e329782798bc2f7398d1907)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Net.Security.Tests.SslStreamTests.WriteReadAsync | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Net.Security.Tests.SslStreamTests.WriteReadAsync.html) | +16.99% | 17339.249806 | 24202.047351 | None |
 | System.Net.Security.Tests.SslStreamTests.ConcurrentReadWrite | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Net.Security.Tests.SslStreamTests.ConcurrentReadWrite.html) | +14.15% | 38515.591876 | 44897.060959 | None |
@@ -601,7 +601,7 @@
 **Commit:** [13fef94591](https://github.com/dotnet/runtime/commit/13fef94591f1d5d6f00204e4d920f34bd15fbb47)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Net.Security.Tests.SslStreamTests.DefaultMutualHandshakeContextIPv6Async | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Net.Security.Tests.SslStreamTests.DefaultMutualHandshakeContextIPv6Async.html) | +7.32% | 3868096.907087 | 4099399.708984 | [1](#1-0fe82fbd8e---reduce-spin-waiting-in-the-thread-pool-on-arm-processors-115402) |
 | System.Net.Security.Tests.SslStreamTests.DefaultMutualHandshakeContextIPv4Async | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Net.Security.Tests.SslStreamTests.DefaultMutualHandshakeContextIPv4Async.html) | +6.48% | 3801710.661281 | 4084877.318878 | [1](#1-0fe82fbd8e---reduce-spin-waiting-in-the-thread-pool-on-arm-processors-115402) |
@@ -614,7 +614,7 @@
 **Commit:** [54b86f1843](https://github.com/dotnet/runtime/commit/54b86f18439397f51fbf4b14f6127a337446f3cf)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_VectorOf<Single>.SquareRootBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Numerics.Tests.Perf_VectorOf%28Single%29.SquareRootBenchmark.html) | +372.72% | 2.010714 | 10.251370 | None |
 | System.Numerics.Tests.Perf_VectorOf<Double>.SquareRootBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Numerics.Tests.Perf_VectorOf%28Double%29.SquareRootBenchmark.html) | +27.30% | 2.141966 | 3.761575 | None |
@@ -627,7 +627,7 @@
 **Commit:** [6d12a304b3](https://github.com/dotnet/runtime/commit/6d12a304b3068f8a9308a1aec4f3b95dd636a693)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Benchstone.BenchI.IniArray.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/Benchstone.BenchI.IniArray.Test.html) | +20.59% | 114074829.562500 | 137377821.633929 | [13](#13-1c10ceecbf---jit-add-3-opt-implementation-for-improving-upon-rpo-based-block-layout-103450), [27](#27-d410898949---jit-skip-fgcomputemissingblockweights-when-we-have-profile-data-111873) |
 | System.Tests.Perf_Char.Char_ToUpperInvariant(input: "Hello World!") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Tests.Perf_Char.Char_ToUpperInvariant%28input%3A%20%22Hello%20World%21%22%29.html) | +15.67% | 15.078298 | 17.071104 | None |
@@ -640,7 +640,7 @@
 **Commit:** [d410898949](https://github.com/dotnet/runtime/commit/d410898949f19681587bb308e6c50190350f3d81)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Benchstone.BenchI.IniArray.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/Benchstone.BenchI.IniArray.Test.html) | +20.59% | 114074829.562500 | 137377821.633929 | [13](#13-1c10ceecbf---jit-add-3-opt-implementation-for-improving-upon-rpo-based-block-layout-103450), [26](#26-6d12a304b3---jit-do-greedy-4-opt-for-backward-jumps-in-3-opt-layout-110277) |
 | Benchstone.BenchI.Array2.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/Benchstone.BenchI.Array2.Test.html) | +15.43% | 1348032152.321428 | 1555925549.160714 | [3](#3-41be5e229b---jit-graph-based-loop-inversion-116017), [13](#13-1c10ceecbf---jit-add-3-opt-implementation-for-improving-upon-rpo-based-block-layout-103450) |
@@ -653,7 +653,7 @@
 **Commit:** [ea43e17c95](https://github.com/dotnet/runtime/commit/ea43e17c953a1230667c684a9f57d241e8a95171)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Microsoft.Extensions.Primitives.Performance.StringValuesBenchmark.Indexer_FirstElement_String | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/Microsoft.Extensions.Primitives.Performance.StringValuesBenchmark.Indexer_FirstElement_String.html) | +7.95% | 4.662951 | 4.997623 | None |
 | Burgers.Test2 | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/Burgers.Test2.html) | +5.37% | 277044815.785714 | 291030700.678571 | [3](#3-41be5e229b---jit-graph-based-loop-inversion-116017) |
@@ -666,7 +666,7 @@
 **Commit:** [0ac2caf41a](https://github.com/dotnet/runtime/commit/0ac2caf41a88c56a287ab790e92eaf3ccf846fc8)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Formats.Tar.Tests.Perf_TarWriter.UstarTarEntry_WriteEntry | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Formats.Tar.Tests.Perf_TarWriter.UstarTarEntry_WriteEntry.html) | +14.19% | 321.106357 | 366.327641 | None |
 | System.Formats.Tar.Tests.Perf_TarWriter.V7TarEntry_WriteEntry | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Formats.Tar.Tests.Perf_TarWriter.V7TarEntry_WriteEntry.html) | +8.85% | 304.118608 | 331.962722 | None |
@@ -679,7 +679,7 @@
 **Commit:** [fd8933aac2](https://github.com/dotnet/runtime/commit/fd8933aac237d2f3103de071ec4bc1547bfef16c)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Interop.ComWrappersTests.ParallelRCWLookUp | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/Interop.ComWrappersTests.ParallelRCWLookUp.html) | +136.03% | 1022084625.482143 | 2076028982.839285 | None |
 | System.IO.Tests.Perf_File.Exists | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.IO.Tests.Perf_File.Exists.html) | +6.67% | N/A | N/A | None |
@@ -692,7 +692,7 @@
 **Commit:** [e0e9f15d06](https://github.com/dotnet/runtime/commit/e0e9f15d06b775325c874674bfca51d18c8f5075)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_Matrix3x2.InvertBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Numerics.Tests.Perf_Matrix3x2.InvertBenchmark.html) | +52.90% | 3.860899 | 5.471292 | None |
 | System.Numerics.Tests.Perf_Matrix3x2.GetDeterminantBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Numerics.Tests.Perf_Matrix3x2.GetDeterminantBenchmark.html) | +35.07% | 3.548779 | 4.548978 | None |
@@ -705,7 +705,7 @@
 **Commit:** [5cb6a06da6](https://github.com/dotnet/runtime/commit/5cb6a06da634ee4be4f426711e9c5f66535a78c8)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Benchstone.BenchI.BubbleSort.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/Benchstone.BenchI.BubbleSort.Test.html) | +18.27% | 11607.312464 | 13133.369099 | [7](#7-2a2b7dc72b---jit-fix-profile-maintenance-in-optsetblockweights-funclet-creation-111736) |
 
@@ -717,7 +717,7 @@
 **Commit:** [f4289173ad](https://github.com/dotnet/runtime/commit/f4289173ad518aacc98ba315491d5cd78ecc3b13)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Reflection.Invoke.Field_SetStatic_struct | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Reflection.Invoke.Field_SetStatic_struct.html) | +16.77% | 58.879207 | 68.374136 | None |
 
@@ -729,7 +729,7 @@
 **Commit:** [9c1f53e39f](https://github.com/dotnet/runtime/commit/9c1f53e39f48b09be71097f1b7a47e45331e4906)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Buffers.Tests.RentReturnArrayPoolTests<Byte>.ProducerConsumer(RentalSize: 4096, ManipulateArray: True, Async: False, UseSharedPool: False) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Buffers.Tests.RentReturnArrayPoolTests%28Byte%29.ProducerConsumer%28RentalSize%3A%204096%2C%20ManipulateArray%3A%20True%2C%20Async%3A%20False%2C%20UseSharedPool%3A%20False%29.html) | +55.73% | 2206.295943 | 3108.850392 | None |
 
@@ -741,7 +741,7 @@
 **Commit:** [72a243b43f](https://github.com/dotnet/runtime/commit/72a243b43fae9b11933113a454533e68678e5bad)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.Perf_File.ReadAllBytesAsync(size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.IO.Tests.Perf_File.ReadAllBytesAsync%28size%3A%20512%29.html) | +8.45% | 12244.885496 | 12877.704953 | None |
 
@@ -753,7 +753,7 @@
 **Commit:** [37b1764e19](https://github.com/dotnet/runtime/commit/37b1764e19aceaa545d8433c490b850538b8905a)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_BigInteger.ModPow(arguments: 1024,1024,64 bits) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Numerics.Tests.Perf_BigInteger.ModPow%28arguments%3A%201024%2C1024%2C64%20bits%29.html) | +7.03% | 95817.971292 | 102569.741452 | [12](#12-ddf8075a2f---jit-visit-blocks-in-rpo-during-lsra-107927) |
 
@@ -765,7 +765,7 @@
 **Commit:** [995b6de753](https://github.com/dotnet/runtime/commit/995b6de7533b0baae6f93b003e6d9560d448eb30)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Threading.Tests.Perf_Volatile.Read_double | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Threading.Tests.Perf_Volatile.Read_double.html) | +107.17% | 2.150956 | 4.180414 | None |
 
@@ -777,7 +777,7 @@
 **Commit:** [3c8bae3ff0](https://github.com/dotnet/runtime/commit/3c8bae3ff0906f590c6eec61eb114eac205ac2cc)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.Perf_LengthBucketsFrozenDictionary.TryGetValue_False_FrozenDictionary(Count: 1000, ItemsPerBucket: 1) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Collections.Perf_LengthBucketsFrozenDictionary.TryGetValue_False_FrozenDictionary%28Count%3A%201000%2C%20ItemsPerBucket%3A%201%29.html) | +5.27% | N/A | N/A | None |
 
@@ -789,7 +789,7 @@
 **Commit:** [8115429a72](https://github.com/dotnet/runtime/commit/8115429a72fa599584135f217f3a34bd4aef8cf4)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Net.Sockets.Tests.SocketSendReceivePerfTest.ConnectAcceptAsync | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Net.Sockets.Tests.SocketSendReceivePerfTest.ConnectAcceptAsync.html) | +31.62% | 85781.423491 | 113295.579798 | [1](#1-0fe82fbd8e---reduce-spin-waiting-in-the-thread-pool-on-arm-processors-115402) |
 
@@ -801,7 +801,7 @@
 **Commit:** [2d5a2ee095](https://github.com/dotnet/runtime/commit/2d5a2ee09518e3afad75ea9bc40df0a548bcfa36)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Threading.Channels.Tests.BoundedChannelPerfTests.TryWriteThenTryRead | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Threading.Channels.Tests.BoundedChannelPerfTests.TryWriteThenTryRead.html) | +24.09% | 63.379614 | 78.056613 | None |
 
@@ -813,7 +813,7 @@
 **Commit:** [6278b81081](https://github.com/dotnet/runtime/commit/6278b81081f1f66dea78686f5198922da9011645)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Buffers.Text.Tests.Base64Tests.ConvertToBase64CharArray(NumberOfBytes: 1000) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_arm64_ubuntu%2022.04/System.Buffers.Text.Tests.Base64Tests.ConvertToBase64CharArray%28NumberOfBytes%3A%201000%29.html) | +11.63% | 263.802434 | 295.922009 | [7](#7-2a2b7dc72b---jit-fix-profile-maintenance-in-optsetblockweights-funclet-creation-111736) |
 

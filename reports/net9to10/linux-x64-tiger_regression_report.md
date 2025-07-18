@@ -6,7 +6,7 @@
 **Commit:** [41be5e229b](https://github.com/dotnet/runtime/commit/41be5e229b30fc3e7aaed9361b9db4487c5bb7f8)
 **Affected Tests:** 77
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Burgers.Test0 | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/Burgers.Test0.html) | +546.70% | 287609724.553571 | 1859976778.517857 | None |
 | System.Linq.Tests.Perf_Enumerable.SingleWithPredicate_FirstElementMatches(input: Array) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Linq.Tests.Perf_Enumerable.SingleWithPredicate_FirstElementMatches%28input%3A%20Array%29.html) | +153.76% | 42.938261 | 108.960405 | None |
@@ -94,7 +94,7 @@
 **Commit:** [ffcd1c5442](https://github.com/dotnet/runtime/commit/ffcd1c5442a0c6e5317efa46d6ce381003397476)
 **Affected Tests:** 40
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Hashing.Tests.Crc64_AppendPerf.Append(BufferSize: 256) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.IO.Hashing.Tests.Crc64_AppendPerf.Append%28BufferSize%3A%20256%29.html) | +317.01% | 14.007418 | 58.412864 | None |
 | System.IO.Hashing.Tests.Crc64_AppendPerf.Append(BufferSize: 10240) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.IO.Hashing.Tests.Crc64_AppendPerf.Append%28BufferSize%3A%2010240%29.html) | +304.24% | 432.449977 | 1748.141904 | None |
@@ -145,7 +145,7 @@
 **Commit:** [ddf8075a2f](https://github.com/dotnet/runtime/commit/ddf8075a2fa3044554ded41c375a82a318ae01eb)
 **Affected Tests:** 39
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16(arguments: Url,&lorem ipsum=dolor sit amet,16) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16%28arguments%3A%20Url%2C%26lorem%20ipsum%3Ddolor%20sit%20amet%2C16%29.html) | +117.06% | 51.955954 | 112.773346 | [1](#1-41be5e229b---jit-graph-based-loop-inversion-116017), [2](#2-ffcd1c5442---trust-single-edge-synthetic-profile-116054), [17](#17-e32148a8bd---jit-add-loop-aware-rpo-and-use-as-lsras-block-sequence-108086) |
 | System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16(arguments: JavaScript,&Hello+<World>!,16) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16%28arguments%3A%20JavaScript%2C%26Hello%2B%28World%29%21%2C16%29.html) | +83.91% | 45.219853 | 83.163582 | [1](#1-41be5e229b---jit-graph-based-loop-inversion-116017), [2](#2-ffcd1c5442---trust-single-edge-synthetic-profile-116054), [17](#17-e32148a8bd---jit-add-loop-aware-rpo-and-use-as-lsras-block-sequence-108086) |
@@ -195,7 +195,7 @@
 **Commit:** [1c10ceecbf](https://github.com/dotnet/runtime/commit/1c10ceecbf)
 **Affected Tests:** 21
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Buffers.Tests.ReadOnlySequenceTests<Byte>.IterateGetPositionArray | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Buffers.Tests.ReadOnlySequenceTests%28Byte%29.IterateGetPositionArray.html) | +62.42% | 13.821776 | 22.448740 | [3](#3-ddf8075a2f---jit-visit-blocks-in-rpo-during-lsra-107927), [5](#5-6d12a304b3---jit-do-greedy-4-opt-for-backward-jumps-in-3-opt-layout-110277) |
 | Benchstone.BenchI.XposMatrix.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/Benchstone.BenchI.XposMatrix.Test.html) | +61.45% | 12231.521028 | 19748.149585 | [1](#1-41be5e229b---jit-graph-based-loop-inversion-116017), [6](#6-ea43e17c---jit-run-profile-repair-after-frontend-phases-111915), [36](#36-aecae2c385---jit-enable-profile-consistency-checking-up-to-morph-111047) |
@@ -227,7 +227,7 @@
 **Commit:** [6d12a304b3](https://github.com/dotnet/runtime/commit/6d12a304b3068f8a9308a1aec4f3b95dd636a693)
 **Affected Tests:** 20
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Char.Char_ToUpperInvariant(input: "Hello World!") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Char.Char_ToUpperInvariant%28input%3A%20%22Hello%20World%21%22%29.html) | +85.29% | 8.687607 | 16.097684 | None |
 | System.Collections.ContainsKeyFalse<Int32, Int32>.ImmutableDictionary(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.ContainsKeyFalse%28Int32%2C%20Int32%29.ImmutableDictionary%28Size%3A%20512%29.html) | +63.62% | 9853.618257 | 16122.428785 | None |
@@ -258,7 +258,7 @@
 **Commit:** [ea43e17c](https://github.com/dotnet/runtime/commit/ea43e17c)
 **Affected Tests:** 20
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Benchstone.BenchI.XposMatrix.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/Benchstone.BenchI.XposMatrix.Test.html) | +61.45% | 12231.521028 | 19748.149585 | [1](#1-41be5e229b---jit-graph-based-loop-inversion-116017), [4](#4-1c10ceecbf---jit-add-3-opt-implementation-for-improving-upon-rpo-based-block-layout-103450), [36](#36-aecae2c385---jit-enable-profile-consistency-checking-up-to-morph-111047) |
 | System.Tests.Perf_Int64.TryParse(value: "9223372036854775807") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Int64.TryParse%28value%3A%20%229223372036854775807%22%29.html) | +53.20% | 20.146144 | 30.864106 | None |
@@ -289,7 +289,7 @@
 **Commit:** [b146d7512c](https://github.com/dotnet/runtime/commit/b146d7512ce67051e127ab48dc2d4f65d30e818f)
 **Affected Tests:** 20
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | SeekUnroll.Test(boxedIndex: 27) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/SeekUnroll.Test%28boxedIndex%3A%2027%29.html) | +62.97% | 1478559636.535714 | 2409581662.089286 | None |
 | System.Tests.Perf_Int32.TryParse(value: "-2147483648") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Int32.TryParse%28value%3A%20%22-2147483648%22%29.html) | +27.01% | 15.086563 | 19.160966 | [3](#3-ddf8075a2f---jit-visit-blocks-in-rpo-during-lsra-107927) |
@@ -320,7 +320,7 @@
 **Commit:** [34545d790e](https://github.com/dotnet/runtime/commit/34545d790e0f92be34b13f0d41b7df93f04bbe02)
 **Affected Tests:** 15
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.ContainsFalse<String>.Queue(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.ContainsFalse%28String%29.Queue%28Size%3A%20512%29.html) | +69.08% | 240390.293429 | 406458.781155 | [18](#18-023686e6c2---jit-break-up-try-regions-in-compilerfgmovecoldblocks-and-fix-contiguity-later-108914) |
 | System.Collections.ContainsTrue<String>.Queue(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.ContainsTrue%28String%29.Queue%28Size%3A%20512%29.html) | +46.73% | 121191.139988 | 177829.110090 | None |
@@ -346,7 +346,7 @@
 **Commit:** [6f221b41da](https://github.com/dotnet/runtime/commit/6f221b41da8b4fbd09dcf7ac4b796ff3c86cbeb9)
 **Affected Tests:** 14
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.MathBenchmarks.Single.AsinPi | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.MathBenchmarks.Single.AsinPi.html) | +18.26% | 25671.908671 | 30359.696271 | None |
 | System.MathBenchmarks.Single.AcosPi | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.MathBenchmarks.Single.AcosPi.html) | +14.17% | 33193.478127 | 37898.335769 | None |
@@ -371,7 +371,7 @@
 **Commit:** [02127c782a](https://github.com/dotnet/runtime/commit/02127c782adbf0cded3ed0778d4bf694e5e75996)
 **Affected Tests:** 13
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.BinaryReaderTests.ReadHalf | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.IO.Tests.BinaryReaderTests.ReadHalf.html) | +29.52% | 3.824617 | 4.953669 | None |
 | System.Numerics.Tests.Perf_BigInteger.Equals(arguments: 259 bytes, Same) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Numerics.Tests.Perf_BigInteger.Equals%28arguments%3A%20259%20bytes%2C%20Same%29.html) | +26.94% | 6.740102 | 8.556015 | [1](#1-41be5e229b---jit-graph-based-loop-inversion-116017) |
@@ -395,7 +395,7 @@
 **Commit:** [217525ae6f](https://github.com/dotnet/runtime/commit/217525ae6f6a117a0780620ed4fb1b94e03fd4d6)
 **Affected Tests:** 11
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.RegularExpressions.Tests.Perf_Regex_Common.CtorInvoke(Options: Compiled) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.RegularExpressions.Tests.Perf_Regex_Common.CtorInvoke%28Options%3A%20Compiled%29.html) | +9.71% | 193963.481279 | 212806.425792 | None |
 | System.Net.Security.Tests.SslStreamTests.ReadWriteAsync | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Net.Security.Tests.SslStreamTests.ReadWriteAsync.html) | +10.94% | 14900.327715 | 16530.299199 | None |
@@ -417,7 +417,7 @@
 **Commit:** [34f1db49db](https://github.com/dotnet/runtime/commit/34f1db49dbf702697483ee2809d493f5ef441768)
 **Affected Tests:** 10
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.ContainsTrue<String>.ImmutableArray(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.ContainsTrue%28String%29.ImmutableArray%28Size%3A%20512%29.html) | +89.50% | 123532.901615 | 234090.738264 | None |
 | System.Globalization.Tests.StringEquality.Compare_DifferentFirstChar(Count: 1024, Options: (en-US, OrdinalIgnoreCase)) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Globalization.Tests.StringEquality.Compare_DifferentFirstChar%28Count%3A%201024%2C%20Options%3A%20%28en-US%2C%20OrdinalIgnoreCase%29%29.html) | +52.67% | 7.423893 | 11.334040 | None |
@@ -438,7 +438,7 @@
 **Commit:** [5cb6a06da6](https://github.com/dotnet/runtime/commit/5cb6a06da634ee4be4f426711e9c5f66535a78c8)
 **Affected Tests:** 6
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Int32.TryParse(value: "2147483647") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Int32.TryParse%28value%3A%20%222147483647%22%29.html) | +24.09% | 14.077723 | 17.469050 | None |
 | Burgers.Test1 | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/Burgers.Test1.html) | +22.54% | 197903751.107143 | 242512062.250000 | [1](#1-41be5e229b---jit-graph-based-loop-inversion-116017) |
@@ -455,7 +455,7 @@
 **Commit:** [21ab780ed4](https://github.com/dotnet/runtime/commit/21ab780ed4aad5d3f37b92c9015f0a8051dd4a69)
 **Affected Tests:** 6
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Buffers.Text.Tests.Utf8FormatterTests.FormatterUInt64(value: 12345) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Buffers.Text.Tests.Utf8FormatterTests.FormatterUInt64%28value%3A%2012345%29.html) | +25.05% | 5.807021 | 7.261802 | None |
 | System.Tests.Perf_Half.HalfToSingle(value: 12344) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Half.HalfToSingle%28value%3A%2012344%29.html) | +16.12% | 1.973655 | 2.291733 | None |
@@ -472,7 +472,7 @@
 **Commit:** [75b550d7d3](https://github.com/dotnet/runtime/commit/75b550d7d3b5b27a74b5bff9c1cb09c42f4fb3ab)
 **Affected Tests:** 5
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Json.Tests.Perf_Strings.WriteStringsUtf16(Formatted: True, SkipValidation: True, Escaped: AllEscaped) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Json.Tests.Perf_Strings.WriteStringsUtf16%28Formatted%3A%20True%2C%20SkipValidation%3A%20True%2C%20Escaped%3A%20AllEscaped%29.html) | +20.41% | 49095127.767857 | 59116587.782143 | [10](#10-02127c782a---jit-dont-put-cold-blocks-in-rpo-during-layout-112448) |
 | System.Text.Json.Tests.Perf_Strings.WriteStringsUtf16(Formatted: True, SkipValidation: False, Escaped: AllEscaped) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Json.Tests.Perf_Strings.WriteStringsUtf16%28Formatted%3A%20True%2C%20SkipValidation%3A%20False%2C%20Escaped%3A%20AllEscaped%29.html) | +19.48% | 49067059.228571 | 58623669.014286 | None |
@@ -488,7 +488,7 @@
 **Commit:** [f93aa8a3d7](https://github.com/dotnet/runtime/commit/f93aa8a3d74304ea3bc58a1127afdbed1e2398dc)
 **Affected Tests:** 5
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Compression.Brotli.Decompress_WithState(level: Fastest, file: "TestDocument.pdf") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.IO.Compression.Brotli.Decompress_WithState%28level%3A%20Fastest%2C%20file%3A%20%22TestDocument.pdf%22%29.html) | +7.06% | 235801.397028 | 252445.077506 | None |
 | System.IO.Compression.Brotli.Decompress_WithoutState(level: Fastest, file: "TestDocument.pdf") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.IO.Compression.Brotli.Decompress_WithoutState%28level%3A%20Fastest%2C%20file%3A%20%22TestDocument.pdf%22%29.html) | +7.29% | 232884.411854 | 249859.900833 | None |
@@ -504,7 +504,7 @@
 **Commit:** [e32148a8bd](https://github.com/dotnet/runtime/commit/e32148a8bd)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16(arguments: Url,&lorem ipsum=dolor sit amet,16) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16%28arguments%3A%20Url%2C%26lorem%20ipsum%3Ddolor%20sit%20amet%2C16%29.html) | +117.06% | 51.955954 | 112.773346 | [1](#1-41be5e229b---jit-graph-based-loop-inversion-116017), [2](#2-ffcd1c5442---trust-single-edge-synthetic-profile-116054), [3](#3-ddf8075a2f---jit-visit-blocks-in-rpo-during-lsra-107927) |
 | System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16(arguments: JavaScript,&Hello+<World>!,16) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Encodings.Web.Tests.Perf_Encoders.EncodeUtf16%28arguments%3A%20JavaScript%2C%26Hello%2B%28World%29%21%2C16%29.html) | +83.91% | 45.219853 | 83.163582 | [1](#1-41be5e229b---jit-graph-based-loop-inversion-116017), [2](#2-ffcd1c5442---trust-single-edge-synthetic-profile-116054), [3](#3-ddf8075a2f---jit-visit-blocks-in-rpo-during-lsra-107927) |
@@ -519,7 +519,7 @@
 **Commit:** [023686e6c2](https://github.com/dotnet/runtime/commit/023686e6c2b0e6d8161680fff14b0703cd041ca5)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.ContainsFalse<String>.List(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.ContainsFalse%28String%29.List%28Size%3A%20512%29.html) | +106.91% | 243954.531241 | 504777.072629 | [2](#2-ffcd1c5442---trust-single-edge-synthetic-profile-116054) |
 | System.Collections.ContainsFalse<String>.Queue(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.ContainsFalse%28String%29.Queue%28Size%3A%20512%29.html) | +69.08% | 240390.293429 | 406458.781155 | [8](#8-34545d790e---jit-dont-mark-callees-noinline-for-non-fatal-observations-with-pgo-114821) |
@@ -534,7 +534,7 @@
 **Commit:** [cf7a7444c2](https://github.com/dotnet/runtime/commit/cf7a7444c255e0400f1ab078f85d8e3ad746bfb1)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Perf_Utf8Encoding.GetByteCount(Input: EnglishAllAscii) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Perf_Utf8Encoding.GetByteCount%28Input%3A%20EnglishAllAscii%29.html) | +28.04% | 5158.704253 | 6605.182492 | None |
 | System.Text.Tests.Perf_Encoding.GetByteCount(size: 512, encName: "utf-8") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Tests.Perf_Encoding.GetByteCount%28size%3A%20512%2C%20encName%3A%20%22utf-8%22%29.html) | +21.51% | 18.858929 | 22.915256 | None |
@@ -549,7 +549,7 @@
 **Commit:** [b382a451a9](https://github.com/dotnet/runtime/commit/b382a451a967eb16968b65238547e6ee795d9d91)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Compression.Brotli.Compress_WithoutState(level: Optimal, file: "alice29.txt") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.IO.Compression.Brotli.Compress_WithoutState%28level%3A%20Optimal%2C%20file%3A%20%22alice29.txt%22%29.html) | +6.32% | 183399607.964286 | 194983134.071429 | None |
 | System.IO.Compression.Brotli.Compress_WithState(level: Optimal, file: "alice29.txt") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.IO.Compression.Brotli.Compress_WithState%28level%3A%20Optimal%2C%20file%3A%20%22alice29.txt%22%29.html) | +5.83% | 184894088.875000 | 195676447.553571 | [11](#11-217525ae6f---workaround-for-106521-106578), [44](#44-1b5c48dc59---upgrade-vendored-brotli-dependency-to-v110-106994) |
@@ -564,7 +564,7 @@
 **Commit:** [254b55a49e](https://github.com/dotnet/runtime/commit/254b55a49e)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Span.IndexerBench.CoveredIndex1(length: 1024) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/Span.IndexerBench.CoveredIndex1%28length%3A%201024%29.html) | +65.35% | 664.137253 | 1098.183449 | None |
 | System.Text.RegularExpressions.Tests.Perf_Regex_Industry_BoostDocs_Simple.IsMatch(Id: 8, Options: Compiled) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.RegularExpressions.Tests.Perf_Regex_Industry_BoostDocs_Simple.IsMatch%28Id%3A%208%2C%20Options%3A%20Compiled%29.html) | -7.29% | 35.337766 | 32.760171 | None |
@@ -579,7 +579,7 @@
 **Commit:** [30082a461a](https://github.com/dotnet/runtime/commit/30082a461a68e3305b507910aba7457bdc98115c)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | BenchmarksGame.ReverseComplement_1.RunBench | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/BenchmarksGame.ReverseComplement_1.RunBench.html) | +35.84% | 421661.013484 | 572779.655435 | None |
 | XmlDocumentTests.XmlNodeTests.Perf_XmlNode.GetAttributes | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/XmlDocumentTests.XmlNodeTests.Perf_XmlNode.GetAttributes.html) | +16.19% | 3.715258 | 4.316894 | None |
@@ -594,7 +594,7 @@
 **Commit:** [54b86f1843](https://github.com/dotnet/runtime/commit/54b86f18439397f51fbf4b14f6127a337446f3cf)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_VectorOf<Single>.SquareRootBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Numerics.Tests.Perf_VectorOf%28Single%29.SquareRootBenchmark.html) | +368.33% | 1.412193 | 6.613705 | None |
 | System.Numerics.Tests.Perf_VectorOf<Double>.SquareRootBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Numerics.Tests.Perf_VectorOf%28Double%29.SquareRootBenchmark.html) | +125.49% | 2.499447 | 5.635950 | None |
@@ -608,7 +608,7 @@
 **Commit:** [ccc9c52e61](https://github.com/dotnet/runtime/commit/ccc9c52e6137464f5b369c5d4f9d17f24287342b)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Perf_Ascii.ToLowerInPlace_Chars(Size: 6) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Perf_Ascii.ToLowerInPlace_Chars%28Size%3A%206%29.html) | +20.00% | 4.268645 | 5.122570 | None |
 | System.Text.Perf_Ascii.ToUpperInPlace_Chars(Size: 6) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Perf_Ascii.ToUpperInPlace_Chars%28Size%3A%206%29.html) | +22.12% | 4.227484 | 5.162656 | None |
@@ -622,7 +622,7 @@
 **Commit:** [f6c74b8df8](https://github.com/dotnet/runtime/commit/f6c74b8df8)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | ArrayDeAbstraction.foreach_opaque_array_via_interface | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/ArrayDeAbstraction.foreach_opaque_array_via_interface.html) | -63.94% | 749.656252 | 270.355618 | [7](#7-b146d7512c---jit-move-loop-inversion-to-after-loop-recognition-115850) |
 | ArrayDeAbstraction.foreach_static_array_via_interface_property | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/ArrayDeAbstraction.foreach_static_array_via_interface_property.html) | -63.82% | 740.984680 | 268.063193 | [7](#7-b146d7512c---jit-move-loop-inversion-to-after-loop-recognition-115850) |
@@ -636,7 +636,7 @@
 **Commit:** [16782a4481](https://github.com/dotnet/runtime/commit/16782a4481f389e68314b16ea628c5af80f22783)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Int128.ParseSpan(value: "170141183460469231731687303715884105727") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Int128.ParseSpan%28value%3A%20%22170141183460469231731687303715884105727%22%29.html) | +27.09% | 75.429986 | 95.864294 | [3](#3-ddf8075a2f---jit-visit-blocks-in-rpo-during-lsra-107927), [6](#6-ea43e17c---jit-run-profile-repair-after-frontend-phases-111915) |
 | System.Tests.Perf_Int128.TryParseSpan(value: "170141183460469231731687303715884105727") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Int128.TryParseSpan%28value%3A%20%22170141183460469231731687303715884105727%22%29.html) | +27.53% | 75.656432 | 96.487566 | [6](#6-ea43e17c---jit-run-profile-repair-after-frontend-phases-111915) |
@@ -650,7 +650,7 @@
 **Commit:** [76750df493](https://github.com/dotnet/runtime/commit/76750df493f2692c13459fc77c065594ea1f628e)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.TryGetValueTrue<BigStruct, BigStruct>.ImmutableSortedDictionary(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.TryGetValueTrue%28BigStruct%2C%20BigStruct%29.ImmutableSortedDictionary%28Size%3A%20512%29.html) | +49.36% | 13185.578268 | 19693.577856 | None |
 | System.Collections.Concurrent.Count<String>.Bag(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.Concurrent.Count%28String%29.Bag%28Size%3A%20512%29.html) | +15.77% | 34.736922 | 40.213446 | None |
@@ -664,7 +664,7 @@
 **Commit:** [39a31f082e](https://github.com/dotnet/runtime/commit/39a31f082e77fb8893016c30c0858f0e5f8c89ea)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Int64.ParseSpan(value: "-9223372036854775808") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Int64.ParseSpan%28value%3A%20%22-9223372036854775808%22%29.html) | +27.36% | 21.659631 | 27.585544 | [7](#7-b146d7512c---jit-move-loop-inversion-to-after-loop-recognition-115850) |
 | System.Tests.Perf_Int64.TryParse(value: "-9223372036854775808") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Int64.TryParse%28value%3A%20%22-9223372036854775808%22%29.html) | +21.60% | 22.534868 | 27.401980 | [7](#7-b146d7512c---jit-move-loop-inversion-to-after-loop-recognition-115850) |
@@ -678,7 +678,7 @@
 **Commit:** [915c681a7c](https://github.com/dotnet/runtime/commit/915c681a7c826d4fdd392511e02e7d9ac4218efe)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.ContainsTrue<Int32>.SortedSet(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.ContainsTrue%28Int32%29.SortedSet%28Size%3A%20512%29.html) | +23.03% | 14777.816779 | 18181.506791 | None |
 | System.Collections.ContainsKeyFalse<Int32, Int32>.ImmutableSortedDictionary(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.ContainsKeyFalse%28Int32%2C%20Int32%29.ImmutableSortedDictionary%28Size%3A%20512%29.html) | +7.75% | N/A | N/A | None |
@@ -691,7 +691,7 @@
 **Commit:** [1434eeef6c](https://github.com/dotnet/runtime/commit/1434eeef6c9548c8be39cb0bb3aed11808146195)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.Tests.Perf_BitArray.BitArrayNot(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.Tests.Perf_BitArray.BitArrayNot%28Size%3A%20512%29.html) | +20.62% | 10.607692 | 12.794792 | None |
 | System.Text.Json.Tests.Perf_Strings.WriteStringsUtf16(Formatted: False, SkipValidation: True, Escaped: AllEscaped) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Json.Tests.Perf_Strings.WriteStringsUtf16%28Formatted%3A%20False%2C%20SkipValidation%3A%20True%2C%20Escaped%3A%20AllEscaped%29.html) | +20.95% | 48108475.453571 | 58185699.503571 | [10](#10-02127c782a---jit-dont-put-cold-blocks-in-rpo-during-layout-112448), [15](#15-75b550d7d3---implement-writestringvaluesegment-defined-in-issue-67337-101356) |
@@ -704,7 +704,7 @@
 **Commit:** [489a1512f5](https://github.com/dotnet/runtime/commit/489a1512f55961e91e46054f06eaecafb94ce5ee)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.TryGetValueTrue<Int32, Int32>.ImmutableSortedDictionary(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.TryGetValueTrue%28Int32%2C%20Int32%29.ImmutableSortedDictionary%28Size%3A%20512%29.html) | +42.73% | 13411.946128 | 19143.403434 | [1](#1-41be5e229b---jit-graph-based-loop-inversion-116017) |
 | System.Collections.AddGivenSize<String>.List(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.AddGivenSize%28String%29.List%28Size%3A%20512%29.html) | +15.76% | 1340.137505 | 1551.305664 | [48](#48-789bc64ad4---unblock-inlining-of-generics-with-static-fields-109256) |
@@ -717,7 +717,7 @@
 **Commit:** [6bc04bfdb1](https://github.com/dotnet/runtime/commit/6bc04bfdb1)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | ArrayDeAbstraction.foreach_member_array_via_interface | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/ArrayDeAbstraction.foreach_member_array_via_interface.html) | -62.34% | 744.363833 | 280.330949 | [7](#7-b146d7512c---jit-move-loop-inversion-to-after-loop-recognition-115850) |
 | ArrayDeAbstraction.foreach_static_array_via_interface | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/ArrayDeAbstraction.foreach_static_array_via_interface.html) | -63.74% | 754.186649 | 273.453218 | [7](#7-b146d7512c---jit-move-loop-inversion-to-after-loop-recognition-115850) |
@@ -730,7 +730,7 @@
 **Commit:** [1c4c0093a6](https://github.com/dotnet/runtime/commit/1c4c0093a6f2008bafc034e35e08d019bef44cef)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_GC<Byte>.AllocateArray(length: 1000, pinned: False) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_GC%28Byte%29.AllocateArray%28length%3A%201000%2C%20pinned%3A%20False%29.html) | +10.09% | 61.174714 | 67.349717 | None |
 | System.Tests.Perf_GC<Char>.AllocateArray(length: 1000, pinned: False) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_GC%28Char%29.AllocateArray%28length%3A%201000%2C%20pinned%3A%20False%29.html) | +6.63% | 92.239588 | 98.354318 | None |
@@ -743,7 +743,7 @@
 **Commit:** [c7f41499a5](https://github.com/dotnet/runtime/commit/c7f41499a5b96e05f9fc172e53f2fea1fef2b428)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.RegularExpressions.Tests.Perf_Regex_Common.Ctor(Options: IgnoreCase, Compiled) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.RegularExpressions.Tests.Perf_Regex_Common.Ctor%28Options%3A%20IgnoreCase%2C%20Compiled%29.html) | +16.81% | 35042.508079 | 40931.970510 | None |
 | System.Text.RegularExpressions.Tests.Perf_Regex_Common.CtorInvoke(Options: IgnoreCase, Compiled) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.RegularExpressions.Tests.Perf_Regex_Common.CtorInvoke%28Options%3A%20IgnoreCase%2C%20Compiled%29.html) | +11.18% | 228897.958118 | 254478.454976 | None |
@@ -756,7 +756,7 @@
 **Commit:** [cdfafde684](https://github.com/dotnet/runtime/commit/cdfafde684f4cf62db38dd0168362f43a15c89c1)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Char.Char_ToLowerInvariant(input: "Hello World!") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Char.Char_ToLowerInvariant%28input%3A%20%22Hello%20World%21%22%29.html) | +41.56% | 7.697366 | 10.896437 | None |
 | System.Tests.Perf_Byte.TryParse(value: "255") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Byte.TryParse%28value%3A%20%22255%22%29.html) | +6.84% | 11.863491 | 12.674941 | None |
@@ -769,7 +769,7 @@
 **Commit:** [aecae2c385](https://github.com/dotnet/runtime/commit/aecae2c3853ea793ede98906320312ca6c199ec1)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Benchstone.BenchI.XposMatrix.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/Benchstone.BenchI.XposMatrix.Test.html) | +61.45% | 12231.521028 | 19748.149585 | [1](#1-41be5e229b---jit-graph-based-loop-inversion-116017), [4](#4-1c10ceecbf---jit-add-3-opt-implementation-for-improving-upon-rpo-based-block-layout-103450), [6](#6-ea43e17c---jit-run-profile-repair-after-frontend-phases-111915) |
 | Microsoft.Extensions.Primitives.Performance.StringValuesBenchmark.Indexer_FirstElement_Array | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/Microsoft.Extensions.Primitives.Performance.StringValuesBenchmark.Indexer_FirstElement_Array.html) | +16.16% | 3.097582 | 3.598054 | None |
@@ -782,7 +782,7 @@
 **Commit:** [27b25483e0](https://github.com/dotnet/runtime/commit/27b25483e06a14af2aaf6f6b6b9b6e527a3b69bf)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Net.NetworkInformation.Tests.PhysicalAddressTests.PAMedium | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Net.NetworkInformation.Tests.PhysicalAddressTests.PAMedium.html) | +5.65% | 14.461262 | 15.277686 | None |
 | System.Perf_Convert.ToHexString | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Perf_Convert.ToHexString.html) | +5.56% | 31.483682 | 33.233707 | None |
@@ -795,7 +795,7 @@
 **Commit:** [2ba0c4d944](https://github.com/dotnet/runtime/commit/2ba0c4d9440366366328a37ea1f2a6616564c849)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.IndexerSet<Int32>.SortedList(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.IndexerSet%28Int32%29.SortedList%28Size%3A%20512%29.html) | +11.93% | 17732.499285 | 19847.370215 | None |
 | System.Buffers.Tests.RentReturnArrayPoolTests<Byte>.SingleSerial(RentalSize: 4096, ManipulateArray: False, Async: False, UseSharedPool: True) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Buffers.Tests.RentReturnArrayPoolTests%28Byte%29.SingleSerial%28RentalSize%3A%204096%2C%20ManipulateArray%3A%20False%2C%20Async%3A%20False%2C%20UseSharedPool%3A%20True%29.html) | +8.52% | 11.604297 | 12.592757 | None |
@@ -808,7 +808,7 @@
 **Commit:** [0ac2caf41a](https://github.com/dotnet/runtime/commit/0ac2caf41a88c56a287ab790e92eaf3ccf846fc8)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Formats.Tar.Tests.Perf_TarWriter.UstarTarEntry_WriteEntry | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Formats.Tar.Tests.Perf_TarWriter.UstarTarEntry_WriteEntry.html) | +14.39% | 200.374721 | 229.217896 | None |
 | System.Formats.Tar.Tests.Perf_TarWriter.V7TarEntry_WriteEntry | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Formats.Tar.Tests.Perf_TarWriter.V7TarEntry_WriteEntry.html) | +13.57% | 186.447493 | 211.740735 | None |
@@ -821,7 +821,7 @@
 **Commit:** [4158fca8fc](https://github.com/dotnet/runtime/commit/4158fca8fc562796170dd451d132ab3d02ecc804)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | ArrayDeAbstraction.foreach_opaque_array_via_interface_in_loop | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/ArrayDeAbstraction.foreach_opaque_array_via_interface_in_loop.html) | -9.74% | 988.975437 | 892.689969 | None |
 | ArrayDeAbstraction.foreach_member_array_via_interface_property_in_loop | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/ArrayDeAbstraction.foreach_member_array_via_interface_property_in_loop.html) | -8.86% | 969.545202 | 883.604330 | None |
@@ -834,7 +834,7 @@
 **Commit:** [bfa124fa79](https://github.com/dotnet/runtime/commit/bfa124fa79d8fb89d18bc40b26158407490393ef)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Buffers.Text.Tests.Base64Tests.Base64DecodeDestinationTooSmall(NumberOfBytes: 1000) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Buffers.Text.Tests.Base64Tests.Base64DecodeDestinationTooSmall%28NumberOfBytes%3A%201000%29.html) | +12.03% | 61.816755 | 69.253326 | None |
 | System.Numerics.Tensors.Tests.Perf_NumberTensorPrimitives<Double>.IndexOfMax(BufferLength: 128) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Numerics.Tensors.Tests.Perf_NumberTensorPrimitives%28Double%29.IndexOfMax%28BufferLength%3A%20128%29.html) | +19.30% | 57.775863 | 68.924326 | None |
@@ -847,7 +847,7 @@
 **Commit:** [3c8bae3ff0](https://github.com/dotnet/runtime/commit/3c8bae3ff0906f590c6eec61eb114eac205ac2cc)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.IterateForEach<Int32>.Stack(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.IterateForEach%28Int32%29.Stack%28Size%3A%20512%29.html) | +12.79% | 1006.313036 | 1134.983234 | None |
 | System.Buffers.Text.Tests.Base64Tests.ConvertTryFromBase64Chars(NumberOfBytes: 1000) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Buffers.Text.Tests.Base64Tests.ConvertTryFromBase64Chars%28NumberOfBytes%3A%201000%29.html) | +10.17% | 746.523883 | 822.417701 | [1](#1-41be5e229b---jit-graph-based-loop-inversion-116017) |
@@ -860,7 +860,7 @@
 **Commit:** [2d5a2ee095](https://github.com/dotnet/runtime/commit/2d5a2ee09518e3afad75ea9bc40df0a548bcfa36)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Threading.Channels.Tests.BoundedChannelPerfTests.TryWriteThenTryRead | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Threading.Channels.Tests.BoundedChannelPerfTests.TryWriteThenTryRead.html) | +18.81% | 37.816292 | 44.928353 | None |
 | System.Threading.Channels.Tests.UnboundedChannelPerfTests.TryWriteThenTryRead | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Threading.Channels.Tests.UnboundedChannelPerfTests.TryWriteThenTryRead.html) | +10.71% | 31.255626 | 34.603370 | None |
@@ -873,7 +873,7 @@
 **Commit:** [1b5c48dc59](https://github.com/dotnet/runtime/commit/1b5c48dc5958e20b4aa0f4cbfc21fddb8f81052c)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Compression.Brotli.Compress_WithState(level: Optimal, file: "alice29.txt") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.IO.Compression.Brotli.Compress_WithState%28level%3A%20Optimal%2C%20file%3A%20%22alice29.txt%22%29.html) | +5.83% | 184894088.875000 | 195676447.553571 | [11](#11-217525ae6f---workaround-for-106521-106578), [20](#20-b382a451a9---fix-build-with--dclr_cmake_use_system_brotlitrue-110816) |
 
@@ -885,7 +885,7 @@
 **Commit:** [b06d5e241c](https://github.com/dotnet/runtime/commit/b06d5e241c8cbc6b991b901dacc8bcc354984b1d)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Int32.TryParse(value: "12345") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Int32.TryParse%28value%3A%20%2212345%22%29.html) | +9.23% | 10.580130 | 11.556880 | [6](#6-ea43e17c---jit-run-profile-repair-after-frontend-phases-111915) |
 
@@ -897,7 +897,7 @@
 **Commit:** [a38ab4c0bc](https://github.com/dotnet/runtime/commit/a38ab4c0bc3780754259be600db1501cc2907a84)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Reflection.Invoke.Field_SetStatic_struct | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Reflection.Invoke.Field_SetStatic_struct.html) | +5.16% | 39.618578 | 41.664751 | None |
 
@@ -909,7 +909,7 @@
 **Commit:** [4bf7a2b238](https://github.com/dotnet/runtime/commit/4bf7a2b2385d0730448b698d3011182687e5a9c2)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_String.ToUpperInvariant(s: "TEST") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_String.ToUpperInvariant%28s%3A%20%22TEST%22%29.html) | +21.31% | 5.454580 | 6.616886 | None |
 
@@ -921,7 +921,7 @@
 **Commit:** [789bc64ad4](https://github.com/dotnet/runtime/commit/789bc64ad46b855bc7c0646e35e3ccf371960629)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.AddGivenSize<String>.List(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.AddGivenSize%28String%29.List%28Size%3A%20512%29.html) | +15.76% | 1340.137505 | 1551.305664 | [31](#31-489a1512f5---remove-ldsfld-quirk-108606) |
 
@@ -933,7 +933,7 @@
 **Commit:** [bf369fd44e](https://github.com/dotnet/runtime/commit/bf369fd44e4029e8a2453cd619acfa3e67d30a43)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.ContainsKeyTrue<String, String>.FrozenDictionary(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.ContainsKeyTrue%28String%2C%20String%29.FrozenDictionary%28Size%3A%20512%29.html) | +17.73% | 5107.537873 | 6013.126537 | [3](#3-ddf8075a2f---jit-visit-blocks-in-rpo-during-lsra-107927) |
 
@@ -945,7 +945,7 @@
 **Commit:** [53cc1ddeec](https://github.com/dotnet/runtime/commit/53cc1ddeec661d03d65d0e2949f3486e2162d80f)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Memory.Span<Char>.LastIndexOfAnyValues(Size: 4) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Memory.Span%28Char%29.LastIndexOfAnyValues%28Size%3A%204%29.html) | +17.07% | 2.922074 | 3.420840 | None |
 
@@ -957,7 +957,7 @@
 **Commit:** [dfb2b8a861](https://github.com/dotnet/runtime/commit/dfb2b8a861fc97ce90c8f31c886d4d27c5b36f46)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Xml.Linq.Perf_XElementList.Enumerator | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Xml.Linq.Perf_XElementList.Enumerator.html) | +21.99% | 147.893044 | 180.413967 | None |
 
@@ -969,7 +969,7 @@
 **Commit:** [95814d0f99](https://github.com/dotnet/runtime/commit/95814d0f99fd876fdc2f6b5b4cf5d5fc94adaea9)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Perf_Ascii.IsValid_Chars(Size: 128) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Perf_Ascii.IsValid_Chars%28Size%3A%20128%29.html) | +21.62% | 4.935867 | 6.002944 | None |
 
@@ -981,7 +981,7 @@
 **Commit:** [d2cdcdd693](https://github.com/dotnet/runtime/commit/d2cdcdd69391bbfde1a8fb4aa275a6cc393ca65b)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Perf_Ascii.IsValid_Chars(Size: 6) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Text.Perf_Ascii.IsValid_Chars%28Size%3A%206%29.html) | +9.30% | 2.656210 | 2.903174 | None |
 
@@ -993,7 +993,7 @@
 **Commit:** [2a2b7dc72b](https://github.com/dotnet/runtime/commit/2a2b7dc72b5642dd24ca37623327e765a9730dd7)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Memory.Span<Int32>.Fill(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Memory.Span%28Int32%29.Fill%28Size%3A%20512%29.html) | +10.69% | 24.311001 | 26.910972 | None |
 
@@ -1005,7 +1005,7 @@
 **Commit:** [c37cfcc645](https://github.com/dotnet/runtime/commit/c37cfcc6459605e7cd1e1311c6dc74ee087ec08c)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Benchstone.MDBenchI.MDArray2.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/Benchstone.MDBenchI.MDArray2.Test.html) | +22.77% | 1349393098.607143 | 1656599991.589286 | None |
 
@@ -1017,7 +1017,7 @@
 **Commit:** [496824c97b](https://github.com/dotnet/runtime/commit/496824c97b9cf072682dea1a789cac6ca1875692)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Byte.TryParse(value: "0") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Tests.Perf_Byte.TryParse%28value%3A%20%220%22%29.html) | +5.50% | 9.007999 | 9.503419 | None |
 
@@ -1029,7 +1029,7 @@
 **Commit:** [a45130eb80](https://github.com/dotnet/runtime/commit/a45130eb80)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.Tests.Perf_BitArray.BitArrayLeftShift(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.Tests.Perf_BitArray.BitArrayLeftShift%28Size%3A%20512%29.html) | +34.28% | 153.259354 | 205.794787 | None |
 
@@ -1041,7 +1041,7 @@
 **Commit:** [dc88476f10](https://github.com/dotnet/runtime/commit/dc88476f102123edebd6b2d2efe5a56146f60094)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.BinaryReaderTests.ReadBool | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.IO.Tests.BinaryReaderTests.ReadBool.html) | +13.88% | 2.656224 | 3.025028 | None |
 
@@ -1053,7 +1053,7 @@
 **Commit:** [f9fc62ab41](https://github.com/dotnet/runtime/commit/f9fc62ab41d53d331544b4da5a187b036df8c1bb)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Microsoft.Extensions.Primitives.StringSegmentBenchmark.Equals_Object_Valid | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/Microsoft.Extensions.Primitives.StringSegmentBenchmark.Equals_Object_Valid.html) | +17.75% | 6.146948 | 7.237974 | None |
 
@@ -1065,7 +1065,7 @@
 **Commit:** [33b5215c15](https://github.com/dotnet/runtime/commit/33b5215c15b16ad9e2738c325f6b562702c308d3)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.ContainsTrueComparer<Int32>.HashSet(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.ContainsTrueComparer%28Int32%29.HashSet%28Size%3A%20512%29.html) | +55.95% | 2610.504462 | 4071.208610 | None |
 
@@ -1077,7 +1077,7 @@
 **Commit:** [fd8933aac2](https://github.com/dotnet/runtime/commit/fd8933aac237d2f3103de071ec4bc1547bfef16c)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Interop.ComWrappersTests.ParallelRCWLookUp | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/Interop.ComWrappersTests.ParallelRCWLookUp.html) | +27.16% | 313726947.464286 | 398935684.035714 | None |
 
@@ -1089,7 +1089,7 @@
 **Commit:** [e0e9f15d06](https://github.com/dotnet/runtime/commit/e0e9f15d06b775325c874674bfca51d18c8f5075)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_Quaternion.CreateFromRotationMatrixBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Numerics.Tests.Perf_Quaternion.CreateFromRotationMatrixBenchmark.html) | +47.68% | 4.721879 | 6.973434 | [2](#2-ffcd1c5442---trust-single-edge-synthetic-profile-116054) |
 
@@ -1101,7 +1101,7 @@
 **Commit:** [ac7097cb47](https://github.com/dotnet/runtime/commit/ac7097cb4761d9c71e212bf07e4d916d1571c96b)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.Perf_StreamWriter.WriteCharArray(writeLength: 100) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.IO.Tests.Perf_StreamWriter.WriteCharArray%28writeLength%3A%20100%29.html) | +12.51% | 247439911.964286 | 278391499.214286 | None |
 
@@ -1113,7 +1113,7 @@
 **Commit:** [e82789be73](https://github.com/dotnet/runtime/commit/e82789be7360c936df7553cc84213c9e829789d0)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.BinaryWriterTests.WriteSingle | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.IO.Tests.BinaryWriterTests.WriteSingle.html) | +11.84% | 2.422528 | 2.709312 | None |
 
@@ -1125,7 +1125,7 @@
 **Commit:** [d3e2f5e13a](https://github.com/dotnet/runtime/commit/d3e2f5e13aac894737a90ba8494ad57465ba639f)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Perf_Convert.ToBase64CharArray(binaryDataSize: 1024, formattingOptions: InsertLineBreaks) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Perf_Convert.ToBase64CharArray%28binaryDataSize%3A%201024%2C%20formattingOptions%3A%20InsertLineBreaks%29.html) | +8.19% | 1270.795040 | 1374.818125 | None |
 
@@ -1137,7 +1137,7 @@
 **Commit:** [38c8e8f4cc](https://github.com/dotnet/runtime/commit/38c8e8f4cc1be3abd20f675771f208360b11b52c)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.Tests.Perf_BitArray.BitArrayNot(Size: 4) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_ubuntu%2022.04/System.Collections.Tests.Perf_BitArray.BitArrayNot%28Size%3A%204%29.html) | +10.32% | 4.421564 | 4.877761 | [1](#1-41be5e229b---jit-graph-based-loop-inversion-116017), [22](#22-30082a461a---jit-save-pgo-data-in-inline-context-use-it-for-call-optimization-116241) |
 
