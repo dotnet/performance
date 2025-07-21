@@ -1,4 +1,4 @@
-# Changepoint Impact Report - windows-x64-tiger
+# Regression Report - windows-x64-tiger
 
 ## 1. ffcd1c5442 - Trust single-edge synthetic profile (#116054)
 
@@ -6,7 +6,7 @@
 **Commit:** [ffcd1c5442](https://github.com/dotnet/runtime/commit/ffcd1c5442a0c6e5317efa46d6ce381003397476)
 **Affected Tests:** 61
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Hashing.Tests.Crc64_AppendPerf.Append(BufferSize: 256) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.IO.Hashing.Tests.Crc64_AppendPerf.Append%28BufferSize%3A%20256%29.html) | +412.79% | 21.595596 | 110.739071 | None |
 | System.IO.Hashing.Tests.Crc64_AppendPerf.Append(BufferSize: 10240) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.IO.Hashing.Tests.Crc64_AppendPerf.Append%28BufferSize%3A%2010240%29.html) | +338.34% | 608.026998 | 2665.240759 | None |
@@ -78,7 +78,7 @@
 **Commit:** [ddf8075a2f](https://github.com/dotnet/runtime/commit/ddf8075a2fa3044554ded41c375a82a318ae01eb)
 **Affected Tests:** 40
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | GuardedDevirtualization.TwoClassInterface.Call(testInput: pB = 1.00) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/GuardedDevirtualization.TwoClassInterface.Call%28testInput%3A%20pB%20%3D%201.00%29.html) | +98.94% | 0.634053 | 1.261365 | None |
 | GuardedDevirtualization.ThreeClassVirtual.Call(testInput: pB=0.00 pD=1.00) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/GuardedDevirtualization.ThreeClassVirtual.Call%28testInput%3A%20pB%3D0.00%20pD%3D1.00%29.html) | +98.81% | 0.634654 | 1.261769 | None |
@@ -129,7 +129,7 @@
 **Commit:** [41be5e229b](https://github.com/dotnet/runtime/commit/41be5e229b30fc3e7aaed9361b9db4487c5bb7f8)
 **Affected Tests:** 40
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Burgers.Test0 | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/Burgers.Test0.html) | +1164.90% | 303518264.285714 | 3839188166.071428 | None |
 | System.Globalization.Tests.StringEquality.Compare_Same_Upper(Count: 1024, Options: (en-US, OrdinalIgnoreCase)) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Globalization.Tests.StringEquality.Compare_Same_Upper%28Count%3A%201024%2C%20Options%3A%20%28en-US%2C%20OrdinalIgnoreCase%29%29.html) | +152.42% | 1097.182800 | 2769.504408 | None |
@@ -180,7 +180,7 @@
 **Commit:** [b146d7512c](https://github.com/dotnet/runtime/commit/b146d7512ce67051e127ab48dc2d4f65d30e818f)
 **Affected Tests:** 22
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Net.Tests.Perf_WebUtility.Decode_NoDecodingRequired | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Net.Tests.Perf_WebUtility.Decode_NoDecodingRequired.html) | +55.94% | 57.972514 | 90.399890 | [1](#1-ffcd1c5442---trust-single-edge-synthetic-profile-116054) |
 | Benchstone.BenchI.IniArray.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/Benchstone.BenchI.IniArray.Test.html) | +41.33% | 75125806.547619 | 106172767.261905 | None |
@@ -213,7 +213,7 @@
 **Commit:** [6d12a304b3](https://github.com/dotnet/runtime/commit/6d12a304b3068f8a9308a1aec4f3b95dd636a693)
 **Affected Tests:** 18
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.IterateForNonGeneric<String>.ArrayList(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Collections.IterateForNonGeneric%28String%29.ArrayList%28Size%3A%20512%29.html) | +57.42% | 414.761986 | 652.934814 | None |
 | System.Collections.IterateForNonGeneric<Int32>.ArrayList(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Collections.IterateForNonGeneric%28Int32%29.ArrayList%28Size%3A%20512%29.html) | +57.45% | 414.727107 | 652.979192 | None |
@@ -242,7 +242,7 @@
 **Commit:** [1c10ceecbf](https://github.com/dotnet/runtime/commit/1c10ceecbf5356c33c67f6325072d753707f854e)
 **Affected Tests:** 17
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Span.Sorting.BubbleSortSpan(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/Span.Sorting.BubbleSortSpan%28Size%3A%20512%29.html) | +56.16% | 212227.260218 | 331405.043971 | [55](#55-48ace183c4---jit-re-introduce-late-fgoptimizebranch-pass-113491) |
 | System.Text.RegularExpressions.Tests.Perf_Regex_Industry_RustLang_Sherlock.Count(Pattern: "\\w+\\s+Holmes", Options: NonBacktracking) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Text.RegularExpressions.Tests.Perf_Regex_Industry_RustLang_Sherlock.Count%28Pattern%3A%20%22%5C%5Cw%2B%5C%5Cs%2BHolmes%22%2C%20Options%3A%20NonBacktracking%29.html) | +49.67% | 2481196.183473 | 3713627.433473 | [1](#1-ffcd1c5442---trust-single-edge-synthetic-profile-116054), [8](#8-d3e2f5e13a---jit-exclude-bb_unity_weight-scaling-from-basicblockisbbweightcold-116548) |
@@ -270,7 +270,7 @@
 **Commit:** [34545d790e](https://github.com/dotnet/runtime/commit/34545d790e0f92be34b13f0d41b7df93f04bbe02)
 **Affected Tests:** 16
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Benchmark.GetChildKeysTests.AddChainedConfigurationEmpty | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/Benchmark.GetChildKeysTests.AddChainedConfigurationEmpty.html) | +45.60% | 11834931.547619 | 17231858.758503 | [5](#5-6d12a304b3---jit-do-greedy-4-opt-for-backward-jumps-in-3-opt-layout-110277), [9](#9-34f1db49db---jit-use-root-compiler-instance-for-sufficient-pgo-observation-115119) |
 | System.Text.Json.Tests.Perf_Basic.WriteBasicUtf8(Formatted: False, SkipValidation: True, DataSize: 100000) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Text.Json.Tests.Perf_Basic.WriteBasicUtf8%28Formatted%3A%20False%2C%20SkipValidation%3A%20True%2C%20DataSize%3A%20100000%29.html) | +18.55% | 1808378.059349 | 2143873.293067 | None |
@@ -297,7 +297,7 @@
 **Commit:** [d3e2f5e13a](https://github.com/dotnet/runtime/commit/d3e2f5e13aac894737a90ba8494ad57465ba639f)
 **Affected Tests:** 12
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Linq.Tests.Perf_Enumerable.AnyWithPredicate_LastElementMatches(input: Array) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Linq.Tests.Perf_Enumerable.AnyWithPredicate_LastElementMatches%28input%3A%20Array%29.html) | +102.15% | 53.173735 | 107.490999 | None |
 | System.Text.RegularExpressions.Tests.Perf_Regex_Industry_RustLang_Sherlock.Count(Pattern: "\\w+\\s+Holmes", Options: NonBacktracking) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Text.RegularExpressions.Tests.Perf_Regex_Industry_RustLang_Sherlock.Count%28Pattern%3A%20%22%5C%5Cw%2B%5C%5Cs%2BHolmes%22%2C%20Options%3A%20NonBacktracking%29.html) | +49.67% | 2481196.183473 | 3713627.433473 | [1](#1-ffcd1c5442---trust-single-edge-synthetic-profile-116054), [6](#6-1c10ceecbf---jit-add-3-opt-implementation-for-improving-upon-rpo-based-block-layout-103450) |
@@ -320,7 +320,7 @@
 **Commit:** [34f1db49db](https://github.com/dotnet/runtime/commit/34f1db49dbf702697483ee2809d493f5ef441768)
 **Affected Tests:** 11
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Benchmark.GetChildKeysTests.AddChainedConfigurationEmpty | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/Benchmark.GetChildKeysTests.AddChainedConfigurationEmpty.html) | +45.60% | 11834931.547619 | 17231858.758503 | [5](#5-6d12a304b3---jit-do-greedy-4-opt-for-backward-jumps-in-3-opt-layout-110277), [7](#7-34545d790e---jit-dont-mark-callees-noinline-for-non-fatal-observations-with-pgo-114821) |
 | System.Globalization.Tests.StringEquality.Compare_DifferentFirstChar(Count: 1024, Options: (en-US, Ordinal)) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Globalization.Tests.StringEquality.Compare_DifferentFirstChar%28Count%3A%201024%2C%20Options%3A%20%28en-US%2C%20Ordinal%29%29.html) | +30.70% | 11.155881 | 14.580874 | None |
@@ -342,7 +342,7 @@
 **Commit:** [ea43e17c95](https://github.com/dotnet/runtime/commit/ea43e17c953a1230667c684a9f57d241e8a95171)
 **Affected Tests:** 10
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Benchstone.MDBenchI.MDArray2.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/Benchstone.MDBenchI.MDArray2.Test.html) | +42.29% | 1341308426.785714 | 1908533569.642857 | [6](#6-1c10ceecbf---jit-add-3-opt-implementation-for-improving-upon-rpo-based-block-layout-103450), [34](#34-c37cfcc645---jit-use-fgcalledcount-in-inlinee-weight-computation-112499) |
 | System.Tests.Perf_Boolean.TryParse(value: "true") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_Boolean.TryParse%28value%3A%20%22true%22%29.html) | +30.83% | 3.281270 | 4.292922 | [4](#4-b146d7512c---jit-move-loop-inversion-to-after-loop-recognition-115850), [20](#20-f9fc62ab41---main-update-dependencies-from-dncenginternaldotnet-optimization-112832) |
@@ -363,7 +363,7 @@
 **Commit:** [6f221b41da](https://github.com/dotnet/runtime/commit/6f221b41da8b4fbd09dcf7ac4b796ff3c86cbeb9)
 **Affected Tests:** 7
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.MathBenchmarks.Single.AcosPi | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.MathBenchmarks.Single.AcosPi.html) | +13.68% | 45652.995456 | 51899.327700 | None |
 | System.MathBenchmarks.Double.AtanPi | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.MathBenchmarks.Double.AtanPi.html) | +13.04% | 50140.840137 | 56679.084307 | None |
@@ -381,7 +381,7 @@
 **Commit:** [1b5c48dc59](https://github.com/dotnet/runtime/commit/1b5c48dc5958e20b4aa0f4cbfc21fddb8f81052c)
 **Affected Tests:** 6
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Compression.Brotli.Decompress_WithoutState(level: Optimal, file: "TestDocument.pdf") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.IO.Compression.Brotli.Decompress_WithoutState%28level%3A%20Optimal%2C%20file%3A%20%22TestDocument.pdf%22%29.html) | +12.63% | 514434.418262 | 579400.832106 | None |
 | System.IO.Compression.Brotli.Decompress_WithState(level: Optimal, file: "TestDocument.pdf") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.IO.Compression.Brotli.Decompress_WithState%28level%3A%20Optimal%2C%20file%3A%20%22TestDocument.pdf%22%29.html) | +12.66% | 514625.047865 | 579777.076583 | None |
@@ -398,7 +398,7 @@
 **Commit:** [5cb6a06da6](https://github.com/dotnet/runtime/commit/5cb6a06da634ee4be4f426711e9c5f66535a78c8)
 **Affected Tests:** 5
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | BenchmarksGame.ReverseComplement_1.RunBench | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/BenchmarksGame.ReverseComplement_1.RunBench.html) | +37.79% | 474918.025993 | 654375.491199 | None |
 | JetStream.TimeSeriesSegmentation.MaximizeSchwarzCriterion | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/JetStream.TimeSeriesSegmentation.MaximizeSchwarzCriterion.html) | +28.92% | 68931008.333333 | 88867979.166667 | [3](#3-41be5e229b---jit-graph-based-loop-inversion-116017) |
@@ -414,7 +414,7 @@
 **Commit:** [02127c782a](https://github.com/dotnet/runtime/commit/02127c782adbf0cded3ed0778d4bf694e5e75996)
 **Affected Tests:** 5
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_BigInteger.Equals(arguments: 259 bytes, Same) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Numerics.Tests.Perf_BigInteger.Equals%28arguments%3A%20259%20bytes%2C%20Same%29.html) | +21.05% | 9.046885 | 10.951312 | [57](#57-33b5215c15---smaller-funclet-prologsepilogs-x64-115284) |
 | Microsoft.Extensions.Primitives.StringSegmentBenchmark.Equals_Valid | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/Microsoft.Extensions.Primitives.StringSegmentBenchmark.Equals_Valid.html) | +10.43% | 6.605060 | 7.294275 | None |
@@ -430,7 +430,7 @@
 **Commit:** [8b00880aad](https://github.com/dotnet/runtime/commit/8b00880aadf2a5a8e62f2f3e41d5e9c05d64dd58)
 **Affected Tests:** 5
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Perf_Ascii.EqualsIgnoreCase_ExactlyTheSame_Bytes_Chars(Size: 128) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Text.Perf_Ascii.EqualsIgnoreCase_ExactlyTheSame_Bytes_Chars%28Size%3A%20128%29.html) | +14.25% | 19.133889 | 21.860490 | None |
 | System.Text.RegularExpressions.Tests.Perf_Regex_Common.CtorInvoke(Options: IgnoreCase, Compiled) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Text.RegularExpressions.Tests.Perf_Regex_Common.CtorInvoke%28Options%3A%20IgnoreCase%2C%20Compiled%29.html) | +12.94% | 337287.419076 | 380922.283664 | [51](#51-fc8b63c3b3---update-dependencies-from-httpsgithubcomdotnetroslyn-build-2025020510-112224) |
@@ -446,7 +446,7 @@
 **Commit:** [30082a461a](https://github.com/dotnet/runtime/commit/30082a461a68e3305b507910aba7457bdc98115c)
 **Affected Tests:** 5
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Enum.ToString_Flags(value: Red, Orange, Yellow, Green, Blue) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_Enum.ToString_Flags%28value%3A%20Red%2C%20Orange%2C%20Yellow%2C%20Green%2C%20Blue%29.html) | +11.99% | 58.137628 | 65.108616 | [54](#54-2ec50bd313---jit-switch-optoptimizelayout-to-pre-layout-optimization-phase-113224) |
 | System.Tests.Perf_Array.ArrayAssign3D | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_Array.ArrayAssign3D.html) | +8.71% | 645752.771577 | 701975.255766 | [31](#31-eb456e6121---move-unboxing-helpers-to-managed-code-109135), [35](#35-c8cb0f87fe---jit-dont-clone-or-unroll-cold-loops-115744) |
@@ -462,7 +462,7 @@
 **Commit:** [39a31f082e](https://github.com/dotnet/runtime/commit/39a31f082e77fb8893016c30c0858f0e5f8c89ea)
 **Affected Tests:** 5
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | GuardedDevirtualization.TwoClassVirtual.Call(testInput: pB = 0.10) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/GuardedDevirtualization.TwoClassVirtual.Call%28testInput%3A%20pB%20%3D%200.10%29.html) | +61.24% | 0.816818 | 1.317040 | [2](#2-ddf8075a2f---jit-visit-blocks-in-rpo-during-lsra-107927) |
 | System.Collections.ContainsFalse<String>.ICollection(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Collections.ContainsFalse%28String%29.ICollection%28Size%3A%20512%29.html) | +21.32% | 342799.077463 | 415884.455382 | [1](#1-ffcd1c5442---trust-single-edge-synthetic-profile-116054) |
@@ -478,7 +478,7 @@
 **Commit:** [cf7a7444c2](https://github.com/dotnet/runtime/commit/cf7a7444c255e0400f1ab078f85d8e3ad746bfb1)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Perf_Utf8Encoding.GetByteCount(Input: EnglishAllAscii) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Text.Perf_Utf8Encoding.GetByteCount%28Input%3A%20EnglishAllAscii%29.html) | +32.55% | 6958.242653 | 9223.157562 | None |
 | System.Text.Tests.Perf_Encoding.GetByteCount(size: 512, encName: "utf-8") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Text.Tests.Perf_Encoding.GetByteCount%28size%3A%20512%2C%20encName%3A%20%22utf-8%22%29.html) | +19.72% | 25.394609 | 30.401743 | None |
@@ -493,7 +493,7 @@
 **Commit:** [75b550d7d3](https://github.com/dotnet/runtime/commit/75b550d7d3b5b27a74b5bff9c1cb09c42f4fb3ab)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Json.Tests.Perf_Ctor.Ctor(Formatted: False, SkipValidation: False) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Text.Json.Tests.Perf_Ctor.Ctor%28Formatted%3A%20False%2C%20SkipValidation%3A%20False%29.html) | +5.70% | 17.511885 | 18.510652 | None |
 | System.Text.Json.Tests.Perf_Ctor.Ctor(Formatted: False, SkipValidation: True) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Text.Json.Tests.Perf_Ctor.Ctor%28Formatted%3A%20False%2C%20SkipValidation%3A%20True%29.html) | +6.41% | 17.405632 | 18.521971 | None |
@@ -508,7 +508,7 @@
 **Commit:** [f9fc62ab41](https://github.com/dotnet/runtime/commit/f9fc62ab41d53d331544b4da5a187b036df8c1bb)
 **Affected Tests:** 4
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Boolean.TryParse(value: "true") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_Boolean.TryParse%28value%3A%20%22true%22%29.html) | +30.83% | 3.281270 | 4.292922 | [4](#4-b146d7512c---jit-move-loop-inversion-to-after-loop-recognition-115850), [10](#10-ea43e17c95---jit-run-profile-repair-after-frontend-phases-111915) |
 | System.Tests.Perf_Boolean.TryParse(value: "TRUE") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_Boolean.TryParse%28value%3A%20%22TRUE%22%29.html) | +30.84% | 3.280853 | 4.292728 | [4](#4-b146d7512c---jit-move-loop-inversion-to-after-loop-recognition-115850), [10](#10-ea43e17c95---jit-run-profile-repair-after-frontend-phases-111915) |
@@ -523,7 +523,7 @@
 **Commit:** [dc88476f10](https://github.com/dotnet/runtime/commit/dc88476f102123edebd6b2d2efe5a56146f60094)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.IterateForEach<Int32>.ConcurrentBag(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Collections.IterateForEach%28Int32%29.ConcurrentBag%28Size%3A%20512%29.html) | +14.37% | 1449.769935 | 1658.088605 | None |
 | System.IO.Tests.BinaryReaderTests.ReadBool | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.IO.Tests.BinaryReaderTests.ReadBool.html) | +12.65% | 3.721051 | 4.191616 | [4](#4-b146d7512c---jit-move-loop-inversion-to-after-loop-recognition-115850) |
@@ -537,7 +537,7 @@
 **Commit:** [0ac2caf41a](https://github.com/dotnet/runtime/commit/0ac2caf41a88c56a287ab790e92eaf3ccf846fc8)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Formats.Tar.Tests.Perf_TarWriter.UstarTarEntry_WriteEntry | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Formats.Tar.Tests.Perf_TarWriter.UstarTarEntry_WriteEntry.html) | +20.76% | 232.498987 | 280.755205 | None |
 | System.Formats.Tar.Tests.Perf_TarWriter.V7TarEntry_WriteEntry | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Formats.Tar.Tests.Perf_TarWriter.V7TarEntry_WriteEntry.html) | +14.49% | 216.357063 | 247.716343 | None |
@@ -551,7 +551,7 @@
 **Commit:** [052da60b09](https://github.com/dotnet/runtime/commit/052da60b09439b1b82dd931fa40a46e2b089eadc)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Reflection.Invoke.Field_SetStatic_struct | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Reflection.Invoke.Field_SetStatic_struct.html) | +10.84% | 56.333137 | 62.437013 | [26](#26-a38ab4c0bc---remove-helpermethodframes-hmf-from-reflection-code-paths-108415) |
 | System.Reflection.Attributes.IsDefinedClassHit | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Reflection.Attributes.IsDefinedClassHit.html) | +7.07% | 485.280161 | 519.603678 | [9](#9-34f1db49db---jit-use-root-compiler-instance-for-sufficient-pgo-observation-115119) |
@@ -565,7 +565,7 @@
 **Commit:** [b0d68f75f9](https://github.com/dotnet/runtime/commit/b0d68f75f992d5af58b4c3ad12e5b8a7c3d6c2a0)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Buffers.Text.Tests.Utf8FormatterTests.FormatterUInt32(value: 4294967295) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Buffers.Text.Tests.Utf8FormatterTests.FormatterUInt32%28value%3A%204294967295%29.html) | +29.08% | 10.507694 | 13.563078 | [44](#44-cdfafde684---main-update-dependencies-from-dncenginternaldotnet-optimization-110308) |
 | System.Buffers.Text.Tests.Utf8FormatterTests.FormatterUInt32(value: 12345) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Buffers.Text.Tests.Utf8FormatterTests.FormatterUInt32%28value%3A%2012345%29.html) | +12.17% | 8.086258 | 9.070266 | None |
@@ -579,7 +579,7 @@
 **Commit:** [647b4f5792](https://github.com/dotnet/runtime/commit/647b4f5792444c431aca0144ee9144f10d3f7d71)
 **Affected Tests:** 3
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.Perf_Frozen<Int16>.Contains_True(Count: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Collections.Perf_Frozen%28Int16%29.Contains_True%28Count%3A%20512%29.html) | +20.50% | 1827.220076 | 2201.820127 | [3](#3-41be5e229b---jit-graph-based-loop-inversion-116017), [4](#4-b146d7512c---jit-move-loop-inversion-to-after-loop-recognition-115850), [5](#5-6d12a304b3---jit-do-greedy-4-opt-for-backward-jumps-in-3-opt-layout-110277) |
 | SeekUnroll.Test(boxedIndex: 11) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/SeekUnroll.Test%28boxedIndex%3A%2011%29.html) | +20.06% | 1559736482.142857 | 1872685414.285714 | None |
@@ -593,7 +593,7 @@
 **Commit:** [a38ab4c0bc](https://github.com/dotnet/runtime/commit/a38ab4c0bc3780754259be600db1501cc2907a84)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Reflection.Invoke.Field_Set_struct | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Reflection.Invoke.Field_Set_struct.html) | +15.98% | 44.157518 | 51.212642 | None |
 | System.Reflection.Invoke.Field_SetStatic_struct | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Reflection.Invoke.Field_SetStatic_struct.html) | +10.84% | 56.333137 | 62.437013 | [23](#23-052da60b09---remove-_prefast_-and-_prefix_-115355) |
@@ -606,7 +606,7 @@
 **Commit:** [dedb7d17ac](https://github.com/dotnet/runtime/commit/dedb7d17aca56e7a4b892475e9cc83d7f077e0fa)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Linq.Tests.Perf_Enumerable.Count(input: IEnumerable) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Linq.Tests.Perf_Enumerable.Count%28input%3A%20IEnumerable%29.html) | +13.24% | 174.144196 | 197.202301 | [38](#38-76146eec5d---jit-move-hotcold-splitting-phase-to-backend-108639) |
 | System.Collections.CtorFromCollection<String>.ConcurrentQueue(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Collections.CtorFromCollection%28String%29.ConcurrentQueue%28Size%3A%20512%29.html) | +5.74% | 7498.559868 | 7928.915010 | None |
@@ -619,7 +619,7 @@
 **Commit:** [1434eeef6c](https://github.com/dotnet/runtime/commit/1434eeef6c9548c8be39cb0bb3aed11808146195)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Json.Tests.Perf_Strings.WriteStringsUtf16(Formatted: True, SkipValidation: True, Escaped: AllEscaped) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Text.Json.Tests.Perf_Strings.WriteStringsUtf16%28Formatted%3A%20True%2C%20SkipValidation%3A%20True%2C%20Escaped%3A%20AllEscaped%29.html) | +10.22% | 71334026.785714 | 78627727.380952 | None |
 | System.Tests.Perf_Enum.ToString_Format_NonFlags(value: 7, format: "G") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_Enum.ToString_Format_NonFlags%28value%3A%207%2C%20format%3A%20%22G%22%29.html) | +5.23% | N/A | N/A | [16](#16-30082a461a---jit-save-pgo-data-in-inline-context-use-it-for-call-optimization-116241) |
@@ -632,7 +632,7 @@
 **Commit:** [489a1512f5](https://github.com/dotnet/runtime/commit/489a1512f55961e91e46054f06eaecafb94ce5ee)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_Vector4.TransformVector3ByMatrix4x4Benchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Numerics.Tests.Perf_Vector4.TransformVector3ByMatrix4x4Benchmark.html) | +9.44% | N/A | N/A | None |
 | System.Memory.Slice<String>.MemorySpanStartLength | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Memory.Slice%28String%29.MemorySpanStartLength.html) | +7.45% | 3.031079 | 3.256775 | [39](#39-023686e6c2---jit-break-up-try-regions-in-compilerfgmovecoldblocks-and-fix-contiguity-later-108914) |
@@ -645,7 +645,7 @@
 **Commit:** [1ddfa144d9](https://github.com/dotnet/runtime/commit/1ddfa144d93c2bc336c8440fe6bfec7fc4af0d44)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.CtorFromCollectionNonGeneric<String>.Hashtable(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Collections.CtorFromCollectionNonGeneric%28String%29.Hashtable%28Size%3A%20512%29.html) | +31.04% | 28913.111303 | 37888.660883 | [1](#1-ffcd1c5442---trust-single-edge-synthetic-profile-116054) |
 | System.Tests.Perf_Int128.TryParseSpan(value: "12345") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_Int128.TryParseSpan%28value%3A%20%2212345%22%29.html) | +11.27% | 18.347629 | 20.415811 | None |
@@ -658,7 +658,7 @@
 **Commit:** [eb456e6121](https://github.com/dotnet/runtime/commit/eb456e6121195405bfb676e3628be2f5db767409)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Array.ArrayAssign2D | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_Array.ArrayAssign2D.html) | +13.07% | 582381.554573 | 658517.719459 | [7](#7-34545d790e---jit-dont-mark-callees-noinline-for-non-fatal-observations-with-pgo-114821) |
 | System.Tests.Perf_Array.ArrayAssign3D | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_Array.ArrayAssign3D.html) | +8.71% | 645752.771577 | 701975.255766 | [16](#16-30082a461a---jit-save-pgo-data-in-inline-context-use-it-for-call-optimization-116241), [35](#35-c8cb0f87fe---jit-dont-clone-or-unroll-cold-loops-115744) |
@@ -671,7 +671,7 @@
 **Commit:** [373f048bae](https://github.com/dotnet/runtime/commit/373f048bae3c46810bc030ed7c1ee0568ee5ecc0)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.ContainsFalse<String>.Array(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Collections.ContainsFalse%28String%29.Array%28Size%3A%20512%29.html) | +46.85% | 594918.396046 | 873660.223214 | None |
 | System.Collections.ContainsTrue<String>.Array(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Collections.ContainsTrue%28String%29.Array%28Size%3A%20512%29.html) | +33.97% | 301927.173913 | 404488.306591 | None |
@@ -684,7 +684,7 @@
 **Commit:** [845dc11a2d](https://github.com/dotnet/runtime/commit/845dc11a2dd779170dc0ca642a339afb883fdb1a)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.Perf_Path.Combine | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.IO.Tests.Perf_Path.Combine.html) | +12.71% | 7.004453 | 7.894476 | [10](#10-ea43e17c95---jit-run-profile-repair-after-frontend-phases-111915) |
 | System.IO.Tests.BinaryReaderTests.ReadUInt64 | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.IO.Tests.BinaryReaderTests.ReadUInt64.html) | +9.25% | 5.900907 | 6.446611 | [45](#45-95814d0f99---main-update-dependencies-from-dncenginternaldotnet-optimization-110904) |
@@ -697,7 +697,7 @@
 **Commit:** [c37cfcc645](https://github.com/dotnet/runtime/commit/c37cfcc6459605e7cd1e1311c6dc74ee087ec08c)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Benchstone.MDBenchI.MDArray2.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/Benchstone.MDBenchI.MDArray2.Test.html) | +42.29% | 1341308426.785714 | 1908533569.642857 | [6](#6-1c10ceecbf---jit-add-3-opt-implementation-for-improving-upon-rpo-based-block-layout-103450), [10](#10-ea43e17c95---jit-run-profile-repair-after-frontend-phases-111915) |
 | Benchstone.BenchF.MatInv4.Test | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/Benchstone.BenchF.MatInv4.Test.html) | +8.09% | 2138345.982143 | 2311430.233990 | [15](#15-8b00880aad---jit-shrink-data-section-for-const-vector-loads-114040) |
@@ -710,7 +710,7 @@
 **Commit:** [c8cb0f87fe](https://github.com/dotnet/runtime/commit/c8cb0f87fe8616619462f517fcbe149b55c94354)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_UInt16.TryParse(value: "0") | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_UInt16.TryParse%28value%3A%20%220%22%29.html) | +10.44% | 9.049546 | 9.994569 | None |
 | System.Tests.Perf_Array.ArrayAssign3D | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_Array.ArrayAssign3D.html) | +8.71% | 645752.771577 | 701975.255766 | [16](#16-30082a461a---jit-save-pgo-data-in-inline-context-use-it-for-call-optimization-116241), [31](#31-eb456e6121---move-unboxing-helpers-to-managed-code-109135) |
@@ -723,7 +723,7 @@
 **Commit:** [ac7097cb47](https://github.com/dotnet/runtime/commit/ac7097cb4761d9c71e212bf07e4d916d1571c96b)
 **Affected Tests:** 2
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Threading.Channels.Tests.BoundedChannelPerfTests.TryWriteThenTryRead | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Threading.Channels.Tests.BoundedChannelPerfTests.TryWriteThenTryRead.html) | +10.08% | 51.325378 | 56.499731 | None |
 | System.Numerics.Tests.Perf_BigInteger.Equals(arguments: 67 bytes, DiffLastByte) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Numerics.Tests.Perf_BigInteger.Equals%28arguments%3A%2067%20bytes%2C%20DiffLastByte%29.html) | +10.46% | 5.893115 | 6.509473 | None |
@@ -736,7 +736,7 @@
 **Commit:** [5428078859](https://github.com/dotnet/runtime/commit/54280788590d6012758302d4056aa45720133be2)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_GC<Byte>.AllocateUninitializedArray(length: 10000, pinned: False) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_GC%28Byte%29.AllocateUninitializedArray%28length%3A%2010000%2C%20pinned%3A%20False%29.html) | +6.70% | 128.930735 | 137.570091 | None |
 
@@ -748,7 +748,7 @@
 **Commit:** [76146eec5d](https://github.com/dotnet/runtime/commit/76146eec5db3346536c659aea3505c1f4100873f)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Linq.Tests.Perf_Enumerable.Count(input: IEnumerable) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Linq.Tests.Perf_Enumerable.Count%28input%3A%20IEnumerable%29.html) | +13.24% | 174.144196 | 197.202301 | [27](#27-dedb7d17ac---unblock-cloning-of-loops-where-the-header-is-a-try-begin-108604) |
 
@@ -760,7 +760,7 @@
 **Commit:** [023686e6c2](https://github.com/dotnet/runtime/commit/023686e6c2b0e6d8161680fff14b0703cd041ca5)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Memory.Slice<String>.MemorySpanStartLength | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Memory.Slice%28String%29.MemorySpanStartLength.html) | +7.45% | 3.031079 | 3.256775 | [29](#29-489a1512f5---remove-ldsfld-quirk-108606) |
 
@@ -772,7 +772,7 @@
 **Commit:** [6cea093a3a](https://github.com/dotnet/runtime/commit/6cea093a3a378e9ebd3885e4c14957e738cc2009)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.Json.Tests.Perf_Strings.WriteStringsUtf16(Formatted: True, SkipValidation: False, Escaped: AllEscaped) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Text.Json.Tests.Perf_Strings.WriteStringsUtf16%28Formatted%3A%20True%2C%20SkipValidation%3A%20False%2C%20Escaped%3A%20AllEscaped%29.html) | +16.09% | 71001483.928571 | 82422739.285714 | None |
 
@@ -784,7 +784,7 @@
 **Commit:** [26612c84ca](https://github.com/dotnet/runtime/commit/26612c84cad2b5a17e3de3484fa0caadb430c7b6)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Buffers.Tests.RentReturnArrayPoolTests<Object>.MultipleSerial(RentalSize: 4096, ManipulateArray: False, Async: False, UseSharedPool: True) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Buffers.Tests.RentReturnArrayPoolTests%28Object%29.MultipleSerial%28RentalSize%3A%204096%2C%20ManipulateArray%3A%20False%2C%20Async%3A%20False%2C%20UseSharedPool%3A%20True%29.html) | +5.39% | N/A | N/A | None |
 
@@ -796,7 +796,7 @@
 **Commit:** [54b86f1843](https://github.com/dotnet/runtime/commit/54b86f18439397f51fbf4b14f6127a337446f3cf)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_VectorOf<Single>.SquareRootBenchmark | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Numerics.Tests.Perf_VectorOf%28Single%29.SquareRootBenchmark.html) | +343.73% | 2.069841 | 9.184416 | None |
 
@@ -808,7 +808,7 @@
 **Commit:** [dfb2b8a861](https://github.com/dotnet/runtime/commit/dfb2b8a861fc97ce90c8f31c886d4d27c5b36f46)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Xml.Linq.Perf_XElementList.Enumerator | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Xml.Linq.Perf_XElementList.Enumerator.html) | +13.26% | 185.776112 | 210.411357 | None |
 
@@ -820,7 +820,7 @@
 **Commit:** [cdfafde684](https://github.com/dotnet/runtime/commit/cdfafde684f4cf62db38dd0168362f43a15c89c1)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Buffers.Text.Tests.Utf8FormatterTests.FormatterUInt32(value: 4294967295) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Buffers.Text.Tests.Utf8FormatterTests.FormatterUInt32%28value%3A%204294967295%29.html) | +29.08% | 10.507694 | 13.563078 | [24](#24-b0d68f75f9---jit-use-flowgraph-annotations-to-scale-loop-blocks-in-optsetblockweights-116120) |
 
@@ -832,7 +832,7 @@
 **Commit:** [95814d0f99](https://github.com/dotnet/runtime/commit/95814d0f99fd876fdc2f6b5b4cf5d5fc94adaea9)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.IO.Tests.BinaryReaderTests.ReadUInt64 | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.IO.Tests.BinaryReaderTests.ReadUInt64.html) | +9.25% | 5.900907 | 6.446611 | [33](#33-845dc11a2d---jit-move-profile-consistency-checks-to-after-morph-111253) |
 
@@ -844,7 +844,7 @@
 **Commit:** [aecae2c385](https://github.com/dotnet/runtime/commit/aecae2c3853ea793ede98906320312ca6c199ec1)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Microsoft.Extensions.Primitives.Performance.StringValuesBenchmark.Indexer_FirstElement_Array | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/Microsoft.Extensions.Primitives.Performance.StringValuesBenchmark.Indexer_FirstElement_Array.html) | +12.81% | 4.139284 | 4.669323 | None |
 
@@ -856,7 +856,7 @@
 **Commit:** [4020e05efd](https://github.com/dotnet/runtime/commit/4020e05efdfcc6b10eab90aeb8a8b5d80f75786f)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Buffers.Text.Tests.Utf8FormatterTests.FormatterUInt64(value: 12345) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Buffers.Text.Tests.Utf8FormatterTests.FormatterUInt64%28value%3A%2012345%29.html) | +11.32% | 8.906934 | 9.915216 | [3](#3-41be5e229b---jit-graph-based-loop-inversion-116017) |
 
@@ -868,7 +868,7 @@
 **Commit:** [dde00d376e](https://github.com/dotnet/runtime/commit/dde00d376e4b40674488c5c688899d7a343f4eca)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.AddGivenSize<Int32>.Stack(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Collections.AddGivenSize%28Int32%29.Stack%28Size%3A%20512%29.html) | +13.23% | 971.297094 | 1099.778245 | None |
 
@@ -880,7 +880,7 @@
 **Commit:** [1af7c2370b](https://github.com/dotnet/runtime/commit/1af7c2370bce80cba73d442d69f4a2f1b02dcbef)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.MathBenchmarks.Double.ILogB | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.MathBenchmarks.Double.ILogB.html) | +8.43% | 7854.336984 | 8516.370698 | None |
 
@@ -892,7 +892,7 @@
 **Commit:** [397863948b](https://github.com/dotnet/runtime/commit/397863948b5e0ca98ee849053153078acdf3be86)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | ByteMark.BenchNumericSortRectangular | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/ByteMark.BenchNumericSortRectangular.html) | +6.76% | 1120886460.000000 | 1196654188.000000 | [6](#6-1c10ceecbf---jit-add-3-opt-implementation-for-improving-upon-rpo-based-block-layout-103450) |
 
@@ -904,7 +904,7 @@
 **Commit:** [fc8b63c3b3](https://github.com/dotnet/runtime/commit/fc8b63c3b36744b4012210e67cabb7fd96c938b5)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Text.RegularExpressions.Tests.Perf_Regex_Common.CtorInvoke(Options: IgnoreCase, Compiled) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Text.RegularExpressions.Tests.Perf_Regex_Common.CtorInvoke%28Options%3A%20IgnoreCase%2C%20Compiled%29.html) | +12.94% | 337287.419076 | 380922.283664 | [15](#15-8b00880aad---jit-shrink-data-section-for-const-vector-loads-114040) |
 
@@ -916,7 +916,7 @@
 **Commit:** [e9a91f90b8](https://github.com/dotnet/runtime/commit/e9a91f90b84e79a2d21f480778e5d4850579b594)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | SciMark2.kernel.benchSparseMult | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/SciMark2.kernel.benchSparseMult.html) | +67.64% | 596219400.000000 | 999489944.642857 | [2](#2-ddf8075a2f---jit-visit-blocks-in-rpo-during-lsra-107927), [3](#3-41be5e229b---jit-graph-based-loop-inversion-116017) |
 
@@ -928,7 +928,7 @@
 **Commit:** [343b0349fa](https://github.com/dotnet/runtime/commit/343b0349fae8d2a32aefd058cc779e9b3647a646)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Memory.Span<Byte>.IndexOfAnyTwoValues(Size: 4) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Memory.Span%28Byte%29.IndexOfAnyTwoValues%28Size%3A%204%29.html) | +5.81% | 5.030917 | 5.323267 | [2](#2-ddf8075a2f---jit-visit-blocks-in-rpo-during-lsra-107927), [3](#3-41be5e229b---jit-graph-based-loop-inversion-116017) |
 
@@ -940,7 +940,7 @@
 **Commit:** [2ec50bd313](https://github.com/dotnet/runtime/commit/2ec50bd31322da4c261e541a3db209a38be1ca81)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_Enum.ToString_Flags(value: Red, Orange, Yellow, Green, Blue) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_Enum.ToString_Flags%28value%3A%20Red%2C%20Orange%2C%20Yellow%2C%20Green%2C%20Blue%29.html) | +11.99% | 58.137628 | 65.108616 | [16](#16-30082a461a---jit-save-pgo-data-in-inline-context-use-it-for-call-optimization-116241) |
 
@@ -952,7 +952,7 @@
 **Commit:** [48ace183c4](https://github.com/dotnet/runtime/commit/48ace183c442e367738374671a86bd82ed60e7d9)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Span.Sorting.BubbleSortSpan(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/Span.Sorting.BubbleSortSpan%28Size%3A%20512%29.html) | +56.16% | 212227.260218 | 331405.043971 | [6](#6-1c10ceecbf---jit-add-3-opt-implementation-for-improving-upon-rpo-based-block-layout-103450) |
 
@@ -964,7 +964,7 @@
 **Commit:** [630de838ac](https://github.com/dotnet/runtime/commit/630de838aca00a7d7af635ca00312bd7a5d75c5d)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Tests.Perf_GC<Char>.AllocateUninitializedArray(length: 10000, pinned: False) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Tests.Perf_GC%28Char%29.AllocateUninitializedArray%28length%3A%2010000%2C%20pinned%3A%20False%29.html) | +6.25% | 178.127119 | 189.257301 | None |
 
@@ -976,7 +976,7 @@
 **Commit:** [33b5215c15](https://github.com/dotnet/runtime/commit/33b5215c15b16ad9e2738c325f6b562702c308d3)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Numerics.Tests.Perf_BigInteger.Equals(arguments: 259 bytes, Same) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Numerics.Tests.Perf_BigInteger.Equals%28arguments%3A%20259%20bytes%2C%20Same%29.html) | +21.05% | 9.046885 | 10.951312 | [14](#14-02127c782a---jit-dont-put-cold-blocks-in-rpo-during-layout-112448) |
 
@@ -988,7 +988,7 @@
 **Commit:** [fd8933aac2](https://github.com/dotnet/runtime/commit/fd8933aac237d2f3103de071ec4bc1547bfef16c)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | Interop.ComWrappersTests.ParallelRCWLookUp | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/Interop.ComWrappersTests.ParallelRCWLookUp.html) | +60.90% | 410610157.142857 | 660667346.428571 | None |
 
@@ -1000,7 +1000,7 @@
 **Commit:** [3c8bae3ff0](https://github.com/dotnet/runtime/commit/3c8bae3ff0906f590c6eec61eb114eac205ac2cc)
 **Affected Tests:** 1
 
-| Test Name | Link | Change | Before | After | Other Changepoints |
+| Test Name | Link | Change | .NET 9 | .NET 10 | Other Changepoints |
 |-----------|------|--------|--------|-------|--------------------|
 | System.Collections.IterateForEach<Int32>.Stack(Size: 512) | [Link](https://pvscmdupload.z22.web.core.windows.net/reports/allTestHistory/refs/heads/main_x64_Windows%2010.0.22621/System.Collections.IterateForEach%28Int32%29.Stack%28Size%3A%20512%29.html) | +10.26% | 1467.246764 | 1617.809652 | None |
 
