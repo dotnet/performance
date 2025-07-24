@@ -37,306 +37,306 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # MAUI scenario benchmarks
-  - ${{ if false }}:
-    - template: /eng/pipelines/templates/build-machine-matrix.yml
-      parameters:
-        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: true
-        jobParameters:
-          runKind: maui_scenarios
-          projectFileName: maui_scenarios.proj
-          channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-            - main
-            - 9.0
-            - 8.0
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
+  # # MAUI scenario benchmarks
+  # - ${{ if false }}:
+  #   - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #     parameters:
+  #       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+  #       buildMachines:
+  #         - win-x64
+  #         - ubuntu-x64
+  #       isPublic: true
+  #       jobParameters:
+  #         runKind: maui_scenarios
+  #         projectFileName: maui_scenarios.proj
+  #         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #           - main
+  #           - 9.0
+  #           - 8.0
+  #         ${{ each parameter in parameters.jobParameters }}:
+  #           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Blazor scenario benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        runKind: blazor_scenarios
-        projectFileName: blazor_scenarios.proj
-        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # # Blazor scenario benchmarks
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: blazor_scenarios
+  #       projectFileName: blazor_scenarios.proj
+  #       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #         - main
+  #         - 9.0
+  #         - 8.0
+  #       ${{ each parameter in parameters.jobParameters }}:
+  #         ${{ parameter.key }}: ${{ parameter.value }}
 
-  # SDK scenario benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64
-        - win-x86
-        #- ubuntu-x64-1804 reenable under new machine on new ubuntu once lttng/events are available
-      isPublic: true
-      jobParameters:
-        runKind: sdk_scenarios
-        projectFileName: sdk_scenarios.proj
-        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # # SDK scenario benchmarks
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - win-x86
+  #       #- ubuntu-x64-1804 reenable under new machine on new ubuntu once lttng/events are available
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: sdk_scenarios
+  #       projectFileName: sdk_scenarios.proj
+  #       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #         - main
+  #         - 9.0
+  #         - 8.0
+  #       ${{ each parameter in parameters.jobParameters }}:
+  #         ${{ parameter.key }}: ${{ parameter.value }}
   
-  # micro benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64
-        - win-x86
-      isPublic: true
-      jobParameters:
-        runKind: micro
-        targetCsproj: src\benchmarks\micro\MicroBenchmarks.csproj
-        runCategories: 'runtime libraries' 
-        channels:
-          - main
-          - 9.0
-          - 8.0
+  # # micro benchmarks
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - win-x86
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: micro
+  #       targetCsproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #       runCategories: 'runtime libraries' 
+  #       channels:
+  #         - main
+  #         - 9.0
+  #         - 8.0
 
-  # Ubuntux64 Default and NativeAOT micro benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        runKind: micro
-        targetCsproj: src\benchmarks\micro\MicroBenchmarks.csproj
-        runCategories: 'runtime libraries' 
-        channels:
-          - main
-          # - nativeaot9.0 # Disable until I have time to properly fix the issues and can merge https://github.com/dotnet/performance/pull/4741
-          # - nativeaot8.0
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # # Ubuntux64 Default and NativeAOT micro benchmarks
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #     buildMachines:
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: micro
+  #       targetCsproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #       runCategories: 'runtime libraries' 
+  #       channels:
+  #         - main
+  #         # - nativeaot9.0 # Disable until I have time to properly fix the issues and can merge https://github.com/dotnet/performance/pull/4741
+  #         # - nativeaot8.0
+  #         - 9.0
+  #         - 8.0
+  #       ${{ each parameter in parameters.jobParameters }}:
+  #         ${{ parameter.key }}: ${{ parameter.value }}
 
-  # net462 micro benchmarks # Disable until I have time to properly fix the issues and can merge https://github.com/dotnet/performance/pull/4741
-  - ${{ if false }}:
-    - template: /eng/pipelines/templates/build-machine-matrix.yml
-      parameters:
-        jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-        buildMachines:
-          - win-rs5-x64
-        isPublic: true
-        jobParameters:
-          runKind: micro_net462
-          targetCsproj: src\benchmarks\micro\MicroBenchmarks.csproj
-          runCategories: 'runtime libraries'
-          channels:
-            - net462
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
+  # # net462 micro benchmarks # Disable until I have time to properly fix the issues and can merge https://github.com/dotnet/performance/pull/4741
+  # - ${{ if false }}:
+  #   - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #     parameters:
+  #       jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #       buildMachines:
+  #         - win-rs5-x64
+  #       isPublic: true
+  #       jobParameters:
+  #         runKind: micro_net462
+  #         targetCsproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #         runCategories: 'runtime libraries'
+  #         channels:
+  #           - net462
+  #         ${{ each parameter in parameters.jobParameters }}:
+  #           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # ML.NET benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        runKind: mlnet
-        targetCsproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-        runCategories: 'mldotnet' 
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # # ML.NET benchmarks
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: mlnet
+  #       targetCsproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+  #       runCategories: 'mldotnet' 
+  #       channels:
+  #         - main
+  #         - 9.0
+  #         - 8.0
+  #       ${{ each parameter in parameters.jobParameters }}:
+  #         ${{ parameter.key }}: ${{ parameter.value }}
 
-  # F# benchmarks
-  - ${{ if false }}: # skipping, no useful benchmarks there currently
-    - template: /eng/pipelines/templates/build-machine-matrix.yml
-      parameters:
-        jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: true
-        jobParameters:
-          runKind: fsharp
-          targetCsproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
-          runCategories: 'fsharp'
-          channels:
-            - main
-            - 9.0
-            - 8.0
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
+  # # F# benchmarks
+  # - ${{ if false }}: # skipping, no useful benchmarks there currently
+  #   - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #     parameters:
+  #       jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #       buildMachines:
+  #         - win-x64
+  #         - ubuntu-x64
+  #       isPublic: true
+  #       jobParameters:
+  #         runKind: fsharp
+  #         targetCsproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+  #         runCategories: 'fsharp'
+  #         channels:
+  #           - main
+  #           - 9.0
+  #           - 8.0
+  #         ${{ each parameter in parameters.jobParameters }}:
+  #           ${{ parameter.key }}: ${{ parameter.value }}
 
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        runKind: fsharpmicro
-        targetCsproj: src\benchmarks\micro-fsharp\MicrobenchmarksFSharp.fsproj
-        runCategories: 'FSharpMicro'
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: fsharpmicro
+  #       targetCsproj: src\benchmarks\micro-fsharp\MicrobenchmarksFSharp.fsproj
+  #       runCategories: 'FSharpMicro'
+  #       channels:
+  #         - main
+  #         - 9.0
+  #         - 8.0
+  #       ${{ each parameter in parameters.jobParameters }}:
+  #         ${{ parameter.key }}: ${{ parameter.value }}
 
-  # bepuphysics benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        runKind: bepuphysics
-        targetCsproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
-        runCategories: 'BepuPhysics'
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # # bepuphysics benchmarks
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: bepuphysics
+  #       targetCsproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
+  #       runCategories: 'BepuPhysics'
+  #       channels:
+  #         - main
+  #         - 9.0
+  #         - 8.0
+  #       ${{ each parameter in parameters.jobParameters }}:
+  #         ${{ parameter.key }}: ${{ parameter.value }}
 
-  # ImageSharp benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        runKind: imagesharp
-        targetCsproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
-        runCategories: 'ImageSharp'
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # # ImageSharp benchmarks
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: imagesharp
+  #       targetCsproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
+  #       runCategories: 'ImageSharp'
+  #       channels:
+  #         - main
+  #         - 9.0
+  #         - 8.0
+  #       ${{ each parameter in parameters.jobParameters }}:
+  #         ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Akade.IndexedSet benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        runKind: akadeindexedset
-        targetCsproj: src\benchmarks\real-world\Akade.IndexedSet.Benchmarks\Akade.IndexedSet.Benchmarks.csproj
-        runCategories: 'AkadeIndexedSet'
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # # Akade.IndexedSet benchmarks
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: akadeindexedset
+  #       targetCsproj: src\benchmarks\real-world\Akade.IndexedSet.Benchmarks\Akade.IndexedSet.Benchmarks.csproj
+  #       runCategories: 'AkadeIndexedSet'
+  #       channels:
+  #         - main
+  #         - 9.0
+  #         - 8.0
+  #       ${{ each parameter in parameters.jobParameters }}:
+  #         ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Roslyn benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        runKind: roslyn
-        targetCsproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-        runCategories: 'roslyn'
-        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # # Roslyn benchmarks
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: roslyn
+  #       targetCsproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+  #       runCategories: 'roslyn'
+  #       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+  #         - main
+  #         - 9.0
+  #         - 8.0
+  #       ${{ each parameter in parameters.jobParameters }}:
+  #         ${{ parameter.key }}: ${{ parameter.value }}
 
-  # ILLink benchmarks
-  # disabled because of: https://github.com/dotnet/performance/issues/3569
-  - ${{ if false }}:
-    - template: /eng/pipelines/templates/build-machine-matrix.yml
-      parameters:
-        jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: true
-        jobParameters:
-          runKind: illink
-          targetCsproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
-          runCategories: 'illink'
-          channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-            - main
-            - 9.0
-            - 8.0
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
+  # # ILLink benchmarks
+  # # disabled because of: https://github.com/dotnet/performance/issues/3569
+  # - ${{ if false }}:
+  #   - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #     parameters:
+  #       jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #       buildMachines:
+  #         - win-x64
+  #         - ubuntu-x64
+  #       isPublic: true
+  #       jobParameters:
+  #         runKind: illink
+  #         targetCsproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
+  #         runCategories: 'illink'
+  #         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+  #           - main
+  #           - 9.0
+  #           - 8.0
+  #         ${{ each parameter in parameters.jobParameters }}:
+  #           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # NativeAOT scenario benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        runKind: nativeaot_scenarios
-        projectFileName: nativeaot_scenarios.proj
-        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # # NativeAOT scenario benchmarks
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: nativeaot_scenarios
+  #       projectFileName: nativeaot_scenarios.proj
+  #       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #         - main
+  #         - 9.0
+  #         - 8.0
+  #       ${{ each parameter in parameters.jobParameters }}:
+  #         ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Powershell benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        runKind: powershell
-        targetCsproj: src\benchmarks\real-world\PowerShell.Benchmarks\PowerShell.Benchmarks.csproj
-        runCategories: 'Public'
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # # Powershell benchmarks
+  # - template: /eng/pipelines/templates/build-machine-matrix.yml
+  #   parameters:
+  #     jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+  #     buildMachines:
+  #       - win-x64
+  #       - ubuntu-x64
+  #     isPublic: true
+  #     jobParameters:
+  #       runKind: powershell
+  #       targetCsproj: src\benchmarks\real-world\PowerShell.Benchmarks\PowerShell.Benchmarks.csproj
+  #       runCategories: 'Public'
+  #       channels:
+  #         - main
+  #         - 9.0
+  #         - 8.0
+  #       ${{ each parameter in parameters.jobParameters }}:
+  #         ${{ parameter.key }}: ${{ parameter.value }}
 
 ###########################################
 # Private Jobs
