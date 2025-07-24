@@ -1,15 +1,15 @@
 {
   "sdk": {
-    "version": "9.0.100",
+    "version": "9.0.107",
     "allowPrerelease": true,
     "rollForward": "latestMinor"
   },
   "tools": {
-    "dotnet": "9.0.100"
+    "dotnet": "9.0.107"
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "9.0.0-beta.24572.2",
-    "Microsoft.DotNet.Helix.Sdk": "9.0.0-beta.24572.2"
+    "Microsoft.DotNet.Arcade.Sdk": "9.0.0-beta.25366.1",
+    "Microsoft.DotNet.Helix.Sdk": "9.0.0-beta.25366.1"
   },
   "native-tools": {
     "python3": "3.7.1"
