@@ -42,9 +42,27 @@ def get_version_from_dll_powershell_ios(dll_path: str):
 def get_runtime_commit_from_manifest(dotnet_commit_hash: str) -> str:
     """
     Fetch the actual dotnet/runtime commit SHA from the dotnet/dotnet source-manifest.json
-    :param dotnet_commit_hash: The commit hash from dotnet/dotnet repo
+    :param dotnet_commit_hash: The commit hash from dotnet/dotnet repo (or potentially already from dotnet/runtime)
     :return: The actual dotnet/runtime commit SHA, or the original hash if fetch fails
     """
+    # First check if this commit hash already exists in dotnet/runtime (backwards compatibility)
+    try:
+        runtime_check_url = f"https://api.github.com/repos/dotnet/runtime/commits/{dotnet_commit_hash}"
+        request = urllib.request.Request(runtime_check_url)
+        request.get_method = lambda: 'HEAD'  # Use HEAD request to avoid downloading content
+        
+        with urllib.request.urlopen(request, timeout=5) as response:
+            if response.status == 200:
+                getLogger().info(f"Commit {dotnet_commit_hash} is already a valid dotnet/runtime commit")
+                return dotnet_commit_hash
+    except (urllib.error.URLError, urllib.error.HTTPError):
+        # Commit doesn't exist in dotnet/runtime, continue with manifest fetch
+        pass
+    except Exception:
+        # Any other error, continue with manifest fetch
+        pass
+    
+    # Try to fetch the runtime commit from the dotnet/dotnet manifest
     try:
         manifest_url = f"https://raw.githubusercontent.com/dotnet/dotnet/{dotnet_commit_hash}/src/source-manifest.json"
         
@@ -126,12 +144,10 @@ def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> d
         
         # For runtime SDK, try to get the actual dotnet/runtime commit from source-manifest.json
         if sdk == "runtime":
-            runtime_commit = get_runtime_commit_from_manifest(commit)
-            results[f"{sdk}_version"] = version
-            results[f"PERFLAB_DATA_{sdk}_commit_hash"] = runtime_commit
-        else:
-            results[f"{sdk}_version"] = version
-            results[f"PERFLAB_DATA_{sdk}_commit_hash"] = commit
+            commit = get_runtime_commit_from_manifest(commit)
+        
+        results[f"{sdk}_version"] = version
+        results[f"PERFLAB_DATA_{sdk}_commit_hash"] = commit
 
     # Add datetime of the SDK installation to the results
     now = datetime.utcnow()
