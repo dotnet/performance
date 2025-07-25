@@ -4,6 +4,8 @@ Version File Manager
 import json
 import os
 import subprocess
+import urllib.request
+import urllib.error
 from performance.logger import getLogger
 from typing import Dict
 from datetime import datetime
@@ -36,6 +38,36 @@ def get_version_from_dll_powershell(dll_path: str):
 def get_version_from_dll_powershell_ios(dll_path: str):
     result = subprocess.run(['pwsh', '-Command', rf'Get-ChildItem {dll_path} | Select-Object -ExpandProperty VersionInfo | Select-Object -ExpandProperty ProductVersion'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
     return result.stdout.decode('utf-8').strip()
+
+def get_runtime_commit_from_manifest(dotnet_commit_hash: str) -> str:
+    """
+    Fetch the actual dotnet/runtime commit SHA from the dotnet/dotnet source-manifest.json
+    :param dotnet_commit_hash: The commit hash from dotnet/dotnet repo
+    :return: The actual dotnet/runtime commit SHA, or the original hash if fetch fails
+    """
+    try:
+        manifest_url = f"https://raw.githubusercontent.com/dotnet/dotnet/{dotnet_commit_hash}/src/source-manifest.json"
+        
+        with urllib.request.urlopen(manifest_url, timeout=10) as response:
+            manifest_data = json.loads(response.read().decode('utf-8'))
+        
+        # Find the runtime repository entry
+        for repo in manifest_data.get('repositories', []):
+            if repo.get('path') == 'runtime' and repo.get('remoteUri') == 'https://github.com/dotnet/runtime':
+                runtime_commit = repo.get('commitSha')
+                if runtime_commit:
+                    getLogger().info(f"Found runtime commit {runtime_commit} for dotnet commit {dotnet_commit_hash}")
+                    return runtime_commit
+        
+        getLogger().warning(f"Runtime repository not found in manifest for commit {dotnet_commit_hash}")
+        return dotnet_commit_hash
+        
+    except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, KeyError) as e:
+        getLogger().warning(f"Failed to fetch runtime commit from manifest for {dotnet_commit_hash}: {e}")
+        return dotnet_commit_hash
+    except Exception as e:
+        getLogger().warning(f"Unexpected error fetching runtime commit from manifest: {e}")
+        return dotnet_commit_hash
 
 def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> dict[str, str]:
     '''
@@ -91,8 +123,15 @@ def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> d
             continue
 
         version, commit = parse_version_output(result)
-        results[f"{sdk}_version"] = version
-        results[f"PERFLAB_DATA_{sdk}_commit_hash"] = commit
+        
+        # For runtime SDK, try to get the actual dotnet/runtime commit from source-manifest.json
+        if sdk == "runtime":
+            runtime_commit = get_runtime_commit_from_manifest(commit)
+            results[f"{sdk}_version"] = version
+            results[f"PERFLAB_DATA_{sdk}_commit_hash"] = runtime_commit
+        else:
+            results[f"{sdk}_version"] = version
+            results[f"PERFLAB_DATA_{sdk}_commit_hash"] = commit
 
     # Add datetime of the SDK installation to the results
     now = datetime.utcnow()
