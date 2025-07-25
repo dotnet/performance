@@ -45,24 +45,7 @@ def get_runtime_commit_from_manifest(dotnet_commit_hash: str) -> str:
     :param dotnet_commit_hash: The commit hash from dotnet/dotnet repo (or potentially already from dotnet/runtime)
     :return: The actual dotnet/runtime commit SHA, or the original hash if fetch fails
     """
-    # First check if this commit hash already exists in dotnet/runtime (backwards compatibility)
-    try:
-        runtime_check_url = f"https://api.github.com/repos/dotnet/runtime/commits/{dotnet_commit_hash}"
-        request = urllib.request.Request(runtime_check_url)
-        request.get_method = lambda: 'HEAD'  # Use HEAD request to avoid downloading content
-        
-        with urllib.request.urlopen(request, timeout=5) as response:
-            if response.status == 200:
-                getLogger().info(f"Commit {dotnet_commit_hash} is already a valid dotnet/runtime commit")
-                return dotnet_commit_hash
-    except (urllib.error.URLError, urllib.error.HTTPError):
-        # Commit doesn't exist in dotnet/runtime, continue with manifest fetch
-        pass
-    except Exception:
-        # Any other error, continue with manifest fetch
-        pass
-    
-    # Try to fetch the runtime commit from the dotnet/dotnet manifest
+    # First try to fetch the runtime commit from the dotnet/dotnet manifest
     try:
         manifest_url = f"https://raw.githubusercontent.com/dotnet/dotnet/{dotnet_commit_hash}/src/source-manifest.json"
         
@@ -81,11 +64,31 @@ def get_runtime_commit_from_manifest(dotnet_commit_hash: str) -> str:
         return dotnet_commit_hash
         
     except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, KeyError) as e:
-        getLogger().warning(f"Failed to fetch runtime commit from manifest for {dotnet_commit_hash}: {e}")
-        return dotnet_commit_hash
+        getLogger().info(f"Failed to fetch runtime commit from manifest for {dotnet_commit_hash}: {e}")
+        # Continue to check if it's already a valid dotnet/runtime commit
     except Exception as e:
-        getLogger().warning(f"Unexpected error fetching runtime commit from manifest: {e}")
-        return dotnet_commit_hash
+        getLogger().info(f"Unexpected error fetching runtime commit from manifest: {e}")
+        # Continue to check if it's already a valid dotnet/runtime commit
+    
+    # Fall back to check if this commit hash already exists in dotnet/runtime (backwards compatibility)
+    try:
+        runtime_check_url = f"https://api.github.com/repos/dotnet/runtime/commits/{dotnet_commit_hash}"
+        request = urllib.request.Request(runtime_check_url, method="HEAD")
+        
+        with urllib.request.urlopen(request, timeout=5) as response:
+            if response.status == 200:
+                getLogger().info(f"Commit {dotnet_commit_hash} is already a valid dotnet/runtime commit")
+                return dotnet_commit_hash
+    except (urllib.error.URLError, urllib.error.HTTPError):
+        # Commit doesn't exist in dotnet/runtime either
+        pass
+    except Exception:
+        # Any other error
+        pass
+    
+    # If all else fails, return the original commit hash
+    getLogger().warning(f"Could not resolve runtime commit for {dotnet_commit_hash}, using original hash")
+    return dotnet_commit_hash
 
 def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> dict[str, str]:
     '''
