@@ -8,3 +8,4 @@ This directory contains reports detailing performance changes that occurred betw
 - Mono x64 Linux: ([Regressions](./linux-mono-tiger_regression_report.md), [Improvements](./linux-mono-tiger_improvement_report.md))
 - MonoAOT Arm64 Linux: ([Regressions](./linux-monoaot-ampere_regression_report.md), [Improvements](./linux-monoaot-ampere_improvement_report.md))
 - WASM x64 Linux: ([Regressions](./linux-wasm-tiger_regression_report.md), [Improvements](./linux-wasm-tiger_improvement_report.md))
+- WASM AOT x64 Linux (Viper): ([Regressions](./linux-wasmaot-viper_regression_report.md), [Improvements](./linux-wasmaot-viper_improvement_report.md))
