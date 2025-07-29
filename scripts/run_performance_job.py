@@ -802,12 +802,17 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.perf_repo_hash is not None and args.performance_repo_ci:
         ci_setup_arguments.perf_hash = args.perf_repo_hash
 
+    # Make a backup of the global.json file as we need to restore it before we send to helix
+    global_json_path = os.path.join(args.performance_repo_dir, "global.json")
+    global_json_backup_path = f"{global_json_path}.bak"
+    shutil.copy(global_json_path, global_json_backup_path)
+    
     ci_setup.main(ci_setup_arguments)
 
     # ci_setup may modify global.json, so we should copy it across to the payload directory if that happens
     # TODO: Refactor this when we eventually remove the dependency on ci_setup.py directly from the runtime repository.
     getLogger().info("Copying global.json to payload directory")
-    shutil.copy(os.path.join(args.performance_repo_dir, 'global.json'), os.path.join(performance_payload_dir, 'global.json'))
+    shutil.copy(global_json_path, os.path.join(performance_payload_dir, 'global.json'))
 
     # Building CertHelper needs to happen here as we need it on every run. This also means that we will need to move the calculation
     # of the parameters needed outside of the if block
@@ -1091,6 +1096,9 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "--diff", bdn_artifacts_directory,
             "--threshold", threshold,
             "--xml", xml_results]
+        
+    # Restore original global.json from backup before sending to Helix
+    shutil.copy(global_json_backup_path, global_json_path)
 
     perf_send_to_helix_args = PerfSendToHelixArgs(
         helix_source=f"{helix_source_prefix}/{args.build_repository_name}/{args.build_source_branch}",
