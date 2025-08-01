@@ -360,7 +360,10 @@ def main(argv: List[str]):
                     all_reports: List[Any] = []
                     for file in glob(reports_globpath, recursive=True):
                         with open(file, 'r', encoding="utf8") as report_file:
-                            all_reports.append(json.load(report_file))
+                            try:
+                                all_reports.append(json.load(report_file))
+                            except Exception as e:
+                                getLogger().warning(f"Failed to load report file '{file}': {e}")
                     json.dump(all_reports, all_reports_file)
 
                 # ensure binlogs directory exists
