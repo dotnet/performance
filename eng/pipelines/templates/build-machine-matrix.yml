@@ -138,7 +138,7 @@ jobs:
       pool:
         vmImage: windows-2025
       machinePool: Viper
-      queue: windows.11.amd64.viper.perf
+      queue: Windows.11.Amd64.Viper.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x86-viper'), not(eq(parameters.isPublic, true))) }}: # Windows x86 Viper only used in private builds
@@ -150,7 +150,7 @@ jobs:
       pool:
         vmImage: windows-2025
       machinePool: Viper
-      queue: windows.11.amd64.viper.perf
+      queue: Windows.11.Amd64.Viper.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'ubuntu-x64-viper'), not(eq(parameters.isPublic, true))) }}: # Ubuntu x64 Viper only used in private builds
@@ -163,5 +163,5 @@ jobs:
         vmImage: ubuntu-latest
       container: ubuntu_x64_build_container
       machinePool: Viper
-      queue: ubuntu.2204.amd64.viper.perf
+      queue: Ubuntu.2204.Amd64.Viper.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
