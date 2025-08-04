@@ -21,9 +21,9 @@
       <Uri>https://github.com/dotnet/windowsdesktop</Uri>
       <Sha>7aba96004b615790d9e844fc61a076b4c45237bc</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.App.Ref" Version="9.0.8">
+    <Dependency Name="Microsoft.AspNetCore.App.Ref" Version="9.0.9">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>0db16464937fc4f693be4817719cefb0f79b2c71</Sha>
+      <Sha>f13e4e800e950620d3da5b196765d5e37756ea26</Sha>
     </Dependency>
     <Dependency Name="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="9.0.6">
       <Uri>https://github.com/dotnet/emsdk</Uri>
