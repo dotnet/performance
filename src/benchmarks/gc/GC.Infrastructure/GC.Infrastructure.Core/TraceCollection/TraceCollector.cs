@@ -22,18 +22,18 @@ namespace GC.Infrastructure.Core.TraceCollection
         private static readonly Lazy<WebClient> _client = new();
 
         // TODO: Make this URL configurable.
-        private const string PERFVIEW_URL = "https://github.com/microsoft/perfview/releases/download/v3.0.0/PerfView.exe";
+        private const string PERFVIEW_URL = "https://github.com/microsoft/perfview/releases/download/v3.1.23/PerfView.exe";
 
         private readonly string ALWAYS_ARGS = @$" /AcceptEULA /NoGUI /Merge:true";
         internal static readonly Dictionary<CollectType, string> WindowsCollectTypeMap = new()
         {
-            { CollectType.gc, "/GCCollectOnly" },
-            { CollectType.verbose, "/ClrEventLevel:Verbose /ClrEvents:GC+Stack" },
-            { CollectType.cpu,  "/KernelEvents=Process+Thread+ImageLoad+Profile /ClrEventLevel:Informational /ClrEvents:GC+Stack /BufferSize:3000 /CircularMB:3000"  },
-            { CollectType.cpu_managed,  "/KernelEvents=Process+Thread+ImageLoad+Profile /ClrEventLevel:Informational /ClrEvents:GC+Stack+Codesymbols+JitSymbols+Compilation+Type+GCHeapAndTypeNames /BufferSize:3000 /CircularMB:3000"  },
-            { CollectType.threadtime_managed, "/KernelEvents=Process+Thread+ImageLoad+Profile+ContextSwitch+Dispatcher /ClrEvents:GC+Stack+Codesymbols+JitSymbols+Compilation+Type+GCHeapAndTypeNames /BufferSize:3000 /CircularMB:3000 /ClrEventLevel=Verbose" },
-            { CollectType.threadtime, "/KernelEvents=Process+Thread+ImageLoad+Profile+ContextSwitch+Dispatcher /ClrEvents:GC /ClrEventLevel=Verbose /BufferSize:3000 /CircularMB:3000 " },
-            { CollectType.join, " /BufferSizeMB:4096 /CircularMB:4096 /KernelEvents:Process+Thread+ImageLoad  /ClrEvents:GC+Threading /ClrEventLevel=Verbose " },
+            { CollectType.gc, "/KernelEvents=Process /Providers=GCPerfsimCustomEvents::Verbose /ClrEventLevel:Informational /ClrEvents:GC" },
+            { CollectType.verbose, "/ClrEventLevel:Verbose /Providers=GCPerfsimCustomEvents::Verbose /ClrEvents:GC+Stack" },
+            { CollectType.cpu,  "/KernelEvents=Process+Thread+ImageLoad+Profile /Providers=GCPerfsimCustomEvents::Verbose /ClrEventLevel:Informational /ClrEvents:GC+Stack /BufferSize:3000 /CircularMB:3000"  },
+            { CollectType.cpu_managed,  "/KernelEvents=Process+Thread+ImageLoad+Profile /Providers=GCPerfsimCustomEvents::Verbose /ClrEventLevel:Informational /ClrEvents:GC+Stack+Codesymbols+JitSymbols+Compilation+Type+GCHeapAndTypeNames /BufferSize:3000 /CircularMB:3000"  },
+            { CollectType.threadtime_managed, "/KernelEvents=Process+Thread+ImageLoad+Profile+ContextSwitch+Dispatcher /Providers=GCPerfsimCustomEvents::Verbose /ClrEvents:GC+Stack+Codesymbols+JitSymbols+Compilation+Type+GCHeapAndTypeNames /BufferSize:3000 /CircularMB:3000 /ClrEventLevel=Verbose" },
+            { CollectType.threadtime, "/KernelEvents=Process+Thread+ImageLoad+Profile+ContextSwitch+Dispatcher /Providers=GCPerfsimCustomEvents::Verbose /ClrEvents:GC /ClrEventLevel=Verbose /BufferSize:3000 /CircularMB:3000 " },
+            { CollectType.join, " /BufferSizeMB:4096 /CircularMB:4096 /KernelEvents:Process+Thread+ImageLoad /Providers=GCPerfsimCustomEvents::Verbose /ClrEvents:GC+Threading /ClrEventLevel=Verbose " },
         };
 
         internal static readonly Dictionary<CollectType, string> LinuxCollectTypeMap = new()
