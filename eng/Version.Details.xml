@@ -56,7 +56,7 @@
     -->
     <!-- Dependencies for .NET MAUI workload -->
     <Dependency Name="Microsoft.Maui.Controls" Version="9.0.90">
-      <Sha>254a27fa93226fa9c3fe9ca7741a557e3af67801</Sha>
+      <Sha>6d2a526f554bfeb1890936803e860338e3dd15d5</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
     <Dependency Name="Microsoft.NET.Sdk" Version="9.0.103-servicing.25065.25" CoherentParentDependency="Microsoft.Maui.Controls">
