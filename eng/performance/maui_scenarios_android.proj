@@ -27,10 +27,6 @@
     <_MSBuildArgs Condition="'$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true</_MSBuildArgs>
 
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
-    
-    <!-- Use ArtifactsLogDir if provided, otherwise use payload directory for binlogs -->
-    <BinlogPath Condition="'$(ArtifactsLogDir)' != ''">$(ArtifactsLogDir)\%(PreparePayloadWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog</BinlogPath>
-    <BinlogPath Condition="'$(ArtifactsLogDir)' == ''">$(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)\%(PreparePayloadWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog</BinlogPath>
   </PropertyGroup>
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
@@ -75,7 +71,9 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIAndroidScenario)">
-      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-android -r android-arm64 --self-contained --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(BinlogPath) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <BinlogPath Condition="'$(ArtifactsLogDir)' != ''">$(ArtifactsLogDir)/%(PreparePayloadWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog</BinlogPath>
+      <BinlogPath Condition="'$(ArtifactsLogDir)' == ''">$(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)\%(PreparePayloadWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog</BinlogPath>
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-android -r android-arm64 --self-contained --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog %(PreparePayloadWorkItem.BinlogPath) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
