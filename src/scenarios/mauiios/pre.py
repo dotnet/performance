@@ -26,7 +26,7 @@ precommands.new(template='maui',
                 no_restore=False)
 
 # Build the APK
-precommands.execute(['/p:_RequireCodeSigning=false', '/p:ApplicationId=net.dot.mauitesting'])
+precommands.execute(['/p:_RequireCodeSigning=false', '/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauitesting'])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR
