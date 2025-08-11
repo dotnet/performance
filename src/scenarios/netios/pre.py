@@ -25,7 +25,7 @@ precommands.new(template='ios',
                 no_restore=False)
 
 # Build the APK
-precommands.execute(['/p:_RequireCodeSigning=false', '/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.xamarintesting'])
+precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.xamarintesting'])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR
