@@ -6,6 +6,7 @@ using BenchmarkDotNet.Validators;
 using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Exporters;
 
 namespace BenchmarkDotNet.Extensions
 {
@@ -29,14 +30,17 @@ namespace BenchmarkDotNet.Extensions
         private class BenchmarkArgumentsComparer : IEqualityComparer<BenchmarkCase>
         {
             public bool Equals(BenchmarkCase x, BenchmarkCase y)
-                => Enumerable.SequenceEqual(
+            {
+                if (FullNameProvider.GetBenchmarkName(x).Equals(FullNameProvider.GetBenchmarkName(y), System.StringComparison.Ordinal))
+                    return true;
+
+                return Enumerable.SequenceEqual(
                     x.Parameters.Items.Select(argument => argument.Value), 
                     y.Parameters.Items.Select(argument => argument.Value));
+            }
 
             public int GetHashCode(BenchmarkCase obj)
-                => obj.Parameters.Items
-                    .Where(item => item.Value != null)
-                    .Aggregate(seed: 0, (hashCode, argument) => hashCode ^= argument.Value.GetHashCode());
+                => FullNameProvider.GetBenchmarkName(obj).GetHashCode();
         }
     }
 }
