@@ -33,6 +33,26 @@ namespace System.Collections
                 collection.TryAdd(uniqueValues[i], uniqueValues[i]);
             return collection;
         }
+
+        [Benchmark]
+        public SortedDictionary<T, T> SortedDictionary()
+        {
+            var collection = new SortedDictionary<T, T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.TryAdd(uniqueValues[i], uniqueValues[i]);
+            return collection;
+        }
+
+        [Benchmark]
+        public SortedList<T, T> SortedList()
+        {
+            var collection = new SortedList<T, T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.TryAdd(uniqueValues[i], uniqueValues[i]);
+            return collection;
+        }
 #endif
 
         [Benchmark]
