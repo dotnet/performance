@@ -931,11 +931,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
             # PreparePayloadWorkItems is only available for scenarios runs defined inside the performance repo
             if args.performance_repo_ci:
+                artifacts_log_dir = os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config)
                 RunCommand([
                     "dotnet", "msbuild", args.project_file, 
                     "/restore", 
                     "/t:PreparePayloadWorkItems",
-                    f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PrepareWorkItemPayloads.binlog')}"],
+                    f"/bl:{os.path.join(artifacts_log_dir, 'PrepareWorkItemPayloads.binlog')}",
+                    f"/p:ArtifactsLogDir={artifacts_log_dir}"],
                     verbose=True).run()
 
             # restore env vars
