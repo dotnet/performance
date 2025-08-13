@@ -71,7 +71,7 @@ namespace GC.Infrastructure.Core.TraceCollection
         {
             if (OperatingSystem.IsWindows())
             {
-                string perfviewPath = Path.Combine(DependenciesFolder, "Perfview.exe");
+                string perfviewPath = Path.Combine(dependenciesFolder, "Perfview.exe");
                 if (File.Exists(perfviewPath))
                 {
                     return;
@@ -90,9 +90,10 @@ namespace GC.Infrastructure.Core.TraceCollection
                     }
                 }
             }
+
             if (OperatingSystem.IsLinux())
             {
-                string dotNetTracePath = Path.Combine(DependenciesFolder, "dotnet-trace");
+                string dotNetTracePath = Path.Combine(dependenciesFolder, "dotnet-trace");
                 if (File.Exists(dotNetTracePath))
                 {
                     return;
@@ -107,7 +108,6 @@ namespace GC.Infrastructure.Core.TraceCollection
                     dotNetTraceInstaller.StartInfo.RedirectStandardError = true;
                     dotNetTraceInstaller.StartInfo.RedirectStandardOutput = true;
                     dotNetTraceInstaller.Start();
-                    Console.WriteLine("install dotnet-trace");
                     dotNetTraceInstaller.WaitForExit();
                 }
             }
