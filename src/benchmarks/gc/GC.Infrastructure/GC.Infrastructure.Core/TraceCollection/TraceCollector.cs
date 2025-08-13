@@ -78,7 +78,7 @@ namespace GC.Infrastructure.Core.TraceCollection
                 }
 
                 // TODO: Make this URL configurable.
-                const string perfviewUrl = "https://github.com/microsoft/perfview/releases/download/v3.0.0/PerfView.exe";
+                const string perfviewUrl = "https://github.com/microsoft/perfview/releases/download/v3.1.23/PerfView.exe";
                 using (HttpClient client = new())
                 {
                     HttpResponseMessage response = client.GetAsync(perfviewUrl).Result;
