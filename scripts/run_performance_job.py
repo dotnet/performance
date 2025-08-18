@@ -73,7 +73,6 @@ class RunPerformanceJobArgs:
     built_app_dir: Optional[str] = None
     extra_bdn_args: Optional[str] = None
     run_categories: str = 'Libraries Runtime'
-    perflab_upload_token: Optional[str] = None
     helix_access_token: Optional[str] = os.environ.get("HelixAccessToken")
     os_sub_group: Optional[str] = None
     project_file: Optional[str] = None
@@ -89,6 +88,7 @@ class RunPerformanceJobArgs:
     r2r_run_type: Optional[str] = None
     experiment_name: Optional[str] = None
     codegen_type: str = "JIT"
+    linking_type: str = "dynamic"
     runtime_type: str = "coreclr"
     affinity: Optional[str] = "0"
     run_env_vars: Dict[str, str] = field(default_factory=dict) # type: ignore
@@ -116,10 +116,6 @@ class RunPerformanceJobArgs:
 def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     helix_pre_commands: list[str] = []
 
-    # Increase file handle limit for Alpine: https://github.com/dotnet/runtime/pull/94439
-    if args.os_sub_group == "_musl":
-        helix_pre_commands += ["ulimit -n 4096"]
-
     # Remember the previous PYTHONPATH that was set so it can be restored in the post commands
     if args.os_group == "windows":
         helix_pre_commands += ["set ORIGPYPATH=%PYTHONPATH%"]
@@ -130,13 +126,6 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     # On non-Windows, these commands are chained together with && so they will stop if any fail
     install_prerequisites: list[str] = []
 
-    # Install libgdiplus on Alpine
-    if args.os_sub_group == "_musl":    
-        install_prerequisites += [
-            "sudo apk add icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib cargo",
-            "sudo apk add libgdiplus --repository http://dl-cdn.alpinelinux.org/alpine/v3.18/community"
-        ]
-
     if args.internal:
         # Run inside a python venv
         if args.os_group == "windows":
@@ -146,7 +135,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
                 "echo on" # venv activate script turns echo off, so turn it back on
             ]
         else:
-            if args.os_group != "osx" and args.os_sub_group != "_musl":
+            if args.os_group != "osx":
                 install_prerequisites += [
                     'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
                     'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
@@ -178,7 +167,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
 
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
         # TODO: is this still needed? It seems like it was added to support wasm which is already setting up everything
-        if args.os_group != "windows" and args.os_group != "osx" and args.os_sub_group != "_musl":
+        if args.os_group != "windows" and args.os_group != "osx":
             install_prerequisites += [
                 "sudo apt-get update",
                 "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
@@ -206,13 +195,6 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
             "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
         ]
-
-    # Ensure that the upload token is set so that the results can be uploaded to the storage account
-    if args.internal:
-        if args.os_group == "windows":
-            install_prerequisites += [f"set \"PERFLAB_UPLOAD_TOKEN={args.perflab_upload_token}\""]
-        else:
-            install_prerequisites += [f"export PERFLAB_UPLOAD_TOKEN=\"{args.perflab_upload_token}\""]
 
     # Add the install_prerequisites to the pre_commands
     if args.os_group == "windows":
@@ -298,7 +280,7 @@ def get_post_commands(args: RunPerformanceJobArgs):
 
     return helix_post_commands
 
-def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str, architecture: str, alpine: bool):
+def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str, architecture: str):
     if os_group == "windows":
         if not internal:
             return "Windows.10.Amd64.ClientRS4.DevEx.15.8.Open"
@@ -306,8 +288,6 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
             queue_map = {
                 "perftiger": "Windows.11.Amd64.Tiger.Perf",
                 "perftiger_crossgen": "Windows.11.Amd64.Tiger.Perf",
-                "perfowl": "Windows.11.Amd64.Owl.Perf",
-                "perfsurf": "Windows.11.Arm64.Surf.Perf",
                 "perfpixel4a": "Windows.11.Amd64.Pixel.Perf",
                 "perfampere": "Windows.Server.Arm64.Perf",
                 "perfviper": "Windows.11.Amd64.Viper.Perf",
@@ -315,10 +295,7 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
             }
             return queue_map.get(logical_machine, "Windows.11.Amd64.Tiger.Perf")
     else:
-        if alpine:
-            # this is the same for both public and internal
-            return "alpine.amd64.tiger.perf"
-        elif not internal:
+        if not internal:
             if architecture == "arm64":
                 return "ubuntu.1804.armarch.open"
             else:
@@ -327,7 +304,6 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
             queue_map = {
                 "perfampere": "Ubuntu.2204.Arm64.Perf",
                 "perfiphone12mini": "OSX.13.Amd64.Iphone.Perf",
-                "perfowl": "Ubuntu.2204.Amd64.Owl.Perf",
                 "perftiger_crossgen": "Ubuntu.1804.Amd64.Tiger.Perf",
                 "perfviper": "Ubuntu.2204.Amd64.Viper.Perf",
                 "cloudvm": "Ubuntu.2204.Amd64"
@@ -344,11 +320,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
         else:
             helix_type_suffix = "/wasm"
 
-    alpine = args.runtime_type == "coreclr" and args.os_sub_group == "_musl"
     if args.queue is None:
         if args.logical_machine is None:
             raise Exception("Either queue or logical machine must be specifed")
-        args.queue = logical_machine_to_queue(args.logical_machine, args.internal, args.os_group, args.architecture, alpine)
+        args.queue = logical_machine_to_queue(args.logical_machine, args.internal, args.os_group, args.architecture)
 
     if args.performance_repo_ci:
         # needs to be unique to avoid logs overwriting in mc.dot.net
@@ -370,12 +345,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.project_file is None:
         args.project_file = os.path.join(args.performance_repo_dir, "eng", "performance", "helix.proj")
     
-    if args.perflab_upload_token is None:
-        env_var_name = "PerfCommandUploadToken" if args.os_group == "windows" else "PerfCommandUploadTokenLinux"
-        args.perflab_upload_token = os.environ.get(env_var_name)
-        if args.perflab_upload_token is None and args.internal:
-            getLogger().info(f"{env_var_name} is not set. This may be needed for results to be uploaded.")
-    
     args.performance_repo_dir = os.path.abspath(args.performance_repo_dir)
 
     mono_interpreter = args.codegen_type.lower() == "interpreter" and args.runtime_type == "mono"
@@ -391,9 +360,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.libraries_download_dir is None and not args.performance_repo_ci and args.runtime_repo_dir is not None:
         args.libraries_download_dir = os.path.join(args.runtime_repo_dir, "artifacts")
 
-    llvm = args.codegen_type.lower() == "aot" and args.runtime_type != "wasm"
-    android_mono = args.runtime_type == "AndroidMono"
-    android_coreclr = args.runtime_type == "AndroidCoreCLR"
+    llvm = args.codegen_type.lower() == "aot" and args.runtime_type != "wasm" and not args.run_kind == "android_scenarios"
     ios_mono = args.runtime_type == "iOSMono"
     ios_nativeaot = args.runtime_type == "iOSNativeAOT"
     mono_aot = False
@@ -457,7 +424,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     else:
         args.helix_access_token = None
         os.environ.pop("HelixAccessToken", None) # in case the environment variable is set on the system already
-        args.perflab_upload_token = ""
         extra_bdn_arguments += [
             "--iterationCount", "1", 
             "--warmupCount", "0", 
@@ -531,15 +497,32 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     runtime_type = ""
 
-    if android_mono:
-        runtime_type = "Mono"
-        configurations["CompilationMode"] = "JIT"
-        configurations["RuntimeType"] = str(runtime_type)
+    # dotnet/runtime Android sample app scenarios
+    if args.run_kind == "android_scenarios":
+        # Mapping runtime_type to runtime_flavor before sending to helix
+        if args.runtime_type == "AndroidMono":
+            args.runtime_flavor = "mono"
+        elif args.runtime_type == "AndroidCoreCLR":
+            args.runtime_flavor = "coreclr"
+        else:
+            raise Exception("Android scenarios only support Mono and CoreCLR runtimes")
+        configurations["CodegenType"] = str(args.codegen_type)
+        configurations["LinkingType"] = str(args.linking_type)
+        configurations["RuntimeType"] = str(args.runtime_flavor)
 
-    if android_coreclr:
-        runtime_type = "CoreCLR"
-        configurations["CompilationMode"] = "JIT"
-        configurations["RuntimeType"] = str(runtime_type)
+    # .NET Android and .NET MAUI Android sample app scenarios
+    if args.run_kind == "maui_scenarios_android":
+        if not args.runtime_flavor in ("mono", "coreclr"):
+            raise Exception("Runtime flavor must be specified for maui_scenarios_android")
+        configurations["CodegenType"] = str(args.codegen_type)
+        configurations["RuntimeType"] = str(args.runtime_flavor)
+
+    # .NET iOS and .NET MAUI iOS sample app scenarios
+    if args.run_kind == "maui_scenarios_ios":
+        if not args.runtime_flavor in ("mono", "coreclr"):
+            raise Exception("Runtime flavor must be specified for maui_scenarios_ios")
+        configurations["CodegenType"] = str(args.codegen_type)
+        configurations["RuntimeType"] = str(args.runtime_flavor)
 
     if ios_mono:
         runtime_type = "Mono"
@@ -719,11 +702,20 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.runtime_repo_dir is not None:
             args.built_app_dir = args.runtime_repo_dir
     
-    if android_mono or android_coreclr:
+    if args.run_kind == "android_scenarios":
         if args.built_app_dir is None:
             raise Exception("Built apps directory must be present for Android benchmarks")
         getLogger().info("Copying Android apps to payload directory")
         shutil.copy(os.path.join(args.built_app_dir, "androidHelloWorld", "HelloAndroid.apk"), os.path.join(root_payload_dir, "HelloAndroid.apk"))
+
+        android_binlog_dir = os.path.join(root_payload_dir, "androidHelloWorldBinlog")
+        shutil.copytree(os.path.join(args.built_app_dir, "androidHelloWorldBinlog"), android_binlog_dir)
+
+        binlog_files = glob(os.path.join(android_binlog_dir, "**", "*.binlog"))
+        if binlog_files:
+            dest = os.path.join(android_binlog_dir, "msbuild.binlog")
+            getLogger().info(f"Moving {binlog_files[0]} to {dest}")
+            shutil.move(binlog_files[0], dest)
         # Disabled due to not successfully building at the moment. https://github.com/dotnet/performance/issues/4729
         # if android_mono:
             # shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), os.path.join(root_payload_dir, "MonoBenchmarksDroid.apk"))
@@ -742,11 +734,20 @@ def run_performance_job(args: RunPerformanceJobArgs):
         shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldZip"), ios_hello_world_zip_dir)
 
         # Find the zip file in the directory and move it to iOSSampleApp.zip
-        for file in glob(os.path.join(ios_hello_world_zip_dir, "**", "*.zip")):
+        zip_files = glob(os.path.join(ios_hello_world_zip_dir, "**", "*.zip"))
+        if zip_files:
             dest = os.path.join(ios_hello_world_zip_dir, "iOSSampleApp.zip")
-            getLogger().info(f"Moving {file} to {dest}")
-            shutil.move(file, dest)
-            break
+            getLogger().info(f"Moving {zip_files[0]} to {dest}")
+            shutil.move(zip_files[0], dest)
+
+        ios_hello_world_binlog_dir = os.path.join(payload_dir, "iosHelloWorldBinlog")
+        shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldBinlog"), ios_hello_world_binlog_dir)
+
+        binlog_files = glob(os.path.join(ios_hello_world_binlog_dir, "**", "*.binlog"))
+        if binlog_files:
+            dest = os.path.join(ios_hello_world_binlog_dir, "msbuild.binlog")
+            getLogger().info(f"Moving {binlog_files[0]} to {dest}")
+            shutil.move(binlog_files[0], dest)
 
     # ensure work item directory is not empty
     getLogger().info("Copying docs to work item directory so it isn't empty")
@@ -783,12 +784,17 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.perf_repo_hash is not None and args.performance_repo_ci:
         ci_setup_arguments.perf_hash = args.perf_repo_hash
 
+    # Make a backup of the global.json file as we need to restore it before we send to helix
+    global_json_path = os.path.join(args.performance_repo_dir, "global.json")
+    global_json_backup_path = f"{global_json_path}.bak"
+    shutil.copy(global_json_path, global_json_backup_path)
+    
     ci_setup.main(ci_setup_arguments)
 
     # ci_setup may modify global.json, so we should copy it across to the payload directory if that happens
     # TODO: Refactor this when we eventually remove the dependency on ci_setup.py directly from the runtime repository.
     getLogger().info("Copying global.json to payload directory")
-    shutil.copy(os.path.join(args.performance_repo_dir, 'global.json'), os.path.join(performance_payload_dir, 'global.json'))
+    shutil.copy(global_json_path, os.path.join(performance_payload_dir, 'global.json'))
 
     # Building CertHelper needs to happen here as we need it on every run. This also means that we will need to move the calculation
     # of the parameters needed outside of the if block
@@ -902,6 +908,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             os.environ["HelixTargetQueues"] = args.queue
             os.environ["Python"] = agent_python
             os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
+            os.environ["CodegenType"] = args.codegen_type or ''
             os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
@@ -924,12 +931,19 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
             # PreparePayloadWorkItems is only available for scenarios runs defined inside the performance repo
             if args.performance_repo_ci:
+                artifacts_log_dir = os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config)
                 RunCommand([
                     "dotnet", "msbuild", args.project_file, 
                     "/restore", 
                     "/t:PreparePayloadWorkItems",
-                    f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PrepareWorkItemPayloads.binlog')}"],
+                    f"/bl:{os.path.join(artifacts_log_dir, 'PrepareWorkItemPayloads.binlog')}",
+                    f"/p:ArtifactsLogDir={artifacts_log_dir}"],
                     verbose=True).run()
+                
+                # Search for additional binlogs generated by the maui scenarios prepare payload work items to copy to the artifacts log dir
+                if args.run_kind in ["maui_scenarios_android", "maui_scenarios_ios"]:
+                    for binlog_path in glob(os.path.join(payload_dir, "scenarios_out", "**", "*.binlog"), recursive=True):
+                        shutil.copy(binlog_path, artifacts_log_dir)
 
             # restore env vars
             os.environ.update(environ_copy)
@@ -1071,6 +1085,9 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "--diff", bdn_artifacts_directory,
             "--threshold", threshold,
             "--xml", xml_results]
+        
+    # Restore original global.json from backup before sending to Helix
+    shutil.copy(global_json_backup_path, global_json_path)
 
     perf_send_to_helix_args = PerfSendToHelixArgs(
         helix_source=f"{helix_source_prefix}/{args.build_repository_name}/{args.build_source_branch}",
@@ -1090,6 +1107,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         helix_build=args.build_number,
         partition_count=args.partition_count,
         runtime_flavor=args.runtime_flavor or "",
+        codegen_type=args.codegen_type or "",
+        linking_type=args.linking_type or "",
         hybrid_globalization=args.hybrid_globalization,
         target_csproj=args.target_csproj,
         work_item_command=work_item_command or None,
@@ -1167,7 +1186,6 @@ def main(argv: List[str]):
                 "--versions-props-path": "versions_props_path",
                 "--browser-versions-props-path": "browser_versions_props_path",
                 "--built-app-dir": "built_app_dir",
-                "--perflab-upload-token": "perflab_upload_token",
                 "--helix-access-token": "helix_access_token",
                 "--project-file": "project_file",
                 "--build-repository-name": "build_repository_name",
@@ -1176,6 +1194,7 @@ def main(argv: List[str]):
                 "--pgo-run-type": "pgo_run_type",
                 "--r2r-run-type": "r2r_run_type",
                 "--codegen-type": "codegen_type",
+                "--linking-type": "linking_type",
                 "--runtime-type": "runtime_type",
                 "--run-categories": "run_categories",
                 "--extra-bdn-args": "extra_bdn_args",

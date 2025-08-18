@@ -93,6 +93,8 @@
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageReference Include="System.IO.Pipelines" Version="$(SystemVersion)" />
+    <PackageReference Include="System.Threading.Channels" Version="$(SystemVersion)" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '10.0'">
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="$(SystemVersion)" />
@@ -235,6 +237,11 @@
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '9.0')">
     <Compile Remove="libraries\System.Reflection.Metadata\*.cs" />
+  </ItemGroup>
+
+  <!-- Remove Sve microbenchmarks when running on net versions < 9.0 -->
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '9.0')">
+    <Compile Remove="sve\*.cs" />
   </ItemGroup>
 
   <!-- This is not removing things from older Net versions, it is removing from newer Net versions -->

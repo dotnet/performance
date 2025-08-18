@@ -30,10 +30,10 @@ import shutil
 import sys
 from typing import Any, List, Optional
 
-from performance.common import validate_supported_runtime, get_artifacts_directory, helixuploadroot
+from performance.common import get_repo_root_path, validate_supported_runtime, get_artifacts_directory, helixuploadroot
 from performance.logger import setup_loggers
 from performance.tracer import setup_tracing, enable_trace_console_exporter, get_tracer
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
 from channel_map import ChannelMap
 from subprocess import CalledProcessError
 from glob import glob
@@ -345,19 +345,29 @@ def main(argv: List[str]):
 
             artifacts_dir = get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts
 
-            combined_file_prefix = "" if args.partition is None else f"Partition{args.partition}-"
-            globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
-            all_reports: List[Any] = []
-            for file in glob(globpath, recursive=True):
-                with open(file, 'r', encoding="utf8") as report_file:
-                    all_reports.append(json.load(report_file))
+            reports_globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
 
-            with open(os.path.join(artifacts_dir, f"{combined_file_prefix}combined-perf-lab-report.json"), "w", encoding="utf8") as all_reports_file:
-                json.dump(all_reports, all_reports_file)
-
+            # binlogs will always be in the performance/artifacts directory even if bdn_artifacts is set differently
+            binlogs_globpath = os.path.join(get_repo_root_path(), 'artifacts', '**', '*.binlog')
             helix_upload_root = helixuploadroot()
             if helix_upload_root is not None:
-                for file in glob(globpath, recursive=True):
+                for file in glob(reports_globpath, recursive=True):
+                    shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
+
+                # Create a combined JSON file that contains all the reports
+                combined_file_prefix = "" if args.partition is None else f"Partition{args.partition}-"
+                with open(os.path.join(helix_upload_root, f"{combined_file_prefix}combined-perf-lab-report.json"), "w", encoding="utf8") as all_reports_file:
+                    all_reports: List[Any] = []
+                    for file in glob(reports_globpath, recursive=True):
+                        with open(file, 'r', encoding="utf8") as report_file:
+                            try:
+                                all_reports.append(json.load(report_file))
+                            except Exception as e:
+                                getLogger().warning(f"Failed to load report file '{file}': {e}")
+                    json.dump(all_reports, all_reports_file)
+
+                # ensure binlogs directory exists
+                for file in glob(binlogs_globpath, recursive=True):
                     shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
 
                 shutil.make_archive(os.path.join(helix_upload_root, "bdn-artifacts"), 'zip', artifacts_dir)
@@ -373,9 +383,9 @@ def main(argv: List[str]):
         dotnet.shutdown_server(verbose)
 
         if args.upload_to_perflab_container:
-            globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
+            reports_globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
             import upload
-            upload_code = upload.upload(globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+            upload_code = upload.upload(reports_globpath, upload_container, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
             getLogger().info("Benchmarks Upload Code: " + str(upload_code))
             if upload_code != 0:
                 sys.exit(upload_code)

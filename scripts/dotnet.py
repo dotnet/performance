@@ -405,7 +405,8 @@ class CSharpProject:
             exename: Optional[str] = None,
             language: Optional[str] = None,
             no_https: bool = False,
-            no_restore: bool = True
+            no_restore: bool = True,
+            extra_args: Optional[List[str]] = None
             ):
         '''
         Creates a new project with the specified template
@@ -429,6 +430,9 @@ class CSharpProject:
 
         if no_https:
             cmdline += ['--no-https']
+
+        if extra_args:
+            cmdline += extra_args
 
         RunCommand(cmdline, verbose=verbose).run(
             working_directory
@@ -648,9 +652,9 @@ def get_repository(repository: str) -> Tuple[str, str]:
 
 @tracer.start_as_current_span("dotnet_get_commit_date") # type: ignore
 def get_commit_date(
-        framework: str,
-        commit_sha: str,
-        repository: Optional[str] = None
+    framework: str,
+    commit_sha: str,
+    repository: Optional[str] = None
 ) -> str:
     '''
     Gets the .NET Core committer date using the GitHub Web API from the
@@ -661,58 +665,46 @@ def get_commit_date(
     if not commit_sha:
         raise ValueError('.NET Commit sha was not defined.')
 
-    # Example URL: https://github.com/dotnet/runtime/commit/2d76178d5faa97be86fc8d049c7dbcbdf66dc497.patch
-    url = None
-    fallback_url = None
+    build_timestamp = None
+    sleep_time = 10 # Start with 10 second sleep timer
+
     if repository is None:
-        # The origin of the repo where the commit belongs to has changed
-        # between release. Here we attempt to naively guess the repo.
         core_sdk_frameworks = ChannelMap.get_supported_frameworks()
-        repo = 'sdk' if framework in core_sdk_frameworks else 'cli'
-        url = f'https://github.com/dotnet/{repo}/commit/{commit_sha}.patch'
-        fallback_repo = 'core-sdk' if framework in core_sdk_frameworks else 'cli'
-        fallback_url = f'https://github.com/dotnet/{fallback_repo}/commit/{commit_sha}.patch'
+        urls = []
+
+        if framework in core_sdk_frameworks:
+            # Try dotnet/dotnet first, then dotnet/sdk, then dotnet/core-sdk
+            urls.append(f'https://github.com/dotnet/dotnet/commit/{commit_sha}.patch')
+            urls.append(f'https://github.com/dotnet/sdk/commit/{commit_sha}.patch')
+            urls.append(f'https://github.com/dotnet/core-sdk/commit/{commit_sha}.patch')
+        else:
+            # Fallback to cli
+            urls.append(f'https://github.com/dotnet/cli/commit/{commit_sha}.patch')
     else:
         owner, repo = get_repository(repository)
-        url = f'https://github.com/{owner}/{repo}/commit/{commit_sha}.patch'
-        fallback_url = url # We don't need to try a real fallback, just use the url
+        urls = [f'https://github.com/{owner}/{repo}/commit/{commit_sha}.patch']
 
-    build_timestamp = None
-    sleep_time = 10 # Start with 10 second sleep timer        
     for retrycount in range(5):
-        try:
-            with urlopen(url) as response:
-                getLogger().info("Commit: %s", url)
-                patch = response.read().decode('utf-8')
-                dateMatch = search(r'^Date: (.+)$', patch, MULTILINE)
-                if dateMatch:
-                    build_timestamp = datetime.datetime.strptime(dateMatch.group(1), '%a, %d %b %Y %H:%M:%S %z').astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-                    getLogger().info(f"Got UTC timestamp {build_timestamp} from {dateMatch.group(1)}")
-                    break
-        except URLError as error:
-            getLogger().warning(f"URL Error trying to get commit date from {url}; Reason: {error.reason}; Attempt {retrycount}")
-            # Try using the old core-sdk URL for sdk repo failures as the commits may be from before the switch
-            if 'Not Found' in error.reason and repo == "sdk":
-                try:
-                    getLogger().warning(f"Trying fallback URL {fallback_url}")
-                    with urlopen(fallback_url) as response:
-                        getLogger().info("Commit: %s", url)
-                        patch = response.read().decode('utf-8')
-                        dateMatch = search(r'^Date: (.+)$', patch, MULTILINE)
-                        if dateMatch:
-                            build_timestamp = datetime.datetime.strptime(dateMatch.group(1), '%a, %d %b %Y %H:%M:%S %z').astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-                            getLogger().info(f"Got UTC timestamp {build_timestamp} from {dateMatch.group(1)}")
-                            break
-                except URLError as error_fallback:
-                    getLogger().warning(f"URL Error trying to get commit date from {fallback_url}; Reason: {error_fallback.reason}; Attempt {retrycount}")
+        for url in urls:
+            try:
+                with urlopen(url) as response:
+                    getLogger().info("Commit: %s", url)
+                    patch = response.read().decode('utf-8')
+                    dateMatch = search(r'^Date: (.+)$', patch, MULTILINE)
+                    if dateMatch:
+                        build_timestamp = datetime.datetime.strptime(
+                            dateMatch.group(1), '%a, %d %b %Y %H:%M:%S %z'
+                        ).astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+                        getLogger().info(f"Got UTC timestamp {build_timestamp} from {dateMatch.group(1)}")
+                        return build_timestamp
+            except URLError as error:
+                getLogger().warning(f"URL Error trying to get commit date from {url}; Reason: {error.reason}; Attempt {retrycount}")
+            except Exception as error:
+                getLogger().warning(f"Error trying to get commit date from {url}; {type(error).__name__}: {error}; Attempt {retrycount}")
+        sleep(sleep_time)
+        sleep_time = sleep_time * 2
 
-            sleep(sleep_time)
-            sleep_time = sleep_time * 2
-
-    if not build_timestamp:
-        raise RuntimeError(
-            'Could not get timestamp for commit %s' % commit_sha)
-    return build_timestamp
+    raise RuntimeError(f'Could not get timestamp for commit {commit_sha}')
 
 def get_project_name(csproj_file: str) -> str:
     '''

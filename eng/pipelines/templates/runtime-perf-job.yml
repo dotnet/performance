@@ -10,6 +10,7 @@ parameters:
   liveLibrariesBuildConfig: ''
   runtimeType: 'coreclr'
   codeGenType: 'JIT'
+  linkingType: '' # dynamic is default
   iOSLlvmBuild: 'False'
   iOSStripSymbols: 'False'
   hybridGlobalization: 'False'
@@ -42,7 +43,7 @@ jobs:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'mono') }}
         - ${{ if eq(parameters.runtimeType, 'wasm')}}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}_{5}', 'browser', '', 'wasm', 'linux', parameters.buildConfig, parameters.runtimeType) }}
-        - ${{ if and(eq(parameters.codeGenType, 'AOT'), ne(parameters.runtimeType, 'wasm'))}}:
+        - ${{ if and(eq(parameters.codeGenType, 'AOT'), not(in(parameters.runtimeType, 'wasm', 'AndroidMono'))) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, parameters.codeGenType) }}
         - ${{ if eq(parameters.runtimeType, 'AndroidMono')}}:
           - ${{ 'build_android_arm64_release_AndroidMono' }}
@@ -128,7 +129,7 @@ jobs:
             find $(librariesDownloadDir)/bin/wasm -type d &&
             find $(librariesDownloadDir)/bin/wasm -type f -exec chmod 664 {} \;
           displayName: "Create wasm directory (Linux)"
-      - ${{ elseif eq(parameters.codeGenType, 'AOT') }}:
+      - ${{ elseif and(eq(parameters.codeGenType, 'AOT'), not(eq(parameters.runtimeType, 'AndroidMono'))) }}:
         # Download mono AOT
         - template: /eng/pipelines/templates/download-artifact-step.yml
           parameters:
@@ -153,15 +154,57 @@ jobs:
             artifactFileName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_${{ parameters.runtimeType }}$(archiveExtension)'
             artifactName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_${{ parameters.runtimeType }}'
             displayName: 'Runtime artifacts'
-      - ${{ elseif eq(parameters.runtimeType, 'AndroidMono')}}:
+      - ${{ elseif or(eq(parameters.runtimeType, 'AndroidMono'), eq(parameters.runtimeType, 'AndroidCoreCLR'))}}:
         # Download artifacts for Android Testing
         - template: /eng/pipelines/templates/download-artifact-step.yml
           parameters:
             unpackFolder: $(builtAppDir)/androidHelloWorld
             cleanUnpackFolder: false
-            artifactFileName: 'AndroidHelloWorldArm64Mono.tar.gz'
-            artifactName: 'AndroidHelloWorldArm64Mono'
-            displayName: 'Mono Android HelloWorld'
+
+            # AndroidMono
+            ${{ if eq(parameters.runtimeType, 'AndroidMono')}}:
+              ${{ if eq(parameters.codeGenType, 'JIT') }}:
+                artifactFileName: 'AndroidHelloWorldArm64Mono.tar.gz'
+                artifactName: 'AndroidHelloWorldArm64Mono'
+              ${{ if eq(parameters.codeGenType, 'AOT') }}:
+                artifactFileName: 'AndroidHelloWorldArm64MonoAOT.tar.gz'
+                artifactName: 'AndroidHelloWorldArm64MonoAOT'
+
+            # AndroidCoreCLR
+            ${{ if eq(parameters.runtimeType, 'AndroidCoreCLR')}}:
+              ${{ if and(eq(parameters.codeGenType, 'JIT'), eq(parameters.linkingType, '')) }}:
+                artifactFileName: 'AndroidHelloWorldArm64CoreCLR.tar.gz'
+                artifactName: 'AndroidHelloWorldArm64CoreCLR'
+              ${{ if and(eq(parameters.codeGenType, 'JIT'), eq(parameters.linkingType, 'static')) }}:
+                artifactFileName: 'AndroidHelloWorldArm64CoreCLRStaticLinking.tar.gz'
+                artifactName: 'AndroidHelloWorldArm64CoreCLRStaticLinking'
+              ${{ if and(eq(parameters.codeGenType, 'R2R'), eq(parameters.linkingType, '')) }}:
+                artifactFileName: 'AndroidHelloWorldArm64CoreCLRR2R.tar.gz'
+                artifactName: 'AndroidHelloWorldArm64CoreCLRR2R'
+            
+            displayName: 'Android Sample App'
+
+        - task: DownloadBuildArtifacts@0
+          displayName: 'Download binlog files'
+          inputs:
+            buildType: current
+            downloadType: single
+            downloadPath: '$(builtAppDir)/androidHelloWorldBinlog'
+            # AndroidMono
+            ${{ if eq(parameters.runtimeType, 'AndroidMono')}}:
+              ${{ if eq(parameters.codeGenType, 'JIT') }}:
+                artifactName: 'AndroidMonoArm64BuildLog'
+              ${{ if eq(parameters.codeGenType, 'AOT') }}:
+                artifactName: 'AndroidMonoAOTArm64BuildLog'
+
+            # AndroidCoreCLR
+            ${{ if eq(parameters.runtimeType, 'AndroidCoreCLR')}}:
+              ${{ if eq(parameters.codeGenType, 'JIT') }}:
+                artifactName: 'AndroidCoreCLRArm64BuildLog'
+              ${{ if eq(parameters.codeGenType, 'R2R') }}:
+                artifactName: 'AndroidCoreCLRR2RArm64BuildLog'
+            checkDownloadedFiles: true
+
         # Disabled due to not working and needing consistent normal android results. https://github.com/dotnet/performance/issues/4729
         # - template: /eng/pipelines/templates/download-artifact-step.yml 
         #   parameters:
@@ -170,15 +213,6 @@ jobs:
         #     artifactFileName: 'AndroidBDNApk.tar.gz'
         #     artifactName: 'AndroidBDNApk'
         #     displayName: 'Mono Android BDN Apk'
-      - ${{ elseif eq(parameters.runtimeType, 'AndroidCoreCLR')}}:
-        # Download artifacts for Android Testing
-        - template: /eng/pipelines/templates/download-artifact-step.yml
-          parameters:
-            unpackFolder: $(builtAppDir)/androidHelloWorld
-            cleanUnpackFolder: false
-            artifactFileName: 'AndroidHelloWorldArm64CoreCLR.tar.gz'
-            artifactName: 'AndroidHelloWorldArm64CoreCLR'
-            displayName: 'CoreCLR Android HelloWorld'
       - ${{ elseif or(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.runtimeType, 'iOSNativeAOT')) }}:
         # Download iOSMono and Native AOT tests
         - template: /eng/pipelines/templates/download-artifact-step.yml
@@ -223,6 +257,25 @@ jobs:
               artifactName: 'iOSSampleAppSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppNoSymbolsHybridGlobalization${{parameters.hybridGlobalization}}'
+            checkDownloadedFiles: true
+        - task: DownloadBuildArtifacts@0
+          displayName: 'Download binlog files'
+          inputs:
+            buildType: current
+            downloadType: single
+            downloadPath: '$(builtAppDir)/iosHelloWorldBinlog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'False')) }}:
+              artifactName: 'iOSMonoArm64NoLLVMNoStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSMonoArm64NoLLVMStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'False')) }}:
+              artifactName: 'iOSMonoArm64LLVMNoStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSMonoArm64LLVMStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'False')) }}:
+              artifactName: 'iOSNativeAOTArm64NoStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSNativeAOTArm64StripSymbolsBuildLog'
             checkDownloadedFiles: true
 
       - ${{ if notIn(parameters.runtimeType, 'wasm', 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSNativeAOT') }}:

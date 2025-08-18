@@ -9,5 +9,6 @@
     <PackageVersion Include="coverlet.collector" Version="1.0.1" />
     <PackageVersion Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.7" />
     <PackageVersion Include="System.Security.Principal.Windows" Version="4.7.0" />
+    <PackageVersion Include="MSBuild.StructuredLogger" Version="2.2.386" />
   </ItemGroup>
 </Project>

@@ -123,28 +123,29 @@ jobs:
         runCategories: 'runtime libraries' 
         channels:
           - main
-          - nativeaot9.0
-          - nativeaot8.0
+          # - nativeaot9.0 # Disable until I have time to properly fix the issues and can merge https://github.com/dotnet/performance/pull/4741
+          # - nativeaot8.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # net462 micro benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-rs5-x64
-      isPublic: true
-      jobParameters:
-        runKind: micro_net462
-        targetCsproj: src\benchmarks\micro\MicroBenchmarks.csproj
-        runCategories: 'runtime libraries'
-        channels:
-          - net462
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # net462 micro benchmarks # Disable until I have time to properly fix the issues and can merge https://github.com/dotnet/performance/pull/4741
+  - ${{ if false }}:
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+        buildMachines:
+          - win-rs5-x64
+        isPublic: true
+        jobParameters:
+          runKind: micro_net462
+          targetCsproj: src\benchmarks\micro\MicroBenchmarks.csproj
+          runCategories: 'runtime libraries'
+          channels:
+            - net462
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # ML.NET benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
@@ -350,6 +351,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
       isPublic: false
@@ -369,6 +372,7 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64
+        - win-x64-viper
         - win-arm64
         - win-arm64-ampere
       isPublic: false
@@ -388,7 +392,7 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui Android scenario benchmarks
+  # Maui Android scenario benchmarks (Mono ProfiledAOT)
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -399,10 +403,106 @@ jobs:
       jobParameters:
         runKind: maui_scenarios_android
         projectFileName: maui_scenarios_android.proj
-        dotnetVersionsLinks:
-          9.0: ./eng/Version.Details.xml
         channels:
-          - 8.0
+          - main
+        runtimeFlavor: mono
+        codeGenType: ProfiledAOT
+        additionalJobIdentifier: Mono
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui Android scenario benchmarks (Mono AOT)
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_android
+        projectFileName: maui_scenarios_android.proj
+        channels:
+          - main
+        runtimeFlavor: mono
+        codeGenType: AOT
+        additionalJobIdentifier: Mono
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui Android scenario benchmarks (CoreCLR JIT)
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_android
+        projectFileName: maui_scenarios_android.proj
+        channels:
+          - main
+        runtimeFlavor: coreclr
+        codeGenType: JIT
+        additionalJobIdentifier: CoreCLR
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui Android scenario benchmarks (CoreCLR R2R)
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_android
+        projectFileName: maui_scenarios_android.proj
+        channels:
+          - main
+        runtimeFlavor: coreclr
+        codeGenType: R2R
+        additionalJobIdentifier: CoreCLR
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui Android scenario benchmarks (CoreCLR R2R Composite)
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_android
+        projectFileName: maui_scenarios_android.proj
+        channels:
+          - main
+        runtimeFlavor: coreclr
+        codeGenType: R2RComposite
+        additionalJobIdentifier: CoreCLR
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui Android scenario benchmarks (CoreCLR NativeAOT)
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_android
+        projectFileName: maui_scenarios_android.proj
+        channels:
+          - main
+        runtimeFlavor: coreclr
+        codeGenType: NativeAOT
+        additionalJobIdentifier: CoreCLR
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -416,11 +516,10 @@ jobs:
       jobParameters:
         runKind: maui_scenarios_ios
         projectFileName: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          9.0: ./eng/Version.Details.xml
         channels:
-          - 8.0
+          - main
         runtimeFlavor: mono
+        codeGenType: FullAOT
         additionalJobIdentifier: Mono
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -435,11 +534,10 @@ jobs:
       jobParameters:
         runKind: maui_scenarios_ios
         projectFileName: maui_scenarios_ios.proj
-        dotnetVersionsLinks:
-          9.0: ./eng/Version.Details.xml
         channels:
-          - 8.0
+          - main
         runtimeFlavor: coreclr
+        codeGenType: NativeAOT
         additionalJobIdentifier: CoreCLR
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -452,6 +550,8 @@ jobs:
         buildMachines:
           - win-x64
           - ubuntu-x64
+          - win-x64-viper
+          - ubuntu-x64-viper
           - win-arm64
           - ubuntu-arm64-ampere
         isPublic: false
@@ -472,6 +572,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
       isPublic: false
       jobParameters:
@@ -497,7 +599,9 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64
+        - win-x64-viper
         - win-x86
+        - win-x86-viper
         #- ubuntu-x64-1804 reenable under new machine on new ubuntu once lttng/events are available
       isPublic: false
       jobParameters:
@@ -516,6 +620,7 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64
+        - win-x64-viper
       isPublic: false
       jobParameters:
         runKind: blazor_scenarios
@@ -535,6 +640,8 @@ jobs:
         buildMachines:
           - win-x64
           - ubuntu-x64
+          - win-x64-viper
+          - ubuntu-x64-viper
           - win-arm64
           - ubuntu-arm64-ampere
         isPublic: false
@@ -555,6 +662,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
       isPublic: false
@@ -576,6 +685,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
       isPublic: false
@@ -597,6 +708,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
       isPublic: false
@@ -618,6 +731,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
       isPublic: false
@@ -638,6 +753,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - win-arm64-ampere
         - ubuntu-arm64-ampere
@@ -665,6 +782,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - win-arm64-ampere
         - ubuntu-arm64-ampere
@@ -694,6 +813,8 @@ jobs:
         buildMachines:
           - win-x64
           - ubuntu-x64
+          - win-x64-viper
+          - ubuntu-x64-viper
           # Illink.Utilities is not supported on ARM: The type initializer for 'ILLinkBenchmarks.Utilities' threw a NotSupportedException (Unsupported architecture). (06/2023)
         isPublic: false
         jobParameters:
@@ -712,6 +833,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-x64-viper
+        - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64
       isPublic: false

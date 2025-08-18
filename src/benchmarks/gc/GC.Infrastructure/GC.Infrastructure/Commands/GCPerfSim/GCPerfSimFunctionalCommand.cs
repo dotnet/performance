@@ -187,6 +187,9 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimNormalWorkstationConfiguration.gcperfsim_configurations.Parameters["tc"] = "2";
             gcPerfSimNormalWorkstationConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
 
+            // modify environment
+            gcPerfSimNormalWorkstationConfiguration.Environment.environment_variables["DOTNET_gcServer"] = "0";
+
             // modify output
             gcPerfSimNormalWorkstationConfiguration.Output.Path =
                 Path.Combine(configuration.output_path, "Normal_Workstation");
@@ -319,9 +322,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_gcServer"] = "1";
             gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_GCHeapCount"] = _logicalProcessors.ToString("X");
             gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_GCLargePages"] = "1";
-            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimitSOH"] = "0x800000000";
-            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimitLOH"] = "0x400000000";
-            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimitPOH"] = "0x100000000";
+            gcPerfSimLargePages_ServerConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimit"] = "0x100000000";
 
             // modify output
             gcPerfSimLargePages_ServerConfiguration.Output.Path =
@@ -342,12 +343,10 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             gcPerfSimLargePages_WorkstationConfiguration.gcperfsim_configurations.Parameters["tagb"] = "100";
 
             // modify environment
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_gcServer"] = "1";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_gcServer"] = "0";
             gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_GCHeapCount"] = _logicalProcessors.ToString("X");
             gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_GCLargePages"] = "1";
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimitSOH"] = "0x800000000";
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimitLOH"] = "0x400000000";
-            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimitPOH"] = "0x100000000";
+            gcPerfSimLargePages_WorkstationConfiguration.Environment.environment_variables["DOTNET_GCHeapHardLimit"] = "0x100000000";
 
             // modify output
             gcPerfSimLargePages_WorkstationConfiguration.Output.Path =
