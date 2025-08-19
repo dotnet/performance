@@ -360,30 +360,34 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 
         private GCPerfSimConfiguration CreateBasicGCPerfSimConfiguration(GCPerfSimFunctionalConfiguration configuration)
         {
-            GCPerfSimConfiguration gcPerfSimNormalWorkstationConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBase, true);
+            GCPerfSimConfiguration gcPerfSimBasicConfiguration = GCPerfSimConfigurationParser.Parse(_gcPerfSimBase, true);
 
             // modify gcperfsim_configurations
-            gcPerfSimNormalWorkstationConfiguration.gcperfsim_configurations.gcperfsim_path =
+            gcPerfSimBasicConfiguration.gcperfsim_configurations.gcperfsim_path =
                 configuration.gcperfsim_path;
 
             // modify coreruns
-            gcPerfSimNormalWorkstationConfiguration.coreruns = new Dictionary<string, CoreRunInfo>();
+            gcPerfSimBasicConfiguration.coreruns = new Dictionary<string, CoreRunInfo>();
             foreach (var keyValuePair in configuration.coreruns)
             {
-                gcPerfSimNormalWorkstationConfiguration.coreruns[keyValuePair.Key] = keyValuePair.Value;
+                gcPerfSimBasicConfiguration.coreruns[keyValuePair.Key] = keyValuePair.Value;
             }
 
             // modify trace_configurations
-            gcPerfSimNormalWorkstationConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
+            gcPerfSimBasicConfiguration.TraceConfigurations.Type = configuration.trace_configuration_type;
 
             // load environment variables by deep copying them.
-            gcPerfSimNormalWorkstationConfiguration.Environment.environment_variables = new Dictionary<string, string>();
+            gcPerfSimBasicConfiguration.Environment.environment_variables = new Dictionary<string, string>();
             foreach (var c in configuration.Environment.environment_variables)
             {
-                gcPerfSimNormalWorkstationConfiguration.Environment.environment_variables[c.Key] = c.Value;
+                gcPerfSimBasicConfiguration.Environment.environment_variables[c.Key] = c.Value;
             }
 
-            return gcPerfSimNormalWorkstationConfiguration;
+            // Enable generating full dump when error occurs.
+            gcPerfSimBasicConfiguration.Environment.environment_variables["DOTNET_DbgEnableMiniDump"] = "1";
+            gcPerfSimBasicConfiguration.Environment.environment_variables["DOTNET_DbgMiniDumpType"] = "4";
+
+            return gcPerfSimBasicConfiguration;
         }
     }
 }
