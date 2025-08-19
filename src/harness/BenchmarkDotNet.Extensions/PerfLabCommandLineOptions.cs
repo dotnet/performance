@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 namespace BenchmarkDotNet.Extensions
 {
@@ -31,37 +32,36 @@ namespace BenchmarkDotNet.Extensions
 
         public static bool TryParse(string[] args, out PerfLabCommandLineOptions? options, out string[]? bdnOnlyArgs)
         {
-            Parser GetParser(bool ignoreUnknownArguments)
+            using var parser = new Parser(settings =>
             {
-                return new Parser(settings =>
-                {
-                    settings.CaseInsensitiveEnumValues = true;
-                    settings.CaseSensitive = false;
-                    settings.EnableDashDash = true;
-                    settings.IgnoreUnknownArguments = ignoreUnknownArguments;
-                });
+                settings.CaseInsensitiveEnumValues = true;
+                settings.CaseSensitive = false;
+                settings.EnableDashDash = true;
+                settings.IgnoreUnknownArguments = false;
+            });
+
+            var result = parser.ParseArguments<PerfLabCommandLineOptions>(args);
+            if (result is not Parsed<PerfLabCommandLineOptions> parsed || !ValidateOptions(parsed.Value))
+            {
+                options = null;
+                bdnOnlyArgs = null;
+                return false;
             }
 
-            using (var parser = GetParser(ignoreUnknownArguments: false))
-            {
-                var result = parser.ParseArguments<PerfLabCommandLineOptions>(args);
-                if (result is not Parsed<PerfLabCommandLineOptions> parsed || !ValidateOptions(parsed.Value))
-                {
-                    options = null;
-                    bdnOnlyArgs = null;
-                    return false;
-                }
+            options = parsed.Value;
 
-                options = parsed.Value;
+            // Parse again, set the custom options to null, then 'unparse' to get the BDN-only arguments.
+            var bdnResult = parser.ParseArguments<PerfLabCommandLineOptions>(args).Value;
+
+            // Iterate through props using reflection
+            var customProps = typeof(PerfLabCommandLineOptions).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            foreach (var prop in customProps)
+            {
+                if (prop.CanWrite)
+                    prop.SetValue(bdnResult, null);
             }
 
-            // Parse the args using the base class CommandLineOptions, then unparse it so that we can get only the BenchmarkDotNet arguments
-            using (var parser = GetParser(ignoreUnknownArguments: true))
-            {
-                var result = parser.ParseArguments<CommandLineOptions>(args);
-                bdnOnlyArgs = parser.FormatCommandLineArgs(result.Value, o => o.SkipDefault = true);
-            }
-
+            bdnOnlyArgs = parser.FormatCommandLineArgs(bdnResult, o => o.SkipDefault = true);
             return true;
         }
 
