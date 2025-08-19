@@ -16,7 +16,6 @@ parameters:
   hybridGlobalization: 'False'
   isScenario: false
   downloadSpecificBuild: null # buildId, pipeline, branchName, project
-  crossBuild: false
   runtimeRepoAlias: runtime
   performanceRepoAlias: self
   selfIsRuntime: true
@@ -56,20 +55,10 @@ jobs:
           - ${{ 'build_ios_arm64_release_iOSNativeAOT' }}
 
     variables:
-      - name: _crossBuildPropertyArg
-        value: ''
-      - ${{ if eq(parameters.crossBuild, true) }}:
-        - name: _crossBuildPropertyArg
-          value: '-cross'
       - name: librariesDownloadDir
         value: $(Build.SourcesDirectory)/artifacts
       - name: builtAppDir
         value: $(Build.SourcesDirectory)
-      - name: librariesOverrideArg
-        value: ''
-      - ${{ if ne(parameters.liveLibrariesBuildConfig, '') }}:
-        - name: librariesOverrideArg
-          value: '/p:LibrariesConfiguration=${{ parameters.liveLibrariesBuildConfig }}'
 
       - name: buildConfigUpper
         ${{ if eq(parameters.buildConfig, 'debug') }}:
@@ -82,13 +71,9 @@ jobs:
       - ${{ if eq(parameters.osGroup, 'windows') }}:
         - name: archiveExtension
           value: '.zip'
-        - name: scriptExt
-          value: '.cmd'
       - ${{ else }}:
         - name: archiveExtension
           value: '.tar.gz'
-        - name: scriptExt
-          value: '.sh'
       
       - ${{ each variable in parameters.variables }}:
         - ${{ variable }}
@@ -119,16 +104,6 @@ jobs:
               artifactName: BrowserWasm
               displayName: BrowserWasm
               ${{ insert }}: ${{ parameters.downloadSpecificBuild }}
-
-        - script: >-
-            mkdir -p $(librariesDownloadDir)/bin/wasm/wasm-data &&
-            mkdir -p $(librariesDownloadDir)/bin/wasm/dotnet &&
-            cp -r $(librariesDownloadDir)/BrowserWasm/staging/dotnet-latest/* $(librariesDownloadDir)/bin/wasm/dotnet &&
-            cp -r $(librariesDownloadDir)/BrowserWasm/staging/built-nugets $(librariesDownloadDir)/bin/wasm &&
-            cp src/mono/browser/test-main.js $(librariesDownloadDir)/bin/wasm/wasm-data/test-main.js &&
-            find $(librariesDownloadDir)/bin/wasm -type d &&
-            find $(librariesDownloadDir)/bin/wasm -type f -exec chmod 664 {} \;
-          displayName: "Create wasm directory (Linux)"
       - ${{ elseif and(eq(parameters.codeGenType, 'AOT'), not(eq(parameters.runtimeType, 'AndroidMono'))) }}:
         # Download mono AOT
         - template: /eng/pipelines/templates/download-artifact-step.yml
@@ -144,9 +119,6 @@ jobs:
             artifactFileName: LinuxMonoAOT${{ parameters.archType }}.tar.gz
             artifactName: LinuxMonoAOT${{ parameters.archType }}
             displayName: AOT Mono Artifacts
-
-        - script: "mkdir -p $(librariesDownloadDir)/bin/aot;mkdir -p $(librariesDownloadDir)/bin/aot/pack;cp -r $(librariesDownloadDir)/LinuxMonoAOT/artifacts/bin/mono/linux.${{ parameters.archType }}.Release/cross/linux-${{ parameters.archType }}/* $(librariesDownloadDir)/bin/aot;cp -r $(librariesDownloadDir)/LinuxMonoAOT/artifacts/bin/microsoft.netcore.app.runtime.linux-${{ parameters.archType }}/Release/* $(librariesDownloadDir)/bin/aot/pack"
-          displayName: "Create aot directory (Linux)"
       - ${{ elseif in(parameters.runtimeType, 'coreclr', 'mono') }}:
         - template: /eng/pipelines/templates/download-artifact-step.yml
           parameters:
@@ -277,31 +249,3 @@ jobs:
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSNativeAOTArm64StripSymbolsBuildLog'
             checkDownloadedFiles: true
-
-      - ${{ if notIn(parameters.runtimeType, 'wasm', 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSNativeAOT') }}:
-        - ${{ if ne(parameters.runtimeFlavor, 'Mono') }}:
-          # Create Core_Root
-          - script: $(Build.SourcesDirectory)/src/tests/build$(scriptExt) ${{ parameters.buildConfig }} ${{ parameters.archType }} generatelayoutonly $(librariesOverrideArg) $(_crossBuildPropertyArg)
-            displayName: Create Core_Root
-        - ${{ elseif ne(parameters.osGroup, 'windows') }}:
-          - task: CopyFiles@2
-            displayName: Create .dotnet-mono folder
-            inputs:
-              SourceFolder: $(librariesDownloadDir)/bin/testhost/${{ parameters.framework }}-${{ parameters.osGroup }}-$(buildConfigUpper)-${{ parameters.archType }}
-              TargetFolder: $(Build.SourcesDirectory)/.dotnet-mono
-          - task: CopyFiles@2
-            displayName: Copy corerun to .dotnet-mono
-            inputs:
-              SourceFolder: $(librariesDownloadDir)/bin/coreclr/${{ parameters.osGroup }}.${{ parameters.archType }}.$(buildConfigUpper)
-              Contents: 'corerun*'
-              TargetFolder: $(Build.SourcesDirectory)/.dotnet-mono/shared/Microsoft.NETCore.App/$(productVersion)
-
-        - ${{ if and(eq(parameters.isScenario, true), eq(parameters.runtimeType, 'wasm')) }}:
-          - script: >-
-              mkdir -p $(librariesDownloadDir)/bin/wasm/data &&
-              cp -r $(librariesDownloadDir)/BrowserWasm/staging/dotnet-latest $(librariesDownloadDir)/bin/wasm &&
-              cp -r $(librariesDownloadDir)/BrowserWasm/staging/built-nugets $(librariesDownloadDir)/bin/wasm &&
-              cp src/mono/browser/test-main.js $(librariesDownloadDir)/bin/wasm/data/test-main.js &&
-              find $(librariesDownloadDir)/bin/wasm -type f -exec chmod 664 {} \;
-            displayName: "Create wasm directory (Linux)"
-            condition: succeeded()

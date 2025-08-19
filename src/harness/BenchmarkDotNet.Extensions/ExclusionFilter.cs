@@ -8,7 +8,7 @@ namespace BenchmarkDotNet.Extensions
 {
     class ExclusionFilter : IFilter
     {
-        private readonly GlobFilter globFilter;
+        private readonly GlobFilter? globFilter;
 
         public ExclusionFilter(List<string> _filter)
         {
@@ -30,7 +30,7 @@ namespace BenchmarkDotNet.Extensions
 
     class CategoryExclusionFilter : IFilter
     {
-        private readonly AnyCategoriesFilter filter;
+        private readonly AnyCategoriesFilter? filter;
 
         public CategoryExclusionFilter(List<string> patterns)
         {

@@ -10,14 +10,8 @@
         "**/packages/": true,
         "/tools/": true,
     },
-    "python.analysis.typeCheckingMode": "strict",
-    "python.analysis.diagnosticSeverityOverrides": {
-        "reportMissingParameterType": "none",
-        "reportUnnecessaryComparison": "information",
-        "reportUnnecessaryIsInstance": "information",
-        "reportUnusedVariable": "information",
-        "reportMissingTypeStubs": "information"
-    },
+    "python.analysis.typeCheckingMode": "standard",
     "python.analysis.extraPaths": ["scripts"],
-    "python.analysis.diagnosticMode": "workspace"
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.ignore": [ "eng/common/**" ]
 }

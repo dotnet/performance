@@ -23,9 +23,9 @@ namespace BenchmarkDotNet.Extensions
         public static T GetNonDefaultValue<T>()
         {
             if (typeof(T) == typeof(byte) || typeof(T) == typeof(sbyte)) // we can't use ArrayOfUniqueValues for byte/sbyte (but they have the same range)
-                return Array<T>(byte.MaxValue).First(value => !value.Equals(default(T)));
+                return Array<T>(byte.MaxValue).First(value => !value!.Equals(default(T)));
             else
-                return ArrayOfUniqueValues<T>(2).First(value => !value.Equals(default(T)));
+                return ArrayOfUniqueValues<T>(2).First(value => !value!.Equals(default(T)));
         }
 
         /// <summary>

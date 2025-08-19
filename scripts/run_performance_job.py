@@ -1,4 +1,5 @@
 from logging import getLogger
+from pathlib import Path
 import re
 from dataclasses import dataclass, field
 from datetime import timedelta
@@ -15,7 +16,7 @@ import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional
 
 import ci_setup
-from performance.common import RunCommand, set_environment_variable
+from performance.common import RunCommand, iswin, set_environment_variable
 from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
@@ -112,6 +113,8 @@ class RunPerformanceJobArgs:
     os_version: Optional[str] = None
     dotnet_version_link: Optional[str] = None
     target_csproj: Optional[str] = None
+    build_config: str = "Release"
+    live_libraries_build_config: Optional[str] = None
 
 def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     helix_pre_commands: list[str] = []
@@ -368,6 +371,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     mono_dotnet = None
     wasm_bundle_dir = None
     wasm_aot = False
+    product_version = None
     if args.runtime_type == "mono":
         if args.codegen_type.lower() == "aot":
             if args.libraries_download_dir is None:
@@ -375,17 +379,85 @@ def run_performance_job(args: RunPerformanceJobArgs):
             
             mono_aot = True
             mono_aot_path = os.path.join(args.libraries_download_dir, "bin", "aot")
+            mono_aot_pack_dir = os.path.join(mono_aot_path, "pack")
+            os.makedirs(mono_aot_pack_dir, exist_ok=True)
+
+            linux_mono_aot_dir = os.path.join(args.libraries_download_dir, "LinuxMonoAOT", "artifacts", "bin")
+            if not os.path.exists(linux_mono_aot_dir):
+                raise Exception("AOT Mono Artifacts not downloaded")
+            
+            shutil.copytree(os.path.join(linux_mono_aot_dir, "mono", f"linux.{args.architecture}.Release", "cross", f"linux-{args.architecture}"), mono_aot_path, dirs_exist_ok=True)
+            shutil.copytree(os.path.join(linux_mono_aot_dir, f"microsoft.netcore.app.runtime.linux-{args.architecture}", "Release"), mono_aot_pack_dir, dirs_exist_ok=True)
         else:
             mono_dotnet = args.mono_dotnet_dir
             if mono_dotnet is None:
                 if args.runtime_repo_dir is None:
-                    raise Exception("Mono directory must be passed in for mono runs")
+                    raise Exception("Runtime repo must be available for mono runs")
+                
+                if args.framework is None:
+                    raise Exception("Framework must be passed in for mono runs")
+                
+                if args.libraries_download_dir is None:
+                    raise Exception("Mono build is not downloaded")
+                
+                if args.versions_props_path is None:
+                    args.versions_props_path = os.path.join(args.runtime_repo_dir, "eng", "Versions.props")
+                    
+                with open(args.versions_props_path) as f:
+                    for line in f:
+                        match = re.search(r"ProductVersion>([^<]*)<", line)
+                        if match:
+                            product_version = match.group(1)
+                            break
+                    else:
+                        raise Exception("Unable to find ProductVersion in Versions.props")
+                
                 mono_dotnet = os.path.join(args.runtime_repo_dir, ".dotnet-mono")
+                os.makedirs(mono_dotnet, exist_ok=True)
+
+                build_config_upper = args.build_config.title() # release -> Release
+
+                testhost_source = os.path.join(args.libraries_download_dir, "bin", "testhost", f"{args.framework}-{args.os_group}-{build_config_upper}-{args.architecture}")
+                shutil.copytree(testhost_source, mono_dotnet, dirs_exist_ok=True)
+
+                corerun_dir = os.path.join(args.libraries_download_dir, "bin", "coreclr", f"{args.os_group}.{args.architecture}.{build_config_upper}")
+                corerun_files = Path(corerun_dir).glob("corerun*")
+                corerun_target = os.path.join(mono_dotnet, "shared", "Microsoft.NETCore.App", product_version)
+                for file in corerun_files:
+                    shutil.copy(file, os.path.join(corerun_target, file.name))
+
     elif args.runtime_type == "wasm":
-        if args.libraries_download_dir is None:
-                raise Exception("Libraries not downloaded for WASM")
+        browser_wasm_dir = args.libraries_download_dir and os.path.join(args.libraries_download_dir, "BrowserWasm")
+        if args.libraries_download_dir is None or browser_wasm_dir is None or not os.path.exists(browser_wasm_dir):
+            raise Exception("BrowserWasm not downloaded for WASM")
         
+        test_main_js_path = args.runtime_repo_dir and os.path.join(args.runtime_repo_dir, "src", "mono", "browser", "test-main.js")
+        if test_main_js_path is None or not os.path.exists(test_main_js_path):
+            raise Exception("test-main.js must be present for WASM")
+
         wasm_bundle_dir = os.path.join(args.libraries_download_dir, "bin", "wasm")
+        wasm_data_dir = os.path.join(wasm_bundle_dir, "wasm-data")
+        wasm_dotnet_dir = os.path.join(wasm_bundle_dir, "dotnet")
+
+        os.makedirs(wasm_data_dir, exist_ok=True)
+        os.makedirs(wasm_dotnet_dir, exist_ok=True)
+
+        shutil.copytree(os.path.join(browser_wasm_dir, "staging", "dotnet-latest"), wasm_dotnet_dir)
+        shutil.copytree(os.path.join(browser_wasm_dir, "staging", "built-nugets"), wasm_bundle_dir)
+        shutil.copy(test_main_js_path, os.path.join(wasm_data_dir, "test-main.js"))
+
+        for item in Path(wasm_bundle_dir).rglob("*"):
+            if item.is_dir():
+                print(str(item))
+        
+        for item in Path(wasm_bundle_dir).rglob("*"):
+            if item.is_file():
+                try:
+                    item.chmod(0o664) # rw-rw-r--
+                    print(f"Set permissions for: {item}")
+                except OSError as e:
+                    print(f"Failed to set permissions for {item}: {e}")
+        
         if args.codegen_type.lower() == "aot":
             wasm_aot = True
 
@@ -684,7 +756,18 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.core_root_dir is None:
             if args.runtime_repo_dir is None:
                 raise Exception("Core_Root directory must be specified for non-performance CI runs")
+            
+            # Generate Core_Root
+            build_file = "build.cmd" if iswin() else "build.sh"
+            build_script = os.path.join(args.performance_repo_dir, "src", "tests", build_file)
+            generate_layout_command = [build_script, "release", args.architecture, "generatelayoutonly"]
+            if args.live_libraries_build_config:
+                generate_layout_command.append(f"/p:LibrariesConfiguration={args.live_libraries_build_config}")
+
+            RunCommand(generate_layout_command, verbose=True).run()
+
             args.core_root_dir = os.path.join(args.runtime_repo_dir, "artifacts", "tests", "coreclr", f"{args.os_group}.{args.architecture}.Release", "Tests", "Core_Root")
+
         coreroot_payload_dir = os.path.join(payload_dir, "Core_Root")
         getLogger().info("Copying Core_Root directory to payload directory")
         shutil.copytree(args.core_root_dir, coreroot_payload_dir, ignore=shutil.ignore_patterns("*.pdb"))
@@ -991,20 +1074,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         cli_arguments += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
 
     if mono_dotnet is not None:
-        if args.versions_props_path is None:
-            if args.runtime_repo_dir is None:
-                raise Exception("Version.props must be present for mono runs")
-            args.versions_props_path = os.path.join(args.runtime_repo_dir, "eng", "Versions.props")
-            
-        with open(args.versions_props_path) as f:
-            for line in f:
-                match = re.search(r"ProductVersion>([^<]*)<", line)
-                if match:
-                    product_version = match.group(1)
-                    break
-            else:
-                raise Exception("Unable to find ProductVersion in Versions.props")
-
         if args.os_group == "windows":
             bdn_arguments += ["--corerun", f"%HELIX_CORRELATION_PAYLOAD%\\dotnet-mono\\shared\\Microsoft.NETCore.App\\{product_version}\\corerun.exe"]
         else:
@@ -1211,7 +1280,8 @@ def main(argv: List[str]):
                 "--target-csproj": "target_csproj",
                 "--pdn-path": "pdn_path",
                 "--runtime-repo-dir": "runtime_repo_dir",
-                "--logical-machine": "logical_machine"
+                "--logical-machine": "logical_machine",
+                "--build-config": "build_config"
             }
 
             if key in simple_arg_map:
