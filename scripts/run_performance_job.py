@@ -442,8 +442,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         os.makedirs(wasm_data_dir, exist_ok=True)
         os.makedirs(wasm_dotnet_dir, exist_ok=True)
 
-        shutil.copytree(os.path.join(browser_wasm_dir, "staging", "dotnet-latest"), wasm_dotnet_dir)
-        shutil.copytree(os.path.join(browser_wasm_dir, "staging", "built-nugets"), wasm_bundle_dir)
+        shutil.copytree(os.path.join(browser_wasm_dir, "staging", "dotnet-latest"), wasm_dotnet_dir, dirs_exist_ok=True)
+        shutil.copytree(os.path.join(browser_wasm_dir, "staging", "built-nugets"), wasm_bundle_dir, dirs_exist_ok=True)
         shutil.copy(test_main_js_path, os.path.join(wasm_data_dir, "test-main.js"))
 
         for item in Path(wasm_bundle_dir).rglob("*"):
@@ -642,7 +642,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if mono_dotnet is not None and not mono_aot:
         mono_dotnet_path = os.path.join(payload_dir, "dotnet-mono")
         getLogger().info("Copying mono dotnet directory to payload directory")
-        shutil.copytree(mono_dotnet, mono_dotnet_path)
+        shutil.copytree(mono_dotnet, mono_dotnet_path, dirs_exist_ok=True)
 
     v8_version = ""
     if wasm_bundle_dir is not None:
@@ -758,7 +758,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             
             # Generate Core_Root
             build_file = "build.cmd" if iswin() else "build.sh"
-            build_script = os.path.join(args.performance_repo_dir, "src", "tests", build_file)
+            build_script = os.path.join(args.runtime_repo_dir, "src", "tests", build_file)
             generate_layout_command = [build_script, "release", args.architecture, "generatelayoutonly"]
             if args.live_libraries_build_config:
                 generate_layout_command.append(f"/p:LibrariesConfiguration={args.live_libraries_build_config}")
