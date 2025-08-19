@@ -454,7 +454,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
             if item.is_file():
                 try:
                     item.chmod(0o664) # rw-rw-r--
-                    print(f"Set permissions for: {item}")
                 except OSError as e:
                     print(f"Failed to set permissions for {item}: {e}")
         
@@ -1281,7 +1280,8 @@ def main(argv: List[str]):
                 "--pdn-path": "pdn_path",
                 "--runtime-repo-dir": "runtime_repo_dir",
                 "--logical-machine": "logical_machine",
-                "--build-config": "build_config"
+                "--build-config": "build_config",
+                "--live-libraries-build-config": "live_libraries_build_config"
             }
 
             if key in simple_arg_map:
