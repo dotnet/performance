@@ -114,6 +114,8 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 
                 for (int iterationIdx = 0; iterationIdx < configuration.Environment.Iterations; iterationIdx++)
                 {
+                    // Format: (Name of Run).(corerun / name of corerun).(IterationIdx)
+                    string key = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
                     using (Process gcperfsimProcess = new())
                     {
                         gcperfsimProcess.StartInfo.FileName = processAndParameters.Item1;
@@ -155,6 +157,10 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                             }
                         }
 
+                        // Set dump name
+                        string dumpPath = Path.Combine(outputPath, key + ".dmp");
+                        environmentVariables["DOTNET_DbgMiniDumpName"] = dumpPath;
+
                         // Check if the log file is specified, also store it in a run-specific location.
                         // This log file should be named in concordance with the name of the run and the benchmark.
                         const string gclogVariable = "DOTNET_GCLogFile";
@@ -170,13 +176,10 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                             gcperfsimProcess.StartInfo.EnvironmentVariables[environVar.Key] = environVar.Value;
                         }
 
-                        // Format: (Name of Run).(corerun / name of corerun).(IterationIdx)
                         string? output = null;
                         string? error = null;
 
-                        string key = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
-                        string traceName = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
-                        using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, outputPath))
+                        using (TraceCollector traceCollector = new TraceCollector(key, collectType, outputPath))
                         {
                             gcperfsimProcess.Start();
                             output = gcperfsimProcess.StandardOutput.ReadToEnd();
@@ -189,7 +192,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         if (configuration.TraceConfigurations?.Type != "none")
                         {
                             // Not checking Linux here since the local run only allows for Windows.
-                            if (!File.Exists(Path.Combine(outputPath, traceName + ".etl.zip")))
+                            if (!File.Exists(Path.Combine(outputPath, key + ".etl.zip")))
                             {
                                 AnsiConsole.MarkupLine($"[yellow bold] ({DateTime.Now}) The trace for the run wasn't successfully captured. Please check the log file for more details: {Markup.Escape(output)} Full run details: {Path.GetFileNameWithoutExtension(configuration.Name)}: {runInfo.CorerunDetails.Key} for {runInfo.RunDetails.Key} [/]");
                             }
