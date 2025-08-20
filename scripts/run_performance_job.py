@@ -322,6 +322,7 @@ def extract_archive_or_copy(archive_path_or_dir: str, dest_dir: str, prefix: Opt
     if os.path.exists(dest_dir) and not os.path.isdir(dest_dir):
         raise NotADirectoryError(f"Destination exists and is not a directory: {dest_dir}")
     
+    os.makedirs(dest_dir, exist_ok=True)
     # get everything up to last slash
     prefix_folder = prefix or ""
     if prefix and not prefix.endswith("/") and "/" in prefix:
@@ -462,7 +463,7 @@ def build_monoaot_payload(
         architecture: str):
     
     pack_dir = os.path.join(payload_dest, "pack")
-    os.makedirs(payload_dest, exist_ok=True)
+    os.makedirs(pack_dir, exist_ok=True)
 
     extract_archive_or_copy(
         monoaot_artifacts_archive_or_dir, 
@@ -473,6 +474,223 @@ def build_monoaot_payload(
         monoaot_artifacts_archive_or_dir, 
         pack_dir, 
         prefix=f"artifacts/bin/microsoft.netcore.app.runtime.linux-{architecture}/Release/")
+    
+def build_wasm_payload(
+        browser_wasm_archive_or_dir: str,
+        payload_parent_dir: str, # wasm creates three payload directories
+        test_main_js_path: Optional[str] = None,
+        runtime_repo_dir: Optional[str] = None):
+    
+    if test_main_js_path is None:
+        if runtime_repo_dir is None:
+            raise Exception("Please provide a path to the test-main.js or runtime repository")
+        test_main_js_path = runtime_repo_dir and os.path.join(runtime_repo_dir, "src", "mono", "browser", "test-main.js")
+    
+    if not os.path.exists(test_main_js_path):
+        raise Exception(f"test-main.js not found in expected location: {test_main_js_path}")
+    
+    wasm_dotnet_dir = os.path.join(payload_parent_dir, "dotnet")
+    wasm_built_nugets_dir = os.path.join(payload_parent_dir, "built-nugets")
+    wasm_data_dir = os.path.join(payload_parent_dir, "wasm-data")
+
+    extract_archive_or_copy(
+        browser_wasm_archive_or_dir,
+        wasm_dotnet_dir,
+        prefix="staging/dotnet-latest/")
+    
+    extract_archive_or_copy(
+        browser_wasm_archive_or_dir,
+        wasm_built_nugets_dir,
+        prefix="staging/built-nugets/")
+
+    os.makedirs(wasm_data_dir, exist_ok=True)
+    shutil.copy(test_main_js_path, os.path.join(wasm_data_dir, "test-main.js"))
+
+    for dir in [wasm_dotnet_dir, wasm_built_nugets_dir, wasm_data_dir]:
+        for root, _, files in os.walk(dir):
+            for item in files:
+                try:
+                    os.chmod(os.path.join(root, item), 0o664) # rw-rw-r--
+                except OSError as e:
+                    print(f"Failed to set permissions for {item}: {e}")
+
+def get_bdn_arguments(
+        run_categories: str,
+        internal: bool,
+        os_group: str,
+        runtime_type: str,
+        codegen_type: str,
+        only_sanity_check: bool = False,
+        affinity: Optional[str] = None,
+        experiment_name: Optional[str] = None,
+        javascript_engine: Optional[str] = None,
+        javascript_engine_path: Optional[str] = None,
+        product_version: Optional[str] = None,
+        corerun_payload_dir: Optional[str] = None,
+        extra_bdn_args: Optional[str] = None):
+    
+    bdn_arguments = ["--anyCategories", run_categories]
+
+    if affinity is not None and not "0":
+        bdn_arguments += ["--affinity", affinity]
+
+    if not internal:
+        bdn_arguments += [
+            "--iterationCount", "1", 
+            "--warmupCount", "0", 
+            "--invocationCount", "1", 
+            "--unrollFactor", "1", 
+            "--strategy", "ColdStart", 
+            "--stopOnFirstError", "true"
+        ]
+
+    category_exclusions: list[str] = []
+
+    is_aot = codegen_type.lower() == "aot"
+    if runtime_type == "mono":
+        # TODO: Validate if this exclusion filter is still needed
+        bdn_arguments += ["--exclusion-filter", "*Perf_Image*", "*Perf_NamedPipeStream*"]
+
+        if is_aot:
+            category_exclusions += ["NoAOT", "NoWASM"]
+            bdn_arguments += [
+                "--runtimes", "monoaotllvm",
+                "--aotcompilerpath", "$HELIX_CORRELATION_PAYLOAD/monoaot/mono-aot-cross",
+                "--customruntimepack", "$HELIX_CORRELATION_PAYLOAD/monoaot/pack", 
+                "--aotcompilermode", "llvm",
+            ]
+        else:
+            category_exclusions += ["NoMono"]
+
+        if codegen_type.lower() == "interpreter":
+            category_exclusions += ["NoInterpreter"]
+
+    if experiment_name == "memoryRandomization":
+        bdn_arguments += ["--memoryRandomization", "true"]
+
+    if runtime_type == "wasm":
+        category_exclusions += ["NoInterpreter", "NoWASM", "NoMono"]
+
+        wasm_args = "--expose_wasm"
+        if javascript_engine == "v8":
+            wasm_args += " --module"
+
+        bdn_arguments += [
+            "--wasmEngine", javascript_engine_path,
+            f"\\\"--wasmArgs={wasm_args}\\\"",
+            "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
+            "--wasmDataDir", "$HELIX_CORRELATION_PAYLOAD/wasm-data"
+        ]
+
+        if is_aot:
+            bdn_arguments += [
+                "--aotcompilermode", "wasm",
+                "--buildTimeout", "3600"
+            ]
+
+    if category_exclusions:
+        bdn_arguments += ["--category-exclusion-filter", *set(category_exclusions)]
+
+    bdn_arguments += ["--logBuildOutput", "--generateBinLog"]
+
+    if only_sanity_check:
+        bdn_arguments += ["--filter", "System.Tests.Perf_*"]
+
+    if runtime_type == "mono" and not is_aot:
+        assert product_version is not None
+        if os_group == "windows":
+            bdn_arguments += ["--corerun", f"%HELIX_CORRELATION_PAYLOAD%\\dotnet-mono\\shared\\Microsoft.NETCore.App\\{product_version}\\corerun.exe"]
+        else:
+            bdn_arguments += ["--corerun", f"$HELIX_CORRELATION_PAYLOAD/dotnet-mono/shared/Microsoft.NETCore.App/{product_version}/corerun"]
+
+    if corerun_payload_dir is not None:
+        if os_group == "windows":
+            bdn_arguments += ["--corerun", f"%HELIX_CORRELATION_PAYLOAD%\\{corerun_payload_dir}\\CoreRun.exe"]
+        else:
+            bdn_arguments += ["--corerun", f"$HELIX_CORRELATION_PAYLOAD/{corerun_payload_dir}/corerun"]
+
+    if extra_bdn_args:
+        bdn_arguments += extra_bdn_args.split(" ")
+
+    return bdn_arguments
+
+def get_run_configurations(
+        run_kind: str,
+        runtime_type: str,
+        codegen_type: str,
+        pgo_run_type: Optional[str] = None,
+        physical_promotion_run_type: Optional[str] = None,
+        r2r_run_type: Optional[str] = None,
+        hybrid_globalization: bool = False,
+        experiment_name: Optional[str] = None,
+        linking_type: Optional[str] = None,
+        runtime_flavor: Optional[str] = None,
+        ios_llvm_build: bool = False,
+        ios_strip_symbols: bool = False,
+        javascript_engine: Optional[str] = None):
+    
+    configurations = { "CompilationMode": "Tiered", "RunKind": run_kind }
+
+    is_aot = codegen_type.lower() == "aot"
+    if runtime_type == "mono":
+        llvm = is_aot and not run_kind == "android_scenarios"
+        configurations["LLVM"] = str(llvm)
+        configurations["MonoInterpreter"] = str(codegen_type.lower() == "interpreter")
+        configurations["MonoAOT"] = str(is_aot)
+
+    if runtime_type == "wasm":
+        configurations["CompilationMode"] = "wasm"
+        if is_aot:
+            configurations["AOT"] = "true"
+
+        if javascript_engine == "javascriptcore":
+            configurations["JSEngine"] = "javascriptcore"
+
+    if pgo_run_type == "nodynamicpgo":
+        configurations["PGOType"] = "nodynamicpgo"
+
+    if physical_promotion_run_type == "physicalpromotion":
+        configurations["PhysicalPromotionType"] = "physicalpromotion"
+
+    if r2r_run_type == "nor2r":
+        configurations["R2RType"] = "nor2r"
+
+    if hybrid_globalization:
+        configurations["HybridGlobalization"] = "True"
+
+    if experiment_name is not None:
+        configurations["ExperimentName"] = experiment_name
+
+    # dotnet/runtime Android sample app scenarios
+    if run_kind == "android_scenarios":
+        configurations["CodegenType"] = str(codegen_type)
+        configurations["LinkingType"] = str(linking_type)
+        configurations["RuntimeType"] = str(runtime_flavor)
+
+    # .NET Android and .NET MAUI Android sample app scenarios
+    if run_kind == "maui_scenarios_android":
+        if not runtime_flavor in ("mono", "coreclr"):
+            raise Exception("Runtime flavor must be specified for maui_scenarios_android")
+        configurations["CodegenType"] = str(codegen_type)
+        configurations["RuntimeType"] = str(runtime_flavor)
+
+    # .NET iOS and .NET MAUI iOS sample app scenarios
+    if run_kind == "maui_scenarios_ios":
+        if not runtime_flavor in ("mono", "coreclr"):
+            raise Exception("Runtime flavor must be specified for maui_scenarios_ios")
+        configurations["CodegenType"] = str(codegen_type)
+        configurations["RuntimeType"] = str(runtime_flavor)
+
+    if runtime_type == "iOSMono":
+        configurations["iOSLlvmBuild"] = str(ios_llvm_build)
+        configurations["iOSStripSymbols"] = str(ios_strip_symbols)
+        configurations["RuntimeType"] = "Mono"
+
+    if runtime_type == "iOSNativeAOT":
+        configurations["iOSStripSymbols"] = str(ios_strip_symbols)
+        configurations["RuntimeType"] = "NativeAOT"
+
+    return configurations
 
 def run_performance_job(args: RunPerformanceJobArgs):
     setup_loggers(verbose=True)
@@ -509,8 +727,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     
     args.performance_repo_dir = os.path.abspath(args.performance_repo_dir)
 
-    mono_interpreter = args.codegen_type.lower() == "interpreter" and args.runtime_type == "mono"
-
     if args.target_csproj is None:
         if args.os_group == "windows":
             args.target_csproj="src\\benchmarks\\micro\\MicroBenchmarks.csproj"
@@ -521,13 +737,12 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     if args.libraries_download_dir is None and not args.performance_repo_ci and args.runtime_repo_dir is not None:
         args.libraries_download_dir = os.path.join(args.runtime_repo_dir, "artifacts")
-
-    llvm = args.codegen_type.lower() == "aot" and args.runtime_type != "wasm" and not args.run_kind == "android_scenarios"
+    
     ios_mono = args.runtime_type == "iOSMono"
     ios_nativeaot = args.runtime_type == "iOSNativeAOT"
     mono_aot = False
     mono_dotnet = False
-    wasm_bundle_dir = None
+    wasm = False
     wasm_aot = False
     product_version = None
     if args.runtime_type == "mono":
@@ -535,34 +750,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             mono_aot = True
         else:
             mono_dotnet = True
-
     elif args.runtime_type == "wasm":
-        browser_wasm_dir = args.libraries_download_dir and os.path.join(args.libraries_download_dir, "BrowserWasm")
-        if args.libraries_download_dir is None or browser_wasm_dir is None or not os.path.exists(browser_wasm_dir):
-            raise Exception("BrowserWasm not downloaded for WASM")
-        
-        test_main_js_path = args.runtime_repo_dir and os.path.join(args.runtime_repo_dir, "src", "mono", "browser", "test-main.js")
-        if test_main_js_path is None or not os.path.exists(test_main_js_path):
-            raise Exception("test-main.js must be present for WASM")
-
-        wasm_bundle_dir = os.path.join(args.libraries_download_dir, "bin", "wasm")
-        wasm_data_dir = os.path.join(wasm_bundle_dir, "wasm-data")
-        wasm_dotnet_dir = os.path.join(wasm_bundle_dir, "dotnet")
-
-        os.makedirs(wasm_data_dir, exist_ok=True)
-        os.makedirs(wasm_dotnet_dir, exist_ok=True)
-
-        shutil.copytree(os.path.join(browser_wasm_dir, "staging", "dotnet-latest"), wasm_dotnet_dir, dirs_exist_ok=True)
-        shutil.copytree(os.path.join(browser_wasm_dir, "staging", "built-nugets"), wasm_bundle_dir, dirs_exist_ok=True)
-        shutil.copy(test_main_js_path, os.path.join(wasm_data_dir, "test-main.js"))
-
-        for item in Path(wasm_bundle_dir).rglob("*"):
-            if item.is_file():
-                try:
-                    item.chmod(0o664) # rw-rw-r--
-                except OSError as e:
-                    print(f"Failed to set permissions for {item}: {e}")
-        
+        wasm = True
         if args.codegen_type.lower() == "aot":
             wasm_aot = True
 
@@ -585,12 +774,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     getLogger().info("Copying performance repository to payload directory")
     shutil.copytree(args.performance_repo_dir, performance_payload_dir, ignore=shutil.ignore_patterns("CorrelationStaging", ".git", "artifacts", ".dotnet", ".venv", ".vs"))
 
-    bdn_arguments = ["--anyCategories", args.run_categories]
-
-    if args.affinity is not None and not "0":
-        bdn_arguments += ["--affinity", args.affinity]
-
-    extra_bdn_arguments = [] if args.extra_bdn_args is None else args.extra_bdn_args.split(" ")
     if args.internal:
         creator = ""
         perf_lab_arguments = ["--upload-to-perflab-container"]
@@ -601,14 +784,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     else:
         args.helix_access_token = None
         os.environ.pop("HelixAccessToken", None) # in case the environment variable is set on the system already
-        extra_bdn_arguments += [
-            "--iterationCount", "1", 
-            "--warmupCount", "0", 
-            "--invocationCount", "1", 
-            "--unrollFactor", "1", 
-            "--strategy", "ColdStart", 
-            "--stopOnFirstError", "true"
-        ]
         creator = args.build_definition_name or ""
         if args.performance_repo_ci:
             creator = "dotnet-performance"
@@ -619,106 +794,29 @@ def run_performance_job(args: RunPerformanceJobArgs):
         else:
             helix_source_prefix = "ci"
 
-    category_exclusions: list[str] = []
+    if wasm_aot:
+        build_config = f"wasmaot.{build_config}"
+    elif wasm:
+        build_config = f"wasm.{build_config}"
 
-    configurations = { "CompilationMode": "Tiered", "RunKind": args.run_kind }
-
-    if mono_dotnet or mono_aot:
-        configurations["LLVM"] = str(llvm)
-        configurations["MonoInterpreter"] = str(mono_interpreter)
-        configurations["MonoAOT"] = str(mono_aot)
-
-        # TODO: Validate if this exclusion filter is still needed
-        extra_bdn_arguments += ["--exclusion-filter", "*Perf_Image*", "*Perf_NamedPipeStream*"]
-
-        # TODO: Identify why Mono AOT does not exclude NoMono, but instead excludes NoWASM
-        if mono_aot:
-            category_exclusions += ["NoAOT", "NoWASM"]
-        else:
-            category_exclusions += ["NoMono"]
-
-        if mono_interpreter:
-            category_exclusions += ["NoInterpreter"]
-
-    using_wasm = False
-    if wasm_bundle_dir is not None:
-        using_wasm = True
-        configurations["CompilationMode"] = "wasm"
-        if wasm_aot:
-            configurations["AOT"] = "true"
-            build_config = f"wasmaot.{build_config}"
-        else:
-            build_config = f"wasm.{build_config}"
-
-        if args.javascript_engine == "javascriptcore":
-            configurations["JSEngine"] = "javascriptcore"
-
-        category_exclusions += ["NoInterpreter", "NoWASM", "NoMono"]
-
-    if args.pgo_run_type == "nodynamicpgo":
-        configurations["PGOType"] = "nodynamicpgo"
-
-    if args.physical_promotion_run_type == "physicalpromotion":
-        configurations["PhysicalPromotionType"] = "physicalpromotion"
-
-    if args.r2r_run_type == "nor2r":
-        configurations["R2RType"] = "nor2r"
-
-    if args.hybrid_globalization:
-        configurations["HybridGlobalization"] = "True"
-
-    if args.experiment_name is not None:
-        configurations["ExperimentName"] = args.experiment_name
-        if args.experiment_name == "memoryRandomization":
-            extra_bdn_arguments += ["--memoryRandomization", "true"]
-
-    runtime_type = ""
-
-    # dotnet/runtime Android sample app scenarios
     if args.run_kind == "android_scenarios":
-        # Mapping runtime_type to runtime_flavor before sending to helix
         if args.runtime_type == "AndroidMono":
             args.runtime_flavor = "mono"
         elif args.runtime_type == "AndroidCoreCLR":
             args.runtime_flavor = "coreclr"
         else:
             raise Exception("Android scenarios only support Mono and CoreCLR runtimes")
-        configurations["CodegenType"] = str(args.codegen_type)
-        configurations["LinkingType"] = str(args.linking_type)
-        configurations["RuntimeType"] = str(args.runtime_flavor)
-
-    # .NET Android and .NET MAUI Android sample app scenarios
-    if args.run_kind == "maui_scenarios_android":
-        if not args.runtime_flavor in ("mono", "coreclr"):
-            raise Exception("Runtime flavor must be specified for maui_scenarios_android")
-        configurations["CodegenType"] = str(args.codegen_type)
-        configurations["RuntimeType"] = str(args.runtime_flavor)
-
-    # .NET iOS and .NET MAUI iOS sample app scenarios
-    if args.run_kind == "maui_scenarios_ios":
-        if not args.runtime_flavor in ("mono", "coreclr"):
-            raise Exception("Runtime flavor must be specified for maui_scenarios_ios")
-        configurations["CodegenType"] = str(args.codegen_type)
-        configurations["RuntimeType"] = str(args.runtime_flavor)
-
-    if ios_mono:
-        runtime_type = "Mono"
-        configurations["iOSLlvmBuild"] = str(args.ios_llvm_build)
-        configurations["iOSStripSymbols"] = str(args.ios_strip_symbols)
-        configurations["RuntimeType"] = str(runtime_type)
-
-    if ios_nativeaot:
-        runtime_type = "NativeAOT"
-        configurations["iOSStripSymbols"] = str(args.ios_strip_symbols)
-        configurations["RuntimeType"] = str(runtime_type)
-
-    if category_exclusions:
-        extra_bdn_arguments += ["--category-exclusion-filter", *set(category_exclusions)]
     
     branch = os.environ.get("BUILD_SOURCEBRANCH")
     cleaned_branch_name = "main"
     if branch is not None and branch.startswith("refs/heads/release"):
         cleaned_branch_name = branch.replace("refs/heads/", "")
+
+    configurations = get_run_configurations(
+        args.run_kind, args.runtime_type, args.codegen_type, args.pgo_run_type, args.physical_promotion_run_type,
+        args.r2r_run_type, args.hybrid_globalization, args.experiment_name, args.linking_type,
+        args.runtime_flavor, args.ios_llvm_build, args.ios_strip_symbols, args.javascript_engine
+    )
 
     ci_setup_arguments = ci_setup.CiSetupArgs(
         channel=cleaned_branch_name,
@@ -779,20 +877,19 @@ def run_performance_job(args: RunPerformanceJobArgs):
             shutil.copytree(args.mono_dotnet_dir, mono_dotnet_path, dirs_exist_ok=True)
 
     v8_version = ""
-    if wasm_bundle_dir is not None:
-        wasm_bundle_dir_path = payload_dir
+    if wasm:
+        if args.libraries_download_dir is None:
+            raise Exception("Libraries not downloaded for wasm runs")
+        
         getLogger().info("Copying wasm bundle directory to payload directory")
-        shutil.copytree(wasm_bundle_dir, wasm_bundle_dir_path, dirs_exist_ok=True)
-
-        wasm_args = "--expose_wasm"
+        browser_wasm_dir = os.path.join(args.libraries_download_dir, "BrowserWasm")
+        build_wasm_payload(browser_wasm_dir, payload_dir, runtime_repo_dir=args.runtime_repo_dir)
 
         if args.javascript_engine == "v8":
             if args.browser_versions_props_path is None:
                 if args.runtime_repo_dir is None:
                     raise Exception("BrowserVersions.props must be present for wasm runs")
                 args.browser_versions_props_path = os.path.join(args.runtime_repo_dir, "eng", "testing", "BrowserVersions.props")
-            
-            wasm_args += " --module"
 
             with open(args.browser_versions_props_path) as f:
                 for line in f:
@@ -808,22 +905,9 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 args.javascript_engine_path = f"/home/helixbot/.jsvu/bin/v8-{v8_version}"
 
         if args.javascript_engine_path is None:
-            args.javascript_engine_path = f"/home/helixbot/.jsvu/bin/{args.javascript_engine}"    
+            args.javascript_engine_path = f"/home/helixbot/.jsvu/bin/{args.javascript_engine}"
 
-        extra_bdn_arguments += [
-            "--wasmEngine", args.javascript_engine_path,
-            f"\\\"--wasmArgs={wasm_args}\\\"",
-            "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
-            "--wasmDataDir", "$HELIX_CORRELATION_PAYLOAD/wasm-data"
-        ]
-
-        if wasm_aot:
-            extra_bdn_arguments += [
-                "--aotcompilermode", "wasm",
-                "--buildTimeout", "3600"
-            ]
-
-        ci_setup_arguments.dotnet_path = f"{wasm_bundle_dir_path}/dotnet"
+        ci_setup_arguments.dotnet_path = f"{payload_dir}/dotnet"
 
     if args.dotnet_version_link is not None:
         if args.dotnet_version_link.startswith("https"): # Version link is a proper url
@@ -870,22 +954,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         getLogger().info("Copying MonoAOT build to payload directory")
         build_monoaot_payload(linux_mono_aot_dir, monoaot_dotnet_path, args.architecture)
 
-        extra_bdn_arguments += [
-            "--runtimes", "monoaotllvm",
-            "--aotcompilerpath", "$HELIX_CORRELATION_PAYLOAD/monoaot/mono-aot-cross",
-            "--customruntimepack", "$HELIX_CORRELATION_PAYLOAD/monoaot/pack", 
-            "--aotcompilermode", "llvm",
-        ]
-
-    extra_bdn_arguments += ["--logBuildOutput", "--generateBinLog"]
-
-    if args.only_sanity_check:
-        extra_bdn_arguments += ["--filter", "System.Tests.Perf_*"]
-
-    bdn_arguments += extra_bdn_arguments
-
-    baseline_bdn_arguments = bdn_arguments[:]
-    
     use_core_run = False
     use_baseline_core_run = False
     if not args.performance_repo_ci and args.runtime_type == "coreclr":
@@ -904,7 +972,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         else:
             getLogger().info("Copying Core_Root directory to payload directory")
             shutil.copytree(args.core_root_dir, coreroot_payload_dir, ignore=shutil.ignore_patterns("*.pdb"))
-
 
         if args.baseline_core_root_dir is not None:
             use_baseline_core_run = True
@@ -1204,27 +1271,28 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "--cli-source-timestamp", "$PERFLAB_BUILDTIMESTAMP"
         ]
 
-    if using_wasm:
+    if wasm:
         cli_arguments += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
 
-    if mono_dotnet:
-        assert product_version is not None
-        if args.os_group == "windows":
-            bdn_arguments += ["--corerun", f"%HELIX_CORRELATION_PAYLOAD%\\dotnet-mono\\shared\\Microsoft.NETCore.App\\{product_version}\\corerun.exe"]
-        else:
-            bdn_arguments += ["--corerun", f"$HELIX_CORRELATION_PAYLOAD/dotnet-mono/shared/Microsoft.NETCore.App/{product_version}/corerun"]
-    
-    if use_core_run:
-        if args.os_group == "windows":
-            bdn_arguments += ["--corerun", "%HELIX_CORRELATION_PAYLOAD%\\Core_Root\\CoreRun.exe"]
-        else:
-            bdn_arguments += ["--corerun", "$HELIX_CORRELATION_PAYLOAD/Core_Root/corerun"]
+    def get_bdn_args_for_coreroot_dir(coreroot_dir: Optional[str]):
+        return get_bdn_arguments(
+            args.run_categories,
+            args.internal,
+            args.os_group,
+            args.runtime_type,
+            args.codegen_type,
+            args.only_sanity_check,
+            args.affinity,
+            args.experiment_name,
+            args.javascript_engine,
+            args.javascript_engine_path,
+            product_version,
+            coreroot_dir,
+            args.extra_bdn_args
+        )
 
-    if use_baseline_core_run:
-        if args.os_group == "windows":
-            baseline_bdn_arguments += ["--corerun", "%HELIX_CORRELATION_PAYLOAD%\\Baseline_Core_Root\\CoreRun.exe"]
-        else:
-            baseline_bdn_arguments += ["--corerun", "$HELIX_CORRELATION_PAYLOAD/Baseline_Core_Root/corerun"]
+    bdn_arguments = get_bdn_args_for_coreroot_dir(coreroot_dir="Core_Root" if use_core_run else None)
+    baseline_bdn_arguments = [] if use_baseline_core_run else get_bdn_args_for_coreroot_dir(coreroot_dir="Baseline_Core_Root")
 
     if args.os_group == "windows":
         bdn_artifacts_directory = "%HELIX_WORKITEM_UPLOAD_ROOT%\\BenchmarkDotNet.Artifacts"
