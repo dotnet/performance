@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace BenchmarkDotNet.Extensions
@@ -50,18 +51,28 @@ namespace BenchmarkDotNet.Extensions
 
             options = parsed.Value;
 
-            // Parse again, set the custom options to null, then 'unparse' to get the BDN-only arguments.
-            var bdnResult = parser.ParseArguments<PerfLabCommandLineOptions>(args).Value;
+            // Get all custom options using reflection
+            var customArgs = typeof(PerfLabCommandLineOptions)
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .Select(p => p.GetCustomAttribute<OptionAttribute>()?.LongName)
+                .Where(p => p is not null)
+                .ToList();
 
-            // Iterate through props using reflection
-            var customProps = typeof(PerfLabCommandLineOptions).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-            foreach (var prop in customProps)
+            var bdnArgs = new List<string>();
+            bool inCustomArg = false;
+            foreach (var arg in args)
             {
-                if (prop.CanWrite)
-                    prop.SetValue(bdnResult, null);
+                if (inCustomArg && arg.StartsWith("-"))
+                    inCustomArg = false;
+
+                if (!inCustomArg)
+                    inCustomArg = customArgs.Any(customArgs => arg.StartsWith($"--{customArgs}"));
+
+                if (!inCustomArg)
+                    bdnArgs.Add(arg);
             }
 
-            bdnOnlyArgs = parser.FormatCommandLineArgs(bdnResult, o => o.SkipDefault = true);
+            bdnOnlyArgs = bdnArgs.ToArray();
             return true;
         }
 

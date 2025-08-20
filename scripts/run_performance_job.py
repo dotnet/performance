@@ -118,11 +118,16 @@ class RunPerformanceJobArgs:
     build_config: str = "Release"
     live_libraries_build_config: Optional[str] = None
 
-def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
+def get_pre_commands(
+        os_group: str,
+        internal: bool,
+        runtime_type: str,
+        codegen_type: str,
+        v8_version: str):
     helix_pre_commands: list[str] = []
 
     # Remember the previous PYTHONPATH that was set so it can be restored in the post commands
-    if args.os_group == "windows":
+    if os_group == "windows":
         helix_pre_commands += ["set ORIGPYPATH=%PYTHONPATH%"]
     else:
         helix_pre_commands += ["export ORIGPYPATH=$PYTHONPATH"]
@@ -131,16 +136,16 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
     # On non-Windows, these commands are chained together with && so they will stop if any fail
     install_prerequisites: list[str] = []
 
-    if args.internal:
+    if internal:
         # Run inside a python venv
-        if args.os_group == "windows":
+        if os_group == "windows":
             install_prerequisites += [
                 "py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv",
                 "call %HELIX_WORKITEM_ROOT%\\.venv\\Scripts\\activate.bat",
                 "echo on" # venv activate script turns echo off, so turn it back on
             ]
         else:
-            if args.os_group != "osx":
+            if os_group != "osx":
                 install_prerequisites += [
                     'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
                     'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
@@ -154,7 +159,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             ]
 
         # Clear the PYTHONPATH first so that modules installed elsewhere are not used
-        if args.os_group == "windows":
+        if os_group == "windows":
             install_prerequisites += ["set PYTHONPATH="]
         else:
             install_prerequisites += ["export PYTHONPATH="]
@@ -172,14 +177,14 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
 
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
         # TODO: is this still needed? It seems like it was added to support wasm which is already setting up everything
-        if args.os_group != "windows" and args.os_group != "osx":
+        if os_group != "windows" and os_group != "osx":
             install_prerequisites += [
                 "sudo apt-get update",
                 "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
             ]
 
     # Set up everything needed for WASM runs
-    if args.runtime_type == "wasm":
+    if runtime_type == "wasm":
         # nodejs installation steps from https://github.com/nodesource/distributions
         install_prerequisites += [
             "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
@@ -202,7 +207,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
         ]
 
     # Add the install_prerequisites to the pre_commands
-    if args.os_group == "windows":
+    if os_group == "windows":
         # TODO: Should we also give Windows the same treatment as linux and ensure that each command succeeds?
         helix_pre_commands += install_prerequisites
     else:
@@ -215,20 +220,20 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             ]
 
     # Set MONO_ENV_OPTIONS with for Mono Interpreter runs
-    if args.codegen_type.lower() == "interpreter" and args.runtime_type == "mono":
-        if args.os_group == "windows":
+    if codegen_type.lower() == "interpreter" and runtime_type == "mono":
+        if os_group == "windows":
             helix_pre_commands += ['set MONO_ENV_OPTIONS="--interpreter"']
         else:
             helix_pre_commands += ['export MONO_ENV_OPTIONS="--interpreter"']
 
     # Enable MSBuild node communication logs
-    if args.os_group == "windows":
+    if os_group == "windows":
         helix_pre_commands += ["set MSBUILDDEBUGCOMM=1", 'set "MSBUILDDEBUGPATH=%HELIX_WORKITEM_UPLOAD_ROOT%"']
     else:
         helix_pre_commands += ["export MSBUILDDEBUGCOMM=1", 'export "MSBUILDDEBUGPATH=$HELIX_WORKITEM_UPLOAD_ROOT"']
 
     # Copy the performance repo and root directory to the work item directory
-    if args.os_group == "windows":
+    if os_group == "windows":
         helix_pre_commands += [ 
             "robocopy /np /nfl /ndl /e %HELIX_CORRELATION_PAYLOAD%\\performance %HELIX_WORKITEM_ROOT%\\performance",
             "robocopy /np /nfl /ndl /e %HELIX_CORRELATION_PAYLOAD%\\root %HELIX_WORKITEM_ROOT%" ]
@@ -238,7 +243,7 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
             "cp -R $HELIX_CORRELATION_PAYLOAD/root/* $HELIX_WORKITEM_ROOT" ]
 
     # invoke the machine-setup
-    if args.os_group == "windows":
+    if os_group == "windows":
         helix_pre_commands += ["call %HELIX_WORKITEM_ROOT%\\machine-setup.cmd"]
     else:
         helix_pre_commands += [
@@ -248,26 +253,26 @@ def get_pre_commands(args: RunPerformanceJobArgs, v8_version: str):
 
     # ensure that the PYTHONPATH is set to the scripts directory
     # TODO: Run scripts out of work item directory instead of payload directory
-    if args.os_group == "windows":
+    if os_group == "windows":
         helix_pre_commands += ["set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\\scripts%3B%HELIX_CORRELATION_PAYLOAD%"]
     else:
         helix_pre_commands += ["export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD"]
 
-    if args.runtime_type == "iOSMono":
-        if args.os_group == "windows":
+    if runtime_type == "iOSMono":
+        if os_group == "windows":
             helix_pre_commands += ["%HELIX_CORRELATION_PAYLOAD%\\monoaot\\mono-aot-cross --llvm --version"]
         else:
             helix_pre_commands += ["$HELIX_CORRELATION_PAYLOAD/monoaot/mono-aot-cross --llvm --version"]
         
     return helix_pre_commands
 
-def get_post_commands(args: RunPerformanceJobArgs):
-    if args.os_group == "windows":
+def get_post_commands(os_group: str, runtime_type: str):
+    if os_group == "windows":
         helix_post_commands = ["set PYTHONPATH=%ORIGPYPATH%"]
     else:
         helix_post_commands = ["export PYTHONPATH=$ORIGPYPATH"]
 
-    if args.runtime_type == "wasm" and args.os_group != "windows":
+    if runtime_type == "wasm" and os_group != "windows":
         helix_post_commands += [
             """test -d "$HELIX_WORKITEM_UPLOAD_ROOT" && (
                 export _PERF_DIR=$HELIX_WORKITEM_ROOT/performance;
@@ -385,8 +390,7 @@ def build_coreclr_core_root(
         architecture: str,
         coreclr_archive_or_dir: Optional[str] = None,
         libraries_config: Optional[str] = None,
-        clean_artifacts: bool = False,
-        runtime_commit_sha: Optional[str] = None):
+        clean_artifacts: bool = False):
     if not os.path.exists(runtime_repo_dir):
         raise Exception("Runtime repo directory not found")
     
@@ -400,11 +404,6 @@ def build_coreclr_core_root(
     coreclr_archive_or_dir = coreclr_archive_or_dir or artifacts_bin_dir # default to bin dir
     if not os.path.exists(coreclr_archive_or_dir):
         raise Exception("CoreCLR build not found")
-
-    # Check out the specific commit if provided
-    if runtime_commit_sha is not None:
-        getLogger().info(f"Checking out runtime commit {runtime_commit_sha} to generate Core_Root")
-        RunCommand(["git", "checkout", runtime_commit_sha], verbose=True).run(runtime_repo_dir)
     
     if clean_artifacts:
         if os.path.exists(artifacts_bin_dir) and not os.path.samefile(coreclr_archive_or_dir, artifacts_bin_dir):
@@ -692,6 +691,39 @@ def get_run_configurations(
 
     return configurations
 
+def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str):
+    if os_group == "windows":
+        work_item_command = [
+            "python",
+            "%HELIX_WORKITEM_ROOT%\\performance\\scripts\\benchmarks_ci.py", 
+            "--csproj", f"%HELIX_WORKITEM_ROOT%\\performance\\{target_csproj}"]
+    else:
+        work_item_command = [
+            "python",
+            "$HELIX_WORKITEM_ROOT/performance/scripts/benchmarks_ci.py", 
+            "--csproj", f"$HELIX_WORKITEM_ROOT/performance/{target_csproj}"]
+        
+    work_item_command += [ 
+        "--incremental", "no",
+        "--architecture", architecture,
+        "-f", perf_lab_framework]
+    
+    if internal:
+        work_item_command += ["--upload-to-perflab-container"]
+
+    if perf_lab_framework != "net462":
+        if os_group == "windows":
+            work_item_command += ["--dotnet-versions", "%DOTNET_VERSION%"]
+        else:
+            work_item_command += ["--dotnet-versions", "$DOTNET_VERSION"]
+
+    if wasm:
+        work_item_command += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
+
+    work_item_command += ["--bdn-artifacts", bdn_artifacts_dir]
+
+    return work_item_command
+
 def run_performance_job(args: RunPerformanceJobArgs):
     setup_loggers(verbose=True)
 
@@ -731,7 +763,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.os_group == "windows":
             args.target_csproj="src\\benchmarks\\micro\\MicroBenchmarks.csproj"
         else:
-            args.target_csproj="src/benchmarks/micro/MicroBenchmarks.csproj"    
+            args.target_csproj="src/benchmarks/micro/MicroBenchmarks.csproj"
     elif args.os_group != "windows":
         args.target_csproj = args.target_csproj.replace("\\", "/")
 
@@ -776,7 +808,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     if args.internal:
         creator = ""
-        perf_lab_arguments = ["--upload-to-perflab-container"]
         scenario_arguments = ["--upload-to-perflab-container"]
         helix_source_prefix = "official"
         if args.helix_access_token is None:
@@ -787,7 +818,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         creator = args.build_definition_name or ""
         if args.performance_repo_ci:
             creator = "dotnet-performance"
-        perf_lab_arguments = []
         scenario_arguments = []
         if args.build_reason == "PullRequest":
             helix_source_prefix = "pr"
@@ -1042,8 +1072,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
     else:
         agent_python = "python3"
 
-    helix_pre_commands = get_pre_commands(args, v8_version)
-    helix_post_commands = get_post_commands(args)
+    helix_pre_commands = get_pre_commands(args.os_group, args.internal, args.runtime_type, args.codegen_type, v8_version)
+    helix_post_commands = get_post_commands(args.os_group, args.runtime_type)
 
     ci_setup_arguments.local_build = args.local_build
 
@@ -1092,19 +1122,23 @@ def run_performance_job(args: RunPerformanceJobArgs):
     else:
         runtime_id = "linux" + (f"{args.os_sub_group.replace('_', '-')}" if args.os_sub_group else "") + f"-{args.architecture}"
 
-    dotnet_executable_path = os.path.join(ci_setup_arguments.dotnet_path, "dotnet") if ci_setup_arguments.dotnet_path else os.path.join(ci_setup_arguments.install_dir, "dotnet")
+    dotnet_executable_path = os.path.join(ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir, "dotnet")
+    ci_artifacts_log_dir = os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config)
 
-    RunCommand([
-        dotnet_executable_path, "publish", 
-        "-c", "Release", 
-        "-o", os.path.join(payload_dir, "certhelper"),
-        "-f", framework,
-        "-r", runtime_id,
-        "--self-contained",
-        os.path.join(args.performance_repo_dir, "src", "tools", "CertHelper", "CertHelper.csproj"),
-        f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'CertHelper.binlog')}",
-        "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
-        verbose=True).run()
+    def publish_dotnet_app_to_payload(payload_dir_name, csproj_path, self_contained=True):
+        RunCommand([
+            dotnet_executable_path, "publish", 
+            "-c", "Release", 
+            "-o", os.path.join(payload_dir, payload_dir_name),
+            "-f", framework,
+            "-r", runtime_id,
+            "--self-contained" if self_contained else "",
+            csproj_path,
+            f"/bl:{os.path.join(ci_artifacts_log_dir, f'{payload_dir_name}.binlog')}",
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
+            verbose=True).run()
+
+    publish_dotnet_app_to_payload("certhelper", os.path.join(args.performance_repo_dir, "src", "tools", "CertHelper", "CertHelper.csproj"))
 
     if args.is_scenario:
         set_environment_variable("DOTNET_ROOT", ci_setup_arguments.install_dir, save_to_pipeline=True)
@@ -1117,56 +1151,22 @@ def run_performance_job(args: RunPerformanceJobArgs):
         os.environ["MSBUILDDISABLENODEREUSE"] = "1" # without this, MSbuild will be kept alive
 
         # build Startup
-        RunCommand([
-            dotnet_executable_path, "publish", 
-            "-c", "Release", 
-            "-o", os.path.join(payload_dir, "startup"),
-            "-f", framework,
-            "-r", runtime_id,
-            "--self-contained",
-            os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "Startup", "Startup.csproj"),
-            f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'Startup.binlog')}",
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
-            verbose=True).run()
+        publish_dotnet_app_to_payload("startup", os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "Startup", "Startup.csproj"))
 
         # build SizeOnDisk
-        RunCommand([
-            dotnet_executable_path, "publish", 
-            "-c", "Release", 
-            "-o", os.path.join(payload_dir, "SOD"),
-            "-f", framework,
-            "-r", runtime_id,
-            "--self-contained",
-            os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "SizeOnDisk", "SizeOnDisk.csproj"),
-            f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'SizeOnDisk.binlog')}",
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
-            verbose=True).run()
+        publish_dotnet_app_to_payload("SOD", os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "SizeOnDisk", "SizeOnDisk.csproj"))
         
         if args.performance_repo_ci:
             # build MemoryConsumption
-            RunCommand([
-                dotnet_executable_path, "publish", 
-                "-c", "Release", 
-                "-o", os.path.join(payload_dir, "MemoryConsumption"),
-                "-f", framework,
-                "-r", runtime_id,
-                "--self-contained",
-                os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"),
-                f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'MemoryConsumption.binlog')}",
-                "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
-                verbose=True).run()
+            publish_dotnet_app_to_payload(
+                "MemoryConsumption", 
+                os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"))
             
             # build PerfLabGenericEventSourceForwarder
-            RunCommand([
-                dotnet_executable_path, "publish", 
-                "-c", "Release", 
-                "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder"),
-                "-f", framework,
-                "-r", runtime_id,
+            publish_dotnet_app_to_payload(
+                "PerfLabGenericEventSourceForwarder",
                 os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder.csproj"),
-                f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config, 'PerfLabGenericEventSourceForwarder.binlog')}",
-                "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
-                verbose=True).run()
+                self_contained=False)
             
             # build PerfLabGenericEventSourceLTTngProvider
             if args.os_group != "windows" and args.os_group != "osx" and args.os_version == "2204":
@@ -1214,20 +1214,18 @@ def run_performance_job(args: RunPerformanceJobArgs):
             getLogger().info("If more than one version exist in this directory, usually the latest runtime and sdk will be used.")
 
             # PreparePayloadWorkItems is only available for scenarios runs defined inside the performance repo
-            if args.performance_repo_ci:
-                artifacts_log_dir = os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config)
-                RunCommand([
-                    "dotnet", "msbuild", args.project_file, 
-                    "/restore", 
-                    "/t:PreparePayloadWorkItems",
-                    f"/bl:{os.path.join(artifacts_log_dir, 'PrepareWorkItemPayloads.binlog')}",
-                    f"/p:ArtifactsLogDir={artifacts_log_dir}"],
-                    verbose=True).run()
-                
-                # Search for additional binlogs generated by the maui scenarios prepare payload work items to copy to the artifacts log dir
-                if args.run_kind in ["maui_scenarios_android", "maui_scenarios_ios"]:
-                    for binlog_path in glob(os.path.join(payload_dir, "scenarios_out", "**", "*.binlog"), recursive=True):
-                        shutil.copy(binlog_path, artifacts_log_dir)
+            RunCommand([
+                "dotnet", "msbuild", args.project_file, 
+                "/restore", 
+                "/t:PreparePayloadWorkItems",
+                f"/bl:{os.path.join(ci_artifacts_log_dir, 'PrepareWorkItemPayloads.binlog')}",
+                f"/p:ArtifactsLogDir={ci_artifacts_log_dir}"],
+                verbose=True).run()
+            
+            # Search for additional binlogs generated by the maui scenarios prepare payload work items to copy to the artifacts log dir
+            if args.run_kind in ["maui_scenarios_android", "maui_scenarios_ios"]:
+                for binlog_path in glob(os.path.join(payload_dir, "scenarios_out", "**", "*.binlog"), recursive=True):
+                    shutil.copy(binlog_path, ci_artifacts_log_dir)
 
             # restore env vars
             os.environ.update(environ_copy)
@@ -1251,28 +1249,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
             with tempfile.TemporaryDirectory() as temp_dir:
                 archive_path = shutil.make_archive(os.path.join(temp_dir, 'workitem'), 'zip', work_item_dir)
                 shutil.move(archive_path, f"{work_item_dir}.zip")
-
-    if args.os_group == "windows":
-        cli_arguments = [
-            "--dotnet-versions", "%DOTNET_VERSION%", 
-            "--cli-source-info", "args", 
-            "--cli-branch", "%PERFLAB_BRANCH%", 
-            "--cli-commit-sha", "%PERFLAB_HASH%",
-            "--cli-repository", "https://github.com/%PERFLAB_REPO%",
-            "--cli-source-timestamp", "%PERFLAB_BUILDTIMESTAMP%"
-        ]
-    else:
-        cli_arguments = [
-            "--dotnet-versions", "$DOTNET_VERSION", 
-            "--cli-source-info", "args", 
-            "--cli-branch", "$PERFLAB_BRANCH", 
-            "--cli-commit-sha", "$PERFLAB_HASH",
-            "--cli-repository", "https://github.com/$PERFLAB_REPO",
-            "--cli-source-timestamp", "$PERFLAB_BUILDTIMESTAMP"
-        ]
-
-    if wasm:
-        cli_arguments += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
 
     def get_bdn_args_for_coreroot_dir(coreroot_dir: Optional[str]):
         return get_bdn_arguments(
@@ -1301,32 +1277,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
         bdn_artifacts_directory = "$HELIX_WORKITEM_UPLOAD_ROOT/BenchmarkDotNet.Artifacts"
         bdn_baseline_artifacts_dir = "$HELIX_WORKITEM_UPLOAD_ROOT/BenchmarkDotNet.Artifacts_Baseline"
     
-    if args.os_group == "windows":
-        work_item_command = [
-            "python",
-            "%HELIX_WORKITEM_ROOT%\\performance\\scripts\\benchmarks_ci.py", 
-            "--csproj", f"%HELIX_WORKITEM_ROOT%\\performance\\{args.target_csproj}"]
-    else:
-        work_item_command = [
-            "python",
-            "$HELIX_WORKITEM_ROOT/performance/scripts/benchmarks_ci.py", 
-            "--csproj", f"$HELIX_WORKITEM_ROOT/performance/{args.target_csproj}"]
-        
     perf_lab_framework = os.environ['PERFLAB_Framework']
-    work_item_command: List[str] = [
-        *work_item_command, 
-        "--incremental", "no",
-        "--architecture", args.architecture,
-        "-f", perf_lab_framework,
-        *perf_lab_arguments]
 
-    if perf_lab_framework != "net462":
-        work_item_command = work_item_command + cli_arguments
+    def get_work_item_command_for_artifact_dir(artifact_dir: str):
+        assert args.target_csproj is not None
+        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir)
     
-    baseline_work_item_command = work_item_command[:]
-
-    work_item_command += ["--bdn-artifacts", bdn_artifacts_directory]
-    baseline_work_item_command += ["--bdn-artifacts", bdn_baseline_artifacts_dir]
+    work_item_command = get_work_item_command_for_artifact_dir(bdn_artifacts_directory)
+    baseline_work_item_command = get_work_item_command_for_artifact_dir(bdn_baseline_artifacts_dir)
 
     work_item_timeout = timedelta(hours=6)
     if args.only_sanity_check:
