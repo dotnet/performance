@@ -11,7 +11,5 @@
         "/tools/": true,
     },
     "python.analysis.typeCheckingMode": "standard",
-    "python.analysis.extraPaths": ["scripts"],
-    "python.analysis.diagnosticMode": "workspace",
-    "python.analysis.ignore": [ "eng/common/**" ]
+    "python.analysis.extraPaths": ["scripts"]
 }
