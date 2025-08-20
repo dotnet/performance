@@ -9,11 +9,13 @@ import os
 import shutil
 from subprocess import CalledProcessError
 import sys
+import tarfile
 import tempfile
 from traceback import format_exc
 import urllib.request
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional
+import zipfile
 
 import ci_setup
 from performance.common import RunCommand, iswin, set_environment_variable
@@ -313,15 +315,167 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
             }
             return queue_map.get(logical_machine, "Ubuntu.2204.Amd64.Tiger.Perf")
 
+def extract_archive_or_copy(archive_path_or_dir: str, dest_dir: str, prefix: Optional[str] = None):
+    if not os.path.exists(archive_path_or_dir):
+        raise FileNotFoundError(f"Archive or directory not found: {archive_path_or_dir}")
+    
+    if os.path.exists(dest_dir) and not os.path.isdir(dest_dir):
+        raise NotADirectoryError(f"Destination exists and is not a directory: {dest_dir}")
+    
+    # get everything up to last slash
+    prefix_folder = prefix or ""
+    if prefix and not prefix.endswith("/") and "/" in prefix:
+        prefix_folder = prefix[:prefix.rfind("/") + 1]
+
+    if os.path.isdir(archive_path_or_dir):
+        src_dir = archive_path_or_dir
+        if prefix is not None:
+            src_dir = os.path.join(archive_path_or_dir, prefix_folder)
+            if not os.path.exists(src_dir):
+                raise FileNotFoundError(f"Source folder not found in archive: {src_dir}")
+            prefix = prefix[len(prefix_folder):]
+
+        if not os.path.samefile(src_dir, dest_dir):
+            if not prefix:
+                shutil.copytree(src_dir, dest_dir, dirs_exist_ok=True)
+            else:
+                for item in Path(src_dir).rglob(f"{prefix}*"):
+                    if item.is_file():
+                        dest_path = os.path.join(dest_dir, item.relative_to(src_dir))
+                        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                        shutil.copy2(item, dest_path)
+    elif archive_path_or_dir.endswith(".zip"):
+        with zipfile.ZipFile(archive_path_or_dir, 'r') as zip_ref:
+            if prefix is None:
+                zip_ref.extractall(dest_dir)
+            else:
+                for member in zip_ref.namelist():
+                    if member.startswith(prefix):
+                        relative_path = member[len(prefix_folder):]
+                        if not relative_path or relative_path.endswith("/"):
+                            continue
+                        output_path = os.path.join(dest_dir, relative_path)
+                        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                        with zip_ref.open(member) as source, open(output_path, 'wb') as target:
+                            target.write(source.read())
+    elif archive_path_or_dir.endswith(".tar.gz"):
+        with tarfile.open(archive_path_or_dir, 'r:gz') as tar_ref:
+            if prefix is None:
+                tar_ref.extractall(dest_dir)
+            else:
+                for member in tar_ref.getmembers():
+                    if member.name.startswith(prefix):
+                        relative_path = member.name[len(prefix_folder):]
+                        if not relative_path or relative_path.endswith("/"):
+                            continue
+                        output_path = os.path.join(dest_dir, relative_path)
+                        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                        source = tar_ref.extractfile(member)
+                        if source is not None:
+                            with source and open(output_path, 'wb') as target:
+                                target.write(source.read())
+    else:
+        raise Exception("Unsupported archive format")
+
+def build_coreclr_core_root(
+        runtime_repo_dir: str,
+        core_root_dest: str,
+        os_group: str,
+        architecture: str,
+        coreclr_archive_or_dir: Optional[str] = None,
+        libraries_config: Optional[str] = None,
+        clean_artifacts: bool = False,
+        runtime_commit_sha: Optional[str] = None):
+    if not os.path.exists(runtime_repo_dir):
+        raise Exception("Runtime repo directory not found")
+    
+    if iswin() and os_group != "windows":
+        raise Exception(f"Unable to build Core_Root for {os_group} on Windows")
+
+    artifacts_dir = os.path.join(runtime_repo_dir, "artifacts")
+    artifacts_bin_dir = os.path.join(artifacts_dir, "bin")
+    artifacts_tests_dir = os.path.join(artifacts_dir, "tests")
+    
+    coreclr_archive_or_dir = coreclr_archive_or_dir or artifacts_bin_dir # default to bin dir
+    if not os.path.exists(coreclr_archive_or_dir):
+        raise Exception("CoreCLR build not found")
+
+    # Check out the specific commit if provided
+    if runtime_commit_sha is not None:
+        getLogger().info(f"Checking out runtime commit {runtime_commit_sha} to generate Core_Root")
+        RunCommand(["git", "checkout", runtime_commit_sha], verbose=True).run(runtime_repo_dir)
+    
+    if clean_artifacts:
+        if os.path.exists(artifacts_bin_dir) and not os.path.samefile(coreclr_archive_or_dir, artifacts_bin_dir):
+            shutil.rmtree(artifacts_bin_dir)
+        if os.path.exists(artifacts_tests_dir):
+            shutil.rmtree(artifacts_tests_dir)
+
+    extract_archive_or_copy(coreclr_archive_or_dir, artifacts_bin_dir)
+    
+    build_file = "build.cmd" if iswin() else "build.sh"
+    build_script = os.path.join(runtime_repo_dir, "src", "tests", build_file)
+    if not os.path.exists(build_script):
+        raise Exception(f"Build script not found at path: {build_script}")
+
+    generate_layout_command = [build_script, "release", architecture, "generatelayoutonly"]
+
+    if not iswin():
+        generate_layout_command.extend(["-os", os_group])
+
+    if libraries_config:
+        generate_layout_command.append(f"/p:LibrariesConfiguration={libraries_config}")
+
+    getLogger().info(f"Generating Core_Root")
+    RunCommand(generate_layout_command, verbose=True).run(runtime_repo_dir)
+
+    core_root_dir = os.path.join(artifacts_tests_dir, "coreclr", f"{os_group}.{architecture}.Release", "Tests", "Core_Root")
+    if not os.path.exists(core_root_dir):
+        raise Exception(f"Core_Root directory not found in expected location: {core_root_dir}")
+    
+    shutil.copytree(core_root_dir, core_root_dest, dirs_exist_ok=True)
+
+def build_mono_payload(
+        mono_payload_dst: str,
+        os_group: str,
+        framework: str,
+        build_config: str,
+        architecture: str,
+        product_version: str,
+        runtime_repo_dir: Optional[str] = None,
+        mono_archive_or_dir: Optional[str] = None):
+                
+    if mono_archive_or_dir is None:
+        if runtime_repo_dir is None:
+            raise Exception("Please provide a path to the built mono artifacts")
+        mono_archive_or_dir = os.path.join(runtime_repo_dir, "artifacts", "bin")
+
+    build_config_upper = build_config.title() # release -> Release
+
+    extract_archive_or_copy(mono_archive_or_dir, mono_payload_dst, prefix=f"testhost/{framework}-{os_group}-{build_config_upper}-{architecture}/")
+    corerun_target = os.path.join(mono_payload_dst, "shared", "Microsoft.NETCore.App", product_version)
+    extract_archive_or_copy(mono_archive_or_dir, corerun_target, prefix=f"coreclr/{os_group}.{architecture}.{build_config_upper}/corerun") # no trailing slash as we want files starting with corerun
+
+def build_monoaot_payload(
+        monoaot_artifacts_archive_or_dir: str,
+        payload_dest: str,
+        architecture: str):
+    
+    pack_dir = os.path.join(payload_dest, "pack")
+    os.makedirs(payload_dest, exist_ok=True)
+
+    extract_archive_or_copy(
+        monoaot_artifacts_archive_or_dir, 
+        payload_dest, 
+        prefix=f"artifacts/bin/mono/linux.{architecture}.Release/cross/linux-{architecture}/")
+    
+    extract_archive_or_copy(
+        monoaot_artifacts_archive_or_dir, 
+        pack_dir, 
+        prefix=f"artifacts/bin/microsoft.netcore.app.runtime.linux-{architecture}/Release/")
+
 def run_performance_job(args: RunPerformanceJobArgs):
     setup_loggers(verbose=True)
-
-    helix_type_suffix = ""
-    if args.runtime_type == "wasm":
-        if args.codegen_type.lower() == "aot":
-            helix_type_suffix = "/wasm/aot"
-        else:
-            helix_type_suffix = "/wasm"
 
     if args.queue is None:
         if args.logical_machine is None:
@@ -339,7 +493,12 @@ def run_performance_job(args: RunPerformanceJobArgs):
             raise Exception("Framework not configured")
         
         build_config = f"{args.architecture}.{args.run_kind}.{args.framework}"
-        helix_type = f"test/performance/{args.run_kind}/{args.framework}/{args.architecture}/{helix_type_suffix}"
+        helix_type = f"test/performance/{args.run_kind}/{args.framework}/{args.architecture}/"
+        if args.runtime_type == "wasm":
+            if args.codegen_type.lower() == "aot":
+                helix_type += "/wasm/aot"
+            else:
+                helix_type += "/wasm"
 
     if not args.send_to_helix:
         # _BuildConfig is used by CI during log publishing
@@ -367,64 +526,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
     ios_mono = args.runtime_type == "iOSMono"
     ios_nativeaot = args.runtime_type == "iOSNativeAOT"
     mono_aot = False
-    mono_aot_path = None
-    mono_dotnet = None
+    mono_dotnet = False
     wasm_bundle_dir = None
     wasm_aot = False
     product_version = None
     if args.runtime_type == "mono":
         if args.codegen_type.lower() == "aot":
-            if args.libraries_download_dir is None:
-                raise Exception("Libraries not downloaded for MonoAOT")
-            
             mono_aot = True
-            mono_aot_path = os.path.join(args.libraries_download_dir, "bin", "aot")
-            mono_aot_pack_dir = os.path.join(mono_aot_path, "pack")
-            os.makedirs(mono_aot_pack_dir, exist_ok=True)
-
-            linux_mono_aot_dir = os.path.join(args.libraries_download_dir, "LinuxMonoAOT", "artifacts", "bin")
-            if not os.path.exists(linux_mono_aot_dir):
-                raise Exception("AOT Mono Artifacts not downloaded")
-            
-            shutil.copytree(os.path.join(linux_mono_aot_dir, "mono", f"linux.{args.architecture}.Release", "cross", f"linux-{args.architecture}"), mono_aot_path, dirs_exist_ok=True)
-            shutil.copytree(os.path.join(linux_mono_aot_dir, f"microsoft.netcore.app.runtime.linux-{args.architecture}", "Release"), mono_aot_pack_dir, dirs_exist_ok=True)
         else:
-            mono_dotnet = args.mono_dotnet_dir
-            if mono_dotnet is None:
-                if args.runtime_repo_dir is None:
-                    raise Exception("Runtime repo must be available for mono runs")
-                
-                if args.framework is None:
-                    raise Exception("Framework must be passed in for mono runs")
-                
-                if args.libraries_download_dir is None:
-                    raise Exception("Mono build is not downloaded")
-                
-                if args.versions_props_path is None:
-                    args.versions_props_path = os.path.join(args.runtime_repo_dir, "eng", "Versions.props")
-                    
-                with open(args.versions_props_path) as f:
-                    for line in f:
-                        match = re.search(r"ProductVersion>([^<]*)<", line)
-                        if match:
-                            product_version = match.group(1)
-                            break
-                    else:
-                        raise Exception("Unable to find ProductVersion in Versions.props")
-                
-                mono_dotnet = os.path.join(args.runtime_repo_dir, ".dotnet-mono")
-                os.makedirs(mono_dotnet, exist_ok=True)
-
-                build_config_upper = args.build_config.title() # release -> Release
-
-                testhost_source = os.path.join(args.libraries_download_dir, "bin", "testhost", f"{args.framework}-{args.os_group}-{build_config_upper}-{args.architecture}")
-                shutil.copytree(testhost_source, mono_dotnet, dirs_exist_ok=True)
-
-                corerun_dir = os.path.join(args.libraries_download_dir, "bin", "coreclr", f"{args.os_group}.{args.architecture}.{build_config_upper}")
-                corerun_files = Path(corerun_dir).glob("corerun*")
-                corerun_target = os.path.join(mono_dotnet, "shared", "Microsoft.NETCore.App", product_version)
-                for file in corerun_files:
-                    shutil.copy(file, os.path.join(corerun_target, file.name))
+            mono_dotnet = True
 
     elif args.runtime_type == "wasm":
         browser_wasm_dir = args.libraries_download_dir and os.path.join(args.libraries_download_dir, "BrowserWasm")
@@ -446,10 +556,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         shutil.copytree(os.path.join(browser_wasm_dir, "staging", "built-nugets"), wasm_bundle_dir, dirs_exist_ok=True)
         shutil.copy(test_main_js_path, os.path.join(wasm_data_dir, "test-main.js"))
 
-        for item in Path(wasm_bundle_dir).rglob("*"):
-            if item.is_dir():
-                print(str(item))
-        
         for item in Path(wasm_bundle_dir).rglob("*"):
             if item.is_file():
                 try:
@@ -517,7 +623,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     configurations = { "CompilationMode": "Tiered", "RunKind": args.run_kind }
 
-    if mono_dotnet is not None or mono_aot:
+    if mono_dotnet or mono_aot:
         configurations["LLVM"] = str(llvm)
         configurations["MonoInterpreter"] = str(mono_interpreter)
         configurations["MonoAOT"] = str(mono_aot)
@@ -639,10 +745,38 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if not args.internal and not args.performance_repo_ci:
         ci_setup_arguments.not_in_lab = True
 
-    if mono_dotnet is not None and not mono_aot:
+    if mono_dotnet and not mono_aot:
+        if args.framework is None:
+            raise Exception("Framework must be specified for Mono dotnet runs")
+        
+        if args.versions_props_path is None:
+            if args.runtime_repo_dir is None:
+                raise Exception("Please provide either the product version, a path to Versions.props, or a runtime repo directory")
+            args.versions_props_path = os.path.join(args.runtime_repo_dir, "eng", "Versions.props")
+
+        with open(args.versions_props_path) as f:
+            for line in f:
+                match = re.search(r"ProductVersion>([^<]*)<", line)
+                if match:
+                    product_version = match.group(1)
+                    break
+        if product_version is None:
+            raise Exception("Unable to find ProductVersion in Versions.props")
+        
         mono_dotnet_path = os.path.join(payload_dir, "dotnet-mono")
         getLogger().info("Copying mono dotnet directory to payload directory")
-        shutil.copytree(mono_dotnet, mono_dotnet_path, dirs_exist_ok=True)
+        if args.mono_dotnet_dir is None:
+            build_mono_payload(
+                mono_dotnet_path, 
+                args.os_group, 
+                args.framework, 
+                args.build_config, 
+                args.architecture,
+                product_version,
+                runtime_repo_dir=args.runtime_repo_dir,
+                mono_archive_or_dir=os.path.join(args.libraries_download_dir, "bin") if args.libraries_download_dir else None)
+        else:
+            shutil.copytree(args.mono_dotnet_dir, mono_dotnet_path, dirs_exist_ok=True)
 
     v8_version = ""
     if wasm_bundle_dir is not None:
@@ -727,11 +861,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
     ci_setup_arguments.experiment_name = args.experiment_name
 
     if mono_aot:
-        if mono_aot_path is None:
-            raise Exception("Mono AOT Path must be provided for MonoAOT runs")
+        if not args.libraries_download_dir:
+            raise Exception("Libraries not downloaded for MonoAOT")
+
+        linux_mono_aot_dir = os.path.join(args.libraries_download_dir, "LinuxMonoAOT", "artifacts", "bin")
         monoaot_dotnet_path = os.path.join(payload_dir, "monoaot")
+
         getLogger().info("Copying MonoAOT build to payload directory")
-        shutil.copytree(mono_aot_path, monoaot_dotnet_path)
+        build_monoaot_payload(linux_mono_aot_dir, monoaot_dotnet_path, args.architecture)
+
         extra_bdn_arguments += [
             "--runtimes", "monoaotllvm",
             "--aotcompilerpath", "$HELIX_CORRELATION_PAYLOAD/monoaot/mono-aot-cross",
@@ -752,24 +890,23 @@ def run_performance_job(args: RunPerformanceJobArgs):
     use_baseline_core_run = False
     if not args.performance_repo_ci and args.runtime_type == "coreclr":
         use_core_run = True
+        coreroot_payload_dir = os.path.join(payload_dir, "Core_Root")
         if args.core_root_dir is None:
             if args.runtime_repo_dir is None:
                 raise Exception("Core_Root directory must be specified for non-performance CI runs")
             
-            # Generate Core_Root
-            build_file = "build.cmd" if iswin() else "build.sh"
-            build_script = os.path.join(args.runtime_repo_dir, "src", "tests", build_file)
-            generate_layout_command = [build_script, "release", args.architecture, "generatelayoutonly"]
-            if args.live_libraries_build_config:
-                generate_layout_command.append(f"/p:LibrariesConfiguration={args.live_libraries_build_config}")
-
-            RunCommand(generate_layout_command, verbose=True).run()
+            build_coreclr_core_root(
+                args.runtime_repo_dir, 
+                core_root_dest=coreroot_payload_dir, 
+                os_group=args.os_group, 
+                architecture=args.architecture,
+                libraries_config=args.live_libraries_build_config)
 
             args.core_root_dir = os.path.join(args.runtime_repo_dir, "artifacts", "tests", "coreclr", f"{args.os_group}.{args.architecture}.Release", "Tests", "Core_Root")
+        else:
+            getLogger().info("Copying Core_Root directory to payload directory")
+            shutil.copytree(args.core_root_dir, coreroot_payload_dir, ignore=shutil.ignore_patterns("*.pdb"))
 
-        coreroot_payload_dir = os.path.join(payload_dir, "Core_Root")
-        getLogger().info("Copying Core_Root directory to payload directory")
-        shutil.copytree(args.core_root_dir, coreroot_payload_dir, ignore=shutil.ignore_patterns("*.pdb"))
 
         if args.baseline_core_root_dir is not None:
             use_baseline_core_run = True
@@ -1072,7 +1209,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if using_wasm:
         cli_arguments += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
 
-    if mono_dotnet is not None:
+    if mono_dotnet:
+        assert product_version is not None
         if args.os_group == "windows":
             bdn_arguments += ["--corerun", f"%HELIX_CORRELATION_PAYLOAD%\\dotnet-mono\\shared\\Microsoft.NETCore.App\\{product_version}\\corerun.exe"]
         else:

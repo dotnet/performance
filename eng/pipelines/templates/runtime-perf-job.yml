@@ -36,7 +36,7 @@ jobs:
     # Test job depends on the corresponding build job
     ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
       dependsOn:
-        - ${{ if not(or(in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSNativeAOT', 'wasm'), and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')))) }}:
+        - ${{ if not(in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSNativeAOT', 'wasm', 'mono')) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'coreclr') }}
         - ${{ if and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'mono') }}
@@ -105,14 +105,6 @@ jobs:
               displayName: BrowserWasm
               ${{ insert }}: ${{ parameters.downloadSpecificBuild }}
       - ${{ elseif and(eq(parameters.codeGenType, 'AOT'), not(eq(parameters.runtimeType, 'AndroidMono'))) }}:
-        # Download mono AOT
-        - template: /eng/pipelines/templates/download-artifact-step.yml
-          parameters:
-            unpackFolder: $(librariesDownloadDir)/bin
-            artifactFileName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_coreclr$(archiveExtension)'
-            artifactName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_coreclr'
-            displayName: 'Runtime artifacts'
-
         - template: /eng/pipelines/templates/download-artifact-step.yml
           parameters:
             unpackFolder: $(librariesDownloadDir)/LinuxMonoAOT
