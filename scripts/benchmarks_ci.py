@@ -87,6 +87,42 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     # Restore/Build/Run functionality for MicroBenchmarks.csproj
     micro_benchmarks.add_arguments(parser)
 
+    PRODUCT_INFO = [
+        'init-tools',  # Default
+        'repo',
+        'cli',
+        'args',
+    ]
+    parser.add_argument(
+        '--cli-source-info',
+        dest='cli_source_info',
+        required=False,
+        default=PRODUCT_INFO[0],
+        choices=PRODUCT_INFO,
+        help='Specifies where the product information comes from.',
+    )
+    parser.add_argument(
+        '--cli-branch',
+        dest='cli_branch',
+        required=False,
+        type=str,
+        help='Product branch.'
+    )
+    parser.add_argument(
+        '--cli-commit-sha',
+        dest='cli_commit_sha',
+        required=False,
+        type=str,
+        help='Product commit sha.'
+    )
+    parser.add_argument(
+        '--cli-repository',
+        dest='cli_repository',
+        required=False,
+        type=str,
+        help='Product repository.'
+    )
+
     def __is_valid_dotnet_path(dp: str) -> str:
         if not os.path.isdir(dp):
             raise ArgumentTypeError('Path {} does not exist'.format(dp))
@@ -104,6 +140,24 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         type=__is_valid_dotnet_path,
         help='Path to a custom dotnet'
+    )
+
+    def __is_valid_datetime(dt: str) -> str:
+        try:
+            datetime.strptime(dt, '%Y-%m-%dT%H:%M:%SZ')
+            return dt
+        except ValueError:
+            raise ArgumentTypeError(
+                'Datetime "{}" is in the wrong format.'.format(dt))
+
+    parser.add_argument(
+        '--cli-source-timestamp',
+        dest='cli_source_timestamp',
+        required=False,
+        type=__is_valid_datetime,
+        help='''Product timestamp of the soruces used to generate this build
+            (date-time from RFC 3339, Section 5.6.
+            "%%Y-%%m-%%dT%%H:%%M:%%SZ").'''
     )
 
     parser.add_argument('--upload-to-perflab-container',
