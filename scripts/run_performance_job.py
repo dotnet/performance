@@ -433,7 +433,7 @@ def build_coreclr_core_root(
     if not os.path.exists(core_root_dir):
         raise Exception(f"Core_Root directory not found in expected location: {core_root_dir}")
     
-    shutil.copytree(core_root_dir, core_root_dest, dirs_exist_ok=True)
+    shutil.copytree(core_root_dir, core_root_dest, dirs_exist_ok=True, ignore=shutil.ignore_patterns("*.pdb"))
 
 def build_mono_payload(
         mono_payload_dst: str,
@@ -864,7 +864,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if not args.libraries_download_dir:
             raise Exception("Libraries not downloaded for MonoAOT")
 
-        linux_mono_aot_dir = os.path.join(args.libraries_download_dir, "LinuxMonoAOT", "artifacts", "bin")
+        linux_mono_aot_dir = os.path.join(args.libraries_download_dir, "LinuxMonoAOT")
         monoaot_dotnet_path = os.path.join(payload_dir, "monoaot")
 
         getLogger().info("Copying MonoAOT build to payload directory")
@@ -901,8 +901,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 os_group=args.os_group, 
                 architecture=args.architecture,
                 libraries_config=args.live_libraries_build_config)
-
-            args.core_root_dir = os.path.join(args.runtime_repo_dir, "artifacts", "tests", "coreclr", f"{args.os_group}.{args.architecture}.Release", "Tests", "Core_Root")
         else:
             getLogger().info("Copying Core_Root directory to payload directory")
             shutil.copytree(args.core_root_dir, coreroot_payload_dir, ignore=shutil.ignore_patterns("*.pdb"))
