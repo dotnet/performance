@@ -23,9 +23,23 @@ namespace BenchmarkDotNet.Extensions
         public static IConfig Create(
             DirectoryInfo artifactsPath,
             ImmutableHashSet<string> mandatoryCategories,
-            PerfLabCommandLineOptions? options = null,
-            Job? baseJob = null)
+            int? partitionCount = null,
+            int? partitionIndex = null,
+            List<string> exclusionFilterValue = null,
+            List<string> categoryExclusionFilterValue = null,
+            Job job = null,
+            bool getDiffableDisasm = false)
         {
+            if (job is null)
+            {
+                job = Job.Default
+                    .WithWarmupCount(1) // 1 warmup is enough for our purpose
+                    .WithIterationTime(TimeInterval.FromMilliseconds(250)) // the default is 0.5s per iteration, which is slighlty too much for us
+                    .WithMinIterationCount(15)
+                    .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
+                    .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
+            }
+
             var config = ManualConfig.CreateEmpty()
                 .WithBuildTimeout(TimeSpan.FromMinutes(15)) // for slow machines
                 .AddLogger(ConsoleLogger.Default) // log output to console
@@ -33,8 +47,12 @@ namespace BenchmarkDotNet.Extensions
                 .AddAnalyser(DefaultConfig.Instance.GetAnalysers().ToArray()) // copy default analysers
                 .AddExporter(MarkdownExporter.GitHub) // export to GitHub markdown
                 .AddColumnProvider(DefaultColumnProviders.Instance) // display default columns (method name, args etc)
+                .AddJob(job.AsDefault()) // tell BDN that this are our default settings
                 .WithArtifactsPath(artifactsPath.FullName)
                 .AddDiagnoser(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
+                .AddFilter(new PartitionFilter(partitionCount, partitionIndex))
+                .AddFilter(new ExclusionFilter(exclusionFilterValue))
+                .AddFilter(new CategoryExclusionFilter(categoryExclusionFilterValue))
                 .AddExporter(JsonExporter.Full) // make sure we export to Json
                 .AddColumn(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
                 .AddValidator(new MandatoryCategoryValidator(mandatoryCategories))
@@ -42,52 +60,14 @@ namespace BenchmarkDotNet.Extensions
                 .AddValidator(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
                 .WithSummaryStyle(SummaryStyle.Default.WithMaxParameterColumnWidth(36)); // the default is 20 and trims too aggressively some benchmark results
 
-            if (baseJob is null && options?.Manifest is not null)
-            {
-                if (options?.Manifest?.BaseJob is not null)
-                    baseJob = options.Manifest.BaseJob.ModifyJob(Job.Default);
-            }
-            else
-            {
-                baseJob ??= Job.Default
-                    .WithWarmupCount(1) // 1 warmup is enough for our purpose
-                    .WithIterationTime(TimeInterval.FromMilliseconds(250)) // the default is 0.5s per iteration, which is slightly too much for us
-                    .WithMinIterationCount(15)
-                    .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
-                    .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
-            }
-
-            if (baseJob is not null)
-                config.AddJob(baseJob.AsDefault());
-
             if (Environment.IsLabEnvironment())
-                config.AddExporter(new PerfLabExporter());
-
-            if (options is not null)
             {
-                if (options.ExclusionFilters is IEnumerable<string> exclusionFilters)
-                    config.AddFilter(new ExclusionFilter([.. exclusionFilters]));
+                config = config.AddExporter(new PerfLabExporter());
+            }
 
-                if (options.CategoryExclusionFilters is IEnumerable<string> categoryExclusionFilters)
-                    config.AddFilter(new CategoryExclusionFilter([.. categoryExclusionFilters]));
-
-                if (options.PartitionCount is int partitionCount && options.PartitionIndex is int partitionIndex)
-                    config.AddFilter(new PartitionFilter(partitionCount, partitionIndex));
-
-                if (options.GetDiffableDisasm)
-                    config.AddDiagnoser(CreateDisassembler());
-
-                if (options.Manifest?.BenchmarkCases is List<string> benchmarkCases)
-                    config.AddFilter(new TestNameFilter([.. benchmarkCases]));
-
-                if (options.Manifest?.Jobs is Dictionary<string, BenchmarkManifest.JobSettings> jobs)
-                {
-                    var jobsToAdd = jobs
-                        .Select(job => job.Value.ModifyJob(Job.Default).WithId(job.Key))
-                        .ToArray();
-
-                    config.AddJob(jobsToAdd);
-                }
+            if (getDiffableDisasm)
+            {
+                config = config.AddDiagnoser(CreateDisassembler());
             }
 
             return config;
