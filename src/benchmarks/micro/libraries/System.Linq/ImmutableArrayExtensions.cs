@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 namespace System.Linq.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.LINQ)]
-    public class ImmutableArrayExtensions
+    public class Perf_ImmutableArrayExtensions
     {
         private ImmutableArray<int> _immutableArray;
 
