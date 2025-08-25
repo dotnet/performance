@@ -375,13 +375,13 @@ def get_bdn_arguments(
     if runtime_type == "wasm":
         category_exclusions += ["NoInterpreter", "NoWASM", "NoMono"]
 
-        wasm_args = "--expose_wasm"
+        wasm_args = ["--expose_wasm"]
         if javascript_engine == "v8":
-            wasm_args += " --module"
+            wasm_args += ["--module"]
 
         bdn_arguments += [
             "--wasmEngine", javascript_engine_path,
-            f"\\\"--wasmArgs={wasm_args}\\\"",
+            f"\\\"--wasmArgs={' '.join(wasm_args)}\\\"",
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
             "--wasmDataDir", "$HELIX_CORRELATION_PAYLOAD/wasm-data"
         ]

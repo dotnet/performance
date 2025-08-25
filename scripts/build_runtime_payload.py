@@ -246,7 +246,7 @@ def build_monoaot_payload(
     The function expects either an artifacts directory or an archive containing
     the structure produced by Mono AOT builds. Two extractions are performed:
       1. Cross compiler / AOT toolchain for the given architecture.
-      2. The runtime pack published under `pack/` for consumption.
+      2. The runtime pack which is copied to the `pack` directory in the payload.
     """
     pack_dir = os.path.join(payload_dest, "pack")
     os.makedirs(pack_dir, exist_ok=True)
