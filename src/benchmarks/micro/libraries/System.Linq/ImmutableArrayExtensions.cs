@@ -23,6 +23,7 @@ namespace System.Linq.Tests
             yield return LinqTestData.ICollection;
             yield return LinqTestData.IList;
             yield return LinqTestData.Array;
+            yield return LinqTestData.List;
         }
 
         [Benchmark]
