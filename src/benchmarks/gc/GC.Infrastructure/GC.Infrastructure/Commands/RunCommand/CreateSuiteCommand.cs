@@ -232,9 +232,6 @@ namespace GC.Infrastructure.Commands.RunCommand
             configuration.MicrobenchmarkConfigurations.Filter = null;
             configuration.MicrobenchmarkConfigurations.FilterPath = microbenchmarkFilterFile;
 
-            // Microbenchmark dotnet installer.
-            configuration.MicrobenchmarkConfigurations.DotnetInstaller = "net8.0";
-
             // Microbenchmark Invocation Count Path.
             configuration.MicrobenchmarkConfigurations.InvocationCountPath = microbenchmarkInvocationCountFile;
 

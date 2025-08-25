@@ -2,7 +2,7 @@ runs:
 
 microbenchmark_configurations:
   bdn_arguments: "--warmupCount 1 --iterationCount 20 --allStats --outliers DontRemove --noOverheadEvaluation"
-  dotnet_installer : net7.0
+  dotnet_installer : net8.0
 
 environment:
     default_max_seconds: 3000
