@@ -16,6 +16,7 @@ parameters:
   hybridGlobalization: 'False'
   isScenario: false
   downloadSpecificBuild: null # buildId, pipeline, branchName, project
+  crossBuild: false
   runtimeRepoAlias: runtime
   performanceRepoAlias: self
   selfIsRuntime: true
