@@ -28,7 +28,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
         public IReadOnlyList<MicrobenchmarkComparisonResults> AnalysisResults { get; }
     }
 
-    internal sealed class MicrobenchmarkCommand : Command<MicrobenchmarkCommand.MicrobenchmarkSettings>
+    public sealed class MicrobenchmarkCommand : Command<MicrobenchmarkCommand.MicrobenchmarkSettings>
     {
         public static string ReplaceInvalidChars(string filename)
         {
