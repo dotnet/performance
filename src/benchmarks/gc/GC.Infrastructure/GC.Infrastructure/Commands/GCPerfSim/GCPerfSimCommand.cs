@@ -179,12 +179,9 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         string? output = null;
                         string? error = null;
 
-                        string key = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
-                        string traceName = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
-
                         if (OperatingSystem.IsWindows())
                         {
-                            using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, outputPath))
+                            using (TraceCollector traceCollector = new TraceCollector(key, collectType, outputPath))
                             {
                                 gcperfsimProcess.Start();
                                 output = gcperfsimProcess.StandardOutput.ReadToEnd();
@@ -196,7 +193,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         else
                         {
                             gcperfsimProcess.Start();
-                            using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, outputPath, gcperfsimProcess.Id))
+                            using (TraceCollector traceCollector = new TraceCollector(key, collectType, outputPath, gcperfsimProcess.Id))
                             {
                                 output = gcperfsimProcess.StandardOutput.ReadToEnd();
                                 error = gcperfsimProcess.StandardError.ReadToEnd();
@@ -210,7 +207,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         if (configuration.TraceConfigurations?.Type != "none")
                         {
                             // On Windows, the trace file path ends with ".etl.zip"; On Linux, it ends with ".nettrace".
-                            if (!File.Exists(Path.Combine(outputPath, traceName + ".etl.zip")) && !File.Exists(Path.Combine(outputPath, traceName + ".nettrace")))
+                            if (!File.Exists(Path.Combine(outputPath, key + ".etl.zip")) && !File.Exists(Path.Combine(outputPath, key + ".nettrace")))
                             {
                                 AnsiConsole.MarkupLine($"[yellow bold] ({DateTime.Now}) The trace for the run wasn't successfully captured. Please check the log file for more details: {Markup.Escape(output)} Full run details: {Path.GetFileNameWithoutExtension(configuration.Name)}: {runInfo.CorerunDetails.Key} for {runInfo.RunDetails.Key} [/]");
                             }
