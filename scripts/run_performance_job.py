@@ -115,6 +115,7 @@ class RunPerformanceJobArgs:
     target_csproj: Optional[str] = None
     build_config: str = "Release"
     live_libraries_build_config: Optional[str] = None
+    cross_build: bool = False
 
 def get_pre_commands(
         os_group: str,
@@ -796,7 +797,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 core_root_dest=coreroot_payload_dir, 
                 os_group=args.os_group, 
                 architecture=args.architecture,
-                libraries_config=args.live_libraries_build_config)
+                libraries_config=args.live_libraries_build_config,
+                cross_build=args.cross_build)
         else:
             getLogger().info("Copying Core_Root directory to payload directory")
             shutil.copytree(args.core_root_dir, coreroot_payload_dir, ignore=shutil.ignore_patterns("*.pdb"))
@@ -1194,6 +1196,7 @@ def main(argv: List[str]):
                 "--performance-repo-ci": "performance_repo_ci",
                 "--only-sanity": "only_sanity_check",
                 "--use-local-commit-time": "use_local_commit_time",
+                "--cross-build": "cross_build"
             }
 
             if key in bool_args:

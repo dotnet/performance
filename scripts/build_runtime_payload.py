@@ -130,6 +130,7 @@ def build_coreroot_payload(
     architecture: str,
     coreclr_archive_or_dir: Optional[str] = None,
     libraries_config: Optional[str] = None,
+    cross_build: bool = False,
     clean_artifacts: bool = False,
 ) -> None:
     """Generate a CoreCLR `Core_Root` payload by re-running test layout script.
@@ -177,6 +178,9 @@ def build_coreroot_payload(
 
     if not iswin():
         generate_layout_command.extend(["-os", os_group])
+
+    if cross_build:
+        generate_layout_command.append("-cross")
 
     if libraries_config:
         generate_layout_command.append(f"/p:LibrariesConfiguration={libraries_config}")
