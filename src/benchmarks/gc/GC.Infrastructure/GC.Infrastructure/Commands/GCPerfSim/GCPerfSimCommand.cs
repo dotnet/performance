@@ -114,6 +114,8 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 
                 for (int iterationIdx = 0; iterationIdx < configuration.Environment.Iterations; iterationIdx++)
                 {
+                    // Format: (Name of Run).(corerun / name of corerun).(IterationIdx)
+                    string key = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
                     using (Process gcperfsimProcess = new())
                     {
                         gcperfsimProcess.StartInfo.FileName = processAndParameters.Item1;
@@ -155,6 +157,10 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                             }
                         }
 
+                        // Set dump name
+                        string dumpPath = Path.Combine(outputPath, key + ".dmp");
+                        environmentVariables["DOTNET_DbgMiniDumpName"] = dumpPath;
+
                         // Check if the log file is specified, also store it in a run-specific location.
                         // This log file should be named in concordance with the name of the run and the benchmark.
                         const string gclogVariable = "DOTNET_GCLogFile";
@@ -170,7 +176,6 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                             gcperfsimProcess.StartInfo.EnvironmentVariables[environVar.Key] = environVar.Value;
                         }
 
-                        // Format: (Name of Run).(corerun / name of corerun).(IterationIdx)
                         string? output = null;
                         string? error = null;
 
