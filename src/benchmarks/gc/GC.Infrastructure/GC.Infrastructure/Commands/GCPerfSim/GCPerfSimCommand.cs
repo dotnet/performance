@@ -179,20 +179,35 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                         string? output = null;
                         string? error = null;
 
-                        using (TraceCollector traceCollector = new TraceCollector(key, collectType, outputPath))
+                        if (OperatingSystem.IsWindows())
+                        {
+                            using (TraceCollector traceCollector = new TraceCollector(key, collectType, outputPath))
+                            {
+                                gcperfsimProcess.Start();
+                                output = gcperfsimProcess.StandardOutput.ReadToEnd();
+                                error = gcperfsimProcess.StandardError.ReadToEnd();
+                                gcperfsimProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                                File.WriteAllText(Path.Combine(outputPath, key + ".txt"), "Standard Out: \n" + output + "\n Standard Error: \n" + error);
+                            }
+                        }
+                        else
                         {
                             gcperfsimProcess.Start();
-                            output = gcperfsimProcess.StandardOutput.ReadToEnd();
-                            error = gcperfsimProcess.StandardError.ReadToEnd();
-                            gcperfsimProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
-                            File.WriteAllText(Path.Combine(outputPath, key + ".txt"), "Standard Out: \n" + output + "\n Standard Error: \n" + error);
+                            using (TraceCollector traceCollector = new TraceCollector(key, collectType, outputPath, gcperfsimProcess.Id))
+                            {
+                                output = gcperfsimProcess.StandardOutput.ReadToEnd();
+                                error = gcperfsimProcess.StandardError.ReadToEnd();
+                                gcperfsimProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                                File.WriteAllText(Path.Combine(outputPath, key + ".txt"), "Standard Out: \n" + output + "\n Standard Error: \n" + error);
+                            }
                         }
-
+                        
+                        
                         // If a trace is requested, ensure the file exists. If not, there is was an error and alert the user.
                         if (configuration.TraceConfigurations?.Type != "none")
                         {
-                            // Not checking Linux here since the local run only allows for Windows.
-                            if (!File.Exists(Path.Combine(outputPath, key + ".etl.zip")))
+                            // On Windows, the trace file path ends with ".etl.zip"; On Linux, it ends with ".nettrace".
+                            if (!File.Exists(Path.Combine(outputPath, key + ".etl.zip")) && !File.Exists(Path.Combine(outputPath, key + ".nettrace")))
                             {
                                 AnsiConsole.MarkupLine($"[yellow bold] ({DateTime.Now}) The trace for the run wasn't successfully captured. Please check the log file for more details: {Markup.Escape(output)} Full run details: {Path.GetFileNameWithoutExtension(configuration.Name)}: {runInfo.CorerunDetails.Key} for {runInfo.RunDetails.Key} [/]");
                             }
