@@ -1,6 +1,7 @@
 ﻿using GC.Infrastructure.Commands.ASPNetBenchmarks;
 using GC.Infrastructure.Commands.GCPerfSim;
 using GC.Infrastructure.Commands.Microbenchmark;
+using GC.Infrastructure.Commands.ReliabilityFrameworkTest;
 using GC.Infrastructure.Commands.RunCommand;
 using Microsoft.Win32;
 using Spectre.Console;
@@ -59,6 +60,10 @@ namespace GC.Infrastructure
                     // ASP.NET Benchmarks
                     configuration.AddCommand<AspNetBenchmarksCommand>("aspnetbenchmarks");
                     configuration.AddCommand<AspNetBenchmarksAnalyzeCommand>("aspnetbenchmarks-analyze");
+
+                    // ReliabilityFramework
+                    configuration.AddCommand<ReliabilityFrameworkTestAnalyzeCommand>("rftest-analyze");
+                    configuration.AddCommand<ReliabilityFrameworkTestAggregateCommand>("rftest-aggregate");
                 });
 
                 app.Run(args);
