@@ -44,6 +44,7 @@ parameters:
   projectFile: ''                   # optional -- Full path to project file
   framework: ''                     # optional -- Framework to run against (use frameworks). Ignored if frameworks is non-empty.
   codeGenType: ''                   # optional -- CodeGen type (e.g. JIT, AOT)
+  linkingType: ''                   # optional -- Linking type (e.g. static, dynamic)
   runtimeType: ''                   # optional -- Runtime type (e.g. mono, wasm, coreclr)
   useLocalCommitTime: false         # optional -- Whether to use the local commit time or fetch it from the remote repository
   isCompare: false                  # optional -- If the job is comparing two configurations
@@ -55,13 +56,15 @@ parameters:
   iOSLlvmBuild: false               # optional -- Whether to build iOS with LLVM
   iOSStripSymbols: false            # optional -- Whether to strip symbols from the iOS build
   additionalSetupParameters: ''     # optional -- Additional arguments to pass to the script
+  liveLibrariesBuildConfig: ''      # optional -- Build configuration when generating Core_Root for libraries
+  crossBuild: false                 # optional -- Whether the Core_Root is being cross-compiled
 
 jobs:
 - template: ${{ parameters.jobTemplate }}
   parameters: 
     enableTelemetry: ${{ parameters.enableTelemetry }}
-    name: run_performance_test_${{ replace(format('{0}_{1}_{2}_{3}_{4}{5}_{6}_{7}_{8}', parameters.runKind, coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(replace(parameters.additionalJobIdentifier, ' ', '_'), 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine)), '_NULL', '') }}
-    displayName: Performance ${{ replace(format('{0} {1} {2} {3} {4}{5} {6} {7} {8}', parameters.runKind, coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(parameters.additionalJobIdentifier, 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine)), ' NULL', '') }}
+    name: run_performance_test_${{ replace(format('{0}_{1}_{2}_{3}_{4}{5}_{6}_{7}_{8}_{9}', parameters.runKind, coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(parameters.linkingType, 'NULL'), coalesce(replace(parameters.additionalJobIdentifier, ' ', '_'), 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine)), '_NULL', '') }}
+    displayName: Performance ${{ replace(format('{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}', parameters.runKind, coalesce(parameters.runtimeType, 'NULL'), coalesce(parameters.codeGenType, 'NULL'), coalesce(parameters.linkingType, 'NULL'), coalesce(parameters.additionalJobIdentifier, 'NULL'), parameters.osGroup, parameters.osSubGroup, coalesce(parameters.osVersion, 'NULL'), parameters.archType, coalesce(parameters.machinePool, parameters.logicalMachine)), ' NULL', '') }}
     timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
     workspace:
       clean: all
@@ -77,11 +80,7 @@ jobs:
         logs:
           name: Logs_$(Agent.JobName)_Attempt_$(System.JobAttempt)
 
-    # Component governance does not work on musl machines
-    ${{ if eq(parameters.osSubGroup, '_musl') }}:
-      disableComponentGovernance: true
-    ${{ else }}:
-      disableComponentGovernance: ${{ parameters.disableComponentGovernance }}
+    disableComponentGovernance: ${{ parameters.disableComponentGovernance }}
 
     ${{ if or(ne(length(parameters.channels), 0), ne(length(parameters.dotnetVersionsLinks), 0), ne(length(parameters.frameworks), 0)) }}:
       strategy:
@@ -106,8 +105,6 @@ jobs:
       - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
         # for private runs, we want to upload perflab data
         - group: DotNet-HelixApi-Access
-        # perflab upload tokens still exist in this variable group
-        - group: dotnet-benchview
         - ${{ if eq(parameters.downloadPdn, true) }}:
           - name: _pdnPath
             value: '$(Build.ArtifactStagingDirectory)/PDN.zip'
@@ -205,6 +202,8 @@ jobs:
               - '--runtime-repo-dir $(Build.SourcesDirectory)'
             - ${{ if ne(parameters.codeGenType, '') }}:
               - '--codegen-type ${{ parameters.codeGenType }}'
+            - ${{ if ne(parameters.linkingType, '') }}:
+              - '--linking-type ${{ parameters.linkingType }}'
             - ${{ if ne(parameters.runtimeType, '') }}:
               - '--runtime-type ${{ parameters.runtimeType }}'
             - ${{ if eq(parameters.useLocalCommitTime, true) }}:
@@ -229,6 +228,12 @@ jobs:
               - '--internal'
               - ${{ if eq(parameters.downloadPdn, true) }}:
                 - '--pdn-path "$(_pdnPath)"'
+            - ${{ if ne(parameters.buildConfig, '') }}:
+              - '--build-config ${{ parameters.buildConfig }}'
+            - ${{ if ne(parameters.liveLibrariesBuildConfig, '') }}:
+              - '--live-libraries-build-config ${{ parameters.liveLibrariesBuildConfig }}'
+            - ${{ if eq(parameters.crossBuild, true) }}:
+              - '--cross-build'
             - ${{ if ne(parameters.additionalSetupParameters, '') }}:
               - '${{ parameters.additionalSetupParameters }}'
       - template: /eng/pipelines/templates/send-to-helix-step.yml

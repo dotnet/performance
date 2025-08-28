@@ -59,7 +59,7 @@ public class Reporter
     {
         if (Tests.Any(t => t.Name.Equals(test.Name)))
         {
-            throw new Exception($"Duplicate test name, {test.Name}");
+            throw new Exception($"Duplicate test name: {test.Name} found");
         }
 
         Tests.Add(test);

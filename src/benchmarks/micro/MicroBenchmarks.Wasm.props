@@ -4,6 +4,6 @@
     <WasmMainJSPath>$(WasmDataDir)\test-main.js</WasmMainJSPath>
     <TrimMode>partial</TrimMode>
     <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
-    <WasmNativeStrip>false</WasmNativeStrip>
+    <WasmBuildNative>true</WasmBuildNative>
   </PropertyGroup>
 </Project>

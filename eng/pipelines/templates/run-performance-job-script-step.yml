@@ -6,6 +6,4 @@ steps:
   - script: $(Python) ${{ parameters.performanceRepoDir }}/scripts/run_performance_job.py ${{ join(' ', parameters.runPerformanceJobArgs) }}
     displayName: Run performance job script
     env:
-      PerfCommandUploadToken: '$(PerfCommandUploadToken)'
-      PerfCommandUploadTokenLinux: '$(PerfCommandUploadTokenLinux)'
       HelixAccessToken: '$(HelixApiAccessToken)'

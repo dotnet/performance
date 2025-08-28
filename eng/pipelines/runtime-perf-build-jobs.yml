@@ -14,11 +14,6 @@ jobs:
     - template: /eng/pipelines/performance/templates/perf-coreclr-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         windows_arm64: true
-         
-  - ${{ if containsValue(parameters.buildType, 'coreclr_muslx64_linux') }}:
-    - template: /eng/pipelines/performance/templates/perf-coreclr-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        linux_musl_x64: true
           
   - ${{ if containsValue(parameters.buildType, 'coreclr_x64_linux') }}:
     - template: /eng/pipelines/performance/templates/perf-coreclr-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
