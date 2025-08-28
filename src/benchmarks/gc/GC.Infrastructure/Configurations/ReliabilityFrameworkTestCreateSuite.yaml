@@ -1,11 +1,11 @@
-﻿OutputFolder: Q:\output-data_sync_checkin
+﻿OutputFolder: D:\output-data_sync_checkin2
 
 EnableStressMode: false
 
-CoreRoot: Q:\runtime\artifacts\tests\coreclr\windows.x64.Checked\Tests\Core_Root
-ReliabilityFrameworkDll: Q:\runtime\artifacts\tests\coreclr\windows.x64.Release\GC\Stress\Framework\ReliabilityFramework\ReliabilityFramework.dll
-GCPerfSimDll: Q:\performance\artifacts\bin\GCPerfSim\Release\net7.0\GCPerfSim.dll
-TestFolder: Q:\runtime\artifacts\tests\coreclr\windows.x64.Release\GC\Stress\Framework\ReliabilityFramework\Tests
+CoreRoot: D:\repos\runtime\artifacts\tests\coreclr\windows.x64.Checked\Tests\Core_Root
+ReliabilityFrameworkDll: D:\repos\runtime\artifacts\tests\coreclr\windows.x64.Release\GC\Stress\Framework\ReliabilityFramework\ReliabilityFramework.dll
+GCPerfSimDll: D:\repos\performance\artifacts\bin\GCPerfSim\Release\net7.0\GCPerfSim.dll
+TestFolder: D:\repos\runtime\artifacts\tests\coreclr\windows.x64.Release\GC\Stress\Framework\ReliabilityFramework\Tests
 
 
 
