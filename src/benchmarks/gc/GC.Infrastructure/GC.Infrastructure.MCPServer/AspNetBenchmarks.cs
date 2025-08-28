@@ -1,4 +1,5 @@
 ﻿using GC.Infrastructure.Commands.ASPNetBenchmarks;
+using GC.Infrastructure.Core.Configurations.ASPNetBenchmarks;
 using ModelContextProtocol.Server;
 using Spectre.Console.Cli;
 using System.ComponentModel;
@@ -20,17 +21,21 @@ namespace GC.Infrastructure.MCPServer
         }
 
         [McpServerTool(Name = "run_aspnetbenchmarks_command"), Description("Run aspnetbenchmarks Command.")]
-        public void RunAspNetBenchmarksCommand(string configurationPath)
+        public string RunAspNetBenchmarksCommand(string configurationPath)
         {
             string[] args = { "aspnetbenchmarks", "-c", configurationPath };
             _app.Run(args);
+            ASPNetBenchmarksConfiguration configuration = ASPNetBenchmarksConfigurationParser.Parse(configurationPath);
+            return configuration.Output!.Path;
         }
 
         [McpServerTool(Name = "run_aspnetbenchmarks_analyze_command"), Description("Run aspnetbenchmarks-analyze Command.")]
-        public void RunAspNetBenchmarksAnalyzeCommand(string configurationPath)
+        public string RunAspNetBenchmarksAnalyzeCommand(string configurationPath)
         {
             string[] args = { "aspnetbenchmarks-analyze", "-c", configurationPath };
             _app.Run(args);
+            ASPNetBenchmarksConfiguration configuration = ASPNetBenchmarksConfigurationParser.Parse(configurationPath);
+            return configuration.Output!.Path;
         }
     }
 }
