@@ -1,13 +1,11 @@
-﻿using GC.Infrastructure.Core.Configurations;
-using GC.Infrastructure.Core.Configurations.ReliabilityFrameworkTest;
-using Spectre.Console;
-using Spectre.Console.Cli;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-
-
+using GC.Infrastructure.Core.Configurations;
+using GC.Infrastructure.Core.Configurations.ReliabilityFrameworkTest;
+using Spectre.Console;
+using Spectre.Console.Cli;
 
 namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
 {
@@ -50,8 +48,6 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
         {
             foreach (string dumpPath in Directory.GetFiles(configuration.DumpFolder, "*.dmp"))
             {
-                Console.WriteLine($"====== Debugging {dumpPath} ======");
-
                 string dumpName = Path.GetFileNameWithoutExtension(dumpPath);
                 string callStackOutputPath = Path.Combine(
                     configuration.AnalyzeOutputFolder, $"{dumpName}_callstack.txt");
@@ -73,6 +69,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                 DebugDump(new Dictionary<string, string>(), "", dumpPath, debuggerScriptPath);
             }
         }
+
         public static void GenerateDebuggingScript(string debuggingScriptPath, List<string> DebugCommandList)
         {
             // Generate debug script
@@ -129,7 +126,8 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                         if (!string.IsNullOrEmpty(args.Data))
                         {
                             stdout.AppendLine(args.Data);
-                            if (!silent) Console.WriteLine($"STDOUT: {args.Data}");
+                            if (!silent)
+                                AnsiConsole.WriteLine($"STDOUT: {args.Data}");
                         }
                     };
 
@@ -138,7 +136,8 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                         if (!string.IsNullOrEmpty(args.Data))
                         {
                             stderr.AppendLine(args.Data);
-                            if (!silent) Console.WriteLine($"STDERR: {args.Data}");
+                            if (!silent)
+                                AnsiConsole.MarkupLine($"[red]STDERR: {args.Data}[/]");
                         }
                     };
                 }

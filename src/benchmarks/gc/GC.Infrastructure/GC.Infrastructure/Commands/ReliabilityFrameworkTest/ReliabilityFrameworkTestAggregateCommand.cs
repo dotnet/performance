@@ -42,13 +42,14 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             AggregateResult(configuration);
             return 0;
         }
+
         public static void AggregateResult(ReliabilityFrameworkTestAnalyzeConfiguration configuration)
         {
             List<ReliabilityFrameworkTestDumpAnalyzeResult> dumpAnalyzeResultList = new List<ReliabilityFrameworkTestDumpAnalyzeResult>();
 
             foreach (string callStackLogPath in Directory.GetFiles(configuration.AnalyzeOutputFolder, "*_callstack.txt"))
             {
-                Console.WriteLine($"====== Extracting information from {callStackLogPath} ======");
+                AnsiConsole.WriteLine($"====== Extracting information from {callStackLogPath} ======");
 
                 string dumpPath = callStackLogPath.Replace("_callstack.txt", ".dmp");
                 string callStackForAllThreadsLogPath = callStackLogPath.Replace(
@@ -95,7 +96,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                     {
                         if (String.IsNullOrEmpty(configuration.WSLInstanceLocation))
                         {
-                            Console.WriteLine($"Console.WriteLine Provide wsl instance location to access source file. ");
+                            AnsiConsole.WriteLine($"[yellow]Provide wsl instance location to access source file.[/]");
                             continue;
                         }
 
@@ -132,12 +133,13 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Console.WriteLine Fail to analyze {callStackLogPath}: {ex.Message}. ");
+                    AnsiConsole.WriteLine($"[red]Fail to analyze {callStackLogPath}: {ex.Message}.[/]");
                 }
             }
 
             GenerateResultTable(dumpAnalyzeResultList, configuration.AnalyzeOutputFolder);
         }
+
         private static void GenerateResultTable(List<ReliabilityFrameworkTestDumpAnalyzeResult> dumpAnalyzeResultList,
                                                string analyzeOutputFolder)
         {
@@ -188,6 +190,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             }
 
         }
+
         private static (string, int)? ExtractSrcFilePathAndLineNumberFromFrameInfo(string frameInfo)
         {
             string pattern = @"\[(.*?)\]";
@@ -195,7 +198,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
 
             if (!match.Success)
             {
-                Console.WriteLine($"The symbol is not available.");
+                AnsiConsole.MarkupLine($"[red]Fail to extract source file path and line number from frame info: {frameInfo}[/]");
                 return null;
             }
 
@@ -205,26 +208,27 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             string? fileName = splitOutput.FirstOrDefault(String.Empty);
             if (String.IsNullOrEmpty(fileName))
             {
-                Console.WriteLine($"Console.WriteLineFail to extract source file path.");
+                AnsiConsole.MarkupLine($"[red]Fail to extract source file path.[/]");
                 return null;
             }
 
             string? lineNumberstr = splitOutput.LastOrDefault(String.Empty).Trim();
             if (String.IsNullOrEmpty(lineNumberstr))
             {
-                Console.WriteLine($"Console.WriteLineFail to extract line number.");
+                AnsiConsole.MarkupLine($"[red]Fail to extract line number.[/]");
                 return null;
             }
 
             bool success = int.TryParse(lineNumberstr, out int lineNumber);
             if (!success)
             {
-                Console.WriteLine($"Console.WriteLineFail to parse line number.");
+                AnsiConsole.MarkupLine($"[red]Fail to parse line number.[/]");
                 return null;
             }
 
             return (fileName, lineNumber);
         }
+
         private static string? FindFrameByKeyWord(List<string> keyWordList, string callStack)
         {
             string[] lines = callStack.Split("\n");
@@ -238,8 +242,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                     }
                 }
             }
-
-            Console.WriteLine($"Console.WriteLineFail to find keyword.");
+            AnsiConsole.MarkupLine($"[yellow]Fail to find keyword.[/]");
             return null;
         }
     }
