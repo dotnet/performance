@@ -4,15 +4,24 @@
     {
         public static void CopyFilesRecursively(string sourcePath, string targetPath)
         {
-            string targetPathAsDirectory = targetPath + "\\";
+            sourcePath = Path.GetFullPath(sourcePath).TrimEnd(Path.DirectorySeparatorChar);
+            targetPath = Path.GetFullPath(targetPath).TrimEnd(Path.DirectorySeparatorChar);
+
+            Directory.CreateDirectory(targetPath);
+
             foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
             {
-                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPathAsDirectory));
+                string relativePath = Path.GetRelativePath(sourcePath, dirPath);
+                string newDirPath = Path.Combine(targetPath, relativePath);
+                Directory.CreateDirectory(newDirPath);
             }
 
-            foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
+            foreach (string filePath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
             {
-                File.Copy(newPath, newPath.Replace(sourcePath, targetPathAsDirectory), true);
+                string relativePath = Path.GetRelativePath(sourcePath, filePath);
+                string newFilePath = Path.Combine(targetPath, relativePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
+                File.Copy(filePath, newFilePath, true);
             }
         }
 
@@ -48,6 +57,23 @@
             {
                 return false;
             }
+        }
+
+        public static void CopyFile(string srcPath, string dstPath)
+        {
+            string realDestPath = String.Empty;
+            if (Directory.Exists(dstPath))
+            {
+                // Copy file to a directory
+                string fileName = Path.GetFileName(srcPath);
+                realDestPath = Path.Combine(dstPath, fileName);
+            }
+            else
+            {
+                realDestPath = dstPath;
+            }
+
+            File.Copy(srcPath, realDestPath);
         }
     }
 }
