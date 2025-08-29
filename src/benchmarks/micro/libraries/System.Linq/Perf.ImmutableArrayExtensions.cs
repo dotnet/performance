@@ -29,7 +29,7 @@ namespace System.Linq.Tests
         [Benchmark]
         [ArgumentsSource(nameof(Arguments))]
         [MemoryRandomization]
-        public bool SequenceEqual(LinqTestData input) => _immutableArray.SequenceEqual(input.Collection);
+        public bool SequenceEqual(LinqTestData input) => ImmutableArrayExtensions.SequenceEqual(_immutableArray, input.Collection);
 
     }
 }
