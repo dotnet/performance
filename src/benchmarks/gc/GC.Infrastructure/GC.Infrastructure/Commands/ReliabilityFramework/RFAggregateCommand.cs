@@ -3,16 +3,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
 using GC.Infrastructure.Core.Configurations;
-using GC.Infrastructure.Core.Configurations.ReliabilityFrameworkTest;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
+namespace GC.Infrastructure.Commands.ReliabilityFramework
 {
-    public class ReliabilityFrameworkTestAggregateCommand : 
-        Command<ReliabilityFrameworkTestAggregateCommand.ReliabilityFrameworkTestAggregateSettings>
+    public class RFAggregateCommand : Command<RFAggregateCommand.RFAggregateSettings>
     {
-        public class ReliabilityFrameworkTestDumpAnalyzeResult
+        public class RFDumpAnalyzeResult
         {
             public string? AttributedError { get; set; }
             public string? DumpName { get; set; }
@@ -21,31 +19,31 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             public string? SourceFilePath { get; set; }
             public string? LineNumber { get; set; }
         }
-        public sealed class ReliabilityFrameworkTestAggregateSettings : CommandSettings
+        public sealed class RFAggregateSettings : CommandSettings
         {
             [Description("Path to Configuration.")]
             [CommandOption("-c|--configuration")]
             public required string ConfigurationPath { get; init; }
         }
 
-        public override int Execute([NotNull] CommandContext context, 
-                                    [NotNull] ReliabilityFrameworkTestAggregateSettings settings)
+        public override int Execute([NotNull] CommandContext context,
+                                    [NotNull] RFAggregateSettings settings)
         {
             AnsiConsole.Write(new Rule("Aggregate Analysis Results For Reliability Framework Test"));
             AnsiConsole.WriteLine();
 
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath,
-                                            nameof(ReliabilityFrameworkTestAggregateSettings));
-            ReliabilityFrameworkTestAnalyzeConfiguration configuration =
-                ReliabilityFrameworkTestAnalyzeConfigurationParser.Parse(settings.ConfigurationPath);
+                                            nameof(RFAggregateSettings));
+            RFAnalyzeConfiguration configuration =
+                RFAnalyzeConfigurationParser.Parse(settings.ConfigurationPath);
 
             AggregateResult(configuration);
             return 0;
         }
 
-        public static void AggregateResult(ReliabilityFrameworkTestAnalyzeConfiguration configuration)
+        public static void AggregateResult(RFAnalyzeConfiguration configuration)
         {
-            List<ReliabilityFrameworkTestDumpAnalyzeResult> dumpAnalyzeResultList = new List<ReliabilityFrameworkTestDumpAnalyzeResult>();
+            List<RFDumpAnalyzeResult> dumpAnalyzeResultList = new List<RFDumpAnalyzeResult>();
 
             foreach (string callStackLogPath in Directory.GetFiles(configuration.AnalyzeOutputFolder, "*_callstack.txt"))
             {
@@ -65,7 +63,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                     // If no line contains given keywords, mark it as unknown error
                     if (String.IsNullOrEmpty(frameInfo))
                     {
-                        ReliabilityFrameworkTestDumpAnalyzeResult unknownErrorResult = new()
+                        RFDumpAnalyzeResult unknownErrorResult = new()
                         {
                             AttributedError = "Unknown error",
                             DumpName = Path.GetFileName(dumpPath),
@@ -119,7 +117,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                     }
                     string error = srcLine;
 
-                    ReliabilityFrameworkTestDumpAnalyzeResult dumpAnalyzeResult = new()
+                    RFDumpAnalyzeResult dumpAnalyzeResult = new()
                     {
                         AttributedError = error,
                         DumpName = Path.GetFileName(dumpPath),
@@ -140,7 +138,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             GenerateResultTable(dumpAnalyzeResultList, configuration.AnalyzeOutputFolder);
         }
 
-        private static void GenerateResultTable(List<ReliabilityFrameworkTestDumpAnalyzeResult> dumpAnalyzeResultList,
+        private static void GenerateResultTable(List<RFDumpAnalyzeResult> dumpAnalyzeResultList,
                                                string analyzeOutputFolder)
         {
             var resultListGroup = dumpAnalyzeResultList.GroupBy(dumpAnalyzeResult => dumpAnalyzeResult.AttributedError);
@@ -150,7 +148,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             sb.AppendLine("| Attributed Error | Count/Total(percentage%) | Dump Name | Log Name(Call Stacks of All Threads)  | Source File Path | Line Number |");
             sb.AppendLine("| :---------- | :---------: | :---------- | :---------- | :---------- | :---------: |");
 
-            foreach (IGrouping<string?, ReliabilityFrameworkTestDumpAnalyzeResult>? group in resultListGroup)
+            foreach (IGrouping<string?, RFDumpAnalyzeResult>? group in resultListGroup)
             {
                 var resultListWithoutFirstItem = group.ToList();
                 var firstResult = resultListWithoutFirstItem.FirstOrDefault();
@@ -169,7 +167,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                 string? lineNumber = firstResult.LineNumber;
                 sb.AppendLine($"| {attributedError} | {proportion}({proportionInPercentage * 100}%) | {dumpName} | {callStackForAllThreadsLogName} | {sourceFilePath} | {lineNumber} |");
 
-                foreach (ReliabilityFrameworkTestDumpAnalyzeResult? dumpAnalyzeResult in resultListWithoutFirstItem)
+                foreach (RFDumpAnalyzeResult? dumpAnalyzeResult in resultListWithoutFirstItem)
                 {
                     dumpName = dumpAnalyzeResult.DumpName;
                     callStackForAllThreadsLogName = dumpAnalyzeResult.CallStackForAllThreadsLogName;

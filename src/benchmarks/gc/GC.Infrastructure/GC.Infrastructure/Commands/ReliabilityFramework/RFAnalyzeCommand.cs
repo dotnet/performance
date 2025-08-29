@@ -3,14 +3,12 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using GC.Infrastructure.Core.Configurations;
-using GC.Infrastructure.Core.Configurations.ReliabilityFrameworkTest;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
+namespace GC.Infrastructure.Commands.ReliabilityFramework
 {
-    public sealed class ReliabilityFrameworkTestAnalyzeCommand :
-        Command<ReliabilityFrameworkTestAnalyzeCommand.ReliabilityFrameworkTestAnalyzeSettings>
+    public sealed class RFAnalyzeCommand : Command<RFAnalyzeCommand.RFAnalyzeSettings>
     {
         public class CommandInvokeResult
         {
@@ -19,23 +17,23 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             public string StdErr { get; set; }
         }
 
-        public sealed class ReliabilityFrameworkTestAnalyzeSettings : CommandSettings
+        public sealed class RFAnalyzeSettings : CommandSettings
         {
             [Description("Path to Configuration.")]
             [CommandOption("-c|--configuration")]
             public required string ConfigurationPath { get; init; }
         }
 
-        public override int Execute([NotNull] CommandContext context, 
-                                    [NotNull] ReliabilityFrameworkTestAnalyzeSettings settings)
+        public override int Execute([NotNull] CommandContext context,
+                                    [NotNull] RFAnalyzeSettings settings)
         {
             AnsiConsole.Write(new Rule("Analyze Dumps Collected In Reliability Framework Test"));
             AnsiConsole.WriteLine();
 
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath,
-                                            nameof(ReliabilityFrameworkTestAnalyzeSettings));
-            ReliabilityFrameworkTestAnalyzeConfiguration configuration =
-                ReliabilityFrameworkTestAnalyzeConfigurationParser.Parse(settings.ConfigurationPath);
+                                            nameof(RFAnalyzeSettings));
+            RFAnalyzeConfiguration configuration =
+                RFAnalyzeConfigurationParser.Parse(settings.ConfigurationPath);
 
             Directory.CreateDirectory(configuration.AnalyzeOutputFolder);
 
@@ -44,7 +42,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             return 0;
         }
 
-        public static void AnalyzeDumps(ReliabilityFrameworkTestAnalyzeConfiguration configuration)
+        public static void AnalyzeDumps(RFAnalyzeConfiguration configuration)
         {
             foreach (string dumpPath in Directory.GetFiles(configuration.DumpFolder, "*.dmp"))
             {
@@ -89,7 +87,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
 
             File.WriteAllLines(debuggingScriptPath, automationDebuggingCommandList);
         }
-        
+
         public static CommandInvokeResult DebugDump(Dictionary<string, string> env,
                                                     string workingDirectory,
                                                     string dumpPath,

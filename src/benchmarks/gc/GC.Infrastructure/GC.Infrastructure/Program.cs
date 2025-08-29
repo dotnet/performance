@@ -1,7 +1,6 @@
 ﻿using GC.Infrastructure.Commands.ASPNetBenchmarks;
 using GC.Infrastructure.Commands.GCPerfSim;
 using GC.Infrastructure.Commands.Microbenchmark;
-using GC.Infrastructure.Commands.ReliabilityFrameworkTest;
 using GC.Infrastructure.Commands.RunCommand;
 using GC.Infrastructure.Commands.ReliabilityFramework;
 using Microsoft.Win32;
@@ -64,8 +63,8 @@ namespace GC.Infrastructure
 
                     // ReliabilityFramework
                     configuration.AddCommand<RFCreateSuitesCommand>("rf-createsuites");
-                    configuration.AddCommand<ReliabilityFrameworkTestAnalyzeCommand>("rf-analyze");
-                    configuration.AddCommand<ReliabilityFrameworkTestAggregateCommand>("rf-aggregate");
+                    configuration.AddCommand<RFAnalyzeCommand>("rf-analyze");
+                    configuration.AddCommand<RFAggregateCommand>("rf-aggregate");
                 });
 
                 app.Run(args);
