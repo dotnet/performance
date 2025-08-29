@@ -25,7 +25,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         public IReadOnlyList<ComparisonResult> AnalysisResults { get; }
     }
 
-    internal sealed class GCPerfSimCommand : Command<GCPerfSimCommand.GCPerfSimSettings>
+    public sealed class GCPerfSimCommand : Command<GCPerfSimCommand.GCPerfSimSettings>
     {
         public sealed class GCPerfSimSettings : CommandSettings
         {
