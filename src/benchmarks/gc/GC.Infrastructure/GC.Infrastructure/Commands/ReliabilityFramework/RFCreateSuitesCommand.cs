@@ -14,6 +14,8 @@ namespace GC.Infrastructure.Commands.ReliabilityFramework
     {
         private static readonly string RID = RuntimeInformation.RuntimeIdentifier;
 
+        private static readonly string OSName = RID.Split("-").FirstOrDefault("");
+
         private static readonly string _baseSuitePath = Path.Combine("Commands", "RunCommand", "BaseSuite", "ReliabilityFramework");
 
         private static readonly List<string> gcModeList = new() { "Datas", "Server", "Workstation" };
@@ -81,38 +83,9 @@ namespace GC.Infrastructure.Commands.ReliabilityFramework
                 string gcModeFolder = Path.Combine(configFolder, gcMode);
                 Utilities.TryCreateDirectory(gcModeFolder);
 
-                string configSuffix =
-                    configuration.EnableStressMode switch
-                    {
-                        true => "-stress",
-                        false => ""
-                    };
-                string configPath = Path.Combine(gcModeFolder,
-                                                 $"{runConfigName}-{gcMode}-{RID}{configSuffix}.config");
-                GenerateTestConfig(RID,
-                                _baseSuitePath,
-                                runConfigName,
-                                configuration.EnableStressMode,
-                                gcMode,
-                                configPath);
+                CreateTestConfig(runConfigName, gcMode, gcModeFolder, configuration);
 
-                string osName = RID.Split("-").FirstOrDefault("");
-                string scriptExtension =
-                    osName switch
-                    {
-                        "win" => ".ps1",
-                        "linux" => ".sh",
-                        _ => throw new NotImplementedException($"OS '{osName}' is not supported.")
-                    };
-                string scriptPath = Path.Combine(gcModeFolder, $"TestingScript-{runConfigName}-{gcMode}{scriptExtension}");
-
-                GenerateTestScript(RID,
-                                    _baseSuitePath,
-                                    configuration.CoreRoot,
-                                    configPath,
-                                    gcMode,
-                                    configuration.OutputFolder,
-                                    scriptPath);
+                CreateTestScript(runConfigName, gcMode, gcModeFolder, configuration);
 
                 configurationMap.Add(gcMode, gcModeFolder);
             }
@@ -120,20 +93,12 @@ namespace GC.Infrastructure.Commands.ReliabilityFramework
             return configurationMap;
         }
 
-
-        internal static void GenerateTestScript(string rid,
-                                              string baseSuiteFolder,
-                                              string coreRoot,
-                                              string configPath,
-                                              string gcMode,
-                                              string outputRoot,
-                                              string scriptPath)
+        internal static void CreateTestScript(string runConfigName, string gcMode, string gcModeFolder, RFCreateSuitesConfiguration configuration)
         {
-            string scriptFoler = Path.GetDirectoryName(scriptPath);
-            string osName = rid.Split("-").FirstOrDefault("");
-
-            string configName = Path.GetFileName(configPath).Split("-")
-                .FirstOrDefault("");
+            string testConfigFileName = CreateTestConfigFileName(runConfigName, gcMode, configuration.EnableStressMode);
+            string testScriptFileName = CreateTestScriptFileName(runConfigName, gcMode);
+            string testScriptPath = Path.Combine(gcModeFolder, testScriptFileName);
+            string testConfigPath = Path.Combine(gcModeFolder, testConfigFileName);
 
             (string DOTNET_gcServer, string DOTNET_GCDynamicAdaptationMode) =
             gcMode switch
@@ -147,7 +112,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFramework
             string scriptSettingSegment;
             string scriptBaseContent;
 
-            if (osName == "win")
+            if (OSName == "win")
             {
                 scriptSettingSegment =
 $"""
@@ -155,11 +120,11 @@ $"""
 $Env:DOTNET_gcServer={DOTNET_gcServer}
 $Env:DOTNET_GCDynamicAdaptationMode={DOTNET_GCDynamicAdaptationMode}
 
-$OutputRoot="{outputRoot}"
-$CORE_ROOT="{coreRoot}"
+$OutputRoot="{configuration.OutputFolder}"
+$CORE_ROOT="{configuration.CoreRoot}"
 
 # set config path
-$config_path=Join-Path -Path $PSScriptRoot -ChildPath "{Path.GetRelativePath(scriptFoler, configPath)}"
+$config_path=Join-Path -Path $PSScriptRoot -ChildPath "{Path.GetRelativePath(gcModeFolder, testConfigPath)}"
 
 # set test folder
 $test_folder=Join-Path -Path $OutputRoot -ChildPath "Tests"
@@ -171,7 +136,7 @@ $reliability_framework_dll=Join-Path -Path $OutputRoot -ChildPath "ReliabilityFr
 $output_folder=$PSScriptRoot
 ########## setting end ##########
 """;
-                string baseScriptPath = Path.Combine(baseSuiteFolder, "TestingScript.ps1.txt");
+                string baseScriptPath = Path.Combine(_baseSuitePath, "TestingScript.ps1.txt");
                 scriptBaseContent = File.ReadAllText(baseScriptPath);
             }
             else
@@ -187,11 +152,11 @@ export DOTNET_gcServer={DOTNET_gcServer}
 export DOTNET_GCDynamicAdaptationMode={DOTNET_GCDynamicAdaptationMode}
 
 # set core_root
-Output_Root={outputRoot}
-CORE_ROOT={coreRoot}
+Output_Root={configuration.OutputFolder}
+CORE_ROOT={configuration.CoreRoot}
 
 # set config path
-config_path=$script_root/{Path.GetRelativePath(scriptFoler, configPath)}
+config_path=$script_root/{Path.GetRelativePath(gcModeFolder, testConfigPath)}
 
 # set test folder
 test_folder=$Output_Root/Tests
@@ -204,37 +169,32 @@ output_folder=$script_root
 
 ########## setting end ##########
 """;
-                string baseScriptPath = Path.Combine(baseSuiteFolder, "TestingScript.sh.txt");
+                string baseScriptPath = Path.Combine(_baseSuitePath, "TestingScript.sh.txt");
                 scriptBaseContent = File.ReadAllText(baseScriptPath);
             }
 
             string content = $"{scriptSettingSegment}\n\n{scriptBaseContent}";
-            File.WriteAllText(scriptPath, content);
+            File.WriteAllText(testScriptPath, content);
         }
 
-        internal static void GenerateTestConfig(
-            string rid,
-            string baseSuiteFolder,
-            string configName,
-            bool enableStress,
-            string gcMode,
-            string testConfigPath)
+        internal static void CreateTestConfig(string runConfigName, string gcMode, string gcModeFolder, RFCreateSuitesConfiguration configuration)
         {
             try
             {
-                string osName = rid.Split("-").FirstOrDefault("");
+                string testConfigFileName = CreateTestConfigFileName(runConfigName, gcMode, configuration.EnableStressMode);
+                string testConfigPath = Path.Combine(gcModeFolder, testConfigFileName);
 
                 string maximumWaitTime =
-                    (osName, enableStress) switch
+                    (OSName, configuration.EnableStressMode) switch
                     {
-                        ("win", false) => Windows[configName][gcMode],
-                        ("win", true) => WindowsStress[configName][gcMode],
-                        ("linux", false) => Linux[configName][gcMode],
-                        ("linux", true) => LinuxStress[configName][gcMode],
-                        _ => throw new Exception($"{nameof(RFCreateSuitesCommand)}: Unknown OS {osName}")
+                        ("win", false) => Windows[runConfigName][gcMode],
+                        ("win", true) => WindowsStress[runConfigName][gcMode],
+                        ("linux", false) => Linux[runConfigName][gcMode],
+                        ("linux", true) => LinuxStress[runConfigName][gcMode],
+                        _ => throw new Exception($"{nameof(RFCreateSuitesCommand)}: Unknown OS {OSName}")
                     };
 
-                string baseConfigPath = Path.Combine(baseSuiteFolder, $"{configName}.config");
+                string baseConfigPath = Path.Combine(_baseSuitePath, $"{runConfigName}.config");
                 string baseConfigContent = File.ReadAllText(baseConfigPath);
                 XElement config = XElement.Parse(baseConfigContent);
                 config.SetAttributeValue("maximumWaitTime", maximumWaitTime);
@@ -249,6 +209,24 @@ output_folder=$script_root
             }
         }
 
+        private static string CreateTestScriptFileName(string runConfigName, string gcMode)
+        {
+            string scriptExtension =
+                OSName switch
+                {
+                    "win" => ".ps1",
+                    "linux" => ".sh",
+                    _ => throw new NotImplementedException($"OS '{OSName}' is not supported.")
+                };
+            return $"TestingScript-{runConfigName}-{gcMode}{scriptExtension}";
+        }
+
+        private static string CreateTestConfigFileName(string runConfigName, string gcMode, bool enableStressMode)
+        {
+            string stressSuffix = enableStressMode ? "-stress" : "";
+            return $"{runConfigName}-{gcMode}-{RID}{stressSuffix}.config";
+        }
+
         private static Dictionary<string, Dictionary<string, string>> Windows { get; } = new()
         {
             { "loh", new() { { "Server", "00:10:00"}, { "Workstation", "01:45:00"}, { "Datas", "00:10:00"} } },
@@ -256,6 +234,7 @@ output_folder=$script_root
             { "non_induced", new() { { "Server", "00:30:00"}, { "Workstation", "03:30:00"}, { "Datas", "00:20:00"} } },
             { "finalization", new() { { "Server", "00:05:00"}, { "Workstation", "00:50:00"}, { "Datas", "00:15:00" } } }
         };
+
         private static Dictionary<string, Dictionary<string, string>> WindowsStress { get; } = new()
         {
             { "loh", new() { { "Server", "00:02:00"}, { "Workstation", "00:10:00"}, { "Datas", "00:05:00"} } },
@@ -263,6 +242,7 @@ output_folder=$script_root
             { "non_induced", new() { { "Server", "00:25:00"}, { "Workstation", "04:00:00"}, { "Datas", "00:35:00"} } },
             { "finalization", new() { { "Server", "00:05:00"}, { "Workstation", "00:40:00"}, { "Datas", "01:40:00" } } }
         };
+
         private static Dictionary<string, Dictionary<string, string>> Linux { get; } = new()
         {
             { "loh", new() { { "Server", "00:25:00"}, { "Workstation", "00:20:00"}, { "Datas", "00:20:00"} } },
@@ -270,6 +250,7 @@ output_folder=$script_root
             { "non_induced", new() { { "Server", "00:25:00"}, { "Workstation", "00:55:00"}, { "Datas", "00:15:00"} } },
             { "finalization", new() { { "Server", "00:20:00"}, { "Workstation", "01:30:00"}, { "Datas", "00:25:00" } } }
         };
+
         private static Dictionary<string, Dictionary<string, string>> LinuxStress { get; } = new()
         {
             { "loh", new() { { "Server", "00:10:00"}, { "Workstation", "00:25:00"}, { "Datas", "00:08:00"} } },
