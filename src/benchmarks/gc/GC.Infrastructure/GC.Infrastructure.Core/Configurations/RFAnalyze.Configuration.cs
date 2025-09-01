@@ -6,7 +6,7 @@ namespace GC.Infrastructure.Core.Configurations
     {
         public required string DebuggerPath { get; set; }
         public required List<string> StackFrameKeyWords { get; set; }
-        public required string CoreRoot { get; set; }
+        public required string Core_Root { get; set; }
         public required string WSLInstanceLocation { get; set; }
         public required string DumpFolder { get; set; }
         public required string AnalyzeOutputFolder { get; set; }
@@ -30,7 +30,6 @@ namespace GC.Infrastructure.Core.Configurations
             {
                 configuration = _deserializer.Deserialize<RFAnalyzeConfiguration>(serializedConfiguration);
             }
-
             catch (Exception ex)
             {
                 throw new ArgumentException($"{nameof(RFAnalyzeConfiguration)}: Unable to parse the yaml file because of an error in the syntax. Exception: {ex.Message} \n Call Stack: {ex.StackTrace}");
@@ -47,11 +46,11 @@ namespace GC.Infrastructure.Core.Configurations
             }
 
             // Check Core_Root folder
-            if (!Path.Exists(configuration.CoreRoot))
+            if (!Path.Exists(configuration.Core_Root))
             {
                 throw new ArgumentException($"{nameof(RFAnalyzeConfiguration)}: Core_Root doesn't exist.");
             }
-            bool hasCoreRun = Directory.GetFiles(configuration.CoreRoot)
+            bool hasCoreRun = Directory.GetFiles(configuration.Core_Root)
                 .Any(filePath => Path.GetFileNameWithoutExtension(filePath) == "corerun");
             if (!hasCoreRun)
             {

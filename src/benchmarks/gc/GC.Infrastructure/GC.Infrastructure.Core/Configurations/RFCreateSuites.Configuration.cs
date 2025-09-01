@@ -12,7 +12,7 @@ namespace GC.Infrastructure.Core.Configurations
         /// <summary>
         /// Gets or sets the Core_Root path
         /// </summary>
-        public string CoreRoot { get; set; }
+        public string Core_Root { get; set; }
 
         /// <summary>
         /// Gets or sets the Relibility Framework DLL path
@@ -69,7 +69,7 @@ namespace GC.Infrastructure.Core.Configurations
                 throw new ArgumentException($"{nameof(RFCreateSuitesConfiguration)}: Please specify ReliabilityFrameworkDll");
             }
 
-            if (!Path.Exists(configuration.CoreRoot))
+            if (!Path.Exists(configuration.Core_Root))
             {
                 throw new ArgumentException($"{nameof(RFCreateSuitesConfiguration)}: Given CoreRoot path is not valid");
             }

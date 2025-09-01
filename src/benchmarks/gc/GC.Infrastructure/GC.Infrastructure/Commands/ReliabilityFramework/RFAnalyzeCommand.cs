@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using GC.Infrastructure.Core;
 using GC.Infrastructure.Core.Configurations;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -35,7 +36,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFramework
             RFAnalyzeConfiguration configuration =
                 RFAnalyzeConfigurationParser.Parse(settings.ConfigurationPath);
 
-            Directory.CreateDirectory(configuration.AnalyzeOutputFolder);
+            Utilities.TryCreateDirectory(configuration.AnalyzeOutputFolder);
 
             AnalyzeDumps(configuration);
 
@@ -52,7 +53,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFramework
                 string callStackForAllThreadsOutputPath = Path.Combine(
                     configuration.AnalyzeOutputFolder, $"{dumpName}_callstack_allthreads.txt");
                 List<string> debugCommandList = new List<string>(){
-                    $".sympath {configuration.CoreRoot}",
+                    $".sympath {configuration.Core_Root}",
                     ".reload",
                     $".logopen {callStackOutputPath}",
                     "k",
@@ -64,7 +65,18 @@ namespace GC.Infrastructure.Commands.ReliabilityFramework
 
                 string debuggerScriptPath = Path.Combine(configuration.AnalyzeOutputFolder, "debugging-script.txt");
                 GenerateDebuggingScript(debuggerScriptPath, debugCommandList);
-                DebugDump(new Dictionary<string, string>(), "", dumpPath, debuggerScriptPath);
+                CommandInvokeResult result = DebugDump(new Dictionary<string, string>(), "", dumpPath, debuggerScriptPath);
+                if (result.ExitCode != 0)
+                {
+                    AnsiConsole.MarkupLine($"[red]Error analyzing dump {dumpPath}[/]");
+                    AnsiConsole.MarkupLine($"[red]{result.StdErr}[/]");
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine($"[green]Successfully analyzed dump {dumpPath}[/]");
+                    AnsiConsole.MarkupLine($"[green]Callstack output: {callStackOutputPath}[/]");
+                    AnsiConsole.MarkupLine($"[green]Callstack for all threads output: {callStackForAllThreadsOutputPath}[/]");
+                }
             }
         }
 

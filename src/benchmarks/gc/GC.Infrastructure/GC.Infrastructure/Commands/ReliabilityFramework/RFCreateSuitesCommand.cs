@@ -121,7 +121,7 @@ $Env:DOTNET_gcServer={DOTNET_gcServer}
 $Env:DOTNET_GCDynamicAdaptationMode={DOTNET_GCDynamicAdaptationMode}
 
 $OutputRoot="{configuration.OutputFolder}"
-$CORE_ROOT="{configuration.CoreRoot}"
+$CORE_ROOT="{configuration.Core_Root}"
 
 # set config path
 $config_path=Join-Path -Path $PSScriptRoot -ChildPath "{Path.GetRelativePath(gcModeFolder, testConfigPath)}"
@@ -153,7 +153,7 @@ export DOTNET_GCDynamicAdaptationMode={DOTNET_GCDynamicAdaptationMode}
 
 # set core_root
 Output_Root={configuration.OutputFolder}
-CORE_ROOT={configuration.CoreRoot}
+CORE_ROOT={configuration.Core_Root}
 
 # set config path
 config_path=$script_root/{Path.GetRelativePath(gcModeFolder, testConfigPath)}
