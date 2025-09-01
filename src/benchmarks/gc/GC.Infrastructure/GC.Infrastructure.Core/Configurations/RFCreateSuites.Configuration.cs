@@ -15,7 +15,7 @@ namespace GC.Infrastructure.Core.Configurations
         public string Core_Root { get; set; }
 
         /// <summary>
-        /// Gets or sets the Relibility Framework DLL path
+        /// Gets or sets the Reliability Framework DLL path
         /// </summary>
         public string ReliabilityFrameworkDll { get; set; }
 
