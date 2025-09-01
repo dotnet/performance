@@ -22,6 +22,7 @@ namespace GC.Infrastructure
 
             if (OperatingSystem.IsWindows())
             {
+                bool IsAdministrator = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
                 if (!IsAdministrator)
                 {
                     AnsiConsole.WriteLine("Not running in admin mode - please elevate privileges to run this process.");
@@ -86,9 +87,5 @@ namespace GC.Infrastructure
                 }
             }
         }
-
-        [SupportedOSPlatform("windows")]
-        internal static bool IsAdministrator =>
-            new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
     }
 }
