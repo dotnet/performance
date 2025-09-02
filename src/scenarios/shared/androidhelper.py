@@ -98,13 +98,7 @@ class AndroidHelper:
         screen_off_timeout_cmd = RunCommand(cmdline, verbose=True)
         screen_off_timeout_cmd.run()
         self.startscreenofftimeout = screen_off_timeout_cmd.stdout.strip()
-        getLogger().info(
-            "Retrieved values window %s, transition %s, animator %s, screen timeout %s",
-            self.startwindowanimationscale,
-            self.starttransitionanimationscale,
-            self.startanimatordurationscale,
-            self.startscreenofftimeout,
-        )
+        getLogger().info(f"Retrieved values window {self.startwindowanimationscale}, transition {self.starttransitionanimationscale}, animator {self.startanimatordurationscale}, screen timeout {self.startscreenofftimeout}")
 
         # Make sure animations are set to 1 or disabled
         getLogger().info("Setting needed values")
