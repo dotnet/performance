@@ -1,0 +1,8 @@
+﻿DumpFolder: Q:\ReliabilityFramework\Dumps
+AnalyzeOutputFolder: Q:\ReliabilityFramework\AnalyzeDump_Output
+StackFrameKeyWords:
+  - "::gc_heap::"
+  - "::GCHeap::"
+DebuggerPath: windbgx
+Core_Root: Q:\Core_Root
+WSLInstanceLocation: \\wsl.localhost\Debian
