@@ -4,7 +4,7 @@
     <!-- Used by Python script to narrow down the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <!-- Supported target frameworks -->
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net7.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net8.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
