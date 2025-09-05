@@ -468,9 +468,22 @@ def get_run_configurations(
 
     # dotnet/runtime Android sample app scenarios
     if run_kind == "android_scenarios":
+        if not runtime_flavor in ("mono", "coreclr"):
+            raise Exception("Runtime flavor must be specified for runtime android scenarios")
         configurations["CodegenType"] = str(codegen_type)
         configurations["LinkingType"] = str(linking_type)
         configurations["RuntimeType"] = str(runtime_flavor)
+
+    # dotnet/runtime iOS sample app scenarios
+    if run_kind == "ios_scenarios":
+        if not runtime_flavor in ("mono", "coreclr"):
+            raise Exception("Runtime flavor must be specified for runtime ios scenarios")
+        configurations["CodegenType"] = str(codegen_type)
+        configurations["RuntimeType"] = str(runtime_flavor)
+        configurations["iOSStripSymbols"] = str(ios_strip_symbols)
+
+        if runtime_flavor == "mono":
+            configurations["iOSLlvmBuild"] = str(ios_llvm_build)
 
     # .NET Android and .NET MAUI Android sample app scenarios
     if run_kind == "maui_scenarios_android":
@@ -485,15 +498,6 @@ def get_run_configurations(
             raise Exception("Runtime flavor must be specified for maui_scenarios_ios")
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)
-
-    if runtime_type == "iOSMono":
-        configurations["iOSLlvmBuild"] = str(ios_llvm_build)
-        configurations["iOSStripSymbols"] = str(ios_strip_symbols)
-        configurations["RuntimeType"] = "Mono"
-
-    if runtime_type == "iOSNativeAOT":
-        configurations["iOSStripSymbols"] = str(ios_strip_symbols)
-        configurations["RuntimeType"] = "NativeAOT"
 
     return configurations
 
@@ -634,7 +638,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
             args.runtime_flavor = "coreclr"
         else:
             raise Exception("Android scenarios only support Mono and CoreCLR runtimes")
-    
+    if args.run_kind == "ios_scenarios":
+        if args.runtime_type == "iOSMono":
+            args.runtime_flavor = "mono"
+        elif args.runtime_type == "iOSNativeAOT":
+            args.runtime_flavor = "coreclr"
+        else:
+            raise Exception("iOS scenarios only support Mono and CoreCLR runtimes")
+
     branch = os.environ.get("BUILD_SOURCEBRANCH")
     cleaned_branch_name = "main"
     if branch is not None and branch.startswith("refs/heads/release"):

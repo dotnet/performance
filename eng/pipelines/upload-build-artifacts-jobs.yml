@@ -119,14 +119,14 @@ jobs:
         buildType: 'mono_arm64_ios'
         dependencyJobName: build_ios_arm64_release_iOSMono
         artifacts:
-        - artifactName: 'iOSSampleAppLLVMNoSymbolsHybridGlobalizationtrue'
-          files: [ 'iOSSampleAppLLVMNoSymbolsHybridGlobalizationtrue.zip' ]
-        - artifactName: 'iOSSampleAppLLVMSymbolsHybridGlobalizationtrue'
-          files: [ 'iOSSampleAppLLVMSymbolsHybridGlobalizationtrue.zip' ]
-        - artifactName: 'iOSSampleAppNoLLVMNoSymbolsHybridGlobalizationtrue'
-          files: [ 'iOSSampleAppNoLLVMNoSymbolsHybridGlobalizationtrue.zip' ]
-        - artifactName: 'iOSSampleAppNoLLVMSymbolsHybridGlobalizationtrue'
-          files: [ 'iOSSampleAppNoLLVMSymbolsHybridGlobalizationtrue.zip' ]
+        - artifactName: 'iOSSampleAppLLVMNoSymbols'
+          files: [ 'iOSSampleAppLLVMNoSymbols.zip' ]
+        - artifactName: 'iOSSampleAppLLVMSymbols'
+          files: [ 'iOSSampleAppLLVMSymbols.zip' ]
+        - artifactName: 'iOSSampleAppNoLLVMNoSymbols'
+          files: [ 'iOSSampleAppNoLLVMNoSymbols.zip' ]
+        - artifactName: 'iOSSampleAppNoLLVMSymbols'
+          files: [ 'iOSSampleAppNoLLVMSymbols.zip' ]
                     
   - ${{ if containsValue(parameters.buildType, 'monoBDN_arm64_android') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
@@ -143,7 +143,7 @@ jobs:
         buildType: 'nativeAot_arm64_ios'
         dependencyJobName: build_ios_arm64_release_iOSNativeAOT
         artifacts:
-        - artifactName: 'iOSSampleAppSymbolsHybridGlobalizationtrue'
-          files: [ 'iOSSampleAppSymbolsHybridGlobalizationtrue.zip' ]
-        - artifactName: 'iOSSampleAppNoSymbolsHybridGlobalizationtrue'
-          files: [ 'iOSSampleAppNoSymbolsHybridGlobalizationtrue.zip' ]
+        - artifactName: 'iOSSampleAppSymbols'
+          files: [ 'iOSSampleAppSymbols.zip' ]
+        - artifactName: 'iOSSampleAppNoSymbols'
+          files: [ 'iOSSampleAppNoSymbols.zip' ]
