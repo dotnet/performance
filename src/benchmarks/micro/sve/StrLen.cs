@@ -29,13 +29,11 @@ namespace SveBenchmarks
         public int Size;
 
         private byte[] _array;
-        private ulong _length;
 
         [GlobalSetup]
         public virtual void Setup()
         {
             _array = ValuesGenerator.Array<byte>(Size + 1);
-            _length = 0;
 
             var random = new Random();
             for (int i = 0; i < _array.Length; i++)
@@ -56,19 +54,13 @@ namespace SveBenchmarks
         {
             fixed (byte* arr_ptr = _array)
             {
-                if (arr_ptr == null)
-                    return 0;
-
-                byte* ptr = arr_ptr;
-
-                while (*ptr != 0)
+                ulong i = 0;
+                while (arr_ptr[i] != 0)
                 {
-                    _length++;
-                    ptr++;
+                    i++;
                 }
+                return i;
             }
-
-            return _length;
         }
 
         [Benchmark]
