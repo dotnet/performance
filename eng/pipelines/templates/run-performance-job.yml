@@ -56,6 +56,8 @@ parameters:
   iOSLlvmBuild: false               # optional -- Whether to build iOS with LLVM
   iOSStripSymbols: false            # optional -- Whether to strip symbols from the iOS build
   additionalSetupParameters: ''     # optional -- Additional arguments to pass to the script
+  liveLibrariesBuildConfig: ''      # optional -- Build configuration when generating Core_Root for libraries
+  crossBuild: false                 # optional -- Whether the Core_Root is being cross-compiled
 
 jobs:
 - template: ${{ parameters.jobTemplate }}
@@ -226,6 +228,12 @@ jobs:
               - '--internal'
               - ${{ if eq(parameters.downloadPdn, true) }}:
                 - '--pdn-path "$(_pdnPath)"'
+            - ${{ if ne(parameters.buildConfig, '') }}:
+              - '--build-config ${{ parameters.buildConfig }}'
+            - ${{ if ne(parameters.liveLibrariesBuildConfig, '') }}:
+              - '--live-libraries-build-config ${{ parameters.liveLibrariesBuildConfig }}'
+            - ${{ if eq(parameters.crossBuild, true) }}:
+              - '--cross-build'
             - ${{ if ne(parameters.additionalSetupParameters, '') }}:
               - '${{ parameters.additionalSetupParameters }}'
       - template: /eng/pipelines/templates/send-to-helix-step.yml

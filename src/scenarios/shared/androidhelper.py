@@ -4,6 +4,7 @@ from performance.common import RunCommand
 from logging import getLogger
 from shared import const
 from shared.util import xharness_adb, xharnesscommand
+from subprocess import CalledProcessError
 
 class AndroidHelper:
     def __init__(self):
@@ -16,6 +17,9 @@ class AndroidHelper:
         self.starttransitionanimationscale = None
         self.startanimatordurationscale = None
         self.startscreenofftimeout = None
+        # Original values for Android package verifier settings
+        self.startverifierverifyadbinstalls = None
+        self.startpackageverifierenable = None
 
     def setup_device(self, packagename: str, packagepath: str, animationsdisabled: bool, forcewaitstart: bool = True):
         run_split_regex = r":\s(.+)"
@@ -37,6 +41,36 @@ class AndroidHelper:
             'size'
         ]
         RunCommand(cmdline, verbose=True).run()
+
+        # Capture and disable Android package verifier settings to avoid prompts/overhead during installs
+        try:
+            getLogger().info("Capturing current package verifier settings")
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'get', 'global', 'verifier_verify_adb_installs'
+            ]
+            get_verifier_adb_cmd = RunCommand(cmdline, verbose=True)
+            get_verifier_adb_cmd.run()
+            self.startverifierverifyadbinstalls = get_verifier_adb_cmd.stdout.strip()
+
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'get', 'global', 'package_verifier_enable'
+            ]
+            get_pkg_verifier_cmd = RunCommand(cmdline, verbose=True)
+            get_pkg_verifier_cmd.run()
+            self.startpackageverifierenable = get_pkg_verifier_cmd.stdout.strip()
+
+            getLogger().info("Disabling package verifier settings for the run")
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'global', 'verifier_verify_adb_installs', '0'
+            ]
+            RunCommand(cmdline, verbose=True).run()
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'global', 'package_verifier_enable', '0'
+            ]
+            RunCommand(cmdline, verbose=True).run()
+        except CalledProcessError:
+            # Best-effort: don't fail setup if device doesn't support these keys; proceed with the run
+            getLogger().warning("Failed to update package verifier settings; continuing without changes", exc_info=True)
 
         # Get animation values
         getLogger().info("Getting Values we will need set specifically")
@@ -147,7 +181,7 @@ class AndroidHelper:
         # More setup stuff
         checkScreenOnCmd = xharness_adb() + [
             'shell',
-            f'dumpsys input_method | grep mInteractive'
+            'dumpsys input_method | grep mInteractive'
         ]
         checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
         checkScreenOn.run()
@@ -255,24 +289,58 @@ class AndroidHelper:
             'keyevent'
         ]
 
+        # Restore Android package verifier settings
+        try:
+            getLogger().info("Restoring package verifier settings to pretest values")
+            # Restore verifier_verify_adb_installs
+            if self.startverifierverifyadbinstalls is not None:
+                if self.startverifierverifyadbinstalls == '' or self.startverifierverifyadbinstalls.lower() == 'null':
+                    cmdline = xharness_adb() + [
+                        'shell', 'settings', 'delete', 'global', 'verifier_verify_adb_installs'
+                    ]
+                else:
+                    cmdline = xharness_adb() + [
+                        'shell', 'settings', 'put', 'global', 'verifier_verify_adb_installs', self.startverifierverifyadbinstalls
+                    ]
+                RunCommand(cmdline, verbose=True).run()
+
+            # Restore package_verifier_enable
+            if self.startpackageverifierenable is not None:
+                if self.startpackageverifierenable == '' or self.startpackageverifierenable.lower() == 'null':
+                    cmdline = xharness_adb() + [
+                        'shell', 'settings', 'delete', 'global', 'package_verifier_enable'
+                    ]
+                else:
+                    cmdline = xharness_adb() + [
+                        'shell', 'settings', 'put', 'global', 'package_verifier_enable', self.startpackageverifierenable
+                    ]
+                RunCommand(cmdline, verbose=True).run()
+        except CalledProcessError:
+            # Best-effort restore; don't fail teardown if restore isn't possible
+            getLogger().warning("Failed to restore package verifier settings", exc_info=True)
+
         # Reset animation values 
         getLogger().info("Resetting animation values to pretest values")
-        cmdline = xharness_adb() + [
-            'shell', 'settings', 'put', 'global', 'window_animation_scale', self.startwindowanimationscale
-        ]
-        RunCommand(cmdline, verbose=True).run()
-        cmdline = xharness_adb() + [
-            'shell', 'settings', 'put', 'global', 'transition_animation_scale', self.starttransitionanimationscale
-        ]
-        RunCommand(cmdline, verbose=True).run()
-        cmdline = xharness_adb() + [
-            'shell', 'settings', 'put', 'global', 'animator_duration_scale', self.startanimatordurationscale
-        ]
-        RunCommand(cmdline, verbose=True).run()
-        cmdline = xharness_adb() + [
-            'shell', 'settings', 'put', 'system', 'screen_off_timeout', self.startscreenofftimeout
-        ]
-        RunCommand(cmdline, verbose=True).run()
+        if self.startwindowanimationscale is not None:
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'global', 'window_animation_scale', self.startwindowanimationscale
+            ]
+            RunCommand(cmdline, verbose=True).run()
+        if self.starttransitionanimationscale is not None:
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'global', 'transition_animation_scale', self.starttransitionanimationscale
+            ]
+            RunCommand(cmdline, verbose=True).run()
+        if self.startanimatordurationscale is not None:
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'global', 'animator_duration_scale', self.startanimatordurationscale
+            ]
+            RunCommand(cmdline, verbose=True).run()
+        if self.startscreenofftimeout is not None:
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'system', 'screen_off_timeout', self.startscreenofftimeout
+            ]
+            RunCommand(cmdline, verbose=True).run()
 
         if self.screenwasoff:
             RunCommand(keyInputCmd + ['26'], verbose=True).run() # Turn the screen back off

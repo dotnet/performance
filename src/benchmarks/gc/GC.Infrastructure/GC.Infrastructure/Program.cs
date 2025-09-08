@@ -1,7 +1,9 @@
 ﻿using GC.Infrastructure.Commands.ASPNetBenchmarks;
 using GC.Infrastructure.Commands.GCPerfSim;
 using GC.Infrastructure.Commands.Microbenchmark;
+using GC.Infrastructure.Commands.ReliabilityFrameworkTest;
 using GC.Infrastructure.Commands.RunCommand;
+using GC.Infrastructure.Commands.ReliabilityFrameworkTest;
 using Microsoft.Win32;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -20,6 +22,7 @@ namespace GC.Infrastructure
 
             if (OperatingSystem.IsWindows())
             {
+                bool IsAdministrator = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
                 if (!IsAdministrator)
                 {
                     AnsiConsole.WriteLine("Not running in admin mode - please elevate privileges to run this process.");
@@ -59,6 +62,11 @@ namespace GC.Infrastructure
                     // ASP.NET Benchmarks
                     configuration.AddCommand<AspNetBenchmarksCommand>("aspnetbenchmarks");
                     configuration.AddCommand<AspNetBenchmarksAnalyzeCommand>("aspnetbenchmarks-analyze");
+
+                    // ReliabilityFramework
+                    configuration.AddCommand<ReliabilityFrameworkTestCreateTestSuiteCommand>("rf-createsuite");
+                    configuration.AddCommand<ReliabilityFrameworkTestAnalyzeCommand>("rf-analyze");
+                    configuration.AddCommand<ReliabilityFrameworkTestAggregateCommand>("rf-aggregate");
                 });
 
                 app.Run(args);
@@ -79,9 +87,5 @@ namespace GC.Infrastructure
                 }
             }
         }
-
-        [SupportedOSPlatform("windows")]
-        internal static bool IsAdministrator =>
-            new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
     }
 }

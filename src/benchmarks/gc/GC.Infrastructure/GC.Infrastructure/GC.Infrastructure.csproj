@@ -68,6 +68,24 @@
     <None Update="Commands\RunCommand\BaseSuite\PercentileBasedMetricsConfiguration.yml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+	<None Update="Commands\RunCommand\BaseSuite\ReliabilityFramework\finalization.config">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+	<None Update="Commands\RunCommand\BaseSuite\ReliabilityFramework\loh.config">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+	<None Update="Commands\RunCommand\BaseSuite\ReliabilityFramework\non_induced.config">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+	<None Update="Commands\RunCommand\BaseSuite\ReliabilityFramework\poh.config">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+	<None Update="Commands\RunCommand\BaseSuite\ReliabilityFramework\TestingScript.ps1.txt">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+	<None Update="Commands\RunCommand\BaseSuite\ReliabilityFramework\TestingScript.sh.txt">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
   </ItemGroup>
 
 </Project>

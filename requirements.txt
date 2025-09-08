@@ -4,3 +4,5 @@ azure.identity==1.16.1
 dataclasses==0.8
 gitpython<=3.1.41
 urllib3==1.26.19
+opentelemetry-api==1.23.0
+opentelemetry-sdk==1.23.0
