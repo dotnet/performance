@@ -1,5 +1,4 @@
 parameters:
-  hybridGlobalization: True
   runtimeRepoAlias: runtime
   performanceRepoAlias: self
   jobParameters: {}
@@ -7,11 +6,10 @@ parameters:
 jobs:
   - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      hybridGlobalization: ${{ parameters.hybridGlobalization }}
       mono: true
       nativeAot: true
 
-  # run mono iOS scenarios HybridGlobalization
+  # run iOS scenarios - Mono FullAOT
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
@@ -21,13 +19,13 @@ jobs:
         - osx_x64
       jobParameters:
         runtimeType: iOSMono
+        codeGenType: FullAOT
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
         logicalMachine: 'perfiphone12mini'
         iOSLlvmBuild: False
         iOSStripSymbols: False
-        hybridGlobalization: ${{ parameters.hybridGlobalization }}
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         ${{ each parameter in parameters.jobParameters }}:
@@ -42,13 +40,13 @@ jobs:
         - osx_x64
       jobParameters:
         runtimeType: iOSMono
+        codeGenType: FullAOT
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
         logicalMachine: 'perfiphone12mini'
         iOSLlvmBuild: False
         iOSStripSymbols: True
-        hybridGlobalization: ${{ parameters.hybridGlobalization }}
         additionalJobIdentifier: iOSStripSymbols
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
@@ -64,13 +62,13 @@ jobs:
         - osx_x64
       jobParameters:
         runtimeType: iOSMono
+        codeGenType: FullAOT
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
         logicalMachine: 'perfiphone12mini'
         iOSLlvmBuild: True
         iOSStripSymbols: False
-        hybridGlobalization: ${{ parameters.hybridGlobalization }}
         additionalJobIdentifier: iOSLlvmBuild
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
@@ -86,20 +84,20 @@ jobs:
         - osx_x64
       jobParameters:
         runtimeType: iOSMono
+        codeGenType: FullAOT
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
         logicalMachine: 'perfiphone12mini'
         iOSLlvmBuild: True
         iOSStripSymbols: True
-        hybridGlobalization: ${{ parameters.hybridGlobalization }}
         additionalJobIdentifier: iOSLlvmBuild iOSStripSymbols
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # run NativeAOT iOS scenarios HybridGlobalization
+  # run iOS scenarios - CoreCLR NativeAOT
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
@@ -109,12 +107,12 @@ jobs:
         - osx_x64
       jobParameters:
         runtimeType: iOSNativeAOT
+        codeGenType: NativeAOT
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
         logicalMachine: 'perfiphone12mini'
         iOSStripSymbols: False
-        hybridGlobalization: ${{ parameters.hybridGlobalization }}
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         ${{ each parameter in parameters.jobParameters }}:
@@ -129,12 +127,12 @@ jobs:
         - osx_x64
       jobParameters:
         runtimeType: iOSNativeAOT
+        codeGenType: NativeAOT
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
         logicalMachine: 'perfiphone12mini'
         iOSStripSymbols: True
-        hybridGlobalization: ${{ parameters.hybridGlobalization }}
         additionalJobIdentifier: iOSStripSymbols
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
