@@ -17,9 +17,9 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>37e7d4a017039a6397baa1055a77eb74b7951ab9</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="10.0.0-rc.1.25457.1">
+    <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="10.0.0-rc.1.25458.2">
       <Uri>https://github.com/dotnet/windowsdesktop</Uri>
-      <Sha>37b0e286b36baa94e1688369f38a86887cda58f8</Sha>
+      <Sha>64c5717ff6e00ee1df25e341d2f1baea75a9cba6</Sha>
     </Dependency>
     <Dependency Name="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="10.0.0-rc.1.25454.108">
       <Uri>https://github.com/dotnet/dotnet</Uri>
