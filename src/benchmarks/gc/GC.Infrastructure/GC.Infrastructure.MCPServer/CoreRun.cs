@@ -26,6 +26,7 @@ namespace GC.Infrastructure.MCPServer
             string arguments = $"/C build.cmd clr+libs -runtimeConfiguration {buildConfig} -librariesConfiguration Release -arch {arch}";
             try
             {
+                bool isSuccess = true;
                 using (var process = new Process())
                 {
                     process.StartInfo.FileName = fileName;
@@ -35,26 +36,39 @@ namespace GC.Infrastructure.MCPServer
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.CreateNoWindow = true;
                     process.StartInfo.WorkingDirectory = runtimeRoot;
+                    process.OutputDataReceived += (sender, e) =>
+                    {
+                        if (!string.IsNullOrEmpty(e.Data))
+                        {
+                            if (e.Data.ToLower().Contains("build failed with exit code"))
+                            {
+                                isSuccess = false;
+                            }
+                        }
+                    };
+                    process.ErrorDataReceived += (sender, e) =>
+                    {
+                        if (!string.IsNullOrEmpty(e.Data))
+                        {
+                            if (e.Data.ToLower().Contains("build failed with exit code"))
+                            {
+                                isSuccess = false;
+                            }
+                        }
+                    };
                     process.Start();
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
                     await process.WaitForExitAsync();
 
-                    while (process.StandardOutput.EndOfStream == false)
+                    if (!isSuccess)
                     {
-                        var line = process.StandardOutput.ReadLine();
-                        if (line!.ToLower().Contains("build failed with exit code"))
-                        {
-                            return $"Fail to build clr and libs, please check the build log for more details.";
-                        }
+                        return "Fail to build coreclr and libs, please check the build log for more details.";
                     }
-                    while (process.StandardError.EndOfStream == false)
+                    else
                     {
-                        var line = process.StandardError.ReadLine();
-                        if (line!.ToLower().Contains("build failed with exit code"))
-                        {
-                            return $"Fail to build clr and libs, please check the build log for more details.";
-                        }
+                        return "Successfully build coreclr and libs";
                     }
-                    return "Successfully build coreclr and libs";
                 }
             }
             catch (Exception ex)
@@ -84,6 +98,7 @@ namespace GC.Infrastructure.MCPServer
             string arguments = $"/C build.cmd generatelayoutonly {arch} {buildConfig}";
             try
             {
+                bool isSuccess = true;
                 using (var process = new Process())
                 {
                     process.StartInfo.FileName = fileName;
@@ -93,26 +108,39 @@ namespace GC.Infrastructure.MCPServer
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.CreateNoWindow = true;
                     process.StartInfo.WorkingDirectory = workingDirectory;
+                    process.OutputDataReceived += (sender, e) =>
+                    {
+                        if (!string.IsNullOrEmpty(e.Data))
+                        {
+                            if (e.Data.ToLower().Contains("build failed with exit code"))
+                            {
+                                isSuccess = false;
+                            }
+                        }
+                    };
+                    process.ErrorDataReceived += (sender, e) =>
+                    {
+                        if (!string.IsNullOrEmpty(e.Data))
+                        {
+                            if (e.Data.ToLower().Contains("build failed with exit code"))
+                            {
+                                isSuccess = false;
+                            }
+                        }
+                    };
                     process.Start();
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
                     await process.WaitForExitAsync();
 
-                    while (process.StandardOutput.EndOfStream == false)
+                    if (!isSuccess)
                     {
-                        var line = process.StandardOutput.ReadLine();
-                        if (line!.ToLower().Contains("build failed with exit code"))
-                        {
-                            return $"Fail to build clr and libs, please check the build log for more details.";
-                        }
+                        return "Fail to build corerun, please check the build log for more details.";
                     }
-                    while (process.StandardError.EndOfStream == false)
+                    else
                     {
-                        var line = process.StandardError.ReadLine();
-                        if (line!.ToLower().Contains("build failed with exit code"))
-                        {
-                            return $"Fail to build clr and libs, please check the build log for more details.";
-                        }
+                        return "Successfully build corerun";
                     }
-                    return "Successfully build corerun";
                 }
             }
             catch (Exception ex)

@@ -16,6 +16,7 @@ namespace GC.Infrastructure.MCPServer
             string arguments = $"checkout {branchName}";
             try
             {
+                bool isSuccess = true;
                 using (var process = new Process())
                 {
                     process.StartInfo.FileName = fileName;
@@ -25,14 +26,39 @@ namespace GC.Infrastructure.MCPServer
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.CreateNoWindow = true;
                     process.StartInfo.WorkingDirectory = runtimeRoot;
+                    process.OutputDataReceived += (sender, e) =>
+                    {
+                        if (!string.IsNullOrEmpty(e.Data))
+                        {
+                            if (e.Data.Contains("error:"))
+                            {
+                                isSuccess = false;
+                            }
+                        }
+                    };
+                    process.ErrorDataReceived += (sender, e) =>
+                    {
+                        if (!string.IsNullOrEmpty(e.Data))
+                        {
+                            if (e.Data.Contains("error:"))
+                            {
+                                isSuccess = false;
+                            }
+                        }
+                    };
                     process.Start();
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
                     await process.WaitForExitAsync();
 
-                    if (process.StandardOutput.ReadToEnd().Contains("error:") || process.ExitCode != 0)
+                    if (!isSuccess)
                     {
-                        return $"Fail to switch to {branchName}, please check if the branch exists.";
+                        return $"Fail to switch to {branchName}, please check the git log for more details.";
                     }
-                    return $"Successfully switch to {branchName}";
+                    else
+                    {
+                        return $"Successfully switch to {branchName}";
+                    }
                 }
             }
             catch (Exception ex)
