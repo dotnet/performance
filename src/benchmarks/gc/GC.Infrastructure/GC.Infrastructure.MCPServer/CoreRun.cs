@@ -92,7 +92,7 @@ namespace GC.Infrastructure.MCPServer
             string workingDirectory = Path.Combine(runtimeRoot, "src", "tests");
             if (!Directory.Exists(workingDirectory))
             {
-                throw new DirectoryNotFoundException($"The directory {workingDirectory} does not exist.");
+                return $"The directory {workingDirectory} does not exist.";
             }
             string fileName = "cmd.exe";
             string arguments = $"/C build.cmd generatelayoutonly {arch} {buildConfig}";
