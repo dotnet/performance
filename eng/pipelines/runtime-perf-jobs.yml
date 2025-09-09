@@ -278,6 +278,7 @@ jobs:
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         r2rRunType: nor2r
+        additionalJobIdentifier: 'NoR2R'
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
