@@ -270,7 +270,6 @@ jobs:
       platforms:
       - linux_x64
       - windows_x64
-      - windows_x86
       jobParameters:
         liveLibrariesBuildConfig: Release
         runKind: micro
