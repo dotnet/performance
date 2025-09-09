@@ -1,52 +1,78 @@
-﻿using ModelContextProtocol.Server;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
+using ModelContextProtocol.Server;
 
 namespace GC.Infrastructure.MCPServer
 {
     [McpServerToolType]
     internal class CoreRun
     {
+        private static readonly string[] ValidBuildConfigs = new string[] { "Debug", "Release", "Checked" };
+        private static readonly string[] ValidArchs = new string[] { "x64", "x86", "arm64" };
+
         [McpServerTool(Name = "build_clr_libs"), Description("Build clr and libs.")]
-        public int BuildCLRAndLibs(string runtimeRoot, string buildConfig, string arch = "x64")
+        public async Task<string> BuildCLRAndLibs(string runtimeRoot, string buildConfig, string arch = "x64")
         {
-            if (!CheckBuildConfig(buildConfig))
+            if (!ValidBuildConfigs.Contains(buildConfig))
             {
-                throw new ArgumentException($"Invalid build configuration: {buildConfig}. Valid options are Debug, Release, Checked.");
+                return $"Invalid build configuration: {buildConfig}. Valid options are Debug, Release, Checked.";
             }
-            if (!CheckArch(arch))
+            if (!ValidArchs.Contains(arch))
             {
-                throw new ArgumentException($"Invalid arch: {arch}. Valid options are x64, x86, arm64.");
+                return $"Invalid arch: {arch}. Valid options are x64, x86, arm64.";
             }
-            using (var process = new Process())
+
+            string fileName = "cmd.exe";
+            string arguments = $"/C build.cmd clr+libs -runtimeConfiguration {buildConfig} -librariesConfiguration Release -arch {arch}";
+            try
             {
-                process.StartInfo.FileName = "cmd.exe";
-                process.StartInfo.Arguments = $"/C build.cmd clr+libs -runtimeConfiguration {buildConfig} -librariesConfiguration Release -arch {arch}";
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.CreateNoWindow = true;
-                process.StartInfo.WorkingDirectory = runtimeRoot;
-                process.OutputDataReceived += (sender, args) => Console.WriteLine(args.Data);
-                process.ErrorDataReceived += (sender, args) => Console.Error.WriteLine(args.Data);
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                process.WaitForExit();
-                return process.ExitCode;
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = fileName;
+                    process.StartInfo.Arguments = arguments;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.CreateNoWindow = true;
+                    process.StartInfo.WorkingDirectory = runtimeRoot;
+                    process.Start();
+                    await process.WaitForExitAsync();
+
+                    while (process.StandardOutput.EndOfStream == false)
+                    {
+                        var line = process.StandardOutput.ReadLine();
+                        if (line!.ToLower().Contains("build failed with exit code"))
+                        {
+                            return $"Fail to build clr and libs, please check the build log for more details.";
+                        }
+                    }
+                    while (process.StandardError.EndOfStream == false)
+                    {
+                        var line = process.StandardError.ReadLine();
+                        if (line!.ToLower().Contains("build failed with exit code"))
+                        {
+                            return $"Fail to build clr and libs, please check the build log for more details.";
+                        }
+                    }
+                    return "Successfully build coreclr and libs";
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Fail to run command `{fileName} {arguments}`: {ex.Message}";
             }
         }
 
-        [McpServerTool(Name = "generate_core_root"), Description("Generate Core_Root.")]
-        public int GenerateCoreRoot(string runtimeRoot, string buildConfig, string arch = "x64")
+        [McpServerTool(Name = "generate_corerun"), Description("Generate Corerun.")]
+        public async Task<string> GenerateCoreRun(string runtimeRoot, string buildConfig, string arch = "x64")
         {
-            if (!CheckBuildConfig(buildConfig))
+            if (!ValidBuildConfigs.Contains(buildConfig))
             {
-                throw new ArgumentException($"Invalid build configuration: {buildConfig}. Valid options are Debug, Release, Checked.");
+                return $"Invalid build configuration: {buildConfig}. Valid options are Debug, Release, Checked.";
             }
-            if (!CheckArch(arch))
+            if (!ValidArchs.Contains(arch))
             {
-                throw new ArgumentException($"Invalid arch: {arch}. Valid options are x64, x86, arm64.");
+                return $"Invalid arch: {arch}. Valid options are x64, x86, arm64.";
             }
 
             string workingDirectory = Path.Combine(runtimeRoot, "src", "tests");
@@ -54,35 +80,45 @@ namespace GC.Infrastructure.MCPServer
             {
                 throw new DirectoryNotFoundException($"The directory {workingDirectory} does not exist.");
             }
-            using (var process = new Process())
+            string fileName = "cmd.exe";
+            string arguments = $"/C build.cmd generatelayoutonly {arch} {buildConfig}";
+            try
             {
-                process.StartInfo.FileName = "cmd.exe";
-                process.StartInfo.Arguments = $"/C build.cmd generatelayoutonly {arch} {buildConfig}";
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.CreateNoWindow = true;
-                process.StartInfo.WorkingDirectory = workingDirectory;
-                process.OutputDataReceived += (sender, args) => Console.WriteLine(args.Data);
-                process.ErrorDataReceived += (sender, args) => Console.Error.WriteLine(args.Data);
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                process.WaitForExit();
-                return process.ExitCode;
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = fileName;
+                    process.StartInfo.Arguments = arguments;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.CreateNoWindow = true;
+                    process.StartInfo.WorkingDirectory = workingDirectory;
+                    process.Start();
+                    await process.WaitForExitAsync();
+
+                    while (process.StandardOutput.EndOfStream == false)
+                    {
+                        var line = process.StandardOutput.ReadLine();
+                        if (line!.ToLower().Contains("build failed with exit code"))
+                        {
+                            return $"Fail to build clr and libs, please check the build log for more details.";
+                        }
+                    }
+                    while (process.StandardError.EndOfStream == false)
+                    {
+                        var line = process.StandardError.ReadLine();
+                        if (line!.ToLower().Contains("build failed with exit code"))
+                        {
+                            return $"Fail to build clr and libs, please check the build log for more details.";
+                        }
+                    }
+                    return "Successfully build corerun";
+                }
             }
-        }
-
-        private bool CheckBuildConfig(string buildConfig)
-        {
-            string[] validConfigs = { "Debug", "Release", "Checked" };
-            return validConfigs.Contains(buildConfig);
-        }
-
-        private bool CheckArch(string arch)
-        {
-            string[] validArchs = { "x64", "x86", "arm64" };
-            return validArchs.Contains(arch);
+            catch (Exception ex)
+            {
+                return $"Fail to run command `{fileName} {arguments}`: {ex.Message}";
+            }
         }
     }
 }
