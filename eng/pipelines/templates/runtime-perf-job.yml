@@ -13,7 +13,6 @@ parameters:
   linkingType: '' # dynamic is default
   iOSLlvmBuild: 'False'
   iOSStripSymbols: 'False'
-  hybridGlobalization: 'False'
   isScenario: false
   downloadSpecificBuild: null # buildId, pipeline, branchName, project
   crossBuild: false
