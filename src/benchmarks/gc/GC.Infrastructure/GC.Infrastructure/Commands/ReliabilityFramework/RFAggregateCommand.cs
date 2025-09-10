@@ -3,16 +3,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
 using GC.Infrastructure.Core.Configurations;
-using GC.Infrastructure.Core.Configurations.ReliabilityFrameworkTest;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
+namespace GC.Infrastructure.Commands.ReliabilityFramework
 {
-    public class ReliabilityFrameworkTestAggregateCommand : 
-        Command<ReliabilityFrameworkTestAggregateCommand.ReliabilityFrameworkTestAggregateSettings>
+    public class RFAggregateCommand : Command<RFAggregateCommand.RFAggregateSettings>
     {
-        public class ReliabilityFrameworkTestDumpAnalyzeResult
+        public class RFDumpAnalyzeResult
         {
             public string? AttributedError { get; set; }
             public string? DumpName { get; set; }
@@ -21,34 +19,35 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             public string? SourceFilePath { get; set; }
             public string? LineNumber { get; set; }
         }
-        public sealed class ReliabilityFrameworkTestAggregateSettings : CommandSettings
+        public sealed class RFAggregateSettings : CommandSettings
         {
             [Description("Path to Configuration.")]
             [CommandOption("-c|--configuration")]
             public required string ConfigurationPath { get; init; }
         }
 
-        public override int Execute([NotNull] CommandContext context, 
-                                    [NotNull] ReliabilityFrameworkTestAggregateSettings settings)
+        public override int Execute([NotNull] CommandContext context,
+                                    [NotNull] RFAggregateSettings settings)
         {
             AnsiConsole.Write(new Rule("Aggregate Analysis Results For Reliability Framework Test"));
             AnsiConsole.WriteLine();
 
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath,
-                                            nameof(ReliabilityFrameworkTestAggregateSettings));
-            ReliabilityFrameworkTestAnalyzeConfiguration configuration =
-                ReliabilityFrameworkTestAnalyzeConfigurationParser.Parse(settings.ConfigurationPath);
+                                            nameof(RFAggregateSettings));
+            RFAnalyzeConfiguration configuration =
+                RFAnalyzeConfigurationParser.Parse(settings.ConfigurationPath);
 
             AggregateResult(configuration);
             return 0;
         }
-        public static void AggregateResult(ReliabilityFrameworkTestAnalyzeConfiguration configuration)
+
+        public static void AggregateResult(RFAnalyzeConfiguration configuration)
         {
-            List<ReliabilityFrameworkTestDumpAnalyzeResult> dumpAnalyzeResultList = new List<ReliabilityFrameworkTestDumpAnalyzeResult>();
+            List<RFDumpAnalyzeResult> dumpAnalyzeResultList = new List<RFDumpAnalyzeResult>();
 
             foreach (string callStackLogPath in Directory.GetFiles(configuration.AnalyzeOutputFolder, "*_callstack.txt"))
             {
-                Console.WriteLine($"====== Extracting information from {callStackLogPath} ======");
+                AnsiConsole.WriteLine($"====== Extracting information from {callStackLogPath} ======");
 
                 string dumpPath = callStackLogPath.Replace("_callstack.txt", ".dmp");
                 string callStackForAllThreadsLogPath = callStackLogPath.Replace(
@@ -64,7 +63,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                     // If no line contains given keywords, mark it as unknown error
                     if (String.IsNullOrEmpty(frameInfo))
                     {
-                        ReliabilityFrameworkTestDumpAnalyzeResult unknownErrorResult = new()
+                        RFDumpAnalyzeResult unknownErrorResult = new()
                         {
                             AttributedError = "Unknown error",
                             DumpName = Path.GetFileName(dumpPath),
@@ -95,7 +94,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                     {
                         if (String.IsNullOrEmpty(configuration.WSLInstanceLocation))
                         {
-                            Console.WriteLine($"Console.WriteLine Provide wsl instance location to access source file. ");
+                            AnsiConsole.WriteLine($"[yellow]Provide wsl instance location to access source file.[/]");
                             continue;
                         }
 
@@ -118,7 +117,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                     }
                     string error = srcLine;
 
-                    ReliabilityFrameworkTestDumpAnalyzeResult dumpAnalyzeResult = new()
+                    RFDumpAnalyzeResult dumpAnalyzeResult = new()
                     {
                         AttributedError = error,
                         DumpName = Path.GetFileName(dumpPath),
@@ -132,13 +131,14 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Console.WriteLine Fail to analyze {callStackLogPath}: {ex.Message}. ");
+                    AnsiConsole.WriteLine($"[red]Fail to analyze {callStackLogPath}: {ex.Message}.[/]");
                 }
             }
 
             GenerateResultTable(dumpAnalyzeResultList, configuration.AnalyzeOutputFolder);
         }
-        private static void GenerateResultTable(List<ReliabilityFrameworkTestDumpAnalyzeResult> dumpAnalyzeResultList,
+
+        private static void GenerateResultTable(List<RFDumpAnalyzeResult> dumpAnalyzeResultList,
                                                string analyzeOutputFolder)
         {
             var resultListGroup = dumpAnalyzeResultList.GroupBy(dumpAnalyzeResult => dumpAnalyzeResult.AttributedError);
@@ -148,7 +148,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             sb.AppendLine("| Attributed Error | Count/Total(percentage%) | Dump Name | Log Name(Call Stacks of All Threads)  | Source File Path | Line Number |");
             sb.AppendLine("| :---------- | :---------: | :---------- | :---------- | :---------- | :---------: |");
 
-            foreach (IGrouping<string?, ReliabilityFrameworkTestDumpAnalyzeResult>? group in resultListGroup)
+            foreach (IGrouping<string?, RFDumpAnalyzeResult>? group in resultListGroup)
             {
                 var resultListWithoutFirstItem = group.ToList();
                 var firstResult = resultListWithoutFirstItem.FirstOrDefault();
@@ -167,7 +167,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                 string? lineNumber = firstResult.LineNumber;
                 sb.AppendLine($"| {attributedError} | {proportion}({proportionInPercentage * 100}%) | {dumpName} | {callStackForAllThreadsLogName} | {sourceFilePath} | {lineNumber} |");
 
-                foreach (ReliabilityFrameworkTestDumpAnalyzeResult? dumpAnalyzeResult in resultListWithoutFirstItem)
+                foreach (RFDumpAnalyzeResult? dumpAnalyzeResult in resultListWithoutFirstItem)
                 {
                     dumpName = dumpAnalyzeResult.DumpName;
                     callStackForAllThreadsLogName = dumpAnalyzeResult.CallStackForAllThreadsLogName;
@@ -188,6 +188,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             }
 
         }
+
         private static (string, int)? ExtractSrcFilePathAndLineNumberFromFrameInfo(string frameInfo)
         {
             string pattern = @"\[(.*?)\]";
@@ -195,7 +196,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
 
             if (!match.Success)
             {
-                Console.WriteLine($"The symbol is not available.");
+                AnsiConsole.MarkupLine($"[red]Fail to extract source file path and line number from frame info: {frameInfo}[/]");
                 return null;
             }
 
@@ -205,26 +206,27 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             string? fileName = splitOutput.FirstOrDefault(String.Empty);
             if (String.IsNullOrEmpty(fileName))
             {
-                Console.WriteLine($"Console.WriteLineFail to extract source file path.");
+                AnsiConsole.MarkupLine($"[red]Fail to extract source file path.[/]");
                 return null;
             }
 
             string? lineNumberstr = splitOutput.LastOrDefault(String.Empty).Trim();
             if (String.IsNullOrEmpty(lineNumberstr))
             {
-                Console.WriteLine($"Console.WriteLineFail to extract line number.");
+                AnsiConsole.MarkupLine($"[red]Fail to extract line number.[/]");
                 return null;
             }
 
             bool success = int.TryParse(lineNumberstr, out int lineNumber);
             if (!success)
             {
-                Console.WriteLine($"Console.WriteLineFail to parse line number.");
+                AnsiConsole.MarkupLine($"[red]Fail to parse line number.[/]");
                 return null;
             }
 
             return (fileName, lineNumber);
         }
+
         private static string? FindFrameByKeyWord(List<string> keyWordList, string callStack)
         {
             string[] lines = callStack.Split("\n");
@@ -238,8 +240,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                     }
                 }
             }
-
-            Console.WriteLine($"Console.WriteLineFail to find keyword.");
+            AnsiConsole.MarkupLine($"[yellow]Fail to find keyword.[/]");
             return null;
         }
     }

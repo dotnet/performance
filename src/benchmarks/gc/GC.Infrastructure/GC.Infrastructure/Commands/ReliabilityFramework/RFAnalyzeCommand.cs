@@ -1,18 +1,15 @@
-﻿using GC.Infrastructure.Core.Configurations;
-using GC.Infrastructure.Core.Configurations.ReliabilityFrameworkTest;
-using Spectre.Console;
-using Spectre.Console.Cli;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using GC.Infrastructure.Core;
+using GC.Infrastructure.Core.Configurations;
+using Spectre.Console;
+using Spectre.Console.Cli;
 
-
-
-namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
+namespace GC.Infrastructure.Commands.ReliabilityFramework
 {
-    public sealed class ReliabilityFrameworkTestAnalyzeCommand :
-        Command<ReliabilityFrameworkTestAnalyzeCommand.ReliabilityFrameworkTestAnalyzeSettings>
+    public sealed class RFAnalyzeCommand : Command<RFAnalyzeCommand.RFAnalyzeSettings>
     {
         public class CommandInvokeResult
         {
@@ -21,44 +18,42 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
             public string StdErr { get; set; }
         }
 
-        public sealed class ReliabilityFrameworkTestAnalyzeSettings : CommandSettings
+        public sealed class RFAnalyzeSettings : CommandSettings
         {
             [Description("Path to Configuration.")]
             [CommandOption("-c|--configuration")]
             public required string ConfigurationPath { get; init; }
         }
 
-        public override int Execute([NotNull] CommandContext context, 
-                                    [NotNull] ReliabilityFrameworkTestAnalyzeSettings settings)
+        public override int Execute([NotNull] CommandContext context,
+                                    [NotNull] RFAnalyzeSettings settings)
         {
             AnsiConsole.Write(new Rule("Analyze Dumps Collected In Reliability Framework Test"));
             AnsiConsole.WriteLine();
 
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath,
-                                            nameof(ReliabilityFrameworkTestAnalyzeSettings));
-            ReliabilityFrameworkTestAnalyzeConfiguration configuration =
-                ReliabilityFrameworkTestAnalyzeConfigurationParser.Parse(settings.ConfigurationPath);
+                                            nameof(RFAnalyzeSettings));
+            RFAnalyzeConfiguration configuration =
+                RFAnalyzeConfigurationParser.Parse(settings.ConfigurationPath);
 
-            Directory.CreateDirectory(configuration.AnalyzeOutputFolder);
+            Utilities.TryCreateDirectory(configuration.AnalyzeOutputFolder);
 
             AnalyzeDumps(configuration);
 
             return 0;
         }
 
-        public static void AnalyzeDumps(ReliabilityFrameworkTestAnalyzeConfiguration configuration)
+        public static void AnalyzeDumps(RFAnalyzeConfiguration configuration)
         {
             foreach (string dumpPath in Directory.GetFiles(configuration.DumpFolder, "*.dmp"))
             {
-                Console.WriteLine($"====== Debugging {dumpPath} ======");
-
                 string dumpName = Path.GetFileNameWithoutExtension(dumpPath);
                 string callStackOutputPath = Path.Combine(
                     configuration.AnalyzeOutputFolder, $"{dumpName}_callstack.txt");
                 string callStackForAllThreadsOutputPath = Path.Combine(
                     configuration.AnalyzeOutputFolder, $"{dumpName}_callstack_allthreads.txt");
                 List<string> debugCommandList = new List<string>(){
-                    $".sympath {configuration.CoreRoot}",
+                    $".sympath {configuration.Core_Root}",
                     ".reload",
                     $".logopen {callStackOutputPath}",
                     "k",
@@ -70,9 +65,21 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
 
                 string debuggerScriptPath = Path.Combine(configuration.AnalyzeOutputFolder, "debugging-script.txt");
                 GenerateDebuggingScript(debuggerScriptPath, debugCommandList);
-                DebugDump(new Dictionary<string, string>(), "", dumpPath, debuggerScriptPath);
+                CommandInvokeResult result = DebugDump(new Dictionary<string, string>(), "", dumpPath, debuggerScriptPath);
+                if (result.ExitCode != 0)
+                {
+                    AnsiConsole.MarkupLine($"[red]Error analyzing dump {dumpPath}[/]");
+                    AnsiConsole.MarkupLine($"[red]{result.StdErr}[/]");
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine($"[green]Successfully analyzed dump {dumpPath}[/]");
+                    AnsiConsole.MarkupLine($"[green]Callstack output: {callStackOutputPath}[/]");
+                    AnsiConsole.MarkupLine($"[green]Callstack for all threads output: {callStackForAllThreadsOutputPath}[/]");
+                }
             }
         }
+
         public static void GenerateDebuggingScript(string debuggingScriptPath, List<string> DebugCommandList)
         {
             // Generate debug script
@@ -92,7 +99,7 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
 
             File.WriteAllLines(debuggingScriptPath, automationDebuggingCommandList);
         }
-        
+
         public static CommandInvokeResult DebugDump(Dictionary<string, string> env,
                                                     string workingDirectory,
                                                     string dumpPath,
@@ -129,7 +136,8 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                         if (!string.IsNullOrEmpty(args.Data))
                         {
                             stdout.AppendLine(args.Data);
-                            if (!silent) Console.WriteLine($"STDOUT: {args.Data}");
+                            if (!silent)
+                                AnsiConsole.WriteLine($"STDOUT: {args.Data}");
                         }
                     };
 
@@ -138,7 +146,8 @@ namespace GC.Infrastructure.Commands.ReliabilityFrameworkTest
                         if (!string.IsNullOrEmpty(args.Data))
                         {
                             stderr.AppendLine(args.Data);
-                            if (!silent) Console.WriteLine($"STDERR: {args.Data}");
+                            if (!silent)
+                                AnsiConsole.MarkupLine($"[red]STDERR: {args.Data}[/]");
                         }
                     };
                 }
