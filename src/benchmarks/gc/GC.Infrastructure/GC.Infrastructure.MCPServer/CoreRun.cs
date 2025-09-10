@@ -66,11 +66,11 @@ namespace GC.Infrastructure.MCPServer
 
                     if (!isSuccess)
                     {
-                        return "Failed to build CoreCLR and libraries. Please check the build log output above for detailed error information. Common issues include missing dependencies, incorrect paths, or insufficient permissions.";
+                        return $"Failed to build {arch} {buildConfig} CoreCLR and Release libraries. Please check the build log output above for detailed error information. Common issues include missing dependencies, incorrect paths, or insufficient permissions.";
                     }
                     else
                     {
-                        return "Successfully built CoreCLR and libraries. The runtime components are now available for generating CoreRun executables.";
+                        return $"Successfully built {arch} {buildConfig} CoreCLR and Release libraries. The runtime components are now available for generating CoreRun executables.";
                     }
                 }
             }
@@ -141,11 +141,11 @@ namespace GC.Infrastructure.MCPServer
 
                     if (!isSuccess)
                     {
-                        return "Failed to generate CoreRun executable. Please check the build log output above for detailed error information. Ensure that CoreCLR and libraries were built successfully first using the build_clr_libs tool.";
+                        return $"Failed to generate {arch} {buildConfig} CoreRun executable. Please check the build log output above for detailed error information. Ensure that CoreCLR and libraries were built successfully first using the build_clr_libs tool.";
                     }
                     else
                     {
-                        return $"Successfully generated CoreRun executable. You can find the CoreRun.exe in the test layout directory for {arch} {buildConfig} configuration.";
+                        return $"Successfully generated {arch} {buildConfig} CoreRun executable. You can find the CoreRun.exe in the test layout directory for {arch} {buildConfig} configuration.";
                     }
                 }
             }
