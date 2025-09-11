@@ -51,17 +51,21 @@ The server implements the Model Context Protocol specification and exposes tools
 Before running the MCP Server, ensure your environment meets these requirements:
 
 ### System Requirements
+
 - **Operating System**: Windows (required for local scenario execution)
 - **Administrative Privileges**: Required for registry modifications and system-level operations
 - **.NET SDK**: .NET 9.0 or later
 
 ### Dependencies
+
 1. **Performance Repository**: Clone the dotnet/performance repository
+
    ```powershell
    git clone https://github.com/dotnet/performance C:\performance\
    ```
 
 2. **Crank Tool**: Install for ASP.NET benchmarking
+
    ```powershell
    dotnet tool install Microsoft.Crank.Controller --version "0.2.0-*" --global
    ```
@@ -69,7 +73,9 @@ Before running the MCP Server, ensure your environment meets these requirements:
 3. **Corporate Network Access**: Required for ASP.NET scenarios (GCPerfSim and microbenchmarks can run offline)
 
 ### Build Requirements
+
 Build the infrastructure components:
+
 ```powershell
 cd C:\performance\src\benchmarks\gc\GC.Infrastructure\GC.Infrastructure
 dotnet build -c Release
@@ -101,7 +107,7 @@ dotnet build -c Release
 }
 ```
 
-3. **Start the Server**: 
+3. **Start the Server**:
    - Open VS Code Command Palette (`Ctrl+Shift+P`)
    - Run: `MCP: Connect to Server`
    - Select `gc-infrastructure`
@@ -111,11 +117,13 @@ dotnet build -c Release
 1. **Open Terminal**: Launch PowerShell as Administrator in VS Code
 
 2. **Navigate to Project Directory**:
+
 ```powershell
 cd "C:\Users\musharm\source\repos\performance\src\benchmarks\gc\GC.Infrastructure\GC.Infrastructure.MCPServer"
 ```
 
 3. **Run the Server**:
+
 ```powershell
 dotnet run
 ```
@@ -125,12 +133,14 @@ The server will start and listen for MCP client connections via stdio transport.
 ### Method 3: Build and Run Executable
 
 1. **Build the Project**:
+
 ```powershell
 cd "C:\Users\musharm\source\repos\performance\src\benchmarks\gc\GC.Infrastructure\GC.Infrastructure.MCPServer"
 dotnet build -c Release
 ```
 
 2. **Run the Executable**:
+
 ```powershell
 cd "C:\performance\artifacts\bin\GC.Infrastructure.MCPServer\Release\net9.0"
 .\GC.Infrastructure.MCPServer.exe
@@ -141,28 +151,34 @@ cd "C:\performance\artifacts\bin\GC.Infrastructure.MCPServer\Release\net9.0"
 Once connected, the following tools become available to AI assistants:
 
 ### Runtime Management
+
 - `build_clr_libs` - Build CoreCLR runtime and base class libraries
 - `generate_corerun` - Generate CoreRun executable for performance testing
 
 ### Performance Benchmarking
+
 - `run_gcperfsim_command` - Execute GCPerfSim benchmark scenarios
 - `run_gcperfsim_analyze_command` - Analyze GCPerfSim results
 - `run_gcperfsim_compare_command` - Compare GCPerfSim results across versions
 
 ### Microbenchmark Testing
+
 - `run_microbenchmarks_command` - Execute BenchmarkDotNet microbenchmarks  
 - `run_microbenchmarks_analyze_command` - Analyze microbenchmark results
 
 ### Web Performance Testing
+
 - `run_aspnetbenchmarks_command` - Execute ASP.NET performance benchmarks
 - `run_aspnetbenchmarks_analyze_command` - Analyze web performance results
 
 ### Test Suite Management
+
 - `run_run_command` - Execute comprehensive test suites
 - `run_createsuites_command` - Create new test suite configurations
 - `run_run-suite_command` - Run individual test suites
 
 ### Version Control
+
 - `checkout_branch` - Switch Git branches for testing different versions
 
 ## Usage Examples
@@ -184,7 +200,8 @@ output:
 ```
 
 AI Assistant interaction:
-```
+
+```text
 Human: "Run a GCPerfSim benchmark with the normal server configuration"
 Assistant: "I'll execute the GCPerfSim benchmark using run_gcperfsim_command with the configuration path..."
 ```
@@ -192,6 +209,7 @@ Assistant: "I'll execute the GCPerfSim benchmark using run_gcperfsim_command wit
 ### Example 2: Building a Runtime and Running Tests
 
 AI workflow:
+
 1. `checkout_branch` - Switch to target runtime branch
 2. `build_clr_libs` - Build CoreCLR with specified configuration  
 3. `generate_corerun` - Create CoreRun executable
@@ -218,6 +236,7 @@ output:
 ```
 
 The AI assistant can orchestrate the entire workflow:
+
 1. Create test suites with `run_createsuites_command`
 2. Execute comprehensive testing with `run_run_command`
 3. Analyze results across all benchmark types
@@ -225,14 +244,18 @@ The AI assistant can orchestrate the entire workflow:
 ## Configuration
 
 ### Environment Variables
+
 - `DOTNET_ENVIRONMENT` - Set to "Development" for detailed logging
 - `MCP_LOG_LEVEL` - Control MCP server logging verbosity
 
 ### Server Configuration
+
 The server automatically configures itself for stdio transport and discovers tools through reflection. No additional configuration files are required.
 
 ### Performance Testing Configurations
+
 Benchmark configurations are stored in YAML files and passed to the respective tools. Example configuration locations:
+
 - GCPerfSim: `C:\InfrastructureConfigurations\GCPerfSim\*.yaml`
 - Microbenchmarks: `C:\InfrastructureConfigurations\Microbenchmarks\*.yaml`
 - ASP.NET: `C:\InfrastructureConfigurations\ASPNetBenchmarks\*.yaml`
@@ -262,6 +285,7 @@ Benchmark configurations are stored in YAML files and passed to the respective t
 ### Logging and Diagnostics
 
 The server provides detailed logging to stderr, which can be captured by MCP clients. Enable verbose logging by setting:
+
 ```json
 {
   "env": {
@@ -276,18 +300,22 @@ The server provides detailed logging to stderr, which can be captured by MCP cli
 The MCP Server enables sophisticated AI-driven performance testing workflows:
 
 ### Automated Performance Regression Detection
+
 AI assistants can:
+
 1. Checkout different runtime branches
 2. Build and test each version
 3. Compare performance metrics
 4. Generate regression reports
 
-### Continuous Integration Integration  
+### Continuous Integration Integration
+
 - Integrate with CI/CD pipelines for automated performance testing
 - Generate performance reports for code reviews
 - Alert on performance regressions
 
 ### Research and Development Support
+
 - Facilitate performance research experiments
 - Automate A/B testing of runtime changes
 - Generate comprehensive performance analysis reports
