@@ -41,7 +41,7 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <MAUIAndroidScenario Include=".NET Android Default Template">
+    <MAUIAndroidScenario Include=".NET Android Default Template" Condition="'$(CodegenType)' != 'NativeAOT'">
       <ScenarioDirectoryName>netandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.netandroiddefault-Signed</ApkName>
