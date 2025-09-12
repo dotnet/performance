@@ -55,15 +55,9 @@ schedules:
   always: true
 
 jobs:
-  - template: /eng/pipelines/sdk-perf-jobs.yml
+  - template: /eng/pipelines/runtime-wasm-perf-jobs.yml
     parameters:
-      ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
-        runPublicJobs: true
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        ${{ if or(notin(variables['Build.Reason'], 'PullRequest', 'Manual'), parameters.runPrivateJobs) }}:
-          runPrivateJobs: true
-        ${{ if or(eq(variables['Build.CronSchedule.DisplayName'], 'Every 12 hours build'), parameters.runScheduledPrivateJobs) }}:
-          runScheduledPrivateJobs: true
+      runProfile: 'v8'
       jobParameters:
         ${{ if parameters.onlySanityCheck }}:
           onlySanityCheck: true

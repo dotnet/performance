@@ -5,5 +5,7 @@
     <TrimMode>partial</TrimMode>
     <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
     <WasmBuildNative>true</WasmBuildNative>
+    <WasmRunWasmOpt>true</WasmRunWasmOpt>
+    <WasmNativeStrip>true</WasmNativeStrip>
   </PropertyGroup>
 </Project>
