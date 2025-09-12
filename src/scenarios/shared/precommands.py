@@ -93,7 +93,6 @@ class PreCommands:
         self.framework = args.framework
         self.runtime_identifier = args.runtime
         self.nativeaot = args.nativeaot
-        self.hybridglobalization = args.hybridglobalization
         self.msbuild = args.msbuild
         print(self.msbuild)
         self.msbuildstatic = args.msbuildstatic
@@ -158,10 +157,6 @@ class PreCommands:
                             dest='nativeaot',
                             metavar='nativeaot',
                             help='use Native AOT runtime for build or publish')
-        parser.add_argument('-g', '--hybrid-globalization',
-                            dest='hybridglobalization',
-                            metavar='hybridglobalization',
-                            help='use hybrid globalization for build or publish')
         parser.add_argument('--msbuild',
                             dest='msbuild',
                             metavar='msbuild',
@@ -218,8 +213,6 @@ class PreCommands:
             if self.nativeaot:
                 build_args.append('/p:PublishAot=true')
                 build_args.append('/p:PublishAotUsingRuntimePack=true')
-            if self.hybridglobalization:
-                build_args.append('/p:HybridGlobalization=true')
             build_args.append("/p:EnableWindowsTargeting=true")
             self._publish(configuration=self.configuration, runtime_identifier=self.runtime_identifier, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == CROSSGEN:

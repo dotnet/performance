@@ -37,7 +37,6 @@ parameters:
   isScenario: false                 # optional -- Whether the job is a scenario job
   runEnvVars: []                    # optional -- Environment variables to set for the benchmark
   runtimeFlavor: ''                 # optional -- Runtime flavor used for scenarios
-  hybridGlobalization: false        # optional -- Globalization used for scenarios
   osVersion: ''                     # optional -- OS version to run on
   dotnetVersionLink: ''             # optional -- Link to file containing .NET Versions (use dotnetVersionsLinks). Ignored if dotnetVersionsLinks or channels is non-empty
   projectFileName: 'helix.proj'     # optional -- Name of Helix project file in /eng/performance directory
@@ -185,8 +184,6 @@ jobs:
               - "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
             - ${{ if and(in(parameters.runKind, 'maui_scenarios_ios', 'maui_scenarios_android'), ne(parameters.runtimeFlavor, '')) }}:
               - '--runtime-flavor ${{ parameters.runtimeFlavor }}'
-            - ${{ if eq(parameters.hybridGlobalization, true) }}:
-              - '--hybrid-globalization'
             - ${{ if ne(parameters.osVersion, '') }}:
               - '--os-version ${{ parameters.osVersion }}'
             - ${{ if ne(parameters.dotnetVersionLink, '') }}:
