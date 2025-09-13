@@ -16,6 +16,11 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
             FirstToLastGCSeconds = double.NaN;
             HeapSizeBeforeMB_Mean = double.NaN;
             HeapSizeAfter_Mean = double.NaN;
+            TotalCommittedInUse = double.NaN;
+            TotalBookkeepingCommitted = double.NaN;
+            TotalCommittedInGlobalDecommit = double.NaN;
+            TotalCommittedInFree = double.NaN;
+            TotalCommittedInGlobalFree = double.NaN;
             PauseDurationMSec_95PWhereIsGen0 = double.NaN;
             PauseDurationMSec_95PWhereIsGen1 = double.NaN;
             PauseDurationMSec_95PWhereIsBackground = double.NaN;
@@ -46,6 +51,12 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
             FirstToLastGCSeconds = (processData.GCs.Last().StartRelativeMSec - processData.GCs.First().StartRelativeMSec) / 1000;
             HeapSizeAfter_Mean = GoodLinq.Average(processData.GCs, (gc => gc.HeapSizeAfterMB));
             HeapSizeBeforeMB_Mean = GoodLinq.Average(processData.GCs, (gc => gc.HeapSizeBeforeMB));
+
+            TotalCommittedInUse = GoodLinq.Average(processData.GCs, (gc => gc.CommittedUsageBefore.TotalCommittedInUse));
+            TotalBookkeepingCommitted = GoodLinq.Average(processData.GCs, (gc => gc.CommittedUsageBefore.TotalBookkeepingCommitted));
+            TotalCommittedInGlobalDecommit = GoodLinq.Average(processData.GCs, (gc => gc.CommittedUsageBefore.TotalCommittedInGlobalDecommit));
+            TotalCommittedInFree = GoodLinq.Average(processData.GCs, (gc => gc.CommittedUsageBefore.TotalCommittedInFree));
+            TotalCommittedInGlobalFree = GoodLinq.Average(processData.GCs, (gc => gc.CommittedUsageBefore.TotalCommittedInGlobalFree));
 
             var properties = processData.Stats.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             foreach (var property in properties)
@@ -104,6 +115,11 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
         public double FirstToLastGCSeconds { get; }
         public double HeapSizeBeforeMB_Mean { get; }
         public double HeapSizeAfter_Mean { get; }
+        public double TotalCommittedInUse { get; set; }
+        public double TotalCommittedInGlobalDecommit { get; set; }
+        public double TotalCommittedInFree { get; set; }
+        public double TotalCommittedInGlobalFree { get; set; }
+        public double TotalBookkeepingCommitted { get; set; }
         public double PauseDurationMSec_95PWhereIsGen0 { get; }
         public double PauseDurationMSec_95PWhereIsGen1 { get; }
         public double PauseDurationMSec_95PWhereIsBackground { get; }
