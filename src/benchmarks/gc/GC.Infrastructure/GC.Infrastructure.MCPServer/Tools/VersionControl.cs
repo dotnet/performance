@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 
-namespace GC.Infrastructure.MCPServer
+namespace GC.Infrastructure.MCPServer.Tools
 {
     [McpServerToolType]
     internal class VersionControl
