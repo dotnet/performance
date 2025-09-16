@@ -101,17 +101,6 @@ namespace GC.Analysis.API
             return result;
         }
 
-        public static double Last<TSource>(this IEnumerable<TSource> data, Func<TSource, double> map)
-        {
-            int count = data.Count();
-            if (data == null || count == 0)
-            {
-                return double.NaN;
-            }
-
-            return (double)map(data.Last());
-        }
-
         public static List<T> Where<T>(this IEnumerable<T> data, Func<T, bool> predicate)
         {
             List<T> result = new();

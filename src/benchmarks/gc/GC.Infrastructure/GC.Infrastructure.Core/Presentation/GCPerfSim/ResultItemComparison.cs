@@ -78,7 +78,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                     }
                     else
                     {
-                        return double.MaxValue;
+                        return double.NaN;
                     }
                 }
                 else
