@@ -3,7 +3,7 @@ using System.Diagnostics;
 using ModelContextProtocol.Server;
 using GC.Infrastructure.MCPServer.Utilities;
 
-namespace GC.Infrastructure.MCPServer.Tools
+namespace GC.Infrastructure.MCPServer
 {
     [McpServerToolType]
     internal class CoreRun

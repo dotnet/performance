@@ -4,7 +4,7 @@ using ModelContextProtocol.Server;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
-namespace GC.Infrastructure.MCPServer.Tools
+namespace GC.Infrastructure.MCPServer
 {
     [McpServerToolType]
     internal class Microbenchmarks
