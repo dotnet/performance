@@ -8,12 +8,12 @@ namespace GC.Infrastructure.MCPServer.Utilities
     public class CliCommand
     {
         /// <summary>
-        /// Runs a command with a timeout duration. Default timeout is 1 minute.
+        /// Runs a command with a timeout duration. Default timeout is 5 minutes.
         /// </summary>
         /// <param name="filename">The executable filename</param>
         /// <param name="arguments">Command arguments</param>
         /// <param name="workingDirectory">Working directory for the command</param>
-        /// <param name="timeout">Timeout duration. Default is 1 minute.</param>
+        /// <param name="timeout">Timeout duration. Default is 5 minutes.</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Command result with IsTimeout flag indicating if timeout occurred</returns>
         public static async Task<CommandResult> RunCommandAsync(
@@ -97,20 +97,23 @@ namespace GC.Infrastructure.MCPServer.Utilities
 
                 using var processExitedRegistration = cancellationToken.Register(() =>
                 {
-                    try
+                    Task.Run(() =>
                     {
-                        if (!process.HasExited)
-                            process.Kill(entireProcessTree: true);
-                    }
-                    catch { /* Ignore errors during cancellation */ }
+                        try
+                        {
+                            if (!process.HasExited)
+                                process.Kill(entireProcessTree: true);
+                        }
+                        catch { /* Ignore errors during cancellation */ }
+                    });
                 });
 
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
 
                 await process.WaitForExitAsync(cancellationToken);
-
-                return new CommandResult(process.ExitCode, outputBuilder.ToString(), errorBuilder.ToString(), IsTimeout: false);
+                var exitCode = await exitTcs.Task.ConfigureAwait(false);
+                return new CommandResult(exitCode, outputBuilder.ToString(), errorBuilder.ToString(), IsTimeout: false);
             }
             catch (OperationCanceledException)
             {
