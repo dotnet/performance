@@ -1,0 +1,12 @@
+﻿OutputFolder: Q:\ReliabilityFramework\TestSuites
+
+EnableStressMode: false
+
+Core_Root: Q:\runtime\artifacts\tests\coreclr\windows.x64.Checked\Tests\Core_Root
+ReliabilityFrameworkDll: Q:\runtime\artifacts\tests\coreclr\windows.x64.Release\GC\Stress\Framework\ReliabilityFramework\ReliabilityFramework.dll
+GCPerfSimDll: Q:\performance\artifacts\bin\GCPerfSim\Release\net7.0\GCPerfSim.dll
+TestFolder: Q:\runtime\artifacts\tests\coreclr\windows.x64.Release\GC\Stress\Framework\ReliabilityFramework\Tests
+
+
+
+

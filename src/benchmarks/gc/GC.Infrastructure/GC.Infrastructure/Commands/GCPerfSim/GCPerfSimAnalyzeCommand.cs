@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GC.Infrastructure.Commands.GCPerfSim
 {
-    internal sealed class GCPerfSimAnalyzeCommand : Command<GCPerfSimAnalyzeCommand.GCPerfSimAnalyzeSettings>
+    public sealed class GCPerfSimAnalyzeCommand : Command<GCPerfSimAnalyzeCommand.GCPerfSimAnalyzeSettings>
     {
         public sealed class GCPerfSimAnalyzeSettings : CommandSettings
         {
