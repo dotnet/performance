@@ -240,29 +240,25 @@ jobs:
         parameters:
           osGroup: ${{ parameters.osGroup }}
           projectFile: $(_projectFile)
-      - task: PowerShell@2
-        displayName: Redact Logs
-        inputs:
-          filePath: $(System.DefaultWorkingDirectory)/eng/common/post-build/redact-logs.ps1
-          # For now this needs to have explicit list of all sensitive data. Taken from eng/publishing/v3/publish.yml
-          # Sensitive data can as well be added to $(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
-          #  If the file exists - sensitive data for redaction will be sourced from it
-          #  (single entry per line, lines starting with '# ' are considered comments and skipped)
-          arguments: -InputPath '$(System.DefaultWorkingDirectory)/artifacts/log' 
-            -BinlogToolVersion 1.0.11
-            -TokensFilePath '$(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
-        continueOnError: true
-        condition: always()
-      - task: PowerShell@2
-        displayName: Redact Logs 2
-        inputs:
-          filePath: $(System.DefaultWorkingDirectory)/eng/common/post-build/redact-logs.ps1
-          # For now this needs to have explicit list of all sensitive data. Taken from eng/publishing/v3/publish.yml
-          # Sensitive data can as well be added to $(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
-          #  If the file exists - sensitive data for redaction will be sourced from it
-          #  (single entry per line, lines starting with '# ' are considered comments and skipped)
-          arguments: -InputPath 'artifacts/log' 
-            -BinlogToolVersion 1.0.11
-            -TokensFilePath '$(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
-        continueOnError: true
-        condition: always()
+      - ${{ if eq(paramerters.osGroup, 'windows') }}:
+        - task: PowerShell@2
+          displayName: Redact Logs
+          inputs:
+            filePath: $(System.DefaultWorkingDirectory)/eng/common/post-build/redact-logs.ps1
+            # For now this needs to have explicit list of all sensitive data. Taken from eng/publishing/v3/publish.yml
+            # Sensitive data can as well be added to $(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
+            #  If the file exists - sensitive data for redaction will be sourced from it
+            #  (single entry per line, lines starting with '# ' are considered comments and skipped)
+            arguments: -InputPath '$(System.DefaultWorkingDirectory)/artifacts/log' 
+              -BinlogToolVersion 1.0.11
+              -TokensFilePath '$(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
+          continueOnError: true
+          condition: always()
+      - ${{ if eq(paramerters.osGroup, 'ubuntu') }}:
+        - task: ShellScript@2
+          displayName: Redact Logs
+          inputs:
+            scriptPath: $(System.DefaultWorkingDirectory)/eng/common/post-build/redact-logs.sh
+            arguments: '--input $(System.DefaultWorkingDirectory)/artifacts/log --version 1.0.11 --tokens-file $(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
+          continueOnError: true
+          condition: always()
