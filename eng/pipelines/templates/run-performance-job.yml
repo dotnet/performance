@@ -240,7 +240,7 @@ jobs:
         parameters:
           osGroup: ${{ parameters.osGroup }}
           projectFile: $(_projectFile)
-      - ${{ if eq(paramerters.osGroup, 'windows') }}:
+      - ${{ if eq(parameters.osGroup, 'windows') }}:
         - task: PowerShell@2
           displayName: Redact Logs
           inputs:
@@ -254,7 +254,7 @@ jobs:
               -TokensFilePath '$(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
           continueOnError: true
           condition: always()
-      - ${{ if eq(paramerters.osGroup, 'ubuntu') }}:
+      - ${{ if eq(parameters.osGroup, 'ubuntu') }}:
         - task: ShellScript@2
           displayName: Redact Logs
           inputs:
