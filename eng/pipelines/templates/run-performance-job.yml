@@ -259,6 +259,6 @@ jobs:
           displayName: Redact Logs
           inputs:
             scriptPath: $(System.DefaultWorkingDirectory)/eng/common/post-build/redact-logs.sh
-            arguments: '--input $(System.DefaultWorkingDirectory)/artifacts/log --version 1.0.11 --tokens-file $(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
+            args: '--input $(System.DefaultWorkingDirectory)/artifacts/log --version 1.0.11 --tokens-file $(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
           continueOnError: true
           condition: always()
