@@ -100,7 +100,6 @@ class RunPerformanceJobArgs:
     only_sanity_check: bool = False
     ios_llvm_build: bool = False
     ios_strip_symbols: bool = False
-    hybrid_globalization: bool = False
     javascript_engine: str = "NoJS"
     send_to_helix: bool = False
     channel: Optional[str] = None
@@ -426,7 +425,6 @@ def get_run_configurations(
         pgo_run_type: Optional[str] = None,
         physical_promotion_run_type: Optional[str] = None,
         r2r_run_type: Optional[str] = None,
-        hybrid_globalization: bool = False,
         experiment_name: Optional[str] = None,
         linking_type: Optional[str] = None,
         runtime_flavor: Optional[str] = None,
@@ -459,9 +457,6 @@ def get_run_configurations(
 
     if r2r_run_type == "nor2r":
         configurations["R2RType"] = "nor2r"
-
-    if hybrid_globalization:
-        configurations["HybridGlobalization"] = "True"
 
     if experiment_name is not None:
         configurations["ExperimentName"] = experiment_name
@@ -653,7 +648,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     configurations = get_run_configurations(
         args.run_kind, args.runtime_type, args.codegen_type, args.pgo_run_type, args.physical_promotion_run_type,
-        args.r2r_run_type, args.hybrid_globalization, args.experiment_name, args.linking_type,
+        args.r2r_run_type, args.experiment_name, args.linking_type,
         args.runtime_flavor, args.ios_llvm_build, args.ios_strip_symbols, args.javascript_engine
     )
 
@@ -1004,7 +999,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
             os.environ["Python"] = agent_python
             os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
             os.environ["CodegenType"] = args.codegen_type or ''
-            os.environ["HybridGlobalization"] = str(args.hybrid_globalization)
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
             if args.os_group == "windows" or args.os_group == "osx":
@@ -1150,7 +1144,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         runtime_flavor=args.runtime_flavor or "",
         codegen_type=args.codegen_type or "",
         linking_type=args.linking_type or "",
-        hybrid_globalization=args.hybrid_globalization,
         target_csproj=args.target_csproj,
         work_item_command=work_item_command or None,
         baseline_work_item_command=baseline_work_item_command or None,
@@ -1202,7 +1195,6 @@ def main(argv: List[str]):
                 "--compare": "compare",
                 "--ios-llvm-build": "ios_llvm_build",
                 "--ios-strip-symbols": "ios_strip_symbols",
-                "--hybrid-globalization": "hybrid_globalization",
                 "--send-to-helix": "send_to_helix",
                 "--performance-repo-ci": "performance_repo_ci",
                 "--only-sanity": "only_sanity_check",

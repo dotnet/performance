@@ -69,7 +69,6 @@ class PerfSendToHelixArgs:
     runtime_flavor: Optional[str] = None
     codegen_type: Optional[str] = None
     linking_type: Optional[str] = None
-    hybrid_globalization: Optional[bool] = None
     python: Optional[str] = None
     affinity: Optional[str] = None
     ios_strip_symbols: Optional[bool] = None
@@ -112,7 +111,6 @@ class PerfSendToHelixArgs:
         set_env_var("RuntimeFlavor", self.runtime_flavor)
         set_env_var("CodegenType", self.codegen_type)
         set_env_var("LinkingType", self.linking_type)
-        set_env_var("HybridGlobalization", self.hybrid_globalization)
         set_env_var("iOSStripSymbols", self.ios_strip_symbols)
         set_env_var("iOSLlvmBuild", self.ios_llvm_build)
         set_env_var("TargetCsproj", self.target_csproj)

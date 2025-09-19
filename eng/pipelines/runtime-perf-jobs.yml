@@ -61,7 +61,6 @@ jobs:
   # Build and run iOS Mono and NativeAOT scenarios
   - template: /eng/pipelines/runtime-ios-scenarios-perf-jobs.yml
     parameters:
-      hybridGlobalization: True
       runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
       performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
       jobParameters: ${{ parameters.jobParameters }}
