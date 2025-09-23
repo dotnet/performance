@@ -33,7 +33,7 @@
       <ScenarioDirectoryName>emptyconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
-    <SDKWorkItem Include="SDK F# Console Template" Condition="$(Architecture) != 'x86'"> <!-- Don't run on x86 as we are hitting OOM exceptions on Viper machines https://github.com/dotnet/performance/issues/4971 -->
+    <SDKWorkItem Include="SDK F# Console Template">
       <ScenarioDirectoryName>emptyfsconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
