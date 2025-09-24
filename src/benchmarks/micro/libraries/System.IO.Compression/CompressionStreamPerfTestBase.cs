@@ -59,7 +59,7 @@ namespace System.IO.Compression
         {
             CompressedFile.CompressedDataStream.Position = 0; // all benchmarks invocation reuse the same stream, we set Postion to 0 to start at the beginning
 
-            var compressor = CreateStream(CompressedFile.CompressedDataStream, level);
+            using var compressor = CreateStream(CompressedFile.CompressedDataStream, level);
             compressor.Write(CompressedFile.UncompressedData, 0, CompressedFile.UncompressedData.Length);
         }
 
