@@ -37,7 +37,7 @@
       <ScenarioDirectoryName>emptyfsconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
-    <SDKWorkItem Include="F# Compiler Service">
+    <SDKWorkItem Include="F# Compiler Service" Condition="$(Architecture) != 'x86'"> <!-- Don't run on x86 as we are hitting OOM exceptions on Viper machines https://github.com/dotnet/performance/issues/4971 -->
       <ScenarioDirectoryName>fsharpcompilerservice</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
