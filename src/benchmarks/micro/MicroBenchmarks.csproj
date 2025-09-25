@@ -9,6 +9,8 @@
     <NoWarn>$(NoWarn);CS8002</NoWarn>
     <!-- Suppress binaryformatter obsolete warning -->
     <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
+    <!-- Suppress warning NU1510: PackageReference Microsoft.NETCore.App will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary. -->
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
     <OutputType>Exe</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>portable</DebugType>
