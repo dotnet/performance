@@ -6,6 +6,8 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
+#if NET11_0_OR_GREATER
+
 namespace System.IO.Compression
 {
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
@@ -70,3 +72,5 @@ namespace System.IO.Compression
             => compressLevel == CompressionLevel.Optimal ? 11 : compressLevel == CompressionLevel.Fastest ? 1 : 0;
     }
 }
+
+#endif
