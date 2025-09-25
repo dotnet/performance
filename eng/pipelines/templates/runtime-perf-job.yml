@@ -198,8 +198,8 @@ jobs:
               artifactName: 'iOSSampleAppLLVMNoSymbols'
               artifactFileName: 'iOSSampleAppLLVMNoSymbols.zip'
             ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'JIT')) }}:
-              artifactName: 'iOSCoreCLRSample'
-              artifactFileName: 'iOSCoreCLRSampleApp.zip'
+              artifactName: 'iOSSampleApp'
+              artifactFileName: 'iOSSampleApp.zip'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'False')) }}:
               artifactName: 'iOSSampleAppSymbols'
               artifactFileName: 'iOSSampleAppSymbols.zip'
