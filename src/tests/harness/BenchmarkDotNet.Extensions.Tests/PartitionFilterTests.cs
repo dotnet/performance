@@ -61,7 +61,7 @@ namespace BenchmarkDotNet.Extensions.Tests
         {
             ILogger nullLogger = new NullLogger();
             IConfig recommendedConfig = RecommendedConfig.Create(
-                artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(PartitionFilterTests).Assembly.Location), "BenchmarkDotNet.Artifacts")),
+                artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(PartitionFilterTests).Assembly.Location)!, "BenchmarkDotNet.Artifacts")),
                 mandatoryCategories: ImmutableHashSet.Create(Categories.Libraries, Categories.Runtime, Categories.ThirdParty));
             (bool isSuccess, IConfig parsedConfig, var _) = ConfigParser.Parse(new string[] { "--filter", "*" }, nullLogger, recommendedConfig);
             Assert.True(isSuccess);

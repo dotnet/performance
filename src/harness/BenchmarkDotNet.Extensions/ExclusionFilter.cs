@@ -8,9 +8,9 @@ namespace BenchmarkDotNet.Extensions
 {
     class ExclusionFilter : IFilter
     {
-        private readonly GlobFilter globFilter;
+        private readonly GlobFilter? globFilter;
 
-        public ExclusionFilter(List<string> _filter)
+        public ExclusionFilter(List<string>? _filter)
         {
             if (_filter != null && _filter.Count != 0)
             {
@@ -30,9 +30,9 @@ namespace BenchmarkDotNet.Extensions
 
     class CategoryExclusionFilter : IFilter
     {
-        private readonly AnyCategoriesFilter filter;
+        private readonly AnyCategoriesFilter? filter;
 
-        public CategoryExclusionFilter(List<string> patterns)
+        public CategoryExclusionFilter(List<string>? patterns)
         {
             if (patterns != null)
             {

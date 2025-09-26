@@ -516,7 +516,7 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
     if internal:
         work_item_command += ["--upload-to-perflab-container"]
 
-    if perf_lab_framework != "net462":
+    if perf_lab_framework != "net472":
         if os_group == "windows":
             work_item_command += ["--dotnet-versions", "%DOTNET_VERSION%"]
         else:

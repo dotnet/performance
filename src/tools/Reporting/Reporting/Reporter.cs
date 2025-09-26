@@ -18,6 +18,7 @@ namespace Reporting;
 
 public class Reporter
 {
+    private readonly static CultureInfo _culture = CultureInfo.InvariantCulture;
     private readonly static JsonSerializerSettings _jsonSerializerSettings = new()
     {
         ContractResolver = new DefaultContractResolver
@@ -27,15 +28,13 @@ public class Reporter
         Culture = _culture
     };
 
-    private readonly static CultureInfo _culture = CultureInfo.InvariantCulture;
-
     public List<Test> Tests { get; private set; } = [];
-    public Run Run { get; private set; }
-    public Os Os { get; private set; }
-    public Build Build { get; private set; }
+    public Run? Run { get; private set; }
+    public Os? Os { get; private set; }
+    public Build? Build { get; private set; }
     public bool InLab { get; }
 
-    public Reporter(IEnvironment environment = null)
+    public Reporter(IEnvironment? environment = null)
     {
         environment ??= new EnvironmentProvider();
         InLab = environment.IsLabEnvironment();
@@ -65,7 +64,7 @@ public class Reporter
         Tests.Add(test);
     }
 
-    public string GetJson()
+    public string? GetJson()
         => InLab ? JsonConvert.SerializeObject(this, Formatting.Indented, _jsonSerializerSettings) : null;
 
     public string WriteResultTable()
@@ -151,7 +150,7 @@ public class Reporter
         return build;
     }
 
-    private static (string installerHash, string sdkVersion) GetDotNetVersionInfo(string dotnetRoot)
+    private static (string? installerHash, string? sdkVersion) GetDotNetVersionInfo(string dotnetRoot)
     {
         if (Path.Combine(dotnetRoot, "sdk") is string sdkRootPath && Directory.Exists(sdkRootPath))
         {

@@ -25,9 +25,9 @@ namespace BenchmarkDotNet.Extensions
             ImmutableHashSet<string> mandatoryCategories,
             int? partitionCount = null,
             int? partitionIndex = null,
-            List<string> exclusionFilterValue = null,
-            List<string> categoryExclusionFilterValue = null,
-            Job job = null,
+            List<string>? exclusionFilterValue = null,
+            List<string>? categoryExclusionFilterValue = null,
+            Job? job = null,
             bool getDiffableDisasm = false)
         {
             if (job is null)
