@@ -49,23 +49,26 @@ namespace SveBenchmarks
             ulong indexLeft = 0;
             ulong indexRight = 0;
 
-            uint first = _input[0];
-
-            for (i = 0; i < Size; i++)
+            fixed (uint* input = _input, left = _left, right = _right)
             {
-                if (_input[i] < first)
-                {
-                    _left[indexLeft] = _input[i];
-                    indexLeft++;
-                }
-                else
-                {
-                    _right[indexRight] = _input[i];
-                    indexRight++;
-                }
-            }
+                uint first = input[0];
 
-            return indexRight;
+                for (i = 0; i < Size; i++)
+                {
+                    if (input[i] < first)
+                    {
+                        left[indexLeft] = input[i];
+                        indexLeft++;
+                    }
+                    else
+                    {
+                        right[indexRight] = input[i];
+                        indexRight++;
+                    }
+                }
+
+                return indexRight;
+            }
         }
 
         [Benchmark]
@@ -108,7 +111,7 @@ namespace SveBenchmarks
                         Sve.StoreAndZip(pLoop, left + indexLeft, compacted);
 
                         // Increment the position in the first output array by the number of elements found.
-                        indexLeft += Sve.GetActiveElementCount(Sve.CreateTrueMaskUInt32(), pInner);
+                        indexLeft = Sve.SaturatingIncrementByActiveElementCount(indexLeft, pInner);
 
                         // Find all elements in input array NOT less than the first element.
                         // (Flip the pCompare predicate by XORing with ones)
@@ -117,7 +120,7 @@ namespace SveBenchmarks
                         // Repeat for the right array.
                         compacted = Sve.Compact(pInner, data);
                         Sve.StoreAndZip(pLoop, right + indexRight, compacted);
-                        indexRight += Sve.GetActiveElementCount(Sve.CreateTrueMaskUInt32(), pInner);
+                        indexRight = Sve.SaturatingIncrementByActiveElementCount(indexRight, pInner);
 
                         i = Sve.SaturatingIncrementBy32BitElementCount(i, 1);
                         pLoop = Sve.CreateWhileLessThanMask32Bit(i, Size);
@@ -126,6 +129,72 @@ namespace SveBenchmarks
                     return indexRight;
                 }
 
+            }
+            return 0;
+        }
+
+        [Benchmark]
+        public unsafe ulong SveTail()
+        {
+            if (Sve.IsSupported)
+            {
+                fixed (uint* input = _input, left = _left, right = _right)
+                {
+                    long i = 0;
+
+                    ulong indexLeft = 0;
+                    ulong indexRight = 0;
+
+                    Vector<uint> firstElemVec = Sve.DuplicateSelectedScalarToVector(
+                        Sve.LoadVector(Sve.CreateTrueMaskUInt32(), input), 0
+                    );
+
+                    Vector<uint> pTrue = Sve.CreateTrueMaskUInt32();
+
+                    while (i < (Size - (int)Sve.Count32BitElements()))
+                    {
+                        Vector<uint> data = Sve.LoadVector(pTrue, input + i);
+
+                        // Predicate for elements in input array less than the first element.
+                        Vector<uint> pInner = Sve.CompareLessThan(data, firstElemVec);
+
+                        // Squash all found elements to the lower lanes of the vector.
+                        Vector<uint> compacted = Sve.Compact(pInner, data);
+
+                        // Store the squashed elements to the first output array.
+                        Sve.StoreAndZip(pTrue, left + indexLeft, compacted);
+
+                        // Increment the position in the first output array by the number of elements found.
+                        indexLeft = Sve.SaturatingIncrementByActiveElementCount(indexLeft, pInner);
+
+                        // Find elements greater than or equal to the first element.
+                        pInner = Sve.CompareGreaterThanOrEqual(data, firstElemVec);
+
+                        // Repeat for the right array.
+                        compacted = Sve.Compact(pInner, data);
+                        Sve.StoreAndZip(pTrue, right + indexRight, compacted);
+                        indexRight = Sve.SaturatingIncrementByActiveElementCount(indexRight, pInner);
+
+                        i = Sve.SaturatingIncrementBy32BitElementCount(i, 1);
+                    }
+
+                    // Handler remaining elements.
+                    for (; i < Size; i++)
+                    {
+                        if (input[i] < input[0])
+                        {
+                            left[indexLeft] = input[i];
+                            indexLeft++;
+                        }
+                        else
+                        {
+                            right[indexRight] = input[i];
+                            indexRight++;
+                        }
+                    }
+
+                    return indexRight;
+                }
             }
             return 0;
         }
