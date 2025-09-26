@@ -101,9 +101,9 @@ def get_target_framework_monikers(frameworks: list[str]) -> list[str]:
     # ['net6.0', 'nativeaot6.0'] should become ['net6.0']
     return list(set(monikers))
 
-_VERSION_RE = re.compile(r"\d+\.\d+\.\d+$")
+_VERSION_RE = re.compile(r'^\d+\.\d+\.\d+')
 def version_type(value: str) -> str:
-    if not _VERSION_RE.fullmatch(value):
+    if not _VERSION_RE.search(value):
         raise ArgumentTypeError(f'Version "{value}" is in the wrong format')
     return value
 
