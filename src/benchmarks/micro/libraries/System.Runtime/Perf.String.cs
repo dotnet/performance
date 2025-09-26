@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -290,6 +291,42 @@ namespace System.Tests
             }
 
             return counter;
+        }
+
+        public static IEnumerable<object[]> CsvCorpus()
+        {
+            // Retrieved from https://data.cms.gov/sites/default/files/2024-05/b492c960-aea2-4f4e-a5f6-258c726b1a58/TMEDTREND_PUBLIC_240528.csv on Jan 22, 2025
+            yield return new object[] { "Short Text", ReadInputFile("TMEDTREND_PUBLIC_240528.csv") };
+
+            // Retrieved from https://data.transportation.gov/api/views/kbvr-tyu5/rows.csv on Jan 22, 2025
+            yield return new object[] { "Short Mixed", ReadInputFile("Monthly_Motor_Fuel_Sales_Reported_by_States__Selected_Data_from_FHWA_Monthly_Motor_Fuel_Report.csv") };
+
+            // Retrieved from https://www.census.gov/econ/bfs/csv/date_table.csv on Jan 22, 2025
+            yield return new object []{ "Short Dates", ReadInputFile("date_table.csv") };
+
+            // Retrieved from https://www.usda.gov/sites/default/files/documents/ai_inventory.csv on Jan 22, 2025
+            yield return new object[] { "Long Text", ReadInputFile("ai_inventory.csv") };
+
+            // Retrieved from https://www.epa.gov/sites/production/files/2014-05/tri_2012_nd.csv on Jan 22, 2025
+            yield return new object[] { "Long Mixed", ReadInputFile("tri_2012_nd.csv") };
+
+            // Retrieved from https://data.cdc.gov/api/views/dxpw-cm5u/rows.csv on Jan 22, 2025
+            yield return new object[] { "Long Numbers", ReadInputFile("500_Cities__City-level_Data__GIS_Friendly_Format___2019_release.csv") };
+        }
+
+        public static string[] ReadInputFile(string name)
+            => File.ReadAllLines(Path.Combine(AppContext.BaseDirectory, "libraries", "System.Runtime", "TestData", name));
+
+        [Benchmark]
+        [ArgumentsSource(nameof(CsvCorpus))]
+        public string[] Split_Csv(string testName, string[] lines)
+        {
+            string[] split = null;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                split = lines[i].Split(',');
+            }
+            return split;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
