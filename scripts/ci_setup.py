@@ -5,10 +5,10 @@ from logging import getLogger
 
 import os
 import sys
-import datetime
+from datetime import datetime, timezone
 
 from subprocess import check_output
-from typing import Any, Optional, List
+from typing import Optional
 
 from performance.common import get_machine_architecture, get_repo_root_path, set_environment_variable
 from performance.common import get_tools_directory
@@ -22,7 +22,7 @@ import shutil
 
 def init_tools(
         architecture: str,
-        dotnet_versions: List[str],
+        dotnet_versions: list[str],
         channel: str,
         verbose: bool,
         install_dir: Optional[str]=None) -> None:
@@ -43,9 +43,6 @@ def init_tools(
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''Adds new arguments to the specified ArgumentParser object.'''
-
-    if not isinstance(parser, ArgumentParser):
-        raise TypeError('Invalid parser.')
 
     # Download DotNet Cli
     dotnet.add_arguments(parser)
@@ -270,7 +267,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     return parser
 
-def __process_arguments(args: List[str]):
+def __process_arguments(args: list[str]):
     parser = ArgumentParser(
         description='Tool to generate a machine setup script',
         allow_abbrev=False,
@@ -290,9 +287,9 @@ class CiSetupArgs:
             repository: Optional[str] = None,
             architecture: str = get_machine_architecture(),
             dotnet_path: Optional[str] = None,
-            dotnet_versions: List[str] = [],
+            dotnet_versions: list[str] = [],
             install_dir: Optional[str] = None,
-            build_configs: List[str] = [],
+            build_configs: list[str] = [],
             pgo_status: Optional[str] = None,
             get_perf_hash: bool = False,
             perf_hash: str = 'testSha',
@@ -307,7 +304,7 @@ class CiSetupArgs:
             locale: str = 'en-US',
             maui_version: str = '',
             affinity: Optional[str] = None,
-            run_env_vars: Optional[List[str]] = None,
+            run_env_vars: Optional[list[str]] = None,
             target_windows: bool = True,
             physical_promotion_status: Optional[str] = None,
             r2r_status: Optional[str] = None,
@@ -341,7 +338,7 @@ class CiSetupArgs:
         self.r2r_status = r2r_status
         self.experiment_name = experiment_name
 
-def main(args: Any):
+def main(args: CiSetupArgs):
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
 
@@ -396,7 +393,7 @@ def main(args: Any):
 
     # When running on internal repos, the repository comes to us incorrectly
     # (ie https://github.com/dotnet-coreclr). Replace dashes with slashes in that case.
-    repo_url = None if use_core_sdk else args.repository.replace('-','/')
+    repo_url = None if args.repository is None else args.repository.replace('-','/')
 
     variable_format = 'set "%s=%s"\n' if args.target_windows else 'export %s="%s"\n'
     path_variable = 'set PATH=%s;%%PATH%%\n' if args.target_windows else 'export PATH=%s:$PATH\n'
@@ -427,7 +424,7 @@ def main(args: Any):
     with push_dir(get_repo_root_path()):
         output = check_output(['git', 'rev-parse', 'HEAD'])
 
-    decoded_lines: List[str] = []
+    decoded_lines: list[str] = []
 
     for line in output.splitlines():
         decoded_lines = decoded_lines + [line.decode('utf-8')]
@@ -446,15 +443,17 @@ def main(args: Any):
     os.makedirs(dir_path, exist_ok=True)
 
     if not framework.startswith('net4'):
-        target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
+        target_framework_moniker = dotnet.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version_precise(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if use_core_sdk else args.commit_sha
 
+        assert commit_sha is not None # verified at start of main
+
         if args.local_build:
-            source_timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            source_timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
         elif(args.commit_time is not None):
             try:
-                parsed_timestamp = datetime.datetime.strptime(args.commit_time, '%Y-%m-%d %H:%M:%S %z').astimezone(datetime.timezone.utc)
+                parsed_timestamp = datetime.strptime(args.commit_time, '%Y-%m-%d %H:%M:%S %z').astimezone(timezone.utc)
                 source_timestamp = parsed_timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
             except ValueError:
                 getLogger().warning('Invalid commit_time format. Please use YYYY-MM-DD HH:MM:SS +/-HHMM. Attempting to get commit time from api.github.com.')
@@ -513,7 +512,7 @@ def main(args: Any):
     # The '_Framework' is needed for specifying frameworks in proj files and for building tools later in the pipeline
     set_environment_variable('PERFLAB_Framework', framework)
 
-def __main(argv: List[str]):
+def __main(argv: list[str]):
     validate_supported_runtime()
     args = __process_arguments(argv)
     main(CiSetupArgs(**vars(args)))
