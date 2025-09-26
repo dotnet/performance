@@ -1,7 +1,6 @@
 import functools
 from logging import getLogger
 from typing import TYPE_CHECKING, Callable, Optional, TypeVar
-from typing_extensions import ParamSpec
 
 class TracingStateManager:
     '''A class to manage the state of tracing.'''
@@ -60,7 +59,18 @@ def is_console_exporter_enabled() -> bool:
     '''Return whether the console exporter has been enabled.'''
     return tracing_state_manager.get_console_exporter_enabled()
 
-P = ParamSpec("P")
+# ParamSpec was added in Python 3.10, so we need to use typing_extensions for older versions.
+# But, to avoid needing to install this to run the script, we define a placeholder if not type checking.
+if TYPE_CHECKING:
+    from typing_extensions import ParamSpec
+    P = ParamSpec("P")
+else:
+    from typing import Any
+    class _ParamSpecPlaceholder:
+        args: Any = object()
+        kwargs: Any = object()
+    P = _ParamSpecPlaceholder()
+
 R = TypeVar("R")
 class AwareTracer:
     """
