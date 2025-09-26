@@ -21,14 +21,13 @@ https://github.com/dotnet/performance/blob/main/docs/benchmarking-workflow.md
 '''
 
 from argparse import ArgumentParser, ArgumentTypeError
-from datetime import datetime
 import json
 from logging import getLogger
 
 import os
 import shutil
 import sys
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from performance.common import get_repo_root_path, validate_supported_runtime, get_artifacts_directory, helixuploadroot
 from performance.logger import setup_loggers
@@ -44,11 +43,11 @@ import micro_benchmarks
 setup_tracing()
 tracer = get_tracer()
 
-@tracer.start_as_current_span(name="benchmarks_ci_init_tools") # type: ignore
+@tracer.start_as_current_span(name="benchmarks_ci_init_tools")
 def init_tools(
         architecture: str,
-        dotnet_versions: List[str],
-        target_framework_monikers: List[str],
+        dotnet_versions: list[str],
+        target_framework_monikers: list[str],
         verbose: bool,
         azure_feed_url: Optional[str] = None,
         internal_build_key: Optional[str] = None) -> None:
@@ -77,9 +76,6 @@ def init_tools(
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''Adds new arguments to the specified ArgumentParser object.'''
-
-    if not isinstance(parser, ArgumentParser):
-        raise TypeError('Invalid parser.')
 
     # Download DotNet Cli
     dotnet.add_arguments(parser)
@@ -199,7 +195,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     return parser
 
 
-def __process_arguments(args: List[str]):
+def __process_arguments(args: list[str]):
     parser = ArgumentParser(
         description='Tool to run .NET micro benchmarks',
         allow_abbrev=False,
@@ -209,8 +205,8 @@ def __process_arguments(args: List[str]):
     add_arguments(parser)
     return parser.parse_args(args)
 
-@tracer.start_as_current_span("benchmarks_ci_main") # type: ignore
-def main(argv: List[str]):
+@tracer.start_as_current_span("benchmarks_ci_main")
+def main(argv: list[str]):
     validate_supported_runtime()
     args = __process_arguments(argv)
     verbose = not args.quiet
@@ -223,9 +219,7 @@ def main(argv: List[str]):
     if not args.frameworks:
         raise Exception("Framework version (-f) must be specified.")
 
-    target_framework_monikers = dotnet \
-        .FrameworkAction \
-        .get_target_framework_monikers(args.frameworks)
+    target_framework_monikers = dotnet.get_target_framework_monikers(args.frameworks)
     # Acquire necessary tools (dotnet)
     if not args.dotnet_path:
         init_tools(
@@ -303,7 +297,7 @@ def main(argv: List[str]):
                 # Create a combined JSON file that contains all the reports
                 combined_file_prefix = "" if args.partition is None else f"Partition{args.partition}-"
                 with open(os.path.join(helix_upload_root, f"{combined_file_prefix}combined-perf-lab-report.json"), "w", encoding="utf8") as all_reports_file:
-                    all_reports: List[Any] = []
+                    all_reports: list[Any] = []
                     for file in glob(reports_globpath, recursive=True):
                         with open(file, 'r', encoding="utf8") as report_file:
                             try:
