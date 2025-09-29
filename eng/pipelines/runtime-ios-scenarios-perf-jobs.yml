@@ -150,7 +150,7 @@ jobs:
         - osx_x64
       jobParameters:
         runtimeType: iOSCoreCLR
-        codeGenType: JIT
+        codeGenType: Interpreter
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
