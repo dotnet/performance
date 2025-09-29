@@ -637,7 +637,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.run_kind == "ios_scenarios":
         if args.runtime_type == "iOSMono":
             args.runtime_flavor = "mono"
-        if args.runtime_type == "iOSCoreCLR":
+        elif args.runtime_type == "iOSCoreCLR":
             args.runtime_flavor = "coreclr"
         elif args.runtime_type == "iOSNativeAOT":
             args.runtime_flavor = "coreclr"
