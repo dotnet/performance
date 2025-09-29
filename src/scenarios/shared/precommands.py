@@ -6,6 +6,7 @@ import sys
 import os
 import shutil
 import subprocess
+import json
 from logging import getLogger
 from argparse import ArgumentParser
 from typing import List, Optional
@@ -276,7 +277,12 @@ class PreCommands:
         if not self.has_workload:
             if self.readonly_dotnet:
                 raise Exception('workload needed to build, but has_workload=false, and readonly_dotnet=true')
-            subprocess.run(["dotnet", "workload", "install", workloadid] + install_args, check=True)
+            try:
+                subprocess.run(["dotnet", "workload", "install", workloadid] + install_args, check=True)
+                getLogger().info(f"Successfully installed workload {workloadid}")
+            except Exception as e:
+                getLogger().error(f"Error installing workload {workloadid}: {e}")
+                raise
 
     def uninstall_workload(self, workloadid: str):
         'Uninstalls the workload, if possible'
@@ -299,7 +305,7 @@ class PreCommands:
 
 
     def get_packages_for_sdk_from_feed(self, sdk_name: str, feed: str):
-        'Gets the packages for the given sdk from the given feed'
+        'Gets the packages for the given sdk from the given feed and returns parsed package list'
 
         getLogger().debug(f"dotnet package search {sdk_name} --prerelease --take 999 --format json --source {feed}")
 
@@ -308,9 +314,32 @@ class PreCommands:
             ["dotnet", "package", "search", sdk_name, "--prerelease", "--take", "999", "--format", "json", "--source", feed], check=True, capture_output=True, text=True)
         
         if result.returncode != 0:
+            getLogger().error(f"Package search command failed: {result.stderr}")
             raise Exception(f"Error querying package feed: {result.stderr}")
         
-        return result.stdout
+        getLogger().debug(f"Raw packages response for {sdk_name}: {result.stdout}")
+        
+        try:
+            parsed_response = json.loads(result.stdout)
+            getLogger().debug(f"Parsed JSON response for {sdk_name}: {parsed_response}")
+            
+            if not parsed_response.get("searchResult") or len(parsed_response["searchResult"]) == 0:
+                getLogger().error(f"No search results found for {sdk_name} in feed {feed}")
+                raise Exception(f"No search results found for {sdk_name} in feed {feed}")
+                
+            packages = parsed_response["searchResult"][0].get('packages', [])
+            getLogger().info(f"Found {len(packages)} total packages for {sdk_name}")
+            
+            if not packages:
+                getLogger().error(f"No packages found for SDK {sdk_name} in feed {feed}")
+                raise Exception(f"No packages found for SDK {sdk_name} in feed {feed}")
+                
+            return packages
+            
+        except json.JSONDecodeError as e:
+            getLogger().error(f"Failed to parse JSON response for {sdk_name}: {e}")
+            getLogger().debug(f"Raw response that failed to parse: {result.stdout}")
+            raise Exception(f"Error parsing JSON output for {sdk_name}: {e}")
 
     def _addstaticmsbuildproperty(self, projectfile: str):
         'Insert static msbuild property in the specified project file'
