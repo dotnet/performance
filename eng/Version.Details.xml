@@ -72,9 +72,9 @@
       <Uri>https://github.com/dotnet/emsdk</Uri>
     </Dependency>
     <!-- Previous .NET Android version(s) -->
-    <Dependency Name="Microsoft.NET.Sdk.Android.Manifest-9.0.100" Version="35.0.109">
+    <Dependency Name="Microsoft.NET.Sdk.Android.Manifest-9.0.100" Version="35.0.105">
       <Uri>https://github.com/dotnet/android</Uri>
-      <Sha>1361e50584b56e690e2b8b5f6db6a04a1d2b7b38</Sha>
+      <Sha>1dcfb6f8779c33b6f768c996495cb90ecd729329</Sha>
     </Dependency>
     <Dependency Name="Microsoft.MacCatalyst.Sdk.net10.0_18.5" Version="18.5.10824-net10-rc.2">
       <Uri>https://github.com/dotnet/macios</Uri>
@@ -94,21 +94,21 @@
     </Dependency>
     <!-- Previous .NET iOS version(s) -->
     <!-- This is a subscription of the .NET 9 latest stable versions of our packages -->
-    <Dependency Name="Microsoft.MacCatalyst.Sdk.net9.0_18.5" Version="18.5.9219">
+    <Dependency Name="Microsoft.MacCatalyst.Sdk.net9.0_26.0" Version="26.0.9752">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>60f5c7b1b6e359df6fefe197b5736a29a6be1001</Sha>
+      <Sha>177f4311930b32eecc1e462a71ebbe34b7e01a0b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.macOS.Sdk.net9.0_15.5" Version="15.5.9219">
+    <Dependency Name="Microsoft.macOS.Sdk.net9.0_26.0" Version="26.0.9752">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>60f5c7b1b6e359df6fefe197b5736a29a6be1001</Sha>
+      <Sha>177f4311930b32eecc1e462a71ebbe34b7e01a0b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.iOS.Sdk.net9.0_18.5" Version="18.5.9219">
+    <Dependency Name="Microsoft.iOS.Sdk.net9.0_26.0" Version="26.0.9752">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>60f5c7b1b6e359df6fefe197b5736a29a6be1001</Sha>
+      <Sha>177f4311930b32eecc1e462a71ebbe34b7e01a0b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.tvOS.Sdk.net9.0_18.5" Version="18.5.9219">
+    <Dependency Name="Microsoft.tvOS.Sdk.net9.0_26.0" Version="26.0.9752">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>60f5c7b1b6e359df6fefe197b5736a29a6be1001</Sha>
+      <Sha>177f4311930b32eecc1e462a71ebbe34b7e01a0b</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
