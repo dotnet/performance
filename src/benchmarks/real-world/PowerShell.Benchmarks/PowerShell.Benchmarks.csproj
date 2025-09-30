@@ -6,7 +6,7 @@
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StartArguments>--filter *</StartArguments>
+    <StartArguments>--filter '*'</StartArguments>
   </PropertyGroup>
 
   <ItemGroup>

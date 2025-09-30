@@ -31,19 +31,19 @@ dotnet run -c Release -f net10.0 --list flat|tree
 To filter the benchmarks using a glob pattern applied to namespace.typeName.methodName ([read more](../../../docs/benchmarkdotnet.md#Filtering-the-Benchmarks)):
 
 ```cmd
-dotnet run -c Release -f net10.0 --filter *Span*
+dotnet run -c Release -f net10.0 --filter '*Span*'
 ```
 
 To profile the benchmarked code and produce an ETW Trace file ([read more](../../../docs/benchmarkdotnet.md#Profiling)):
 
 ```cmd
-dotnet run -c Release -f net10.0 --filter $YourFilter --profiler ETW
+dotnet run -c Release -f net10.0 --filter "$YourFilter" --profiler ETW
 ```
 
 To run the benchmarks for multiple runtimes ([read more](../../../docs/benchmarkdotnet.md#Multiple-Runtimes)):
 
 ```cmd
-dotnet run -c Release -f net8.0 --filter * --runtimes net8.0 net10.0
+dotnet run -c Release -f net8.0 --filter '*' --runtimes net8.0 net10.0
 ```
 
 ## Private Runtime Builds
@@ -51,7 +51,7 @@ dotnet run -c Release -f net8.0 --filter * --runtimes net8.0 net10.0
 If you contribute to [dotnet/runtime](https://github.com/dotnet/runtime) and want to benchmark **local builds of .NET Core** you need to build [dotnet/runtime](https://github.com/dotnet/runtime) in Release (including tests - so a command similar to `build clr+libs+libs.tests -rc release -lc release`) and then provide the path(s) to CoreRun(s). Provided CoreRun(s) will be used to execute every benchmark in a dedicated process:
 
 ```cmd
-dotnet run -c Release -f net10.0 --filter $YourFilter \
+dotnet run -c Release -f net10.0 --filter "$YourFilter" \
     --corerun C:\git\runtime\artifacts\bin\testhost\net10.0-windows-Release-x64\shared\Microsoft.NETCore.App\9.0.0\CoreRun.exe
 ```
 
@@ -59,7 +59,7 @@ To make sure that your changes don't introduce any regressions, you can provide 
 
 ```cmd
 dotnet run -c Release -f net10.0 \
-    --filter BenchmarksGame* \
+    --filter 'BenchmarksGame*' \
     --statisticalTest 3ms \
     --coreRun \
         "C:\git\runtime_upstream\artifacts\bin\testhost\net10.0-windows-Release-x64\shared\Microsoft.NETCore.App\9.0.0\CoreRun.exe" \
