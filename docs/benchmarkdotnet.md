@@ -157,7 +157,7 @@ dotnet run -c Release -f net9.0 --filter 'System.Collections*.Dictionary*' '*.Pe
 dotnet run -c Release -f net9.0 --filter 'BenchmarksGame*' --join
 ```
 
-Please remember that on **Unix** systems `*` is resolved to all files in current directory, so you need to escape it `'*'`.
+Please remember that in most Unix-like shells, `*` is subject to pathname expansion, so you need to quote it, e.g. '*'.
 
 #### Listing the Benchmarks
 
