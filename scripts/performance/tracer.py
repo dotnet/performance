@@ -102,10 +102,6 @@ class AwareTracer:
             The result of executing the decorated function.
         """
         def decorator(func: Callable[P, R]) -> Callable[P, R]:
-            # If no tracer, just return the original function unchanged (best for typing & introspection).
-            if self._tracer is None:
-                return func
-
             @functools.wraps(func)
             def wrapped(*args: P.args, **kwargs: P.kwargs) -> R:
                 if self._tracer is None:

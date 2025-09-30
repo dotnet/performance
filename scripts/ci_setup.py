@@ -344,8 +344,7 @@ def main(args: CiSetupArgs):
 
     # if repository is not set, then we are doing a sdk in performance repo run
     # if repository is set, user needs to supply the commit_sha
-    use_core_sdk = args.repository is None
-    if not ((args.commit_sha is None) == use_core_sdk):
+    if not ((args.commit_sha is None) == (args.repository is None)):
         raise ValueError('Either both commit_sha and repository should be set or neither')
    
     # for CI pipelines, use the agent OS
@@ -445,7 +444,7 @@ def main(args: CiSetupArgs):
     if not framework.startswith('net4'):
         target_framework_moniker = dotnet.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version_precise(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
-        commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if use_core_sdk else args.commit_sha
+        commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.repository is None else args.commit_sha
 
         assert commit_sha is not None # verified at start of main
 

@@ -725,6 +725,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             v8_version = get_msbuild_property(args.browser_versions_props_path, "linux_V8Version")
             if not v8_version:
                 raise Exception("Unable to find v8 version in BrowserVersions.props")
+            v8_version = ".".join(v8_version.split(".")[:3])
             
             if args.javascript_engine_path is None:
                 args.javascript_engine_path = f"/home/helixbot/.jsvu/bin/v8-{v8_version}"
