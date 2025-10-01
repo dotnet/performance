@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - "**/*.md"
-      - ".markdownlint.json"
+      - ".markdownlint.jsonc"
       - ".github/workflows/markdownlint.yml"
       - ".github/workflows/markdownlint-problem-matcher.json"
       - "!eng/**"
