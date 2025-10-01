@@ -145,7 +145,7 @@
     <Compile Remove="runtime\Math\Functions\Single\**\*.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))">
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
     <Compile Remove="runtime\Math\Functions\Double\CopySign.cs" />
     <Compile Remove="runtime\Math\Functions\Double\FusedMultiplyAdd.cs" />
     <Compile Remove="runtime\Math\Functions\Double\ILogB.cs" />
