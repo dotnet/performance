@@ -3,7 +3,7 @@
     <OutputType>Library</OutputType>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Nullable>enable</Nullable>
-		<ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(BenchmarkDotNetSources)' != ''">
     <_BenchmarkDotNetSourcesN>$([MSBuild]::NormalizeDirectory('$(BenchmarkDotNetSources)'))</_BenchmarkDotNetSourcesN>
