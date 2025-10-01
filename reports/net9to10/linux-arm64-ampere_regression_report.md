@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Regression Report - linux-arm64-ampere
 
 ## 1. 0fe82fbd8e - Reduce spin-waiting in the thread pool on Arm processors (#115402)
