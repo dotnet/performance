@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Regression Report - linux-wasmaot-viper
 
 ## >50% Regression (45 tests)

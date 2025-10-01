@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Regression Report - linux-mono-tiger
 
 ## 1. da809372c5 - Use UnsafeAccessorType in System.Private.CoreLib and the BCL (#115583)
