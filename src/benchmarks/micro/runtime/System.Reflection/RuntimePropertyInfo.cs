@@ -22,7 +22,7 @@ namespace System.Reflection
             var propertiesPerType = baseType.GetProperties().Length;
 
             var assemblyName = new AssemblyName(baseType.Namespace + ".DynamicAssembly");
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
 
             for (var i = 0; i < Iterations; i += propertiesPerType)
@@ -34,8 +34,14 @@ namespace System.Reflection
             }
         }
 
+        [GlobalCleanup]
+        public void Cleanup()
+        {
+            _properties.Clear();
+        }
+
         [Benchmark(OperationsPerInvoke = Iterations)]
-        public void AddToHashSet()
+        public HashSet<PropertyInfo> AddToHashSet()
         {
             var set = new HashSet<PropertyInfo>();
 
@@ -43,6 +49,8 @@ namespace System.Reflection
             {
                 set.Add(_properties[i]);
             }
+
+            return set;
         }
     }
 

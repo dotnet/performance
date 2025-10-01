@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Emit;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -22,7 +23,7 @@ namespace System.Reflection
             var methodsPerType = baseType.GetMethods().Length;
 
             var assemblyName = new AssemblyName(baseType.Namespace + ".DynamicAssembly");
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
 
             for (var i = 0; i < Iterations; i += methodsPerType)
@@ -34,8 +35,14 @@ namespace System.Reflection
             }
         }
 
+        [GlobalCleanup]
+        public void Cleanup()
+        {
+            _methods.Clear();
+        }
+
         [Benchmark(OperationsPerInvoke = Iterations)]
-        public void AddToHashSet()
+        public HashSet<MethodInfo> AddToHashSet()
         {
             var set = new HashSet<MethodInfo>();
 
@@ -43,6 +50,8 @@ namespace System.Reflection
             {
                 set.Add(_methods[i]);
             }
+
+            return set;
         }
     }
 

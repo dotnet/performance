@@ -22,7 +22,7 @@ namespace System.Reflection
             var eventsPerType = baseType.GetEvents().Length;
 
             var assemblyName = new AssemblyName(baseType.Namespace + ".DynamicAssembly");
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
 
             for (var i = 0; i < Iterations; i += eventsPerType)
@@ -34,8 +34,14 @@ namespace System.Reflection
             }
         }
 
+        [GlobalCleanup]
+        public void Cleanup()
+        {
+            _events.Clear();
+        }
+
         [Benchmark(OperationsPerInvoke = Iterations)]
-        public void AddToHashSet()
+        public HashSet<EventInfo> AddToHashSet()
         {
             var set = new HashSet<EventInfo>();
 
@@ -43,6 +49,8 @@ namespace System.Reflection
             {
                 set.Add(_events[i]);
             }
+
+            return set;
         }
     }
 
