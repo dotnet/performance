@@ -59,7 +59,7 @@
       <ApkName>com.companyname.mauisamplecontentandroid-Signed</ApkName>
       <PackageName>com.companyname.mauisamplecontentandroid</PackageName>
     </MAUIAndroidScenario>
-    <MAUIAndroidScenario Include="MAUI Blazor Android Default Template">
+    <MAUIAndroidScenario Include="MAUI Blazor Android Default Template" Condition="'$(CodegenType)' != 'NativeAOT'">
       <ScenarioDirectoryName>mauiblazorandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiblazorandroiddefault-Signed</ApkName>
