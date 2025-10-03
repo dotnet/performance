@@ -6,11 +6,11 @@ namespace Reporting;
 
 public class Os
 {
-    public string Locale { get; set; }
+    public string? Locale { get; set; }
 
-    public string Architecture { get; set; }
+    public string? Architecture { get; set; }
 
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
-    public string MachineName { get; set; }
+    public string? MachineName { get; set; }
 }
