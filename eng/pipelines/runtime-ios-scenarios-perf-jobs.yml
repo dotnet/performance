@@ -7,6 +7,7 @@ jobs:
   - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       mono: true
+      coreclr: true
       nativeAot: true
 
   # run iOS scenarios - Mono FullAOT
@@ -134,6 +135,27 @@ jobs:
         logicalMachine: 'perfiphone12mini'
         iOSStripSymbols: True
         additionalJobIdentifier: iOSStripSymbols
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # run iOS scenarios - CoreCLR
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: coreclr
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSCoreCLR
+        codeGenType: Interpreter
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone12mini'
+        iOSStripSymbols: false
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         ${{ each parameter in parameters.jobParameters }}:

@@ -159,8 +159,8 @@ class ChannelMap():
             'branch': '3.1.4xx',
             'quality': 'daily'
         },
-        'net462': {
-            'tfm': 'net462',
+        'net472': {
+            'tfm': 'net472',
             'branch': '9.0',
             'quality': 'daily'
         },

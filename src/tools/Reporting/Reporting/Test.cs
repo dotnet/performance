@@ -12,7 +12,7 @@ public class Test
 {
     public IList<string> Categories { get; set; } = [];
 
-    public string Name { get; set; }
+    public string Name { get; set; } = "Test";
 
     public Dictionary<string, string> AdditionalData { get; set; } = [];
 

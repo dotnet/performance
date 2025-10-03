@@ -518,7 +518,7 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
     if internal:
         work_item_command += ["--upload-to-perflab-container"]
 
-    if perf_lab_framework != "net462":
+    if perf_lab_framework != "net472":
         if os_group == "windows":
             work_item_command += ["--dotnet-versions", "%DOTNET_VERSION%"]
         else:
@@ -578,6 +578,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         args.libraries_download_dir = os.path.join(args.runtime_repo_dir, "artifacts")
     
     ios_mono = args.runtime_type == "iOSMono"
+    ios_coreclr = args.runtime_type == "iOSCoreCLR"
     ios_nativeaot = args.runtime_type == "iOSNativeAOT"
     is_aot = args.codegen_type.lower() == "aot"
     is_mono = args.runtime_type == "mono"
@@ -638,6 +639,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.run_kind == "ios_scenarios":
         if args.runtime_type == "iOSMono":
             args.runtime_flavor = "mono"
+        elif args.runtime_type == "iOSCoreCLR":
+            args.runtime_flavor = "coreclr"
         elif args.runtime_type == "iOSNativeAOT":
             args.runtime_flavor = "coreclr"
         else:
@@ -832,7 +835,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             # shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), os.path.join(root_payload_dir, "MonoBenchmarksDroid.apk"))
         ci_setup_arguments.architecture = "arm64"
 
-    if ios_mono or ios_nativeaot:
+    if ios_mono or ios_coreclr or ios_nativeaot:
         if args.built_app_dir is None:
             raise Exception("Built apps directory must be present for IOS Mono or IOS Native AOT benchmarks")
         

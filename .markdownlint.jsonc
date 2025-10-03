@@ -1,0 +1,43 @@
+{
+    // MD001/heading-increment : Heading levels should only increment by one level at a time
+    "MD001": false,
+
+    // MD004/ul-style : Unordered list style
+    "MD004": false,
+
+    // MD012/no-multiple-blanks : Multiple consecutive blank lines
+    "MD012": false,
+
+    // MD013/line-length : Line length
+    "MD013": false,
+
+    // MD024/no-duplicate-heading : Multiple headings with the same content
+    "MD024": false,
+
+    // MD029/ol-prefix : Ordered list item prefix
+    "MD029": false,
+
+    // MD031/blanks-around-fences : Fenced code blocks should be surrounded by blank lines
+    "MD031": false,
+
+    // MD033/no-inline-html : Inline HTML
+    "MD033": false,
+
+    // MD034/no-bare-urls : Bare URL used
+    "MD034": false,
+
+    // MD036/no-emphasis-as-heading : Emphasis used instead of a heading
+    "MD036": false,
+
+    // MD047/single-trailing-newline : Files should end with a single newline character
+    "MD047": false,
+
+    // MD051/link-fragments : Link fragments should be valid
+    "MD051": false,
+
+    // MD052/reference-links-images : Reference links and images should use a label that is defined
+    "MD052": false,
+
+    // MD059/descriptive-link-text : Link text should be descriptive
+    "MD059": false
+}
