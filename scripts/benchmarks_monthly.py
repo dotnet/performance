@@ -6,7 +6,6 @@ for a .NET preview release, making it easier to contribute to our
 monthly manual performance runs.
 '''
 
-from typing import Dict, List
 from performance.common import get_machine_architecture
 from performance.logger import setup_loggers
 from argparse import ArgumentParser
@@ -36,7 +35,7 @@ VERSIONS = {
     'net6.0': { 'tfm': 'net6.0' }
 }
 
-def get_version_from_name(name: str) -> Dict[str, str]:
+def get_version_from_name(name: str) -> dict[str, str]:
     if name in VERSIONS:
         return VERSIONS[name]
 
@@ -44,9 +43,6 @@ def get_version_from_name(name: str) -> Dict[str, str]:
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     # Adds new arguments to the specified ArgumentParser object.
-
-    if not isinstance(parser, ArgumentParser):
-        raise TypeError('Invalid parser.')
 
     parser.add_argument(
         'versions',
@@ -114,7 +110,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     return parser
 
-def __process_arguments(args: List[str]):
+def __process_arguments(args: list[str]):
     parser = ArgumentParser(
         description='Tool to execute the monthly manual micro benchmark performance runs',
         allow_abbrev=False
@@ -123,7 +119,7 @@ def __process_arguments(args: List[str]):
     add_arguments(parser)
     return parser.parse_args(args)
 
-def __main(argv: List[str]):
+def __main(argv: list[str]):
     setup_loggers(verbose=True)
 
     args = __process_arguments(argv)

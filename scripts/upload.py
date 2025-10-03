@@ -1,4 +1,5 @@
 from random import randint
+from typing import Optional
 import uuid
 from azure.storage.blob import BlobClient, ContentSettings
 from azure.storage.queue import QueueClient, TextBase64EncodePolicy
@@ -6,7 +7,7 @@ from azure.core.exceptions import ResourceExistsError, ClientAuthenticationError
 from azure.identity import DefaultAzureCredential, ClientAssertionCredential, CertificateCredential
 from traceback import format_exc
 from glob import glob
-from performance.common import retry_on_exception, RunCommand, helixpayload, base64_to_bytes, extension, get_certificates
+from performance.common import retry_on_exception, base64_to_bytes, get_certificates
 from performance.constants import TENANT_ID, ARC_CLIENT_ID, CERT_CLIENT_ID
 import os
 import json
@@ -27,31 +28,29 @@ def get_unique_name(filename: str, unique_id: str) -> str:
         newname = "{0}-perf-lab-report.json".format(randint(1000, 9999))
     return newname
 
-def upload(globpath: str, container: str, queue: str, storage_account_uri: str):
+def get_credential():
     try:
-        credential = None
-        try:
-            dac = DefaultAzureCredential()
-            credential = ClientAssertionCredential(TENANT_ID, ARC_CLIENT_ID, lambda: dac.get_token("api://AzureADTokenExchange/.default").token)
-            credential.get_token("https://storage.azure.com/.default")
-        except ClientAuthenticationError as ex:
-            credential = None
-            getLogger().info("Unable to use managed identity. Falling back to certificate.")
+        dac = DefaultAzureCredential()
+        credential = ClientAssertionCredential(TENANT_ID, ARC_CLIENT_ID, lambda: dac.get_token("api://AzureADTokenExchange/.default").token)
+        credential.get_token("https://storage.azure.com/.default")
+        return credential
+    except ClientAuthenticationError as ex:
+        getLogger().info("Unable to use managed identity. Falling back to certificate.")
+        certs = get_certificates()
+        for cert in certs:
+            credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert), send_certificate_chain=True)
             try:
-                certs = get_certificates()
-                for cert in certs:
-                    credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert), send_certificate_chain=True)
-                    try:
-                        credential.get_token("https://storage.azure.com/.default")
-                    except ClientAuthenticationError as ex:
-                        getLogger().error(ex.message)
-                        credential = None
-                        continue
-            except Exception as ex:
-                credential = None
-        if credential is None:
-            raise RuntimeError("Authentication failed with managed identity and certificates. No valid authentication method available.")
+                credential.get_token("https://storage.azure.com/.default")
+                return credential
+            except ClientAuthenticationError as ex:
+                getLogger().error(ex.message)
+                continue
 
+    raise RuntimeError("Authentication failed with managed identity and certificates. No valid authentication method available.")
+
+def upload(globpath: str, container: str, queue: Optional[str], storage_account_uri: str):
+    try:
+        credential = get_credential()
         files = glob(globpath, recursive=True)
         any_upload_or_queue_failed = False
         for infile in files:
@@ -64,7 +63,13 @@ def upload(globpath: str, container: str, queue: str, storage_account_uri: str):
             upload_succeded = False
             with open(infile, "rb") as data:
                 try:
-                    retry_on_exception(lambda: blob_client.upload_blob(data, blob_type="BlockBlob", content_settings=ContentSettings(content_type="application/json")), raise_exceptions=[ResourceExistsError])
+                    def _upload():
+                        blob_client.upload_blob( # pyright: ignore[reportUnknownMemberType] -- type stub contains Unknown kwargs
+                            data, 
+                            blob_type="BlockBlob", 
+                            content_settings=ContentSettings(content_type="application/json"))
+
+                    retry_on_exception(_upload, raise_exceptions=[ResourceExistsError])
                     upload_succeded = True
                 except Exception as ex:
                     any_upload_or_queue_failed = True

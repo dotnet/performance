@@ -7,7 +7,7 @@ import os
 
 from logging import getLogger
 from argparse import ArgumentParser
-from typing import Any, List, Optional
+from typing import Any, Optional
 from shared import const
 
 class CrossgenArguments:
@@ -123,7 +123,7 @@ Suppress internal Crossgen2 parallelism
             getLogger().error("Please specify either --single <single assembly name> or --composite <absolute path of rsp file>")
             sys.exit(1)
 
-    def get_crossgen_command_line(self) -> List[str]:
+    def get_crossgen_command_line(self) -> list[str]:
         "Returns the computed crossgen command line arguments"
         filename, ext = os.path.splitext(self.singlefile)
         outputdir = os.path.join(os.getcwd(), const.CROSSGENDIR)
