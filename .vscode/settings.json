@@ -15,16 +15,5 @@
         "**/artifacts/**": true,
         "**/weblarge3.0/**": true,
     },
-    "python.analysis.typeCheckingMode": "strict",
-    "python.analysis.diagnosticMode": "workspace",
-    "python.analysis.exclude": [ 
-        "**/__pycache__/**",
-        "**/artifacts/**",
-        "**/.venv/**",
-        "**/eng/common/**",
-        "**/weblarge3.0/**"
-    ],
-    "python.analysis.extraPaths": [
-        "./scripts"
-    ]
+    "python.analysis.diagnosticMode": "workspace"
 }

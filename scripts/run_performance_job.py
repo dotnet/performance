@@ -1,4 +1,5 @@
 from logging import getLogger
+import re
 from dataclasses import dataclass, field
 from datetime import timedelta
 from glob import glob
@@ -15,7 +16,7 @@ from typing import Any, Optional
 
 from build_runtime_payload import *
 import ci_setup
-from performance.common import RunCommand, get_msbuild_property, set_environment_variable
+from performance.common import RunCommand, set_environment_variable
 from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
@@ -333,8 +334,7 @@ def get_bdn_arguments(
         javascript_engine_path: Optional[str] = None,
         product_version: Optional[str] = None,
         corerun_payload_dir: Optional[str] = None,
-        extra_bdn_args: Optional[str] = None):
-    
+        extra_bdn_args: Optional[str] = None) -> list[str]:
     bdn_arguments = ["--anyCategories", run_categories]
 
     if affinity is not None and not "0":
@@ -381,6 +381,7 @@ def get_bdn_arguments(
         if javascript_engine == "v8":
             wasm_args += ["--module"]
 
+        assert javascript_engine_path is not None
         bdn_arguments += [
             "--wasmEngine", javascript_engine_path,
             f"\\\"--wasmArgs={' '.join(wasm_args)}\\\"",
@@ -691,8 +692,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 raise Exception("Please provide either the product version, a path to Versions.props, or a runtime repo directory")
             args.versions_props_path = os.path.join(args.runtime_repo_dir, "eng", "Versions.props")
 
-        product_version = get_msbuild_property(args.versions_props_path, "ProductVersion")
-        if not product_version:
+        with open(args.versions_props_path) as f:
+            for line in f:
+                match = re.search(r"ProductVersion>([^<]*)<", line)
+                if match:
+                    product_version = match.group(1)
+                    break
+        if product_version is None:
             raise Exception("Unable to find ProductVersion in Versions.props")
         
         mono_dotnet_path = os.path.join(payload_dir, "dotnet-mono")
@@ -725,10 +731,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
                     raise Exception("BrowserVersions.props must be present for wasm runs")
                 args.browser_versions_props_path = os.path.join(args.runtime_repo_dir, "eng", "testing", "BrowserVersions.props")
 
-            v8_version = get_msbuild_property(args.browser_versions_props_path, "linux_V8Version")
-            if not v8_version:
-                raise Exception("Unable to find v8 version in BrowserVersions.props")
-            v8_version = ".".join(v8_version.split(".")[:3])
+            with open(args.browser_versions_props_path) as f:
+                for line in f:
+                    match = re.search(r"linux_V8Version>([^<]*)<", line)
+                    if match:
+                        v8_version = match.group(1)
+                        v8_version = ".".join(v8_version.split(".")[:3])
+                        break
+                else:
+                    raise Exception("Unable to find v8 version in BrowserVersions.props")
             
             if args.javascript_engine_path is None:
                 args.javascript_engine_path = f"/home/helixbot/.jsvu/bin/v8-{v8_version}"

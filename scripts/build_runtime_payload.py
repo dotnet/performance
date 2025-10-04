@@ -2,12 +2,13 @@
 This file contains helper methods for turning build artifacts from the build step of our CI pipeline
 and the Build Caching Service into a payload that can be used locally or in Helix jobs.
 """
+from collections.abc import Iterable
 from logging import getLogger
 import os
 from pathlib import Path
 import shutil
 import tarfile
-from typing import Optional, Iterable
+from typing import Optional
 import zipfile
 
 from performance.common import RunCommand, iswin

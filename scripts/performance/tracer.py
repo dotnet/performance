@@ -1,6 +1,7 @@
 import functools
+from collections.abc import Callable
 from logging import getLogger
-from typing import TYPE_CHECKING, Callable, Optional, TypeVar
+from typing import TYPE_CHECKING, Optional, TypeVar
 
 class TracingStateManager:
     '''A class to manage the state of tracing.'''

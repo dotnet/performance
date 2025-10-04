@@ -2,6 +2,7 @@
 Common functionality used by the repository scripts.
 '''
 
+from collections.abc import Callable
 from contextlib import contextmanager
 from logging import getLogger
 from os import environ
@@ -11,6 +12,7 @@ from subprocess import CalledProcessError
 from subprocess import list2cmdline
 from subprocess import PIPE, STDOUT, DEVNULL
 from subprocess import Popen
+from typing import Any, Optional, TypeVar
 from io import StringIO
 from platform import machine
 
@@ -18,7 +20,6 @@ import os
 import sys
 import time
 import base64
-from typing import Any, Callable, Optional, TypeVar
 
 
 def get_machine_architecture():
@@ -250,7 +251,7 @@ def set_environment_variable(name: str, value: str, save_to_pipeline: bool = Tru
         __write_pipeline_variable(name, value)
     os.environ[name] = value
 
-def run_msbuild_command(args: list[str], verbose: bool=True, warn_as_error: bool=True, perf_repo_dir: Optional[str] = None) -> str:
+def run_msbuild_command(args: list[str], verbose: bool=True, warn_as_error: bool=True, perf_repo_dir: Optional[str] = None) -> int:
     if perf_repo_dir is None:
         perf_repo_dir = get_repo_root_path()
     msbuild_dir = os.path.join(perf_repo_dir, 'eng', 'common')
@@ -267,10 +268,7 @@ def run_msbuild_command(args: list[str], verbose: bool=True, warn_as_error: bool
             cmdline += ["--warnaserror", "false"]
 
     cmdline += args
-    return RunCommand(cmdline, verbose=verbose).run_and_get_stdout().strip()
-
-def get_msbuild_property(props_path: str, property_name: str) -> str:
-    return run_msbuild_command([props_path, f"/getProperty:{property_name}"])
+    return RunCommand(cmdline, verbose=verbose).run()
 
 class RunCommand:
     '''
