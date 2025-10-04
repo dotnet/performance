@@ -41,7 +41,7 @@ def setup_loggers(verbose: bool, enable_open_telemetry_logger: bool = False):
 
         if enable_open_telemetry_logger:
             try:
-                from opentelemetry._logs import set_logger_provider # pyright: ignore[reportMissingTypeStubs]
+                from opentelemetry._logs import set_logger_provider
                 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
                 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, ConsoleLogExporter
 

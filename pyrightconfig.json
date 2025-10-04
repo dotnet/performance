@@ -11,6 +11,7 @@
     "pythonVersion": "3.9",
     "pythonPlatform": "All",
     "deprecateTypingAliases": true,
+    "reportMissingTypeStubs": "none",
     "reportImplicitOverride": "error",
     "reportImportCycles": "error",
     "reportPropertyTypeMismatch": "error",

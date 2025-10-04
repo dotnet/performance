@@ -1,7 +1,7 @@
 import functools
 from collections.abc import Callable
 from logging import getLogger
-from typing import TYPE_CHECKING, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, Optional, TypeVar, cast
 
 class TracingStateManager:
     '''A class to manage the state of tracing.'''
@@ -60,19 +60,8 @@ def is_console_exporter_enabled() -> bool:
     '''Return whether the console exporter has been enabled.'''
     return tracing_state_manager.get_console_exporter_enabled()
 
-# ParamSpec was added in Python 3.10, so we need to use typing_extensions for older versions.
-# But, to avoid needing to install this to run the script, we define a placeholder if not type checking.
-if TYPE_CHECKING:
-    from typing_extensions import ParamSpec
-    P = ParamSpec("P")
-else:
-    from typing import Any
-    class _ParamSpecPlaceholder:
-        args: Any = object()
-        kwargs: Any = object()
-    P = _ParamSpecPlaceholder()
+_F = TypeVar("_F", bound=Callable[..., Any])
 
-R = TypeVar("R")
 class AwareTracer:
     """
     A OpenTelemetry aware tracer implementation that is used as a wrapper for OpenTelemetry calls where OpenTelemetry is not guaranteed be installed.
@@ -80,7 +69,7 @@ class AwareTracer:
     """
     def __init__(self, name: str = "dotnet.performance") -> None:
         if TYPE_CHECKING:
-            from opentelemetry.trace import Tracer # pyright: ignore[reportMissingTypeStubs]
+            from opentelemetry.trace import Tracer
             self._tracer: Optional[Tracer]
             
         try:
@@ -90,28 +79,26 @@ class AwareTracer:
         else:
             self._tracer = trace.get_tracer(name)
 
-    def start_as_current_span(self, name: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    def start_as_current_span(self, name: str)  -> Callable[[_F], _F]:
         """
         Decorator that starts a new span as the current span if OpenTelemetry is imported.
         If OpenTelemetry is not imported, the function is executed without starting a new span.
 
         Args:
-            *top_args: Variable length argument list that will be passed to OpenTelemetry Tracer.start_as_current_span.
-            **top_kwargs: Arbitrary keyword arguments.
+            name: The name of the span to start.
 
         Returns:
-            The result of executing the decorated function.
+            A decorator that preserves the original function's signature.
         """
-        def decorator(func: Callable[P, R]) -> Callable[P, R]:
+        def decorator(func: _F) -> _F:
             @functools.wraps(func)
-            def wrapped(*args: P.args, **kwargs: P.kwargs) -> R:
+            def wrapped(*args: Any, **kwargs: Any) -> Any:
                 if self._tracer is None:
                     return func(*args, **kwargs)
                 
                 with self._tracer.start_as_current_span(name):
                     return func(*args, **kwargs)
 
-            return wrapped
+            return cast(_F, wrapped)
 
         return decorator
-    
