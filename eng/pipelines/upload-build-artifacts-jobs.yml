@@ -147,3 +147,12 @@ jobs:
           files: [ 'iOSSampleAppSymbols.zip' ]
         - artifactName: 'iOSSampleAppNoSymbols'
           files: [ 'iOSSampleAppNoSymbols.zip' ]
+
+  - ${{ if containsValue(parameters.buildType, 'coreclr_arm64_ios') }}:
+    - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
+      parameters:
+        buildType: 'coreclr_arm64_ios'
+        dependencyJobName: build_ios_arm64_checked_iOSCoreCLR
+        artifacts:
+        - artifactName: 'iOSSampleApp'
+          files: [ 'iOSSampleApp.zip' ]

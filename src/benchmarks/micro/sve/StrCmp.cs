@@ -60,17 +60,20 @@ namespace SveBenchmarks
         }
 
         [Benchmark]
-        public int Scalar()
+        public unsafe int Scalar()
         {
             if (_arr1.Length == _arr2.Length)
             {
-                for (int i = 0; i < Size; i++)
+                fixed (byte* arr1_ptr = _arr1, arr2_ptr = _arr2)
                 {
-                    if (_arr1[i] != _arr2[i])
-                        return _arr1[i] - _arr2[i];
-                }
+                    for (int i = 0; i < Size; i++)
+                    {
+                        if (arr1_ptr[i] != arr2_ptr[i])
+                            return arr1_ptr[i] - arr2_ptr[i];
+                    }
 
-                return 0;
+                    return 0;
+                }
             }
 
             Debug.Assert(false, "Different array lengths are not expected");
@@ -192,9 +195,7 @@ namespace SveBenchmarks
 
                             cmp = Sve.CompareNotEqualTo(arr1_data, arr2_data);
 
-                            byte allEqual = (byte)Sve.AddAcross(cmp).ToScalar();
-
-                            if (allEqual > 0)
+                            if (Sve.TestAnyTrue(ptrue, cmp))
                             {
                                 break;
                             }
