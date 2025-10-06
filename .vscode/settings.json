@@ -1,15 +1,19 @@
 {
     "files.exclude": {
-        "**/__pycache__/": true,
-        "**/BenchmarkDotNet.Artifacts/": true,
-        "**/.vs/": true,
-        "**/artifacts/": true,
-        "**/bin/": true,
-        "**/logs/": true,
-        "**/obj/": true,
-        "**/packages/": true,
-        "/tools/": true,
+        "**/__pycache__/**": true,
+        "**/.vs/**": true,
+        "**/bin/**": true,
+        "**/obj/**": true,
+        "**/packages/**": true,
+        "**/.venv/**": true,
+        "**/.dotnet/**": true,
     },
-    "python.analysis.typeCheckingMode": "standard",
-    "python.analysis.extraPaths": ["scripts"]
+    "files.readonlyInclude": {
+        "/eng/common/**": true,
+    },
+    "search.exclude": {
+        "**/artifacts/**": true,
+        "**/weblarge3.0/**": true,
+    },
+    "python.analysis.diagnosticMode": "workspace"
 }

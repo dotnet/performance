@@ -9,7 +9,7 @@ import subprocess
 import json
 from logging import getLogger
 from argparse import ArgumentParser
-from typing import List, Optional
+from typing import Optional
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from shared.crossgen import CrossgenArguments
@@ -123,7 +123,7 @@ class PreCommands:
             language: Optional[str] = None,
             no_https: bool = False,
             no_restore: bool = True,
-            extra_args: Optional[List[str]] = None):
+            extra_args: Optional[list[str]] = None):
         'makes a new app with the given template'
         self.project = CSharpProject.new(template=template,
                                  output_dir=output_dir,
@@ -198,7 +198,7 @@ class PreCommands:
         self.project = CSharpProject(csproj, const.BINDIR)
         self._updateframework(csproj.file_name)
 
-    def execute(self, build_args: List[str] = []):
+    def execute(self, build_args: list[str] = []):
         'Parses args and runs precommands'
         if self.operation == DEFAULT:
             pass
@@ -272,7 +272,7 @@ class PreCommands:
             staticpath = os.path.join(helixpayload(), "staticdeps")
         shutil.copyfile(os.path.join(staticpath, f"PerfLab.{language_file_extension}"), os.path.join(projpath, f"PerfLab.{language_file_extension}"))
 
-    def install_workload(self, workloadid: str, install_args: List[str] = ["--skip-manifest-update"]):
+    def install_workload(self, workloadid: str, install_args: list[str] = ["--skip-manifest-update"]):
         'Installs the workload, if needed'
         if not self.has_workload:
             if self.readonly_dotnet:
@@ -365,7 +365,7 @@ class PreCommands:
             else:
                 replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
-    def _publish(self, configuration: str, framework: str, runtime_identifier: Optional[str] = None, output: Optional[str] = None, build_args: List[str] = []):
+    def _publish(self, configuration: str, framework: str, runtime_identifier: Optional[str] = None, output: Optional[str] = None, build_args: list[str] = []):
         self.project.publish(configuration,
                              output or const.PUBDIR,
                              True,
@@ -376,12 +376,12 @@ class PreCommands:
                              *['-bl:%s' % self.binlog] if self.binlog else [],
                              *build_args)
 
-    def _restore(self, restore_args: List[str] = ["/p:EnableWindowsTargeting=true"]):
+    def _restore(self, restore_args: list[str] = ["/p:EnableWindowsTargeting=true"]):
         self.project.restore(packages_path=get_packages_directory(),
                              verbose=True,
                              args=(['-bl:%s-restore.binlog' % self.binlog] if self.binlog else []) + restore_args)
 
-    def _build(self, configuration: str, framework: str, output: Optional[str] = None, build_args: List[str] = []):
+    def _build(self, configuration: str, framework: str, output: Optional[str] = None, build_args: list[str] = []):
         self.project.build(configuration,
                            True,
                            get_packages_directory(),

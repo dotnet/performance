@@ -55,7 +55,7 @@ def generate_maui_rollback_dict():
     dependencies = root.findall(".//Dependency[@Name]")
     for rollback_name, xml_name in rollback_name_to_xml_name_mappings.items():
         for dependency in dependencies:
-            if dependency.get("Name").startswith(xml_name): # type: ignore we know Name is present
+            if dependency.attrib['Name'].startswith(xml_name):
                 workload_version = dependency.get("Version")
                 if workload_version is None:
                     raise ValueError(f"Unable to find {xml_name} with proper version in the provided xml file")

@@ -2,12 +2,13 @@
 This file contains helper methods for turning build artifacts from the build step of our CI pipeline
 and the Build Caching Service into a payload that can be used locally or in Helix jobs.
 """
+from collections.abc import Iterable
 from logging import getLogger
 import os
 from pathlib import Path
 import shutil
 import tarfile
-from typing import Optional, Iterable
+from typing import Optional
 import zipfile
 
 from performance.common import RunCommand, iswin
@@ -15,6 +16,7 @@ from performance.common import RunCommand, iswin
 __all__ = [
     "extract_archive_or_copy",
     "build_coreroot_payload",
+    "build_coreroot_payload_simple",
     "build_mono_payload",
     "build_monoaot_payload",
     "build_wasm_payload",
@@ -64,7 +66,7 @@ def extract_archive_or_copy(archive_path_or_dir: str, dest_dir: str, prefix: Opt
     if prefix and not prefix.endswith("/") and "/" in prefix:
         prefix_folder = prefix[:prefix.rfind("/") + 1]
 
-    getLogger().debug(
+    getLogger().info(
         "extract_archive_or_copy: source=%s dest=%s prefix=%s (folder=%s)",
         archive_path_or_dir,
         dest_dir,
@@ -118,7 +120,7 @@ def extract_archive_or_copy(archive_path_or_dir: str, dest_dir: str, prefix: Opt
                         os.makedirs(os.path.dirname(output_path), exist_ok=True)
                         source = tar_ref.extractfile(member)
                         if source is not None:
-                            with source and open(output_path, "wb") as target:
+                            with source, open(output_path, "wb") as target:
                                 target.write(source.read())
     else:
         raise Exception("Unsupported archive format")
@@ -203,6 +205,34 @@ def build_coreroot_payload(
         dirs_exist_ok=True,
         ignore=shutil.ignore_patterns("*.pdb"),  # Exclude PDBs (not needed in payloads)
     )
+
+def build_coreroot_payload_simple(
+    core_root_dest: str,
+    tfm: str,
+    os_group: str,
+    architecture: str,
+    coreclr_archive_or_dir: str,
+    libraries_config: str = "Release"
+):
+    """Generate a CoreCLR `Core_Root` manually.
+
+    This is a simplified version of `build_coreroot_payload` that does not require a clone of the runtime
+    repository. If the runtime repository is available, build_coreroot_payload should be used instead to ensure
+    accuracy in case the layout generation code changes.
+
+    This Core_Root can't be used to run the tests in the dotnet/runtime repository as it does not create the targeting
+    pack, however the targeting pack is not needed to run the performance tests.
+    """
+    libraries_path_segment = f"{tfm}-{os_group}-{libraries_config}-{architecture}"
+    extract_archive_or_copy(coreclr_archive_or_dir, core_root_dest, prefix=f"runtime/{libraries_path_segment}/")
+    extract_archive_or_copy(coreclr_archive_or_dir, core_root_dest, prefix=f"native/{libraries_path_segment}/")
+    extract_archive_or_copy(coreclr_archive_or_dir, core_root_dest, prefix=f"coreclr/{os_group}.{architecture}.{libraries_config}/")
+
+    # chmod +x corerun
+    if os_group != "windows":
+        corerun_executable = os.path.join(core_root_dest, "corerun")
+        if os.path.exists(corerun_executable):
+            os.chmod(corerun_executable, 0o755)
 
 def build_mono_payload(
     mono_payload_dst: str,

@@ -17,22 +17,11 @@ from .common import get_repo_root_path
 class LoggerStateManager:
     def __init__(self):
         self.logger_initialized = False
-        self.logger_opentelemetry_imported = False
 
     def set_initialized(self, value: bool): self.logger_initialized = value
-    def set_opentelemetry_imported(self, value: bool): self.logger_opentelemetry_imported = value
     def get_initialized(self) -> bool: return self.logger_initialized
-    def get_opentelemetry_imported(self) -> bool: return self.logger_opentelemetry_imported
 
 logger_state_manager = LoggerStateManager()
-
-try:
-    from opentelemetry._logs import set_logger_provider
-    from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
-    from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, ConsoleLogExporter
-    logger_state_manager.set_opentelemetry_imported(True)
-except ImportError:
-    pass
 
 def setup_loggers(verbose: bool, enable_open_telemetry_logger: bool = False):
     '''Setup the root logger for the performance scripts.'''
@@ -51,7 +40,11 @@ def setup_loggers(verbose: bool, enable_open_telemetry_logger: bool = False):
         getLogger().addHandler(__get_console_handler(verbose))
 
         if enable_open_telemetry_logger:
-            if logger_state_manager.get_opentelemetry_imported():
+            try:
+                from opentelemetry._logs import set_logger_provider
+                from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+                from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, ConsoleLogExporter
+
                 logger_provider = LoggerProvider()
                 set_logger_provider(logger_provider)
                 logger_provider.add_log_record_processor(BatchLogRecordProcessor(ConsoleLogExporter()))
@@ -59,7 +52,7 @@ def setup_loggers(verbose: bool, enable_open_telemetry_logger: bool = False):
 
                 # Attach OTel handler to logger
                 getLogger().addHandler(handler)
-            else:
+            except ImportError:
                 getLogger().warning('OpenTelemetry not imported. Skipping OpenTelemetry logger initialization.')
 
         # Log file handler

@@ -12,7 +12,7 @@ from logging import getLogger
 from os import path
 from subprocess import CalledProcessError
 from traceback import format_exc
-from typing import Any, List
+from typing import Any
 
 import csv
 import sys
@@ -31,8 +31,8 @@ import dotnet
 setup_tracing()
 tracer = get_tracer()
 
-@tracer.start_as_current_span(name="micro_benchmarks_get_supported_configurations") # type: ignore
-def get_supported_configurations() -> List[str]:
+@tracer.start_as_current_span(name="micro_benchmarks_get_supported_configurations")
+def get_supported_configurations() -> list[str]:
     '''
     The configuration to use for building the project. The default for most
     projects is 'Release'
@@ -124,7 +124,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Full path to dotnet.exe',
     )
 
-    def __get_bdn_arguments(user_input: str) -> List[str]:
+    def __get_bdn_arguments(user_input: str) -> list[str]:
         file = StringIO(user_input)
         reader = csv.reader(file, delimiter=' ')
         for args in reader:
@@ -167,13 +167,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Move the binaries to a different directory for running',
     )
 
-    def __valid_dir_path(file_path: str) -> str:
-        '''Verifies that specified file path exists.'''
-        file_path = path.abspath(file_path)
-        if not path.isdir(file_path):
-            raise ArgumentTypeError('{} does not exist.'.format(file_path))
-        return file_path
-
     def __csproj_file_path(file_path: str) -> dotnet.CSharpProjFile:
         file_path = __valid_file_path(file_path)
         return dotnet.CSharpProjFile(
@@ -209,7 +202,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--bin-directory',
         dest='bin_directory',
         required=False,
-        default=path.join(get_repo_root_path(), 'artifacts', 'bin'),
+        default=path.join(get_artifacts_directory(), 'bin'),
         type=__absolute_path,
         help='Root of the bin directory',
     )
@@ -217,7 +210,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     return parser
 
 
-def __process_arguments(args: List[str]):
+def __process_arguments(args: list[str]):
     parser = ArgumentParser(
         description="Builds the benchmarks.",
         allow_abbrev=False)
@@ -234,8 +227,8 @@ def __process_arguments(args: List[str]):
     return parser.parse_args(args)
 
 
-def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> List[str]:
-    run_args: List[str] = []
+def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:
+    run_args: list[str] = []
     if args.corerun:
         run_args += ['--coreRun'] + args.corerun
     if args.cli:
@@ -285,7 +278,7 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> List[str]:
 
     return run_args
 
-@tracer.start_as_current_span(name="micro_benchmarks_get_bin_dir_to_use") # type: ignore
+@tracer.start_as_current_span(name="micro_benchmarks_get_bin_dir_to_use")
 def get_bin_dir_to_use(csprojfile: dotnet.CSharpProjFile, bin_directory: str, run_isolated: bool) -> str:
     '''
     Gets the bin_directory, which might be different if run_isolate=True
@@ -295,11 +288,11 @@ def get_bin_dir_to_use(csprojfile: dotnet.CSharpProjFile, bin_directory: str, ru
     else:
         return bin_directory
 
-@tracer.start_as_current_span(name="micro_benchmarks_build") # type: ignore
+@tracer.start_as_current_span(name="micro_benchmarks_build")
 def build(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
-        target_framework_monikers: List[str],
+        target_framework_monikers: list[str],
         incremental: str,
         run_isolated: bool,
         for_wasm: bool,
@@ -321,7 +314,7 @@ def build(
     __log_script_header("Restoring .NET micro benchmarks")
     BENCHMARKS_CSPROJ.restore(packages_path=packages, verbose=verbose)
 
-    build_args: List[str] = []
+    build_args: list[str] = []
     if for_wasm:
         build_args += ['/p:BuildingForWasm=true']
 
@@ -344,7 +337,7 @@ def build(
         objDir = path.join(get_artifacts_directory(), 'obj', BENCHMARKS_CSPROJ.project_name)
         remove_directory(objDir)
 
-@tracer.start_as_current_span(name="micro_benchmarks_run") # type: ignore
+@tracer.start_as_current_span(name="micro_benchmarks_run")
 def run(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
@@ -359,7 +352,7 @@ def run(
 
     # dotnet exec
     run_args = __get_benchmarkdotnet_arguments(framework, args)
-    target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(
+    target_framework_moniker = dotnet.get_target_framework_moniker(
         framework
     )
 
@@ -388,8 +381,8 @@ def __log_script_header(message: str):
     getLogger().info(message)
     getLogger().info('-' * len(message))
 
-@tracer.start_as_current_span("micro_benchmarks_main") # type: ignore
-def __main(argv: List[str]) -> int:
+@tracer.start_as_current_span("micro_benchmarks_main")
+def __main(argv: list[str]) -> int:
     try:
         validate_supported_runtime()
         args = __process_arguments(argv)
@@ -398,8 +391,7 @@ def __main(argv: List[str]) -> int:
         frameworks = args.frameworks
         incremental = args.incremental
         verbose = args.verbose
-        target_framework_monikers = dotnet.FrameworkAction. \
-            get_target_framework_monikers(frameworks)
+        target_framework_monikers = dotnet.get_target_framework_monikers(frameworks)
 
         setup_loggers(verbose=verbose)
 

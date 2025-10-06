@@ -12,7 +12,7 @@ import tempfile
 from traceback import format_exc
 import urllib.request
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from build_runtime_payload import *
 import ci_setup
@@ -20,7 +20,7 @@ from performance.common import RunCommand, set_environment_variable
 from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
-def output_counters_for_crank(reports: List[Any]):
+def output_counters_for_crank(reports: list[Any]):
     print("#StartJobStatistics")
 
     statistics: dict[str, list[Any]] = {
@@ -92,7 +92,7 @@ class RunPerformanceJobArgs:
     linking_type: str = "dynamic"
     runtime_type: str = "coreclr"
     affinity: Optional[str] = "0"
-    run_env_vars: Dict[str, str] = field(default_factory=dict) # type: ignore
+    run_env_vars: dict[str, str] = field(default_factory=dict[str, str])
     is_scenario: bool = False
     runtime_flavor: Optional[str] = None
     local_build: bool = False
@@ -264,11 +264,14 @@ def get_pre_commands(
         
     return helix_pre_commands
 
-def get_post_commands(os_group: str, runtime_type: str):
+def get_post_commands(os_group: str, internal: bool, runtime_type: str):
     if os_group == "windows":
         helix_post_commands = ["set PYTHONPATH=%ORIGPYPATH%"]
     else:
         helix_post_commands = ["export PYTHONPATH=$ORIGPYPATH"]
+
+    if internal:
+        helix_post_commands += ["deactivate"] # deactivate venv
 
     if runtime_type == "wasm" and os_group != "windows":
         helix_post_commands += [
@@ -331,8 +334,7 @@ def get_bdn_arguments(
         javascript_engine_path: Optional[str] = None,
         product_version: Optional[str] = None,
         corerun_payload_dir: Optional[str] = None,
-        extra_bdn_args: Optional[str] = None):
-    
+        extra_bdn_args: Optional[str] = None) -> list[str]:
     bdn_arguments = ["--anyCategories", run_categories]
 
     if affinity is not None and not "0":
@@ -379,6 +381,7 @@ def get_bdn_arguments(
         if javascript_engine == "v8":
             wasm_args += ["--module"]
 
+        assert javascript_engine_path is not None
         bdn_arguments += [
             "--wasmEngine", javascript_engine_path,
             f"\\\"--wasmArgs={' '.join(wasm_args)}\\\"",
@@ -673,8 +676,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
         if args.use_local_commit_time:
             get_commit_time_command = RunCommand(["git", "show", "-s", "--format=%ci", args.perf_repo_hash], verbose=True)
-            get_commit_time_command.run(args.runtime_repo_dir)
-            ci_setup_arguments.commit_time = f"{get_commit_time_command.stdout.strip()}"
+            ci_setup_arguments.commit_time = get_commit_time_command.run_and_get_stdout(args.runtime_repo_dir).strip()
 
     # not_in_lab should stay False for internal dotnet performance CI runs
     if not args.internal and not args.performance_repo_ci:
@@ -882,7 +884,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         agent_python = "python3"
 
     helix_pre_commands = get_pre_commands(args.os_group, args.internal, args.runtime_type, args.codegen_type, v8_version)
-    helix_post_commands = get_post_commands(args.os_group, args.runtime_type)
+    helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
 
     ci_setup_arguments.local_build = args.local_build
 
@@ -934,7 +936,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     dotnet_executable_path = os.path.join(ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir, "dotnet")
     ci_artifacts_log_dir = os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config)
 
-    def publish_dotnet_app_to_payload(payload_dir_name, csproj_path, self_contained=True):
+    def publish_dotnet_app_to_payload(payload_dir_name: str, csproj_path: str, self_contained: bool = True):
         RunCommand([
             dotnet_executable_path, "publish", 
             "-c", "Release", 
@@ -1181,7 +1183,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
         
 
-def main(argv: List[str]):
+def main(argv: list[str]):
     setup_loggers(verbose=True)
 
     try:

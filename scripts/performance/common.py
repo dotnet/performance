@@ -2,6 +2,7 @@
 Common functionality used by the repository scripts.
 '''
 
+from collections.abc import Callable
 from contextlib import contextmanager
 from logging import getLogger
 from os import environ
@@ -11,6 +12,7 @@ from subprocess import CalledProcessError
 from subprocess import list2cmdline
 from subprocess import PIPE, STDOUT, DEVNULL
 from subprocess import Popen
+from typing import Any, Optional, TypeVar
 from io import StringIO
 from platform import machine
 
@@ -18,7 +20,6 @@ import os
 import sys
 import time
 import base64
-from typing import Callable, List, Optional, Tuple, Type, TypeVar
 
 
 def get_machine_architecture():
@@ -46,14 +47,14 @@ def extension():
     return '.exe' if iswin() else ''
 
 def __is_supported_version() -> bool:
-    '''Checks if the script is running on the supported version (>=3.5).'''
-    return sys.version_info >= (3, 5)
+    '''Checks if the script is running on the supported version (>=3.9).'''
+    return sys.version_info >= (3, 9)
 
 
 def validate_supported_runtime():
     '''Raises a RuntimeError exception when the runtime is not supported.'''
     if not __is_supported_version():
-        raise RuntimeError('Python 3.5 or newer is required.')
+        raise RuntimeError('Python 3.9 or newer is required.')
 
 
 def get_python_executable() -> str:
@@ -76,11 +77,9 @@ def remove_directory(path: str) -> None:
     '''Recursively deletes a directory tree.'''
     if not path:
         raise TypeError('Undefined path.')
-    if not isinstance(path, str):
-        raise TypeError('Invalid type.')
 
     if os.path.isdir(path):
-        def handle_rmtree_errors(func: Callable[[str], None], path: str, excinfo: Exception):
+        def handle_rmtree_errors(func: Callable[[str], None], path: str, excinfo: Any):
             """
             Helper function to handle long path errors on Windows.
             """
@@ -168,11 +167,11 @@ def push_dir(path: Optional[str] = None):
 TRet = TypeVar('TRet')
 def retry_on_exception(
         function: Callable[[], TRet],
-        retry_count = 3,
-        retry_delay = 5,
-        retry_delay_multiplier = 1,
-        retry_exceptions: List[Type[Exception]]=[Exception], 
-        raise_exceptions: List[Type[Exception]]=[]) -> Optional[TRet]:
+        retry_count: int = 3,
+        retry_delay: float = 5,
+        retry_delay_multiplier: float = 1,
+        retry_exceptions: list[type[Exception]]=[Exception], 
+        raise_exceptions: list[type[Exception]]=[]) -> Optional[TRet]:
     '''
     Retries the specified function if it throws an exception.
 
@@ -209,12 +208,12 @@ def retry_on_exception(
             time.sleep(retry_delay)
             retry_delay *= retry_delay_multiplier
 
-def get_certificates() -> List[str]:
+def get_certificates() -> list[str]:
     '''
     Gets the certificates from the certhelper tool and on Mac uses find-certificate.
     '''
     if ismac():
-        certs: List[str] = []
+        certs: list[str] = []
         with open("/Users/helix-runner/certs/LabCert1.pfx", "rb") as f:
             certs.append(base64.b64encode(f.read()).decode())
         with open("/Users/helix-runner/certs/LabCert2.pfx", "rb") as f:
@@ -224,8 +223,7 @@ def get_certificates() -> List[str]:
         cmd_line = [(os.path.join(str(helixpayload()), 'certhelper', "CertHelper%s" % extension()))]
         cert_helper = RunCommand(cmd_line, None, True, False, 0)
         try:
-            cert_helper.run()
-            return cert_helper.stdout.splitlines()
+            return cert_helper.run_and_get_stdout().splitlines()
         except Exception as ex:
             getLogger().error("Failed to get certificates")
             getLogger().error('{0}: {1}'.format(type(ex), str(ex)))
@@ -253,6 +251,25 @@ def set_environment_variable(name: str, value: str, save_to_pipeline: bool = Tru
         __write_pipeline_variable(name, value)
     os.environ[name] = value
 
+def run_msbuild_command(args: list[str], verbose: bool=True, warn_as_error: bool=True, perf_repo_dir: Optional[str] = None) -> int:
+    if perf_repo_dir is None:
+        perf_repo_dir = get_repo_root_path()
+    msbuild_dir = os.path.join(perf_repo_dir, 'eng', 'common')
+
+    if iswin():
+        cmdline = ["powershell.exe", os.path.join(msbuild_dir, "msbuild.ps1")]
+        if not warn_as_error:
+            cmdline += ["-warnaserror", "0"]
+    else:
+        msbuild_sh_path = os.path.join(msbuild_dir, "msbuild.sh")
+        RunCommand(["chmod", "+x", msbuild_sh_path]).run()
+        cmdline = [msbuild_sh_path]
+        if not warn_as_error:
+            cmdline += ["--warnaserror", "false"]
+
+    cmdline += args
+    return RunCommand(cmdline, verbose=verbose).run()
+
 class RunCommand:
     '''
     This is a class wrapper around `subprocess.Popen` with an additional set
@@ -261,13 +278,11 @@ class RunCommand:
 
     def __init__(
             self,
-            cmdline: List[str],
-            success_exit_codes: Optional[List[int]] = None,
+            cmdline: list[str],
+            success_exit_codes: Optional[list[int]] = None,
             verbose: bool = False,
             echo: bool = True,
             retry: int = 0):
-        if cmdline is None:
-            raise TypeError('Unspecified command line to be executed.')
         if not cmdline:
             raise ValueError('Specified command line is empty.')
 
@@ -282,12 +297,12 @@ class RunCommand:
             self.__success_exit_codes = success_exit_codes
 
     @property
-    def cmdline(self) -> List[str]:
+    def cmdline(self) -> list[str]:
         '''Command-line to use when starting the application.'''
         return self.__cmdline
 
     @property
-    def success_exit_codes(self) -> List[int]:
+    def success_exit_codes(self) -> list[int]:
         '''
         The successful exit codes that the associated process specifies when it
         terminated.
@@ -308,7 +323,7 @@ class RunCommand:
     def stdout(self) -> str:
         return self.__stdout.getvalue()
 
-    def __runinternal(self, working_directory: Optional[str] = None) -> Tuple[int, str]:
+    def __runinternal(self, working_directory: Optional[str] = None) -> tuple[int, str]:
         should_pipe = self.verbose
         with push_dir(working_directory):
             quoted_cmdline = '$ '
@@ -356,3 +371,20 @@ class RunCommand:
                 returncode, quoted_cmdline)
         
         return returncode
+
+    def run_and_get_stdout(self, working_directory: Optional[str] = None) -> str:
+        '''Executes specified shell command and returns its stdout.'''
+        prev_verbose, prev_echo = self.__verbose, self.__echo
+
+        # stdout only is logged if verbose is enabled, so we temporarily enable it but with echo disabled
+        if not self.__verbose:
+            self.__verbose = True
+            self.__echo = False
+
+        try:
+            self.run(working_directory)
+        finally:
+            self.__verbose = prev_verbose
+            self.__echo = prev_echo
+
+        return self.stdout

@@ -5,10 +5,9 @@ import json
 import os
 import subprocess
 from performance.logger import getLogger
-from typing import Dict
 from datetime import datetime
 
-def versions_write_json(versiondict: Dict[str, str], outputfile: str = 'versions.json'):
+def versions_write_json(versiondict: dict[str, str], outputfile: str = 'versions.json'):
     with open(outputfile, 'w', encoding='utf-8') as file:
         json.dump(versiondict, file)
 
@@ -16,7 +15,7 @@ def versions_read_json(inputfile: str = 'versions.json'):
     with open(inputfile, 'r', encoding='utf-8') as file:
         return json.load(file)
 
-def versions_write_env(versiondict: Dict[str, str]):
+def versions_write_env(versiondict: dict[str, str]):
     for key, value in versiondict.items():
         os.environ[key.upper()] = value # Windows automatically converts environment variables to uppercase, match this behavior everywhere
 
