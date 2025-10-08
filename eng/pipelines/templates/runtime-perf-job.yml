@@ -12,7 +12,7 @@ parameters:
   codeGenType: 'JIT'
   linkingType: '' # dynamic is default
   iOSLlvmBuild: 'False'
-  iOSStripSymbols: 'False'
+  iOSStripSymbols: 'True'
   isScenario: false
   downloadSpecificBuild: null # buildId, pipeline, branchName, project
   crossBuild: false
@@ -181,31 +181,23 @@ jobs:
         #     displayName: 'Mono Android BDN Apk'
       - ${{ elseif or(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.runtimeType, 'iOSNativeAOT')) }}:
         # Download iOS Mono and CoreCLR (NativeAOT) tests
+        # Currently only running scenarios where iOSStripSymbols == 'True'
         - template: /eng/pipelines/templates/download-artifact-step.yml
           parameters:
             unpackFolder: $(builtAppDir)/iosHelloWorld
             cleanUnpackFolder: false
-            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'False')) }}:
-              artifactName: 'iOSSampleAppNoLLVMSymbols'
-              artifactFileName: 'iOSSampleAppNoLLVMSymbols.zip'
-            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
-              artifactName: 'iOSSampleAppNoLLVMNoSymbols'
-              artifactFileName: 'iOSSampleAppNoLLVMNoSymbols.zip'
-            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'False')) }}:
-              artifactName: 'iOSSampleAppLLVMSymbols'
-              artifactFileName: 'iOSSampleAppLLVMSymbols.zip'
-            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
-              artifactName: 'iOSSampleAppLLVMNoSymbols'
-              artifactFileName: 'iOSSampleAppLLVMNoSymbols.zip'
-            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter')) }}:
-              artifactName: 'iOSSampleApp'
-              artifactFileName: 'iOSSampleApp.zip'
-            ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'False')) }}:
-              artifactName: 'iOSSampleAppSymbols'
-              artifactFileName: 'iOSSampleAppSymbols.zip'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.codeGenType, 'FullAOT'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppMonoFullAOTNoLLVMNoSymbols'
+              artifactFileName: 'iOSSampleAppMonoFullAOTNoLLVMNoSymbols.zip'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.codeGenType, 'FullAOT'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppMonoFullAOTLLVMNoSymbols'
+              artifactFileName: 'iOSSampleAppMonoFullAOTLLVMNoSymbols.zip'
+            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
+              artifactFileName: 'iOSSampleAppCoreCLRInterpreterNoSymbols.zip'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
-              artifactName: 'iOSSampleAppNoSymbols'
-              artifactFileName: 'iOSSampleAppNoSymbols.zip'
+              artifactName: 'iOSSampleAppNativeAOTNoSymbols'
+              artifactFileName: 'iOSSampleAppNativeAOTNoSymbols.zip'
             displayName: 'iOS Sample App'
         # same artifact as above but don't extract .zip
         - task: DownloadBuildArtifacts@0
@@ -214,20 +206,14 @@ jobs:
             buildType: current
             downloadType: single
             downloadPath: '$(builtAppDir)/iosHelloWorldZip'
-            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'False')) }}:
-              artifactName: 'iOSSampleAppNoLLVMSymbols'
-            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
-              artifactName: 'iOSSampleAppNoLLVMNoSymbols'
-            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'False')) }}:
-              artifactName: 'iOSSampleAppLLVMSymbols'
-            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
-              artifactName: 'iOSSampleAppLLVMNoSymbols'
-            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter')) }}:
-              artifactName: 'iOSSampleApp'
-            ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'False')) }}:
-              artifactName: 'iOSSampleAppSymbols'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.codeGenType, 'FullAOT'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppMonoFullAOTNoLLVMNoSymbols'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.codeGenType, 'FullAOT'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppMonoFullAOTLLVMNoSymbols'
+            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
-              artifactName: 'iOSSampleAppNoSymbols'
+              artifactName: 'iOSSampleAppNativeAOTNoSymbols'
             checkDownloadedFiles: true
         - task: DownloadBuildArtifacts@0
           displayName: 'Download binlog files'
@@ -235,18 +221,12 @@ jobs:
             buildType: current
             downloadType: single
             downloadPath: '$(builtAppDir)/iosHelloWorldBinlog'
-            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'False')) }}:
-              artifactName: 'iOSMonoArm64NoLLVMNoStripSymbolsBuildLog'
-            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
-              artifactName: 'iOSMonoArm64NoLLVMStripSymbolsBuildLog'
-            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'False')) }}:
-              artifactName: 'iOSMonoArm64LLVMNoStripSymbolsBuildLog'
-            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
-              artifactName: 'iOSMonoArm64LLVMStripSymbolsBuildLog'
-            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter')) }}:
-              artifactName: 'iOSCoreCLRArm64BuildLog'
-            ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'False')) }}:
-              artifactName: 'iOSNativeAOTArm64NoStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.codeGenType, 'FullAOT'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSMonoFullAOTArm64NoLLVMStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.codeGenType, 'FullAOT'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSMonoFullAOTArm64LLVMStripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSCoreCLRInterpreterArm64StripSymbolsBuildLog'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSNativeAOTArm64StripSymbolsBuildLog'
             checkDownloadedFiles: true

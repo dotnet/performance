@@ -53,7 +53,7 @@ parameters:
   experimentName: ''                # optional -- Name of the experiment
   javascriptEngine: ''              # optional -- JavaScript engine to use
   iOSLlvmBuild: false               # optional -- Whether to build iOS with LLVM
-  iOSStripSymbols: false            # optional -- Whether to strip symbols from the iOS build
+  iOSStripSymbols: true            # optional -- Whether to strip symbols from the iOS build
   additionalSetupParameters: ''     # optional -- Additional arguments to pass to the script
   liveLibrariesBuildConfig: ''      # optional -- Build configuration when generating Core_Root for libraries
   crossBuild: false                 # optional -- Whether the Core_Root is being cross-compiled

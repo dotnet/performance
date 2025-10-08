@@ -10,28 +10,7 @@ jobs:
       coreclr: true
       nativeAot: true
 
-  # run iOS scenarios - Mono FullAOT
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: mono
-      platforms:
-        - osx_x64
-      jobParameters:
-        runtimeType: iOSMono
-        codeGenType: FullAOT
-        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
-        runKind: ios_scenarios
-        isScenario: true
-        logicalMachine: 'perfiphone12mini'
-        iOSLlvmBuild: False
-        iOSStripSymbols: False
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
+  # run iOS scenarios - Mono FullAOT (no LLVM)
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
@@ -54,28 +33,7 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: mono
-      platforms:
-        - osx_x64
-      jobParameters:
-        runtimeType: iOSMono
-        codeGenType: FullAOT
-        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
-        runKind: ios_scenarios
-        isScenario: true
-        logicalMachine: 'perfiphone12mini'
-        iOSLlvmBuild: True
-        iOSStripSymbols: False
-        additionalJobIdentifier: iOSLlvmBuild
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
+  # run iOS scenarios - Mono FullAOT (with LLVM)
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
@@ -113,26 +71,6 @@ jobs:
         runKind: ios_scenarios
         isScenario: true
         logicalMachine: 'perfiphone12mini'
-        iOSStripSymbols: False
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: coreclr
-      platforms:
-        - osx_x64
-      jobParameters:
-        runtimeType: iOSNativeAOT
-        codeGenType: NativeAOT
-        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
-        runKind: ios_scenarios
-        isScenario: true
-        logicalMachine: 'perfiphone12mini'
         iOSStripSymbols: True
         additionalJobIdentifier: iOSStripSymbols
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
@@ -155,7 +93,8 @@ jobs:
         runKind: ios_scenarios
         isScenario: true
         logicalMachine: 'perfiphone12mini'
-        iOSStripSymbols: false
+        iOSStripSymbols: True
+        additionalJobIdentifier: iOSStripSymbols
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         ${{ each parameter in parameters.jobParameters }}:
