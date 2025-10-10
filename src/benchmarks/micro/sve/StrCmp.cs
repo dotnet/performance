@@ -1,5 +1,3 @@
-#pragma warning disable SYSLIB5003
-
 using System;
 using System.Numerics;
 using System.Linq;
@@ -118,106 +116,95 @@ namespace SveBenchmarks
         [Benchmark]
         public unsafe long SveStrCmp()
         {
-            if (Sve.IsSupported)
+            int i = 0;
+            int elemsInVector = (int)Sve.Count8BitElements();
+
+            Vector<byte> ptrue = Sve.CreateTrueMaskByte();
+            Vector<byte> pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit(i, Size);
+            Vector<byte> cmp = Vector<byte>.Zero;
+            Vector<byte> arr1_data, arr2_data;
+
+            if (_arr1.Length == _arr2.Length)
             {
-                int i = 0;
-                int elemsInVector = (int)Sve.Count8BitElements();
-
-                Vector<byte> ptrue = Sve.CreateTrueMaskByte();
-                Vector<byte> pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit(i, Size);
-                Vector<byte> cmp = Vector<byte>.Zero;
-                Vector<byte> arr1_data, arr2_data;
-
-                if (_arr1.Length == _arr2.Length)
+                fixed (byte* arr1_ptr = _arr1, arr2_ptr = _arr2)
                 {
-                    fixed (byte* arr1_ptr = _arr1, arr2_ptr = _arr2)
+                    while (Sve.TestFirstTrue(ptrue, pLoop))
                     {
-                        while (Sve.TestFirstTrue(ptrue, pLoop))
-                        {
-                            arr1_data = Sve.LoadVector(pLoop, arr1_ptr + i);
-                            arr2_data = Sve.LoadVector(pLoop, arr2_ptr + i);
+                        arr1_data = Sve.LoadVector(pLoop, arr1_ptr + i);
+                        arr2_data = Sve.LoadVector(pLoop, arr2_ptr + i);
 
-                            // stop if any values arent equal
-                            cmp = Sve.CompareNotEqualTo(arr1_data, arr2_data);
+                        // stop if any values arent equal
+                        cmp = Sve.CompareNotEqualTo(arr1_data, arr2_data);
 
-                            if (Sve.TestAnyTrue(ptrue, cmp))
-                                break;
+                        if (Sve.TestAnyTrue(ptrue, cmp))
+                            break;
 
-                            i += elemsInVector;
+                        i += elemsInVector;
 
-                            pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit(i, Size);
-                        }
-
-                        // create a bitmask to find position of changed value
-                        int mask = 0;
-                        for (int j = 0; j < elemsInVector; j++)
-                        {
-                            // set bits in lanes with non zero elements
-                            if (cmp.GetElement(j) != 0)
-                                mask |= (1 << j);
-                        }
-
-                        int zeroCount = BitOperations.TrailingZeroCount(mask);
-
-                        if (zeroCount < elemsInVector)
-                            return _arr1[i + zeroCount] - _arr2[i + zeroCount];
-
-                        return 0;
+                        pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit(i, Size);
                     }
-                }
 
-                Debug.Assert(false, "Different array lengths are not expected");
-                return 0;
+                    // create a bitmask to find position of changed value
+                    int mask = 0;
+                    for (int j = 0; j < elemsInVector; j++)
+                    {
+                        // set bits in lanes with non zero elements
+                        if (cmp.GetElement(j) != 0)
+                            mask |= (1 << j);
+                    }
+
+                    int zeroCount = BitOperations.TrailingZeroCount(mask);
+
+                    if (zeroCount < elemsInVector)
+                        return _arr1[i + zeroCount] - _arr2[i + zeroCount];
+
+                    return 0;
+                }
             }
+
+            Debug.Assert(false, "Different array lengths are not expected");
             return 0;
         }
 
         [Benchmark]
         public unsafe long SveTail()
         {
-            if (Sve.IsSupported)
+            Vector<byte> ptrue = Sve.CreateTrueMaskByte();
+            Vector<byte> cmp;
+            Vector<byte> arr1_data, arr2_data;
+
+            int i = 0;
+            int elemsInVector = (int)Sve.Count8BitElements();
+
+            if (_arr1.Length == _arr2.Length)
             {
-                Vector<byte> ptrue = Sve.CreateTrueMaskByte();
-                Vector<byte> cmp;
-                Vector<byte> arr1_data, arr2_data;
-
-                int i = 0;
-                int elemsInVector = (int)Sve.Count8BitElements();
-
-                if (_arr1.Length == _arr2.Length)
+                fixed (byte* arr1_ptr = _arr1, arr2_ptr = _arr2)
                 {
-                    fixed (byte* arr1_ptr = _arr1, arr2_ptr = _arr2)
+                    for (; i <= Size - elemsInVector; i += elemsInVector)
                     {
-                        for (; i <= Size - elemsInVector; i += elemsInVector)
+                        arr1_data = Sve.LoadVector(ptrue, arr1_ptr + i);
+                        arr2_data = Sve.LoadVector(ptrue, arr2_ptr + i);
+
+                        cmp = Sve.CompareNotEqualTo(arr1_data, arr2_data);
+
+                        if (Sve.TestAnyTrue(ptrue, cmp))
                         {
-                            arr1_data = Sve.LoadVector(ptrue, arr1_ptr + i);
-                            arr2_data = Sve.LoadVector(ptrue, arr2_ptr + i);
-
-                            cmp = Sve.CompareNotEqualTo(arr1_data, arr2_data);
-
-                            if (Sve.TestAnyTrue(ptrue, cmp))
-                            {
-                                break;
-                            }
+                            break;
                         }
-
-                        for (; i < Size; i++)
-                        {
-                            if (_arr1[i] != _arr2[i])
-                                return _arr1[i] - _arr2[i];
-                        }
-
-                        return 0;
                     }
-                }
 
-                Debug.Assert(false, "Different array lengths are not expected");
-                return 0;
+                    for (; i < Size; i++)
+                    {
+                        if (_arr1[i] != _arr2[i])
+                            return _arr1[i] - _arr2[i];
+                    }
+
+                    return 0;
+                }
             }
 
+            Debug.Assert(false, "Different array lengths are not expected");
             return 0;
         }
     }
 }
-
-#pragma warning restore SYSLIB5003

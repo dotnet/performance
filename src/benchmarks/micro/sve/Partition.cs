@@ -1,5 +1,3 @@
-#pragma warning disable SYSLIB5003
-
 using System;
 using System.Numerics;
 using System.Runtime.Intrinsics;
@@ -74,131 +72,120 @@ namespace SveBenchmarks
         [Benchmark]
         public unsafe ulong SvePartition()
         {
-            if (Sve.IsSupported)
+            fixed (uint* input = _input, left = _left, right = _right)
             {
-                fixed (uint* input = _input, left = _left, right = _right)
+                long i = 0;
+
+                ulong indexLeft = 0;
+                ulong indexRight = 0;
+
+                Vector<uint> ones = Vector<uint>.One;
+
+                Vector<uint> firstElemVec = Sve.DuplicateSelectedScalarToVector(
+                    Sve.LoadVector(Sve.CreateTrueMaskUInt32(), input), 0
+                );
+
+                // Create a predicate for the loop.
+                Vector<uint> pLoop = Sve.CreateWhileLessThanMask32Bit(i, Size);
+
+                while (Sve.TestAnyTrue(Sve.CreateTrueMaskUInt32(), pLoop))
                 {
-                    long i = 0;
+                    // Load from the input array based on the loop predicate.
+                    Vector<uint> data = Sve.LoadVector(pLoop, input + i);
 
-                    ulong indexLeft = 0;
-                    ulong indexRight = 0;
+                    // Predicate for elements in input array less than the first element.
+                    Vector<uint> pCompare = Sve.CompareLessThan(data, firstElemVec);
 
-                    Vector<uint> ones = Vector<uint>.One;
+                    // Apply the pLoop mask.
+                    Vector<uint> pInner = Sve.ConditionalSelect(pLoop, pCompare, Vector<uint>.Zero);
 
-                    Vector<uint> firstElemVec = Sve.DuplicateSelectedScalarToVector(
-                        Sve.LoadVector(Sve.CreateTrueMaskUInt32(), input), 0
-                    );
+                    // Squash all found elements to the lower lanes of the vector.
+                    Vector<uint> compacted = Sve.Compact(pInner, data);
 
-                    // Create a predicate for the loop.
-                    Vector<uint> pLoop = Sve.CreateWhileLessThanMask32Bit(i, Size);
+                    // Store the squashed elements to the first output array.
+                    // (This uses the loop predicate, so some additional zeros may be stored).
+                    Sve.StoreAndZip(pLoop, left + indexLeft, compacted);
 
-                    while (Sve.TestAnyTrue(Sve.CreateTrueMaskUInt32(), pLoop))
-                    {
-                        // Load from the input array based on the loop predicate.
-                        Vector<uint> data = Sve.LoadVector(pLoop, input + i);
+                    // Increment the position in the first output array by the number of elements found.
+                    indexLeft = Sve.SaturatingIncrementByActiveElementCount(indexLeft, pInner);
 
-                        // Predicate for elements in input array less than the first element.
-                        Vector<uint> pCompare = Sve.CompareLessThan(data, firstElemVec);
+                    // Find all elements in input array NOT less than the first element.
+                    // (Flip the pCompare predicate by XORing with ones)
+                    pInner = Sve.ConditionalSelect(pLoop, Sve.Xor(pCompare, ones), Vector<uint>.Zero);
 
-                        // Apply the pLoop mask.
-                        Vector<uint> pInner = Sve.ConditionalSelect(pLoop, pCompare, Vector<uint>.Zero);
+                    // Repeat for the right array.
+                    compacted = Sve.Compact(pInner, data);
+                    Sve.StoreAndZip(pLoop, right + indexRight, compacted);
+                    indexRight = Sve.SaturatingIncrementByActiveElementCount(indexRight, pInner);
 
-                        // Squash all found elements to the lower lanes of the vector.
-                        Vector<uint> compacted = Sve.Compact(pInner, data);
-
-                        // Store the squashed elements to the first output array.
-                        // (This uses the loop predicate, so some additional zeros may be stored).
-                        Sve.StoreAndZip(pLoop, left + indexLeft, compacted);
-
-                        // Increment the position in the first output array by the number of elements found.
-                        indexLeft = Sve.SaturatingIncrementByActiveElementCount(indexLeft, pInner);
-
-                        // Find all elements in input array NOT less than the first element.
-                        // (Flip the pCompare predicate by XORing with ones)
-                        pInner = Sve.ConditionalSelect(pLoop, Sve.Xor(pCompare, ones), Vector<uint>.Zero);
-
-                        // Repeat for the right array.
-                        compacted = Sve.Compact(pInner, data);
-                        Sve.StoreAndZip(pLoop, right + indexRight, compacted);
-                        indexRight = Sve.SaturatingIncrementByActiveElementCount(indexRight, pInner);
-
-                        i = Sve.SaturatingIncrementBy32BitElementCount(i, 1);
-                        pLoop = Sve.CreateWhileLessThanMask32Bit(i, Size);
-                    }
-
-                    return indexRight;
+                    i = Sve.SaturatingIncrementBy32BitElementCount(i, 1);
+                    pLoop = Sve.CreateWhileLessThanMask32Bit(i, Size);
                 }
 
+                return indexRight;
             }
-            return 0;
         }
 
         [Benchmark]
         public unsafe ulong SveTail()
         {
-            if (Sve.IsSupported)
+            fixed (uint* input = _input, left = _left, right = _right)
             {
-                fixed (uint* input = _input, left = _left, right = _right)
+                long i = 0;
+
+                ulong indexLeft = 0;
+                ulong indexRight = 0;
+
+                Vector<uint> firstElemVec = Sve.DuplicateSelectedScalarToVector(
+                    Sve.LoadVector(Sve.CreateTrueMaskUInt32(), input), 0
+                );
+
+                Vector<uint> pTrue = Sve.CreateTrueMaskUInt32();
+
+                while (i < (Size - (int)Sve.Count32BitElements()))
                 {
-                    long i = 0;
+                    Vector<uint> data = Sve.LoadVector(pTrue, input + i);
 
-                    ulong indexLeft = 0;
-                    ulong indexRight = 0;
+                    // Predicate for elements in input array less than the first element.
+                    Vector<uint> pInner = Sve.CompareLessThan(data, firstElemVec);
 
-                    Vector<uint> firstElemVec = Sve.DuplicateSelectedScalarToVector(
-                        Sve.LoadVector(Sve.CreateTrueMaskUInt32(), input), 0
-                    );
+                    // Squash all found elements to the lower lanes of the vector.
+                    Vector<uint> compacted = Sve.Compact(pInner, data);
 
-                    Vector<uint> pTrue = Sve.CreateTrueMaskUInt32();
+                    // Store the squashed elements to the first output array.
+                    Sve.StoreAndZip(pTrue, left + indexLeft, compacted);
 
-                    while (i < (Size - (int)Sve.Count32BitElements()))
-                    {
-                        Vector<uint> data = Sve.LoadVector(pTrue, input + i);
+                    // Increment the position in the first output array by the number of elements found.
+                    indexLeft = Sve.SaturatingIncrementByActiveElementCount(indexLeft, pInner);
 
-                        // Predicate for elements in input array less than the first element.
-                        Vector<uint> pInner = Sve.CompareLessThan(data, firstElemVec);
+                    // Find elements greater than or equal to the first element.
+                    pInner = Sve.CompareGreaterThanOrEqual(data, firstElemVec);
 
-                        // Squash all found elements to the lower lanes of the vector.
-                        Vector<uint> compacted = Sve.Compact(pInner, data);
+                    // Repeat for the right array.
+                    compacted = Sve.Compact(pInner, data);
+                    Sve.StoreAndZip(pTrue, right + indexRight, compacted);
+                    indexRight = Sve.SaturatingIncrementByActiveElementCount(indexRight, pInner);
 
-                        // Store the squashed elements to the first output array.
-                        Sve.StoreAndZip(pTrue, left + indexLeft, compacted);
-
-                        // Increment the position in the first output array by the number of elements found.
-                        indexLeft = Sve.SaturatingIncrementByActiveElementCount(indexLeft, pInner);
-
-                        // Find elements greater than or equal to the first element.
-                        pInner = Sve.CompareGreaterThanOrEqual(data, firstElemVec);
-
-                        // Repeat for the right array.
-                        compacted = Sve.Compact(pInner, data);
-                        Sve.StoreAndZip(pTrue, right + indexRight, compacted);
-                        indexRight = Sve.SaturatingIncrementByActiveElementCount(indexRight, pInner);
-
-                        i = Sve.SaturatingIncrementBy32BitElementCount(i, 1);
-                    }
-
-                    // Handler remaining elements.
-                    for (; i < Size; i++)
-                    {
-                        if (input[i] < input[0])
-                        {
-                            left[indexLeft] = input[i];
-                            indexLeft++;
-                        }
-                        else
-                        {
-                            right[indexRight] = input[i];
-                            indexRight++;
-                        }
-                    }
-
-                    return indexRight;
+                    i = Sve.SaturatingIncrementBy32BitElementCount(i, 1);
                 }
+
+                // Handler remaining elements.
+                for (; i < Size; i++)
+                {
+                    if (input[i] < input[0])
+                    {
+                        left[indexLeft] = input[i];
+                        indexLeft++;
+                    }
+                    else
+                    {
+                        right[indexRight] = input[i];
+                        indexRight++;
+                    }
+                }
+
+                return indexRight;
             }
-            return 0;
         }
     }
 }
-
-#pragma warning restore SYSLIB5003

@@ -1,5 +1,3 @@
-#pragma warning disable SYSLIB5003
-
 using System;
 using System.Numerics;
 using System.Linq;
@@ -106,81 +104,71 @@ namespace SveBenchmarks
         [Benchmark]
         public unsafe int SveIndexOf()
         {
-            if (Sve.IsSupported)
+            int i = 0;
+
+            fixed (char* arr_ptr = _array)
             {
-                int i = 0;
+                Vector<ushort> target = new Vector<ushort>((ushort)_searchValue);
+                var pLoop = (Vector<ushort>)Sve.CreateWhileLessThanMask16Bit(i, Size);
 
-                fixed (char* arr_ptr = _array)
+                while (Sve.TestFirstTrue(Sve.CreateTrueMaskUInt16(), pLoop))
                 {
-                    Vector<ushort> target = new Vector<ushort>((ushort)_searchValue);
-                    var pLoop = (Vector<ushort>)Sve.CreateWhileLessThanMask16Bit(i, Size);
+                    Vector<ushort> vals = Sve.LoadVector(pLoop, ((ushort*)arr_ptr) + i);
+                    Vector<ushort> cmpVec = Sve.CompareEqual(vals, target);
 
-                    while (Sve.TestFirstTrue(Sve.CreateTrueMaskUInt16(), pLoop))
+                    // Test if the character is found in the current values.
+                    if (Sve.TestAnyTrue(Sve.CreateTrueMaskUInt16(), cmpVec))
                     {
-                        Vector<ushort> vals = Sve.LoadVector(pLoop, ((ushort*)arr_ptr) + i);
-                        Vector<ushort> cmpVec = Sve.CompareEqual(vals, target);
-
-                        // Test if the character is found in the current values.
-                        if (Sve.TestAnyTrue(Sve.CreateTrueMaskUInt16(), cmpVec))
-                        {
-                            // Set elements up to and including the first active element to 1 and the rest to 0.
-                            Vector<ushort> brkVec = Sve.CreateBreakAfterMask(Sve.CreateTrueMaskUInt16(), cmpVec);
-                            // The offset is the number of active elements minus 1.
-                            return (int)Sve.SaturatingIncrementByActiveElementCount(i - 1, brkVec);
-                        }
-
-                        i += (int)Sve.Count16BitElements();
-                        pLoop = (Vector<ushort>)Sve.CreateWhileLessThanMask16Bit(i, Size);
+                        // Set elements up to and including the first active element to 1 and the rest to 0.
+                        Vector<ushort> brkVec = Sve.CreateBreakAfterMask(Sve.CreateTrueMaskUInt16(), cmpVec);
+                        // The offset is the number of active elements minus 1.
+                        return (int)Sve.SaturatingIncrementByActiveElementCount(i - 1, brkVec);
                     }
-                }
-            }
 
-            return -1;
+                    i += (int)Sve.Count16BitElements();
+                    pLoop = (Vector<ushort>)Sve.CreateWhileLessThanMask16Bit(i, Size);
+                }
+
+                return -1;
+            }
         }
 
         [Benchmark]
         public unsafe int SveTail()
         {
-            if (Sve.IsSupported)
+            int i = 0;
+
+            fixed (char* arr_ptr = _array)
             {
-                int i = 0;
+                Vector<ushort> target = new Vector<ushort>((ushort)_searchValue);
+                var pLoop = (Vector<ushort>)Sve.CreateTrueMaskInt16();
 
-                fixed (char* arr_ptr = _array)
+                while (i < (Size - (int)Sve.Count16BitElements()))
                 {
-                    Vector<ushort> target = new Vector<ushort>((ushort)_searchValue);
-                    var pLoop = (Vector<ushort>)Sve.CreateTrueMaskInt16();
+                    Vector<ushort> vals = Sve.LoadVector(pLoop, ((ushort*)arr_ptr) + i);
+                    Vector<ushort> cmpVec = Sve.CompareEqual(vals, target);
 
-                    while (i < (Size - (int)Sve.Count16BitElements()))
+                    // Test if the character is found in the current values.
+                    if (Sve.TestAnyTrue(Sve.CreateTrueMaskUInt16(), cmpVec))
                     {
-                        Vector<ushort> vals = Sve.LoadVector(pLoop, ((ushort*)arr_ptr) + i);
-                        Vector<ushort> cmpVec = Sve.CompareEqual(vals, target);
-
-                        // Test if the character is found in the current values.
-                        if (Sve.TestAnyTrue(Sve.CreateTrueMaskUInt16(), cmpVec))
-                        {
-                            // Set elements up to and including the first active element to 1 and the rest to 0.
-                            Vector<ushort> brkVec = Sve.CreateBreakAfterMask(Sve.CreateTrueMaskUInt16(), cmpVec);
-                            // The offset is the number of active elements minus 1.
-                            return (int)Sve.SaturatingIncrementByActiveElementCount(i - 1, brkVec);
-                        }
-
-                        i += (int)Sve.Count16BitElements();
+                        // Set elements up to and including the first active element to 1 and the rest to 0.
+                        Vector<ushort> brkVec = Sve.CreateBreakAfterMask(Sve.CreateTrueMaskUInt16(), cmpVec);
+                        // The offset is the number of active elements minus 1.
+                        return (int)Sve.SaturatingIncrementByActiveElementCount(i - 1, brkVec);
                     }
 
-                    for (; i < Size; i++)
-                    {
-                        if (arr_ptr[i] == _searchValue)
-                            return i;
-                    }
-
-                    return -1;
+                    i += (int)Sve.Count16BitElements();
                 }
-            }
 
-            return -1;
+                for (; i < Size; i++)
+                {
+                    if (arr_ptr[i] == _searchValue)
+                        return i;
+                }
+
+                return -1;
+            }
         }
 
     }
 }
-
-#pragma warning restore SYSLIB5003
