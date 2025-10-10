@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Reflection.Emit;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -12,52 +10,17 @@ namespace System.Reflection
     [BenchmarkCategory(Categories.Runtime, Categories.Reflection)]
     public class RuntimePropertyInfo
     {
-        private const int Iterations = 1200;
-        private readonly List<PropertyInfo> _properties = new(Iterations);
+        private static readonly PropertyInfo s_propertyInfo = typeof(RuntimePropertyInfoTestClass).GetProperty(nameof(RuntimePropertyInfoTestClass.Property1));
 
-        [GlobalSetup]
-        public void Setup()
+        [Benchmark]
+        public int GetHashCodeBenchmark()
         {
-            var baseType = typeof(RuntimePropertyInfoTestClass);
-            var propertiesPerType = baseType.GetProperties().Length;
-
-            var assemblyName = new AssemblyName(baseType.Namespace + ".DynamicAssembly");
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
-            var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
-
-            for (var i = 0; i < Iterations; i += propertiesPerType)
-            {
-                var typeBuilder = moduleBuilder.DefineType($"RuntimeDerivedClass{i}", TypeAttributes.Public, baseType);
-
-                var derivedType = typeBuilder.CreateType();
-                _properties.AddRange(derivedType.GetProperties());
-            }
-        }
-
-        [GlobalCleanup]
-        public void Cleanup()
-        {
-            _properties.Clear();
-        }
-
-        [Benchmark(OperationsPerInvoke = Iterations)]
-        public HashSet<PropertyInfo> AddToHashSet()
-        {
-            var set = new HashSet<PropertyInfo>();
-
-            for (int i = 0; i < _properties.Count; i++)
-            {
-                set.Add(_properties[i]);
-            }
-
-            return set;
+            return s_propertyInfo.GetHashCode();
         }
     }
 
     public class RuntimePropertyInfoTestClass
     {
         public int Property1 { get; set; }
-        public string Property2 { get; set; }
-        public DateTime Property3 { get; set; }
     }
 }
