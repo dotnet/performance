@@ -119,14 +119,10 @@ jobs:
         buildType: 'mono_arm64_ios'
         dependencyJobName: build_ios_arm64_release_iOSMono
         artifacts:
-        - artifactName: 'iOSSampleAppLLVMNoSymbols'
-          files: [ 'iOSSampleAppLLVMNoSymbols.zip' ]
-        - artifactName: 'iOSSampleAppLLVMSymbols'
-          files: [ 'iOSSampleAppLLVMSymbols.zip' ]
-        - artifactName: 'iOSSampleAppNoLLVMNoSymbols'
-          files: [ 'iOSSampleAppNoLLVMNoSymbols.zip' ]
-        - artifactName: 'iOSSampleAppNoLLVMSymbols'
-          files: [ 'iOSSampleAppNoLLVMSymbols.zip' ]
+        - artifactName: 'iOSSampleAppMonoFullAOTLLVMNoSymbols'
+          files: [ 'iOSSampleAppMonoFullAOTLLVMNoSymbols.zip' ]
+        - artifactName: 'iOSSampleAppMonoFullAOTNoLLVMNoSymbols'
+          files: [ 'iOSSampleAppMonoFullAOTNoLLVMNoSymbols.zip' ]
                     
   - ${{ if containsValue(parameters.buildType, 'monoBDN_arm64_android') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
@@ -145,8 +141,8 @@ jobs:
         artifacts:
         - artifactName: 'iOSSampleAppSymbols'
           files: [ 'iOSSampleAppSymbols.zip' ]
-        - artifactName: 'iOSSampleAppNoSymbols'
-          files: [ 'iOSSampleAppNoSymbols.zip' ]
+        - artifactName: 'iOSSampleAppNativeAOTNoSymbols'
+          files: [ 'iOSSampleAppNativeAOTNoSymbols.zip' ]
 
   - ${{ if containsValue(parameters.buildType, 'coreclr_arm64_ios') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
@@ -154,5 +150,5 @@ jobs:
         buildType: 'coreclr_arm64_ios'
         dependencyJobName: build_ios_arm64_checked_iOSCoreCLR
         artifacts:
-        - artifactName: 'iOSSampleApp'
-          files: [ 'iOSSampleApp.zip' ]
+        - artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
+          files: [ 'iOSSampleAppCoreCLRInterpreterNoSymbols.zip' ]
