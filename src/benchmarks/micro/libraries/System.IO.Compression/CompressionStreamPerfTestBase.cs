@@ -10,21 +10,21 @@ namespace System.IO.Compression
 {
     public class Gzip : CompressionStreamPerfTestBase
     {
-        public override Stream CreateStream(Stream stream, CompressionMode mode) => new GZipStream(stream, mode);
-        public override Stream CreateStream(Stream stream, CompressionLevel level) => new GZipStream(stream, level);
+        public override Stream CreateStream(Stream stream, CompressionMode mode) => new GZipStream(stream, mode, leaveOpen: true);
+        public override Stream CreateStream(Stream stream, CompressionLevel level) => new GZipStream(stream, level, leaveOpen: true);
     }
 
     public class Deflate : CompressionStreamPerfTestBase
     {
-        public override Stream CreateStream(Stream stream, CompressionMode mode) => new DeflateStream(stream, mode);
-        public override Stream CreateStream(Stream stream, CompressionLevel level) => new DeflateStream(stream, level);
+        public override Stream CreateStream(Stream stream, CompressionMode mode) => new DeflateStream(stream, mode, leaveOpen: true);
+        public override Stream CreateStream(Stream stream, CompressionLevel level) => new DeflateStream(stream, level, leaveOpen: true);
     }
 
 #if NET6_0_OR_GREATER // API introduced in .NET 6
     public class ZLib : CompressionStreamPerfTestBase
     {
-        public override Stream CreateStream(Stream stream, CompressionMode mode) => new ZLibStream(stream, mode);
-        public override Stream CreateStream(Stream stream, CompressionLevel level) => new ZLibStream(stream, level);
+        public override Stream CreateStream(Stream stream, CompressionMode mode) => new ZLibStream(stream, mode, leaveOpen: true);
+        public override Stream CreateStream(Stream stream, CompressionLevel level) => new ZLibStream(stream, level, leaveOpen: true);
     }
 #endif
 
