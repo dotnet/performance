@@ -171,6 +171,7 @@ def get_pre_commands(
             f"python -m pip install urllib3==1.26.19",
             f"python -m pip install opentelemetry-api==1.23.0",
             f"python -m pip install opentelemetry-sdk==1.23.0",
+            f"python -m pip install six==1.17.0",
         ]
 
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
