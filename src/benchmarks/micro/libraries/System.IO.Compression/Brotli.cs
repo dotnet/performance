@@ -12,8 +12,8 @@ namespace System.IO.Compression
     {
         private const int Window = 22;
 
-        public override Stream CreateStream(Stream stream, CompressionMode mode) => new BrotliStream(stream, mode);
-        public override Stream CreateStream(Stream stream, CompressionLevel level) => new BrotliStream(stream, level);
+        public override Stream CreateStream(Stream stream, CompressionMode mode, bool leaveOpen) => new BrotliStream(stream, mode, leaveOpen);
+        public override Stream CreateStream(Stream stream, CompressionLevel level, bool leaveOpen) => new BrotliStream(stream, level, leaveOpen);
 
         [Benchmark]
         public Span<byte> Compress_WithState()
@@ -24,7 +24,7 @@ namespace System.IO.Compression
                 ReadOnlySpan<byte> input = CompressedFile.UncompressedData;
                 while (!input.IsEmpty && !output.IsEmpty)
                 {
-                    encoder.Compress(input, output, out int bytesConsumed, out int written, isFinalBlock:false);
+                    encoder.Compress(input, output, out int bytesConsumed, out int written, isFinalBlock: false);
                     input = input.Slice(bytesConsumed);
                     output = output.Slice(written);
                 }
@@ -64,7 +64,7 @@ namespace System.IO.Compression
         [Benchmark]
         public bool Decompress_WithoutState() // the level argument is not used here, but it describes how the data was compressed (in the benchmark id)
             => BrotliDecoder.TryDecompress(CompressedFile.CompressedData, CompressedFile.UncompressedData, out int bytesWritten);
-        
+
         private static int GetQuality(CompressionLevel compressLevel)
             => compressLevel == CompressionLevel.Optimal ? 11 : compressLevel == CompressionLevel.Fastest ? 1 : 0;
     }
