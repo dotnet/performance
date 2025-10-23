@@ -1,5 +1,3 @@
-#pragma warning disable SYSLIB5003
-
 using System;
 using System.Numerics;
 using System.Runtime.Intrinsics;
@@ -116,39 +114,33 @@ namespace SveBenchmarks
         [Benchmark]
         public unsafe ulong SveStrLen()
         {
-            if (Sve.IsSupported)
+            Vector<byte> ptrue = Sve.CreateTrueMaskByte();
+            Vector<byte> cmp, data;
+
+            ulong i = 0;
+            ulong elemsInVector = Sve.Count8BitElements();
+
+            Vector<byte> pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit((int)i, Size);
+
+            fixed (byte* arr_ptr = _array)
             {
-                Vector<byte> ptrue = Sve.CreateTrueMaskByte();
-                Vector<byte> cmp, data;
-
-                ulong i = 0;
-                ulong elemsInVector = Sve.Count8BitElements();
-
-                Vector<byte> pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit((int)i, Size);
-
-                fixed (byte* arr_ptr = _array)
+                while (true)
                 {
-                    while (true)
+                    data = Sve.LoadVector(pLoop, arr_ptr + i);
+                    cmp = Sve.CompareEqual(data, Vector<byte>.Zero);
+
+                    if (Sve.TestAnyTrue(ptrue, cmp))
+                        break;
+                    else
                     {
-                        data = Sve.LoadVector(pLoop, arr_ptr + i);
-                        cmp = Sve.CompareEqual(data, Vector<byte>.Zero);
-
-                        if (Sve.TestAnyTrue(ptrue, cmp))
-                            break;
-                        else
-                        {
-                            i += elemsInVector;
-                            pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit((int)i, Size);
-                        }
+                        i += elemsInVector;
+                        pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit((int)i, Size);
                     }
-
-                    i += Sve.GetActiveElementCount(pLoop, data);
-                    return i;
                 }
+
+                i += Sve.GetActiveElementCount(pLoop, data);
+                return i;
             }
-            return 0;
         }
     }
 }
-
-#pragma warning restore SYSLIB5003
