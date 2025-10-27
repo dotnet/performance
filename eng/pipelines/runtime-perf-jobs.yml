@@ -58,7 +58,7 @@ jobs:
     parameters:
       perfBranch: ${{ parameters.perfBranch }}
 
-  - ${{ if false }}:
+  - ${{ if not(startswith(variables['Build.SourceBranch'], 'refs/heads/release')) }}:
     # Build and run iOS Mono and NativeAOT scenarios
     - template: /eng/pipelines/runtime-ios-scenarios-perf-jobs.yml
       parameters:
