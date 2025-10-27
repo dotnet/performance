@@ -139,8 +139,6 @@ jobs:
         buildType: 'nativeAot_arm64_ios'
         dependencyJobName: build_ios_arm64_release_iOSNativeAOT
         artifacts:
-        - artifactName: 'iOSSampleAppSymbols'
-          files: [ 'iOSSampleAppSymbols.zip' ]
         - artifactName: 'iOSSampleAppNativeAOTNoSymbols'
           files: [ 'iOSSampleAppNativeAOTNoSymbols.zip' ]
 
@@ -148,7 +146,7 @@ jobs:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
         buildType: 'coreclr_arm64_ios'
-        dependencyJobName: build_ios_arm64_checked_iOSCoreCLR
+        dependencyJobName: build_ios_arm64_release_iOSCoreCLR
         artifacts:
         - artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
           files: [ 'iOSSampleAppCoreCLRInterpreterNoSymbols.zip' ]

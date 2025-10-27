@@ -77,3 +77,8 @@ jobs:
     - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         nativeAot: true
+
+  - ${{ if containsValue(parameters.buildType, 'coreclr_arm64_ios') }}:
+    - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        coreclr: true
