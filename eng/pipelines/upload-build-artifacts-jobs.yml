@@ -146,7 +146,7 @@ jobs:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
         buildType: 'coreclr_arm64_ios'
-        dependencyJobName: build_ios_arm64_release_iOSCoreCLR
+        dependencyJobName: build_ios_arm64_checked_iOSCoreCLR
         artifacts:
         - artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
           files: [ 'iOSSampleAppCoreCLRInterpreterNoSymbols.zip' ]
