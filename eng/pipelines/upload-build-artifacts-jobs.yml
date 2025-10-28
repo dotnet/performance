@@ -139,8 +139,6 @@ jobs:
         buildType: 'nativeAot_arm64_ios'
         dependencyJobName: build_ios_arm64_release_iOSNativeAOT
         artifacts:
-        - artifactName: 'iOSSampleAppSymbols'
-          files: [ 'iOSSampleAppSymbols.zip' ]
         - artifactName: 'iOSSampleAppNativeAOTNoSymbols'
           files: [ 'iOSSampleAppNativeAOTNoSymbols.zip' ]
 
