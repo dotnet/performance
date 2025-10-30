@@ -99,8 +99,8 @@ namespace SveBenchmarks
                 {
                     // Since pLoop is a Vector<uint> predicate, we load the input as uint array,
                     // then cast it back to Vector<float>.
-                    // This is preferrable to casting pLoop to Vector<float>, which would cause
-                    // a unnecessary conversion from predicate to vector in the codegen.
+                    // This is preferable to casting pLoop to Vector<float>, which would cause
+                    // an unnecessary conversion from predicate to vector in the codegen.
                     Vector<float> inVec = (Vector<float>)Sve.LoadVector(pLoop, (uint*)(input + i));
                     Vector<float> outVec = Sve.Sqrt(inVec);
                     Sve.StoreAndZip(pLoop, (uint*)output + i, (Vector<uint>)outVec);
