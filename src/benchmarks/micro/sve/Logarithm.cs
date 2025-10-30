@@ -117,7 +117,7 @@ namespace SveBenchmarks
                     Vector128<uint> u = AdvSimd.And(u_off, Vector128.Create(0x007fffffu));
                     u = AdvSimd.Add(u, offVec);
 
-                    Vector128<float> r = Sve.Subtract(u.AsSingle(), Vector128.Create(1.0f));
+                    Vector128<float> r = AdvSimd.Subtract(u.AsSingle(), Vector128.Create(1.0f));
                     // y = log(1+r) + n*ln2.
                     Vector128<float> r2 = AdvSimd.Multiply(r, r);
 
