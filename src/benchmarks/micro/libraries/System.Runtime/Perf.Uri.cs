@@ -67,7 +67,7 @@ namespace System.Tests
         public string ParseAbsoluteUri() => new Uri("http://127.0.0.1:80").AbsoluteUri;
 
         [Benchmark]
-        public string DnsSafeHost() => new Uri("http://[fe80::3]%1").DnsSafeHost;
+        public string DnsSafeHost() => new Uri("http://[fe80::3%251]").DnsSafeHost;
 
         [Benchmark]
         [MemoryRandomization]
