@@ -52,7 +52,7 @@ jobs:
         - ${{ if eq(parameters.runtimeType, 'iOSMono')}}:
           - ${{ 'build_ios_arm64_release_iOSMono' }}
         - ${{ if eq(parameters.runtimeType, 'iOSCoreCLR')}}:
-          - ${{ 'build_ios_arm64_checked_iOSCoreCLR' }}
+          - ${{ 'build_ios_arm64_release_iOSCoreCLR' }}
         - ${{ if eq(parameters.runtimeType, 'iOSNativeAOT')}}:
           - ${{ 'build_ios_arm64_release_iOSNativeAOT' }}
 
