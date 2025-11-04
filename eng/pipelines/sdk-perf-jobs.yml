@@ -577,7 +577,7 @@ jobs:
 - ${{ if parameters.runScheduledPrivateJobs }}:
 
   # SDK scenario benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml`
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
