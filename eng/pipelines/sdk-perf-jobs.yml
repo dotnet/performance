@@ -380,8 +380,8 @@ jobs:
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
-        #- win-x64-android-arm64-pixel
-        #- win-x64-android-arm64-galaxy
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
         runKind: maui_scenarios_android
@@ -399,8 +399,8 @@ jobs:
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
-        #- win-x64-android-arm64-pixel
-        #- win-x64-android-arm64-galaxy
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
         runKind: maui_scenarios_android
@@ -418,8 +418,8 @@ jobs:
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
-        #- win-x64-android-arm64-pixel
-        #- win-x64-android-arm64-galaxy
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
         runKind: maui_scenarios_android
@@ -437,8 +437,8 @@ jobs:
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
-        #- win-x64-android-arm64-pixel
-        #- win-x64-android-arm64-galaxy
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
         runKind: maui_scenarios_android
@@ -456,8 +456,8 @@ jobs:
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
-        #- win-x64-android-arm64-pixel
-        #- win-x64-android-arm64-galaxy
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
         runKind: maui_scenarios_android
@@ -475,8 +475,8 @@ jobs:
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
-        #- win-x64-android-arm64-pixel
-        #- win-x64-android-arm64-galaxy
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
         runKind: maui_scenarios_android
@@ -577,7 +577,7 @@ jobs:
 - ${{ if parameters.runScheduledPrivateJobs }}:
 
   # SDK scenario benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
+  - template: /eng/pipelines/templates/build-machine-matrix.yml`
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
