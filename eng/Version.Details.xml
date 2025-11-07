@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="10.0.0-rc.1.25556.105">
+    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="10.0.0-rc.3.25556.111">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>49d9841a4ab60189eef934f8736c2752f75f8e8d</Sha>
+      <Sha>77ee357638bcd8fa66a1c16fa588dcd5818068d2</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="10.0.0-rc.1.25556.105">
+    <Dependency Name="Microsoft.NET.ILLink" Version="10.0.0-rc.3.25556.111">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>49d9841a4ab60189eef934f8736c2752f75f8e8d</Sha>
+      <Sha>77ee357638bcd8fa66a1c16fa588dcd5818068d2</Sha>
     </Dependency>
-    <Dependency Name="System.Threading.Channels" Version="10.0.0-rc.1.25556.105">
+    <Dependency Name="System.Threading.Channels" Version="10.0.0-rc.3.25556.111">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>49d9841a4ab60189eef934f8736c2752f75f8e8d</Sha>
+      <Sha>77ee357638bcd8fa66a1c16fa588dcd5818068d2</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="10.0.0-rc.1.25556.105">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="10.0.0-rc.3.25556.111">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>49d9841a4ab60189eef934f8736c2752f75f8e8d</Sha>
+      <Sha>77ee357638bcd8fa66a1c16fa588dcd5818068d2</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="10.0.0-rc.1.25556.105">
+    <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="10.0.0-rc.3.25556.111">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>49d9841a4ab60189eef934f8736c2752f75f8e8d</Sha>
+      <Sha>77ee357638bcd8fa66a1c16fa588dcd5818068d2</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="10.0.0-rc.1.25556.105">
+    <Dependency Name="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="10.0.0-rc.3.25556.111">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>49d9841a4ab60189eef934f8736c2752f75f8e8d</Sha>
+      <Sha>77ee357638bcd8fa66a1c16fa588dcd5818068d2</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.25556.105">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.25556.111">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>49d9841a4ab60189eef934f8736c2752f75f8e8d</Sha>
+      <Sha>77ee357638bcd8fa66a1c16fa588dcd5818068d2</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.25556.105">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.25556.111">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>49d9841a4ab60189eef934f8736c2752f75f8e8d</Sha>
+      <Sha>77ee357638bcd8fa66a1c16fa588dcd5818068d2</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="10.0.0-prerelease.25475.1">
       <Uri>https://github.com/dotnet/xharness</Uri>
@@ -55,12 +55,12 @@
       <Sha>88c2c7ae772437921d85186318dd4320c4848618</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.NET.Sdk" Version="10.0.100-rc.2.25556.105">
-      <Sha>49d9841a4ab60189eef934f8736c2752f75f8e8d</Sha>
+    <Dependency Name="Microsoft.NET.Sdk" Version="10.0.100-rc.3.25556.111">
+      <Sha>77ee357638bcd8fa66a1c16fa588dcd5818068d2</Sha>
       <Uri>https://github.com/dotnet/dotnet</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.NETCore.App.Ref" Version="10.0.0-rc.1.25556.105">
-      <Sha>49d9841a4ab60189eef934f8736c2752f75f8e8d</Sha>
+    <Dependency Name="Microsoft.NETCore.App.Ref" Version="10.0.0-rc.3.25556.111">
+      <Sha>77ee357638bcd8fa66a1c16fa588dcd5818068d2</Sha>
       <Uri>https://github.com/dotnet/dotnet</Uri>
     </Dependency>
     <Dependency Name="Microsoft.Android.Sdk.Windows" Version="36.0.9">
