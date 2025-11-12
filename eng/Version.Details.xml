@@ -94,21 +94,21 @@
     </Dependency>
     <!-- Previous .NET iOS version(s) -->
     <!-- This is a subscription of the .NET 9 latest stable versions of our packages -->
-    <Dependency Name="Microsoft.MacCatalyst.Sdk.net9.0_26.0" Version="26.0.9771">
+    <Dependency Name="Microsoft.MacCatalyst.Sdk.net9.0_26.0" Version="26.0.9772">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>5eb3198db4d744e9dd83fe78f4b18f19944a1e72</Sha>
+      <Sha>cd641b78d0eee538b2bb6af1a635791ae89a15a9</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.macOS.Sdk.net9.0_26.0" Version="26.0.9771">
+    <Dependency Name="Microsoft.macOS.Sdk.net9.0_26.0" Version="26.0.9772">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>5eb3198db4d744e9dd83fe78f4b18f19944a1e72</Sha>
+      <Sha>cd641b78d0eee538b2bb6af1a635791ae89a15a9</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.iOS.Sdk.net9.0_26.0" Version="26.0.9771">
+    <Dependency Name="Microsoft.iOS.Sdk.net9.0_26.0" Version="26.0.9772">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>5eb3198db4d744e9dd83fe78f4b18f19944a1e72</Sha>
+      <Sha>cd641b78d0eee538b2bb6af1a635791ae89a15a9</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.tvOS.Sdk.net9.0_26.0" Version="26.0.9771">
+    <Dependency Name="Microsoft.tvOS.Sdk.net9.0_26.0" Version="26.0.9772">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>5eb3198db4d744e9dd83fe78f4b18f19944a1e72</Sha>
+      <Sha>cd641b78d0eee538b2bb6af1a635791ae89a15a9</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
