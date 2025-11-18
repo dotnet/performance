@@ -950,7 +950,9 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
             verbose=True).run()
 
-    publish_dotnet_app_to_payload("certhelper", os.path.join(args.performance_repo_dir, "src", "tools", "CertHelper", "CertHelper.csproj"))
+    # Skip publishing CertHelper for WASM runs as a bug is breaking the build https://github.com/dotnet/runtime/issues/120901
+    if not wasm:
+        publish_dotnet_app_to_payload("certhelper", os.path.join(args.performance_repo_dir, "src", "tools", "CertHelper", "CertHelper.csproj"))
 
     if args.is_scenario:
         set_environment_variable("DOTNET_ROOT", ci_setup_arguments.install_dir, save_to_pipeline=True)
