@@ -117,47 +117,47 @@ And select one of the benchmarks from the list by either entering its number or 
 
 #### Filtering the Benchmarks
 
-You can filter the benchmarks using `--filter $globPattern` console line argument. The filter is **case insensitive**.
+You can filter the benchmarks using `--filter "$globPattern"` console line argument. The filter is **case insensitive**.
 
 The glob patterns are applied to full benchmark name: namespace.typeName.methodName. Examples (all in the `src\benchmarks\micro` folder):
 
 - Run all the benchmarks from BenchmarksGame namespace:
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter BenchmarksGame*
+dotnet run -c Release -f net9.0 --filter 'BenchmarksGame*'
 ```
 
 - Run all the benchmarks with type name Richards:
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter *.Richards.*
+dotnet run -c Release -f net9.0 --filter '*.Richards.*'
 ```
 
 - Run all the benchmarks with method name ToStream:
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter *.ToStream
+dotnet run -c Release -f net9.0 --filter '*.ToStream'
 ```
 
 - Run ALL benchmarks:
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter *
+dotnet run -c Release -f net9.0 --filter '*'
 ```
 
 - You can provide many filters (logical disjunction):
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
+dotnet run -c Release -f net9.0 --filter 'System.Collections*.Dictionary*' '*.Perf_Dictionary.*'
 ```
 
 - To print a **joined summary** for all of the benchmarks (by default printed per type), use `--join`:
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter BenchmarksGame* --join
+dotnet run -c Release -f net9.0 --filter 'BenchmarksGame*' --join
 ```
 
-Please remember that on **Unix** systems `*` is resolved to all files in current directory, so you need to escape it `'*'`.
+Please remember that in most Unix-like shells, `*` is subject to pathname expansion, so you need to quote it, e.g. '*'.
 
 #### Listing the Benchmarks
 
@@ -166,7 +166,7 @@ To print the list of all available benchmarks you need to pass `--list [tree/fla
 Example: Show the tree of all the benchmarks from System.Threading namespace that can be run for .NET 7.0:
 
 ```cmd
-dotnet run -c Release -f net9.0 --list tree --filter System.Threading*
+dotnet run -c Release -f net9.0 --list tree --filter 'System.Threading*'
 ```
 
 ```log
@@ -261,7 +261,7 @@ If you want to disassemble the benchmarked code, you need to use the [Disassembl
 
 You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`.
 
-Example: `dotnet run -c Release -f net9.0 -- --filter System.Memory.Span<Int32>.Reverse -d`
+Example: `dotnet run -c Release -f net9.0 -- --filter 'System.Memory.Span<Int32>.Reverse' -d`
 
 ```assembly
 ; System.Runtime.InteropServices.MemoryMarshal.GetReference[[System.Byte, System.Private.CoreLib]](System.Span`1<Byte>)
@@ -304,7 +304,7 @@ To perform a Mann–Whitney U Test and display the results in a dedicated column
 Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET 7.0 (base) vs .NET 8.0 (diff). .NET 7.0 will be baseline because it was first.
 
 ```cmd
-dotnet run -c Release -f net8.0 --filter *BinaryTrees_2* --runtimes net7.0 net8.0 --statisticalTest 5%
+dotnet run -c Release -f net8.0 --filter '*BinaryTrees_2*' --runtimes net7.0 net8.0 --statisticalTest 5%
 ```
 
 |        Method |     Toolchain |     Mean | MannWhitney(5%) |

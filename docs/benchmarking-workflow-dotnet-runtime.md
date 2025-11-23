@@ -116,7 +116,7 @@ During the port from xunit-performance to BenchmarkDotNet, the namespaces, type 
 Please remember that you can filter the benchmarks using a glob pattern applied to namespace.typeName.methodName ([read more](./benchmarkdotnet.md#Filtering-the-Benchmarks)):
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter System.Memory*
+dotnet run -c Release -f net9.0 --filter 'System.Memory*'
 ```
 
 (Run the above command on `src/benchmarks/micro/MicroBenchmarks.csproj`.)
@@ -136,7 +136,7 @@ C:\Projects\runtime> build -c Release
 Every time you want to run the benchmarks against local build of [dotnet/runtime](https://github.com/dotnet/runtime) you need to provide the path to CoreRun:
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter $someFilter \
+dotnet run -c Release -f net9.0 --filter "$someFilter" \
     --coreRun C:\Projects\runtime\artifacts\bin\testhost\net9.0-windows-Release-x64\shared\Microsoft.NETCore.App\9.0.0\CoreRun.exe
 ```
 
@@ -257,7 +257,7 @@ dotnet restore $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj -
 dotnet build $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --configuration Release --framework net9.0 --no-restore /p:NuGetPackageRoot=$RunDir/performance/artifacts/packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
 
 # Run
-dotnet run --project $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --configuration Release --framework net9.0 --no-restore --no-build -- --filter $TestToRun* --anyCategories Libraries Runtime "" --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir/artifacts/bin/aot/sgen/mini/mono-sgen --customruntimepack $RunDir/artifacts/bin/aot/pack --aotcompilermode llvm --logBuildOutput --generateBinLog "" --artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --packages $RunDir/performance/artifacts/packages --buildTimeout 1200
+dotnet run --project $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --configuration Release --framework net9.0 --no-restore --no-build -- --filter "$TestToRun*" --anyCategories Libraries Runtime "" --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir/artifacts/bin/aot/sgen/mini/mono-sgen --customruntimepack $RunDir/artifacts/bin/aot/pack --aotcompilermode llvm --logBuildOutput --generateBinLog "" --artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --packages $RunDir/performance/artifacts/packages --buildTimeout 1200
 ```
 
 #### Running on Windows
@@ -294,7 +294,7 @@ dotnet restore $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj -
 dotnet build $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --configuration Release --framework net9.0 --no-restore /p:NuGetPackageRoot=$RunDir\performance\artifacts\packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
 
 # Run
-dotnet run --project $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --configuration Release --framework net9.0 --no-restore --no-build -- --filter $TestToRun* --anyCategories Libraries Runtime "" --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir\artifacts\bin\aot\sgen\mini\mono-sgen.exe --customruntimepack $RunDir\artifacts\bin\aot\pack -aotcompilermode llvm --logBuildOutput --generateBinLog "" --artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --packages $RunDir\performance\artifacts\packages --buildTimeout 1200
+dotnet run --project $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --configuration Release --framework net9.0 --no-restore --no-build -- --filter "$TestToRun*" --anyCategories Libraries Runtime "" --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir\artifacts\bin\aot\sgen\mini\mono-sgen.exe --customruntimepack $RunDir\artifacts\bin\aot\pack -aotcompilermode llvm --logBuildOutput --generateBinLog "" --artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --packages $RunDir\performance\artifacts\packages --buildTimeout 1200
 ```
 
 ### dotnet runtime testing for MonoInterpreter
@@ -485,7 +485,7 @@ Preventing regressions is a fundamental part of our performance culture. The che
 C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f net9.0 \
     --artifacts "C:\results\before" \
     --coreRun "C:\Projects\runtime\artifacts\bin\testhost\net9.0-windows-Release-x64\shared\Microsoft.NETCore.App\9.0.0\CoreRun.exe" \
-    --filter System.IO.Pipes*
+    --filter 'System.IO.Pipes*'
 ```
 
 Please try to **avoid running any resource-heavy processes** that could **spoil** the benchmark results while running the benchmarks.
@@ -500,7 +500,7 @@ C:\Projects\runtime\src\libraries\System.IO.Pipes\src> dotnet msbuild /p:Configu
 C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f net9.0 \
     --artifacts "C:\results\after" \
     --coreRun "C:\Projects\runtime\artifacts\bin\testhost\net9.0-windows-Release-x64\shared\Microsoft.NETCore.App\9.0.0\CoreRun.exe" \
-    --filter System.IO.Pipes*
+    --filter 'System.IO.Pipes*'
 ```
 
 When you have the results you should use [ResultsComparer](../src/tools/ResultsComparer/README.md) to find out how your changes have affected the performance:
@@ -526,7 +526,7 @@ To run the benchmarks against the latest .NET Core SDK you can use the [benchmar
 ```cmd
 C:\Projects\performance> py scripts\benchmarks_ci.py -f net9.0 \
     --bdn-arguments="--artifacts "C:\results\latest_sdk"" \
-    --filter System.IO.Pipes*
+    --filter 'System.IO.Pipes*'
 ```
 
 ## Solving Regressions
@@ -544,7 +544,7 @@ The real performance investigation starts with profiling. We have a comprehensiv
 To profile the benchmarked code and produce an ETW Trace file ([read more](./benchmarkdotnet.md#Profiling)):
 
 ```cmd
-dotnet run -c Release -f net9.0 --profiler ETW --filter $YourFilter
+dotnet run -c Release -f net9.0 --profiler ETW --filter "$YourFilter"
 ```
 
 The benchmarking tool is going to print the path to the `.etl` trace file. You should open it with PerfView or Windows Performance Analyzer and start the analysis from there. If you are not familiar with PerfView, you should watch [PerfView Tutorial](https://channel9.msdn.com/Series/PerfView-Tutorial) by @vancem first. It's an investment that is going to pay off very quickly.
@@ -567,7 +567,7 @@ BenchmarkDotNet has some extra features that might be useful when doing performa
 
 ### Confirmation
 
-When you identify and fix the regression, you should use [ResultsComparer](../src/tools/ResultsComparer/README.md) to confirm that you have solved the problem. Please remember that if the regression was found in a very common type like `Span<T>` and you are not sure which benchmarks to run, you can run all of them using `--filter *`.
+When you identify and fix the regression, you should use [ResultsComparer](../src/tools/ResultsComparer/README.md) to confirm that you have solved the problem. Please remember that if the regression was found in a very common type like `Span<T>` and you are not sure which benchmarks to run, you can run all of them using `--filter '*'`.
 
 Please take a moment to consider how the regression managed to enter the product. Are we now properly protected?
 
@@ -612,7 +612,7 @@ Because the benchmarks are not in the [dotnet/runtime](https://github.com/dotnet
 The first thing you need to do is send a PR with the new API to the [dotnet/runtime](https://github.com/dotnet/runtime) repository. Once your PR gets merged and a new NuGet package is published to the [dotnet/runtime](https://github.com/dotnet/runtime) NuGet feed, you should remove the Reference to a `.dll` and install/update the package consumed by [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj). You can do this by running the following script locally:
 
 ```cmd
-/home/adsitnik/projects/performance>python3 ./scripts/benchmarks_ci.py --filter $YourFilter -f net9.0
+/home/adsitnik/projects/performance>python3 ./scripts/benchmarks_ci.py --filter "$YourFilter" -f net9.0
 ```cmd
 This script will try to pull the latest .NET Core SDK from [dotnet/runtime](https://github.com/dotnet/runtime) nightly build, which should contain the new API that you just merged in your first PR, and use that to build MicroBenchmarks project and then run the benchmarks that satisfy the filter you provided.
 
