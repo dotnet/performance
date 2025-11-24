@@ -6,7 +6,7 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-#if !NET11_0_OR_GREATER
+#if NET11_0_OR_GREATER
 
 namespace System.IO.Compression
 {
