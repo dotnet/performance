@@ -6,7 +6,7 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-#if NET11_0_OR_GREATER
+#if !NET11_0_OR_GREATER
 
 namespace System.IO.Compression
 {
@@ -15,8 +15,8 @@ namespace System.IO.Compression
     {
         private const int Window = 22;
 
-        public override Stream CreateStream(Stream stream, CompressionMode mode) => new ZstandardStream(stream, mode);
-        public override Stream CreateStream(Stream stream, CompressionLevel level) => new ZstandardStream(stream, level);
+        public override Stream CreateStream(Stream stream, CompressionMode mode, bool leaveOpen) => new ZstandardStream(stream, mode, leaveOpen);
+        public override Stream CreateStream(Stream stream, CompressionLevel level, bool leaveOpen) => new ZstandardStream(stream, level, leaveOpen);
 
         [Benchmark]
         public Span<byte> Compress_WithState()
