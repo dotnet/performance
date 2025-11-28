@@ -78,7 +78,7 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # run iOS scenarios - CoreCLR
+  # run iOS scenarios - CoreCLR Interpreter
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
       jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
@@ -89,6 +89,28 @@ jobs:
       jobParameters:
         runtimeType: iOSCoreCLR
         codeGenType: Interpreter
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone12mini'
+        iOSStripSymbols: True
+        additionalJobIdentifier: iOSStripSymbols
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # run iOS scenarios - CoreCLR R2R
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: coreclr
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSCoreCLR
+        codeGenType: R2R
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
