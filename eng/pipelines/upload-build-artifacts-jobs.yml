@@ -150,3 +150,5 @@ jobs:
         artifacts:
         - artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
           files: [ 'iOSSampleAppCoreCLRInterpreterNoSymbols.zip' ]
+        - artifactName: 'iOSSampleAppCoreCLRR2RNoSymbols'
+          files: [ 'iOSSampleAppCoreCLRR2RNoSymbols.zip' ]
