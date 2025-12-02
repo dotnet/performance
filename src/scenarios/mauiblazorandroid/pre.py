@@ -30,10 +30,10 @@ with MauiNuGetConfigContext(precommands.framework):
                     exename=EXENAME,
                     working_directory=sys.path[0],
                     no_restore=False)
-
-# Update the home.razor file with the code
-with open(f"{const.APPDIR}/Components/Pages/Home.razor", "a") as homeRazorFile:
-    homeRazorFile.write(
+    
+    # Update the home.razor file with the code
+    with open(f"{const.APPDIR}/Components/Pages/Home.razor", "a") as homeRazorFile:
+        homeRazorFile.write(
 '''
 @code {
     protected override void OnAfterRender(bool firstRender)
@@ -46,22 +46,22 @@ with open(f"{const.APPDIR}/Components/Pages/Home.razor", "a") as homeRazorFile:
     }
 }
 ''')
+        
+    # Open the _Imports.razor file for appending
+    with open(f"{const.APPDIR}/_Imports.razor", "a") as importsFile:
+        importsFile.write("@using Android.App;")
     
-# Open the _Imports.razor file for appending
-with open(f"{const.APPDIR}/_Imports.razor", "a") as importsFile:
-    importsFile.write("@using Android.App;")
-
-# Replace line in the Android MainActivity.cs file
-with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "r") as mainActivityFile:
-    mainActivityFileLines = mainActivityFile.readlines()
-
-with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "w") as mainActivityFile:
-    for line in mainActivityFileLines:
-        if line.startswith("{"):
-            mainActivityFile.write("{\npublic static Android.Content.Context Context { get; private set; }\npublic MainActivity() { Context = this; }")
-        else:
-            mainActivityFile.write(line)
-
+    # Replace line in the Android MainActivity.cs file
+    with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "r") as mainActivityFile:
+        mainActivityFileLines = mainActivityFile.readlines()
+    
+    with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "w") as mainActivityFile:
+        for line in mainActivityFileLines:
+            if line.startswith("{"):
+                mainActivityFile.write("{\npublic static Android.Content.Context Context { get; private set; }\npublic MainActivity() { Context = this; }")
+            else:
+                mainActivityFile.write(line)
+    
     # Build the APK - will use merged NuGet.config
     precommands.execute([])
 # NuGet.config is automatically restored after this block

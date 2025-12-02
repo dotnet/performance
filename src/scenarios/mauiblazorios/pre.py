@@ -28,10 +28,10 @@ with MauiNuGetConfigContext(precommands.framework):
                     exename=EXENAME,
                     working_directory=sys.path[0],
                     no_restore=False)
-
-# Update the home.razor file with the code
-with open(f"{const.APPDIR}/Components/Pages/Home.razor", "a") as homeRazorFile:
-    homeRazorFile.write(
+    
+    # Update the home.razor file with the code
+    with open(f"{const.APPDIR}/Components/Pages/Home.razor", "a") as homeRazorFile:
+        homeRazorFile.write(
 '''
 @code {
     protected override void OnAfterRender(bool firstRender)
@@ -43,7 +43,7 @@ with open(f"{const.APPDIR}/Components/Pages/Home.razor", "a") as homeRazorFile:
     }
 }
 ''')
-
+    
     # Build the IPA - will use merged NuGet.config
     precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting'])
 # NuGet.config is automatically restored after this block
