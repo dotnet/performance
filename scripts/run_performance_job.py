@@ -1007,7 +1007,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             os.environ["CodegenType"] = args.codegen_type or ''
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
-            if args.os_group == "windows" or args.os_group == "osx":
+            if args.os_group == "windows" or (args.os_group == "osx" and args.run_kind not in ["maui_scenarios_ios", "maui_scenarios_android"]):
                 RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
                 RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
                 RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
