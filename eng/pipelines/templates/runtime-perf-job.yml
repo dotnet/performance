@@ -195,6 +195,9 @@ jobs:
             ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
               artifactFileName: 'iOSSampleAppCoreCLRInterpreterNoSymbols.zip'
+            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'R2R'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppCoreCLRR2RNoSymbols'
+              artifactFileName: 'iOSSampleAppCoreCLRR2RNoSymbols.zip'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppNativeAOTNoSymbols'
               artifactFileName: 'iOSSampleAppNativeAOTNoSymbols.zip'
@@ -212,6 +215,8 @@ jobs:
               artifactName: 'iOSSampleAppMonoFullAOTLLVMNoSymbols'
             ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
+            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'R2R'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppCoreCLRR2RNoSymbols'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppNativeAOTNoSymbols'
             checkDownloadedFiles: true
@@ -227,6 +232,8 @@ jobs:
               artifactName: 'iOSMonoFullAOTArm64LLVMStripSymbolsBuildLog'
             ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSCoreCLRInterpreterArm64StripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'R2R'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSCoreCLRR2RArm64StripSymbolsBuildLog'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSNativeAOTArm64StripSymbolsBuildLog'
             checkDownloadedFiles: true
