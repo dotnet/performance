@@ -5,23 +5,29 @@ import shutil
 import sys
 from performance.logger import setup_loggers, getLogger
 from shared import const
-from shared.mauisharedpython import remove_aab_files, install_latest_maui
+from shared.mauisharedpython import remove_aab_files, install_latest_maui, download_maui_nuget_config
 from shared.precommands import PreCommands
 from shared.versionmanager import versions_write_json, get_sdk_versions
 from test import EXENAME
 
 setup_loggers(True)
+logger = getLogger(__name__)
+
 precommands = PreCommands()
 install_latest_maui(precommands)
 precommands.print_dotnet_info()
 
-# Setup the Maui folder
-precommands.new(template='maui-blazor',
-                output_dir=const.APPDIR,
-                bin_dir=const.BINDIR,
-                exename=EXENAME,
-                working_directory=sys.path[0],
-                no_restore=False)
+# Use context manager to temporarily merge MAUI's NuGet feeds into repo config
+from shared.mauisharedpython import MauiNuGetConfigContext
+
+with MauiNuGetConfigContext(precommands.framework):
+    # Setup the Maui folder - will use merged NuGet.config with MAUI feeds
+    precommands.new(template='maui-blazor',
+                    output_dir=const.APPDIR,
+                    bin_dir=const.BINDIR,
+                    exename=EXENAME,
+                    working_directory=sys.path[0],
+                    no_restore=False)
 
 # Update the home.razor file with the code
 with open(f"{const.APPDIR}/Components/Pages/Home.razor", "a") as homeRazorFile:
@@ -38,9 +44,9 @@ with open(f"{const.APPDIR}/Components/Pages/Home.razor", "a") as homeRazorFile:
 }
 ''')
 
-# Build the IPA
-# NuGet.config file cannot be in the build directory due same cause as to https://github.com/dotnet/aspnetcore/issues/41397
-precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting'])
+    # Build the IPA - will use merged NuGet.config
+    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting'])
+# NuGet.config is automatically restored after this block
 
 output_dir = const.PUBDIR
 if precommands.output:

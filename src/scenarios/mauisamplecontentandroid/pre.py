@@ -5,7 +5,7 @@ import shutil
 import sys
 from performance.logger import setup_loggers, getLogger
 from shared import const
-from shared.mauisharedpython import remove_aab_files, install_latest_maui
+from shared.mauisharedpython import remove_aab_files, install_latest_maui, download_maui_nuget_config
 from shared.precommands import PreCommands
 from shared.versionmanager import versions_write_json, get_sdk_versions
 from test import EXENAME
@@ -19,17 +19,22 @@ precommands = PreCommands()
 install_latest_maui(precommands)
 precommands.print_dotnet_info()
 
-# Setup the Maui folder
-precommands.new(template='maui',
-                output_dir=const.APPDIR,
-                bin_dir=const.BINDIR,
-                exename=EXENAME,
-                working_directory=sys.path[0],
-                no_restore=False,
-                extra_args=['--sample-content'])
+# Use context manager to temporarily merge MAUI's NuGet feeds into repo config
+from shared.mauisharedpython import MauiNuGetConfigContext
 
-# Build the APK
-precommands.execute([])
+with MauiNuGetConfigContext(precommands.framework):
+    # Setup the Maui folder - will use merged NuGet.config with MAUI feeds
+    precommands.new(template='maui',
+                    output_dir=const.APPDIR,
+                    bin_dir=const.BINDIR,
+                    exename=EXENAME,
+                    working_directory=sys.path[0],
+                    no_restore=False,
+                    extra_args=['--sample-content'])
+    
+    # Build the APK - will use merged NuGet.config
+    precommands.execute([])
+# NuGet.config is automatically restored after this block
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR

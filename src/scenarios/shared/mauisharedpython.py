@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import xml.etree.ElementTree as ET
 import re
 import urllib.request
@@ -13,6 +14,124 @@ def remove_aab_files(output_dir="."):
     for file in file_list:
         if file.endswith(".aab"):
             os.remove(os.path.join(output_dir, file))  
+
+def sync_maui_version_details(target_framework: str = "net10.0"):
+    '''
+    Downloads MAUI's Version.Details.xml and merges MAUI workload dependencies into the repo's version.
+    This keeps the repo's Version.Details.xml automatically up-to-date with MAUI's latest versions.
+    
+    Args:
+        target_framework: Target framework to determine which MAUI branch to use (e.g., "net10.0")
+    '''
+    # Extract base framework version
+    if '-' in target_framework:
+        target_framework_wo_platform = target_framework.split('-')[0]
+    else:
+        target_framework_wo_platform = target_framework
+    
+    repo_version_details_path = os.path.join(get_repo_root_path(), "eng", "Version.Details.xml")
+    
+    # Download MAUI's Version.Details.xml
+    maui_version_url = f'https://raw.githubusercontent.com/dotnet/maui/{target_framework_wo_platform}/eng/Version.Details.xml'
+    getLogger().info(f"Downloading MAUI Version.Details.xml from {maui_version_url}")
+    
+    try:
+        with urllib.request.urlopen(maui_version_url) as response:
+            maui_version_xml_content = response.read().decode('utf-8')
+    except Exception as e:
+        getLogger().error(f"Failed to download MAUI Version.Details.xml: {e}")
+        raise
+    
+    # Parse both XML files
+    maui_root = ET.fromstring(maui_version_xml_content)
+    repo_tree = ET.parse(repo_version_details_path)
+    repo_root = repo_tree.getroot()
+    
+    # MAUI workload dependency names to sync
+    maui_dependency_patterns = [
+        "Microsoft.Android.Sdk",
+        "Microsoft.iOS.Sdk",
+        "Microsoft.MacCatalyst.Sdk",
+        "Microsoft.macOS.Sdk",
+        "Microsoft.tvOS.Sdk",
+        "Microsoft.Maui.Controls",
+        "Microsoft.NETCore.App.Ref",
+        "Microsoft.NET.Sdk",
+        "Microsoft.NET.Workload.Emscripten"
+    ]
+    
+    # Get ToolsetDependencies section from repo
+    repo_toolset = repo_root.find(".//ToolsetDependencies")
+    if repo_toolset is None:
+        getLogger().error("No ToolsetDependencies section found in repo Version.Details.xml")
+        raise ValueError("Invalid Version.Details.xml structure")
+    
+    # Track what we updated
+    updated_count = 0
+    added_count = 0
+    
+    # Get all dependencies from MAUI's Version.Details.xml
+    maui_dependencies = maui_root.findall(".//Dependency[@Name]")
+    
+    for maui_dep in maui_dependencies:
+        dep_name = maui_dep.get("Name")
+        
+        # Check if this is a MAUI workload dependency we care about
+        if not any(pattern in dep_name for pattern in maui_dependency_patterns):
+            continue
+        
+        # Skip previous version dependencies (net9.0, etc.) - only sync current target framework versions
+        if f"net{int(target_framework_wo_platform[3:]) - 1}" in dep_name:
+            getLogger().debug(f"Skipping previous version dependency: {dep_name}")
+            continue
+        
+        # Find if this dependency already exists in repo
+        existing_dep = repo_toolset.find(f".//Dependency[@Name='{dep_name}']")
+        
+        if existing_dep is not None:
+            # Update existing dependency
+            old_version = existing_dep.get("Version")
+            new_version = maui_dep.get("Version")
+            
+            if old_version != new_version:
+                existing_dep.set("Version", new_version)
+                
+                # Update URI and Sha if present
+                uri_elem = existing_dep.find("Uri")
+                maui_uri_elem = maui_dep.find("Uri")
+                if uri_elem is not None and maui_uri_elem is not None:
+                    uri_elem.text = maui_uri_elem.text
+                    
+                sha_elem = existing_dep.find("Sha")
+                maui_sha_elem = maui_dep.find("Sha")
+                if sha_elem is not None and maui_sha_elem is not None:
+                    sha_elem.text = maui_sha_elem.text
+                
+                updated_count += 1
+                getLogger().info(f"Updated {dep_name}: {old_version} -> {new_version}")
+        else:
+            # Add new dependency
+            # Insert before the "Previous .NET" comment or at the end
+            prev_version_comment_index = None
+            for i, child in enumerate(repo_toolset):
+                if child.tag is ET.Comment and "Previous .NET" in child.text:
+                    prev_version_comment_index = i
+                    break
+            
+            if prev_version_comment_index is not None:
+                repo_toolset.insert(prev_version_comment_index, maui_dep)
+            else:
+                repo_toolset.append(maui_dep)
+            
+            added_count += 1
+            getLogger().info(f"Added new dependency: {dep_name} (Version: {maui_dep.get('Version')})")
+    
+    # Write back to file with proper formatting
+    ET.indent(repo_tree, space="  ")
+    repo_tree.write(repo_version_details_path, encoding="utf-8", xml_declaration=True)
+    
+    getLogger().info(f"MAUI Version.Details.xml sync complete: {updated_count} updated, {added_count} added")
+    return updated_count + added_count > 0
 
 def generate_maui_rollback_dict():
     # Generate and use rollback based on Version.Details.xml
@@ -83,6 +202,13 @@ def dump_dict_to_json_file(dump_dict: dict[str, str], file_name: str):
 def install_versioned_maui(precommands: PreCommands):
     target_framework_wo_platform = precommands.framework.split('-')[0]
 
+    # Automatically sync MAUI dependencies from upstream Version.Details.xml
+    getLogger().info("Syncing MAUI Version.Details.xml dependencies...")
+    try:
+        sync_maui_version_details(target_framework_wo_platform)
+    except Exception as e:
+        getLogger().warning(f"Failed to sync MAUI Version.Details.xml: {e}. Continuing with existing versions.")
+
     # Download what we need
     with open("MauiNuGet.config", "wb") as f:
         with urllib.request.urlopen(f'https://raw.githubusercontent.com/dotnet/maui/{target_framework_wo_platform}/NuGet.config') as response:
@@ -139,6 +265,120 @@ def extract_latest_dotnet_feed_from_nuget_config(path: str, offset: int = 0) -> 
 
     return target_feed
 
+def download_maui_nuget_config(target_framework: str = "net10.0", output_filename: str = "MauiNuGet.config") -> str:
+    '''
+        Download MAUI's NuGet.config from the appropriate branch.
+        Returns the path to the downloaded config file.
+        
+        Args:
+            target_framework: Target framework to determine which branch to use (e.g., "net10.0")
+            output_filename: Name of the file to save the downloaded config
+    '''
+    # Extract base framework version (e.g., "net10.0" from "net10.0-android")
+    if '-' in target_framework:
+        target_framework_wo_platform = target_framework.split('-')[0]
+    else:
+        target_framework_wo_platform = target_framework
+    
+    url = f'https://raw.githubusercontent.com/dotnet/maui/{target_framework_wo_platform}/NuGet.config'
+    getLogger().info(f"Downloading MAUI NuGet.config from {url}")
+    
+    try:
+        with open(output_filename, "wb") as f:
+            with urllib.request.urlopen(url) as response:
+                f.write(response.read())
+        getLogger().info(f"Successfully downloaded MAUI NuGet.config to {output_filename}")
+        return os.path.abspath(output_filename)
+    except Exception as e:
+        getLogger().error(f"Failed to download MAUI NuGet.config: {e}")
+        raise
+
+class MauiNuGetConfigContext:
+    '''
+    Context manager that temporarily merges MAUI's package sources into the repo's NuGet.config.
+    This is necessary because dotnet new doesn't support --configfile parameter.
+    '''
+    def __init__(self, target_framework: str):
+        self.target_framework = target_framework
+        self.repo_nuget_config = os.path.join(get_repo_root_path(), "NuGet.config")
+        self.backup_path = self.repo_nuget_config + ".maui_backup"
+        self.maui_config_path = None
+        
+    def __enter__(self):
+        getLogger().info("Setting up MAUI NuGet.config merge...")
+        
+        # Download MAUI's NuGet.config
+        self.maui_config_path = download_maui_nuget_config(self.target_framework, "MauiNuGet.config")
+        
+        # Backup the repo's NuGet.config
+        shutil.copy2(self.repo_nuget_config, self.backup_path)
+        getLogger().info(f"Backed up repo NuGet.config to {self.backup_path}")
+        
+        # Parse both configs
+        repo_tree = ET.parse(self.repo_nuget_config)
+        repo_root = repo_tree.getroot()
+        maui_tree = ET.parse(self.maui_config_path)
+        maui_root = maui_tree.getroot()
+        
+        # Get package sources from both
+        repo_sources = repo_root.find(".//packageSources")
+        maui_sources = maui_root.find(".//packageSources")
+        
+        if repo_sources is None or maui_sources is None:
+            getLogger().error("Could not find packageSources in NuGet.config files")
+            raise ValueError("Invalid NuGet.config structure")
+        
+        # Get existing source keys to avoid duplicates
+        existing_keys = {add_elem.get("key") for add_elem in repo_sources.findall("add") if add_elem.get("key")}
+        
+        # Add MAUI sources that don't exist in repo config
+        # Filter out placeholder sources that MAUI uses for their build system
+        placeholder_patterns = ["PLACEHOLDER", "local", "nuget-only"]
+        added_count = 0
+        for add_elem in maui_sources.findall("add"):
+            key = add_elem.get("key")
+            value = add_elem.get("value")
+            
+            # Skip if key already exists in repo config
+            if not key or key in existing_keys:
+                continue
+            
+            # Skip placeholder sources (local, nuget-only, or any with PLACEHOLDER in value)
+            if any(pattern.lower() in key.lower() for pattern in placeholder_patterns):
+                getLogger().debug(f"Skipping placeholder source: {key}")
+                continue
+            if value and "PLACEHOLDER" in value:
+                getLogger().debug(f"Skipping placeholder source with placeholder value: {key}")
+                continue
+            
+            # Add valid source
+            repo_sources.append(add_elem)
+            added_count += 1
+            getLogger().debug(f"Added package source: {key}")
+        
+        getLogger().info(f"Added {added_count} package sources from MAUI NuGet.config")
+        
+        # Write the merged config back
+        repo_tree.write(self.repo_nuget_config, encoding="utf-8", xml_declaration=True)
+        getLogger().info("Merged MAUI package sources into repo NuGet.config")
+        
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        getLogger().info("Restoring original NuGet.config...")
+        
+        # Restore the original NuGet.config
+        if os.path.exists(self.backup_path):
+            shutil.move(self.backup_path, self.repo_nuget_config)
+            getLogger().info("Restored original NuGet.config")
+        
+        # Clean up the downloaded MAUI config
+        if self.maui_config_path and os.path.exists(self.maui_config_path):
+            os.remove(self.maui_config_path)
+            getLogger().debug("Cleaned up temporary MAUI NuGet.config")
+        
+        return False  # Don't suppress exceptions
+
 def install_latest_maui(
         precommands: PreCommands, 
         feed=extract_latest_dotnet_feed_from_nuget_config(path=os.path.join(get_repo_root_path(), "NuGet.config"))
@@ -153,6 +393,14 @@ def install_latest_maui(
     if precommands.has_workload:
         getLogger().info("Skipping maui installation due to --has-workload=true")
         return
+    
+    # Automatically sync MAUI dependencies from upstream Version.Details.xml
+    # This ensures our Version.Details.xml stays current even when using feed-based installation
+    getLogger().info("Syncing MAUI Version.Details.xml dependencies...")
+    try:
+        sync_maui_version_details(precommands.framework)
+    except Exception as e:
+        getLogger().warning(f"Failed to sync MAUI Version.Details.xml: {e}. Continuing with feed-based installation.")
 
     maui_rollback_dict: dict[str, str] = {
         "microsoft.net.sdk.android" : "",
