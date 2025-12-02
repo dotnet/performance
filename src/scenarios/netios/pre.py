@@ -5,7 +5,7 @@ import shutil
 import sys
 from performance.logger import setup_loggers, getLogger
 from shared import const
-from shared.mauisharedpython import remove_aab_files, install_latest_maui
+from shared.mauisharedpython import remove_aab_files, install_versioned_maui
 from shared.precommands import PreCommands
 from shared.versionmanager import versions_write_json, get_sdk_versions
 from test import EXENAME
@@ -13,7 +13,7 @@ from test import EXENAME
 setup_loggers(True)
 
 precommands = PreCommands()
-install_latest_maui(precommands)
+install_versioned_maui(precommands)
 precommands.print_dotnet_info()
 
 # Setup the .NET iOS folder
