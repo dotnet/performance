@@ -9,7 +9,7 @@ from performance.logger import setup_loggers, getLogger
 from shared.codefixes import insert_after
 from shared.precommands import PreCommands
 from shared import const
-from shared.mauisharedpython import install_latest_maui, download_maui_nuget_config
+from shared.mauisharedpython import install_latest_maui, MauiNuGetConfigContext
 from test import EXENAME
 
 setup_loggers(True)
@@ -21,7 +21,7 @@ install_latest_maui(precommands)
 precommands.print_dotnet_info()
 
 # Use context manager to temporarily merge MAUI's NuGet feeds into repo config
-from shared.mauisharedpython import MauiNuGetConfigContext
+# This ensures both dotnet new and dotnet build/publish have access to MAUI packages
 
 with MauiNuGetConfigContext(precommands.framework):
     precommands.new(template='maui-blazor',

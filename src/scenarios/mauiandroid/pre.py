@@ -5,7 +5,7 @@ import shutil
 import sys
 from performance.logger import setup_loggers, getLogger
 from shared import const
-from shared.mauisharedpython import remove_aab_files, install_latest_maui, download_maui_nuget_config
+from shared.mauisharedpython import remove_aab_files, install_latest_maui, MauiNuGetConfigContext
 from shared.precommands import PreCommands
 from shared.versionmanager import versions_write_json, get_sdk_versions
 from test import EXENAME
@@ -20,8 +20,7 @@ install_latest_maui(precommands)
 precommands.print_dotnet_info()
 
 # Use context manager to temporarily merge MAUI's NuGet feeds into repo config
-# This is necessary because dotnet new doesn't support --configfile
-from shared.mauisharedpython import MauiNuGetConfigContext
+# This ensures both dotnet new and dotnet build/publish have access to MAUI packages
 
 with MauiNuGetConfigContext(precommands.framework):
     # Setup the Maui folder - will use merged NuGet.config with MAUI feeds
