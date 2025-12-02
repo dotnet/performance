@@ -83,10 +83,12 @@ def dump_dict_to_json_file(dump_dict: dict[str, str], file_name: str):
 def install_versioned_maui(precommands: PreCommands):
     target_framework_wo_platform = precommands.framework.split('-')[0]
 
-    # Use the repo's NuGet.config which has the darc feeds containing the pinned package versions
-    repo_nuget_config = os.path.join(get_repo_root_path(), "NuGet.config")
+    # Download what we need
+    with open("MauiNuGet.config", "wb") as f:
+        with urllib.request.urlopen(f'https://raw.githubusercontent.com/dotnet/maui/{target_framework_wo_platform}/NuGet.config') as response:
+            f.write(response.read())
 
-    workload_install_args = ['--configfile', repo_nuget_config, '--skip-sign-check']
+    workload_install_args = ['--configfile', 'MauiNuGet.config', '--skip-sign-check']
     if int(target_framework_wo_platform.split('.')[0][3:]) > 8: # Use the rollback file for versions greater than 8 (should be set to only run for versions where we also use a specific dotnet version from the yml)
         rollback_dict = generate_maui_rollback_dict()
         dump_dict_to_json_file(rollback_dict, f"rollback_{target_framework_wo_platform}.json")
