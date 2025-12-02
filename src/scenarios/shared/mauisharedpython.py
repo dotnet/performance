@@ -309,18 +309,43 @@ class MauiNuGetConfigContext:
     '''
     Context manager that temporarily merges MAUI's package sources into the repo's NuGet.config.
     This is necessary because dotnet new doesn't support --configfile parameter.
+    Finds NuGet.config relative to current working directory to support both local and CorrelationStaging scenarios.
     '''
     def __init__(self, target_framework: str):
         self.target_framework = target_framework
-        self.repo_nuget_config = os.path.join(get_repo_root_path(), "NuGet.config")
+        # Find NuGet.config by walking up from current directory
+        self.repo_nuget_config = self._find_repo_nuget_config()
         self.backup_path = self.repo_nuget_config + ".maui_backup"
         self.maui_config_path = None
+    
+    def _find_repo_nuget_config(self) -> str:
+        '''
+        Find the repo's NuGet.config by walking up from the current directory.
+        This works for both local (c:/Users/.../performance) and pipeline (D:/a/1/s/performance/CorrelationStaging/payload/performance) scenarios.
+        '''
+        current = os.getcwd()
+        while current:
+            nuget_config_path = os.path.join(current, "NuGet.config")
+            if os.path.exists(nuget_config_path):
+                getLogger().info(f"Found NuGet.config at: {nuget_config_path}")
+                return nuget_config_path
+            
+            parent = os.path.dirname(current)
+            if parent == current:  # Reached filesystem root
+                break
+            current = parent
+        
+        # Fallback to get_repo_root_path() if not found by walking up
+        fallback_path = os.path.join(get_repo_root_path(), "NuGet.config")
+        getLogger().warning(f"Could not find NuGet.config by walking up, using fallback: {fallback_path}")
+        return fallback_path
         
     def __enter__(self):
         getLogger().info("Setting up MAUI NuGet.config merge...")
         
-        # Download MAUI's NuGet.config
-        self.maui_config_path = download_maui_nuget_config(self.target_framework, "MauiNuGet.config")
+        # Download MAUI's NuGet.config to a temporary location in the same directory as repo NuGet.config
+        temp_maui_config = os.path.join(os.path.dirname(self.repo_nuget_config), "MauiNuGet.config")
+        self.maui_config_path = download_maui_nuget_config(self.target_framework, temp_maui_config)
         
         # Backup the repo's NuGet.config
         shutil.copy2(self.repo_nuget_config, self.backup_path)
