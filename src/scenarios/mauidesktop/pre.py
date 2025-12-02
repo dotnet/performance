@@ -21,7 +21,6 @@ precommands.print_dotnet_info()
 
 # Use context manager to temporarily merge MAUI's NuGet feeds into repo config
 # This ensures both dotnet new and dotnet build/publish have access to MAUI packages
-
 with MauiNuGetConfigContext(precommands.framework):
     precommands.new(template='maui',
                     output_dir=const.APPDIR,
