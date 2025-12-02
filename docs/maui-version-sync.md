@@ -1,21 +1,30 @@
-# MAUI Version Synchronization
+# MAUI Workload Management
 
 ## Overview
 
-The MAUI scenarios in this repository automatically sync workload dependencies from the upstream [dotnet/maui](https://github.com/dotnet/maui) repository. This ensures builds always use the latest compatible MAUI versions without manual Version.Details.xml updates.
+The MAUI scenarios in this repository automatically download and use workload dependencies directly from the upstream [dotnet/maui](https://github.com/dotnet/maui) repository. **No MAUI dependencies need to be maintained in the performance repository's Version.Details.xml.**
 
-## Automatic Synchronization
+## How It Works
 
-### When It Runs
+### Automatic Dependency Resolution
 
-Version.Details.xml is automatically synchronized whenever MAUI workloads are installed:
+MAUI workload installations automatically download dependency information from upstream:
 
-- During `install_latest_maui()` - Uses feed-based discovery + syncs Version.Details.xml
-- During `install_versioned_maui()` - Syncs before generating rollback files
+**`install_latest_maui()`** - Uses feed-based discovery:
+1. Queries NuGet feeds for latest published MAUI workload packages
+2. Filters and selects highest versions
+3. Generates rollback file dynamically
+4. Installs workload with rollback
 
-### What Gets Synced
+**`install_versioned_maui()`** - Uses MAUI's Version.Details.xml:
+1. Downloads MAUI's `Version.Details.xml` from target branch (e.g., `net10.0`)
+2. Extracts workload versions (Android, iOS, MacCatalyst, macOS, tvOS, MAUI Controls)
+3. Generates rollback file with exact versions from MAUI upstream
+4. Installs workload with rollback
 
-The following MAUI workload dependencies are kept up-to-date:
+### What Gets Downloaded
+
+The following MAUI workload dependencies are resolved from upstream:
 
 - `Microsoft.Android.Sdk.*`
 - `Microsoft.iOS.Sdk.*`
@@ -27,44 +36,41 @@ The following MAUI workload dependencies are kept up-to-date:
 - `Microsoft.NET.Sdk`
 - `Microsoft.NET.Workload.Emscripten.*`
 
-### How It Works
+## Manual Version Inspection
 
-1. Downloads MAUI's `Version.Details.xml` from the appropriate branch (e.g., `net10.0`)
-2. Extracts MAUI workload dependencies
-3. Updates matching dependencies in `eng/Version.Details.xml`
-4. Adds new dependencies if they don't exist
-5. Preserves non-MAUI dependencies unchanged
-
-## Manual Synchronization
-
-You can manually sync MAUI versions using the standalone script:
+You can inspect what versions would be used with the standalone script:
 
 ```bash
-# Sync for .NET 10.0 (default)
-python scripts/sync_maui_versions.py
+# Check versions for .NET 10.0 (default)
+python scripts/sync_maui_versions.py --framework net10.0
 
-# Sync for specific framework version
+# Check versions for specific framework
 python scripts/sync_maui_versions.py --framework net9.0
-python scripts/sync_maui_versions.py --framework net11.0
-
-# Verbose output
-python scripts/sync_maui_versions.py --verbose
 ```
 
-### When to Run Manually
+**Note:** This script still syncs to Version.Details.xml for informational/auditing purposes, but MAUI workload installation no longer depends on it.
 
-- Before updating to a new .NET version
-- To verify current versions match upstream
-- When MAUI makes significant dependency updates
-- As part of dependency update workflows
+## No Version.Details.xml Maintenance Required
 
-## Configuration
+### What You Can Remove
 
-### Version Mappings
-
-The `Mapping_*` comments in Version.Details.xml control band version resolution:
+MAUI workload dependencies can be **completely removed** from `eng/Version.Details.xml`:
 
 ```xml
+<!-- These are NO LONGER NEEDED and can be removed: -->
+<Dependency Name="Microsoft.Maui.Controls" Version="...">
+<Dependency Name="Microsoft.Android.Sdk.Windows" Version="...">
+<Dependency Name="Microsoft.iOS.Sdk.net10.0_18.5" Version="...">
+<Dependency Name="Microsoft.MacCatalyst.Sdk.net10.0_18.5" Version="...">
+<Dependency Name="Microsoft.macOS.Sdk.net10.0_15.5" Version="...">
+<Dependency Name="Microsoft.tvOS.Sdk.net10.0_18.5" Version="...">
+<!-- etc. -->
+```
+
+The `Mapping_*` comments are also no longer needed:
+
+```xml
+<!-- This comment block is NO LONGER NEEDED: -->
 <!--
   Mapping_Microsoft.Maui.Controls:default
   Mapping_Microsoft.Android.Sdk:default
@@ -73,41 +79,39 @@ The `Mapping_*` comments in Version.Details.xml control band version resolution:
 -->
 ```
 
-- `default` - Uses SDK version from `Microsoft.NET.Sdk`
-- Specific version - Overrides with custom band version
+### What To Keep
 
-### Disabling Auto-Sync
+Keep all non-MAUI dependencies in Version.Details.xml:
 
-Auto-sync can be disabled by modifying the installation functions in `mauisharedpython.py`:
+- `Microsoft.DotNet.Arcade.Sdk`
+- `Microsoft.DotNet.Helix.Sdk`
+- `Microsoft.DotNet.XHarness.CLI`
+- Other non-MAUI dependencies
 
-```python
-# Comment out the sync call
-# sync_maui_version_details(target_framework_wo_platform)
-```
+## Benefits
+
+✅ **Zero MAUI maintenance** - No Version.Details.xml entries to update  
+✅ **Always current** - Downloads latest from MAUI upstream every run  
+✅ **Version-aware** - Automatically uses correct branch (net9.0, net10.0, etc.)  
+✅ **Simpler Version.Details.xml** - Only contains performance-repo-specific dependencies  
+✅ **No merge conflicts** - MAUI version updates don't require repo changes  
 
 ## Troubleshooting
 
-### Sync Failures
+### Download Failures
 
-If automatic sync fails, a warning is logged but the build continues:
+If downloading MAUI's Version.Details.xml fails:
 
 ```
-[WARNING] Failed to sync MAUI Version.Details.xml: <error>. Continuing with existing versions.
+[ERROR] Failed to download MAUI Version.Details.xml: <error>
 ```
 
-This is non-fatal - the build uses existing Version.Details.xml entries.
-
-### Version Conflicts
-
-If you manually maintain specific MAUI versions:
-
-1. Sync will overwrite them with upstream versions
-2. Consider pinning to specific commits in your fork
-3. Or disable auto-sync and manage manually
+**Cause:** Network issue or MAUI branch doesn't exist  
+**Solution:** Check internet connection and verify framework version is valid (e.g., net10.0 branch exists)
 
 ### Network Issues
 
-Sync requires internet access to download MAUI's Version.Details.xml. Builds work offline using existing versions.
+MAUI workload installation requires internet access to download dependency information from github.com. Offline builds are not supported for MAUI scenarios.
 
 ## Related Files
 

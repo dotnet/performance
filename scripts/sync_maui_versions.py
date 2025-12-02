@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 '''
-Sync MAUI Version.Details.xml
+[OBSOLETE] Sync MAUI Version.Details.xml
+
+⚠️ WARNING: This script is obsolete after refactoring to download MAUI dependencies directly.
+   MAUI workload installation (install_latest_maui/install_versioned_maui) now downloads
+   Version.Details.xml from upstream on-demand, eliminating the need for local sync.
+   
+   This script remains for informational/auditing purposes only.
 
 This script downloads MAUI's Version.Details.xml from the specified branch
 and merges MAUI workload dependencies into the performance repo's Version.Details.xml.
