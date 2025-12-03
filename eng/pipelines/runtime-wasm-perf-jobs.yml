@@ -108,24 +108,25 @@ jobs:
             ${{ parameter.key }}: ${{ parameter.value }}
 
   # run mono wasm blazor perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: wasm
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: wasm
-        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/blazor_perf.proj
-        runKind: blazor_scenarios
-        isScenario: true
-        # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
-        #additionalSetupParameters: '--dotnetversions 8.0.0' # passed to run-performance-job.py
-        logicalMachine: 'perfviper'
-        downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # Disabled for now due to https://github.com/dotnet/aspnetcore/issues/64450, reenable tracking issue https://github.com/dotnet/performance/issues/5057
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: wasm
+        platforms:
+        - linux_x64
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runtimeType: wasm
+          projectFile: $(Build.SourcesDirectory)/eng/testing/performance/blazor_perf.proj
+          runKind: blazor_scenarios
+          isScenario: true
+          # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
+          #additionalSetupParameters: '--dotnetversions 8.0.0' # passed to run-performance-job.py
+          logicalMachine: 'perfviper'
+          downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
