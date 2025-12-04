@@ -39,5 +39,76 @@
       <Uri>https://github.com/dotnet/xharness</Uri>
       <Sha>d9aba438cae0eb814085c71dd6caa19e99c8e052</Sha>
     </Dependency>
+    <!--
+      Maui Rollback Version mappings, default means generated from sdk version. Allows for manual override of version similar to https://github.com/dotnet/maui/blob/df8cfcf635a590955a8cc3d6cf7ae6280449dd3f/eng/Versions.props#L138-L146, where the logic comes from:
+      Mapping_Microsoft.Maui.Controls:default
+      Mapping_Microsoft.NETCore.App.Ref:default
+      Mapping_Microsoft.NET.Workload.Emscripten.Current:default
+      Mapping_Microsoft.Android.Sdk:default
+      Mapping_Microsoft.MacCatalyst.Sdk:default
+      Mapping_Microsoft.macOS.Sdk:default
+      Mapping_Microsoft.iOS.Sdk:default
+      Mapping_Microsoft.tvOS.Sdk:default
+    -->
+    <!-- Dependencies for .NET MAUI workload -->
+    <Dependency Name="Microsoft.Maui.Controls" Version="10.0.0-ci.net10.25479.6">
+      <Sha>88c2c7ae772437921d85186318dd4320c4848618</Sha>
+      <Uri>https://github.com/dotnet/maui</Uri>
+    </Dependency>
+    <Dependency Name="Microsoft.NET.Sdk" Version="10.0.100-rc.2.25555.107">
+      <Sha>994d9ebe9f3f4216d7b125738cf5c19adaf674d3</Sha>
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+    </Dependency>
+    <Dependency Name="Microsoft.NETCore.App.Ref" Version="10.0.0-rc.1.25555.107">
+      <Sha>994d9ebe9f3f4216d7b125738cf5c19adaf674d3</Sha>
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+    </Dependency>
+    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="36.0.9">
+      <Uri>https://github.com/dotnet/android</Uri>
+      <Sha>51a08d74f33040198641b6f0e1b0d2c9518d2ed7</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.NET.Workload.Emscripten.Current.Manifest-9.0.100" Version="9.0.1">
+      <Sha>4c9d1b112c16716c2479e054e9ad4db8b5b8c70c</Sha>
+      <Uri>https://github.com/dotnet/emsdk</Uri>
+    </Dependency>
+    <!-- Previous .NET Android version(s) -->
+    <Dependency Name="Microsoft.NET.Sdk.Android.Manifest-9.0.100" Version="35.0.105">
+      <Uri>https://github.com/dotnet/android</Uri>
+      <Sha>1dcfb6f8779c33b6f768c996495cb90ecd729329</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.MacCatalyst.Sdk.net10.0_18.5" Version="18.5.10824-net10-rc.2">
+      <Uri>https://github.com/dotnet/macios</Uri>
+      <Sha>890175615f7762dfbc4f8555007aaf5bb4d75c8f</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.macOS.Sdk.net10.0_15.5" Version="15.5.10824-net10-rc.2">
+      <Uri>https://github.com/dotnet/macios</Uri>
+      <Sha>890175615f7762dfbc4f8555007aaf5bb4d75c8f</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.iOS.Sdk.net10.0_18.5" Version="18.5.10824-net10-rc.2">
+      <Uri>https://github.com/dotnet/macios</Uri>
+      <Sha>890175615f7762dfbc4f8555007aaf5bb4d75c8f</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.tvOS.Sdk.net10.0_18.5" Version="18.5.10824-net10-rc.2">
+      <Uri>https://github.com/dotnet/macios</Uri>
+      <Sha>890175615f7762dfbc4f8555007aaf5bb4d75c8f</Sha>
+    </Dependency>
+    <!-- Previous .NET iOS version(s) -->
+    <!-- This is a subscription of the .NET 9 latest stable versions of our packages -->
+    <Dependency Name="Microsoft.MacCatalyst.Sdk.net9.0_26.0" Version="26.0.9754">
+      <Uri>https://github.com/dotnet/macios</Uri>
+      <Sha>4177c9d9590857cfb2617fd7a7ef3d5e1de48ed3</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.macOS.Sdk.net9.0_26.0" Version="26.0.9754">
+      <Uri>https://github.com/dotnet/macios</Uri>
+      <Sha>4177c9d9590857cfb2617fd7a7ef3d5e1de48ed3</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.iOS.Sdk.net9.0_26.0" Version="26.0.9754">
+      <Uri>https://github.com/dotnet/macios</Uri>
+      <Sha>4177c9d9590857cfb2617fd7a7ef3d5e1de48ed3</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.tvOS.Sdk.net9.0_26.0" Version="26.0.9754">
+      <Uri>https://github.com/dotnet/macios</Uri>
+      <Sha>4177c9d9590857cfb2617fd7a7ef3d5e1de48ed3</Sha>
+    </Dependency>
   </ToolsetDependencies>
 </Dependencies>
