@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import xml.etree.ElementTree as ET
 import re
 import urllib.request
@@ -14,12 +15,24 @@ def remove_aab_files(output_dir="."):
         if file.endswith(".aab"):
             os.remove(os.path.join(output_dir, file))  
 
-def generate_maui_rollback_dict():
-    # Generate and use rollback based on Version.Details.xml
-    # Generate the list of versions starts to get and the names to save them as in the rollback.
-    # These mapping values were taken from the previously generated rollback files for the maui workload. There should be at least one entry for each
-    # of the Maui Workload dependencies in the /eng/Version.Details.xml file, aside from Microsoft.NET.Sdk.
-    # If there are errors in the future, reach out to the maui team.
+def generate_maui_rollback_dict(target_framework: str):
+    '''
+    Generate MAUI workload rollback dictionary by downloading and parsing MAUI's Version.Details.xml.
+    This eliminates the need to maintain MAUI dependencies in the performance repo's Version.Details.xml.
+    
+    Args:
+        target_framework: Target framework to determine which MAUI branch to use (e.g., "net10.0")
+    
+    Returns:
+        Dictionary mapping rollback package names to version/band strings
+    '''
+    # Extract base framework version
+    if '-' in target_framework:
+        target_framework_wo_platform = target_framework.split('-')[0]
+    else:
+        target_framework_wo_platform = target_framework
+    
+    # Mapping of rollback names to XML dependency names
     rollback_name_to_xml_name_mappings: dict[str, str] = {
         "microsoft.net.sdk.android" : "Microsoft.Android.Sdk",
         "microsoft.net.sdk.ios" : "Microsoft.iOS.Sdk",
@@ -31,48 +44,54 @@ def generate_maui_rollback_dict():
         "microsoft.net.sdk.mono.emscripten.current" : "Microsoft.NET.Workload.Emscripten.Current"
     }
     rollback_dict: dict[str, str] = {}
+    
+    # Download MAUI's Version.Details.xml
+    maui_version_url = f'https://raw.githubusercontent.com/dotnet/maui/{target_framework_wo_platform}/eng/Version.Details.xml'
+    getLogger().info(f"Downloading MAUI Version.Details.xml from {maui_version_url} for rollback generation")
+    
+    try:
+        with urllib.request.urlopen(maui_version_url) as response:
+            version_details_xml = response.read().decode('utf-8')
+    except Exception as e:
+        getLogger().error(f"Failed to download MAUI Version.Details.xml: {e}")
+        raise ValueError(f"Cannot generate rollback dict without MAUI Version.Details.xml: {e}")
+    
+    root = ET.fromstring(version_details_xml)
 
-    # Load in the Version.Details.xml file
-    with open(os.path.join(get_repo_root_path(), "eng", "Version.Details.xml"), encoding="utf-8") as f:
-        version_details_xml = f.read()
-        root = ET.fromstring(version_details_xml)
-
-    # Get the General Band version from the Version.Details.xml file sdk version
+    # Get the General Band version from the SDK version
     general_version_obj = root.find(".//Dependency[@Name='Microsoft.NET.Sdk']")
     if general_version_obj is not None:
         full_band_version_holder = general_version_obj.get("Version")
         if full_band_version_holder is None:
-            raise ValueError("Unable to find Microsoft.NET.Sdk with proper version in Version.Details.xml")
+            raise ValueError("Unable to find Microsoft.NET.Sdk with proper version in MAUI's Version.Details.xml")
         match = re.search(r'^\d+\.\d+\.\d+(\-(preview|rc|alpha).\d+)?', full_band_version_holder)
         if match:
             default_band_version = match.group(0)
         else:
-            raise ValueError("Unable to find general version in Version.Details.xml")
+            raise ValueError("Unable to find general version in MAUI's Version.Details.xml")
     else:
-        raise ValueError("Unable to find general version in Version.Details.xml")
+        raise ValueError("Unable to find general version in MAUI's Version.Details.xml")
 
-    # Get the available versions from the Version.Details.xml file
+    # Get the available versions from MAUI's Version.Details.xml
     dependencies = root.findall(".//Dependency[@Name]")
     for rollback_name, xml_name in rollback_name_to_xml_name_mappings.items():
         for dependency in dependencies:
             if dependency.attrib['Name'].startswith(xml_name):
                 workload_version = dependency.get("Version")
                 if workload_version is None:
-                    raise ValueError(f"Unable to find {xml_name} with proper version in the provided xml file")
+                    raise ValueError(f"Unable to find {xml_name} with proper version in MAUI's Version.Details.xml")
 
-                # Use the band version based on what the maui upstream currently has. This is necessary if they hardcode the version.
-                band_name_match_string = rf"^\s*Mapping_{xml_name}:(\S*)"
-                band_version_mapping = re.search(band_name_match_string, version_details_xml, flags=re.MULTILINE)
-                if band_version_mapping is None:
-                    raise ValueError(f"Unable to find band version mapping for match {band_name_match_string} in Version.Details.xml")
-                if band_version_mapping.group(1) == "default":
-                    band_version = default_band_version
-                else:
-                    band_version = band_version_mapping.group(1)
+                # Use the band version based on what MAUI upstream currently has
+                # Note: MAUI doesn't have Mapping_ comments in their Version.Details.xml, 
+                # so we use the default band version extracted from Microsoft.NET.Sdk
+                band_version = default_band_version
                 rollback_dict[rollback_name] = f"{workload_version}/{band_version}"
+                getLogger().debug(f"Rollback entry: {rollback_name} = {workload_version}/{band_version}")
                 break
         if rollback_name not in rollback_dict:
-            raise ValueError(f"Unable to find {rollback_name} with proper version in Version.Details.xml")
+            raise ValueError(f"Unable to find {rollback_name} with proper version in MAUI's Version.Details.xml")
+    
+    getLogger().info(f"Generated rollback dict with {len(rollback_dict)} entries from MAUI upstream")
     return rollback_dict
 
 def dump_dict_to_json_file(dump_dict: dict[str, str], file_name: str):
@@ -90,7 +109,8 @@ def install_versioned_maui(precommands: PreCommands):
 
     workload_install_args = ['--configfile', 'MauiNuGet.config', '--skip-sign-check']
     if int(target_framework_wo_platform.split('.')[0][3:]) > 8: # Use the rollback file for versions greater than 8 (should be set to only run for versions where we also use a specific dotnet version from the yml)
-        rollback_dict = generate_maui_rollback_dict()
+        # Generate rollback dict directly from MAUI's Version.Details.xml (no local dependency needed)
+        rollback_dict = generate_maui_rollback_dict(target_framework_wo_platform)
         dump_dict_to_json_file(rollback_dict, f"rollback_{target_framework_wo_platform}.json")
         workload_install_args += ['--from-rollback-file', f'rollback_{target_framework_wo_platform}.json']
 
@@ -138,6 +158,145 @@ def extract_latest_dotnet_feed_from_nuget_config(path: str, offset: int = 0) -> 
     target_feed = dotnet_feeds[target_version]
 
     return target_feed
+
+def download_maui_nuget_config(target_framework: str = "net10.0", output_filename: str = "MauiNuGet.config") -> str:
+    '''
+        Download MAUI's NuGet.config from the appropriate branch.
+        Returns the path to the downloaded config file.
+        
+        Args:
+            target_framework: Target framework to determine which branch to use (e.g., "net10.0")
+            output_filename: Name of the file to save the downloaded config
+    '''
+    # Extract base framework version (e.g., "net10.0" from "net10.0-android")
+    if '-' in target_framework:
+        target_framework_wo_platform = target_framework.split('-')[0]
+    else:
+        target_framework_wo_platform = target_framework
+    
+    url = f'https://raw.githubusercontent.com/dotnet/maui/{target_framework_wo_platform}/NuGet.config'
+    getLogger().info(f"Downloading MAUI NuGet.config from {url}")
+    
+    try:
+        with open(output_filename, "wb") as f:
+            with urllib.request.urlopen(url) as response:
+                f.write(response.read())
+        getLogger().info(f"Successfully downloaded MAUI NuGet.config to {output_filename}")
+        return os.path.abspath(output_filename)
+    except Exception as e:
+        getLogger().error(f"Failed to download MAUI NuGet.config: {e}")
+        raise
+
+class MauiNuGetConfigContext:
+    '''
+    Context manager that temporarily merges MAUI's package sources into the repo's NuGet.config.
+    This is necessary because dotnet new doesn't support --configfile parameter.
+    Finds NuGet.config relative to current working directory to support both local and CorrelationStaging scenarios.
+    '''
+    def __init__(self, target_framework: str):
+        self.target_framework = target_framework
+        # Find NuGet.config by walking up from current directory
+        self.repo_nuget_config = self._find_repo_nuget_config()
+        self.backup_path = self.repo_nuget_config + ".maui_backup"
+        self.maui_config_path = None
+    
+    def _find_repo_nuget_config(self) -> str:
+        '''
+        Find the repo's NuGet.config by walking up from the current directory.
+        This works for both local (c:/Users/.../performance) and pipeline (D:/a/1/s/performance/CorrelationStaging/payload/performance) scenarios.
+        '''
+        current = os.getcwd()
+        while current:
+            nuget_config_path = os.path.join(current, "NuGet.config")
+            if os.path.exists(nuget_config_path):
+                getLogger().info(f"Found NuGet.config at: {nuget_config_path}")
+                return nuget_config_path
+            
+            parent = os.path.dirname(current)
+            if parent == current:  # Reached filesystem root
+                break
+            current = parent
+        
+        # Fallback to get_repo_root_path() if not found by walking up
+        fallback_path = os.path.join(get_repo_root_path(), "NuGet.config")
+        getLogger().warning(f"Could not find NuGet.config by walking up, using fallback: {fallback_path}")
+        return fallback_path
+        
+    def __enter__(self):
+        getLogger().info("Setting up MAUI NuGet.config merge...")
+        
+        # Download MAUI's NuGet.config to a temporary location in the same directory as repo NuGet.config
+        temp_maui_config = os.path.join(os.path.dirname(self.repo_nuget_config), "MauiNuGet.config")
+        self.maui_config_path = download_maui_nuget_config(self.target_framework, temp_maui_config)
+        
+        # Backup the repo's NuGet.config
+        shutil.copy2(self.repo_nuget_config, self.backup_path)
+        getLogger().info(f"Backed up repo NuGet.config to {self.backup_path}")
+        
+        # Parse both configs
+        repo_tree = ET.parse(self.repo_nuget_config)
+        repo_root = repo_tree.getroot()
+        maui_tree = ET.parse(self.maui_config_path)
+        maui_root = maui_tree.getroot()
+        
+        # Get package sources from both
+        repo_sources = repo_root.find(".//packageSources")
+        maui_sources = maui_root.find(".//packageSources")
+        
+        if repo_sources is None or maui_sources is None:
+            getLogger().error("Could not find packageSources in NuGet.config files")
+            raise ValueError("Invalid NuGet.config structure")
+        
+        # Get existing source keys to avoid duplicates
+        existing_keys = {add_elem.get("key") for add_elem in repo_sources.findall("add") if add_elem.get("key")}
+        
+        # Add MAUI sources that don't exist in repo config
+        # Filter out placeholder sources that MAUI uses for their build system
+        placeholder_patterns = ["PLACEHOLDER", "local", "nuget-only"]
+        added_count = 0
+        for add_elem in maui_sources.findall("add"):
+            key = add_elem.get("key")
+            value = add_elem.get("value")
+            
+            # Skip if key already exists in repo config
+            if not key or key in existing_keys:
+                continue
+            
+            # Skip placeholder sources (local, nuget-only, or any with PLACEHOLDER in value)
+            if any(pattern.lower() in key.lower() for pattern in placeholder_patterns):
+                getLogger().debug(f"Skipping placeholder source: {key}")
+                continue
+            if value and "PLACEHOLDER" in value:
+                getLogger().debug(f"Skipping placeholder source with placeholder value: {key}")
+                continue
+            
+            # Add valid source
+            repo_sources.append(add_elem)
+            added_count += 1
+            getLogger().debug(f"Added package source: {key}")
+        
+        getLogger().info(f"Added {added_count} package sources from MAUI NuGet.config")
+        
+        # Write the merged config back
+        repo_tree.write(self.repo_nuget_config, encoding="utf-8", xml_declaration=True)
+        getLogger().info("Merged MAUI package sources into repo NuGet.config")
+        
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        getLogger().info("Restoring original NuGet.config...")
+        
+        # Restore the original NuGet.config
+        if os.path.exists(self.backup_path):
+            shutil.move(self.backup_path, self.repo_nuget_config)
+            getLogger().info("Restored original NuGet.config")
+        
+        # Clean up the downloaded MAUI config
+        if self.maui_config_path and os.path.exists(self.maui_config_path):
+            os.remove(self.maui_config_path)
+            getLogger().debug("Cleaned up temporary MAUI NuGet.config")
+        
+        return False  # Don't suppress exceptions
 
 def install_latest_maui(
         precommands: PreCommands, 
