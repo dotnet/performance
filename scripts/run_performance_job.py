@@ -20,6 +20,8 @@ from performance.common import RunCommand, set_environment_variable
 from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
+DEFAULT_BUILD_CONFIG = "Release"
+
 def output_counters_for_crank(reports: list[Any]):
     print("#StartJobStatistics")
 
@@ -112,7 +114,7 @@ class RunPerformanceJobArgs:
     os_version: Optional[str] = None
     dotnet_version_link: Optional[str] = None
     target_csproj: Optional[str] = None
-    build_config: str = "Release"
+    build_config: str = DEFAULT_BUILD_CONFIG
     live_libraries_build_config: Optional[str] = None
     cross_build: bool = False
 
@@ -492,7 +494,7 @@ def get_run_configurations(
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)
         if build_config is not None:
-            configurations["BuildConfig"] = str(build_config)
+            configurations["BuildConfig"] = build_config
 
     # .NET iOS and .NET MAUI iOS sample app scenarios
     if run_kind == "maui_scenarios_ios":
@@ -501,7 +503,7 @@ def get_run_configurations(
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)
         if build_config is not None:
-            configurations["BuildConfig"] = str(build_config)
+            configurations["BuildConfig"] = build_config
 
     return configurations
 
@@ -1013,7 +1015,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             os.environ["Python"] = agent_python
             os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
             os.environ["CodegenType"] = args.codegen_type or ''
-            os.environ["BuildConfig"] = args.build_config
+            os.environ["BuildConfig"] = args.build_config or DEFAULT_BUILD_CONFIG
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
             if args.os_group == "windows" or args.os_group == "osx":
