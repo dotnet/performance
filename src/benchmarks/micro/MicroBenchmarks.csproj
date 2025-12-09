@@ -57,6 +57,13 @@
     </When>
     <When Condition="'$(TargetFramework)' == 'net10.0'">
         <PropertyGroup>
+            <LangVersion>13</LangVersion>
+            <ExtensionsVersion>10.0.0</ExtensionsVersion>
+            <SystemVersion>10.0.0</SystemVersion>
+        </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net11.0'">
+        <PropertyGroup>
             <LangVersion>preview</LangVersion>
             <ExtensionsVersion>$(MicrosoftExtensionsLoggingPackageVersion)</ExtensionsVersion>
             <SystemVersion>$(SystemThreadingChannelsPackageVersion)</SystemVersion>
