@@ -1008,9 +1008,32 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
             if args.os_group == "windows" or args.os_group == "osx":
-                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
-                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
-                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
+                # Check if pip exists and if --user flag is supported
+                pip_exists = False
+                user_flag_supported = False
+                
+                try:
+                    RunCommand([*(agent_python.split(" ")), "-m", "pip", "--version"]).run()
+                    pip_exists = True
+                except CalledProcessError:
+                    getLogger().warning("pip is not available")
+                
+                if pip_exists:
+                    # Check if --user flag is supported by doing a dry-run
+                    try:
+                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--dry-run", "pip"]).run()
+                        user_flag_supported = True
+                    except CalledProcessError:
+                        getLogger().warning("--user flag is not supported in this environment")
+                    
+                    if user_flag_supported:
+                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
+                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
+                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
+                    else:
+                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--upgrade", "pip"]).run()
+                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "urllib3==1.26.19"]).run()
+                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "requests"]).run()
 
             scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
             script_path = os.path.join(args.performance_repo_dir, "scripts")
