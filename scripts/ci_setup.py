@@ -377,12 +377,10 @@ def main(args: CiSetupArgs):
         dotnet.setup_dotnet(args.dotnet_path)
 
     framework = ChannelMap.get_target_framework_moniker(args.channel)
-           
     if framework in ('net10.0', 'nativeaot10.0'):
         global_json_path = os.path.join(get_repo_root_path(), 'global.json')
         shutil.copy(os.path.join(get_repo_root_path(), 'global.net10.json'), global_json_path)
         getLogger().info('Overwrote global.json with global.net10.json')
-        
     if framework in ('net9.0', 'nativeaot9.0'):
         global_json_path = os.path.join(get_repo_root_path(), 'global.json')
         shutil.copy(os.path.join(get_repo_root_path(), 'global.net9.json'), global_json_path)
