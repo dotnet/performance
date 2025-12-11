@@ -21,7 +21,7 @@ def generate_maui_rollback_dict(target_framework: str):
     This eliminates the need to maintain MAUI dependencies in the performance repo's Version.Details.xml.
     
     Args:
-        target_framework: Target framework to determine which MAUI branch to use (e.g., "net10.0")
+        target_framework: Target framework to determine which MAUI branch to use (e.g., "net11.0")
     
     Returns:
         Dictionary mapping rollback package names to version/band strings
@@ -159,13 +159,13 @@ def extract_latest_dotnet_feed_from_nuget_config(path: str, offset: int = 0) -> 
 
     return target_feed
 
-def download_maui_nuget_config(target_framework: str = "net10.0", output_filename: str = "MauiNuGet.config") -> str:
+def download_maui_nuget_config(target_framework: str = "net11.0", output_filename: str = "MauiNuGet.config") -> str:
     '''
         Download MAUI's NuGet.config from the appropriate branch.
         Returns the path to the downloaded config file.
         
         Args:
-            target_framework: Target framework to determine which branch to use (e.g., "net10.0")
+            target_framework: Target framework to determine which branch to use (e.g., "net11.0")
             output_filename: Name of the file to save the downloaded config
     '''
     # Extract base framework version (e.g., "net10.0" from "net10.0-android")
