@@ -507,6 +507,24 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
+  # Maui iOS CoreCLR scenario benchmarks
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_ios
+        projectFileName: maui_scenarios_ios.proj
+        channels:
+          - main
+        runtimeFlavor: coreclr
+        codeGenType: Interpreter
+        additionalJobIdentifier: CoreCLR
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
   # Maui iOS Native AOT scenario benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
