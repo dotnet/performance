@@ -20,6 +20,8 @@ from performance.common import RunCommand, set_environment_variable
 from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
+DEFAULT_BUILD_CONFIG = "Release"
+
 def output_counters_for_crank(reports: list[Any]):
     print("#StartJobStatistics")
 
@@ -112,7 +114,7 @@ class RunPerformanceJobArgs:
     os_version: Optional[str] = None
     dotnet_version_link: Optional[str] = None
     target_csproj: Optional[str] = None
-    build_config: str = "Release"
+    build_config: str = DEFAULT_BUILD_CONFIG
     live_libraries_build_config: Optional[str] = None
     cross_build: bool = False
 
@@ -434,7 +436,8 @@ def get_run_configurations(
         runtime_flavor: Optional[str] = None,
         ios_llvm_build: bool = False,
         ios_strip_symbols: bool = False,
-        javascript_engine: Optional[str] = None):
+        javascript_engine: Optional[str] = None,
+        build_config: Optional[str] = None):
     
     configurations = { "CompilationMode": "Tiered", "RunKind": run_kind }
 
@@ -490,6 +493,8 @@ def get_run_configurations(
             raise Exception("Runtime flavor must be specified for maui_scenarios_android")
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)
+        if build_config is not None:
+            configurations["BuildConfig"] = build_config
 
     # .NET iOS and .NET MAUI iOS sample app scenarios
     if run_kind == "maui_scenarios_ios":
@@ -497,6 +502,8 @@ def get_run_configurations(
             raise Exception("Runtime flavor must be specified for maui_scenarios_ios")
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)
+        if build_config is not None:
+            configurations["BuildConfig"] = build_config
 
     return configurations
 
@@ -656,7 +663,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
     configurations = get_run_configurations(
         args.run_kind, args.runtime_type, args.codegen_type, args.pgo_run_type, args.physical_promotion_run_type,
         args.r2r_run_type, args.experiment_name, args.linking_type,
-        args.runtime_flavor, args.ios_llvm_build, args.ios_strip_symbols, args.javascript_engine
+        args.runtime_flavor, args.ios_llvm_build, args.ios_strip_symbols, args.javascript_engine,
+        args.build_config
     )
 
     ci_setup_arguments = ci_setup.CiSetupArgs(
@@ -1007,6 +1015,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             os.environ["Python"] = agent_python
             os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
             os.environ["CodegenType"] = args.codegen_type or ''
+            os.environ["BuildConfig"] = args.build_config or DEFAULT_BUILD_CONFIG
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
             if args.os_group == "windows" or args.os_group == "osx":
