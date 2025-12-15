@@ -44,7 +44,7 @@ with MauiNuGetConfigContext(precommands.framework):
 ''')
     
     # Build the IPA - will use merged NuGet.config
-    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting'])
+    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting', '/p:ValidateXcodeVersion=false'])
 # NuGet.config is automatically restored after this block
 
 output_dir = const.PUBDIR
