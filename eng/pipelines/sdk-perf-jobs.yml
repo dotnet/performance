@@ -338,6 +338,7 @@ jobs:
         - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
+        - azurelinux3-arm64-cobalt
       isPublic: false
       jobParameters:
         runKind: scenarios
@@ -649,6 +650,7 @@ jobs:
         - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
+        - azurelinux3-arm64-cobalt
       isPublic: false
       jobParameters:
         runKind: fsharpmicro
@@ -672,6 +674,7 @@ jobs:
         - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
+        - azurelinux3-arm64-cobalt
       isPublic: false
       jobParameters:
         runKind: bepuphysics
@@ -695,6 +698,7 @@ jobs:
         - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
+        - azurelinux3-arm64-cobalt
       isPublic: false
       jobParameters:
         runKind: imagesharp
@@ -718,6 +722,7 @@ jobs:
         - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64-ampere
+        - azurelinux3-arm64-cobalt
       isPublic: false
       jobParameters:
         runKind: akadeindexedset
@@ -741,6 +746,7 @@ jobs:
         - win-arm64
         - win-arm64-ampere
         - ubuntu-arm64-ampere
+        - azurelinux3-arm64-cobalt
       isPublic: false
       jobParameters:
         runKind: mlnet
@@ -770,6 +776,7 @@ jobs:
         - win-arm64
         - win-arm64-ampere
         - ubuntu-arm64-ampere
+        - azurelinux3-arm64-cobalt
       isPublic: false
       jobParameters:
         runKind: roslyn
