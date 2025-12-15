@@ -22,6 +22,11 @@ class ChannelMap():
             'branch': '10.0',
             'quality': 'daily'
         },
+        'nativeaot11.0': {
+            'tfm': 'nativeaot11.0',
+            'branch': '11.0',
+            'quality': 'daily'
+        },
         '9.0': {
             'tfm': 'net9.0',
             'branch': '9.0',
