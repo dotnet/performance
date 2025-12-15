@@ -1010,35 +1010,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
             if args.os_group == "windows" or args.os_group == "osx":
-                # Check if pip exists and if --user flag is supported
-                pip_exists = False
-                user_flag_supported = False
-                
-                try:
-                    RunCommand([*(agent_python.split(" ")), "-m", "pip", "--version"], verbose=True).run()
-                    pip_exists = True
-                except CalledProcessError:
-                    getLogger().warning("pip is not available")
-                
-                if pip_exists:
-                    # Check if --user flag is supported by doing a dry-run
-                    try:
-                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--dry-run", "pip"], verbose=True).run()
-                        user_flag_supported = True
-                    except CalledProcessError:
-                        getLogger().warning("--user flag is not supported in this environment")
-                    
-                    if user_flag_supported:
-                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"], verbose=True).run()
-                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"], verbose=True).run()
-                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "requests"], verbose=True).run()
-                    else:
-                        # Externally-managed environment (PEP 668) - use --break-system-packages flag
-                        # This is needed for Homebrew Python on macOS
-                        getLogger().info("Using --break-system-packages flag for externally-managed environment")
-                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--break-system-packages", "--upgrade", "pip"], verbose=True).run()
-                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--break-system-packages", "urllib3==1.26.19"], verbose=True).run()
-                        RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--break-system-packages", "requests"], verbose=True).run()
+                break_system_packages = ["--break-system-packages"] if args.os_group == "osx" else []
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", *break_system_packages, "--user", "--upgrade", "pip"]).run()
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", *break_system_packages, "--user", "urllib3==1.26.19"]).run()
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", *break_system_packages, "--user", "requests"]).run()
 
             scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
             script_path = os.path.join(args.performance_repo_dir, "scripts")
