@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using MicroBenchmarks;
+using Flinq;
+using System.ComponentModel.DataAnnotations;
 
 namespace System.Linq.Tests
 {
@@ -54,6 +56,51 @@ namespace System.Linq.Tests
         [Benchmark]
         [ArgumentsSource(nameof(WhereArguments))]
         public void WhereSelect(LinqTestData input) => input.Collection.Where(i => i >= 0).Select(i => i + 1).Consume(_consumer);
+
+        [Benchmark]
+        public void WhereSelectForeach()
+        {
+            var list = (List<int>)LinqTestData.List.Collection;
+            foreach (var item in list)
+            {
+                if (item > 0)
+                {
+                    _consumer.Consume(item + 1);
+                }
+            }
+        }
+
+        [Benchmark]
+        public void FlinqWhereSelect()
+        {
+            var list = (List<int>)LinqTestData.List.Collection;
+            list
+                .Flinq()
+                .Filter<ListEnumerator<int>, int, GreaterThanZeroFilter>(new())
+                .Map<Filter<int, ListEnumerator<int>, GreaterThanZeroFilter>, int, int, IncrementFunc>(new IncrementFunc())
+                .Consume<Map<int, int, Filter<int, ListEnumerator<int>, GreaterThanZeroFilter>, IncrementFunc>, int>(_consumer);
+        }
+
+        [Benchmark]
+        public void FlinqWhereSelectFold()
+        {
+            var list = (List<int>)LinqTestData.List.Collection;
+            list
+                .Flinq()
+                .Filter<ListEnumerator<int>, int, GreaterThanZeroFilter>(new())
+                .Map<Filter<int, ListEnumerator<int>, GreaterThanZeroFilter>, int, int, IncrementFunc>(new IncrementFunc())
+                .ConsumeFold<Map<int, int, Filter<int, ListEnumerator<int>, GreaterThanZeroFilter>, IncrementFunc>, int>(_consumer);
+        }
+
+        private struct IncrementFunc : IFunc<int, int>
+        {
+            public int Invoke(int input) => input + 1;
+        }
+
+        private struct GreaterThanZeroFilter : IFunc<int, bool>
+        {
+            public bool Invoke(int input) => input > 0;
+        }
 
         // Where().First() has no special treatment, the code execution paths are based on WhereIterators
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/First.cs
