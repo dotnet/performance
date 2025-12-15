@@ -577,6 +577,7 @@ jobs:
         - win-x64-viper
         - ubuntu-x64-viper
         - win-arm64
+        - azurelinux3-arm64-cobalt
       isPublic: false
       jobParameters:
         runKind: nativeaot_scenarios
@@ -605,6 +606,7 @@ jobs:
         #- win-x86
         - win-x86-viper
         #- ubuntu-x64-1804 reenable under new machine on new ubuntu once lttng/events are available
+        - azurelinux3-arm64-cobalt
       isPublic: false
       jobParameters:
         runKind: sdk_scenarios
