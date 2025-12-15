@@ -845,6 +845,7 @@ jobs:
         - ubuntu-x64-viper
         - win-arm64
         - ubuntu-arm64
+        - azurelinux3-arm64-cobalt
       isPublic: false
       jobParameters:
         runKind: powershell
