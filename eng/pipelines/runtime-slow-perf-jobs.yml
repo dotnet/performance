@@ -31,6 +31,26 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
+    # run arm64 interpreter jobs for mono on perfcobalt
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: mono
+        platforms:
+        - linux_arm64
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runtimeType: mono
+          codeGenType: 'Interpreter'
+          runKind: micro_mono
+          logicalMachine: 'perfcobalt'
+          timeoutInMinutes: 720
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
     # run arm64 jit jobs for mono
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
@@ -44,6 +64,25 @@ jobs:
           runtimeType: mono
           runKind: micro_mono
           logicalMachine: 'perfampere'
+          timeoutInMinutes: 720
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
+    # run arm64 jit jobs for mono on perfcobalt
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: mono
+        platforms:
+        - linux_arm64
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runtimeType: mono
+          runKind: micro_mono
+          logicalMachine: 'perfcobalt'
           timeoutInMinutes: 720
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
@@ -76,6 +115,26 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
+    # run mono aot microbenchmarks perf job on perfcobalt
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: aot
+        platforms:
+        - linux_arm64
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runtimeType: mono
+          codeGenType: 'AOT'
+          runKind: micro_mono
+          logicalMachine: 'perfcobalt'
+          timeoutInMinutes: 780
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
     # run coreclr Linux arm64 ampere microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
@@ -88,6 +147,24 @@ jobs:
           liveLibrariesBuildConfig: Release
           runKind: micro
           logicalMachine: 'perfampere'
+          timeoutInMinutes: 780
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
+    # run coreclr Linux arm64 cobalt microbenchmarks perf job
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: coreclr
+        platforms:
+        - linux_arm64
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runKind: micro
+          logicalMachine: 'perfcobalt'
           timeoutInMinutes: 780
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
