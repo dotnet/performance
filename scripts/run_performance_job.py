@@ -144,12 +144,17 @@ def get_pre_commands(
             ]
         else:
             if os_group != "osx":
-                install_prerequisites += [
-                    'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
-                    'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
-                    "sudo apt-get remove -y lttng-modules-dkms", # https://github.com/dotnet/runtime/pull/101142
-                    "sudo apt-get -y install python3-pip"
-                ]
+                if os_group == "azurelinux":
+                    install_prerequisites += [
+                        "sudo tdnf -y install python3-pip"
+                    ]
+                else:
+                    install_prerequisites += [
+                        'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
+                        'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
+                        "sudo apt-get remove -y lttng-modules-dkms", # https://github.com/dotnet/runtime/pull/101142
+                        "sudo apt-get -y install python3-pip"
+                    ]
 
             install_prerequisites += [
                 "python3 -m venv $HELIX_WORKITEM_ROOT/.venv",
@@ -179,33 +184,51 @@ def get_pre_commands(
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
         # TODO: is this still needed? It seems like it was added to support wasm which is already setting up everything
         if os_group != "windows" and os_group != "osx":
-            install_prerequisites += [
-                "sudo apt-get update",
-                "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
-            ]
+            if os_group == "azurelinux":
+                install_prerequisites += [
+                    "sudo tdnf -y install curl ca-certificates"
+                ]
+            else:
+                install_prerequisites += [
+                    "sudo apt-get update",
+                    "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
+                ]
 
     # Set up everything needed for WASM runs
-    if runtime_type == "wasm":
-        # nodejs installation steps from https://github.com/nodesource/distributions
-        install_prerequisites += [
-            "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
-            "sudo apt-get -y remove nodejs",
-            "sudo apt-get update",
-            "sudo apt-get install -y ca-certificates curl gnupg",
-            "sudo mkdir -p /etc/apt/keyrings",
-            "sudo rm -f /etc/apt/keyrings/nodesource.gpg",
-            "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor --batch -o /etc/apt/keyrings/nodesource.gpg",
-            "export NODE_MAJOR=18",
-            "echo \"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main\" | sudo tee /etc/apt/sources.list.d/nodesource.list",
-            "sudo apt-get update",
-            "sudo apt autoremove -y",
-            "sudo apt-get install nodejs -y",
-            f"test -n \"{v8_version}\"",
-            "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
-            f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
-            f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
-            "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
-        ]
+    if runtime_type == "wasm":  
+        if os_group == "azurelinux":
+            # Azure Linux uses tdnf package manager
+            install_prerequisites += [
+                "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
+                "sudo tdnf -y update",
+                "sudo tdnf -y remove nodejs",
+                "sudo tdnf -y install ca-certificates curl gnupg nodejs npm",
+                f"test -n \"{v8_version}\"",
+                "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
+                f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
+                f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
+                "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
+            ]
+        else:
+            install_prerequisites += [
+                "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
+                "sudo apt-get -y remove nodejs",
+                "sudo apt-get update",
+                "sudo apt-get install -y ca-certificates curl gnupg",
+                "sudo mkdir -p /etc/apt/keyrings",
+                "sudo rm -f /etc/apt/keyrings/nodesource.gpg",
+                "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor --batch -o /etc/apt/keyrings/nodesource.gpg",
+                "export NODE_MAJOR=18",
+                "echo \"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main\" | sudo tee /etc/apt/sources.list.d/nodesource.list",
+                "sudo apt-get update",
+                "sudo apt autoremove -y",
+                "sudo apt-get install nodejs -y",
+                f"test -n \"{v8_version}\"",
+                "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
+                f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
+                f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
+                "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
+            ]
 
     # Add the install_prerequisites to the pre_commands
     if os_group == "windows":
