@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- Supported target frameworks -->
-    <SupportedTargetFrameworks>net6.0;net7.0;net8.0;net9.0;net10.0</SupportedTargetFrameworks>
+    <SupportedTargetFrameworks>net6.0;net7.0;net8.0;net9.0;net10.0;net11.0</SupportedTargetFrameworks>
     <SupportedTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(SupportedTargetFrameworks);net472</SupportedTargetFrameworks>
     <!-- Used by Python script to narrow down the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
@@ -56,6 +56,13 @@
         </PropertyGroup>
     </When>
     <When Condition="'$(TargetFramework)' == 'net10.0'">
+        <PropertyGroup>
+            <LangVersion>14</LangVersion>
+            <ExtensionsVersion>10.0.0</ExtensionsVersion>
+            <SystemVersion>10.0.0</SystemVersion>
+        </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net11.0'">
         <PropertyGroup>
             <LangVersion>preview</LangVersion>
             <ExtensionsVersion>$(MicrosoftExtensionsLoggingPackageVersion)</ExtensionsVersion>

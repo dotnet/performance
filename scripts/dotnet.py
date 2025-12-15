@@ -83,6 +83,8 @@ def get_target_framework_moniker(framework: str) -> str:
         return 'net9.0'
     if framework == 'nativeaot10.0':
         return 'net10.0'
+    if framework == 'nativeaot11.0':
+        return 'net11.0'
     else:
         return framework
 

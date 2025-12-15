@@ -1,7 +1,7 @@
 parameters:
   steps: []
   variables: []
-  framework: net10.0 # Specify the appropriate framework when running release branches (ie net6.0 for release/6.0)
+  framework: net11.0 # Specify the appropriate framework when running release branches (ie net6.0 for release/6.0)
   buildConfig: ''
   archType: ''
   osGroup: ''
@@ -52,7 +52,7 @@ jobs:
         - ${{ if eq(parameters.runtimeType, 'iOSMono')}}:
           - ${{ 'build_ios_arm64_release_iOSMono' }}
         - ${{ if eq(parameters.runtimeType, 'iOSCoreCLR')}}:
-          - ${{ 'build_ios_arm64_checked_iOSCoreCLR' }}
+          - ${{ 'build_ios_arm64_release_iOSCoreCLR' }}
         - ${{ if eq(parameters.runtimeType, 'iOSNativeAOT')}}:
           - ${{ 'build_ios_arm64_release_iOSNativeAOT' }}
 
@@ -195,6 +195,9 @@ jobs:
             ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
               artifactFileName: 'iOSSampleAppCoreCLRInterpreterNoSymbols.zip'
+            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'R2R'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppCoreCLRR2RNoSymbols'
+              artifactFileName: 'iOSSampleAppCoreCLRR2RNoSymbols.zip'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppNativeAOTNoSymbols'
               artifactFileName: 'iOSSampleAppNativeAOTNoSymbols.zip'
@@ -212,6 +215,8 @@ jobs:
               artifactName: 'iOSSampleAppMonoFullAOTLLVMNoSymbols'
             ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
+            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'R2R'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppCoreCLRR2RNoSymbols'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppNativeAOTNoSymbols'
             checkDownloadedFiles: true
@@ -227,6 +232,8 @@ jobs:
               artifactName: 'iOSMonoFullAOTArm64LLVMStripSymbolsBuildLog'
             ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSCoreCLRInterpreterArm64StripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'R2R'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSCoreCLRR2RArm64StripSymbolsBuildLog'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSNativeAOTArm64StripSymbolsBuildLog'
             checkDownloadedFiles: true
