@@ -17,9 +17,9 @@
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
   </PropertyGroup>
 
-  <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
+  <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="PreparePayloadWorkItems">
     <Message Text="Removing Dotnet Packs from Correlation Staging" Importance="high" />
-    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet/packs" />
   </Target>
 
   <ItemDefinitionGroup>
