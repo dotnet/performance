@@ -29,7 +29,9 @@ with MauiNuGetConfigContext(precommands.framework):
                     no_restore=False)
     
     # Build the IPA - will also use merged NuGet.config
-    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauitesting', '/p:ValidateXcodeVersion=false'])
+    # Setting TargetsCurrent=true is necessary until we get https://github.com/dotnet/sdk/pull/52031
+    # Ref: https://github.com/dotnet/macios/issues/24418
+    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauitesting', '/p:ValidateXcodeVersion=false', '/p:TargetsCurrent=true'])
 # NuGet.config is automatically restored after this block
 
 # Remove the aab files as we don't need them, this saves space

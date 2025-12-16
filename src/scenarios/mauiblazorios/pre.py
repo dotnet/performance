@@ -44,7 +44,9 @@ with MauiNuGetConfigContext(precommands.framework):
 ''')
     
     # Build the IPA - will use merged NuGet.config
-    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting', '/p:ValidateXcodeVersion=false'])
+    # Setting TargetsCurrent=true is necessary until we get https://github.com/dotnet/sdk/pull/52031
+    # Ref: https://github.com/dotnet/macios/issues/24418
+    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting', '/p:ValidateXcodeVersion=false', '/p:TargetsCurrent=true'])
 # NuGet.config is automatically restored after this block
 
 output_dir = const.PUBDIR

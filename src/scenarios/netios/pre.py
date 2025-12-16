@@ -24,8 +24,10 @@ precommands.new(template='ios',
                 working_directory=sys.path[0],
                 no_restore=False)
 
-# Build the APK
-precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.xamarintesting', '/p:ValidateXcodeVersion=false'])
+# Build the IPA
+# Setting TargetsCurrent=true is necessary until we get https://github.com/dotnet/sdk/pull/52031
+# Ref: https://github.com/dotnet/macios/issues/24418
+precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.xamarintesting', '/p:ValidateXcodeVersion=false', '/p:TargetsCurrent=true'])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR
