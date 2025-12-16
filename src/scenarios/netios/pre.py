@@ -24,6 +24,8 @@ precommands.new(template='ios',
                 working_directory=sys.path[0],
                 no_restore=False)
 
+# Build the IPA - will use merged NuGet.config
+# TODO: Remove /p:TargetsCurrent=true once https://github.com/dotnet/performance/issues/5055 is resolved
 precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.xamarintesting', '/p:TargetsCurrent=true'])
 
 # Remove the aab files as we don't need them, this saves space

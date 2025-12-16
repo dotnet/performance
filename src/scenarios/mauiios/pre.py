@@ -28,6 +28,8 @@ with MauiNuGetConfigContext(precommands.framework):
                     working_directory=sys.path[0],
                     no_restore=False)
     
+     # Build the IPA - will use merged NuGet.config
+     # TODO: Remove /p:TargetsCurrent=true once https://github.com/dotnet/performance/issues/5055 is resolved
     precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauitesting', '/p:TargetsCurrent=true'])
 # NuGet.config is automatically restored after this block
 

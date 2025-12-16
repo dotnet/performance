@@ -11,10 +11,16 @@
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
     
-    <NativeAOTCommandProps Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(PublishAot)' == 'true'">--nativeaot true</NativeAOTCommandProps>
-
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
+
+    <!-- Mono FullAOT and CoreCLR R2R are considered as default configurations, so no need for explicit properties -->
+    
+    <!-- CoreCLR Interpreter -->
+    <_MSBuildArgs Condition="'$(CodegenType)' == 'Interpreter'">$(_MSBuildArgs);/p:PublishReadyToRun=false</_MSBuildArgs>
+    <!-- CoreCLR NativeAOT -->
+    <_MSBuildArgs Condition="'$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true;/p:PublishAotUsingRuntimePack=true</_MSBuildArgs>
+
   </PropertyGroup>
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
@@ -35,7 +41,7 @@
       <IPAName>NetiOSDefault</IPAName>
       <PackageName>com.companyname.NetiOSDefault</PackageName>
     </MAUIiOSScenario>
-    <!-- Tracking issue: https://github.com/dotnet/performance/issues/5055 -->
+    <!-- TODO: Enable Maui iOS Default Template once https://github.com/dotnet/performance/issues/5055 is resolved -->
     <!-- <MAUIiOSScenario Include="Maui iOS Default Template">
       <ScenarioDirectoryName>mauiios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
@@ -52,7 +58,7 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <Command>sudo xcode-select -s /Applications/Xcode_26.1.1.app; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(NativeAOTCommandProps) --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)/%(PreparePayloadWorkItem.ScenarioDirectoryName).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <Command>sudo xcode-select -s /Applications/Xcode_26.1.1.app; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)/%(PreparePayloadWorkItem.ScenarioDirectoryName).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
@@ -98,7 +104,7 @@
           ]]>
         </CustomCommands>
     </XHarnessAppBundleToTest>
-    <!-- Tracking issue: https://github.com/dotnet/performance/issues/5055 -->
+    <!-- TODO: Enable Device Startup - iOS Maui Default Template once https://github.com/dotnet/performance/issues/5055 is resolved -->
     <!-- <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Default Template">
       <AppBundlePath>$(ScenariosDir)mauiios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
