@@ -46,7 +46,8 @@ with MauiNuGetConfigContext(precommands.framework):
     # Build the IPA - will use merged NuGet.config
     # Setting TargetsCurrent=true is necessary until we get https://github.com/dotnet/sdk/pull/52031
     # Ref: https://github.com/dotnet/macios/issues/24418
-    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting', '/p:ValidateXcodeVersion=false', '/p:TargetsCurrent=true'])
+    # Setting SupportedOSPlatformVersion=26.0 to avoid iOS 26.1 API linking errors with Xcode 26.0
+    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting', '/p:ValidateXcodeVersion=false', '/p:TargetsCurrent=true', '/p:SupportedOSPlatformVersion=26.0'])
 # NuGet.config is automatically restored after this block
 
 output_dir = const.PUBDIR
