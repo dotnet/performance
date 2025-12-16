@@ -35,7 +35,8 @@
       <IPAName>NetiOSDefault</IPAName>
       <PackageName>com.companyname.NetiOSDefault</PackageName>
     </MAUIiOSScenario>
-    <MAUIiOSScenario Include="Maui iOS Default Template">
+    <!-- Tracking issue: https://github.com/dotnet/performance/issues/5055 -->
+    <!-- <MAUIiOSScenario Include="Maui iOS Default Template">
       <ScenarioDirectoryName>mauiios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiiOSDefault</IPAName>
@@ -46,7 +47,7 @@
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiBlazoriOSDefault</IPAName>
       <PackageName>net.dot.mauiblazortesting</PackageName>
-    </MAUIiOSScenario>
+    </MAUIiOSScenario> -->
   </ItemGroup>
 
   <ItemGroup>
