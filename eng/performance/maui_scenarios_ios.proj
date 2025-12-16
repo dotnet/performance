@@ -17,9 +17,9 @@
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
   </PropertyGroup>
 
-  <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="PreparePayloadWorkItems">
+  <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
     <Message Text="Removing Dotnet Packs from Correlation Staging" Importance="high" />
-    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet/packs" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" />
   </Target>
 
   <ItemDefinitionGroup>
@@ -51,7 +51,7 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <Command>sudo xcode-select -s /Applications/Xcode_26.0.1.app; $(Python) pre.py publish -f net10.0-ios --self-contained -c Release -r ios-arm64 $(NativeAOTCommandProps) --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)/%(PreparePayloadWorkItem.ScenarioDirectoryName).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <Command>sudo xcode-select -s /Applications/Xcode_26.0.1.app; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(NativeAOTCommandProps) --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)/%(PreparePayloadWorkItem.ScenarioDirectoryName).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
