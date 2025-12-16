@@ -98,7 +98,8 @@
           ]]>
         </CustomCommands>
     </XHarnessAppBundleToTest>
-    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Default Template">
+    <!-- Tracking issue: https://github.com/dotnet/performance/issues/5055 -->
+    <!-- <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Default Template">
       <AppBundlePath>$(ScenariosDir)mauiios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
@@ -125,7 +126,7 @@
             exit $result
           ]]>
         </CustomCommands>
-    </XHarnessAppBundleToTest>
+    </XHarnessAppBundleToTest> -->
     <!-- Now also disabled for normal mono runs. (Reenable for mono and native aot once fixed). Tracking issue: https://github.com/dotnet/performance/issues/3148 -->
     <!-- <XHarnessAppBundleToTest Condition="'$(RuntimeFlavor)' == 'mono'" Include="Device Startup - iOS Maui Blazor Default Template">
       <AppBundlePath>$(ScenariosDir)mauiblazorios.zip</AppBundlePath>
