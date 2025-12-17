@@ -17,9 +17,9 @@
     <!-- Mono FullAOT and CoreCLR R2R are considered as default configurations, so no need for explicit properties -->
     
     <!-- CoreCLR Interpreter -->
-    <_MSBuildArgs Condition="'$(CodegenType)' == 'Interpreter'">$(_MSBuildArgs);/p:PublishReadyToRun=false</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'Interpreter'">$(_MSBuildArgs);/p:PublishReadyToRun=false</_MSBuildArgs>
     <!-- CoreCLR NativeAOT -->
-    <_MSBuildArgs Condition="'$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true;/p:PublishAotUsingRuntimePack=true</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true;/p:PublishAotUsingRuntimePack=true</_MSBuildArgs>
 
   </PropertyGroup>
 
