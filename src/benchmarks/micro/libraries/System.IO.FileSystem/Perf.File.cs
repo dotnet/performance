@@ -29,6 +29,31 @@ namespace System.IO.Tests
         private Dictionary<int, string> _filesToRead;
         private string[] _linesToAppend;
         private Dictionary<int, string> _textToAppend;
+        private string _moveSource;
+        private string _moveDestination;
+
+        [IterationSetup(Target = nameof(Move))]
+        public void SetupMove()
+        {
+            _moveSource = FileUtils.GetTestFilePath();
+            _moveDestination = FileUtils.GetTestFilePath();
+
+            using var file = File.Create(_moveSource);
+            var data = ValuesGenerator.Array<byte>(OneMibibyte);
+            file.Write(data, 0, data.Length);
+        }
+
+        [Benchmark]
+        public void Move() => File.Move(_moveSource, _moveDestination);
+
+        [IterationCleanup(Target = nameof(Move))]
+        public void CleanupMove()
+        {
+            if (File.Exists(_moveDestination))
+            {
+                File.Delete(_moveDestination);
+            }
+        }
 
         [GlobalSetup(Target = nameof(Exists))]
         public void SetupExists()
