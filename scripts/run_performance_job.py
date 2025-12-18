@@ -1010,9 +1010,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
             if args.os_group == "windows" or args.os_group == "osx":
-                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
-                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
-                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
+                break_system_packages = ["--break-system-packages"] if args.os_group == "osx" else []
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", *break_system_packages, "--user", "--upgrade", "pip"]).run()
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", *break_system_packages, "--user", "urllib3==1.26.19"]).run()
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", *break_system_packages, "--user", "requests"]).run()
 
             scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
             script_path = os.path.join(args.performance_repo_dir, "scripts")

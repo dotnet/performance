@@ -44,7 +44,8 @@ with MauiNuGetConfigContext(precommands.framework):
 ''')
     
     # Build the IPA - will use merged NuGet.config
-    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting'])
+    # TODO: Remove /p:TargetsCurrent=true once https://github.com/dotnet/performance/issues/5055 is resolved
+    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting', '/p:TargetsCurrent=true'])
 # NuGet.config is automatically restored after this block
 
 output_dir = const.PUBDIR
