@@ -207,8 +207,15 @@ def get_pre_commands(
 
     # Add the install_prerequisites to the pre_commands
     if os_group == "windows":
-        # TODO: Should we also give Windows the same treatment as linux and ensure that each command succeeds?
-        helix_pre_commands += install_prerequisites
+        # Chain Windows commands with error checking using && to ensure each command succeeds
+        # If any command fails, set PERF_PREREQS_INSTALL_FAILED and report the error
+        if install_prerequisites:
+            combined_prerequisites = " && ".join(install_prerequisites)
+            helix_pre_commands += [
+                'echo ** Installing prerequisites **',
+                f'{combined_prerequisites} || set PERF_PREREQS_INSTALL_FAILED=1',
+                'if defined PERF_PREREQS_INSTALL_FAILED (echo ** Error: Failed to install prerequisites ** && exit /b 1)'
+            ]
     else:
         if install_prerequisites:
             combined_prequisites = " && ".join(install_prerequisites)
@@ -272,7 +279,13 @@ def get_post_commands(os_group: str, internal: bool, runtime_type: str):
         helix_post_commands = ["export PYTHONPATH=$ORIGPYPATH"]
 
     if internal:
-        helix_post_commands += ["deactivate"] # deactivate venv
+        if os_group == "windows":
+            # Must use 'call' to invoke deactivate.bat, otherwise the batch file
+            # transfers control to deactivate.bat and never returns, causing the
+            # EXIT /b %_commandExitCode% at the end of the Helix work item to never run
+            helix_post_commands += ["call deactivate"]
+        else:
+            helix_post_commands += ["deactivate"] # deactivate venv
 
     if runtime_type == "wasm" and os_group != "windows":
         helix_post_commands += [
