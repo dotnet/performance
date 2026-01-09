@@ -157,8 +157,10 @@ def get_pre_commands(
             ]
 
         # Clear the PYTHONPATH first so that modules installed elsewhere are not used
+        # Note: On Windows, 'set PYTHONPATH=' must be a separate command, not chained with &&,
+        # otherwise Python fails with "OSError: failed to make path absolute"
         if os_group == "windows":
-            install_prerequisites += ["set PYTHONPATH="]
+            helix_pre_commands += ["set PYTHONPATH="]
         else:
             install_prerequisites += ["export PYTHONPATH="]
 
