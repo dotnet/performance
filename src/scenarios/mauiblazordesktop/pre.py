@@ -9,24 +9,28 @@ from performance.logger import setup_loggers, getLogger
 from shared.codefixes import insert_after
 from shared.precommands import PreCommands
 from shared import const
+from shared.mauisharedpython import install_latest_maui, MauiNuGetConfigContext
 from test import EXENAME
-import requests
 
 setup_loggers(True)
-
-NugetURL = 'https://raw.githubusercontent.com/dotnet/maui/net7.0/NuGet.config'
-NugetFile = requests.get(NugetURL)
-open('./Nuget.config', 'wb').write(NugetFile.content)
+logger = getLogger(__name__)
 
 precommands = PreCommands()
-precommands.install_workload('maui', ['--from-rollback-file', 'https://aka.ms/dotnet/maui/net7.0.json', '--configfile', './Nuget.config'])
-precommands.new(template='maui-blazor',
-                output_dir=const.APPDIR,
-                bin_dir=const.BINDIR,
-                exename=EXENAME,
-                working_directory=sys.path[0],
-                no_restore=False)
 
-shutil.copy2(os.path.join(const.SRCDIR, 'Replacement.Index.razor.cs'), os.path.join(const.APPDIR, 'Pages', 'Index.razor.cs'))
-precommands.add_startup_logging(os.path.join('Pages', 'Index.razor.cs'), "if (firstRender) {")
-precommands.execute(['/p:Platform=x64','/p:WindowsAppSDKSelfContained=True','/p:WindowsPackageType=None','/p:WinUISDKReferences=False','/p:PublishReadyToRun=true'])
+install_latest_maui(precommands)
+precommands.print_dotnet_info()
+
+# Use context manager to temporarily merge MAUI's NuGet feeds into repo config
+# This ensures both dotnet new and dotnet build/publish have access to MAUI packages
+with MauiNuGetConfigContext(precommands.framework):
+    precommands.new(template='maui-blazor',
+                    output_dir=const.APPDIR,
+                    bin_dir=const.BINDIR,
+                    exename=EXENAME,
+                    working_directory=sys.path[0],
+                    no_restore=False)
+    
+    shutil.copy2(os.path.join(const.SRCDIR, 'Replacement.Index.razor.cs'), os.path.join(const.APPDIR, 'Pages', 'Index.razor.cs'))
+    precommands.add_startup_logging(os.path.join('Pages', 'Index.razor.cs'), "if (firstRender) {")
+    precommands.execute(['/p:Platform=x64','/p:WindowsAppSDKSelfContained=True','/p:WindowsPackageType=None','/p:WinUISDKReferences=False','/p:PublishReadyToRun=true'])
+# NuGet.config is automatically restored after this block

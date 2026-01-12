@@ -3,7 +3,7 @@ from typing import Optional
 class ChannelMap():
     channel_map = {
         'main': {
-            'tfm': 'net10.0',
+            'tfm': 'net11.0',
             'branch': '11.0',
             'quality': 'daily'
         },
@@ -20,6 +20,11 @@ class ChannelMap():
         'nativeaot10.0': {
             'tfm': 'nativeaot10.0',
             'branch': '10.0',
+            'quality': 'daily'
+        },
+        'nativeaot11.0': {
+            'tfm': 'nativeaot11.0',
+            'branch': '11.0',
             'quality': 'daily'
         },
         '9.0': {

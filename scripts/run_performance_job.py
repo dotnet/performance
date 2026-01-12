@@ -140,7 +140,7 @@ def get_pre_commands(
         # Run inside a python venv
         if os_group == "windows":
             install_prerequisites += [
-                "py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv",
+                "py -3 -c \"exit(1 if __import__('sys').version_info[:2] == (3, 13) and 'experimental free-threading' in __import__('sys').version.lower() else 0)\" && py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv || py -3.13 -m venv %HELIX_WORKITEM_ROOT%\\.venv",
                 "call %HELIX_WORKITEM_ROOT%\\.venv\\Scripts\\activate.bat",
                 "echo on" # venv activate script turns echo off, so turn it back on
             ]
@@ -159,8 +159,10 @@ def get_pre_commands(
             ]
 
         # Clear the PYTHONPATH first so that modules installed elsewhere are not used
+        # Note: On Windows, 'set PYTHONPATH=' must be a separate command, not chained with &&,
+        # otherwise Python fails with "OSError: failed to make path absolute"
         if os_group == "windows":
-            install_prerequisites += ["set PYTHONPATH="]
+            helix_pre_commands += ["set PYTHONPATH="]
         else:
             install_prerequisites += ["export PYTHONPATH="]
 
@@ -209,8 +211,15 @@ def get_pre_commands(
 
     # Add the install_prerequisites to the pre_commands
     if os_group == "windows":
-        # TODO: Should we also give Windows the same treatment as linux and ensure that each command succeeds?
-        helix_pre_commands += install_prerequisites
+        # Chain Windows commands with error checking using && to ensure each command succeeds
+        # If any command fails, set PERF_PREREQS_INSTALL_FAILED and report the error
+        if install_prerequisites:
+            combined_prerequisites = " && ".join(install_prerequisites)
+            helix_pre_commands += [
+                'echo ** Installing prerequisites **',
+                f'{combined_prerequisites} || set PERF_PREREQS_INSTALL_FAILED=1',
+                'if defined PERF_PREREQS_INSTALL_FAILED (echo ** Error: Failed to install prerequisites ** && exit /b 1)'
+            ]
     else:
         if install_prerequisites:
             combined_prequisites = " && ".join(install_prerequisites)
@@ -274,7 +283,13 @@ def get_post_commands(os_group: str, internal: bool, runtime_type: str):
         helix_post_commands = ["export PYTHONPATH=$ORIGPYPATH"]
 
     if internal:
-        helix_post_commands += ["deactivate"] # deactivate venv
+        if os_group == "windows":
+            # Must use 'call' to invoke deactivate.bat, otherwise the batch file
+            # transfers control to deactivate.bat and never returns, causing the
+            # EXIT /b %_commandExitCode% at the end of the Helix work item to never run
+            helix_post_commands += ["call deactivate"]
+        else:
+            helix_post_commands += ["deactivate"] # deactivate venv
 
     if runtime_type == "wasm" and os_group != "windows":
         helix_post_commands += [
@@ -1019,9 +1034,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
             if args.os_group == "windows" or args.os_group == "osx":
-                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
-                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
-                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
+                break_system_packages = ["--break-system-packages"] if args.os_group == "osx" else []
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", *break_system_packages, "--user", "--upgrade", "pip"]).run()
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", *break_system_packages, "--user", "urllib3==1.26.19"]).run()
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", *break_system_packages, "--user", "requests"]).run()
 
             scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
             script_path = os.path.join(args.performance_repo_dir, "scripts")
