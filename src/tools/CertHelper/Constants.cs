@@ -11,4 +11,5 @@ public class Constants
     public static readonly string Cert2Name = "LabCert2";
     public static readonly Uri Cert1Id = new Uri("https://test.vault.azure.net/certificates/LabCert1/07a7d98bf4884e5c40e690e02b96b3b4");
     public static readonly Uri Cert2Id = new Uri("https://test.vault.azure.net/certificates/LabCert2/07a7d98bf4884e5c41e690e02b96b3b4");
+    public static readonly string BootstrapClientId = "d98f3bcf-cb73-4c6f-956e-6cd194b83a59";
 }
