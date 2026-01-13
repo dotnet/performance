@@ -86,3 +86,25 @@ def test_get_unique_name_edge_case_exactly_1024():
     
     assert len(result) == 1024
     assert result == unique_id + "-" + basename
+
+def test_get_unique_name_extremely_long_unique_id():
+    '''Test edge case where unique_id itself is very long (>1023 chars)'''
+    extremely_long_unique_id = "x" * 2000
+    filename = "test.json"
+    result = get_unique_name(filename, extremely_long_unique_id)
+    
+    # Should truncate to exactly 1024 characters
+    assert len(result) <= 1024
+    # Should be truncated unique_id
+    assert result == extremely_long_unique_id[:1024]
+
+def test_get_unique_name_long_unique_id_no_space_for_basename():
+    '''Test when unique_id is so long there's minimal space for basename'''
+    long_unique_id = "y" * 1020
+    filename = "verylongfilename.json"
+    result = get_unique_name(filename, long_unique_id)
+    
+    # Should stay under 1024
+    assert len(result) <= 1024
+    # Should start with unique_id
+    assert result.startswith(long_unique_id)

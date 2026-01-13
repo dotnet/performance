@@ -28,17 +28,27 @@ def get_unique_name(filename: str, unique_id: str) -> str:
         # Truncate the basename to fit within 1024 characters while preserving unique_id
         # Reserve space for unique_id, hyphen, and file extension
         max_basename_length = 1024 - len(unique_id) - 1  # -1 for the hyphen
-        # Try to preserve the file extension
-        ext_index = basename.rfind('.')
-        if ext_index > 0 and len(basename) - ext_index <= 20:  # reasonable extension length
-            extension = basename[ext_index:]
-            max_name_length = max_basename_length - len(extension)
-            truncated_name = basename[:max_name_length] if max_name_length > 0 else "file"
-            newname = "{0}-{1}{2}".format(unique_id, truncated_name, extension)
+        if max_basename_length > 0:
+            # Try to preserve the file extension
+            ext_index = basename.rfind('.')
+            if ext_index > 0 and len(basename) - ext_index <= 20:  # reasonable extension length
+                extension = basename[ext_index:]
+                max_name_length = max_basename_length - len(extension)
+                if max_name_length > 0:
+                    truncated_name = basename[:max_name_length]
+                    newname = "{0}-{1}{2}".format(unique_id, truncated_name, extension)
+                else:
+                    # Extension takes too much space, use minimal name within available space
+                    # We have max_basename_length chars available after unique_id and hyphen
+                    minimal_name = "f" * max_basename_length if max_basename_length > 0 else ""
+                    newname = "{0}-{1}".format(unique_id, minimal_name)
+            else:
+                # No extension or extension is too long, just truncate basename
+                truncated_basename = basename[:max_basename_length]
+                newname = "{0}-{1}".format(unique_id, truncated_basename)
         else:
-            # No extension or extension is too long, just truncate
-            truncated_basename = basename[:max_basename_length] if max_basename_length > 0 else "file"
-            newname = "{0}-{1}".format(unique_id, truncated_basename)
+            # unique_id itself is very long (>1023 chars), use just unique_id truncated
+            newname = unique_id[:1024]
     return newname
 
 def get_credential():
