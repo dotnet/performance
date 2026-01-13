@@ -1,4 +1,3 @@
-from random import randint
 from typing import Optional
 import uuid
 from azure.storage.blob import BlobClient, ContentSettings
@@ -23,9 +22,23 @@ class QueueMessage:
         self.blob_name = name
 
 def get_unique_name(filename: str, unique_id: str) -> str:
-    newname = "{0}-{1}".format(unique_id, os.path.basename(filename))
+    basename = os.path.basename(filename)
+    newname = "{0}-{1}".format(unique_id, basename)
     if len(newname) > 1024:
-        newname = "{0}-perf-lab-report.json".format(randint(1000, 9999))
+        # Truncate the basename to fit within 1024 characters while preserving unique_id
+        # Reserve space for unique_id, hyphen, and file extension
+        max_basename_length = 1024 - len(unique_id) - 1  # -1 for the hyphen
+        # Try to preserve the file extension
+        ext_index = basename.rfind('.')
+        if ext_index > 0 and len(basename) - ext_index <= 20:  # reasonable extension length
+            extension = basename[ext_index:]
+            max_name_length = max_basename_length - len(extension)
+            truncated_name = basename[:max_name_length] if max_name_length > 0 else "file"
+            newname = "{0}-{1}{2}".format(unique_id, truncated_name, extension)
+        else:
+            # No extension or extension is too long, just truncate
+            truncated_basename = basename[:max_basename_length] if max_basename_length > 0 else "file"
+            newname = "{0}-{1}".format(unique_id, truncated_basename)
     return newname
 
 def get_credential():
