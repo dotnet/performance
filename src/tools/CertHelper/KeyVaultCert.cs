@@ -5,6 +5,7 @@ using Azure.Security.KeyVault.Certificates;
 using Azure.Security.KeyVault.Secrets;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
@@ -28,7 +29,7 @@ public class KeyVaultCert
     public KeyVaultCert(TokenCredential? cred = null, CertificateClient? certClient = null, SecretClient? secretClient = null, ILocalCert? localCerts = null)
     {
         LocalCerts = localCerts ?? new LocalCert();
-        _credential = cred ?? GetCertifcateCredentialAsync(_tenantId, _clientId, LocalCerts.Certificates).Result;
+        _credential = cred ?? GetCredentialAsync(_tenantId, _clientId, LocalCerts).Result;
         _certClient = certClient ?? new CertificateClient(new Uri(_keyVaultUrl), _credential);
         _secretClient = secretClient ?? new SecretClient(new Uri(_keyVaultUrl), _credential);
         KeyVaultCertificates = new X509Certificate2Collection();
@@ -45,7 +46,72 @@ public class KeyVaultCert
         }
     }
 
-    private async Task<ClientCertificateCredential> GetCertifcateCredentialAsync(string tenantId, string clientId, X509Certificate2Collection certCollection)
+    private async Task<TokenCredential> GetCredentialAsync(string tenantId, string clientId, ILocalCert localCerts)
+    {
+        // First, try to authenticate with local certificates if available
+        if (!localCerts.RequiresBootstrap)
+        {
+            try
+            {
+                var credential = await GetCertificateCredentialAsync(tenantId, clientId, localCerts.Certificates);
+                return credential;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Local certificate authentication failed: {ex.Message}");
+                Console.WriteLine("Attempting bootstrap authentication...");
+            }
+        }
+
+        // If local certs aren't available or authentication failed, try bootstrap
+        var bootstrapCredential = await TryGetBootstrapCredentialAsync(tenantId);
+        if (bootstrapCredential != null)
+        {
+            return bootstrapCredential;
+        }
+
+        throw new Exception("Failed to authenticate with both local certificates and bootstrap PEM file");
+    }
+
+    private async Task<TokenCredential?> TryGetBootstrapCredentialAsync(string tenantId)
+    {
+        var helixConfigRoot = Environment.GetEnvironmentVariable("HELIX_CONFIG_ROOT");
+        if (string.IsNullOrEmpty(helixConfigRoot))
+        {
+            Console.WriteLine("HELIX_CONFIG_ROOT environment variable is not set, cannot bootstrap");
+            return null;
+        }
+
+        var pemFile = Path.Combine(helixConfigRoot, "client.pem");
+        if (!File.Exists(pemFile))
+        {
+            Console.WriteLine($"client.pem not found in {helixConfigRoot}, cannot bootstrap");
+            return null;
+        }
+
+        try
+        {
+            // Load the PEM file which contains both certificate and private key
+            var cert = X509Certificate2.CreateFromPemFile(pemFile, pemFile);
+            
+            if (!cert.HasPrivateKey)
+            {
+                throw new Exception("Certificate was loaded but does not contain a private key");
+            }
+            
+            var credential = new ClientCertificateCredential(tenantId, Constants.BootstrapClientId, cert, new() { SendCertificateChain = true });
+            await credential.GetTokenAsync(new TokenRequestContext(new string[] { "https://vault.azure.net/.default" }));
+            return credential;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Bootstrap authentication failed: {ex.Message}");
+        }
+
+        return null;
+    }
+
+    private async Task<ClientCertificateCredential> GetCertificateCredentialAsync(string tenantId, string clientId, X509Certificate2Collection certCollection)
     {
         ClientCertificateCredential? ccc = null;
         Exception? exception = null;
@@ -93,6 +159,18 @@ public class KeyVaultCert
 
     public bool ShouldRotateCerts()
     {
+        // If we have no local certs or bootstrap was required, we need to rotate
+        if (LocalCerts.RequiresBootstrap || LocalCerts.Certificates.Count == 0)
+        {
+            return true;
+        }
+
+        // If local cert count doesn't match Key Vault cert count, rotate
+        if (LocalCerts.Certificates.Count != KeyVaultCertificates.Count)
+        {
+            return true;
+        }
+
         var keyVaultThumbprints = new HashSet<string>();
         foreach (var cert in KeyVaultCertificates)
         {

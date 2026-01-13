@@ -12,12 +12,14 @@ namespace CertHelper;
 public class LocalCert : ILocalCert
 {
     public X509Certificate2Collection Certificates { get; set; }
+    public bool RequiresBootstrap { get; private set; }
     internal IX509Store LocalMachineCerts { get; set; }
 
     public LocalCert(IX509Store? store = null)
     {
         LocalMachineCerts = store ?? new TestableX509Store();
         Certificates = new X509Certificate2Collection();
+        RequiresBootstrap = false;
         GetLocalCerts();
     }
 
@@ -33,7 +35,8 @@ public class LocalCert : ILocalCert
 
         if (Certificates.Count < 2 || Certificates.Where(c => c == null).Count() > 0)
         {
-            throw new Exception("One or more certificates not found");
+            // Mark that bootstrapping is needed instead of throwing immediately
+            RequiresBootstrap = true;
         }
     }
 }
@@ -41,4 +44,5 @@ public class LocalCert : ILocalCert
 public interface ILocalCert
 {
     X509Certificate2Collection Certificates { get; set; }
+    bool RequiresBootstrap { get; }
 }
