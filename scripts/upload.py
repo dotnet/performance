@@ -22,6 +22,7 @@ class QueueMessage:
         self.blob_name = name
 
 def get_unique_name(filename: str, unique_id: str) -> str:
+    MAX_EXTENSION_LENGTH = 20  # Maximum reasonable file extension length to preserve
     basename = os.path.basename(filename)
     newname = "{0}-{1}".format(unique_id, basename)
     if len(newname) > 1024:
@@ -31,17 +32,16 @@ def get_unique_name(filename: str, unique_id: str) -> str:
         if max_basename_length > 0:
             # Try to preserve the file extension
             ext_index = basename.rfind('.')
-            if ext_index > 0 and len(basename) - ext_index <= 20:  # reasonable extension length
+            if ext_index > 0 and len(basename) - ext_index <= MAX_EXTENSION_LENGTH:
                 extension = basename[ext_index:]
                 max_name_length = max_basename_length - len(extension)
                 if max_name_length > 0:
                     truncated_name = basename[:max_name_length]
                     newname = "{0}-{1}{2}".format(unique_id, truncated_name, extension)
                 else:
-                    # Extension takes too much space, use minimal name within available space
-                    # We have max_basename_length chars available after unique_id and hyphen
-                    minimal_name = "f" * max_basename_length if max_basename_length > 0 else ""
-                    newname = "{0}-{1}".format(unique_id, minimal_name)
+                    # Extension takes too much space, use truncated basename within available space
+                    truncated_basename = basename[:max_basename_length] if max_basename_length > 0 else ""
+                    newname = "{0}-{1}".format(unique_id, truncated_basename)
             else:
                 # No extension or extension is too long, just truncate basename
                 truncated_basename = basename[:max_basename_length]
