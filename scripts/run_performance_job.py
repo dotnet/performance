@@ -138,7 +138,7 @@ def get_pre_commands(
         # Run inside a python venv
         if os_group == "windows":
             install_prerequisites += [
-                "py -3 -c \"exit(1 if __import__('sys').version_info[:2] == (3, 13) and 'experimental free-threading' in __import__('sys').version.lower() else 0)\" && py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv || py -3.13 -m venv %HELIX_WORKITEM_ROOT%\\.venv",
+                "(py -3 -c \"exit(1 if __import__('sys').version_info[:2] == (3, 13) and 'experimental free-threading' in __import__('sys').version.lower() else 0)\" && py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv || py -3.13 -m venv %HELIX_WORKITEM_ROOT%\\.venv)",
                 "call %HELIX_WORKITEM_ROOT%\\.venv\\Scripts\\activate.bat",
                 "echo on" # venv activate script turns echo off, so turn it back on
             ]
