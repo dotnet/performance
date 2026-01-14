@@ -45,6 +45,7 @@ jobs:
           codeGenType: 'Interpreter'
           runKind: micro_mono
           logicalMachine: 'perfcobalt'
+          osDistro: 'azurelinux'
           timeoutInMinutes: 720
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
@@ -83,6 +84,7 @@ jobs:
           runtimeType: mono
           runKind: micro_mono
           logicalMachine: 'perfcobalt'
+          osDistro: 'azurelinux'
           timeoutInMinutes: 720
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
@@ -129,6 +131,7 @@ jobs:
           codeGenType: 'AOT'
           runKind: micro_mono
           logicalMachine: 'perfcobalt'
+          osDistro: 'azurelinux'
           timeoutInMinutes: 780
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
@@ -165,6 +168,7 @@ jobs:
     #       liveLibrariesBuildConfig: Release
     #       runKind: micro
     #       logicalMachine: 'perfcobalt'
+    #       osDistro: 'azurelinux'
     #       timeoutInMinutes: 780
     #       runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
     #       performanceRepoAlias: ${{ parameters.performanceRepoAlias }}

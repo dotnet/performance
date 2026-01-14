@@ -59,6 +59,7 @@ class RunPerformanceJobArgs:
     run_kind: str
     architecture: str
     os_group: str
+    os_distro: Optional[str] = None
     
     logical_machine: Optional[str] = None
     queue: Optional[str] = None
@@ -118,6 +119,7 @@ class RunPerformanceJobArgs:
 
 def get_pre_commands(
         os_group: str,
+        os_distro: Optional[str],
         internal: bool,
         runtime_type: str,
         codegen_type: str,
@@ -144,7 +146,7 @@ def get_pre_commands(
             ]
         else:
             if os_group != "osx":
-                if os_group == "azurelinux":
+                if os_distro == "azurelinux":
                     install_prerequisites += [
                         "sudo tdnf -y install python3-pip"
                     ]
@@ -184,7 +186,7 @@ def get_pre_commands(
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
         # TODO: is this still needed? It seems like it was added to support wasm which is already setting up everything
         if os_group != "windows" and os_group != "osx":
-            if os_group == "azurelinux":
+            if os_distro == "azurelinux":
                 install_prerequisites += [
                     "sudo tdnf -y install curl ca-certificates"
                 ]
@@ -196,7 +198,7 @@ def get_pre_commands(
 
     # Set up everything needed for WASM runs
     if runtime_type == "wasm":  
-        if os_group == "azurelinux":
+        if os_distro == "azurelinux":
             # Azure Linux uses tdnf package manager
             install_prerequisites += [
                 "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
@@ -923,7 +925,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     else:
         agent_python = "python3"
 
-    helix_pre_commands = get_pre_commands(args.os_group, args.internal, args.runtime_type, args.codegen_type, v8_version)
+    helix_pre_commands = get_pre_commands(args.os_group, args.os_distro, args.internal, args.runtime_type, args.codegen_type, v8_version)
     helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
 
     ci_setup_arguments.local_build = args.local_build
@@ -1283,6 +1285,7 @@ def main(argv: list[str]):
                 "--affinity": "affinity",
                 "--os-group": "os_group",
                 "--os-sub-group": "os_sub_group",
+                "--os-distro": "os_distro",
                 "--runtime-flavor": "runtime_flavor",
                 "--javascript-engine": "javascript_engine",
                 "--experiment-name": "experiment_name",
