@@ -25,7 +25,7 @@ class QueueMessage:
 def get_unique_name(filename: str, unique_id: str) -> str:
     newname = "{0}-{1}".format(unique_id, os.path.basename(filename))
     if len(newname) > 1024:
-        newname = "{0}-perf-lab-report.json".format(randint(1000, 9999))
+        newname = "{0}-{1}-perf-lab-report.json".format(unique_id, randint(1000, 9999))
     return newname
 
 def get_credential():
