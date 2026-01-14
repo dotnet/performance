@@ -4,7 +4,6 @@ Tests for benchmarks_ci.py Helix upload logic
 
 import os
 import tempfile
-from pathlib import Path
 
 def test_path_containment_direct_child():
     """Test that a direct child directory is detected as contained"""

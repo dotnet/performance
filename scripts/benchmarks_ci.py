@@ -297,7 +297,7 @@ def main(argv: list[str]):
                 artifacts_in_upload = artifacts_real.startswith(helix_upload_real + os.sep) or artifacts_real == helix_upload_real
                 
                 if artifacts_in_upload:
-                    getLogger().info("Skipping copy of reports/binlogs - artifacts directory already in Helix upload root")
+                    getLogger().info(f"Skipping copy of reports/binlogs - artifacts directory '{artifacts_real}' already in Helix upload root '{helix_upload_real}'")
                 else:
                     for file in glob(reports_globpath, recursive=True):
                         shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
