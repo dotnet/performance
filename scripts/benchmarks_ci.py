@@ -291,8 +291,16 @@ def main(argv: list[str]):
             binlogs_globpath = os.path.join(get_repo_root_path(), 'artifacts', '**', '*.binlog')
             helix_upload_root = helixuploadroot()
             if helix_upload_root is not None:
-                for file in glob(reports_globpath, recursive=True):
-                    shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
+                # Check if artifacts_dir is already within helix_upload_root to avoid duplicate copies
+                artifacts_real = os.path.realpath(artifacts_dir)
+                helix_upload_real = os.path.realpath(helix_upload_root)
+                artifacts_in_upload = artifacts_real.startswith(helix_upload_real + os.sep) or artifacts_real == helix_upload_real
+                
+                if artifacts_in_upload:
+                    getLogger().info("Skipping copy of reports/binlogs - artifacts directory already in Helix upload root")
+                else:
+                    for file in glob(reports_globpath, recursive=True):
+                        shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
 
                 # Create a combined JSON file that contains all the reports
                 combined_file_prefix = "" if args.partition is None else f"Partition{args.partition}-"
@@ -306,9 +314,10 @@ def main(argv: list[str]):
                                 getLogger().warning(f"Failed to load report file '{file}': {e}")
                     json.dump(all_reports, all_reports_file)
 
-                # ensure binlogs directory exists
-                for file in glob(binlogs_globpath, recursive=True):
-                    shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
+                if not artifacts_in_upload:
+                    # ensure binlogs directory exists
+                    for file in glob(binlogs_globpath, recursive=True):
+                        shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
 
                 shutil.make_archive(os.path.join(helix_upload_root, "bdn-artifacts"), 'zip', artifacts_dir)
                 getLogger().info("Created \"bdn-artifacts\".zip")
