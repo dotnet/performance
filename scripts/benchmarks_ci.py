@@ -291,13 +291,13 @@ def main(argv: list[str]):
             binlogs_globpath = os.path.join(get_repo_root_path(), 'artifacts', '**', '*.binlog')
             helix_upload_root = helixuploadroot()
             if helix_upload_root is not None:
-                # Check if artifacts_dir is already within helix_upload_root to avoid duplicate copies
-                artifacts_real = os.path.realpath(artifacts_dir)
+                # Check if reports directory is already within helix_upload_root to avoid duplicate copies
                 helix_upload_real = os.path.realpath(helix_upload_root)
-                artifacts_in_upload = artifacts_real.startswith(helix_upload_real + os.sep) or artifacts_real == helix_upload_real
+                artifacts_real = os.path.realpath(artifacts_dir)
+                reports_in_upload = artifacts_real.startswith(helix_upload_real + os.sep) or artifacts_real == helix_upload_real
                 
-                if artifacts_in_upload:
-                    getLogger().info(f"Skipping copy of reports/binlogs - artifacts directory '{artifacts_real}' already in Helix upload root '{helix_upload_real}'")
+                if reports_in_upload:
+                    getLogger().info(f"Skipping copy of reports - artifacts directory '{artifacts_real}' already in Helix upload root '{helix_upload_real}'")
                 else:
                     for file in glob(reports_globpath, recursive=True):
                         shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
@@ -314,8 +314,14 @@ def main(argv: list[str]):
                                 getLogger().warning(f"Failed to load report file '{file}': {e}")
                     json.dump(all_reports, all_reports_file)
 
-                if not artifacts_in_upload:
-                    # ensure binlogs directory exists
+                # Check if binlogs directory is already within helix_upload_root to avoid duplicate copies
+                binlogs_dir = os.path.join(get_repo_root_path(), 'artifacts')
+                binlogs_dir_real = os.path.realpath(binlogs_dir)
+                binlogs_in_upload = binlogs_dir_real.startswith(helix_upload_real + os.sep) or binlogs_dir_real == helix_upload_real
+                
+                if binlogs_in_upload:
+                    getLogger().info(f"Skipping copy of binlogs - binlogs directory '{binlogs_dir_real}' already in Helix upload root '{helix_upload_real}'")
+                else:
                     for file in glob(binlogs_globpath, recursive=True):
                         shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
 
