@@ -14,12 +14,12 @@ from test import EXENAME
 setup_loggers(True)
 
 precommands = PreCommands()
-install_latest_maui(precommands)
-precommands.print_dotnet_info()
 
 # Use context manager to temporarily merge MAUI's NuGet feeds into repo config
-# This ensures both dotnet new and dotnet build/publish have access to MAUI packages
+# This ensures dotnet package search, dotnet new, and dotnet build/publish have access to MAUI packages
 with MauiNuGetConfigContext(precommands.framework):
+    install_latest_maui(precommands)
+    precommands.print_dotnet_info()
     # Setup the Maui folder - will use merged NuGet.config with MAUI feeds
     precommands.new(template='maui',
                     output_dir=const.APPDIR,
@@ -31,7 +31,7 @@ with MauiNuGetConfigContext(precommands.framework):
     # Build the IPA - will use merged NuGet.config
     # TODO: Remove /p:TargetsCurrent=true once https://github.com/dotnet/performance/issues/5055 is resolved
     precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauitesting', '/p:TargetsCurrent=true'])
-# NuGet.config is automatically restored after this block
+    # NuGet.config is automatically restored after this block
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR
