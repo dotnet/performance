@@ -60,7 +60,6 @@ with MauiNuGetConfigContext(precommands.framework):
             else:
                 mainActivityFile.write(line)
     
-    
     # Build the APK - will use merged NuGet.config
     precommands.execute([])
     # NuGet.config is automatically restored after this block
