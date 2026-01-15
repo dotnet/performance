@@ -558,7 +558,7 @@ jobs:
           - main
         runtimeFlavor: mono
         codeGenType: ProfiledAOT
-        buildConfig: debug
+        buildConfig: Debug
         additionalJobIdentifier: Mono_Debug
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -578,7 +578,7 @@ jobs:
           - main
         runtimeFlavor: mono
         codeGenType: AOT
-        buildConfig: debug
+        buildConfig: Debug
         additionalJobIdentifier: Mono_Debug
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -598,7 +598,7 @@ jobs:
           - main
         runtimeFlavor: coreclr
         codeGenType: JIT
-        buildConfig: debug
+        buildConfig: Debug
         additionalJobIdentifier: CoreCLR_Debug
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -618,7 +618,7 @@ jobs:
           - main
         runtimeFlavor: coreclr
         codeGenType: R2R
-        buildConfig: debug
+        buildConfig: Debug
         additionalJobIdentifier: CoreCLR_Debug
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -638,7 +638,7 @@ jobs:
           - main
         runtimeFlavor: coreclr
         codeGenType: R2RComposite
-        buildConfig: debug
+        buildConfig: Debug
         additionalJobIdentifier: CoreCLR_Debug
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -658,7 +658,7 @@ jobs:
           - main
         runtimeFlavor: coreclr
         codeGenType: NativeAOT
-        buildConfig: debug
+        buildConfig: Debug
         additionalJobIdentifier: CoreCLR_Debug
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -677,7 +677,7 @@ jobs:
           - main
         runtimeFlavor: mono
         codeGenType: FullAOT
-        buildConfig: debug
+        buildConfig: Debug
         additionalJobIdentifier: Mono_Debug
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -696,7 +696,7 @@ jobs:
           - main
         runtimeFlavor: coreclr
         codeGenType: NativeAOT
-        buildConfig: debug
+        buildConfig: Debug
         additionalJobIdentifier: CoreCLR_Debug
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
