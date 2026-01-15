@@ -117,19 +117,17 @@ jobs:
     #       ${{ each parameter in parameters.jobParameters }}:
     #         ${{ parameter.key }}: ${{ parameter.value }}
 
-    # run mono aot microbenchmarks perf job on perfcobalt
+    # run coreclr Linux arm64 microbenchmarks perf job on perfcobalt
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
-        runtimeFlavor: aot
+        runtimeFlavor: coreclr
         platforms:
         - linux_arm64
         jobParameters:
           liveLibrariesBuildConfig: Release
-          runtimeType: mono
-          codeGenType: 'AOT'
-          runKind: micro_mono
+          runKind: micro
           logicalMachine: 'perfcobalt'
           osDistro: 'azurelinux'
           timeoutInMinutes: 780
