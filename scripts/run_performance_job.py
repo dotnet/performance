@@ -508,7 +508,7 @@ def get_run_configurations(
             raise Exception("Runtime flavor must be specified for maui_scenarios_android")
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)
-        if build_config is not None:
+        if build_config is not None and build_config != DEFAULT_BUILD_CONFIG:
             configurations["BuildConfig"] = build_config
 
     # .NET iOS and .NET MAUI iOS sample app scenarios
@@ -517,7 +517,7 @@ def get_run_configurations(
             raise Exception("Runtime flavor must be specified for maui_scenarios_ios")
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)
-        if build_config is not None:
+        if build_config is not None and build_config != DEFAULT_BUILD_CONFIG:
             configurations["BuildConfig"] = build_config
 
     return configurations
