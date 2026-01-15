@@ -123,6 +123,7 @@ def get_pre_commands(
         internal: bool,
         runtime_type: str,
         codegen_type: str,
+        build_config: str,
         v8_version: str):
     helix_pre_commands: list[str] = []
 
@@ -273,6 +274,22 @@ def get_pre_commands(
             helix_pre_commands += ["%HELIX_CORRELATION_PAYLOAD%\\monoaot\\mono-aot-cross --llvm --version"]
         else:
             helix_pre_commands += ["$HELIX_CORRELATION_PAYLOAD/monoaot/mono-aot-cross --llvm --version"]
+
+    # If we are running not release, make sure we make that very clear.
+    if args.build_config.lower() != "release":
+        if args.os_group == "windows":
+            banner = [
+                "(echo ======================================================)",
+                f"(echo NON-RELEASE BUILD CONFIG: {build_config})",
+                "(echo ======================================================)",
+            ]
+        else:
+            banner = [
+                'echo "======================================================"',
+                f'echo "NON-RELEASE BUILD CONFIG: {build_config}"',
+                'echo "======================================================"',
+            ]
+        helix_pre_commands = banner + helix_pre_commands
         
     return helix_pre_commands
 
@@ -907,7 +924,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     else:
         agent_python = "python3"
 
-    helix_pre_commands = get_pre_commands(args.os_group, args.internal, args.runtime_type, args.codegen_type, v8_version)
+    helix_pre_commands = get_pre_commands(args.os_group, args.internal, args.runtime_type, args.codegen_type, args.build_config, v8_version)
     helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
 
     ci_setup_arguments.local_build = args.local_build
