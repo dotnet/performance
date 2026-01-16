@@ -103,7 +103,7 @@ jobs:
         vmImage: ubuntu-latest
       container: ubuntu_x64_build_container
       machinePool: Cobalt
-      queue: azurelinux.3.cobalt.arm64.perf
+      queue: AzureLinux.3.Cobalt.Arm64.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-pixel'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently

@@ -254,7 +254,7 @@ jobs:
               -TokensFilePath '$(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
           continueOnError: true
           condition: always()
-      - ${{ if or(eq(parameters.osGroup, 'ubuntu'), eq(parameters.osGroup, 'azurelinux')) }}:
+      - ${{ if eq(parameters.osGroup, 'linux') }}:
         - task: ShellScript@2
           displayName: Redact Logs
           inputs:
