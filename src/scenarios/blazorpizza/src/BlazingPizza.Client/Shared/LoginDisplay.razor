@@ -1,9 +1,4 @@
-﻿@inject NavigationManager Navigation
-#if !NET11_0_OR_GREATER
-@inject SignOutSessionStateManager SignOutManager
-#endif
-
-<div class="user-info">
+﻿<div class="user-info">
     <AuthorizeView>
         <Authorizing>
             <text>...</text>
@@ -21,18 +16,3 @@
         </NotAuthorized>
     </AuthorizeView>
 </div>
-
-@code{
-#if NET11_0_OR_GREATER
-    void BeginSignOut()
-    {
-        Navigation.NavigateToLogout("authentication/logout");
-    }
-#else
-    async Task BeginSignOut()
-    {
-        await SignOutManager.SetSignOutState();
-        Navigation.NavigateTo("authentication/logout");
-    }
-#endif
-}
