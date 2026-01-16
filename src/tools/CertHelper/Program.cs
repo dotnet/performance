@@ -50,9 +50,9 @@ internal class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Failed to rotate certificates");
-            Console.WriteLine(ex.Message);
-            Console.WriteLine(ex.StackTrace);
+            Console.Error.WriteLine("Failed to rotate certificates");
+            Console.Error.WriteLine(ex.Message);
+            Console.Error.WriteLine(ex.StackTrace);
         }
 
         using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser, OpenFlags.ReadWrite))
