@@ -5,7 +5,7 @@ import shutil
 import sys
 from performance.logger import setup_loggers, getLogger
 from shared import const
-from shared.mauisharedpython import remove_aab_files,install_latest_maui
+from shared.mauisharedpython import remove_aab_files,install_latest_maui, MauiNuGetConfigContext
 from shared.precommands import PreCommands
 from shared.versionmanager import versions_write_json, get_sdk_versions
 from test import EXENAME
@@ -16,19 +16,20 @@ logger.info("Starting pre-command for .NET Android template app (dotnet new andr
 
 precommands = PreCommands()
 
-install_latest_maui(precommands)
-precommands.print_dotnet_info()
+with MauiNuGetConfigContext(precommands.framework):
+    install_latest_maui(precommands)
+    precommands.print_dotnet_info()
 
-# Setup the app folder
-precommands.new(template='android',
-                output_dir=const.APPDIR,
-                bin_dir=const.BINDIR,
-                exename=EXENAME,
-                working_directory=sys.path[0],
-                no_restore=False)
+    # Setup the app folder
+    precommands.new(template='android',
+                    output_dir=const.APPDIR,
+                    bin_dir=const.BINDIR,
+                    exename=EXENAME,
+                    working_directory=sys.path[0],
+                    no_restore=False)
 
-# Build the APK
-precommands.execute([])
+    # Build the APK
+    precommands.execute([])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR
