@@ -846,7 +846,8 @@ def install(
         'powershell.exe',
         '-NoProfile',
         '-ExecutionPolicy', 'Bypass',
-        dotnetInstallScriptPath
+        '-Command',
+        f'[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; & "{dotnetInstallScriptPath}"'
     ] if platform == 'win32' else [dotnetInstallScriptPath]
 
     # If Version is supplied, pull down the specified version
