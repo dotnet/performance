@@ -58,8 +58,8 @@ public class KeyVaultCert
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Local certificate authentication failed: {ex.Message}");
-                Console.WriteLine("Attempting bootstrap authentication...");
+                Console.Error.WriteLine($"Local certificate authentication failed: {ex.Message}");
+                Console.Error.WriteLine("Attempting bootstrap authentication...");
             }
         }
 
@@ -78,14 +78,14 @@ public class KeyVaultCert
         var helixConfigRoot = Environment.GetEnvironmentVariable("HELIX_CONFIG_ROOT");
         if (string.IsNullOrEmpty(helixConfigRoot))
         {
-            Console.WriteLine("HELIX_CONFIG_ROOT environment variable is not set, cannot bootstrap");
+            Console.Error.WriteLine("HELIX_CONFIG_ROOT environment variable is not set, cannot bootstrap");
             return null;
         }
 
         var pemFile = Path.Combine(helixConfigRoot, "client.pem");
         if (!File.Exists(pemFile))
         {
-            Console.WriteLine($"client.pem not found in {helixConfigRoot}, cannot bootstrap");
+            Console.Error.WriteLine($"client.pem not found in {helixConfigRoot}, cannot bootstrap");
             return null;
         }
 
@@ -105,7 +105,7 @@ public class KeyVaultCert
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Bootstrap authentication failed: {ex.Message}");
+            Console.Error.WriteLine($"Bootstrap authentication failed: {ex.Message}");
         }
 
         return null;
