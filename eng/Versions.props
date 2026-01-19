@@ -7,12 +7,12 @@
   </PropertyGroup>
   <!--Package versions-->
   <PropertyGroup>
-    <MicrosoftNETILLinkTasksVersion>11.0.0-preview.1.26066.111</MicrosoftNETILLinkTasksVersion>
-    <MicrosoftNETILLinkPackageVersion>11.0.0-preview.1.26066.111</MicrosoftNETILLinkPackageVersion>
-    <SystemThreadingChannelsPackageVersion>11.0.0-preview.1.26066.111</SystemThreadingChannelsPackageVersion>
-    <MicrosoftExtensionsLoggingPackageVersion>11.0.0-preview.1.26066.111</MicrosoftExtensionsLoggingPackageVersion>
+    <MicrosoftNETILLinkTasksVersion>11.0.0-preview.1.26067.103</MicrosoftNETILLinkTasksVersion>
+    <MicrosoftNETILLinkPackageVersion>11.0.0-preview.1.26067.103</MicrosoftNETILLinkPackageVersion>
+    <SystemThreadingChannelsPackageVersion>11.0.0-preview.1.26067.103</SystemThreadingChannelsPackageVersion>
+    <MicrosoftExtensionsLoggingPackageVersion>11.0.0-preview.1.26067.103</MicrosoftExtensionsLoggingPackageVersion>
     <BenchmarkDotNetVersion>0.14.1-nightly.20250107.205</BenchmarkDotNetVersion>
-    <MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>11.0.0-preview.1.26066.111</MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>
+    <MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>11.0.0-preview.1.26067.103</MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>
     <MicrosoftDotNetXHarnessCLIVersion>11.0.0-prerelease.25603.1</MicrosoftDotNetXHarnessCLIVersion>
   </PropertyGroup>
   <!--Package names-->
