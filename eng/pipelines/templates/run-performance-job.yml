@@ -28,6 +28,7 @@ parameters:
   archType: ''                      # required -- Architecture of Helix machine
   osGroup: ''                       # required -- OS of Helix machine
   osSubGroup: ''                    # optional -- OS Subgroup of Helix machine
+  osDistro: ''                      # optional -- OS distribution (e.g. 'azurelinux', 'ubuntu'). Used to determine package manager.
   queue: ''                         # optional -- Helix queue to run on (required if logicalMachine is not set)
   logicalMachine: ''                # optional -- Type of Helix machine to use (required if queue is not set)
   channel: ''                       # optional -- .NET channel to test against (use channels). Ignored if channels or dotnetVersionLinks is non-empty
@@ -161,6 +162,8 @@ jobs:
             - '--os-group ${{ parameters.osGroup }}'
             - ${{ if ne(parameters.osSubGroup, '') }}:
               - '--os-sub-group ${{ parameters.osSubGroup }}'
+            - ${{ if ne(parameters.osDistro, '') }}:
+              - '--os-distro ${{ parameters.osDistro }}'
             - ${{ if ne(parameters.queue, '') }}:
               - '--queue ${{ parameters.queue }}'
             - ${{ if ne(parameters.logicalMachine, '') }}:
@@ -251,11 +254,11 @@ jobs:
               -TokensFilePath '$(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
           continueOnError: true
           condition: always()
-      - ${{ if eq(parameters.osGroup, 'ubuntu') }}:
+      - ${{ if eq(parameters.osGroup, 'linux') }}:
         - task: ShellScript@2
           displayName: Redact Logs
           inputs:
-            scriptPath: $(System.DefaultWorkingDirectory)/eng/performance/redact-logs.sh
-            args: '--input $(System.DefaultWorkingDirectory)/artifacts/log --version 1.0.11 --tokens-file $(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
+            scriptPath: $(System.DefaultWorkingDirectory)/performance/eng/performance/redact-logs.sh
+            args: '--input $(System.DefaultWorkingDirectory)/artifacts/log --version 1.0.11 --tokens-file $(System.DefaultWorkingDirectory)/performance/eng/BinlogSecretsRedactionFile.txt'
           continueOnError: true
           condition: always()
