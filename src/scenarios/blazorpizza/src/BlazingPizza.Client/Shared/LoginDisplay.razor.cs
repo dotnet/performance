@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+using System.Threading.Tasks;  
 
 namespace BlazingPizza.Client.Shared;
 
