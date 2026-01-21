@@ -61,6 +61,7 @@ class RunPerformanceJobArgs:
     run_kind: str
     architecture: str
     os_group: str
+    os_distro: Optional[str] = None
     
     logical_machine: Optional[str] = None
     queue: Optional[str] = None
@@ -120,6 +121,7 @@ class RunPerformanceJobArgs:
 
 def get_pre_commands(
         os_group: str,
+        os_distro: Optional[str],
         internal: bool,
         runtime_type: str,
         codegen_type: str,
@@ -141,18 +143,23 @@ def get_pre_commands(
         # Run inside a python venv
         if os_group == "windows":
             install_prerequisites += [
-                "py -3 -c \"exit(1 if __import__('sys').version_info[:2] == (3, 13) and 'experimental free-threading' in __import__('sys').version.lower() else 0)\" && py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv || py -3.13 -m venv %HELIX_WORKITEM_ROOT%\\.venv",
+                "(py -3 -c \"exit(1 if __import__('sys').version_info[:2] == (3, 13) and 'experimental free-threading' in __import__('sys').version.lower() else 0)\" && py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv || py -3.13 -m venv %HELIX_WORKITEM_ROOT%\\.venv)",
                 "call %HELIX_WORKITEM_ROOT%\\.venv\\Scripts\\activate.bat",
                 "echo on" # venv activate script turns echo off, so turn it back on
             ]
         else:
             if os_group != "osx":
-                install_prerequisites += [
-                    'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
-                    'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
-                    "sudo apt-get remove -y lttng-modules-dkms", # https://github.com/dotnet/runtime/pull/101142
-                    "sudo apt-get -y install python3-pip"
-                ]
+                if os_distro == "azurelinux":
+                    install_prerequisites += [
+                        "sudo tdnf -y install python3-pip"
+                    ]
+                else:
+                    install_prerequisites += [
+                        'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
+                        'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
+                        "sudo apt-get remove -y lttng-modules-dkms", # https://github.com/dotnet/runtime/pull/101142
+                        "sudo apt-get -y install python3-pip"
+                    ]
 
             install_prerequisites += [
                 "python3 -m venv $HELIX_WORKITEM_ROOT/.venv",
@@ -182,33 +189,51 @@ def get_pre_commands(
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
         # TODO: is this still needed? It seems like it was added to support wasm which is already setting up everything
         if os_group != "windows" and os_group != "osx":
-            install_prerequisites += [
-                "sudo apt-get update",
-                "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
-            ]
+            if os_distro == "azurelinux":
+                install_prerequisites += [
+                    "sudo tdnf -y install curl ca-certificates"
+                ]
+            else:
+                install_prerequisites += [
+                    "sudo apt-get update",
+                    "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
+                ]
 
     # Set up everything needed for WASM runs
-    if runtime_type == "wasm":
-        # nodejs installation steps from https://github.com/nodesource/distributions
-        install_prerequisites += [
-            "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
-            "sudo apt-get -y remove nodejs",
-            "sudo apt-get update",
-            "sudo apt-get install -y ca-certificates curl gnupg",
-            "sudo mkdir -p /etc/apt/keyrings",
-            "sudo rm -f /etc/apt/keyrings/nodesource.gpg",
-            "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor --batch -o /etc/apt/keyrings/nodesource.gpg",
-            "export NODE_MAJOR=18",
-            "echo \"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main\" | sudo tee /etc/apt/sources.list.d/nodesource.list",
-            "sudo apt-get update",
-            "sudo apt autoremove -y",
-            "sudo apt-get install nodejs -y",
-            f"test -n \"{v8_version}\"",
-            "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
-            f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
-            f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
-            "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
-        ]
+    if runtime_type == "wasm":  
+        if os_distro == "azurelinux":
+            # Azure Linux uses tdnf package manager
+            install_prerequisites += [
+                "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
+                "sudo tdnf -y update",
+                "sudo tdnf -y remove nodejs",
+                "sudo tdnf -y install ca-certificates curl gnupg nodejs npm",
+                f"test -n \"{v8_version}\"",
+                "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
+                f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
+                f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
+                "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
+            ]
+        else:
+            install_prerequisites += [
+                "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
+                "sudo apt-get -y remove nodejs",
+                "sudo apt-get update",
+                "sudo apt-get install -y ca-certificates curl gnupg",
+                "sudo mkdir -p /etc/apt/keyrings",
+                "sudo rm -f /etc/apt/keyrings/nodesource.gpg",
+                "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor --batch -o /etc/apt/keyrings/nodesource.gpg",
+                "export NODE_MAJOR=18",
+                "echo \"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main\" | sudo tee /etc/apt/sources.list.d/nodesource.list",
+                "sudo apt-get update",
+                "sudo apt autoremove -y",
+                "sudo apt-get install nodejs -y",
+                f"test -n \"{v8_version}\"",
+                "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
+                f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
+                f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
+                "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
+            ]
 
     # Add the install_prerequisites to the pre_commands
     if os_group == "windows":
@@ -343,6 +368,7 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
         else:
             queue_map = {
                 "perfampere": "Ubuntu.2204.Arm64.Perf",
+                "perfcobalt": "AzureLinux.3.Cobalt.Arm64.Perf",
                 "perfiphone12mini": "OSX.13.Amd64.Iphone.Perf",
                 "perftiger_crossgen": "Ubuntu.1804.Amd64.Tiger.Perf",
                 "perfviper": "Ubuntu.2204.Amd64.Viper.Perf",
@@ -918,7 +944,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     else:
         agent_python = "python3"
 
-    helix_pre_commands = get_pre_commands(args.os_group, args.internal, args.runtime_type, args.codegen_type, args.build_config, v8_version)
+    helix_pre_commands = get_pre_commands(args.os_group, args.os_distro, args.internal, args.runtime_type, args.codegen_type, args.build_config, v8_version)
     helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
 
     ci_setup_arguments.local_build = args.local_build
@@ -1279,6 +1305,7 @@ def main(argv: list[str]):
                 "--affinity": "affinity",
                 "--os-group": "os_group",
                 "--os-sub-group": "os_sub_group",
+                "--os-distro": "os_distro",
                 "--runtime-flavor": "runtime_flavor",
                 "--javascript-engine": "javascript_engine",
                 "--experiment-name": "experiment_name",

@@ -5,7 +5,7 @@ import shutil
 import sys
 from performance.logger import setup_loggers, getLogger
 from shared import const
-from shared.mauisharedpython import remove_aab_files, install_latest_maui
+from shared.mauisharedpython import remove_aab_files, install_latest_maui, MauiNuGetConfigContext
 from shared.precommands import PreCommands
 from shared.versionmanager import versions_write_json, get_sdk_versions
 from test import EXENAME
@@ -13,20 +13,22 @@ from test import EXENAME
 setup_loggers(True)
 
 precommands = PreCommands()
-install_latest_maui(precommands)
-precommands.print_dotnet_info()
 
-# Setup the .NET iOS folder
-precommands.new(template='ios',
-                output_dir=const.APPDIR,
-                bin_dir=const.BINDIR,
-                exename=EXENAME,
-                working_directory=sys.path[0],
-                no_restore=False)
+with MauiNuGetConfigContext(precommands.framework):
+    install_latest_maui(precommands)
+    precommands.print_dotnet_info()
 
-# Build the IPA - will use merged NuGet.config
-# TODO: Remove /p:TargetsCurrent=true once https://github.com/dotnet/performance/issues/5055 is resolved
-precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.xamarintesting', '/p:TargetsCurrent=true'])
+    # Setup the .NET iOS folder
+    precommands.new(template='ios',
+                    output_dir=const.APPDIR,
+                    bin_dir=const.BINDIR,
+                    exename=EXENAME,
+                    working_directory=sys.path[0],
+                    no_restore=False)
+
+    # Build the IPA - will use merged NuGet.config
+    # TODO: Remove /p:TargetsCurrent=true once https://github.com/dotnet/performance/issues/5055 is resolved
+    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.xamarintesting', '/p:TargetsCurrent=true'])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR

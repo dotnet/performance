@@ -75,6 +75,7 @@ public class KeyVaultCertTests
 
         mockLocalCert = new Mock<ILocalCert>();
         mockLocalCert.Setup(lc => lc.Certificates).Returns(certCollection);
+        mockLocalCert.Setup(lc => lc.RequiresBootstrap).Returns(false);
     }
 
     private static void MakeCerts(out KeyVaultCertificateWithPolicy? mockCert1, out KeyVaultCertificateWithPolicy? mockCert2, out X509Certificate2 cert1, out X509Certificate2 cert2, out X509Certificate2 cert3, bool localAndKeyVaultDifferent = false)
@@ -158,6 +159,58 @@ public class KeyVaultCertTests
 
         // Assert
         Assert.False(result);
+    }
+
+    [Fact]
+    public void Constructor_ShouldThrow_WhenLocalCertsRequireBootstrapAndNoHelixConfigRoot()
+    {
+        // Arrange
+        Mock<TokenCredential> mockTokenCred;
+        Mock<CertificateClient> mockCertClient;
+        Mock<SecretClient> mockSecretClient;
+        Mock<ILocalCert> mockLocalCert;
+        CertStoreSetup(out mockTokenCred, out mockCertClient, out mockSecretClient, out mockLocalCert, false);
+        
+        // Simulate bootstrap required scenario
+        mockLocalCert.Setup(lc => lc.RequiresBootstrap).Returns(true);
+        
+        // Ensure HELIX_CONFIG_ROOT is not set
+        var originalValue = Environment.GetEnvironmentVariable("HELIX_CONFIG_ROOT");
+        try
+        {
+            Environment.SetEnvironmentVariable("HELIX_CONFIG_ROOT", null);
+
+            // Act & Assert
+            Assert.Throws<AggregateException>(() => new KeyVaultCert(null, mockCertClient.Object, mockSecretClient.Object, mockLocalCert.Object));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("HELIX_CONFIG_ROOT", originalValue);
+        }
+    }
+
+    [Fact]
+    public async Task ShouldRotateCerts_ShouldReturnTrue_WhenNoLocalCertsExist()
+    {
+        // Arrange
+        Mock<TokenCredential> mockTokenCred;
+        Mock<CertificateClient> mockCertClient;
+        Mock<SecretClient> mockSecretClient;
+        Mock<ILocalCert> mockLocalCert;
+        CertStoreSetup(out mockTokenCred, out mockCertClient, out mockSecretClient, out mockLocalCert);
+
+        // Simulate empty local cert store (bootstrap scenario)
+        mockLocalCert.Setup(lc => lc.Certificates).Returns(new X509Certificate2Collection());
+        mockLocalCert.Setup(lc => lc.RequiresBootstrap).Returns(true);
+
+        var keyVaultCert = new KeyVaultCert(mockTokenCred.Object, mockCertClient.Object, mockSecretClient.Object, mockLocalCert.Object);
+
+        // Act
+        await keyVaultCert.LoadKeyVaultCertsAsync();
+        var result = keyVaultCert.ShouldRotateCerts();
+
+        // Assert
+        Assert.True(result);
     }
 }
 
