@@ -45,7 +45,7 @@ namespace MicroBenchmarks
                 .Run(argsList.ToArray(), 
                     RecommendedConfig.Create(
                         artifactsPath: new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "BenchmarkDotNet.Artifacts")), 
-                        mandatoryCategories: ImmutableHashSet.Create(Categories.Libraries, Categories.Runtime, Categories.ThirdParty),
+                        mandatoryCategories: ImmutableHashSet.Create([Categories.Libraries, Categories.Runtime, Categories.ThirdParty]),
                         partitionCount: partitionCount,
                         partitionIndex: partitionIndex,
                         exclusionFilterValue: exclusionFilterValue,
