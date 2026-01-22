@@ -54,7 +54,7 @@ if precommands.output:
 remove_aab_files(output_dir)
 
 # Extract the versions of used SDKs from the linked folder DLLs
-version_dict = get_sdk_versions(rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked", False)
+version_dict = get_sdk_versions(rf"./{const.APPDIR}/obj/{precommands.configuration}/{precommands.framework}/ios-arm64/linked", False)
 versions_write_json(version_dict, rf"{output_dir}/versions.json")
-print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked")
+print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/{precommands.configuration}/{precommands.framework}/ios-arm64/linked")
 
