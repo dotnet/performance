@@ -59,7 +59,7 @@ namespace CompilerBenchmarks
                 LanguageNames.CSharp,
                 new List<DiagnosticInfo>(),
                 MessageProvider.Instance,
-                new DefaultAnalyzerAssemblyLoader(),
+                new AnalyzerAssemblyLoader(),
                 cmdLineArgs.CompilationOptions,
                 skipAnalyzers: false,
                 out var analyzers,
