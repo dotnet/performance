@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Improvement Report - linux-x64-tiger
 
 ## >50% Improvement (109 tests)
