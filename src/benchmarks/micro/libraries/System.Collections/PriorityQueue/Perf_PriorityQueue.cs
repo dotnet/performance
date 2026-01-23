@@ -106,5 +106,30 @@ namespace System.Collections.Tests
                 queue.Dequeue();
             }
         }
+
+        [Benchmark]
+        public void DequeueEnqueue()
+        {
+            const int k = 5;
+            var queue = _priorityQueue;
+            var items = _items;
+
+            for (int i = 0; i < k; i++)
+            {
+                (TElement element, TPriority priority) = items[i];
+                queue.Enqueue(element, priority);
+            }
+
+            for (int i = k; i < Size; i++)
+            {
+                (TElement element, TPriority priority) = items[i];
+                queue.DequeueEnqueue(element, priority);
+            }
+
+            for (int i = 0; i < k; i++)
+            {
+                queue.Dequeue();
+            }
+        }
     }
 }
