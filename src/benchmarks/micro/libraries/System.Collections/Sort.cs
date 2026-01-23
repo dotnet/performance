@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
@@ -30,6 +31,8 @@ namespace System.Collections
         private T[] _values;
         private T[][] _arrays;
         private List<T>[] _lists;
+        private ImmutableArray<T> _immutableArray;
+        private ImmutableList<T> _immutableList;
 
         [GlobalSetup]
         public void Setup() => _values = GenerateValues();
@@ -58,6 +61,20 @@ namespace System.Collections
 
         [Benchmark]
         public void List() => _lists[_iterationIndex++].Sort();
+
+        [GlobalSetup(Target = nameof(ImmutableArray))]
+        public void SetupImmutableArray() =>
+            _immutableArray = Immutable.ImmutableArray.CreateRange(GenerateValues());
+
+        [Benchmark]
+        public ImmutableArray<T> ImmutableArray() => _immutableArray.Sort();
+
+        [GlobalSetup(Target = nameof(ImmutableList))]
+        public void SetupImmutableList() =>
+            _immutableList = Immutable.ImmutableList.CreateRange(GenerateValues());
+
+        [Benchmark]
+        public ImmutableList<T> ImmutableList() => _immutableList.Sort();
 
         [BenchmarkCategory(Categories.LINQ)]
         [Benchmark]
