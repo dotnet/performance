@@ -140,4 +140,4 @@ output:
   - json
 name: Normal_Server
 trace_configurations:
-  type: gc # gc, verbose, cpu, cpu_managed, threadtime, threadtime_managed, join.
+  type: gc # none, gc, gc_benchmarks, verbose, cpu, cpu_benchmarks, cpu_managed, cpu_managed_benchmarks, threadtime, join.
