@@ -30,4 +30,5 @@
   </Target>
 
   <Import Project="$(MSBuildThisFileDirectory)..\..\scenarios\build-common\WasmOverridePacks.targets" />
+  <Import Sdk="Microsoft.NET.Sdk.WebAssembly" Project="Sdk.targets" />
 </Project>
