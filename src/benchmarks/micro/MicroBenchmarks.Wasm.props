@@ -6,4 +6,6 @@
     <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
     <WasmBuildNative>true</WasmBuildNative>
   </PropertyGroup>
+
+  <Import Sdk="Microsoft.NET.Sdk.WebAssembly" Project="Sdk.props" />
 </Project>
