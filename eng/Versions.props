@@ -11,7 +11,7 @@
     <MicrosoftNETILLinkPackageVersion>10.0.0-rc.1.25555.107</MicrosoftNETILLinkPackageVersion>
     <SystemThreadingChannelsPackageVersion>10.0.0-rc.1.25555.107</SystemThreadingChannelsPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>10.0.0-rc.1.25555.107</MicrosoftExtensionsLoggingPackageVersion>
-    <BenchmarkDotNetVersion>0.16.0-custom.20260120.101</BenchmarkDotNetVersion>
+    <BenchmarkDotNetVersion>0.16.0-custom.20260127.101</BenchmarkDotNetVersion>
     <MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>10.0.0-rc.1.25555.107</MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>
     <MicrosoftDotNetXHarnessCLIVersion>11.0.0-prerelease.26064.3</MicrosoftDotNetXHarnessCLIVersion>
   </PropertyGroup>
