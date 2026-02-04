@@ -32,6 +32,7 @@ jobs:
         projectFileName: scenarios.proj
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -51,6 +52,7 @@ jobs:
           projectFileName: maui_scenarios.proj
           channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
             - main
+            - 10.0
             - 9.0
             - 8.0
           ${{ each parameter in parameters.jobParameters }}:
@@ -69,6 +71,7 @@ jobs:
         projectFileName: blazor_scenarios.proj
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -87,6 +90,7 @@ jobs:
         projectFileName: sdk_scenarios.proj
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -106,6 +110,7 @@ jobs:
         runCategories: 'runtime libraries' 
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
 
@@ -124,6 +129,7 @@ jobs:
           - main
           # - nativeaot9.0 # Disable until I have time to properly fix the issues and can merge https://github.com/dotnet/performance/pull/4741
           # - nativeaot8.0
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -143,6 +149,7 @@ jobs:
         runCategories: 'mldotnet' 
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -163,6 +170,7 @@ jobs:
           runCategories: 'fsharp'
           channels:
             - main
+            - 10.0
             - 9.0
             - 8.0
           ${{ each parameter in parameters.jobParameters }}:
@@ -181,6 +189,7 @@ jobs:
         runCategories: 'FSharpMicro'
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -200,6 +209,7 @@ jobs:
         runCategories: 'BepuPhysics'
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -219,6 +229,7 @@ jobs:
         runCategories: 'ImageSharp'
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -238,6 +249,7 @@ jobs:
         runCategories: 'AkadeIndexedSet'
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -257,6 +269,7 @@ jobs:
         runCategories: 'roslyn'
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -278,6 +291,7 @@ jobs:
           runCategories: 'illink'
           channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
             - main
+            - 10.0
             - 9.0
             - 8.0
           ${{ each parameter in parameters.jobParameters }}:
@@ -296,6 +310,7 @@ jobs:
         projectFileName: nativeaot_scenarios.proj
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -315,6 +330,7 @@ jobs:
         runCategories: 'Public'
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -341,6 +357,7 @@ jobs:
         projectFileName: scenarios.proj
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -360,6 +377,7 @@ jobs:
         projectFileName: scenarios_affinitized.proj
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         additionalJobIdentifier: 'Affinity_85'
@@ -555,6 +573,7 @@ jobs:
           projectFileName: maui_scenarios.proj
           channels:
             - main
+            - 10.0
             - 9.0
             - 8.0
           ${{ each parameter in parameters.jobParameters }}:
@@ -574,6 +593,7 @@ jobs:
         projectFileName: nativeaot_scenarios.proj
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -600,6 +620,7 @@ jobs:
         projectFileName: sdk_scenarios.proj
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -617,6 +638,7 @@ jobs:
         projectFileName: blazor_scenarios.proj
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -639,6 +661,7 @@ jobs:
           runCategories: 'fsharp'
           channels:
             - main
+            - 10.0
             - 9.0
             - 8.0
           ${{ each parameter in parameters.jobParameters }}:
@@ -659,6 +682,7 @@ jobs:
         runCategories: 'FSharpMicro'
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -680,6 +704,7 @@ jobs:
         runCategories: 'BepuPhysics'
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -701,6 +726,7 @@ jobs:
         runCategories: 'ImageSharp'
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
@@ -722,6 +748,7 @@ jobs:
         runCategories: 'AkadeIndexedSet'
         channels:
           - main
+          - 10.0
           - 9.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
@@ -743,6 +770,7 @@ jobs:
         runCategories: 'mldotnet'
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
@@ -770,6 +798,7 @@ jobs:
         runCategories: 'roslyn'
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
           - main
+          - 10.0
           - 9.0
           - 8.0
         affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
@@ -797,6 +826,7 @@ jobs:
           runCategories: 'illink'
           channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
             - main
+            - 10.0
             - 9.0
             - 8.0
 
@@ -816,6 +846,7 @@ jobs:
         runCategories: 'Public Internal'
         channels:
           - main
+          - 10.0
           - 9.0
           - 8.0
         ${{ each parameter in parameters.jobParameters }}:
