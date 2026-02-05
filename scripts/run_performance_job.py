@@ -174,6 +174,7 @@ def get_pre_commands(
         # Install python pacakges needed to upload results to azure storage
         install_prerequisites += [
             f"python -m pip install -U pip",
+            f"python -m pip install cryptography==46.0.3",
             f"python -m pip install azure.storage.blob==12.13.0",
             f"python -m pip install azure.storage.queue==12.4.0",
             f"python -m pip install azure.identity==1.16.1",
