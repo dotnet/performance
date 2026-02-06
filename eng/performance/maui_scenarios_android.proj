@@ -26,6 +26,10 @@
     <!-- CoreCLR NativeAOT -->
     <_MSBuildArgs Condition="'$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true</_MSBuildArgs>
 
+    <!-- Debug builds use Fast Deployment by default, which excludes assemblies from the APK.
+         Since we deploy via adb install (not IDE), we must embed them. -->
+    <_MSBuildArgs Condition="'$(BuildConfig)' == 'Debug'">$(_MSBuildArgs);/p:EmbedAssembliesIntoApk=true</_MSBuildArgs>
+
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
   </PropertyGroup>
 
