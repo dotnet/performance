@@ -3,6 +3,7 @@ Version File Manager
 '''
 import json
 import os
+import platform
 import subprocess
 from performance.logger import getLogger
 from datetime import datetime
@@ -35,6 +36,13 @@ def get_version_from_dll_powershell(dll_path: str):
 def get_version_from_dll_powershell_ios(dll_path: str):
     result = subprocess.run(['pwsh', '-Command', rf'Get-ChildItem {dll_path} | Select-Object -ExpandProperty VersionInfo | Select-Object -ExpandProperty ProductVersion'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
     return result.stdout.decode('utf-8').strip()
+
+def get_version_from_dll(dll_path: str):
+    '''Cross-platform DLL version extraction. Uses powershell on Windows, pwsh elsewhere.'''
+    if platform.system() == 'Windows':
+        return get_version_from_dll_powershell(dll_path)
+    else:
+        return get_version_from_dll_powershell_ios(dll_path)
 
 def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> dict[str, str]:
     '''
@@ -70,7 +78,7 @@ def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> d
 
         return version, commit
 
-    powershell_cmd = get_version_from_dll_powershell if windows_powershell else get_version_from_dll_powershell_ios
+    powershell_cmd = get_version_from_dll
 
     mobile_sdks = {
         "net_android": "Mono.Android.dll",
