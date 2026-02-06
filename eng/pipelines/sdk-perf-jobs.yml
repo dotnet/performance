@@ -333,7 +333,7 @@ jobs:
       buildMachines:
         - win-x64-viper
         - ubuntu-x64-viper
-        - win-arm64
+        - win-arm64-ampere
         - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
@@ -352,7 +352,6 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64-viper
-        - win-arm64
         - win-arm64-ampere
       isPublic: false
       jobParameters:
@@ -547,7 +546,7 @@ jobs:
         buildMachines:
           - win-x64-viper
           - ubuntu-x64-viper
-          - win-arm64
+          - win-arm64-ampere
           - ubuntu-arm64-ampere
         isPublic: false
         jobParameters:
@@ -567,7 +566,7 @@ jobs:
       buildMachines:
         - win-x64-viper
         - ubuntu-x64-viper
-        - win-arm64
+        - win-arm64-ampere
       isPublic: false
       jobParameters:
         runKind: nativeaot_scenarios
@@ -630,7 +629,7 @@ jobs:
         buildMachines:
           - win-x64-viper
           - ubuntu-x64-viper
-          - win-arm64
+          - win-arm64-ampere
           - ubuntu-arm64-ampere
         isPublic: false
         jobParameters:
@@ -650,7 +649,7 @@ jobs:
       buildMachines:
         - win-x64-viper
         - ubuntu-x64-viper
-        - win-arm64
+        - win-arm64-ampere
         - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
@@ -671,7 +670,7 @@ jobs:
       buildMachines:
         - win-x64-viper
         - ubuntu-x64-viper
-        - win-arm64
+        - win-arm64-ampere
         - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
@@ -692,7 +691,7 @@ jobs:
       buildMachines:
         - win-x64-viper
         - ubuntu-x64-viper
-        - win-arm64
+        - win-arm64-ampere
         - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
@@ -713,7 +712,7 @@ jobs:
       buildMachines:
         - win-x64-viper
         - ubuntu-x64-viper
-        - win-arm64
+        - win-arm64-ampere
         - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
@@ -733,7 +732,6 @@ jobs:
       buildMachines:
         - win-x64-viper
         - ubuntu-x64-viper
-        - win-arm64
         - win-arm64-ampere
         - ubuntu-arm64-ampere
       isPublic: false
@@ -760,7 +758,6 @@ jobs:
       buildMachines:
         - win-x64-viper
         - ubuntu-x64-viper
-        - win-arm64
         - win-arm64-ampere
         - ubuntu-arm64-ampere
       isPublic: false
@@ -807,8 +804,8 @@ jobs:
       buildMachines:
         - win-x64-viper
         - ubuntu-x64-viper
-        - win-arm64
-        - ubuntu-arm64
+        - win-arm64-ampere
+        - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
         runKind: powershell
