@@ -1,6 +1,7 @@
 '''
 pre-command
 '''
+import os
 import shutil
 import sys
 from performance.logger import setup_loggers, getLogger
@@ -41,6 +42,7 @@ if precommands.output:
 remove_aab_files(output_dir)
 
 # Extract the versions of used SDKs from the linked folder DLLs
-version_dict = get_sdk_versions(rf".\{const.APPDIR}\obj\{precommands.configuration}\{precommands.framework}\android-arm64\linked")
-versions_write_json(version_dict, rf"{output_dir}\versions.json")
-print(f"Versions: {version_dict} from location " + rf".\{const.APPDIR}\obj\{precommands.configuration}\{precommands.framework}\android-arm64\linked")
+dll_folder = os.path.join(".", const.APPDIR, "obj", precommands.configuration, precommands.framework, "android-arm64", "linked")
+version_dict = get_sdk_versions(dll_folder)
+versions_write_json(version_dict, os.path.join(output_dir, "versions.json"))
+print(f"Versions: {version_dict} from location {dll_folder}")
