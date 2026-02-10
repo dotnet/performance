@@ -484,7 +484,7 @@ jobs:
   #       ${{ each parameter in parameters.jobParameters }}:
   #         ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS Mono scenario benchmarks
+  # Maui iOS scenario benchmarks (Mono - Default) - Release
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -497,12 +497,12 @@ jobs:
         channels:
           - main
         runtimeFlavor: mono
-        codeGenType: FullAOT
+        codeGenType: Default
         additionalJobIdentifier: Mono
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS CoreCLR scenario benchmarks
+  # Maui iOS scenario benchmarks (CoreCLR - Default) - Release
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -515,12 +515,12 @@ jobs:
         channels:
           - main
         runtimeFlavor: coreclr
-        codeGenType: Interpreter
+        codeGenType: Default
         additionalJobIdentifier: CoreCLR
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS Native AOT scenario benchmarks
+  # Maui iOS scenario benchmarks (CoreCLR - NativeAOT) - Release
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
