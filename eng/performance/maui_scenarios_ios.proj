@@ -53,6 +53,12 @@
       <IPAName>MauiBlazoriOSDefault</IPAName>
       <PackageName>net.dot.mauiblazortesting</PackageName>
     </MAUIiOSScenario>
+    <MAUIiOSScenario Include="Maui iOS Sample Content Template">
+      <ScenarioDirectoryName>mauisamplecontentios</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <IPAName>MauiSampleContentiOSDefault</IPAName>
+      <PackageName>net.dot.mauisamplecontenttesting</PackageName>
+    </MAUIiOSScenario>
   </ItemGroup>
 
   <ItemGroup>
@@ -122,7 +128,35 @@
             sign MauiiOSDefault.app
 
             # Testing commands
-            $(Python) test.py devicestartup -1-device-type ios -1-package-path MauiiOSDefault.app -1-package-name net.dot.mauitesting -1-scenario-name "%(Identity)" $(ScenarioArgs)
+            $(Python) test.py devicestartup --device-type ios --package-path MauiiOSDefault.app --package-name net.dot.mauitesting --scenario-name "%(Identity)" $(ScenarioArgs)
+            ((result=$?))
+
+            # Post commands
+            $(Python) post.py
+            exit $result
+          ]]>
+        </CustomCommands>
+    </XHarnessAppBundleToTest>
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Sample Content Template">
+      <AppBundlePath>$(ScenariosDir)mauisamplecontentios.zip</AppBundlePath>
+      <WorkItemTimeout>00:15:00</WorkItemTimeout>
+      <TestTarget>ios-device</TestTarget>
+      <CustomCommands>
+        <![CDATA[
+            # PreCommands
+            export XHARNESSPATH=$XHARNESS_CLI_PATH
+            
+            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauisamplecontentios/MauiSampleContentiOSDefault.ipa $HELIX_WORKITEM_ROOT/mauisamplecontentios/MauiSampleContentiOSDefault.zip
+            mkdir $HELIX_WORKITEM_ROOT/mauisamplecontentios/pub
+            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauisamplecontentios/versions.json $HELIX_WORKITEM_ROOT/mauisamplecontentios/pub/versions.json
+            unzip -d $HELIX_WORKITEM_ROOT/mauisamplecontentios $HELIX_WORKITEM_ROOT/mauisamplecontentios/MauiSampleContentiOSDefault.zip
+            mv $HELIX_WORKITEM_ROOT/mauisamplecontentios/Payload/MauiSampleContentiOSDefault.app $HELIX_WORKITEM_ROOT/mauisamplecontentios/MauiSampleContentiOSDefault.app
+            cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/mauisamplecontentios/MauiSampleContentiOSDefault.app
+            cd $HELIX_WORKITEM_ROOT/mauisamplecontentios
+            sign MauiSampleContentiOSDefault.app
+
+            # Testing commands
+            $(Python) test.py devicestartup --device-type ios --package-path MauiSampleContentiOSDefault.app --package-name net.dot.mauisamplecontenttesting --scenario-name "%(Identity)" $(ScenarioArgs)
             ((result=$?))
 
             # Post commands
