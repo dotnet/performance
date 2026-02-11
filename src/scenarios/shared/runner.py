@@ -714,18 +714,20 @@ ex: C:\repos\performance;C:\repos\runtime
             apple_state = RunCommand(cmdline, verbose=True)
             apple_state.run()
 
-            # Get the name and version of the device from the output of apple_state above
-            # Example output expected (PERFIOS-01 is the device name, and 17.0.2 is the version):
+            # Get the name, UDID, and version of the device from the output of apple_state above
+            # Example output expected (PERFIOS-01 is the device name, 00008101-001A09223E08001E is the UDID, and 17.0.2 is the version):
             #  Connected Devices:
             #    PERFIOS-01 00008101-001A09223E08001E    17.0.2        iPhone iOS
-            deviceInfoMatch = re.search(r'Connected Devices:\s+(?P<deviceName>\S+)\s+\S+\s+(?P<deviceVersion>\S+)', apple_state.stdout)
+            deviceInfoMatch = re.search(r'Connected Devices:\s+(?P<deviceName>\S+)\s+(?P<deviceUDID>\S+)\s+(?P<deviceVersion>\S+)', apple_state.stdout)
             if deviceInfoMatch:
                 deviceName = deviceInfoMatch.group('deviceName')
+                deviceUDID = deviceInfoMatch.group('deviceUDID')
                 deviceVersion = deviceInfoMatch.group('deviceVersion')
                 getLogger().info(f"Device Name: {deviceName}")
+                getLogger().info(f"Device UDID: {deviceUDID}")
                 getLogger().info(f"Device Version: {deviceVersion}")
             else:
-                raise Exception("Device name or version not found in the output of apple_state command.")
+                raise Exception("Device name, UDID, or version not found in the output of apple_state command.")
             
             getLogger().info("Installing app on device.")
             installCmd = xharnesscommand() + [
@@ -753,7 +755,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'mlaunch',
                     '--',
                     '--launchdev', self.packagepath,
-                    '--devname', deviceName
+                    '--devname', deviceUDID
                 ]
                 runCmdCommand = RunCommand(runCmd, verbose=True)
 
@@ -813,7 +815,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'mlaunch',
                     '--',
                     f'--killdev={app_pid}',
-                    '--devname', deviceName
+                    '--devname', deviceUDID
                 ]
                 killCmdCommand = RunCommand(killCmd, verbose=True)
                 killCmdCommand.run()
