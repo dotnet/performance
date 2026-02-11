@@ -21,7 +21,10 @@
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
     <Message Text="Removing Dotnet Packs from Correlation Staging" Importance="high" />
-    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet/packs" />
+    <!-- Remove scenario build intermediates to reduce payload size (published output is in scenarios_out/) -->
+    <RemoveDir Directories="@(MAUIiOSScenario -> '%(PayloadDirectory)/app/obj')" />
+    <RemoveDir Directories="@(MAUIiOSScenario -> '%(PayloadDirectory)/app/bin')" />
   </Target>
 
   <ItemDefinitionGroup>
