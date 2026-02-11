@@ -370,7 +370,7 @@ jobs:
   #       ${{ each parameter in parameters.jobParameters }}:
   #         ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui Android scenario benchmarks (Mono ProfiledAOT) - Release
+  # Maui Android scenario benchmarks (Mono Default) - Release
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -384,13 +384,13 @@ jobs:
         channels:
           - main
         runtimeFlavor: mono
-        codeGenType: ProfiledAOT
+        codeGenType: Default
         buildConfig: Release
         additionalJobIdentifier: Mono
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui Android scenario benchmarks (CoreCLR JIT) - Release
+  # Maui Android scenario benchmarks (CoreCLR Default) - Release
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -404,47 +404,7 @@ jobs:
         channels:
           - main
         runtimeFlavor: coreclr
-        codeGenType: JIT
-        buildConfig: Release
-        additionalJobIdentifier: CoreCLR
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # Maui Android scenario benchmarks (CoreCLR R2R) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: R2R
-        buildConfig: Release
-        additionalJobIdentifier: CoreCLR
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # Maui Android scenario benchmarks (CoreCLR R2R Composite) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: R2RComposite
+        codeGenType: Default
         buildConfig: Release
         additionalJobIdentifier: CoreCLR
         ${{ each parameter in parameters.jobParameters }}:
@@ -470,7 +430,7 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS scenario benchmarks (Mono FullAOT) - Release
+  # Maui iOS scenario benchmarks (Mono Default) - Release
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -483,13 +443,13 @@ jobs:
         channels:
           - main
         runtimeFlavor: mono
-        codeGenType: FullAOT
+        codeGenType: Default
         buildConfig: Release
         additionalJobIdentifier: Mono
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS scenario benchmarks (CoreCLR Interpreter) - Release
+  # Maui iOS scenario benchmarks (CoreCLR Default) - Release
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -502,7 +462,7 @@ jobs:
         channels:
           - main
         runtimeFlavor: coreclr
-        codeGenType: Interpreter
+        codeGenType: Default
         buildConfig: Release
         additionalJobIdentifier: CoreCLR
         ${{ each parameter in parameters.jobParameters }}:
