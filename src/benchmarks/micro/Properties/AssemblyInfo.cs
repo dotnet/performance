@@ -20,7 +20,7 @@ namespace MicroBenchmarks
                 ? ManualConfig.CreateEmpty()
                 : RecommendedConfig.Create(
                     artifactsPath: new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "BenchmarkDotNet.Artifacts")),
-                    mandatoryCategories: ImmutableHashSet.Create(Categories.Libraries, Categories.Runtime, Categories.ThirdParty));
+                    mandatoryCategories: ImmutableHashSet.Create([Categories.Libraries, Categories.Runtime, Categories.ThirdParty]));
         }
 
         public IConfig Config { get; }
