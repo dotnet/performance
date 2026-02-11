@@ -50,23 +50,23 @@
       <IPAName>MauiiOSDefault</IPAName>
       <PackageName>net.dot.mauitesting</PackageName>
     </MAUIiOSScenario>
-    <MAUIiOSScenario Include="Maui Blazor iOS Default Template">
-      <ScenarioDirectoryName>mauiblazorios</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <IPAName>MauiBlazoriOSDefault</IPAName>
-      <PackageName>net.dot.mauiblazortesting</PackageName>
-    </MAUIiOSScenario>
     <MAUIiOSScenario Include="Maui iOS Sample Content Template">
       <ScenarioDirectoryName>mauisamplecontentios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiSampleContentiOSDefault</IPAName>
       <PackageName>net.dot.mauisamplecontenttesting</PackageName>
     </MAUIiOSScenario>
+    <MAUIiOSScenario Include="Maui Blazor iOS Default Template">
+      <ScenarioDirectoryName>mauiblazorios</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <IPAName>MauiBlazoriOSDefault</IPAName>
+      <PackageName>net.dot.mauiblazortesting</PackageName>
+    </MAUIiOSScenario>
   </ItemGroup>
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <Command>sudo xcode-select -s /Applications/Xcode_26.2.app; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c $(BuildConfig) -r ios-arm64 --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)/%(PreparePayloadWorkItem.ScenarioDirectoryName).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <Command>sudo xcode-select -s /Applications/Xcode_26.2.app; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c $(BuildConfig) -r ios-arm64 --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)/%(PreparePayloadWorkItem.ScenarioDirectoryName).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); rm -rf app/obj app/bin; cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
