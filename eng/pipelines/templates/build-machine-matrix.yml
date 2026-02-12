@@ -10,8 +10,13 @@ jobs:
     parameters:
       osGroup: windows
       archType: x64
-      pool:
-        vmImage: windows-2025
+      ${{ if eq(parameters.isPublic, true) }}:
+        pool:
+          name: NetCore-Public
+          demands: ImageOverride -equals windows.vs2022.amd64.open
+      ${{ else }}:
+        pool:
+          vmImage: windows-2025
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
         osVersion: 24H2
@@ -29,7 +34,8 @@ jobs:
       osVersion: RS5
       archType: x64
       pool:
-        vmImage: windows-2025
+        name: NetCore-Public
+        demands: ImageOverride -equals windows.vs2022.amd64.open
       machinePool: Open
       queue: Windows.10.Amd64.ClientRS5.Open
       ${{ insert }}: ${{ parameters.jobParameters }}
@@ -39,8 +45,13 @@ jobs:
     parameters:
       osGroup: windows
       archType: x86
-      pool:
-        vmImage: windows-2025
+      ${{ if eq(parameters.isPublic, true) }}:
+        pool:
+          name: NetCore-Public
+          demands: ImageOverride -equals windows.vs2022.amd64.open
+      ${{ else }}:
+        pool:
+          vmImage: windows-2025
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
         osVersion: 24H2
@@ -57,8 +68,13 @@ jobs:
       osGroup: ubuntu
       osVersion: 2204
       archType: x64
-      pool: 
-        vmImage: ubuntu-latest
+      ${{ if eq(parameters.isPublic, true) }}:
+        pool:
+          name: NetCore-Public
+          demands: ImageOverride -equals build.azurelinux.3.amd64.open
+      ${{ else }}:
+        pool: 
+          vmImage: ubuntu-latest
       container: ubuntu_x64_build_container
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
