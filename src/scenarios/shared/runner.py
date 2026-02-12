@@ -853,7 +853,7 @@ ex: C:\repos\performance;C:\repos\runtime
                         if 'Now monitoring resource allowance' in lineData['eventMessage'] or 'Stopped monitoring' in lineData['eventMessage']:
                             events.append(lineData)
                     except:
-                        break
+                        continue
 
                 
                 if i == 0: # Use the warmup iteration to get the current device time
