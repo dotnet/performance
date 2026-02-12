@@ -44,8 +44,7 @@ with MauiNuGetConfigContext(precommands.framework):
 ''')
     
     # Build the IPA - will use merged NuGet.config
-    # TODO: Remove /p:TargetsCurrent=true once https://github.com/dotnet/performance/issues/5055 is resolved
-    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting', '/p:TargetsCurrent=true'])
+    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting'])
     # NuGet.config is automatically restored after this block
 
 output_dir = const.PUBDIR
@@ -54,7 +53,7 @@ if precommands.output:
 remove_aab_files(output_dir)
 
 # Extract the versions of used SDKs from the linked folder DLLs
-version_dict = get_sdk_versions(rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked", False)
+version_dict = get_sdk_versions(rf"./{const.APPDIR}/obj/{precommands.configuration}/{precommands.framework}/ios-arm64/linked", False)
 versions_write_json(version_dict, rf"{output_dir}/versions.json")
-print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked")
+print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/{precommands.configuration}/{precommands.framework}/ios-arm64/linked")
 
