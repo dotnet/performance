@@ -489,7 +489,7 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS scenario benchmarks (CoreCLR Interpreter) - Release
+  # Maui iOS scenario benchmarks (CoreCLR Default) - Release
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -502,7 +502,7 @@ jobs:
         channels:
           - main
         runtimeFlavor: coreclr
-        codeGenType: Interpreter
+        codeGenType: Default
         buildConfig: Release
         additionalJobIdentifier: CoreCLR
         ${{ each parameter in parameters.jobParameters }}:
