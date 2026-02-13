@@ -72,16 +72,27 @@ public class Reporter
         var ret = new StringBuilder();
         foreach (var test in Tests)
         {
+            if (!test.Counters.Any() || test.Counters.All(c => c.Results == null || c.Results.Count == 0))
+            {
+                ret.AppendLine(test.Name);
+                ret.AppendLine("No results captured. The trace may not contain the expected events.");
+                continue;
+            }
+
+            var countersWithResults = test.Counters.Where(c => c.Results != null && c.Results.Count > 0);
             var counterWidth = Math.Max(test.Counters.Max(c => c.Name.Length) + 1, 15);
-            var resultWidth = Math.Max(test.Counters.Max(c => c.Results.Max().ToString("F3", _culture).Length + c.MetricName.Length) + 2, 15);
+            var resultWidth = Math.Max(countersWithResults.Max(c => c.Results.Max().ToString("F3", _culture).Length + c.MetricName.Length) + 2, 15);
             ret.AppendLine(test.Name);
             ret.AppendLine($"{LeftJustify("Metric", counterWidth)}|{LeftJustify("Average", resultWidth)}|{LeftJustify("Min", resultWidth)}|{LeftJustify("Max", resultWidth)}");
             ret.AppendLine($"{new string('-', counterWidth)}|{new string('-', resultWidth)}|{new string('-', resultWidth)}|{new string('-', resultWidth)}");
 
-            var defaultCounter = test.Counters.Single(c => c.DefaultCounter);
-            ret.AppendLine(PrintCounter(defaultCounter, counterWidth, resultWidth));
-            var topCounters = test.Counters.Where(c => c.TopCounter && !c.DefaultCounter);
-            var restCounters = test.Counters.Where(c => !c.TopCounter && !c.DefaultCounter);
+            var defaultCounter = test.Counters.SingleOrDefault(c => c.DefaultCounter);
+            if (defaultCounter != null && defaultCounter.Results != null && defaultCounter.Results.Count > 0)
+            {
+                ret.AppendLine(PrintCounter(defaultCounter, counterWidth, resultWidth));
+            }
+            var topCounters = test.Counters.Where(c => c.TopCounter && !c.DefaultCounter && c.Results != null && c.Results.Count > 0);
+            var restCounters = test.Counters.Where(c => !c.TopCounter && !c.DefaultCounter && c.Results != null && c.Results.Count > 0);
             foreach (var counter in topCounters.Concat(restCounters))
             {
                 ret.AppendLine(PrintCounter(counter, counterWidth, resultWidth));

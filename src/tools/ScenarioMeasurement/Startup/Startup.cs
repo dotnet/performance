@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -339,6 +340,15 @@ public class Startup
             try
             {
                 var counters = parser.Parse(traceFilePath, processName, pids, commandLine);
+                if (!counters.Any() || counters.All(c => c.Results == null || c.Results.Count == 0))
+                {
+                    logger.Log("ERROR: Parser returned no results. The ETL trace may not contain the expected events.");
+                    logger.Log($"{nameof(parser)} = {parser.GetType().FullName}");
+                    logger.Log($"{nameof(processName)} = {processName}");
+                    logger.Log($"{nameof(pids)} = {string.Join(", ", pids)}");
+                    logger.Log($"{nameof(commandLine)} = {commandLine}");
+                    failed = true;
+                }
                 CreateTestReport(scenarioName, counters, reportJsonPath, logger);
             }
             catch
