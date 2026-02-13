@@ -141,6 +141,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     )
 
     parser.add_argument(
+        '--wasm-coreclr',
+        dest='wasm_coreclr',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Use CoreCLR runtime pack instead of Mono for WASM benchmarks'
+    )
+
+    parser.add_argument(
         '--bdn-arguments',
         dest='bdn_arguments',
         required=False,
@@ -273,6 +282,8 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:
             run_args += ['--runtimes', 'wasmnet11_0']
         else:
             raise ArgumentTypeError('Framework {} is not supported for wasm'.format(framework))
+        if args.wasm_coreclr:
+            run_args += ['--wasmCoreCLR']
 
     # Increase default 2 min build timeout to accommodate slow (or even very slow) hardware
     if not args.bdn_arguments or '--buildTimeout' not in args.bdn_arguments:
