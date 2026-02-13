@@ -244,6 +244,10 @@
     <Compile Remove="libraries\System.Reflection.Metadata\*.cs" />
   </ItemGroup>
 
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))">
+    <Compile Remove="libraries\System.IO.Compression\Zstandard.cs" />
+  </ItemGroup>
+
   <!-- Remove Sve microbenchmarks when running on net versions < 9.0 -->
   <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">
     <Compile Remove="sve\*.cs" />
