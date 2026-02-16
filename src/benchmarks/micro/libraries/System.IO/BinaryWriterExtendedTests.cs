@@ -27,6 +27,7 @@ namespace System.IO.Tests
 
             _asciiInput = new string('x', StringLengthInChars);
             _asciiInputAsChars = _asciiInput.ToCharArray();
+            // '\u00E0' (à) encodes to 2 bytes in UTF-8, exercising multi-byte encoding paths
             _nonAsciiInput = new string('\u00E0', StringLengthInChars);
             _nonAsciiInputAsChars = _nonAsciiInput.ToCharArray();
         }
@@ -83,6 +84,7 @@ namespace System.IO.Tests
 
             _asciiInput = new string('x', StringLengthInChars);
             _asciiInputAsChars = _asciiInput.ToCharArray();
+            // '\u00E0' (à) encodes to 2 bytes in UTF-8, exercising multi-byte encoding paths
             _nonAsciiInput = new string('\u00E0', StringLengthInChars);
             _nonAsciiInputAsChars = _nonAsciiInput.ToCharArray();
         }

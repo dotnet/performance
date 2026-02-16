@@ -104,6 +104,7 @@ namespace System.IO.Tests
         [Benchmark]
         public void WriteNonAsciiChar()
         {
+            // '\u00E0' (à) encodes to 2 bytes in UTF-8, exercising multi-byte encoding paths
             _bw.Write('\u00E0');
         }
     }
