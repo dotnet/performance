@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace SveBenchmarks
 {
-    [BenchmarkCategory(Categories.Runtime)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Sve)]
     [OperatingSystemsArchitectureFilter(allowed: true, System.Runtime.InteropServices.Architecture.Arm64)]
     [Config(typeof(Config))]
     public class SquareRoot
