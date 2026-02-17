@@ -442,7 +442,6 @@ def get_bdn_arguments(
             "--wasmEngine", javascript_engine_path,
             f"\\\"--wasmArgs={' '.join(wasm_args)}\\\"",
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
-            "--wasmDataDir", "$HELIX_CORRELATION_PAYLOAD/wasm-data"
         ]
 
         if is_aot:
@@ -788,7 +787,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         
         getLogger().info("Copying wasm bundle directory to payload directory")
         browser_wasm_dir = os.path.join(args.libraries_download_dir, "BrowserWasm")
-        build_wasm_payload(browser_wasm_dir, payload_dir, runtime_repo_dir=args.runtime_repo_dir)
+        build_wasm_payload(browser_wasm_dir, payload_dir)
 
         if args.javascript_engine == "v8":
             if args.browser_versions_props_path is None:
