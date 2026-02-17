@@ -560,7 +560,7 @@ def get_run_configurations(
 
     return configurations
 
-def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str):
+def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str, wasm_coreclr: bool = False):
     if os_group == "windows":
         work_item_command = [
             "python",
@@ -588,6 +588,8 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
 
     if wasm:
         work_item_command += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
+        if wasm_coreclr:
+            work_item_command += ["--wasm-coreclr"]
 
     work_item_command += ["--bdn-artifacts", bdn_artifacts_dir]
 
@@ -648,6 +650,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     mono_dotnet = is_mono and not is_aot
     wasm = args.runtime_type == "wasm"
     wasm_aot = wasm and is_aot
+    wasm_coreclr = wasm and args.codegen_type.lower() == "wasm"
 
     working_dir = os.path.join(args.performance_repo_dir, "CorrelationStaging") # folder in which the payload and workitem directories will be made
     work_item_dir = os.path.join(working_dir, "workitem", "") # Folder in which the work item commands will be run in
@@ -1157,7 +1160,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     def get_work_item_command_for_artifact_dir(artifact_dir: str):
         assert args.target_csproj is not None
-        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir)
+        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir, wasm_coreclr)
     
     work_item_command = get_work_item_command_for_artifact_dir(bdn_artifacts_directory)
     baseline_work_item_command = get_work_item_command_for_artifact_dir(bdn_baseline_artifacts_dir)
