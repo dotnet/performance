@@ -11,26 +11,36 @@ namespace System.Text
     [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
     public class Perf_Utf8Encoding : Perf_TextBase
     {
-        private string _unicode;
+        private string _string;
         private byte[] _bytes;
-        private UTF8Encoding _utf8Encoding;
+        private char[] _chars;
 
         [GlobalSetup]
         public void Setup()
         {
-            _unicode = File.ReadAllText(Path.Combine(TextFilesRootPath, $"{Input}.txt"));
-            _utf8Encoding = new UTF8Encoding();
-            _bytes = _utf8Encoding.GetBytes(_unicode);
+            _string = File.ReadAllText(Path.Combine(TextFilesRootPath, $"{Input}.txt"));
+            _bytes = Encoding.UTF8.GetBytes(_string);
+            _chars = _string.ToCharArray();
         }
 
         [Benchmark]
         [MemoryRandomization]
-        public int GetByteCount() => _utf8Encoding.GetByteCount(_unicode);
+        public int GetByteCount() => Encoding.UTF8.GetByteCount(_string);
 
         [Benchmark]
-        public byte[] GetBytes() => _utf8Encoding.GetBytes(_unicode);
+        [MemoryRandomization]
+        public int GetCharCount() => Encoding.UTF8.GetCharCount(_bytes);
 
         [Benchmark]
-        public string GetString() => _utf8Encoding.GetString(_bytes);
+        public int GetBytesFromChars() => Encoding.UTF8.GetBytes(_chars.AsSpan(), _bytes);
+
+        [Benchmark]
+        public int GetCharsFromBytes() => Encoding.UTF8.GetChars(_bytes.AsSpan(), _chars);
+
+        [Benchmark]
+        public string GetStringFromBytes() => Encoding.UTF8.GetString(_bytes);
+
+        [Benchmark]
+        public byte[] GetBytesFromString() => Encoding.UTF8.GetBytes(_string);
     }
 }
