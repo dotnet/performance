@@ -114,13 +114,17 @@ public class Product
 [BenchmarkCategory(Categories.Runtime, Categories.LINQ)]
 public class LinqBenchmarks
 {
-    public const int IterationsWhere00 = 1000000;
-    public const int IterationsWhere01 = 250000;
-    public const int IterationsCount00 = 1000000;
-    public const int IterationsOrder00 = 25000;
-    public const int IterationsCountBy00 = 1000000;
-    public const int IterationsAggregateBy00 = 1000000;
-    public const int IterationsGroupBy00 = 1000000;
+    public const int IterationsWhere00 = 1_000_000;
+    public const int IterationsWhere01 = 250_000;
+    public const int IterationsCount00 = 1_000_000;
+    public const int IterationsOrder00 = 25_000;
+    public const int IterationsCountBy00 = 1_000_000;
+    public const int IterationsCountBy01 = 10_000;
+    public const int IterationsCountBy02 = 100;
+    public const int IterationsCountBy03 = 1;
+    public const int IterationsCountBy04 = 0;
+    public const int IterationsAggregateBy00 = 1_000_000;
+    public const int IterationsGroupBy00 = 1_000_000;
 
     #region Where00
 
@@ -367,20 +371,34 @@ public class LinqBenchmarks
     #region CountBy00
 
 #if NET9_0_OR_GREATER
-    [Benchmark]
-    public bool CountBy00LinqMethodX()
+    public bool CountByLinqMethodX(int iterationsCount)
     {
         List<Product> products = Product.GetProductList();
         int count = 0;
-        for (int i = 0; i < IterationsCountBy00; i++)
+        for (int i = 0; i < iterationsCount; i++)
         {
             count += products
                 .CountBy(p => p.Category)
                 .Count();
         }
 
-        return (count == 5 * IterationsCountBy00);
+        return (count == 5 * iterationsCount);
     }
+
+    [Benchmark]
+    public bool CountBy00LinqMethodX() => CountByLinqMethodX(IterationsCountBy00);
+
+    [Benchmark]
+    public bool CountBy01LinqMethodX() => CountByLinqMethodX(IterationsCountBy01);
+
+    [Benchmark]
+    public bool CountBy02LinqMethodX() => CountByLinqMethodX(IterationsCountBy02);
+
+    [Benchmark]
+    public bool CountBy03LinqMethodX() => CountByLinqMethodX(IterationsCountBy03);
+
+    [Benchmark]
+    public bool CountBy04LinqMethodX() => CountByLinqMethodX(IterationsCountBy04);
 
     [Benchmark]
     public bool CountBy00AggregateByX()
