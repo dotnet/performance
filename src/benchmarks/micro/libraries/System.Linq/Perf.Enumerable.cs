@@ -35,6 +35,14 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(SelectArguments))]
         public void Select(LinqTestData input) => input.Collection.Select(i => i + 1).Consume(_consumer);
 
+        [Benchmark]
+        [ArgumentsSource(nameof(SelectArguments))]
+        public void SelectTwoArgs(LinqTestData input) => input.Collection.Select((i, _) => i + 1).Consume(_consumer);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(SelectArguments))]
+        public void Index(LinqTestData input) => input.Collection.Index().Consume(_consumer);
+
         public IEnumerable<object> WhereArguments()
         {
             // Where() has 3 code paths: WhereEnumerableIterator, WhereArrayIterator, WhereListIterator
