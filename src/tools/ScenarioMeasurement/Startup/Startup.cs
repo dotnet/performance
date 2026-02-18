@@ -349,7 +349,10 @@ public class Startup
                     logger.Log($"{nameof(commandLine)} = {commandLine}");
                     failed = true;
                 }
-                CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                if (!failed)
+                {
+                    CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                }
             }
             catch
             {

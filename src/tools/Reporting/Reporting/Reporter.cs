@@ -75,7 +75,7 @@ public class Reporter
             if (!test.Counters.Any() || test.Counters.All(c => c.Results == null || c.Results.Count == 0))
             {
                 ret.AppendLine(test.Name);
-                ret.AppendLine("No results captured. The trace may not contain the expected events.");
+                ret.AppendLine("No results in file.");
                 continue;
             }
 
