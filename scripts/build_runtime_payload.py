@@ -299,27 +299,19 @@ def build_monoaot_payload(
     
 def build_wasm_payload(
     browser_wasm_archive_or_dir: str,
-    payload_parent_dir: str,  # wasm creates three payload directories
-    test_main_js_path: Optional[str] = None,
-    runtime_repo_dir: Optional[str] = None,
+    payload_parent_dir: str,
 ) -> None:
-    """Create the WASM payload directories (dotnet, built-nugets, wasm-data).
+    """Create the WASM payload directories (dotnet, built-nugets).
 
     The archive/directory layout is expected to contain a `staging/` folder with
-    `dotnet-latest` and `built-nugets` subfolders. We also copy the harness
-    `test-main.js` into `wasm-data/`.
+    `dotnet-latest` and `built-nugets` subfolders, plus the CoreCLR runtime pack
+    at `microsoft.netcore.app.runtime.browser-wasm/Release/`.
+
+    After extracting, the CoreCLR runtime pack is installed into the dotnet packs
+    directory alongside the Mono pack so the SDK can resolve either variant.
     """
-    if test_main_js_path is None:
-        if runtime_repo_dir is None:
-            raise Exception("Please provide a path to the test-main.js or runtime repository")
-        test_main_js_path = os.path.join(runtime_repo_dir, "src", "mono", "browser", "test-main.js")
-
-    if not os.path.exists(test_main_js_path):
-        raise Exception(f"test-main.js not found in expected location: {test_main_js_path}")
-
     wasm_dotnet_dir = os.path.join(payload_parent_dir, "dotnet")
     wasm_built_nugets_dir = os.path.join(payload_parent_dir, "built-nugets")
-    wasm_data_dir = os.path.join(payload_parent_dir, "wasm-data")
 
     extract_archive_or_copy(
         browser_wasm_archive_or_dir, wasm_dotnet_dir, prefix="staging/dotnet-latest/"
@@ -329,7 +321,19 @@ def build_wasm_payload(
         browser_wasm_archive_or_dir, wasm_built_nugets_dir, prefix="staging/built-nugets/"
     )
 
-    os.makedirs(wasm_data_dir, exist_ok=True)
-    shutil.copy(test_main_js_path, os.path.join(wasm_data_dir, "test-main.js"))
+    # Install the CoreCLR runtime pack into the dotnet packs directory.
+    # The Mono pack is already at packs/Microsoft.NETCore.App.Runtime.Mono.browser-wasm/<version>/;
+    # we mirror that layout for the CoreCLR variant so the SDK can find it.
+    mono_pack_parent = os.path.join(wasm_dotnet_dir, "packs", "Microsoft.NETCore.App.Runtime.Mono.browser-wasm")
+    if os.path.isdir(mono_pack_parent):
+        # Discover the version from the Mono pack directory (e.g. "11.0.0-ci")
+        versions = os.listdir(mono_pack_parent)
+        if versions:
+            pack_version = versions[0]
+            coreclr_pack_dest = os.path.join(wasm_dotnet_dir, "packs", "Microsoft.NETCore.App.Runtime.browser-wasm", pack_version)
+            extract_archive_or_copy(
+                browser_wasm_archive_or_dir, coreclr_pack_dest, prefix="staging/microsoft.netcore.app.runtime.browser-wasm/Release/"
+            )
+            getLogger().info("Installed CoreCLR browser-wasm runtime pack version %s", pack_version)
 
-    _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir, wasm_data_dir], mode=0o664) # rw-rw-r--
+    _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir], mode=0o664) # rw-rw-r--

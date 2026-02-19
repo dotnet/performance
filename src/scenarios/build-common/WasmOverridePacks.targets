@@ -1,4 +1,11 @@
 <Project>
+  <PropertyGroup>
+    <!-- Determine the runtime pack name based on whether we're using Mono or CoreCLR.
+         Microsoft.NET.Sdk.WebAssembly sets UseMonoRuntime=true; Microsoft.NET.Sdk leaves it unset. -->
+    <_WasmRuntimePackPrefix Condition="'$(UseMonoRuntime)' == 'true'">Mono.</_WasmRuntimePackPrefix>
+    <_WasmRuntimePackName>Microsoft.NETCore.App.Runtime.$(_WasmRuntimePackPrefix)$(RuntimeIdentifier)</_WasmRuntimePackName>
+  </PropertyGroup>
+
   <!-- SDK tries to download runtime packs when RuntimeIdentifier is set, remove them from PackageDownload item. -->
   <Target Name="RemoveRuntimePackFromDownloadItem"
           AfterTargets="ProcessFrameworkReferences">
@@ -16,16 +23,16 @@
     <ItemGroup>
       <ResolvedRuntimePack
           FrameworkName="Microsoft.NETCore.App"
-          NuGetPackageId="Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)"
+          NuGetPackageId="$(_WasmRuntimePackName)"
           NuGetPackageVersion="$(_RuntimePackInWorkloadVersionCurrent)"
           PackageDirectory="$(NetCoreTargetingPackRoot)\%(Identity)\$(_RuntimePackInWorkloadVersionCurrent)"
           RuntimeIdentifier="$(RuntimeIdentifier)" />
 
       <ResolvedFrameworkReference
           Condition="'%(Identity)' == 'Microsoft.NETCore.App'"
-          RuntimePackName="Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)"
+          RuntimePackName="$(_WasmRuntimePackName)"
           RuntimePackVersion="$(_RuntimePackInWorkloadVersionCurrent)"
-          RuntimePackPath="$(NetCoreTargetingPackRoot)\Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)\$(_RuntimePackInWorkloadVersionCurrent)"
+          RuntimePackPath="$(NetCoreTargetingPackRoot)\$(_WasmRuntimePackName)\$(_RuntimePackInWorkloadVersionCurrent)"
           RuntimeIdentifier="$(RuntimeIdentifier)" />
     </ItemGroup>
   </Target>
