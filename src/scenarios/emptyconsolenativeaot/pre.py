@@ -17,7 +17,7 @@ precommands.new(template='console',
 args = ['/p:PublishAot=true', '/p:StripSymbols=true', '/p:IlcGenerateMstatFile=true']
 if not iswin():
     args.extend(['/p:ObjCopyName=objcopy'])
-precommands.add_onmain_logging("Program.cs", "// See https://aka.ms/new-console-template for more information")
+precommands.add_onmain_logging("Program.cs", "Console.WriteLine")
 precommands.execute(args)
 
 src = os.path.join(const.APPDIR, 'obj', precommands.configuration, precommands.framework, precommands.runtime_identifier, 'native', f'{EXENAME}.mstat')
