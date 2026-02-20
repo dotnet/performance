@@ -20,6 +20,7 @@ __all__ = [
     "build_mono_payload",
     "build_monoaot_payload",
     "build_wasm_payload",
+    "build_wasm_coreclr_payload",
 ]
 
 
@@ -333,3 +334,63 @@ def build_wasm_payload(
     shutil.copy(test_main_js_path, os.path.join(wasm_data_dir, "test-main.js"))
 
     _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir, wasm_data_dir], mode=0o664) # rw-rw-r--
+
+
+def build_wasm_coreclr_payload(
+    browser_wasm_coreclr_archive_or_dir: str,
+    payload_parent_dir: str,
+    test_main_js_path: Optional[str] = None,
+    runtime_repo_dir: Optional[str] = None,
+) -> None:
+    """Create a WASM CoreCLR-only payload (dotnet, wasm-data).
+
+    This is a self-contained payload for running CoreCLR WASM benchmarks without
+    requiring Mono artifacts. The archive/directory layout is expected to contain
+    a `staging/` folder with `dotnet-none` (SDK) and
+    `microsoft.netcore.app.runtime.browser-wasm` (CoreCLR runtime pack) subfolders.
+    """
+    if test_main_js_path is None:
+        if runtime_repo_dir is None:
+            raise Exception("Please provide a path to the test-main.js or runtime repository")
+        test_main_js_path = os.path.join(runtime_repo_dir, "src", "mono", "browser", "test-main.js")
+
+    if not os.path.exists(test_main_js_path):
+        raise Exception(f"test-main.js not found in expected location: {test_main_js_path}")
+
+    wasm_dotnet_dir = os.path.join(payload_parent_dir, "dotnet")
+    wasm_data_dir = os.path.join(payload_parent_dir, "wasm-data")
+
+    # Extract the SDK from dotnet-none
+    extract_archive_or_copy(
+        browser_wasm_coreclr_archive_or_dir, wasm_dotnet_dir, prefix="staging/dotnet-none/"
+    )
+
+    # Determine version from the runtime pack directory structure
+    runtime_pack_src = os.path.join(
+        browser_wasm_coreclr_archive_or_dir if os.path.isdir(browser_wasm_coreclr_archive_or_dir) else "",
+        "staging", "microsoft.netcore.app.runtime.browser-wasm", "Release"
+    )
+    if os.path.isdir(runtime_pack_src):
+        # Get version from NuGet.config or infer from directory
+        # For now, read version from the SDK's Microsoft.NETCore.App.Ref pack
+        ref_pack_parent = os.path.join(wasm_dotnet_dir, "packs", "Microsoft.NETCore.App.Ref")
+        if os.path.isdir(ref_pack_parent):
+            versions = os.listdir(ref_pack_parent)
+            if versions:
+                pack_version = versions[0]
+                coreclr_pack_dest = os.path.join(
+                    wasm_dotnet_dir, "packs", "Microsoft.NETCore.App.Runtime.browser-wasm", pack_version
+                )
+                extract_archive_or_copy(
+                    browser_wasm_coreclr_archive_or_dir,
+                    coreclr_pack_dest,
+                    prefix="staging/microsoft.netcore.app.runtime.browser-wasm/Release/",
+                )
+                getLogger().info("Installed CoreCLR browser-wasm runtime pack version %s", pack_version)
+        else:
+            getLogger().warning("Microsoft.NETCore.App.Ref pack not found – cannot determine version")
+
+    os.makedirs(wasm_data_dir, exist_ok=True)
+    shutil.copy(test_main_js_path, os.path.join(wasm_data_dir, "test-main.js"))
+
+    _set_permissions_recursive([wasm_dotnet_dir, wasm_data_dir], mode=0o664)

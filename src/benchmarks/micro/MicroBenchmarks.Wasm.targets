@@ -8,7 +8,6 @@
          it can get into a situation where the emsdk version doesn't match
          between runtime, and the workload pack. -->
     <_WasmStrictVersionMatch>false</_WasmStrictVersionMatch>
-    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,10 +22,6 @@
       <_LibrariesFile Include="$(TargetDir)publish\libraries\**\*" />
       <WasmFilesToIncludeInFileSystem Include="@(_LibrariesFile)" TargetPath="libraries\%(RecursiveDir)%(FileName)%(Extension)" />
     </ItemGroup>
-  </Target>
-
-  <Target Name="Validate" BeforeTargets="Build">
-    <Error Text="Cannot find WasmMainJSPath: $(WasmMainJSPath)" Condition="'$(WasmMainJSPath)' == '' or !Exists('$(WasmMainJSPath)')" />
   </Target>
 
   <Import Project="$(MSBuildThisFileDirectory)..\..\scenarios\build-common\WasmOverridePacks.targets" />
