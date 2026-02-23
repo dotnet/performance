@@ -294,7 +294,7 @@ dotnet restore $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj -
 dotnet build $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --configuration Release --framework net11.0 --no-restore /p:NuGetPackageRoot=$RunDir\performance\artifacts\packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
 
 # Run
-dotnet run --project $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --configuration Release --framework net11.0 --no-restore --no-build -- --filter $TestToRun* --anyCategories Libraries Runtime "" --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir\artifacts\bin\aot\sgen\mini\mono-sgen.exe --customruntimepack $RunDir\artifacts\bin\aot\pack -aotcompilermode llvm --logBuildOutput --generateBinLog "" --artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --packages $RunDir\performance\artifacts\packages --buildTimeout 1200
+dotnet run --project $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --configuration Release --framework net11.0 --no-restore --no-build -- --filter $TestToRun* --anyCategories Libraries Runtime "" --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir\artifacts\bin\aot\sgen\mini\mono-sgen.exe --customruntimepack $RunDir\artifacts\bin\aot\pack --aotcompilermode llvm --logBuildOutput --generateBinLog "" --artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --packages $RunDir\performance\artifacts\packages --buildTimeout 1200
 ```
 
 ### dotnet runtime testing for MonoInterpreter
@@ -613,7 +613,8 @@ The first thing you need to do is send a PR with the new API to the [dotnet/runt
 
 ```cmd
 /home/adsitnik/projects/performance>python3 ./scripts/benchmarks_ci.py --filter $YourFilter -f net11.0
-```cmd
+```
+
 This script will try to pull the latest .NET Core SDK from [dotnet/runtime](https://github.com/dotnet/runtime) nightly build, which should contain the new API that you just merged in your first PR, and use that to build MicroBenchmarks project and then run the benchmarks that satisfy the filter you provided.
 
 After you have confirmed your benchmarks successfully run locally, then your PR should be ready for performance repo.

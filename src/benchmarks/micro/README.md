@@ -52,7 +52,7 @@ If you contribute to [dotnet/runtime](https://github.com/dotnet/runtime) and wan
 
 ```cmd
 dotnet run -c Release -f net11.0 --filter $YourFilter \
-    --corerun C:\git\runtime\artifacts\bin\testhost\net11.0-windows-Release-x64\shared\Microsoft.NETCore.App\11.0.0\CoreRun.exe
+    --coreRun C:\git\runtime\artifacts\bin\testhost\net11.0-windows-Release-x64\shared\Microsoft.NETCore.App\11.0.0\CoreRun.exe
 ```
 
 To make sure that your changes don't introduce any regressions, you can provide paths to CoreRuns with and without your changes and use the Statistical Test feature to detect regressions/improvements ([read more](../../../docs/benchmarkdotnet.md#Regressions)):
