@@ -247,7 +247,7 @@ $RunDir/src/tests/build.sh release $RunArch generatelayoutonly /p:LibrariesConfi
 git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance.git $RunDir/performance
 
 # One line run:
-python3 $RunDir/performance/scripts/benchmarks_ci.py --csproj $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net11.0 --filter '$TestToRun*' --bdn-artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --bdn-arguments=""--anyCategories Libraries Runtime  --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir/artifacts/bin/aot/sgen/mini/mono-sgen --customruntimepack $RunDir/artifacts/bin/aot/pack --aotcompilermode llvm --logBuildOutput --generateBinLog""
+python3 $RunDir/performance/scripts/benchmarks_ci.py --csproj $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net11.0 --filter '$TestToRun*' --bdn-artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --bdn-arguments="--anyCategories Libraries Runtime  --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir/artifacts/bin/aot/sgen/mini/mono-sgen --customruntimepack $RunDir/artifacts/bin/aot/pack --aotcompilermode llvm --logBuildOutput --generateBinLog"
 
 # Individual Commands:
 # Restore 
@@ -284,7 +284,7 @@ $RunDir\src\tests\build.cmd release $RunArch generatelayoutonly /p:LibrariesConf
 git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance.git $RunDir\performance
 
 # One line run:
-python3 $RunDir\performance\scripts\benchmarks_ci.py --csproj $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net11.0 --filter '$TestToRun*' --bdn-artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --bdn-arguments=""--anyCategories Libraries Runtime  --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir\artifacts\bin\aot\sgen\mini\mono-sgen.exe --customruntimepack $RunDir\artifacts\bin\aot\pack --aotcompilermode llvm --logBuildOutput --generateBinLog""
+python3 $RunDir\performance\scripts\benchmarks_ci.py --csproj $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net11.0 --filter '$TestToRun*' --bdn-artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --bdn-arguments="--anyCategories Libraries Runtime  --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir\artifacts\bin\aot\sgen\mini\mono-sgen.exe --customruntimepack $RunDir\artifacts\bin\aot\pack --aotcompilermode llvm --logBuildOutput --generateBinLog"
 
 # Individual Commands:
 # Restore 
@@ -335,7 +335,7 @@ git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance.
 export MONO_ENV_OPTIONS=""--interpreter""
 
 # One line run:
-python3 $RunDir/performance/scripts/benchmarks_ci.py --csproj $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net11.0 --filter '$TestToRun*' --bdn-artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --bdn-arguments=""--anyCategories Libraries Runtime  --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/11.0.0/corerun"" 
+python3 $RunDir/performance/scripts/benchmarks_ci.py --csproj $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net11.0 --filter '$TestToRun*' --bdn-artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --bdn-arguments="--anyCategories Libraries Runtime  --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/11.0.0/corerun" 
 
 # Individual Commands:
 # Restore 
@@ -376,7 +376,7 @@ git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance.
 export MONO_ENV_OPTIONS=""--interpreter""
 
 # One line run:
-python3 $RunDir\performance\scripts\benchmarks_ci.py --csproj $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net11.0 --filter '$TestToRun*' --bdn-artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --bdn-arguments=""--anyCategories Libraries Runtime  --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\11.0.0\corerun.exe"" 
+python3 $RunDir\performance\scripts\benchmarks_ci.py --csproj $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net11.0 --filter '$TestToRun*' --bdn-artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --bdn-arguments="--anyCategories Libraries Runtime  --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\11.0.0\corerun.exe" 
 
 # Individual Commands:
 # Restore 
@@ -424,7 +424,7 @@ $RunDir/src/tests/build.sh release $RunArch generatelayoutonly /p:LibrariesConfi
 git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance.git $RunDir/performance
 
 # One line run:
-python3 $RunDir/performance/scripts/benchmarks_ci.py --csproj $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net11.0 --filter '$TestToRun*' --bdn-artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --bdn-arguments=""--anyCategories Libraries Runtime  --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/11.0.0/corerun"" 
+python3 $RunDir/performance/scripts/benchmarks_ci.py --csproj $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net11.0 --filter '$TestToRun*' --bdn-artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --bdn-arguments="--anyCategories Libraries Runtime  --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/11.0.0/corerun" 
 
 # Individual Commands:
 # Restore 
@@ -462,7 +462,7 @@ $RunDir\src\tests\build.cmd release $RunArch generatelayoutonly /p:LibrariesConf
 git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance.git $RunDir\performance
 
 # One line run:
-python3 $RunDir\performance\scripts\benchmarks_ci.py --csproj $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net11.0 --filter '$TestToRun*' --bdn-artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --bdn-arguments=""--anyCategories Libraries Runtime  --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\11.0.0\corerun.exe"" 
+python3 $RunDir\performance\scripts\benchmarks_ci.py --csproj $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net11.0 --filter '$TestToRun*' --bdn-artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --bdn-arguments="--anyCategories Libraries Runtime  --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\11.0.0\corerun.exe" 
 
 # Individual Commands:
 # Restore 
