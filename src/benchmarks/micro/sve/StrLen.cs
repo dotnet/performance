@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace SveBenchmarks
 {
-    [BenchmarkCategory(Categories.Runtime, Categories.Sve)]
+    [BenchmarkCategory(Categories.Sve)]
     [OperatingSystemsArchitectureFilter(allowed: true, System.Runtime.InteropServices.Architecture.Arm64)]
     [Config(typeof(Config))]
     public class StrLen
