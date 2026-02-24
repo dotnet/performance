@@ -334,10 +334,16 @@ def build_wasm_coreclr_payload(
     """
 
     wasm_dotnet_dir = os.path.join(payload_parent_dir, "dotnet")
+    wasm_built_nugets_dir = os.path.join(payload_parent_dir, "built-nugets")
 
     # Extract the SDK from dotnet-none
     extract_archive_or_copy(
         browser_wasm_coreclr_archive_or_dir, wasm_dotnet_dir, prefix="staging/dotnet-none/"
+    )
+
+    # Extract built NuGet packages (WebAssembly SDK pack, ref pack)
+    extract_archive_or_copy(
+        browser_wasm_coreclr_archive_or_dir, wasm_built_nugets_dir, prefix="staging/built-nugets/"
     )
 
     # Determine version from the runtime pack directory structure
@@ -365,4 +371,4 @@ def build_wasm_coreclr_payload(
         else:
             getLogger().warning("Microsoft.NETCore.App.Ref pack not found – cannot determine version")
 
-    _set_permissions_recursive([wasm_dotnet_dir], mode=0o664)
+    _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir], mode=0o664)
