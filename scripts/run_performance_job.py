@@ -808,20 +808,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
             payload_dir,
         )
 
-        if args.javascript_engine == "v8":
-            if args.browser_versions_props_path is None:
-                if args.runtime_repo_dir is None:
-                    raise Exception("BrowserVersions.props must be present for wasm runs")
-                args.browser_versions_props_path = os.path.join(args.runtime_repo_dir, "eng", "testing", "BrowserVersions.props")
-
-            with open(args.browser_versions_props_path) as f:
-                for line in f:
-                    match = re.search(r"linux_V8Version>([^<]*)<", line)
-                    if match:
-                        v8_version = match.group(1)
-                        v8_version = ".".join(v8_version.split(".")[:3])
-                        break
-
     elif wasm:
         if args.libraries_download_dir is None:
             raise Exception("Libraries not downloaded for wasm runs")
@@ -833,6 +819,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             payload_dir,
         )
 
+    if wasm:
         if args.javascript_engine == "v8":
             if args.browser_versions_props_path is None:
                 if args.runtime_repo_dir is None:
@@ -848,7 +835,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                         break
                 else:
                     raise Exception("Unable to find v8 version in BrowserVersions.props")
-            
+
             if args.javascript_engine_path is None:
                 args.javascript_engine_path = f"/home/helixbot/.jsvu/bin/v8-{v8_version}"
 
