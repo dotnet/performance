@@ -300,27 +300,15 @@ def build_monoaot_payload(
     
 def build_wasm_payload(
     browser_wasm_archive_or_dir: str,
-    payload_parent_dir: str,  # wasm creates three payload directories
-    test_main_js_path: Optional[str] = None,
-    runtime_repo_dir: Optional[str] = None,
+    payload_parent_dir: str,  # wasm creates two payload directories
 ) -> None:
-    """Create the WASM payload directories (dotnet, built-nugets, wasm-data).
+    """Create the WASM payload directories (dotnet, built-nugets).
 
     The archive/directory layout is expected to contain a `staging/` folder with
-    `dotnet-latest` and `built-nugets` subfolders. We also copy the harness
-    `test-main.js` into `wasm-data/`.
+    `dotnet-latest` and `built-nugets` subfolders.
     """
-    if test_main_js_path is None:
-        if runtime_repo_dir is None:
-            raise Exception("Please provide a path to the test-main.js or runtime repository")
-        test_main_js_path = os.path.join(runtime_repo_dir, "src", "mono", "browser", "test-main.js")
-
-    if not os.path.exists(test_main_js_path):
-        raise Exception(f"test-main.js not found in expected location: {test_main_js_path}")
-
     wasm_dotnet_dir = os.path.join(payload_parent_dir, "dotnet")
     wasm_built_nugets_dir = os.path.join(payload_parent_dir, "built-nugets")
-    wasm_data_dir = os.path.join(payload_parent_dir, "wasm-data")
 
     extract_archive_or_copy(
         browser_wasm_archive_or_dir, wasm_dotnet_dir, prefix="staging/dotnet-latest/"
@@ -330,35 +318,22 @@ def build_wasm_payload(
         browser_wasm_archive_or_dir, wasm_built_nugets_dir, prefix="staging/built-nugets/"
     )
 
-    os.makedirs(wasm_data_dir, exist_ok=True)
-    shutil.copy(test_main_js_path, os.path.join(wasm_data_dir, "test-main.js"))
-
-    _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir, wasm_data_dir], mode=0o664) # rw-rw-r--
+    _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir], mode=0o664) # rw-rw-r--
 
 
 def build_wasm_coreclr_payload(
     browser_wasm_coreclr_archive_or_dir: str,
     payload_parent_dir: str,
-    test_main_js_path: Optional[str] = None,
-    runtime_repo_dir: Optional[str] = None,
 ) -> None:
-    """Create a WASM CoreCLR-only payload (dotnet, wasm-data).
+    """Create a WASM CoreCLR-only payload (dotnet).
 
     This is a self-contained payload for running CoreCLR WASM benchmarks without
     requiring Mono artifacts. The archive/directory layout is expected to contain
     a `staging/` folder with `dotnet-none` (SDK) and
     `microsoft.netcore.app.runtime.browser-wasm` (CoreCLR runtime pack) subfolders.
     """
-    if test_main_js_path is None:
-        if runtime_repo_dir is None:
-            raise Exception("Please provide a path to the test-main.js or runtime repository")
-        test_main_js_path = os.path.join(runtime_repo_dir, "src", "mono", "browser", "test-main.js")
-
-    if not os.path.exists(test_main_js_path):
-        raise Exception(f"test-main.js not found in expected location: {test_main_js_path}")
 
     wasm_dotnet_dir = os.path.join(payload_parent_dir, "dotnet")
-    wasm_data_dir = os.path.join(payload_parent_dir, "wasm-data")
 
     # Extract the SDK from dotnet-none
     extract_archive_or_copy(
@@ -390,7 +365,4 @@ def build_wasm_coreclr_payload(
         else:
             getLogger().warning("Microsoft.NETCore.App.Ref pack not found – cannot determine version")
 
-    os.makedirs(wasm_data_dir, exist_ok=True)
-    shutil.copy(test_main_js_path, os.path.join(wasm_data_dir, "test-main.js"))
-
-    _set_permissions_recursive([wasm_dotnet_dir, wasm_data_dir], mode=0o664)
+    _set_permissions_recursive([wasm_dotnet_dir], mode=0o664)
