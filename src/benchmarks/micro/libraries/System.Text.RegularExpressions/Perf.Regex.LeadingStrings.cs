@@ -8,54 +8,6 @@ using MicroBenchmarks;
 namespace System.Text.RegularExpressions.Tests
 {
     /// <summary>
-    /// Performance tests for regex alternation patterns on binary data.
-    /// Exercises the LeadingStrings vs FixedDistanceSets heuristic on non-text input.
-    /// </summary>
-    [BenchmarkCategory(Categories.Libraries, Categories.Regex, Categories.NoWASM)]
-    public class Perf_Regex_LeadingStrings_BinaryData
-    {
-        [Params(
-            RegexOptions.None,
-            RegexOptions.Compiled
-#if NET7_0_OR_GREATER
-            , RegexOptions.NonBacktracking
-#endif
-            )]
-        public RegexOptions Options { get; set; }
-
-        private string _binaryText;
-        private Regex _regex;
-
-        // A small embedded binary-like fragment (~64 bytes) containing null bytes and typical PE patterns,
-        // duplicated in Setup to create a ~1MB corpus. Using a fixed seed ensures identical input across TFMs.
-        private static readonly byte[] s_binarySeed =
-        {
-            0x4D, 0x5A, 0x90, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
-            0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x50, 0x45, 0x00, 0x00, 0x64, 0x86, 0x02, 0x00, 0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x00, 0x00, 0x00,
-            0x2E, 0x74, 0x65, 0x78, 0x74, 0x00, 0x00, 0x00, 0x2E, 0x72, 0x73, 0x72, 0x63, 0x00, 0x00, 0x00,
-        };
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            // Duplicate the seed to ~1MB
-            const int targetSize = 1024 * 1024;
-            char[] chars = new char[targetSize];
-            for (int i = 0; i < targetSize; i++)
-                chars[i] = (char)s_binarySeed[i % s_binarySeed.Length];
-            _binaryText = new string(chars);
-
-            // Alternation of 4-byte sequences that appear in the seed (non-null starting)
-            _regex = new Regex(@"MZ\x90\x00|PE\x00\x00|\.text|\.rsrc|Hello|d\x86\x02\x00", Options);
-        }
-
-        [Benchmark]
-        [MemoryRandomization]
-        public int Count() => Perf_Regex_Industry.Count(_regex, _binaryText);
-    }
-
-    /// <summary>
     /// Performance tests for regex alternation patterns on non-ASCII text (Russian).
     /// </summary>
     [BenchmarkCategory(Categories.Libraries, Categories.Regex, Categories.NoWASM)]
