@@ -806,7 +806,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         build_wasm_coreclr_payload(
             browser_wasm_coreclr_dir,
             payload_dir,
-            runtime_repo_dir=args.runtime_repo_dir,
         )
 
         if args.javascript_engine == "v8":
@@ -832,7 +831,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         build_wasm_payload(
             browser_wasm_dir,
             payload_dir,
-            runtime_repo_dir=args.runtime_repo_dir,
         )
 
         if args.javascript_engine == "v8":
