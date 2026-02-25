@@ -462,7 +462,6 @@ def get_bdn_arguments(
             "--wasmEngine", javascript_engine_path,
             f"\\\"--wasmArgs={' '.join(wasm_args)}\\\"",
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
-            "--wasmCoreCLR",
             "--buildTimeout", "1200"
         ]
 
