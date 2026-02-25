@@ -19,7 +19,7 @@
 
   <Target Name="ExtraPrepareForWasmBuild" AfterTargets="PrepareForWasmBuild">
     <ItemGroup>
-      <_LibrariesFile Include="$(TargetDir)publish\libraries\**\*" />
+      <_LibrariesFile Include="$(PublishDir)libraries\**\*" />
       <WasmFilesToIncludeInFileSystem Include="@(_LibrariesFile)" TargetPath="libraries\%(RecursiveDir)%(FileName)%(Extension)" />
     </ItemGroup>
   </Target>

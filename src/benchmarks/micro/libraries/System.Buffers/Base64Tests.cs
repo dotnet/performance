@@ -98,7 +98,7 @@ namespace System.Buffers.Text.Tests
     // To setup every benchmark invocation we are using [IterationSetup].
     // To make the results stable the Iteration needs to last at least 100ms, this is why we are using bigger value for NumberOfBytes
     // Due to limitation of BDN, where Params have no Target and are applied to entire class the benchmarks live in a separate class.
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoMono)]
     [WarmupCount(30)] // make sure it's promoted to Tier 1
     public class Base64EncodeDecodeInPlaceTests
     {

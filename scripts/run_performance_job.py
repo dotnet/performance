@@ -442,6 +442,7 @@ def get_bdn_arguments(
             "--wasmEngine", javascript_engine_path,
             f"\\\"--wasmArgs={' '.join(wasm_args)}\\\"",
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
+            "--wasmProcessTimeout", "20",
         ]
 
         if is_aot:
@@ -451,7 +452,7 @@ def get_bdn_arguments(
             ]
 
     if runtime_type == "wasm_coreclr":
-        category_exclusions += ["NoWASM", "NoMono"]
+        category_exclusions += ["NoWASM", "NoWasmCoreCLR", "NoMono"]
 
         wasm_args = ["--expose_wasm"]
         if javascript_engine == "v8":
@@ -462,7 +463,8 @@ def get_bdn_arguments(
             "--wasmEngine", javascript_engine_path,
             f"\\\"--wasmArgs={' '.join(wasm_args)}\\\"",
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
-            "--buildTimeout", "1200"
+            "--buildTimeout", "1200",
+            "--wasmProcessTimeout", "20"
         ]
 
     if category_exclusions:
@@ -603,7 +605,7 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
     if wasm:
         work_item_command += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
         if wasm_coreclr:
-            work_item_command += ["--wasm-coreclr"]
+            work_item_command += ["--wasm-runtime-flavor", "CoreCLR"]
 
     work_item_command += ["--bdn-artifacts", bdn_artifacts_dir]
 

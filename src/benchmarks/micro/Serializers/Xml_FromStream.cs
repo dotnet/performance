@@ -39,7 +39,7 @@ namespace MicroBenchmarks.Serializers
             xmlSerializer.Serialize(memoryStream, value);
         }
 
-        [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
+        [BenchmarkCategory(Categories.Libraries, Categories.Runtime, Categories.NoWasmCoreCLR)]
         [Benchmark(Description = nameof(XmlSerializer))]
         public T XmlSerializer_()
         {
