@@ -525,6 +525,12 @@ def get_run_configurations(
         if javascript_engine == "javascriptcore":
             configurations["JSEngine"] = "javascriptcore"
 
+    if runtime_type == "wasm_coreclr":
+        configurations["CompilationMode"] = "wasm"
+        configurations["RuntimeType"] = str(runtime_flavor)
+        if is_aot:
+            configurations["AOT"] = "true"
+
     if pgo_run_type == "nodynamicpgo":
         configurations["PGOType"] = "nodynamicpgo"
 
