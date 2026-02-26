@@ -244,7 +244,8 @@
     <Compile Remove="libraries\System.Reflection.Metadata\*.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))">
+  <!-- Disabled: System.IO.Compression.Zstandard.dll is not yet included in the testhost payload. -->
+  <ItemGroup>
     <Compile Remove="libraries\System.IO.Compression\Zstandard.cs" />
   </ItemGroup>
 
