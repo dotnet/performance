@@ -90,7 +90,7 @@ jobs:
         displayName: Add Properties To Pipeline Env
 
       - ${{ if eq(parameters.runtimeType, 'wasm') }}:
-        # Download wasm
+        # Download wasm (Mono)
         - ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
           - template: /eng/pipelines/templates/download-artifact-step.yml
             parameters:
@@ -106,6 +106,25 @@ jobs:
               artifactName: BrowserWasm
               displayName: BrowserWasm
               ${{ insert }}: ${{ parameters.downloadSpecificBuild }}
+
+      - ${{ if eq(parameters.runtimeType, 'wasm_coreclr') }}:
+        # Download wasm (CoreCLR)
+        - ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
+          - template: /eng/pipelines/templates/download-artifact-step.yml
+            parameters:
+              unpackFolder: $(librariesDownloadDir)/BrowserWasmCoreCLR
+              artifactFileName: BrowserWasmCoreCLR.tar.gz
+              artifactName: BrowserWasmCoreCLR
+              displayName: BrowserWasmCoreCLR
+        - ${{ if ne(parameters.downloadSpecificBuild.buildId, '') }}:
+          - template: /eng/pipelines/templates/download-specific-artifact-step.yml
+            parameters:
+              unpackFolder: $(librariesDownloadDir)/BrowserWasmCoreCLR
+              artifactFileName: BrowserWasmCoreCLR.tar.gz
+              artifactName: BrowserWasmCoreCLR
+              displayName: BrowserWasmCoreCLR
+              ${{ insert }}: ${{ parameters.downloadSpecificBuild }}
+
       - ${{ elseif and(eq(parameters.codeGenType, 'AOT'), not(eq(parameters.runtimeType, 'AndroidMono'))) }}:
         - template: /eng/pipelines/templates/download-artifact-step.yml
           parameters:

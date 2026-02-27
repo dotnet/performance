@@ -141,6 +141,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     )
 
     parser.add_argument(
+        '--wasm-runtime-flavor',
+        dest='wasm_runtime_flavor',
+        required=False,
+        default='Mono',
+        choices=['Mono', 'CoreCLR'],
+        help='Runtime flavor for WASM benchmarks: Mono (default) or CoreCLR'
+    )
+
+    parser.add_argument(
         '--bdn-arguments',
         dest='bdn_arguments',
         required=False,
@@ -273,6 +282,8 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:
             run_args += ['--runtimes', 'wasmnet11_0']
         else:
             raise ArgumentTypeError('Framework {} is not supported for wasm'.format(framework))
+        if args.wasm_runtime_flavor != 'Mono':
+            run_args += ['--wasmRuntimeFlavor', args.wasm_runtime_flavor]
 
     # Increase default 2 min build timeout to accommodate slow (or even very slow) hardware
     if not args.bdn_arguments or '--buildTimeout' not in args.bdn_arguments:

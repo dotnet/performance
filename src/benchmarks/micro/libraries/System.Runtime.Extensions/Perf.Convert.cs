@@ -100,6 +100,7 @@ namespace System
         [Benchmark]
         public string ToHexString() => Convert.ToHexString(_binaryData);
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public byte[] FromHexString() => Convert.FromHexString(_hexString);
 #endif
 

@@ -200,8 +200,8 @@ def get_pre_commands(
                     "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
                 ]
 
-    # Set up everything needed for WASM runs
-    if runtime_type == "wasm":  
+    # Set up everything needed for WASM runs (both Mono and CoreCLR)
+    if runtime_type in ("wasm", "wasm_coreclr"):  
         if os_distro == "azurelinux":
             # Azure Linux uses tdnf package manager
             install_prerequisites += [
@@ -442,7 +442,7 @@ def get_bdn_arguments(
             "--wasmEngine", javascript_engine_path,
             f"\\\"--wasmArgs={' '.join(wasm_args)}\\\"",
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
-            "--wasmDataDir", "$HELIX_CORRELATION_PAYLOAD/wasm-data"
+            "--wasmProcessTimeout", "20",
         ]
 
         if is_aot:
@@ -450,6 +450,22 @@ def get_bdn_arguments(
                 "--aotcompilermode", "wasm",
                 "--buildTimeout", "3600"
             ]
+
+    if runtime_type == "wasm_coreclr":
+        category_exclusions += ["NoWASM", "NoWasmCoreCLR", "NoMono"]
+
+        wasm_args = ["--expose_wasm"]
+        if javascript_engine == "v8":
+            wasm_args += ["--module"]
+
+        assert javascript_engine_path is not None
+        bdn_arguments += [
+            "--wasmEngine", javascript_engine_path,
+            f"\\\"--wasmArgs={' '.join(wasm_args)}\\\"",
+            "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
+            "--buildTimeout", "1200",
+            "--wasmProcessTimeout", "20"
+        ]
 
     if category_exclusions:
         bdn_arguments += ["--category-exclusion-filter", *set(category_exclusions)]
@@ -509,6 +525,12 @@ def get_run_configurations(
         if javascript_engine == "javascriptcore":
             configurations["JSEngine"] = "javascriptcore"
 
+    if runtime_type == "wasm_coreclr":
+        configurations["CompilationMode"] = "wasm"
+        configurations["RuntimeType"] = str(runtime_flavor)
+        if is_aot:
+            configurations["AOT"] = "true"
+
     if pgo_run_type == "nodynamicpgo":
         configurations["PGOType"] = "nodynamicpgo"
 
@@ -560,7 +582,7 @@ def get_run_configurations(
 
     return configurations
 
-def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str):
+def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str, wasm_coreclr: bool = False):
     if os_group == "windows":
         work_item_command = [
             "python",
@@ -588,6 +610,8 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
 
     if wasm:
         work_item_command += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
+        if wasm_coreclr:
+            work_item_command += ["--wasm-runtime-flavor", "CoreCLR"]
 
     work_item_command += ["--bdn-artifacts", bdn_artifacts_dir]
 
@@ -646,8 +670,9 @@ def run_performance_job(args: RunPerformanceJobArgs):
     is_mono = args.runtime_type == "mono"
     mono_aot = is_mono and is_aot
     mono_dotnet = is_mono and not is_aot
-    wasm = args.runtime_type == "wasm"
-    wasm_aot = wasm and is_aot
+    wasm_coreclr = args.runtime_type == "wasm_coreclr"
+    wasm = args.runtime_type == "wasm" or wasm_coreclr  # wasm_coreclr also uses wasm infrastructure
+    wasm_aot = wasm and is_aot and not wasm_coreclr
 
     working_dir = os.path.join(args.performance_repo_dir, "CorrelationStaging") # folder in which the payload and workitem directories will be made
     work_item_dir = os.path.join(working_dir, "workitem", "") # Folder in which the work item commands will be run in
@@ -779,14 +804,29 @@ def run_performance_job(args: RunPerformanceJobArgs):
             shutil.copytree(args.mono_dotnet_dir, mono_dotnet_path, dirs_exist_ok=True)
 
     v8_version = ""
-    if wasm:
+    if wasm_coreclr:
+        if args.libraries_download_dir is None:
+            raise Exception("Libraries not downloaded for wasm_coreclr runs")
+        
+        getLogger().info("Building wasm_coreclr payload directory")
+        browser_wasm_coreclr_dir = os.path.join(args.libraries_download_dir, "BrowserWasmCoreCLR")
+        build_wasm_coreclr_payload(
+            browser_wasm_coreclr_dir,
+            payload_dir,
+        )
+
+    elif wasm:
         if args.libraries_download_dir is None:
             raise Exception("Libraries not downloaded for wasm runs")
         
         getLogger().info("Copying wasm bundle directory to payload directory")
         browser_wasm_dir = os.path.join(args.libraries_download_dir, "BrowserWasm")
-        build_wasm_payload(browser_wasm_dir, payload_dir, runtime_repo_dir=args.runtime_repo_dir)
+        build_wasm_payload(
+            browser_wasm_dir,
+            payload_dir,
+        )
 
+    if wasm:
         if args.javascript_engine == "v8":
             if args.browser_versions_props_path is None:
                 if args.runtime_repo_dir is None:
@@ -802,7 +842,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                         break
                 else:
                     raise Exception("Unable to find v8 version in BrowserVersions.props")
-            
+
             if args.javascript_engine_path is None:
                 args.javascript_engine_path = f"/home/helixbot/.jsvu/bin/v8-{v8_version}"
 
@@ -961,6 +1001,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
     ci_setup_arguments.output_file = os.path.join(root_payload_dir, "machine-setup")
     if args.is_scenario:
         ci_setup_arguments.install_dir = os.path.join(payload_dir, "dotnet")
+    elif wasm_coreclr:
+        # For wasm_coreclr, we already have the SDK in the payload - skip downloading
+        wasm_dotnet_path = os.path.join(payload_dir, "dotnet")
+        ci_setup_arguments.dotnet_path = wasm_dotnet_path
+        ci_setup_arguments.install_dir = wasm_dotnet_path
     else:
         tools_dir = os.path.join(performance_payload_dir, "tools")
         ci_setup_arguments.install_dir = os.path.join(tools_dir, "dotnet", args.architecture)
@@ -1157,7 +1202,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     def get_work_item_command_for_artifact_dir(artifact_dir: str):
         assert args.target_csproj is not None
-        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir)
+        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir, wasm_coreclr)
     
     work_item_command = get_work_item_command_for_artifact_dir(bdn_artifacts_directory)
     baseline_work_item_command = get_work_item_command_for_artifact_dir(bdn_baseline_artifacts_dir)

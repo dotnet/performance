@@ -130,3 +130,25 @@ jobs:
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Run CoreCLR WASM microbenchmarks perf job
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: coreclr
+      platforms:
+      - linux_x64
+      jobParameters:
+        liveLibrariesBuildConfig: Release
+        runtimeType: wasm_coreclr
+        codeGenType: 'wasm'
+        runKind: micro
+        logicalMachine: 'perfviper'
+        javascriptEngine: 'v8'
+        additionalJobIdentifier: coreclr_v8
+        downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
