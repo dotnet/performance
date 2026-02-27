@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Improvement Report - linux-monoaot-ampere
 
 ## >50% Improvement (13 tests)

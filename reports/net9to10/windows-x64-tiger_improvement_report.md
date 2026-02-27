@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Improvement Report - windows-x64-tiger
 
 ## >50% Improvement (86 tests)

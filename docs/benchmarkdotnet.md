@@ -369,7 +369,7 @@ So if you made a change in CLR and want to measure the difference, you can run t
 dotnet run -c Release -f net48 -- --clrVersion $theVersion
 ```
 
-More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
+More info can be found in [BenchmarkDotNet issue #706](https://github.com/dotnet/BenchmarkDotNet/issues/706).
 
 ### Private CoreRT Build
 
