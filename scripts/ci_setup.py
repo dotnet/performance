@@ -337,6 +337,7 @@ class CiSetupArgs:
         self.physical_promotion_status = physical_promotion_status
         self.r2r_status = r2r_status
         self.experiment_name = experiment_name
+        self.perf_repo_branch = "main"
 
 def main(args: CiSetupArgs):
     verbose = not args.quiet
@@ -465,6 +466,9 @@ def main(args: CiSetupArgs):
             source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
 
         branch = ChannelMap.get_branch(args.channel) if not args.branch else args.branch
+
+        if args.perf_repo_branch != "main":
+            branch = f"{branch}-{args.perf_repo_branch}"
 
         getLogger().info("Writing script to %s" % output_file)
         
