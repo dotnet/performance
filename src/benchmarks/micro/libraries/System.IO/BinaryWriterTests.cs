@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Text;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -76,6 +77,35 @@ namespace System.IO.Tests
         public void WriteDouble()
         {
             _bw.Write((double)Math.PI);
+        }
+    }
+
+    /// <summary>
+    /// Benchmarks for BinaryWriter with a non-UTF-8 encoding, exercising the
+    /// _useFastUtf8 = false code path for Write(char).
+    /// </summary>
+    [BenchmarkCategory(Categories.Libraries)]
+    public class BinaryWriterUnicodeEncodingCharTests
+    {
+        private BinaryWriter _bw;
+
+        [GlobalSetup]
+        public void Setup()
+        {
+            _bw = new BinaryWriter(new NullWriteStream(), Encoding.Unicode);
+        }
+
+        [Benchmark]
+        public void WriteAsciiChar()
+        {
+            _bw.Write('a');
+        }
+
+        [Benchmark]
+        public void WriteNonAsciiChar()
+        {
+            // '\u00E0' (à) encodes to 2 bytes in UTF-8, exercising multi-byte encoding paths
+            _bw.Write('\u00E0');
         }
     }
 }
