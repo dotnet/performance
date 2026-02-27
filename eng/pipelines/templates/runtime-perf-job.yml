@@ -36,12 +36,14 @@ jobs:
     # Test job depends on the corresponding build job
     ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
       dependsOn:
-        - ${{ if not(in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSCoreCLR', 'iOSNativeAOT', 'wasm', 'mono')) }}:
+        - ${{ if not(in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSCoreCLR', 'iOSNativeAOT', 'wasm', 'wasm_coreclr', 'mono')) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'coreclr') }}
         - ${{ if and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'mono') }}
         - ${{ if eq(parameters.runtimeType, 'wasm')}}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}_{5}', 'browser', '', 'wasm', 'linux', parameters.buildConfig, parameters.runtimeType) }}
+        - ${{ if eq(parameters.runtimeType, 'wasm_coreclr')}}:
+          - ${{ format('build_{0}{1}_{2}_{3}_{4}_{5}', 'browser', '', 'wasm', 'linux', parameters.buildConfig, 'wasm_coreclr') }}
         - ${{ if and(eq(parameters.codeGenType, 'AOT'), not(in(parameters.runtimeType, 'wasm', 'AndroidMono'))) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, parameters.codeGenType) }}
         - ${{ if eq(parameters.runtimeType, 'AndroidMono')}}:
