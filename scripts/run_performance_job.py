@@ -754,6 +754,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     ci_setup_arguments.build_number = args.build_number
 
+    # Auto-detect performance repo branch and append to PERFLAB_BRANCH if non-main
+    try:
+        get_branch_command = RunCommand(["git", "rev-parse", "--abbrev-ref", "HEAD"], verbose=True)
+        perf_branch = get_branch_command.run_and_get_stdout(args.performance_repo_dir).strip()
+        if perf_branch and perf_branch != "HEAD" and perf_branch != "main":
+            ci_setup_arguments.perf_repo_branch = perf_branch
+    except Exception:
+        pass
+
     if branch is not None and not (args.performance_repo_ci and branch == "refs/heads/main"):
         ci_setup_arguments.branch = branch
 
