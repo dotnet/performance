@@ -16,7 +16,9 @@ jobs:
           demands: ImageOverride -equals windows.vs2022.amd64.open
       ${{ else }}:
         pool:
-          vmImage: windows-2025
+          name: NetCore1ESPool-Internal
+          demands: ImageOverride -equals windows.vs2022.amd64
+          os: windows
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
         osVersion: 24H2
@@ -51,7 +53,9 @@ jobs:
           demands: ImageOverride -equals windows.vs2022.amd64.open
       ${{ else }}:
         pool:
-          vmImage: windows-2025
+          name: NetCore1ESPool-Internal
+          demands: ImageOverride -equals windows.vs2022.amd64
+          os: windows
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
         osVersion: 24H2
@@ -73,8 +77,10 @@ jobs:
           name: NetCore-Public
           demands: ImageOverride -equals build.azurelinux.3.amd64.open
       ${{ else }}:
-        pool: 
-          vmImage: ubuntu-latest
+        pool:
+          name: NetCore1ESPool-Internal
+          demands: ImageOverride -equals build.azurelinux.3.amd64
+          os: linux
       container: ubuntu_x64_build_container
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
@@ -91,7 +97,9 @@ jobs:
       osVersion: 22H2
       archType: arm64
       pool:
-        vmImage: windows-2025
+        name: NetCore1ESPool-Internal
+        demands: ImageOverride -equals windows.vs2022.amd64
+        os: windows
       machinePool: Ampere
       queue: Windows.Server.Arm64.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
@@ -103,7 +111,9 @@ jobs:
       osVersion: 2204
       archType: arm64
       pool:
-        vmImage: ubuntu-latest
+        name: NetCore1ESPool-Internal
+        demands: ImageOverride -equals build.azurelinux.3.amd64
+        os: linux
       container: ubuntu_x64_build_container
       machinePool: Ampere
       queue: Ubuntu.2204.Arm64.Perf
@@ -116,7 +126,9 @@ jobs:
       osVersion: 3
       archType: arm64
       pool:
-        vmImage: ubuntu-latest
+        name: NetCore1ESPool-Internal
+        demands: ImageOverride -equals build.azurelinux.3.amd64
+        os: linux
       container: ubuntu_x64_build_container
       machinePool: Cobalt
       queue: AzureLinux.3.Cobalt.Arm64.Perf
@@ -129,7 +141,9 @@ jobs:
       archType: x64
       osVersion: 22H2
       pool:
-        vmImage: 'windows-2022'
+        name: NetCore1ESPool-Internal
+        demands: ImageOverride -equals windows.vs2022.amd64
+        os: windows
       queue: Windows.11.Amd64.Pixel.Perf
       machinePool: Pixel
       ${{ insert }}: ${{ parameters.jobParameters }}
@@ -141,7 +155,9 @@ jobs:
       archType: x64
       osVersion: 22H2
       pool:
-        vmImage: 'windows-2022'
+        name: NetCore1ESPool-Internal
+        demands: ImageOverride -equals windows.vs2022.amd64
+        os: windows
       queue: Windows.11.Amd64.Galaxy.Perf
       machinePool: Galaxy
       ${{ insert }}: ${{ parameters.jobParameters }}
@@ -165,7 +181,9 @@ jobs:
       osVersion: Win11
       archType: x64
       pool:
-        vmImage: windows-2025
+        name: NetCore1ESPool-Internal
+        demands: ImageOverride -equals windows.vs2022.amd64
+        os: windows
       machinePool: Viper
       queue: Windows.11.Amd64.Viper.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
@@ -177,7 +195,9 @@ jobs:
       osVersion: Win11
       archType: x86
       pool:
-        vmImage: windows-2025
+        name: NetCore1ESPool-Internal
+        demands: ImageOverride -equals windows.vs2022.amd64
+        os: windows
       machinePool: Viper
       queue: Windows.11.Amd64.Viper.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
@@ -188,8 +208,10 @@ jobs:
       osGroup: ubuntu
       osVersion: 2204
       archType: x64
-      pool: 
-        vmImage: ubuntu-latest
+      pool:
+        name: NetCore1ESPool-Internal
+        demands: ImageOverride -equals build.azurelinux.3.amd64
+        os: linux
       container: ubuntu_x64_build_container
       machinePool: Viper
       queue: Ubuntu.2204.Amd64.Viper.Perf
