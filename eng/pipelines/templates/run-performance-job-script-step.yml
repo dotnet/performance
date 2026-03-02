@@ -7,3 +7,4 @@ steps:
     displayName: Run performance job script
     env:
       HelixAccessToken: '$(HelixApiAccessToken)'
+      PERF_REPO_BRANCH: '$(perfRepoBranch)'

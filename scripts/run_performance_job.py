@@ -754,6 +754,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     ci_setup_arguments.build_number = args.build_number
 
+    # Detect performance repo branch from AzDO resource metadata and append to PERFLAB_BRANCH if non-main
+    perf_repo_ref = os.environ.get("PERF_REPO_BRANCH")
+    if perf_repo_ref:
+        perf_branch = perf_repo_ref.replace("refs/heads/", "").replace("refs/tags/", "")
+        if perf_branch and perf_branch != "main":
+            ci_setup_arguments.perf_repo_branch = perf_branch
+
     if branch is not None and not (args.performance_repo_ci and branch == "refs/heads/main"):
         ci_setup_arguments.branch = branch
 
