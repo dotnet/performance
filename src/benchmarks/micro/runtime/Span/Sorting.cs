@@ -39,7 +39,7 @@ namespace Span
         [Benchmark]
         public void QuickSortSpan() => TestQuickSortSpan(new Span<int>(_arrays[_iterationIndex++]));
 
-        [BenchmarkCategory(Categories.Span)]
+        [BenchmarkCategory(Categories.Span, Categories.NoWasmCoreCLR)]
         [Benchmark]
         public void BubbleSortSpan() => TestBubbleSortSpan(new Span<int>(_arrays[_iterationIndex++]));
 

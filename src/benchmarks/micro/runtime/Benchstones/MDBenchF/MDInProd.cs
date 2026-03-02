@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.MDBenchF
 {
-[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.MDBenchF)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.MDBenchF, Categories.NoWasmCoreCLR)]
 public class MDInProd
 {
     public const int Iterations = 70;
