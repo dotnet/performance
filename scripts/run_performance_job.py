@@ -733,6 +733,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
     try:
         get_branch_command = RunCommand(["git", "rev-parse", "--abbrev-ref", "HEAD"], verbose=True)
         perf_branch = get_branch_command.run_and_get_stdout(args.performance_repo_dir).strip()
+        if perf_branch == "HEAD":
+            # Detached HEAD (typical for CI resource checkouts) - find branch from remote refs
+            get_remote_branch_command = RunCommand(["git", "branch", "-r", "--points-at", "HEAD"], verbose=True)
+            remote_branches = get_remote_branch_command.run_and_get_stdout(args.performance_repo_dir).strip()
+            if remote_branches:
+                first_branch = remote_branches.split('\n')[0].strip()
+                if first_branch.startswith('origin/'):
+                    perf_branch = first_branch[len('origin/'):]
         if perf_branch and perf_branch != "HEAD" and perf_branch != "main":
             ci_setup_arguments.perf_repo_branch = perf_branch
     except Exception:
