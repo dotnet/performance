@@ -729,22 +729,12 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     ci_setup_arguments.build_number = args.build_number
 
-    # Auto-detect performance repo branch and append to PERFLAB_BRANCH if non-main
-    try:
-        get_branch_command = RunCommand(["git", "rev-parse", "--abbrev-ref", "HEAD"], verbose=True)
-        perf_branch = get_branch_command.run_and_get_stdout(args.performance_repo_dir).strip()
-        if perf_branch == "HEAD":
-            # Detached HEAD (typical for CI resource checkouts) - find branch from remote refs
-            get_remote_branch_command = RunCommand(["git", "branch", "-r", "--points-at", "HEAD"], verbose=True)
-            remote_branches = get_remote_branch_command.run_and_get_stdout(args.performance_repo_dir).strip()
-            if remote_branches:
-                first_branch = remote_branches.split('\n')[0].strip()
-                if first_branch.startswith('origin/'):
-                    perf_branch = first_branch[len('origin/'):]
-        if perf_branch and perf_branch != "HEAD" and perf_branch != "main":
+    # Detect performance repo branch from AzDO resource metadata and append to PERFLAB_BRANCH if non-main
+    perf_repo_ref = os.environ.get("PERF_REPO_BRANCH")
+    if perf_repo_ref:
+        perf_branch = perf_repo_ref.replace("refs/heads/", "").replace("refs/tags/", "")
+        if perf_branch and perf_branch != "main":
             ci_setup_arguments.perf_repo_branch = perf_branch
-    except Exception:
-        pass
 
     if branch is not None and not (args.performance_repo_ci and branch == "refs/heads/main"):
         ci_setup_arguments.branch = branch

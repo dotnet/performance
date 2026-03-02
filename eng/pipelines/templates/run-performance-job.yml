@@ -130,6 +130,8 @@ jobs:
           value: 'py -3'
         ${{ else }}:
           value: 'python3'
+      - name: perfRepoBranch
+        value: $[ resources.repositories.${{ parameters.performanceRepoAlias }}.ref ]
       - ${{ each variable in parameters.variables }}:
         - ${{ variable }}
     steps:
