@@ -58,6 +58,10 @@ jobs:
     parameters:
       perfBranch: ${{ parameters.perfBranch }}
 
+  - template: /eng/pipelines/performance/templates/perf-arm64-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      coreclr: true
+
   - ${{ if not(startswith(variables['Build.SourceBranch'], 'refs/heads/release')) }}:
     # Build and run iOS Mono and NativeAOT scenarios
     - template: /eng/pipelines/runtime-ios-scenarios-perf-jobs.yml
@@ -260,6 +264,26 @@ jobs:
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         r2rRunType: nor2r
         additionalJobIdentifier: 'NoR2R'
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # run coreclr Linux arm64 cobalt SVE microbenchmarks perf job
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: coreclr
+      platforms:
+      - linux_arm64
+      jobParameters:
+        liveLibrariesBuildConfig: Release
+        runKind: micro
+        logicalMachine: 'perfcobalt'
+        osDistro: 'azurelinux'
+        runCategories: 'SVE'
+        additionalJobIdentifier: 'SVE'
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
