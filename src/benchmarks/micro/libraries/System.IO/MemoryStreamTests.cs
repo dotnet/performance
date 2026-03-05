@@ -2,32 +2,33 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
 namespace System.IO.Tests
 {
+    /// <summary>
+    /// Operations that do not receive a user buffer. Backing size controls iteration count.
+    /// ReadByte / WriteByte exercise per-byte overhead; CopyTo / CopyToAsync use the
+    /// default buffer size overload.
+    /// </summary>
     [BenchmarkCategory(Categories.Libraries)]
-    [MemoryDiagnoser]
     public class MemoryStreamTests
     {
         private MemoryStream _stream;
-        private byte[] _buffer;
 
         [Params(
-            1,      // per-call overhead dominates
-            4096,   // default StreamReader/BufferedStream buffer size
-            65536)] // large bulk transfer
+            1024,   // small stream
+            65536)] // large stream
         public int Size { get; set; }
 
         [GlobalSetup]
         public void Setup()
         {
-            _buffer = new byte[Size];
-            new Random(42).NextBytes(_buffer);
-            _stream = new MemoryStream(_buffer, writable: true);
+            byte[] backing = new byte[Size];
+            new Random(42).NextBytes(backing);
+            _stream = new MemoryStream(backing, writable: true);
         }
 
         [GlobalCleanup]
@@ -50,81 +51,12 @@ namespace System.IO.Tests
 
         [Benchmark]
         [MemoryRandomization]
-        public int ReadByteArray()
-        {
-            MemoryStream s = _stream;
-            s.Position = 0;
-            int count = 0;
-            int n;
-            while ((n = s.Read(_buffer, 0, _buffer.Length)) > 0)
-                count += n;
-            return count;
-        }
-
-        [Benchmark]
-        [MemoryRandomization]
-        public int ReadSpan()
-        {
-            MemoryStream s = _stream;
-            s.Position = 0;
-            int count = 0;
-            int n;
-            while ((n = s.Read(_buffer.AsSpan())) > 0)
-                count += n;
-            return count;
-        }
-
-        [Benchmark]
-        [BenchmarkCategory(Categories.NoWASM)]
-        [MemoryRandomization]
-        public async Task<int> ReadAsyncMemory()
-        {
-            MemoryStream s = _stream;
-            s.Position = 0;
-            int count = 0;
-            int n;
-            while ((n = await s.ReadAsync(_buffer, CancellationToken.None)) > 0)
-                count += n;
-            return count;
-        }
-
-        [Benchmark]
-        [MemoryRandomization]
         public void WriteByte()
         {
             MemoryStream s = _stream;
             s.Position = 0;
-            int i = 0;
-            while (i < Size)
-                s.WriteByte(_buffer[i++]);
-        }
-
-        [Benchmark]
-        [MemoryRandomization]
-        public void WriteByteArray()
-        {
-            MemoryStream s = _stream;
-            s.Position = 0;
-            s.Write(_buffer, 0, _buffer.Length);
-        }
-
-        [Benchmark]
-        [MemoryRandomization]
-        public void WriteSpan()
-        {
-            MemoryStream s = _stream;
-            s.Position = 0;
-            s.Write(_buffer.AsSpan());
-        }
-
-        [Benchmark]
-        [BenchmarkCategory(Categories.NoWASM)]
-        [MemoryRandomization]
-        public async Task WriteAsyncMemory()
-        {
-            MemoryStream s = _stream;
-            s.Position = 0;
-            await s.WriteAsync(_buffer, CancellationToken.None);
+            for (int i = 0; i < Size; i++)
+                s.WriteByte((byte)i);
         }
 
         [Benchmark]
