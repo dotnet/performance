@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -73,6 +75,20 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
+        public async Task<int> ReadAsyncMemory()
+        {
+            MemoryStream s = _stream;
+            s.Position = 0;
+            int count = 0;
+            int n;
+            while ((n = await s.ReadAsync(_buffer, CancellationToken.None)) > 0)
+                count += n;
+            return count;
+        }
+
+        [Benchmark]
         [MemoryRandomization]
         public void WriteByte()
         {
@@ -102,12 +118,32 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
+        public async Task WriteAsyncMemory()
+        {
+            MemoryStream s = _stream;
+            s.Position = 0;
+            await s.WriteAsync(_buffer, CancellationToken.None);
+        }
+
+        [Benchmark]
         [MemoryRandomization]
         public void CopyTo()
         {
             MemoryStream s = _stream;
             s.Position = 0;
             s.CopyTo(Stream.Null);
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
+        public async Task CopyToAsync()
+        {
+            MemoryStream s = _stream;
+            s.Position = 0;
+            await s.CopyToAsync(Stream.Null);
         }
     }
 }
