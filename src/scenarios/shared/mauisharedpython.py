@@ -279,6 +279,7 @@ class MauiNuGetConfigContext:
             return 0
 
         placeholder_patterns = ["PLACEHOLDER", "local", "nuget-only", "local-tests-feed"]
+        allowed_url_prefixes = ["https://pkgs.dev.azure.com"]
         added = 0
         for add_elem in sources.findall("add"):
             key = add_elem.get("key")
@@ -292,6 +293,9 @@ class MauiNuGetConfigContext:
                 continue
             if value and "PLACEHOLDER" in value:
                 getLogger().debug(f"Skipping placeholder value source from {repo_name}: {key}")
+                continue
+            if not value or not any(value.startswith(prefix) for prefix in allowed_url_prefixes):
+                getLogger().warning(f"Skipping non-allowlisted source from {repo_name}: {key} = {value}")
                 continue
 
             repo_sources.append(add_elem)
