@@ -468,6 +468,20 @@ def get_bdn_arguments(
             "--wasmProcessTimeout", "20"
         ]
 
+    if runtime_type == "coreclr_r2r_interpreter":
+        if os_group == "windows":
+            bdn_arguments += [
+                "--runtimes", "r2r11_0",
+                "--customruntimepack", "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\runtimepack",
+                "--aotcompilerpath", "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\crossgen2",
+            ]
+        else:
+            bdn_arguments += [
+                "--runtimes", "r2r11_0",
+                "--customruntimepack", "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/runtimepack",
+                "--aotcompilerpath", "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/crossgen2",
+            ]
+
     if category_exclusions:
         bdn_arguments += ["--category-exclusion-filter", *set(category_exclusions)]
 
@@ -910,6 +924,18 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
         getLogger().info("Copying MonoAOT build to payload directory")
         build_monoaot_payload(linux_mono_aot_dir, monoaot_dotnet_path, args.architecture)
+
+    use_r2r_interpreter = False
+    if args.runtime_type == "coreclr_r2r_interpreter":
+        use_r2r_interpreter = True
+        if not args.libraries_download_dir:
+            raise Exception("Libraries not downloaded for R2R interpreter")
+
+        r2r_interpreter_dir = os.path.join(args.libraries_download_dir, "bin")
+        r2r_interpreter_payload = os.path.join(payload_dir, "r2r_interpreter")
+
+        getLogger().info("Copying R2R interpreter build to payload directory")
+        build_r2r_interpreter_payload(r2r_interpreter_dir, r2r_interpreter_payload, args.os_group, args.architecture)
 
     use_core_run = False
     use_baseline_core_run = False
