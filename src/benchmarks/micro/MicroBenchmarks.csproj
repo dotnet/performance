@@ -19,6 +19,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableXlfLocalization>false</EnableXlfLocalization>
     <LangVersion>latest</LangVersion>
+    <Features>$(Features);runtime-async=on</Features>
+    <EnablePreviewFeatures>true</EnablePreviewFeatures>
 
     <!-- Allow building with one major version, and running using a sdk with a higher major version -->
     <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
@@ -97,7 +99,7 @@
     <PackageReference Include="System.IO.Hashing" Version="$(SystemVersion)" />
     <PackageReference Include="System.Net.Http.WinHttpHandler" Version="$(SystemVersion)" Condition="'$(OS)' == 'Windows_NT'" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
-    <PackageReference Include="System.Collections.Immutable" Version="8.0.*-*" Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))" />
+    <PackageReference Include="System.Collections.Immutable" Version="9.0.*-*" Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">
     <PackageReference Include="System.Memory" Version="4.5.5" />
