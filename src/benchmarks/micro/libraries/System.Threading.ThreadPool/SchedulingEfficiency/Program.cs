@@ -55,6 +55,46 @@ class Program
     }
 
     /// <summary>
+    /// Bytes to allocate per work-item step. Creates GC pressure that
+    /// introduces realistic pauses into the workload. 0 = pure CPU.
+    /// </summary>
+    static int s_allocBytesPerStep;
+
+    /// <summary>
+    /// Retention pool: a fraction of allocated buffers are kept alive here
+    /// to promote objects into Gen1/Gen2 and trigger deeper GC collections.
+    /// Simulates real workloads where some data lives beyond one work item.
+    /// </summary>
+    static readonly object[] s_retentionPool = new object[256];
+    static int s_retentionIndex;
+
+    /// <summary>
+    /// Do calibrated CPU work AND allocate memory to create GC pressure.
+    /// The allocation is touched (filled) so it can't be elided.
+    /// ~25% of allocations are retained in a ring buffer to force Gen1/Gen2 promotion.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    static double DoStepWork(double usec)
+    {
+        double result = FdivWaitUsec(usec);
+
+        if (s_allocBytesPerStep > 0)
+        {
+            // Allocate and touch memory so GC must track it
+            byte[] buf = new byte[s_allocBytesPerStep];
+            buf[0] = (byte)result;
+            buf[buf.Length - 1] = (byte)(result + 1);
+
+            // Retain ~25% of allocations in a ring buffer to force promotion
+            int idx = Interlocked.Increment(ref s_retentionIndex);
+            if ((idx & 3) == 0)
+                s_retentionPool[(idx >> 2) & (s_retentionPool.Length - 1)] = buf;
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// Calibrate <see cref="s_iterationsPerUsec"/> by timing a known iteration count.
     /// </summary>
     static void Calibrate()
@@ -182,18 +222,27 @@ class Program
 
         ThreadPool.UnsafeQueueUserWorkItem(_ =>
         {
-            FdivWaitUsec(txn.Steps[stepIndex].WorkUsec);
+            DoStepWork(txn.Steps[stepIndex].WorkUsec);
             ExecuteStep(txn, stepIndex + 1, sw, allDone);
         }, null);
     }
 
     // ───────────────────────── Concurrency sweep ─────────────────────────
 
+    sealed class RunResult
+    {
+        public Transaction[] Transactions = Array.Empty<Transaction>();
+        public int Gen0Collections;
+        public int Gen1Collections;
+        public int Gen2Collections;
+        public double WallClockMs;
+    }
+
     /// <summary>
     /// Run a batch of transactions at a given concurrency level.
-    /// Returns the completed transactions with measured latencies.
+    /// Returns the completed transactions with measured latencies and GC counts.
     /// </summary>
-    static Transaction[] RunAtConcurrency(
+    static RunResult RunAtConcurrency(
         int concurrency,
         int totalTransactions,
         int stepsPerTransaction,
@@ -211,22 +260,30 @@ class Program
         using var throttle = new SemaphoreSlim(concurrency);
         using var allDone = new CountdownEvent(totalTransactions);
 
+        // Snapshot GC counts before
+        int gc0Before = GC.CollectionCount(0);
+        int gc1Before = GC.CollectionCount(1);
+        int gc2Before = GC.CollectionCount(2);
+
         var overallSw = Stopwatch.StartNew();
 
         for (int i = 0; i < totalTransactions; i++)
         {
             throttle.Wait();
-            var txn = transactions[i];
-            // Wrap execution to release semaphore on completion
-            var originalAllDone = allDone;
-            int txnIndex = i;
-            ExecuteTransactionThrottled(transactions[txnIndex], originalAllDone, throttle);
+            ExecuteTransactionThrottled(transactions[i], allDone, throttle);
         }
 
         allDone.Wait();
         overallSw.Stop();
 
-        return transactions;
+        return new RunResult
+        {
+            Transactions = transactions,
+            Gen0Collections = GC.CollectionCount(0) - gc0Before,
+            Gen1Collections = GC.CollectionCount(1) - gc1Before,
+            Gen2Collections = GC.CollectionCount(2) - gc2Before,
+            WallClockMs = overallSw.Elapsed.TotalMilliseconds
+        };
     }
 
     static void ExecuteTransactionThrottled(
@@ -251,7 +308,7 @@ class Program
 
         ThreadPool.UnsafeQueueUserWorkItem(_ =>
         {
-            FdivWaitUsec(txn.Steps[stepIndex].WorkUsec);
+            DoStepWork(txn.Steps[stepIndex].WorkUsec);
             ExecuteStepThrottled(txn, stepIndex + 1, sw, allDone, throttle);
         }, null);
     }
@@ -267,8 +324,9 @@ class Program
         return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
     }
 
-    static void PrintResults(int concurrency, Transaction[] transactions)
+    static void PrintResults(int concurrency, RunResult run)
     {
+        var transactions = run.Transactions;
         double[] efficiencies = transactions
             .Select(t => t.TheoreticalUsec / t.ActualUsec * 100.0)
             .OrderBy(e => e)
@@ -287,21 +345,20 @@ class Program
         double medianOverhead = Percentile(overheadsUsec, 50);
         double p95Overhead = Percentile(overheadsUsec, 95);
 
-        double totalTheoretical = transactions.Sum(t => t.TheoreticalUsec);
-        double totalActual = transactions.Sum(t => t.ActualUsec);
+        string gcStr = $"{run.Gen0Collections}/{run.Gen1Collections}/{run.Gen2Collections}";
 
-        Console.WriteLine($"  {concurrency,5}  │ {meanEff,8:F1}%  {medianEff,8:F1}%  " +
-                          $"{p95Eff,8:F1}%  {p99Eff,8:F1}%  │ " +
-                          $"{medianOverhead,10:F0}  {p95Overhead,10:F0}  │ " +
-                          $"{totalTheoretical / 1000:F0}/{totalActual / 1000:F0} ms");
+        Console.WriteLine($"  {concurrency,5}  │ {meanEff,7:F1}%  {medianEff,7:F1}%  " +
+                          $"{p95Eff,7:F1}%  {p99Eff,7:F1}%  │ " +
+                          $"{medianOverhead,9:F0}  {p95Overhead,9:F0}  │ " +
+                          $"{gcStr,10}  │ {run.WallClockMs,8:F0} ms");
     }
 
-    static void PrintExampleTransactions(Transaction[] transactions, int count = 5)
+    static void PrintExampleTransactions(RunResult run, int count = 5)
     {
         Console.WriteLine("  Sample transactions:");
         Console.WriteLine($"  {"Txn",4}  {"Steps",-40}  {"Theoretical",12}  {"Actual",10}  {"Efficiency",10}");
 
-        foreach (var txn in transactions.Take(count))
+        foreach (var txn in run.Transactions.Take(count))
         {
             string steps = string.Join(" → ",
                 txn.Steps.Select(s => $"Q{s.QueueId}:{s.WorkUsec:F0}µs"));
@@ -326,45 +383,53 @@ class Program
         Calibrate();
 
         // ── Configuration ──
-        int totalTransactions = 200;
+        int totalTransactions = 2000;
         int stepsPerTransaction = 3;
-        double minWorkUsec = 5;       // minimum per-step work (µsec)
-        double maxWorkUsec = 5000;    // maximum per-step work (µsec)
-        int numQueues = 8;            // logical queue IDs (for labeling)
+        double minWorkUsec = 5;        // minimum per-step work (µsec)
+        double maxWorkUsec = 5000;     // maximum per-step work (µsec)
+        int numQueues = 8;             // logical queue IDs (for labeling)
+        s_allocBytesPerStep = 32_768;  // bytes allocated per step (GC pressure)
 
-        int[] concurrencyLevels = { 1, 2, 4, 8, 16, 32, 64 };
+        int[] concurrencyLevels = { 1, 2, 4, 8, 16, 32, 64, 128, 256 };
         // Cap at reasonable multiple of processor count
         concurrencyLevels = concurrencyLevels
-            .Where(c => c <= Environment.ProcessorCount * 4)
+            .Where(c => c <= Environment.ProcessorCount * 8)
             .Append(Environment.ProcessorCount)
             .Distinct()
             .Order()
             .ToArray();
 
-        Console.WriteLine($"Workload: {totalTransactions} transactions × {stepsPerTransaction} steps/txn");
+        Console.WriteLine($"Workload: {totalTransactions} transactions × {stepsPerTransaction} steps/txn " +
+                          $"= {totalTransactions * stepsPerTransaction:N0} work items");
         Console.WriteLine($"Per-step work: {minWorkUsec}–{maxWorkUsec} µsec (log-uniform)");
+        Console.WriteLine($"Allocation per step: {s_allocBytesPerStep:N0} bytes");
         Console.WriteLine($"Logical queues: {numQueues}");
         Console.WriteLine();
 
         // ── Warm-up run ──
         Console.WriteLine("Warming up...");
-        RunAtConcurrency(1, 20, stepsPerTransaction, minWorkUsec, maxWorkUsec, numQueues);
+        RunAtConcurrency(Environment.ProcessorCount, 100, stepsPerTransaction,
+            minWorkUsec, maxWorkUsec, numQueues);
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
         Console.WriteLine();
 
         // ── Show sample transactions at concurrency=1 ──
         Console.WriteLine("── Single-transaction baseline (concurrency=1) ──");
-        var baseline = RunAtConcurrency(1, totalTransactions, stepsPerTransaction,
+        var baseline = RunAtConcurrency(1, Math.Min(200, totalTransactions), stepsPerTransaction,
             minWorkUsec, maxWorkUsec, numQueues);
         PrintExampleTransactions(baseline);
 
         // ── Concurrency sweep ──
         Console.WriteLine("── Concurrency sweep ──");
-        Console.WriteLine($"  {"Conc",5}  │ {"Mean",8}  {"Median",8}  {"P5",8}  {"P1",8}  │ " +
-                          $"{"Med OH µs",10}  {"P95 OH µs",10}  │ Theoretical/Actual");
-        Console.WriteLine("  " + new string('─', 105));
+        Console.WriteLine($"  {"Conc",5}  │ {"Mean",7}  {"Median",7}  {"P5",7}  {"P1",7}  │ " +
+                          $"{"Med OH",9}  {"P95 OH",9}  │ {"GC 0/1/2",10}  │ {"Wall",8}");
+        Console.WriteLine("  " + new string('─', 110));
 
         foreach (int conc in concurrencyLevels)
         {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
             var results = RunAtConcurrency(conc, totalTransactions, stepsPerTransaction,
                 minWorkUsec, maxWorkUsec, numQueues);
             PrintResults(conc, results);
@@ -373,6 +438,7 @@ class Program
         Console.WriteLine();
         Console.WriteLine("Efficiency = TheoreticalTime / ActualTime × 100%");
         Console.WriteLine("  100% = zero scheduling overhead; lower = more overhead from queueing/contention");
-        Console.WriteLine("Overhead = ActualTime − TheoreticalTime (µsec of pure scheduling cost)");
+        Console.WriteLine("OH = Overhead = ActualTime − TheoreticalTime (µsec of pure scheduling cost)");
+        Console.WriteLine("GC 0/1/2 = Gen0/Gen1/Gen2 collections during run");
     }
 }
