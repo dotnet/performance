@@ -21,31 +21,42 @@ internal class Program
             await kvc.LoadKeyVaultCertsAsync();
             if (kvc.ShouldRotateCerts())
             {
-                using (var localMachineCerts = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    localMachineCerts.Open(OpenFlags.ReadWrite);
-                    localMachineCerts.RemoveRange(kvc.LocalCerts.Certificates);
-                    localMachineCerts.AddRange(kvc.KeyVaultCertificates);
+                    WriteCertsToDisk(kvc.KeyVaultCertificateBytes);
+                }
+                else
+                {
+                    using (var localMachineCerts = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+                    {
+                        localMachineCerts.Open(OpenFlags.ReadWrite);
+                        localMachineCerts.RemoveRange(kvc.LocalCerts.Certificates);
+                        localMachineCerts.AddRange(kvc.KeyVaultCertificates);
+                    }
                 }
             }
-            var bcc = new BlobContainerClient(new Uri("https://pvscmdupload.blob.core.windows.net/certstatus"),
-                new ClientCertificateCredential(TENANT_ID, CERT_CLIENT_ID, kvc.KeyVaultCertificates.First(), new() {SendCertificateChain = true}));
-            var currentKeyValutCertThumbprints = "";
-            foreach (var cert in kvc.KeyVaultCertificates)
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                currentKeyValutCertThumbprints += $"[{DateTimeOffset.UtcNow}] {cert.Thumbprint}{Environment.NewLine}";
-            }
-            var blob = bcc.GetBlobClient(System.Environment.MachineName);
-            if (blob.Exists())
-            {
-                var result = blob.DownloadContent();
-                var currentBlob = result.Value.Content.ToString();
-                currentBlob = currentBlob + currentKeyValutCertThumbprints;
-                blob.Upload(new MemoryStream(Encoding.UTF8.GetBytes(currentBlob)), overwrite: true);
-            }
-            else
-            {
-                blob.Upload(new MemoryStream(Encoding.UTF8.GetBytes(currentKeyValutCertThumbprints)), overwrite: false);
+                var bcc = new BlobContainerClient(new Uri("https://pvscmdupload.blob.core.windows.net/certstatus"),
+                    new ClientCertificateCredential(TENANT_ID, CERT_CLIENT_ID, kvc.KeyVaultCertificates.First(), new() {SendCertificateChain = true}));
+                var currentKeyValutCertThumbprints = "";
+                foreach (var cert in kvc.KeyVaultCertificates)
+                {
+                    currentKeyValutCertThumbprints += $"[{DateTimeOffset.UtcNow}] {cert.Thumbprint}{Environment.NewLine}";
+                }
+                var blob = bcc.GetBlobClient(System.Environment.MachineName);
+                if (blob.Exists())
+                {
+                    var result = blob.DownloadContent();
+                    var currentBlob = result.Value.Content.ToString();
+                    currentBlob = currentBlob + currentKeyValutCertThumbprints;
+                    blob.Upload(new MemoryStream(Encoding.UTF8.GetBytes(currentBlob)), overwrite: true);
+                }
+                else
+                {
+                    blob.Upload(new MemoryStream(Encoding.UTF8.GetBytes(currentKeyValutCertThumbprints)), overwrite: false);
+                }
             }
         }
         catch (Exception ex)
@@ -55,13 +66,57 @@ internal class Program
             Console.Error.WriteLine(ex.StackTrace);
         }
 
-        using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser, OpenFlags.ReadWrite))
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            foreach(var cert in store.Certificates.Find(X509FindType.FindBySubjectName, "dotnetperf.microsoft.com", false))
+            ReadCertsFromDisk();
+        }
+        else
+        {
+            using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser, OpenFlags.ReadWrite))
             {
-                Console.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Pfx)));
+                foreach(var cert in store.Certificates.Find(X509FindType.FindBySubjectName, "dotnetperf.microsoft.com", false))
+                {
+                    Console.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Pfx)));
+                }
             }
         }
         return 0;
+    }
+
+    static string GetMacCertDirectory()
+    {
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        return Path.Combine(home, "certs");
+    }
+
+    static void WriteCertsToDisk(List<byte[]> certBytes)
+    {
+        var certDir = GetMacCertDirectory();
+        Directory.CreateDirectory(certDir);
+
+        var certNames = new[] { Constants.Cert1Name, Constants.Cert2Name };
+        for (int i = 0; i < certBytes.Count && i < certNames.Length; i++)
+        {
+            var pfxPath = Path.Combine(certDir, $"{certNames[i]}.pfx");
+            File.WriteAllBytes(pfxPath, certBytes[i]);
+            Console.Error.WriteLine($"Wrote certificate to {pfxPath}");
+        }
+    }
+
+    static void ReadCertsFromDisk()
+    {
+        var certDir = GetMacCertDirectory();
+        foreach (var certName in new[] { Constants.Cert1Name, Constants.Cert2Name })
+        {
+            var pfxPath = Path.Combine(certDir, $"{certName}.pfx");
+            if (File.Exists(pfxPath))
+            {
+                Console.WriteLine(Convert.ToBase64String(File.ReadAllBytes(pfxPath)));
+            }
+            else
+            {
+                Console.Error.WriteLine($"Certificate file not found: {pfxPath}");
+            }
+        }
     }
 }

@@ -212,5 +212,96 @@ public class KeyVaultCertTests
         // Assert
         Assert.True(result);
     }
+
+    [Fact]
+    public async Task LoadKeyVaultCertsAsync_RawBytesOnly_ShouldPopulateBytesButNotCertificates()
+    {
+        // Arrange
+        Mock<TokenCredential> mockTokenCred;
+        Mock<CertificateClient> mockCertClient;
+        Mock<SecretClient> mockSecretClient;
+        Mock<ILocalCert> mockLocalCert;
+        CertStoreSetup(out mockTokenCred, out mockCertClient, out mockSecretClient, out mockLocalCert);
+
+        var keyVaultCert = new KeyVaultCert(mockTokenCred.Object, mockCertClient.Object, mockSecretClient.Object, mockLocalCert.Object);
+
+        // Act
+        await keyVaultCert.LoadKeyVaultCertsAsync(rawBytesOnly: true);
+
+        // Assert
+        Assert.Equal(2, keyVaultCert.KeyVaultCertificateBytes.Count);
+        Assert.True(keyVaultCert.KeyVaultCertificateBytes[0].Length > 0);
+        Assert.True(keyVaultCert.KeyVaultCertificateBytes[1].Length > 0);
+        Assert.Empty(keyVaultCert.KeyVaultCertificates);
+    }
+
+    [Fact]
+    public async Task LoadKeyVaultCertsAsync_RawBytesOnly_BytesShouldBeValidPfx()
+    {
+        // Arrange
+        Mock<TokenCredential> mockTokenCred;
+        Mock<CertificateClient> mockCertClient;
+        Mock<SecretClient> mockSecretClient;
+        Mock<ILocalCert> mockLocalCert;
+        CertStoreSetup(out mockTokenCred, out mockCertClient, out mockSecretClient, out mockLocalCert);
+
+        var keyVaultCert = new KeyVaultCert(mockTokenCred.Object, mockCertClient.Object, mockSecretClient.Object, mockLocalCert.Object);
+
+        // Act
+        await keyVaultCert.LoadKeyVaultCertsAsync(rawBytesOnly: true);
+
+        // Assert - bytes should be loadable as PFX
+        foreach (var certBytes in keyVaultCert.KeyVaultCertificateBytes)
+        {
+            var cert = X509CertificateLoader.LoadPkcs12(certBytes, "", X509KeyStorageFlags.DefaultKeySet);
+            Assert.NotNull(cert);
+            Assert.False(string.IsNullOrEmpty(cert.Thumbprint));
+        }
+    }
+
+    [Fact]
+    public async Task LoadKeyVaultCertsAsync_Default_ShouldPopulateBothBytesAndCertificates()
+    {
+        // Arrange
+        Mock<TokenCredential> mockTokenCred;
+        Mock<CertificateClient> mockCertClient;
+        Mock<SecretClient> mockSecretClient;
+        Mock<ILocalCert> mockLocalCert;
+        CertStoreSetup(out mockTokenCred, out mockCertClient, out mockSecretClient, out mockLocalCert);
+
+        var keyVaultCert = new KeyVaultCert(mockTokenCred.Object, mockCertClient.Object, mockSecretClient.Object, mockLocalCert.Object);
+
+        // Act
+        await keyVaultCert.LoadKeyVaultCertsAsync(rawBytesOnly: false);
+
+        // Assert
+        Assert.Equal(2, keyVaultCert.KeyVaultCertificateBytes.Count);
+        Assert.Equal(2, keyVaultCert.KeyVaultCertificates.Count);
+    }
+
+    [Fact]
+    public async Task ShouldRotateCerts_ShouldReturnTrue_WhenBootstrapRequired()
+    {
+        // Arrange - simulates macOS scenario where LocalCert skips Keychain
+        Mock<TokenCredential> mockTokenCred;
+        Mock<CertificateClient> mockCertClient;
+        Mock<SecretClient> mockSecretClient;
+        Mock<ILocalCert> mockLocalCert;
+        CertStoreSetup(out mockTokenCred, out mockCertClient, out mockSecretClient, out mockLocalCert);
+
+        mockLocalCert.Setup(lc => lc.Certificates).Returns(new X509Certificate2Collection());
+        mockLocalCert.Setup(lc => lc.RequiresBootstrap).Returns(true);
+
+        var keyVaultCert = new KeyVaultCert(mockTokenCred.Object, mockCertClient.Object, mockSecretClient.Object, mockLocalCert.Object);
+
+        // Act
+        await keyVaultCert.LoadKeyVaultCertsAsync(rawBytesOnly: true);
+        var result = keyVaultCert.ShouldRotateCerts();
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(2, keyVaultCert.KeyVaultCertificateBytes.Count);
+        Assert.Empty(keyVaultCert.KeyVaultCertificates);
+    }
 }
 

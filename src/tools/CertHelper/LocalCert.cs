@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,19 +14,29 @@ public class LocalCert : ILocalCert
 {
     public X509Certificate2Collection Certificates { get; set; }
     public bool RequiresBootstrap { get; private set; }
-    internal IX509Store LocalMachineCerts { get; set; }
+    internal IX509Store? LocalMachineCerts { get; set; }
 
     public LocalCert(IX509Store? store = null)
     {
-        LocalMachineCerts = store ?? new TestableX509Store();
         Certificates = new X509Certificate2Collection();
         RequiresBootstrap = false;
-        GetLocalCerts();
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            // Skip Keychain access on macOS to avoid password prompts.
+            // Certs are managed as files on disk instead.
+            RequiresBootstrap = true;
+        }
+        else
+        {
+            LocalMachineCerts = store ?? new TestableX509Store();
+            GetLocalCerts();
+        }
     }
 
     private void GetLocalCerts()
     {
-        foreach (var cert in LocalMachineCerts.Certificates.Find(X509FindType.FindBySubjectName, "dotnetperf.microsoft.com", false))
+        foreach (var cert in LocalMachineCerts!.Certificates.Find(X509FindType.FindBySubjectName, "dotnetperf.microsoft.com", false))
         {
             if (cert.Subject == "CN=dotnetperf.microsoft.com")
             {
