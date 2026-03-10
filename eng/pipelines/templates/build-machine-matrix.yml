@@ -146,7 +146,7 @@ jobs:
       machinePool: Galaxy
       ${{ insert }}: ${{ parameters.jobParameters }}
 
-- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 12mini only used in private builds currently
+- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 17 only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osGroup: osx
@@ -154,8 +154,8 @@ jobs:
       osVersion: 15
       pool:
         vmImage: 'macos-15'
-      queue: OSX.13.Amd64.Iphone.Perf
-      machinePool: iPhoneMini12
+      queue: Mac.iPhone.17.Perf
+      machinePool: iPhone17
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x64-viper'), not(eq(parameters.isPublic, true))) }}: # Windows x64 Viper only used in private builds
