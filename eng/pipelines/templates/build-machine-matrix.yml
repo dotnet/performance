@@ -142,7 +142,7 @@ jobs:
       osVersion: 22H2
       pool:
         vmImage: 'windows-2022'
-      queue: Windows.11.Amd64.Galaxy.Perf
+      queue: Windows.11.Amd64.Galaxy.Lowend.Perf
       machinePool: Galaxy
       ${{ insert }}: ${{ parameters.jobParameters }}
 
