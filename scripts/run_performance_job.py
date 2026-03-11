@@ -370,7 +370,7 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
             queue_map = {
                 "perfampere": "Ubuntu.2204.Arm64.Perf",
                 "perfcobalt": "AzureLinux.3.Cobalt.Arm64.Perf",
-                "perfiphone12mini": "OSX.13.Amd64.Iphone.Perf",
+                "perfiphone17": "Mac.iPhone.17.Perf",
                 "perftiger_crossgen": "Ubuntu.1804.Amd64.Tiger.Perf",
                 "perfviper": "Ubuntu.2204.Amd64.Viper.Perf",
                 "cloudvm": "Ubuntu.2204.Amd64"
@@ -999,6 +999,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     if args.affinity != "0":
         ci_setup_arguments.affinity = args.affinity
+
+    # Enable overhead evaluation for WASM jobs where method-call overhead is significant (1-10ns)
+    if wasm:
+        args.run_env_vars["PERFLAB_EVALUATE_OVERHEAD"] = "1"
 
     if args.run_env_vars:
         ci_setup_arguments.run_env_vars = [f"{k}={v}" for k, v in args.run_env_vars.items()]
