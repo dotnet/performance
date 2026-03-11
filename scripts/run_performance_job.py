@@ -1004,6 +1004,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if wasm:
         args.run_env_vars["PERFLAB_EVALUATE_OVERHEAD"] = "1"
 
+    # Set device name for known mobile queues
+    mobile_queue_to_device_name = {
+        "Windows.11.Amd64.Pixel.Perf": "Pixel?",
+        "Windows.11.Amd64.Galaxy.Lowend.Perf": "GalaxyA16",
+        "Mac.iPhone.17.Perf": "iPhone17",
+    }
+    if args.queue in mobile_queue_to_device_name:
+        args.run_env_vars["DEVICE_NAME"] = mobile_queue_to_device_name[args.queue]
+
     if args.run_env_vars:
         ci_setup_arguments.run_env_vars = [f"{k}={v}" for k, v in args.run_env_vars.items()]
 
