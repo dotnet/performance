@@ -755,11 +755,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
     ci_setup_arguments.build_number = args.build_number
 
     # Detect performance repo branch from AzDO resource metadata and append to PERFLAB_BRANCH if non-main
-    perf_repo_ref = os.environ.get("PERF_REPO_BRANCH")
-    if perf_repo_ref:
-        perf_branch = perf_repo_ref.replace("refs/heads/", "").replace("refs/tags/", "")
-        if perf_branch and perf_branch != "main":
-            ci_setup_arguments.perf_repo_branch = perf_branch
+    # Set DisableNewBranchLogic=true as a queue-time variable to revert to always uploading as main
+    disable_branch_logic = os.environ.get("DISABLE_NEW_BRANCH_LOGIC", "").lower() == "true"
+    if not disable_branch_logic:
+        perf_repo_ref = os.environ.get("PERF_REPO_BRANCH")
+        if perf_repo_ref:
+            perf_branch = perf_repo_ref.replace("refs/heads/", "").replace("refs/tags/", "")
+            if perf_branch and perf_branch != "main":
+                ci_setup_arguments.perf_repo_branch = perf_branch
 
     if branch is not None and not (args.performance_repo_ci and branch == "refs/heads/main"):
         ci_setup_arguments.branch = branch
