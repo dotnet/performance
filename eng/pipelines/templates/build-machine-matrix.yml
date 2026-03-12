@@ -131,7 +131,7 @@ jobs:
       pool:
         vmImage: 'windows-2022'
       queue: Windows.11.Amd64.Pixel.Perf
-      machinePool: Pixel
+      machinePool: Pixel8
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-galaxy'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Galaxy only used in private builds currently
@@ -143,7 +143,7 @@ jobs:
       pool:
         vmImage: 'windows-2022'
       queue: Windows.11.Amd64.Galaxy.Lowend.Perf
-      machinePool: Galaxy
+      machinePool: GalaxyA16
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 17 only used in private builds currently
