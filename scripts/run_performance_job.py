@@ -1006,7 +1006,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     # Set device name for known mobile queues
     mobile_queue_to_device_name = {
-        "Windows.11.Amd64.Pixel.Perf": "Pixel?",
+        "Windows.11.Amd64.Pixel.Perf": "Pixel8",
         "Windows.11.Amd64.Galaxy.Lowend.Perf": "GalaxyA16",
         "Mac.iPhone.17.Perf": "iPhone17",
     }
