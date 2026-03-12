@@ -582,7 +582,7 @@ def get_run_configurations(
 
     return configurations
 
-def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str, wasm_coreclr: bool = False):
+def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str, wasm_coreclr: bool = False, only_sanity_check: bool = False):
     if os_group == "windows":
         work_item_command = [
             "python",
@@ -599,7 +599,7 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
         "--architecture", architecture,
         "-f", perf_lab_framework]
     
-    if internal:
+    if internal and not only_sanity_check:
         work_item_command += ["--upload-to-perflab-container"]
 
     if perf_lab_framework != "net472":
@@ -695,7 +695,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     if args.internal:
         creator = ""
-        scenario_arguments = ["--upload-to-perflab-container"]
+        scenario_arguments = [] if args.only_sanity_check else ["--upload-to-perflab-container"]
         helix_source_prefix = "official"
         if args.helix_access_token is None:
             raise Exception("HelixAccessToken environment variable is not configured")
@@ -1216,7 +1216,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     def get_work_item_command_for_artifact_dir(artifact_dir: str):
         assert args.target_csproj is not None
-        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir, wasm_coreclr)
+        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir, wasm_coreclr, args.only_sanity_check)
     
     work_item_command = get_work_item_command_for_artifact_dir(bdn_artifacts_directory)
     baseline_work_item_command = get_work_item_command_for_artifact_dir(bdn_baseline_artifacts_dir)
