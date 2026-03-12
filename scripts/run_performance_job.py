@@ -65,6 +65,7 @@ class RunPerformanceJobArgs:
     
     logical_machine: Optional[str] = None
     queue: Optional[str] = None
+    machine_pool: Optional[str] = None
     framework: Optional[str] = None
     performance_repo_dir: str = "."
     runtime_repo_dir: Optional[str] = None
@@ -1004,14 +1005,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if wasm:
         args.run_env_vars["PERFLAB_EVALUATE_OVERHEAD"] = "1"
 
-    # Set device name for known mobile queues
-    mobile_queue_to_device_name = {
-        "Windows.11.Amd64.Pixel.Perf": "Pixel8",
-        "Windows.11.Amd64.Galaxy.Lowend.Perf": "GalaxyA16",
-        "Mac.iPhone.17.Perf": "iPhone17",
-    }
-    if args.queue in mobile_queue_to_device_name:
-        args.run_env_vars["DEVICE_NAME"] = mobile_queue_to_device_name[args.queue]
+    # Set device name from machine pool for mobile queues
+    if args.machine_pool and args.queue and args.queue in (
+        "Windows.11.Amd64.Pixel.Perf",
+        "Windows.11.Amd64.Galaxy.Lowend.Perf",
+        "Mac.iPhone.17.Perf",
+    ):
+        args.run_env_vars["DEVICE_NAME"] = args.machine_pool
 
     if args.run_env_vars:
         ci_setup_arguments.run_env_vars = [f"{k}={v}" for k, v in args.run_env_vars.items()]
@@ -1383,6 +1383,7 @@ def main(argv: list[str]):
                 "--pdn-path": "pdn_path",
                 "--runtime-repo-dir": "runtime_repo_dir",
                 "--logical-machine": "logical_machine",
+                "--machine-pool": "machine_pool",
                 "--build-config": "build_config",
                 "--live-libraries-build-config": "live_libraries_build_config"
             }
