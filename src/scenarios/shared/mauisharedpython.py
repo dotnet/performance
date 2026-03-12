@@ -213,13 +213,16 @@ def download_repo_nuget_config(repo: str, target_framework: str, output_filename
     getLogger().info(f"Downloading NuGet.config from {url}")
     
     try:
+        with urllib.request.urlopen(url) as response:
+            content = response.read()
         with open(output_filename, "wb") as f:
-            with urllib.request.urlopen(url) as response:
-                f.write(response.read())
+            f.write(content)
         getLogger().info(f"Successfully downloaded {repo} NuGet.config to {output_filename}")
         return os.path.abspath(output_filename)
     except Exception as e:
         getLogger().warning(f"Failed to download {repo} NuGet.config from {url}: {e}")
+        if os.path.exists(output_filename):
+            os.remove(output_filename)
         return None
 
 class MauiNuGetConfigContext:
@@ -349,7 +352,7 @@ class MauiNuGetConfigContext:
             # Write the merged config back
             repo_tree.write(self.repo_nuget_config, encoding="utf-8", xml_declaration=True)
             getLogger().info("Merged upstream package sources into repo NuGet.config")
-        except:
+        except Exception:
             # Clean up downloaded files if __enter__ fails
             for config_path in self.downloaded_config_paths:
                 if os.path.exists(config_path):
@@ -375,8 +378,11 @@ class MauiNuGetConfigContext:
         # Clean up all downloaded config files
         for config_path in self.downloaded_config_paths:
             if os.path.exists(config_path):
-                os.remove(config_path)
-                getLogger().debug(f"Cleaned up temporary config: {config_path}")
+                try:
+                    os.remove(config_path)
+                    getLogger().debug(f"Cleaned up temporary config: {config_path}")
+                except OSError as e:
+                    getLogger().warning(f"Failed to remove temporary config {config_path}: {e}")
         
         return False  # Don't suppress exceptions
 
