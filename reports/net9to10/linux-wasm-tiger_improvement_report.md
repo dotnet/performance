@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Improvement Report - linux-wasm-tiger
 
 ## >50% Improvement (305 tests)
