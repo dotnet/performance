@@ -58,7 +58,7 @@ public class SeekUnroll
 
     [Benchmark(Description = nameof(SeekUnroll))]
     [ArgumentsSource(nameof(ArrayedBoxedIndicesToTest))]
-    [BenchmarkCategory(Categories.NoInterpreter)]
+    [BenchmarkCategory(Categories.NoInterpreter, Categories.NoWasmCoreCLR)]
     [MemoryRandomization]
     public bool Test(int boxedIndex) 
     {

@@ -31,6 +31,65 @@ Metric         |Average                  |Min                      |Max
 CounterName    |10000000000000000.000 ns |10000000000000000.000 ns |10000000000000000.000 ns 
 ";
 
+    private const string NoResultsTable =
+@"TestName
+No results in file.
+";
+
+    [Fact]
+    public void WriteReportTableWithNoCounters()
+    {
+        var reporter = new Reporter(new NonPerfLabEnvironmentProviderMock());
+        var test = new Test { Name = "TestName" };
+        reporter.AddTest(test);
+        var table = reporter.WriteResultTable();
+        Assert.Equal(NoResultsTable, table);
+    }
+
+    [Fact]
+    public void WriteReportTableWithEmptyResults()
+    {
+        var reporter = new Reporter(new NonPerfLabEnvironmentProviderMock());
+        var test = new Test
+        {
+            Name = "TestName",
+            Counters = [
+                new Counter
+                {
+                    DefaultCounter = true,
+                    MetricName = "ns",
+                    Name = "CounterName",
+                    Results = []
+                }
+            ]
+        };
+        reporter.AddTest(test);
+        var table = reporter.WriteResultTable();
+        Assert.Equal(NoResultsTable, table);
+    }
+
+    [Fact]
+    public void WriteReportTableWithNullResults()
+    {
+        var reporter = new Reporter(new NonPerfLabEnvironmentProviderMock());
+        var test = new Test
+        {
+            Name = "TestName",
+            Counters = [
+                new Counter
+                {
+                    DefaultCounter = true,
+                    MetricName = "ns",
+                    Name = "CounterName",
+                    Results = null
+                }
+            ]
+        };
+        reporter.AddTest(test);
+        var table = reporter.WriteResultTable();
+        Assert.Equal(NoResultsTable, table);
+    }
+
     [Fact]
     public void ReporterWithUnsetEnvironmentProducesNoJson()
     {
