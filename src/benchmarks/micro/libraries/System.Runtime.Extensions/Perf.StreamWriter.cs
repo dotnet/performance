@@ -48,7 +48,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(WriteLengthMemberData))]
-        [BenchmarkCategory(Categories.NoInterpreter)]
+        [BenchmarkCategory(Categories.NoInterpreter, Categories.NoWasmCoreCLR)]
         public void WriteCharArray(int writeLength)
         {
             char[] buffer = writeLength == 2 ? _buffer2 : _buffer100;
@@ -71,7 +71,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(WriteLengthMemberData))]
-        [BenchmarkCategory(Categories.NoInterpreter)]
+        [BenchmarkCategory(Categories.NoInterpreter, Categories.NoWasmCoreCLR)]
         [MemoryRandomization]
         public void WritePartialCharArray(int writeLength)
         {
@@ -95,7 +95,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(WriteLengthMemberData))]
-        [BenchmarkCategory(Categories.NoInterpreter)]
+        [BenchmarkCategory(Categories.NoInterpreter, Categories.NoWasmCoreCLR)]
         public void WriteString(int writeLength)
         {
             string value = writeLength == 2 ? _string2 : _string100;

@@ -7,3 +7,5 @@ steps:
     displayName: Run performance job script
     env:
       HelixAccessToken: '$(HelixApiAccessToken)'
+      PERF_REPO_BRANCH: '$(perfRepoBranch)'
+      DISABLE_NEW_BRANCH_LOGIC: '$(DisableNewBranchLogic)'

@@ -24,7 +24,8 @@
 
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <ScenariosDir>$(CorrelationPayloadDirectory)performance/src/scenarios/</ScenariosDir>
-    <HelixPreCommands>$(HelixPreCommands);sudo apt-get update;chmod +x $HELIX_CORRELATION_PAYLOAD/startup/perfcollect</HelixPreCommands>
+    <HelixPreCommands Condition="$(PERFLAB_QUEUE.ToLower().Contains('azurelinux'))">$(HelixPreCommands);sudo tdnf -y update;chmod +x $HELIX_CORRELATION_PAYLOAD/startup/perfcollect</HelixPreCommands>
+    <HelixPreCommands Condition="!$(PERFLAB_QUEUE.ToLower().Contains('azurelinux'))">$(HelixPreCommands);sudo apt-get update;chmod +x $HELIX_CORRELATION_PAYLOAD/startup/perfcollect</HelixPreCommands>
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
     <RID>linux-$(Architecture)</RID>
   </PropertyGroup>
