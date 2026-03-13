@@ -1,7 +1,7 @@
 parameters:
   steps: []
   variables: []
-  framework: net10.0 # Specify the appropriate framework when running release branches (ie net6.0 for release/6.0)
+  framework: net11.0 # Specify the appropriate framework when running release branches (ie net6.0 for release/6.0)
   buildConfig: ''
   archType: ''
   osGroup: ''
@@ -36,12 +36,14 @@ jobs:
     # Test job depends on the corresponding build job
     ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
       dependsOn:
-        - ${{ if not(in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSCoreCLR', 'iOSNativeAOT', 'wasm', 'mono')) }}:
+        - ${{ if not(in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSCoreCLR', 'iOSNativeAOT', 'wasm', 'wasm_coreclr', 'mono')) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'coreclr') }}
         - ${{ if and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'mono') }}
         - ${{ if eq(parameters.runtimeType, 'wasm')}}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}_{5}', 'browser', '', 'wasm', 'linux', parameters.buildConfig, parameters.runtimeType) }}
+        - ${{ if eq(parameters.runtimeType, 'wasm_coreclr')}}:
+          - ${{ format('build_{0}{1}_{2}_{3}_{4}_{5}', 'browser', '', 'wasm', 'linux', parameters.buildConfig, 'wasm_coreclr') }}
         - ${{ if and(eq(parameters.codeGenType, 'AOT'), not(in(parameters.runtimeType, 'wasm', 'AndroidMono'))) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, parameters.codeGenType) }}
         - ${{ if eq(parameters.runtimeType, 'AndroidMono')}}:
@@ -90,7 +92,7 @@ jobs:
         displayName: Add Properties To Pipeline Env
 
       - ${{ if eq(parameters.runtimeType, 'wasm') }}:
-        # Download wasm
+        # Download wasm (Mono)
         - ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
           - template: /eng/pipelines/templates/download-artifact-step.yml
             parameters:
@@ -106,6 +108,25 @@ jobs:
               artifactName: BrowserWasm
               displayName: BrowserWasm
               ${{ insert }}: ${{ parameters.downloadSpecificBuild }}
+
+      - ${{ if eq(parameters.runtimeType, 'wasm_coreclr') }}:
+        # Download wasm (CoreCLR)
+        - ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
+          - template: /eng/pipelines/templates/download-artifact-step.yml
+            parameters:
+              unpackFolder: $(librariesDownloadDir)/BrowserWasmCoreCLR
+              artifactFileName: BrowserWasmCoreCLR.tar.gz
+              artifactName: BrowserWasmCoreCLR
+              displayName: BrowserWasmCoreCLR
+        - ${{ if ne(parameters.downloadSpecificBuild.buildId, '') }}:
+          - template: /eng/pipelines/templates/download-specific-artifact-step.yml
+            parameters:
+              unpackFolder: $(librariesDownloadDir)/BrowserWasmCoreCLR
+              artifactFileName: BrowserWasmCoreCLR.tar.gz
+              artifactName: BrowserWasmCoreCLR
+              displayName: BrowserWasmCoreCLR
+              ${{ insert }}: ${{ parameters.downloadSpecificBuild }}
+
       - ${{ elseif and(eq(parameters.codeGenType, 'AOT'), not(eq(parameters.runtimeType, 'AndroidMono'))) }}:
         - template: /eng/pipelines/templates/download-artifact-step.yml
           parameters:
@@ -195,6 +216,9 @@ jobs:
             ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
               artifactFileName: 'iOSSampleAppCoreCLRInterpreterNoSymbols.zip'
+            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'R2R'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppCoreCLRR2RNoSymbols'
+              artifactFileName: 'iOSSampleAppCoreCLRR2RNoSymbols.zip'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppNativeAOTNoSymbols'
               artifactFileName: 'iOSSampleAppNativeAOTNoSymbols.zip'
@@ -212,6 +236,8 @@ jobs:
               artifactName: 'iOSSampleAppMonoFullAOTLLVMNoSymbols'
             ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
+            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'R2R'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSSampleAppCoreCLRR2RNoSymbols'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppNativeAOTNoSymbols'
             checkDownloadedFiles: true
@@ -227,6 +253,8 @@ jobs:
               artifactName: 'iOSMonoFullAOTArm64LLVMStripSymbolsBuildLog'
             ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'Interpreter'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSCoreCLRInterpreterArm64StripSymbolsBuildLog'
+            ${{ if and(eq(parameters.runtimeType, 'iOSCoreCLR'), eq(parameters.codeGenType, 'R2R'), eq(parameters.iOSStripSymbols, 'True')) }}:
+              artifactName: 'iOSCoreCLRR2RArm64StripSymbolsBuildLog'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSNativeAOTArm64StripSymbolsBuildLog'
             checkDownloadedFiles: true

@@ -125,6 +125,7 @@ public class LinqBenchmarks
     #region Where00
 
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public bool Where00LinqQueryX()
     {
         List<Product> products = Product.GetProductList();
@@ -146,6 +147,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public bool Where00LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
@@ -216,6 +218,7 @@ public class LinqBenchmarks
 
     [Benchmark]
     [MemoryRandomization]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public bool Where01LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
@@ -234,6 +237,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public bool Where01LinqMethodNestedX()
     {
         List<Product> products = Product.GetProductList();
@@ -368,6 +372,7 @@ public class LinqBenchmarks
 
 #if NET9_0_OR_GREATER
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public bool CountBy00LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
@@ -383,6 +388,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public bool CountBy00AggregateByX()
     {
         List<Product> products = Product.GetProductList();
@@ -399,6 +405,7 @@ public class LinqBenchmarks
 #endif
 
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public bool CountBy00GroupByX()
     {
         List<Product> products = Product.GetProductList();
@@ -415,6 +422,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public bool CountBy00LookupX()
     {
         List<Product> products = Product.GetProductList();
@@ -435,6 +443,7 @@ public class LinqBenchmarks
 
 #if NET9_0_OR_GREATER
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public bool AggregateBy00LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
@@ -451,6 +460,7 @@ public class LinqBenchmarks
 #endif
 
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public bool AggregateBy00GroupByX()
     {
         List<Product> products = Product.GetProductList();
@@ -471,6 +481,7 @@ public class LinqBenchmarks
     #region GroupBy00
 
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public bool GroupBy00LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
@@ -487,6 +498,7 @@ public class LinqBenchmarks
 
 #if NET9_0_OR_GREATER
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public bool GroupBy00AggregateByX()
     {
         List<Product> products = Product.GetProductList();

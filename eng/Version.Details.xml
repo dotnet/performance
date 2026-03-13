@@ -35,9 +35,9 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>994d9ebe9f3f4216d7b125738cf5c19adaf674d3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="10.0.0-prerelease.25475.1">
+    <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="11.0.0-prerelease.26064.3">
       <Uri>https://github.com/dotnet/xharness</Uri>
-      <Sha>d9aba438cae0eb814085c71dd6caa19e99c8e052</Sha>
+      <Sha>31e0b8e08f57890f7b7004b93361d69cd4b21079</Sha>
     </Dependency>
     <!--
       Maui Rollback Version mappings, default means generated from sdk version. Allows for manual override of version similar to https://github.com/dotnet/maui/blob/df8cfcf635a590955a8cc3d6cf7ae6280449dd3f/eng/Versions.props#L138-L146, where the logic comes from:
@@ -76,39 +76,39 @@
       <Uri>https://github.com/dotnet/android</Uri>
       <Sha>1dcfb6f8779c33b6f768c996495cb90ecd729329</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.MacCatalyst.Sdk.net10.0_18.5" Version="18.5.10824-net10-rc.2">
+    <!-- .NET 11 iOS version(s) -->
+    <Dependency Name="Microsoft.MacCatalyst.Sdk.net11.0_26.2" Version="26.2.11244-ci.net11-0">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>890175615f7762dfbc4f8555007aaf5bb4d75c8f</Sha>
+      <Sha>72f6ce856be41316c4d54d8d0cb3e90cd8b1a2ae</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.macOS.Sdk.net10.0_15.5" Version="15.5.10824-net10-rc.2">
+    <Dependency Name="Microsoft.macOS.Sdk.net11.0_26.2" Version="26.2.11244-ci.net11-0">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>890175615f7762dfbc4f8555007aaf5bb4d75c8f</Sha>
+      <Sha>72f6ce856be41316c4d54d8d0cb3e90cd8b1a2ae</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.iOS.Sdk.net10.0_18.5" Version="18.5.10824-net10-rc.2">
+    <Dependency Name="Microsoft.iOS.Sdk.net11.0_26.2" Version="26.2.11244-ci.net11-0">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>890175615f7762dfbc4f8555007aaf5bb4d75c8f</Sha>
+      <Sha>72f6ce856be41316c4d54d8d0cb3e90cd8b1a2ae</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.tvOS.Sdk.net10.0_18.5" Version="18.5.10824-net10-rc.2">
+    <Dependency Name="Microsoft.tvOS.Sdk.net11.0_26.2" Version="26.2.11244-ci.net11-0">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>890175615f7762dfbc4f8555007aaf5bb4d75c8f</Sha>
+      <Sha>72f6ce856be41316c4d54d8d0cb3e90cd8b1a2ae</Sha>
     </Dependency>
     <!-- Previous .NET iOS version(s) -->
-    <!-- This is a subscription of the .NET 9 latest stable versions of our packages -->
-    <Dependency Name="Microsoft.MacCatalyst.Sdk.net9.0_26.0" Version="26.0.9754">
+    <Dependency Name="Microsoft.MacCatalyst.Sdk.net10.0_26.2" Version="26.2.10192" CoherentParentDependency="Microsoft.MacCatalyst.Sdk.net11.0_26.2">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>4177c9d9590857cfb2617fd7a7ef3d5e1de48ed3</Sha>
+      <Sha>8d3087594c224f1a5a2d6f9fdd2ca01d02e370ca</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.macOS.Sdk.net9.0_26.0" Version="26.0.9754">
+    <Dependency Name="Microsoft.macOS.Sdk.net10.0_26.2" Version="26.2.10192" CoherentParentDependency="Microsoft.macOS.Sdk.net11.0_26.2">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>4177c9d9590857cfb2617fd7a7ef3d5e1de48ed3</Sha>
+      <Sha>8d3087594c224f1a5a2d6f9fdd2ca01d02e370ca</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.iOS.Sdk.net9.0_26.0" Version="26.0.9754">
+    <Dependency Name="Microsoft.iOS.Sdk.net10.0_26.2" Version="26.2.10192" CoherentParentDependency="Microsoft.iOS.Sdk.net11.0_26.2">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>4177c9d9590857cfb2617fd7a7ef3d5e1de48ed3</Sha>
+      <Sha>8d3087594c224f1a5a2d6f9fdd2ca01d02e370ca</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.tvOS.Sdk.net9.0_26.0" Version="26.0.9754">
+    <Dependency Name="Microsoft.tvOS.Sdk.net10.0_26.2" Version="26.2.10192" CoherentParentDependency="Microsoft.tvOS.Sdk.net11.0_26.2">
       <Uri>https://github.com/dotnet/macios</Uri>
-      <Sha>4177c9d9590857cfb2617fd7a7ef3d5e1de48ed3</Sha>
+      <Sha>8d3087594c224f1a5a2d6f9fdd2ca01d02e370ca</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>

@@ -6,15 +6,23 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Filters;
 using MicroBenchmarks;
 
 namespace System.Collections.Concurrent
 {
+    internal class AddRemoveFromSameThreadsDisabledConfig : ManualConfig
+    {
+        public AddRemoveFromSameThreadsDisabledConfig() => AddFilter(new SimpleFilter(_ => false));
+    }
+
     [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections, Categories.NoWASM)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     [MinWarmupCount(6, forceAutoWarmup: true)]
     [MaxWarmupCount(10, forceAutoWarmup: true)]
+    [Config(typeof(AddRemoveFromSameThreadsDisabledConfig))]
     public class AddRemoveFromSameThreads<T>
     {
         const int NumThreads = 2;
