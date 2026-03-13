@@ -72,9 +72,9 @@
       <Uri>https://github.com/dotnet/emsdk</Uri>
     </Dependency>
     <!-- Previous .NET Android version(s) -->
-    <Dependency Name="Microsoft.NET.Sdk.Android.Manifest-9.0.100" Version="35.0.105">
+    <Dependency Name="Microsoft.NET.Sdk.Android.Manifest-9.0.100" Version="35.0.109">
       <Uri>https://github.com/dotnet/android</Uri>
-      <Sha>1dcfb6f8779c33b6f768c996495cb90ecd729329</Sha>
+      <Sha>1361e50584b56e690e2b8b5f6db6a04a1d2b7b38</Sha>
     </Dependency>
     <!-- .NET 11 iOS version(s) -->
     <Dependency Name="Microsoft.MacCatalyst.Sdk.net11.0_26.2" Version="26.2.11244-ci.net11-0">
