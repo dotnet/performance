@@ -1,7 +1,4 @@
-﻿@inject NavigationManager Navigation
-@inject SignOutSessionStateManager SignOutManager
-
-<div class="user-info">
+﻿<div class="user-info">
     <AuthorizeView>
         <Authorizing>
             <text>...</text>
@@ -19,11 +16,3 @@
         </NotAuthorized>
     </AuthorizeView>
 </div>
-
-@code{
-    async Task BeginSignOut()
-    {
-        await SignOutManager.SetSignOutState();
-        Navigation.NavigateTo("authentication/logout");
-    }
-}
