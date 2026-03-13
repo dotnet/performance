@@ -93,7 +93,10 @@ class DevicePowerConsumptionHelper(object):
             copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'))
             if traits.upload_to_perflab_container:
                 import upload
-                upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
+                upload_code = upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
+                getLogger().info("DevicePowerConsumption Upload Code: " + str(upload_code))
+                if upload_code != 0:
+                    sys.exit(upload_code)
 
     def runtestsandroid(self, packagepath: str, packagename: str, testiterations: int, runtimeseconds: int, closeToStartDelay: int, traits: TestTraits):
         getLogger().info("Clearing potential previous run nettraces")

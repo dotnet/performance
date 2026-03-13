@@ -381,6 +381,7 @@ public class ByteMark
     const int NumericSortRectangularIterations = 5;
 
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public void BenchNumericSortRectangular()
     {
         NumericSortRect t = new NumericSortRect();
@@ -471,6 +472,7 @@ public class ByteMark
     const int AssignRectangularIterations = 5;
 
     [Benchmark]
+    [BenchmarkCategory(Categories.NoWasmCoreCLR)]
     public void BenchAssignRectangular()
     {
         AssignStruct t = new AssignRect();

@@ -16,15 +16,18 @@
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
 
     <!-- Mono AOT -->
-    <_MSBuildArgs Condition="'$(CodegenType)' == 'AOT'">$(_MSBuildArgs);/p:RunAOTCompilation=true;/p:AndroidEnableProfiledAot=false</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono' and '$(CodegenType)' == 'AOT'">$(_MSBuildArgs);/p:RunAOTCompilation=true;/p:AndroidEnableProfiledAot=false</_MSBuildArgs>
     <!-- CoreCLR JIT -->
-    <_MSBuildArgs Condition="'$(CodegenType)' == 'JIT'">$(_MSBuildArgs);/p:PublishReadyToRun=false;/p:PublishReadyToRunComposite=false</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'JIT'">$(_MSBuildArgs);/p:PublishReadyToRun=false;/p:PublishReadyToRunComposite=false</_MSBuildArgs>
     <!-- CoreCLR R2R -->
-    <_MSBuildArgs Condition="'$(CodegenType)' == 'R2R'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=false</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'R2R'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=false</_MSBuildArgs>
     <!-- CoreCLR R2R composite -->
-    <_MSBuildArgs Condition="'$(CodegenType)' == 'R2RComposite'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=true</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'R2RComposite'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=true</_MSBuildArgs>
     <!-- CoreCLR NativeAOT -->
-    <_MSBuildArgs Condition="'$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true</_MSBuildArgs>
+    
+    <!-- Debug builds use Fast Deployment by default, which excludes assemblies from the APK. -->
+    <_MSBuildArgs Condition="'$(BuildConfig)' == 'Debug'">$(_MSBuildArgs);/p:EmbedAssembliesIntoApk=true</_MSBuildArgs>
 
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
   </PropertyGroup>
@@ -71,7 +74,7 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIAndroidScenario)">
-      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-android -r android-arm64 --self-contained --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)\%(PreparePayloadWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-android -r android-arm64 --self-contained -c $(BuildConfig) --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)\%(PreparePayloadWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
