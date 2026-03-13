@@ -131,6 +131,9 @@ class AndroidInstrumentationHelper(object):
                             data['build']['buildName'] = os.environ.get('PERFLAB_BUILDNUM', "")
                             data['build']['timeStamp'] = os.environ.get('PERFLAB_BUILDTIMESTAMP', "")
                             data['build']['additionalData']['productVersion'] = os.environ.get('DOTNET_VERSION', "")
+                            for key, value in os.environ.items():
+                                if key.startswith('PERFLAB_DATA_'):
+                                    data['build']['additionalData'][key[len('PERFLAB_DATA_'):]] = value
                             data['os']['name'] = "Android"
                             data['os']['machineName'] = "Android"
                             data['run']['correlationId'] = os.environ.get('HELIX_CORRELATION_ID', "")
