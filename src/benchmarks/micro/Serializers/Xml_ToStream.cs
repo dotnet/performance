@@ -28,17 +28,24 @@ namespace MicroBenchmarks.Serializers
         private XmlDictionaryWriter xmlDictionaryWriter;
         private MemoryStream memoryStream;
 
-        [GlobalSetup]
-        public void Setup()
+        [GlobalSetup(Target = nameof(XmlSerializer_))]
+        public void SetupXmlSerializer()
         {
             value = DataGenerator.Generate<T>();
             memoryStream = new MemoryStream(capacity: short.MaxValue);
             xmlSerializer = new XmlSerializer(typeof(T));
+        }
+
+        [GlobalSetup(Targets = new[] { nameof(DataContractSerializer_), nameof(DataContractSerializer_BinaryXml_) })]
+        public void SetupDataContractSerializer()
+        {
+            value = DataGenerator.Generate<T>();
+            memoryStream = new MemoryStream(capacity: short.MaxValue);
             dataContractSerializer = new DataContractSerializer(typeof(T));
             xmlDictionaryWriter = XmlDictionaryWriter.CreateBinaryWriter(memoryStream, null, null, ownsStream: false);
         }
 
-        [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
+        [BenchmarkCategory(Categories.Libraries, Categories.Runtime, Categories.NoWasmCoreCLR)] // Reflection.Emit not supported on CoreCLR WASM
         [Benchmark(Description = nameof(XmlSerializer))]
         public void XmlSerializer_()
         {

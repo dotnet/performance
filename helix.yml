@@ -104,7 +104,7 @@ profiles:
       benchmark:
         variables:
           osGroup: windows
-          queue: Windows.10.Amd64.Galaxy.Perf
+          queue: Windows.11.Amd64.Galaxy.Lowend.Perf
   
   win-arm64:
     jobs:
