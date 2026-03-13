@@ -6,6 +6,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace System.Collections
 {
@@ -156,6 +157,126 @@ namespace System.Collections
                 queue.Dequeue();
             }
             return queue;
+        }
+
+        [Benchmark]
+        public ImmutableArray<T> ImmutableArray()
+        {
+            ImmutableArray<T> immutableArray = ImmutableArray<T>.Empty;
+            foreach (T uniqueKey in _keys)
+            {
+                immutableArray = immutableArray.Add(uniqueKey);
+            }
+            foreach (T uniqueKey in _keys)
+            {
+                immutableArray = immutableArray.Remove(uniqueKey);
+            }
+            return immutableArray;
+        }
+
+        [Benchmark]
+        public ImmutableList<T> ImmutableList()
+        {
+            ImmutableList<T> immutableList = ImmutableList<T>.Empty;
+            foreach (T uniqueKey in _keys)
+            {
+                immutableList = immutableList.Add(uniqueKey);
+            }
+            foreach (T uniqueKey in _keys)
+            {
+                immutableList = immutableList.Remove(uniqueKey);
+            }
+            return immutableList;
+        }
+
+        [Benchmark]
+        public ImmutableHashSet<T> ImmutableHashSet()
+        {
+            ImmutableHashSet<T> immutableHashSet = ImmutableHashSet<T>.Empty;
+            foreach (T uniqueKey in _keys)
+            {
+                immutableHashSet = immutableHashSet.Add(uniqueKey);
+            }
+            foreach (T uniqueKey in _keys)
+            {
+                immutableHashSet = immutableHashSet.Remove(uniqueKey);
+            }
+            return immutableHashSet;
+        }
+
+        [Benchmark]
+        public ImmutableSortedSet<T> ImmutableSortedSet()
+        {
+            ImmutableSortedSet<T> immutableSortedSet = ImmutableSortedSet<T>.Empty;
+            foreach (T uniqueKey in _keys)
+            {
+                immutableSortedSet = immutableSortedSet.Add(uniqueKey);
+            }
+            foreach (T uniqueKey in _keys)
+            {
+                immutableSortedSet = immutableSortedSet.Remove(uniqueKey);
+            }
+            return immutableSortedSet;
+        }
+
+        [Benchmark]
+        public ImmutableDictionary<T, T> ImmutableDictionary()
+        {
+            ImmutableDictionary<T, T> immutableDictionary = ImmutableDictionary<T, T>.Empty;
+            foreach (T uniqueKey in _keys)
+            {
+                immutableDictionary = immutableDictionary.Add(uniqueKey, uniqueKey);
+            }
+            foreach (T uniqueKey in _keys)
+            {
+                immutableDictionary = immutableDictionary.Remove(uniqueKey);
+            }
+            return immutableDictionary;
+        }
+
+        [Benchmark]
+        public ImmutableSortedDictionary<T, T> ImmutableSortedDictionary()
+        {
+            ImmutableSortedDictionary<T, T> immutableSortedDictionary = ImmutableSortedDictionary<T, T>.Empty;
+            foreach (T uniqueKey in _keys)
+            {
+                immutableSortedDictionary = immutableSortedDictionary.Add(uniqueKey, uniqueKey);
+            }
+            foreach (T uniqueKey in _keys)
+            {
+                immutableSortedDictionary = immutableSortedDictionary.Remove(uniqueKey);
+            }
+            return immutableSortedDictionary;
+        }
+
+        [Benchmark]
+        public ImmutableStack<T> ImmutableStack()
+        {
+            ImmutableStack<T> immutableStack = ImmutableStack<T>.Empty;
+            foreach (T uniqueKey in _keys)
+            {
+                immutableStack = immutableStack.Push(uniqueKey);
+            }
+            foreach (T uniqueKey in _keys)
+            {
+                immutableStack = immutableStack.Pop();
+            }
+            return immutableStack;
+        }
+
+        [Benchmark]
+        public ImmutableQueue<T> ImmutableQueue()
+        {
+            ImmutableQueue<T> immutableQueue = ImmutableQueue<T>.Empty;
+            foreach (T uniqueKey in _keys)
+            {
+                immutableQueue = immutableQueue.Enqueue(uniqueKey);
+            }
+            foreach (T uniqueKey in _keys)
+            {
+                immutableQueue = immutableQueue.Dequeue();
+            }
+            return immutableQueue;
         }
     }
 }
