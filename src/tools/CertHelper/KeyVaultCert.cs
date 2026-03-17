@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ public class KeyVaultCert
     private readonly string _clientId = "8c4b65ef-5a73-4d5a-a298-962d4a4ef7bc";
 
     public X509Certificate2Collection KeyVaultCertificates { get; set; }
+    public List<byte[]> KeyVaultCertificateBytes { get; set; }
     public ILocalCert LocalCerts { get; set; }
     private TokenCredential _credential { get; set; }
     private CertificateClient _certClient { get; set; }
@@ -33,16 +35,28 @@ public class KeyVaultCert
         _certClient = certClient ?? new CertificateClient(new Uri(_keyVaultUrl), _credential);
         _secretClient = secretClient ?? new SecretClient(new Uri(_keyVaultUrl), _credential);
         KeyVaultCertificates = new X509Certificate2Collection();
+        KeyVaultCertificateBytes = new List<byte[]>();
     }
 
-    public async Task LoadKeyVaultCertsAsync()
+    public async Task LoadKeyVaultCertsAsync(bool? rawBytesOnly = null)
     {
-        KeyVaultCertificates.Add(await FindCertificateInKeyVaultAsync(Constants.Cert1Name));
-        KeyVaultCertificates.Add(await FindCertificateInKeyVaultAsync(Constants.Cert2Name));
+        bool skipX509Load = rawBytesOnly ?? RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
-        if (KeyVaultCertificates.Where(c => c == null).Count() > 0)
+        var (cert1, bytes1) = await FindCertificateInKeyVaultAsync(Constants.Cert1Name, skipX509Load);
+        var (cert2, bytes2) = await FindCertificateInKeyVaultAsync(Constants.Cert2Name, skipX509Load);
+
+        KeyVaultCertificateBytes.Add(bytes1);
+        KeyVaultCertificateBytes.Add(bytes2);
+
+        if (!skipX509Load)
         {
-            throw new Exception("One or more certificates not found");
+            KeyVaultCertificates.Add(cert1!);
+            KeyVaultCertificates.Add(cert2!);
+
+            if (KeyVaultCertificates.Where(c => c == null).Count() > 0)
+            {
+                throw new Exception("One or more certificates not found");
+            }
         }
     }
 
@@ -136,7 +150,7 @@ public class KeyVaultCert
         return ccc;
     }
 
-    private async Task<X509Certificate2> FindCertificateInKeyVaultAsync(string certName)
+    private async Task<(X509Certificate2?, byte[])> FindCertificateInKeyVaultAsync(string certName, bool rawBytesOnly = false)
     {
         var keyVaultCert = await _certClient.GetCertificateAsync(certName);
         if(keyVaultCert.Value == null)
@@ -149,12 +163,18 @@ public class KeyVaultCert
             throw new Exception("Certificate secret not found in Key Vault");
         }
         var certBytes = Convert.FromBase64String(secret.Value.Value);
+
+        if (rawBytesOnly)
+        {
+            return (null, certBytes);
+        }
+
 #if NET9_0_OR_GREATER        
         var cert = X509CertificateLoader.LoadPkcs12(certBytes, "", X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
 #else
         var cert = new X509Certificate2(certBytes, "", X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
 #endif
-        return cert;
+        return (cert, certBytes);
     }
 
     public bool ShouldRotateCerts()

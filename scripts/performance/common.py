@@ -210,24 +210,16 @@ def retry_on_exception(
 
 def get_certificates() -> list[str]:
     '''
-    Gets the certificates from the certhelper tool and on Mac uses find-certificate.
+    Gets the certificates from the certhelper tool.
     '''
-    if ismac():
-        certs: list[str] = []
-        with open("/Users/helix-runner/certs/LabCert1.pfx", "rb") as f:
-            certs.append(base64.b64encode(f.read()).decode())
-        with open("/Users/helix-runner/certs/LabCert2.pfx", "rb") as f:
-            certs.append(base64.b64encode(f.read()).decode())
-        return certs
-    else:
-        cmd_line = [(os.path.join(str(helixpayload()), 'certhelper', "CertHelper%s" % extension()))]
-        cert_helper = RunCommand(cmd_line, None, True, False, 0)
-        try:
-            return cert_helper.run_and_get_stdout().splitlines()
-        except Exception as ex:
-            getLogger().error("Failed to get certificates")
-            getLogger().error('{0}: {1}'.format(type(ex), str(ex)))
-            return []
+    cmd_line = [(os.path.join(str(helixpayload()), 'certhelper', "CertHelper%s" % extension()))]
+    cert_helper = RunCommand(cmd_line, None, True, False, 0)
+    try:
+        return cert_helper.run_and_get_stdout().splitlines()
+    except Exception as ex:
+        getLogger().error("Failed to get certificates")
+        getLogger().error('{0}: {1}'.format(type(ex), str(ex)))
+        return []
 
 
 def __write_pipeline_variable(name: str, value: str):
