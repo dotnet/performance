@@ -28,6 +28,7 @@ jobs:
         logicalMachine: 'perfviper'
         javascriptEngine: 'javascriptcore'
         additionalJobIdentifier: javascriptcore
+        linuxPoolImage: build.azurelinux.3.amd64
         downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
@@ -50,6 +51,7 @@ jobs:
         logicalMachine: 'perfviper'
         javascriptengine: 'javascriptcore'
         additionalJobIdentifier: javascriptcore
+        linuxPoolImage: build.azurelinux.3.amd64
         downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
@@ -75,6 +77,7 @@ jobs:
         # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
         #additionalSetupParameters: '--dotnet-versions 8.0.0'
         additionalJobIdentifier: v8
+        linuxPoolImage: build.azurelinux.3.amd64
         downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
@@ -101,6 +104,7 @@ jobs:
           # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
           #additionalSetupParameters: '--dotnet-versions 8.0.0' # passed to ci_setup.py
           additionalJobIdentifier: v8
+          linuxPoolImage: build.azurelinux.3.amd64
           downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
@@ -125,6 +129,7 @@ jobs:
           # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
           #additionalSetupParameters: '--dotnetversions 8.0.0' # passed to run-performance-job.py
           logicalMachine: 'perfviper'
+          linuxPoolImage: build.azurelinux.3.amd64
           downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
@@ -147,6 +152,7 @@ jobs:
         logicalMachine: 'perfviper'
         javascriptEngine: 'v8'
         additionalJobIdentifier: coreclr_v8
+        linuxPoolImage: build.azurelinux.3.amd64
         downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}

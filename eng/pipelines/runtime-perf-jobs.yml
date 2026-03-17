@@ -191,6 +191,7 @@ jobs:
           runtimeType: mono
           runKind: micro_mono
           logicalMachine: 'perfviper'
+          linuxPoolImage: build.azurelinux.3.amd64
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
@@ -210,6 +211,7 @@ jobs:
           codeGenType: 'Interpreter'
           runKind: micro_mono
           logicalMachine: 'perfviper'
+          linuxPoolImage: build.azurelinux.3.amd64
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
@@ -229,6 +231,7 @@ jobs:
           codeGenType: 'AOT'
           runKind: micro_mono
           logicalMachine: 'perfviper'
+          linuxPoolImage: build.azurelinux.3.amd64
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
@@ -247,6 +250,7 @@ jobs:
           liveLibrariesBuildConfig: Release
           runKind: micro
           logicalMachine: 'perfviper'
+          linuxPoolImage: build.azurelinux.3.amd64
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
@@ -265,6 +269,7 @@ jobs:
           liveLibrariesBuildConfig: Release
           runKind: micro
           logicalMachine: 'perfviper'
+          linuxPoolImage: build.azurelinux.3.amd64
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           r2rRunType: nor2r

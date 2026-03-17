@@ -26,6 +26,7 @@ jobs:
           runKind: micro_mono
           logicalMachine: 'perfampere'
           timeoutInMinutes: 720
+          linuxPoolImage: build.azurelinux.3.amd64
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
@@ -45,6 +46,7 @@ jobs:
           runKind: micro_mono
           logicalMachine: 'perfampere'
           timeoutInMinutes: 720
+          linuxPoolImage: build.azurelinux.3.amd64
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
@@ -71,6 +73,7 @@ jobs:
           runKind: micro_mono
           logicalMachine: 'perfampere'
           timeoutInMinutes: 780
+          linuxPoolImage: build.azurelinux.3.amd64
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
@@ -89,6 +92,7 @@ jobs:
           runKind: micro
           logicalMachine: 'perfampere'
           timeoutInMinutes: 780
+          linuxPoolImage: build.azurelinux.3.amd64
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
@@ -108,6 +112,7 @@ jobs:
           logicalMachine: 'perfcobalt'
           osDistro: 'azurelinux'
           timeoutInMinutes: 780
+          linuxPoolImage: build.azurelinux.3.amd64
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
