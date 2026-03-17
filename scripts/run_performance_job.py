@@ -520,6 +520,7 @@ def get_run_configurations(
 
     if runtime_type == "wasm":
         configurations["CompilationMode"] = "wasm"
+        configurations["RuntimeType"] = str(runtime_flavor)
         if is_aot:
             configurations["AOT"] = "true"
 
@@ -716,6 +717,12 @@ def run_performance_job(args: RunPerformanceJobArgs):
         build_config = f"wasmaot.{build_config}"
     elif wasm:
         build_config = f"wasm.{build_config}"
+
+    if args.run_kind == "micro":
+        if args.runtime_type == "wasm":
+            args.runtime_flavor = "mono"
+        elif args.runtime_type == "wasm_coreclr":
+            args.runtime_flavor = "coreclr"
 
     if args.run_kind == "android_scenarios":
         if args.runtime_type == "AndroidMono":
