@@ -18,6 +18,7 @@ DEVICESTARTUP = "devicestartup"
 DEVICEMEMORYCONSUMPTION = "devicememoryconsumption"
 ANDROIDINSTRUMENTATION = "androidinstrumentation"
 DEVICEPOWERCONSUMPTION = "devicepowerconsumption"
+BDNDESKTOP = "bdndesktop"
 BUILDTIME = "buildtime"
 
 SCENARIO_NAMES = {STARTUP: 'Startup',

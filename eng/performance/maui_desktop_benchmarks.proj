@@ -10,7 +10,7 @@
     <HelixWorkItem Include="MAUI Desktop BDN Benchmarks">
       <PayloadDirectory>$(ScenariosDir)mauiDesktopBenchmarks</PayloadDirectory>
       <PreCommands>$(Python) pre.py -f $(PERFLAB_Framework)</PreCommands>
-      <Command>$(Python) test.py -f $(PERFLAB_Framework) --suite all</Command>
+      <Command>$(Python) test.py bdndesktop --framework $(PERFLAB_Framework) --suite all</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
   </ItemGroup>
