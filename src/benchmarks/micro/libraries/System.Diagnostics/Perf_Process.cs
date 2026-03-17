@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -79,6 +81,48 @@ namespace System.Diagnostics
             {
                 p.WaitForExit();
             }
+        }
+
+        private static readonly ProcessStartInfo s_outputStartInfo = new ProcessStartInfo()
+        {
+            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd" : "sh",
+            Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? "/c for /L %i in (1,1,1000) do @echo Line %i"
+                : "-c \"for i in $(seq 1 1000); do echo Line $i; done\"",
+            RedirectStandardOutput = true,
+            UseShellExecute = false
+        };
+
+        private static readonly DataReceivedEventHandler s_ignoreOutputLine = (sender, e) => { };
+
+        [Benchmark]
+        public void ReadOutputLineByLine()
+        {
+            using var process = new Process();
+            process.StartInfo = s_outputStartInfo;
+            process.OutputDataReceived += s_ignoreOutputLine;
+            process.Start();
+            process.BeginOutputReadLine();
+            process.WaitForExit();
+            process.OutputDataReceived -= s_ignoreOutputLine;
+        }
+
+#if NET
+        [Benchmark]
+        public async Task ReadOutputToEndAsync()
+        {
+            using Process process = Process.Start(s_outputStartInfo);
+            await process.StandardOutput.ReadToEndAsync();
+            process.WaitForExit();
+        }
+#endif
+
+        [Benchmark]
+        public void ReadOutputToEnd()
+        {
+            using Process process = Process.Start(s_outputStartInfo);
+            process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
         }
     }
 }
