@@ -735,7 +735,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             raise Exception("iOS scenarios only support Mono and CoreCLR runtimes")
 
     if args.run_kind == "micro" and args.runtime_type == "wasm_coreclr":
-        args.runtime_flavor = "coreclr"
+        if not args.runtime_flavor:
+            args.runtime_flavor = "coreclr"
 
     branch = os.environ.get("BUILD_SOURCEBRANCH")
     cleaned_branch_name = "main"
