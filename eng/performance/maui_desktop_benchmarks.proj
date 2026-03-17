@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <Import Project="Scenarios.Common.props" />
+
+  <!-- MAUI Desktop BenchmarkDotNet benchmarks
+       Clones dotnet/maui, builds dependencies, patches in PerfLabExporter,
+       and runs the Core, XAML, and Graphics BDN benchmark suites. -->
+
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
+    <HelixWorkItem Include="MAUI Desktop BDN Benchmarks">
+      <PayloadDirectory>$(ScenariosDir)mauiDesktopBenchmarks</PayloadDirectory>
+      <PreCommands>$(Python) pre.py -f $(PERFLAB_Framework)</PreCommands>
+      <Command>$(Python) test.py -f $(PERFLAB_Framework) --suite all</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <Import Project="PreparePayloadWorkItems.targets" />
+</Project>
