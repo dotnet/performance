@@ -93,7 +93,7 @@ namespace System.Diagnostics
             UseShellExecute = false
         };
 
-        private static readonly DataReceivedEventHandler s_ignoreOutputLine = (sender, e) => { };
+        private static readonly DataReceivedEventHandler s_ignoreOutputLine = static (sender, e) => { };
 
         [Benchmark]
         public void ReadOutputLineByLine()
@@ -112,8 +112,8 @@ namespace System.Diagnostics
         public async Task ReadOutputToEndAsync()
         {
             using Process process = Process.Start(s_outputStartInfo);
-            await process.StandardOutput.ReadToEndAsync();
-            process.WaitForExit();
+            _ = await process.StandardOutput.ReadToEndAsync();
+            await process.WaitForExitAsync();
         }
 #endif
 
@@ -121,7 +121,7 @@ namespace System.Diagnostics
         public void ReadOutputToEnd()
         {
             using Process process = Process.Start(s_outputStartInfo);
-            process.StandardOutput.ReadToEnd();
+            _ = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
         }
     }
