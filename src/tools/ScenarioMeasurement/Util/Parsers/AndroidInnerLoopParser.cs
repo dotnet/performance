@@ -31,6 +31,7 @@ public class AndroidInnerLoopParser : IParser
         var processAssembliesTimes = new List<double>();
         var generateJavaCallableWrappersTimes = new List<double>();
         var filterAssembliesTimes = new List<double>();
+        var waitForAppDetectionTimes = new List<double>();
 
         // Deploy tasks
         var fastDeployTimes = new List<double>();
@@ -82,6 +83,8 @@ public class AndroidInnerLoopParser : IParser
                     generateJavaCallableWrappersTimes.Add(s);
                 else if (name.Equals("FilterAssemblies", StringComparison.OrdinalIgnoreCase))
                     filterAssembliesTimes.Add(s);
+                else if (name.Equals("WaitForAppDetection", StringComparison.OrdinalIgnoreCase))
+                    waitForAppDetectionTimes.Add(s);
                 else if (name.Equals("FastDeploy", StringComparison.OrdinalIgnoreCase))
                     fastDeployTimes.Add(s);
                 else if (name.Equals("AndroidSignPackage", StringComparison.OrdinalIgnoreCase))
@@ -147,6 +150,8 @@ public class AndroidInnerLoopParser : IParser
             yield return new Counter { Name = "GenerateJavaCallableWrappers Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = generateJavaCallableWrappersTimes.ToArray() };
         if (filterAssembliesTimes.Count > 0)
             yield return new Counter { Name = "FilterAssemblies Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = filterAssembliesTimes.ToArray() };
+        if (waitForAppDetectionTimes.Count > 0)
+            yield return new Counter { Name = "WaitForAppDetection Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = waitForAppDetectionTimes.ToArray() };
 
         // Build target counters
         if (coreCompileTargetTimes.Count > 0)
