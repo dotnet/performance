@@ -27,6 +27,10 @@ public class AndroidInnerLoopParser : IParser
         var linkAssembliesNoShrinkTimes = new List<double>();
         var d8Times = new List<double>();
         var javacTimes = new List<double>();
+        var generateTypeMappingsTimes = new List<double>();
+        var processAssembliesTimes = new List<double>();
+        var generateJavaCallableWrappersTimes = new List<double>();
+        var filterAssembliesTimes = new List<double>();
 
         // Deploy tasks
         var fastDeployTimes = new List<double>();
@@ -70,6 +74,14 @@ public class AndroidInnerLoopParser : IParser
                     d8Times.Add(s);
                 else if (name.Equals("Javac", StringComparison.OrdinalIgnoreCase))
                     javacTimes.Add(s);
+                else if (name.Equals("GenerateTypeMappings", StringComparison.OrdinalIgnoreCase))
+                    generateTypeMappingsTimes.Add(s);
+                else if (name.Equals("ProcessAssemblies", StringComparison.OrdinalIgnoreCase))
+                    processAssembliesTimes.Add(s);
+                else if (name.Equals("GenerateJavaCallableWrappers", StringComparison.OrdinalIgnoreCase))
+                    generateJavaCallableWrappersTimes.Add(s);
+                else if (name.Equals("FilterAssemblies", StringComparison.OrdinalIgnoreCase))
+                    filterAssembliesTimes.Add(s);
                 else if (name.Equals("FastDeploy", StringComparison.OrdinalIgnoreCase))
                     fastDeployTimes.Add(s);
                 else if (name.Equals("AndroidSignPackage", StringComparison.OrdinalIgnoreCase))
@@ -127,6 +139,14 @@ public class AndroidInnerLoopParser : IParser
             yield return new Counter { Name = "D8 Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = d8Times.ToArray() };
         if (javacTimes.Count > 0)
             yield return new Counter { Name = "Javac Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = javacTimes.ToArray() };
+        if (generateTypeMappingsTimes.Count > 0)
+            yield return new Counter { Name = "GenerateTypeMappings Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = generateTypeMappingsTimes.ToArray() };
+        if (processAssembliesTimes.Count > 0)
+            yield return new Counter { Name = "ProcessAssemblies Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = processAssembliesTimes.ToArray() };
+        if (generateJavaCallableWrappersTimes.Count > 0)
+            yield return new Counter { Name = "GenerateJavaCallableWrappers Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = generateJavaCallableWrappersTimes.ToArray() };
+        if (filterAssembliesTimes.Count > 0)
+            yield return new Counter { Name = "FilterAssemblies Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = filterAssembliesTimes.ToArray() };
 
         // Build target counters
         if (coreCompileTargetTimes.Count > 0)
