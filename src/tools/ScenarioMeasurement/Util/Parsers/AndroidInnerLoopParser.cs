@@ -32,6 +32,9 @@ public class AndroidInnerLoopParser : IParser
         var generateJavaCallableWrappersTimes = new List<double>();
         var filterAssembliesTimes = new List<double>();
         var waitForAppDetectionTimes = new List<double>();
+        var generateMainAndroidManifestTimes = new List<double>();
+        var resolveSdksTimes = new List<double>();
+        var generateNativeApplicationConfigSourcesTimes = new List<double>();
 
         // Deploy tasks
         var fastDeployTimes = new List<double>();
@@ -85,6 +88,12 @@ public class AndroidInnerLoopParser : IParser
                     filterAssembliesTimes.Add(s);
                 else if (name.Equals("WaitForAppDetection", StringComparison.OrdinalIgnoreCase))
                     waitForAppDetectionTimes.Add(s);
+                else if (name.Equals("GenerateMainAndroidManifest", StringComparison.OrdinalIgnoreCase))
+                    generateMainAndroidManifestTimes.Add(s);
+                else if (name.Equals("ResolveSdks", StringComparison.OrdinalIgnoreCase))
+                    resolveSdksTimes.Add(s);
+                else if (name.Equals("GenerateNativeApplicationConfigSources", StringComparison.OrdinalIgnoreCase))
+                    generateNativeApplicationConfigSourcesTimes.Add(s);
                 else if (name.Equals("FastDeploy", StringComparison.OrdinalIgnoreCase))
                     fastDeployTimes.Add(s);
                 else if (name.Equals("AndroidSignPackage", StringComparison.OrdinalIgnoreCase))
@@ -152,6 +161,12 @@ public class AndroidInnerLoopParser : IParser
             yield return new Counter { Name = "FilterAssemblies Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = filterAssembliesTimes.ToArray() };
         if (waitForAppDetectionTimes.Count > 0)
             yield return new Counter { Name = "WaitForAppDetection Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = waitForAppDetectionTimes.ToArray() };
+        if (generateMainAndroidManifestTimes.Count > 0)
+            yield return new Counter { Name = "GenerateMainAndroidManifest Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = generateMainAndroidManifestTimes.ToArray() };
+        if (resolveSdksTimes.Count > 0)
+            yield return new Counter { Name = "ResolveSdks Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = resolveSdksTimes.ToArray() };
+        if (generateNativeApplicationConfigSourcesTimes.Count > 0)
+            yield return new Counter { Name = "GenerateNativeApplicationConfigSources Task Time", MetricName = "s", DefaultCounter = false, TopCounter = true, Results = generateNativeApplicationConfigSourcesTimes.ToArray() };
 
         // Build target counters
         if (coreCompileTargetTimes.Count > 0)
