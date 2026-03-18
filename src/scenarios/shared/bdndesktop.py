@@ -1,9 +1,16 @@
 '''
-Helper/Runner for desktop BenchmarkDotNet scenarios that build from external repos.
+Reusable helper for running BenchmarkDotNet benchmarks from external repos
+on desktop.
 
-Currently supports MAUI desktop benchmarks from dotnet/maui. The pattern
-(clone → patch → build → run BDN → collect results) can be extended to
-other repos by passing different configuration.
+Handles the generic workflow:
+  1. Patch Directory.Build.props to disable unwanted target frameworks
+  2. Inject BDN.Extensions (PerfLabExporter) into benchmark projects
+  3. Build benchmark projects
+  4. Run BDN suites
+  5. Collect and upload results
+
+Callers (e.g. test.py in each scenario) are responsible for repo-specific
+setup such as cloning, branch selection, and building repo dependencies.
 '''
 import os
 import re
@@ -15,67 +22,50 @@ import subprocess
 import xml.etree.ElementTree as ET
 from logging import getLogger
 from performance.common import runninginlab
-from shared.const import TRACEDIR
-
-# ── Default MAUI configuration ──────────────────────────────────────────────
-
-MAUI_REPO_URL = 'https://github.com/dotnet/maui.git'
-
-MAUI_BENCHMARK_PROJECTS = {
-    'core': 'src/Core/tests/Benchmarks/Core.Benchmarks.csproj',
-    'xaml': 'src/Controls/tests/Xaml.Benchmarks/Microsoft.Maui.Controls.Xaml.Benchmarks.csproj',
-    'graphics': 'src/Graphics/tests/Graphics.Benchmarks/Graphics.Benchmarks.csproj',
-}
-
-MAUI_BUILD_SOLUTION_FILTER = 'Microsoft.Maui.BuildTasks.slnf'
-
-MAUI_SPARSE_CHECKOUT_DIRS = [
-    'src/Core', 'src/Controls', 'src/Graphics', 'src/SingleProject',
-    'src/Workload', 'src/Essentials',
-    'eng', '.config',
-]
-
-# MSBuild properties to disable non-desktop target frameworks.
-# Used by _patch_directory_build_props() to replace true→false in-place
-# so ALL builds (including BDN's internal auto-generated project builds)
-# are desktop-only.
-DESKTOP_ONLY_PROPS = {
-    'IncludeAndroidTargetFrameworks': 'false',
-    'IncludeIosTargetFrameworks': 'false',
-    'IncludeMacCatalystTargetFrameworks': 'false',
-    'IncludeMacOSTargetFrameworks': 'false',
-    'IncludeTizenTargetFrameworks': 'false',
-}
 
 
 class BDNDesktopHelper(object):
+    '''Generic helper for running BDN desktop benchmarks from a local repo checkout.
 
-    def __init__(self):
-        self.repo_dir = 'maui_repo'
+    Args:
+        repo_dir:            Path to the cloned repository root.
+        benchmark_projects:  Dict mapping suite name to csproj relative path
+                             (e.g. {'graphics': 'src/Graphics/.../Graphics.Benchmarks.csproj'}).
+        disable_props:       Optional dict of MSBuild property names to replacement values
+                             to patch in Directory.Build.props (e.g. disable mobile TFMs).
+    '''
+
+    def __init__(self, repo_dir: str, benchmark_projects: dict,
+                 disable_props: dict = None):
+        self.repo_dir = repo_dir
+        self.benchmark_projects = benchmark_projects
+        self.disable_props = disable_props or {}
 
     # ── Public entry point ──────────────────────────────────────────────────
 
-    def runtests(self, framework: str, suite: str, bdn_args: list,
+    def runtests(self, suite: str, bdn_args: list,
                  upload_to_perflab_container: bool):
         '''
-        Full lifecycle: clone dotnet/maui, build dependencies, patch benchmark
-        projects for PerfLabExporter, run BDN suites, and collect results.
+        Patch benchmark projects, build, run, and collect BDN results.
+
+        Assumes the caller has already:
+          - Cloned the repo and built repo-specific dependencies
+          - Called patch_directory_build_props() if needed (must happen
+            before any builds, including dependency builds)
         '''
         log = getLogger()
-        branch = self._get_branch(framework)
 
-        # Setup
-        self._clone_repo(branch)
-        self._patch_directory_build_props()
-        self._build_dependencies()
-        self._patch_benchmark_projects()
-        self._build_benchmark_projects(suite)
+        # Patch benchmark csprojs + Program.cs for PerfLabExporter
+        self.patch_benchmark_projects()
+
+        # Build
+        self.build_benchmark_projects(suite)
 
         # Run
         if suite == 'all':
-            suites = MAUI_BENCHMARK_PROJECTS.items()
+            suites = self.benchmark_projects.items()
         else:
-            suites = [(suite, MAUI_BENCHMARK_PROJECTS[suite])]
+            suites = [(suite, self.benchmark_projects[suite])]
 
         all_passed = True
         for name, csproj_rel in suites:
@@ -91,58 +81,30 @@ class BDNDesktopHelper(object):
 
         log.info('All benchmark suites completed.')
 
-    # ── Branch mapping ──────────────────────────────────────────────────────
+    # ── Patch Directory.Build.props ─────────────────────────────────────────
 
-    @staticmethod
-    def _get_branch(framework: str) -> str:
-        if framework and framework.startswith('net'):
-            return framework  # net11.0 -> net11.0, net10.0 -> net10.0
-        return 'net11.0'
+    def patch_directory_build_props(self):
+        '''Disable unwanted TFMs by replacing property values in-place.
 
-    # ── Clone & build ───────────────────────────────────────────────────────
-
-    def _clone_repo(self, branch: str):
-        log = getLogger()
-        log.info(f'Cloning dotnet/maui branch {branch} (sparse, depth 1)...')
-
-        if os.path.exists(self.repo_dir):
-            shutil.rmtree(self.repo_dir)
-
-        subprocess.run([
-            'git', 'clone',
-            '-c', 'core.longpaths=true',
-            '--depth', '1',
-            '--filter=blob:none',
-            '--sparse',
-            '--branch', branch,
-            MAUI_REPO_URL,
-            self.repo_dir
-        ], check=True)
-
-        subprocess.run(
-            ['git', 'sparse-checkout', 'set'] + MAUI_SPARSE_CHECKOUT_DIRS,
-            cwd=self.repo_dir, check=True)
-
-        log.info('Clone complete.')
-
-    def _patch_directory_build_props(self):
-        '''Disable non-desktop TFMs in Directory.Build.props.
-
-        MAUI's props set Include*TargetFrameworks to true at multiple points.
-        MauiPlatforms (which controls TargetFrameworks) is computed from these.
-        We must replace ALL true→false in-place so the platform lists are never
-        populated.
+        Handles repos (like MAUI) that set Include*TargetFrameworks=true at
+        multiple points before computing TargetFrameworks.  Appending
+        overrides at the end doesn't work because MSBuild evaluates
+        top-to-bottom, so we regex-replace ALL occurrences in-place.
         '''
         log = getLogger()
         props_path = os.path.join(self.repo_dir, 'Directory.Build.props')
-        log.info('Patching Directory.Build.props to disable non-desktop TFMs...')
+        if not os.path.exists(props_path):
+            log.info('No Directory.Build.props found — skipping TFM patching.')
+            return
+
+        log.info('Patching Directory.Build.props to disable unwanted TFMs...')
 
         with open(props_path, 'r', encoding='utf-8-sig') as f:
             content = f.read()
 
-        for prop_name in DESKTOP_ONLY_PROPS:
+        for prop_name, new_value in self.disable_props.items():
             pattern = rf'(<{prop_name}\b[^>]*>)true(</{prop_name}>)'
-            content, count = re.subn(pattern, r'\g<1>false\g<2>', content)
+            content, count = re.subn(pattern, rf'\g<1>{new_value}\g<2>', content)
             if count > 0:
                 log.info(f'  {prop_name}: replaced {count} occurrence(s)')
 
@@ -150,20 +112,6 @@ class BDNDesktopHelper(object):
             f.write(content)
 
         log.info('  Directory.Build.props patched.')
-
-    def _build_dependencies(self):
-        log = getLogger()
-        log.info('Restoring dotnet tools...')
-        subprocess.run(['dotnet', 'tool', 'restore'], cwd=self.repo_dir, check=True)
-
-        log.info(f'Building {MAUI_BUILD_SOLUTION_FILTER} (desktop TFMs only)...')
-        subprocess.run([
-            'dotnet', 'build',
-            MAUI_BUILD_SOLUTION_FILTER,
-            '-c', 'Release',
-        ], cwd=self.repo_dir, check=True)
-
-        log.info('MAUI dependencies built successfully.')
 
     # ── BDN.Extensions injection ────────────────────────────────────────────
 
@@ -241,8 +189,8 @@ class BDNDesktopHelper(object):
         if insert_block:
             content = insert_block + content
 
-        # ManualConfig without MandatoryCategoryValidator (MAUI benchmarks
-        # don't use [BenchmarkCategory])
+        # ManualConfig without MandatoryCategoryValidator (external benchmarks
+        # may not use [BenchmarkCategory])
         new_run_call = (
             'var config = ManualConfig.Create(DefaultConfig.Instance)\n'
             '                .WithArtifactsPath(Path.Combine(\n'
@@ -279,11 +227,11 @@ class BDNDesktopHelper(object):
 
         log.info('  Patched successfully.')
 
-    def _patch_benchmark_projects(self):
+    def patch_benchmark_projects(self):
         '''Inject BDN.Extensions and PerfLabExporter into all benchmark projects.'''
         bdn_ext_abs = self._find_bdn_extensions()
 
-        for name, csproj_rel in MAUI_BENCHMARK_PROJECTS.items():
+        for name, csproj_rel in self.benchmark_projects.items():
             csproj_path = os.path.join(self.repo_dir, csproj_rel)
             project_dir = os.path.dirname(csproj_path)
             program_cs = os.path.join(project_dir, 'Program.cs')
@@ -301,12 +249,12 @@ class BDNDesktopHelper(object):
 
     # ── Build benchmarks ────────────────────────────────────────────────────
 
-    def _build_benchmark_projects(self, suite: str):
+    def build_benchmark_projects(self, suite: str):
         log = getLogger()
         if suite == 'all':
-            projects = MAUI_BENCHMARK_PROJECTS.items()
+            projects = self.benchmark_projects.items()
         else:
-            projects = [(suite, MAUI_BENCHMARK_PROJECTS[suite])]
+            projects = [(suite, self.benchmark_projects[suite])]
 
         for name, csproj_rel in projects:
             csproj_path = os.path.join(self.repo_dir, csproj_rel)

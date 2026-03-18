@@ -18,7 +18,6 @@ from shutil import rmtree
 from typing import Optional
 from shared.androidhelper import AndroidHelper
 from shared.androidinstrumentation import AndroidInstrumentationHelper
-from shared.bdndesktop import BDNDesktopHelper
 from shared.devicepowerconsumption import DevicePowerConsumptionHelper
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
@@ -175,16 +174,6 @@ ex: C:\repos\performance;C:\repos\runtime
         buildtimeparser.add_argument('--binlog-path', help='Location of binlog', dest='binlogpath')
         self.add_common_arguments(buildtimeparser)
 
-        bdndesktopparser = subparsers.add_parser(const.BDNDESKTOP,
-                                              description='Run BenchmarkDotNet benchmarks from an external repo on desktop')
-        bdndesktopparser.add_argument('--framework', '-f', default='net11.0',
-                                      help='Target .NET framework (determines repo branch)', dest='framework')
-        bdndesktopparser.add_argument('--suite', choices=['core', 'xaml', 'graphics', 'all'],
-                                      default='all', help='Which benchmark suite to run', dest='suite')
-        bdndesktopparser.add_argument('--bdn-args', nargs='*', default=[],
-                                      help='Additional arguments to pass to BenchmarkDotNet', dest='bdnargs')
-        self.add_common_arguments(bdndesktopparser)
-
         args = parser.parse_args()
 
         if not args.testtype:
@@ -242,10 +231,6 @@ ex: C:\repos\performance;C:\repos\runtime
             self.runtimeseconds = args.runtimeseconds
             self.closeToStartDelay = args.closeToStartDelay
 
-        if self.testtype == const.BDNDESKTOP:
-            self.framework = args.framework
-            self.suite = args.suite
-            self.bdnargs = args.bdnargs
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -443,10 +428,6 @@ ex: C:\repos\performance;C:\repos\runtime
         elif self.testtype == const.ANDROIDINSTRUMENTATION:
             androidInstrumentation = AndroidInstrumentationHelper()
             androidInstrumentation.runtests(self.packagepath, self.packagename, self.instrumentationname, self.upload_to_perflab_container)
-
-        elif self.testtype == const.BDNDESKTOP:
-            bdnDesktop = BDNDesktopHelper()
-            bdnDesktop.runtests(self.framework, self.suite, self.bdnargs, self.upload_to_perflab_container)
 
         elif self.testtype == const.DEVICEPOWERCONSUMPTION:
             devicePowerConsumption = DevicePowerConsumptionHelper()
