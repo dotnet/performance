@@ -56,6 +56,22 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
+  # MAUI Desktop BenchmarkDotNet benchmarks
+  - ${{ if false }}:
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64
+        isPublic: true
+        jobParameters:
+          runKind: maui_desktop_benchmarks
+          projectFileName: maui_desktop_benchmarks.proj
+          channels:
+            - main
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
   # Blazor scenario benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
@@ -583,6 +599,22 @@ jobs:
             - main
             - 9.0
             - 8.0
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
+  # MAUI Desktop BDN benchmarks (private)
+  - ${{ if false }}:
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64-viper
+        isPublic: false
+        jobParameters:
+          runKind: maui_desktop_benchmarks
+          projectFileName: maui_desktop_benchmarks.proj
+          channels:
+            - main
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
