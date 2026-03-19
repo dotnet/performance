@@ -998,6 +998,11 @@ ex: C:\repos\performance;C:\repos\runtime
             import subprocess
             import shutil
 
+            if not self.csprojpath:
+                raise Exception("For Android inner loop measurements, --csproj-path must be provided.")
+
+            scenarioprefix = self.scenarioname or "MAUI Android Deploy"
+
             os.makedirs(const.TRACEDIR, exist_ok=True)
             first_binlog = os.path.join(const.TRACEDIR, 'first-deploy.binlog')
             incremental_binlog = os.path.join(const.TRACEDIR, 'incremental-deploy.binlog')
@@ -1032,8 +1037,8 @@ ex: C:\repos\performance;C:\repos\runtime
 
             # Step 4: Parse both binlogs using AndroidInnerLoopParser
             startup = StartupWrapper()
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='first-deploy.binlog', scenarioname=self.scenarioname + " - First Deploy")
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='first-deploy.binlog', scenarioname=scenarioprefix + " - First Deploy")
             startup.parsetraces(self.traits)
 
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='incremental-deploy.binlog', scenarioname=self.scenarioname + " - Incremental Deploy")
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='incremental-deploy.binlog', scenarioname=scenarioprefix + " - Incremental Deploy")
             startup.parsetraces(self.traits)
