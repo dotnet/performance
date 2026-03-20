@@ -163,7 +163,7 @@ namespace SveBenchmarks
             {
                 int i = 0;
                 int cntd = (int)Sve.Count64BitElements();
-                int lmt = Size - cntd;
+                int lmt = Size - (cntd << 1);
 
                 Vector<ulong> pTrue = Sve.CreateTrueMaskUInt64();
                 for (; i <= lmt; i += (cntd << 1))

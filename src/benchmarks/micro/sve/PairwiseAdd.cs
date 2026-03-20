@@ -81,7 +81,7 @@ namespace SveBenchmarks
                 int i = 0;
                 int lmt = (Size * 2) - 8;
 
-                for (; i < lmt; i += 8)
+                for (; i <= lmt; i += 8)
                 {
                     // Load 2 vectors worth of elements from a and b.
                     Vector128<int> a0 = AdvSimd.LoadVector128(a + i);
