@@ -86,7 +86,7 @@ namespace SveBenchmarks
 
                     // Sum up packet in chunks of 16-bit values.
                     ulong sum = 0;
-                    byte* pLast = p + length;
+                    ushort* pLast = (ushort*)(p + length);
                     for (ushort* i = (ushort*)p; i < pLast; i++)
                     {
                         ushort d = *i;
