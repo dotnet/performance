@@ -39,7 +39,7 @@ namespace SveBenchmarks
                 _input[i] = (byte)(i * 3);
             }
 
-            _output = new byte[Size * 2];
+            _output = new byte[2 * (Size - 1)];
         }
 
         [GlobalCleanup]
