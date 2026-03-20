@@ -174,6 +174,16 @@ ex: C:\repos\performance;C:\repos\runtime
         buildtimeparser.add_argument('--binlog-path', help='Location of binlog', dest='binlogpath')
         self.add_common_arguments(buildtimeparser)
 
+        androidinnerloopparser = subparsers.add_parser(const.ANDROIDINNERLOOP,
+                                                 description='measure first and incremental deploy time via binlogs')
+        androidinnerloopparser.add_argument('--csproj-path', help='Path to .csproj file to build', dest='csprojpath')
+        androidinnerloopparser.add_argument('--edit-src', help='Path to modified source file (copied before incremental deploy)', dest='editsrc')
+        androidinnerloopparser.add_argument('--edit-dest', help='Destination path for the modified file', dest='editdest')
+        androidinnerloopparser.add_argument('--framework', '-f', help='Target framework (e.g., net10.0-android)', dest='framework')
+        androidinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', default='Debug')
+        androidinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
+        self.add_common_arguments(androidinnerloopparser)
+
         args = parser.parse_args()
 
         if not args.testtype:
@@ -196,7 +206,15 @@ ex: C:\repos\performance;C:\repos\runtime
 
         if self.testtype == const.BUILDTIME:
             self.binlogpath = args.binlogpath
-        
+
+        if self.testtype == const.ANDROIDINNERLOOP:
+            self.csprojpath = args.csprojpath
+            self.editsrc = args.editsrc
+            self.editdest = args.editdest
+            self.framework = args.framework
+            self.configuration = args.configuration
+            self.msbuildargs = args.msbuildargs
+
         if self.testtype == const.DEVICESTARTUP:
             self.packagepath = args.packagepath
             self.packagename = args.packagename
@@ -974,4 +992,53 @@ ex: C:\repos\performance;C:\repos\runtime
             if not (self.binlogpath and os.path.exists(os.path.join(const.TRACEDIR, self.binlogpath))):
                 raise Exception("For build time measurements a valid binlog path must be provided.")
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.BUILDTIME, tracename=self.binlogpath, scenarioname=self.scenarioname)
+            startup.parsetraces(self.traits)
+
+        elif self.testtype == const.ANDROIDINNERLOOP:
+            import subprocess
+            import shutil
+
+            if not self.csprojpath:
+                raise Exception("For Android inner loop measurements, --csproj-path must be provided.")
+
+            scenarioprefix = self.scenarioname or "MAUI Android Deploy"
+
+            os.makedirs(const.TRACEDIR, exist_ok=True)
+            first_binlog = os.path.join(const.TRACEDIR, 'first-deploy.binlog')
+            incremental_binlog = os.path.join(const.TRACEDIR, 'incremental-deploy.binlog')
+
+            # Build the base MSBuild command
+            base_cmd = ['dotnet', 'build', self.csprojpath, '-t:Install']
+            if self.configuration:
+                base_cmd.extend(['-c', self.configuration])
+            if self.framework:
+                base_cmd.extend(['-f', self.framework])
+            if self.msbuildargs:
+                for arg in self.msbuildargs.split(';'):
+                    if arg.strip():
+                        base_cmd.append(arg.strip())
+
+            # Step 1: First full deploy
+            first_cmd = base_cmd + [f'-bl:{first_binlog}']
+            getLogger().info("First deploy: %s" % ' '.join(first_cmd))
+            subprocess.run(first_cmd, check=True)
+
+            # Step 2: Edit one source file to simulate a developer change
+            if self.editsrc and self.editdest:
+                getLogger().info("Editing file: %s -> %s" % (self.editsrc, self.editdest))
+                shutil.copy(self.editsrc, self.editdest)
+            else:
+                getLogger().warning("No edit-src/edit-dest specified; incremental deploy will be a no-change rebuild")
+
+            # Step 3: Incremental deploy
+            incremental_cmd = base_cmd + [f'-bl:{incremental_binlog}']
+            getLogger().info("Incremental deploy: %s" % ' '.join(incremental_cmd))
+            subprocess.run(incremental_cmd, check=True)
+
+            # Step 4: Parse both binlogs using AndroidInnerLoopParser
+            startup = StartupWrapper()
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='first-deploy.binlog', scenarioname=scenarioprefix + " - First Deploy")
+            startup.parsetraces(self.traits)
+
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='incremental-deploy.binlog', scenarioname=scenarioprefix + " - Incremental Deploy")
             startup.parsetraces(self.traits)
