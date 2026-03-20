@@ -1,0 +1,72 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <Import Project="Scenarios.Common.props" />
+
+  <PropertyGroup>
+    <IncludeXHarnessCli>true</IncludeXHarnessCli>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
+
+    <!-- Mono AOT -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono' and '$(CodegenType)' == 'AOT'">$(_MSBuildArgs);/p:RunAOTCompilation=true;/p:AndroidEnableProfiledAot=false</_MSBuildArgs>
+    <!-- CoreCLR JIT -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'JIT'">$(_MSBuildArgs);/p:PublishReadyToRun=false;/p:PublishReadyToRunComposite=false</_MSBuildArgs>
+    <!-- CoreCLR R2R -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'R2R'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=false</_MSBuildArgs>
+    <!-- CoreCLR R2R composite -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'R2RComposite'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=true</_MSBuildArgs>
+    <!-- CoreCLR NativeAOT -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true</_MSBuildArgs>
+
+    <!-- Debug builds use Fast Deployment by default, which excludes assemblies from the APK. -->
+    <_MSBuildArgs Condition="'$(BuildConfig)' == 'Debug'">$(_MSBuildArgs);/p:EmbedAssembliesIntoApk=true</_MSBuildArgs>
+
+    <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
+  </PropertyGroup>
+
+  <!--
+    NOTE: Unlike maui_scenarios_android.proj, we intentionally do NOT remove dotnet\packs
+    from the correlation staging. The inner loop scenario needs the full .NET SDK with
+    MAUI workload packs to build on the Helix machine.
+  -->
+
+  <ItemDefinitionGroup>
+    <HelixWorkItem>
+      <Timeout>01:00</Timeout>
+    </HelixWorkItem>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <MAUIAndroidInnerLoopScenario Include="MAUI Android Inner Loop">
+      <ScenarioDirectoryName>mauiandroidinnerloop</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </MAUIAndroidInnerLoopScenario>
+  </ItemGroup>
+
+  <!-- PreparePayloadWorkItem: create template and modified source on the build machine.
+       pre.py creates the MAUI template in app/, fixes .csproj TFMs, and prepares the
+       modified MainPage.xaml.cs in src/ for the incremental deploy simulation. -->
+  <ItemGroup>
+    <PreparePayloadWorkItem Include="@(MAUIAndroidInnerLoopScenario)">
+      <Command>$(Python) pre.py</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+  </ItemGroup>
+
+  <!-- HelixWorkItem: build and deploy on the Helix machine with an attached Android device.
+       test.py runs two dotnet build -t:Install commands (first deploy + incremental deploy
+       after a file edit) and parses the resulting binlogs for per-task timing data. -->
+  <ItemGroup>
+    <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Deploy - %(Identity)')">
+      <PreCommands>set DOTNET_ROOT=%HELIX_CORRELATION_PAYLOAD%\dotnet&amp;&amp; set PATH=%HELIX_CORRELATION_PAYLOAD%\dotnet;%PATH%&amp;&amp; set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages</PreCommands>
+      <Command>$(Python) test.py androidinnerloop --csproj-path app\MauiAndroidInnerLoop.csproj --edit-src src\MainPage.xaml.cs --edit-dest app\MainPage.xaml.cs -f $(PERFLAB_Framework)-android -c $(BuildConfig) --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <Import Project="PreparePayloadWorkItems.targets" />
+
+</Project>

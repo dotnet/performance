@@ -15,4 +15,8 @@ package_name = f'com.companyname.{EXENAME.lower()}'
 logger.info(f"Uninstalling {package_name} from device")
 subprocess.run(['adb', 'uninstall', package_name], check=False)
 
+# Shut down the build server to release file locks before cleanup
+logger.info("Shutting down build server")
+subprocess.run(['dotnet', 'build-server', 'shutdown'], check=False)
+
 clean_directories()
