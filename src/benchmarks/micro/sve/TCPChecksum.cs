@@ -167,26 +167,27 @@ namespace SveBenchmarks
                 byte* lmt = p + _psize;
 
                 Vector<ushort> ones = Vector<ushort>.One;
-                Vector<byte> pTrue = Sve.CreateTrueMaskByte();
+                Vector<ushort> pTrue = Sve.CreateTrueMaskUInt16();
 
                 while (p < lmt)
                 {
                     ushort* plength = (ushort*)(p + 1);
                     ushort length = (ushort)(*plength & 0xfe);
+                    int lengthWords = length / 2;
 
                     int i = 0;
                     Vector<ulong> acc = Vector<ulong>.Zero;
-                    Vector<byte> pLoop = Sve.CreateWhileLessThanMask8Bit(0, length);
+                    Vector<ushort> pLoop = Sve.CreateWhileLessThanMask16Bit(0, lengthWords);
                     while (Sve.TestAnyTrue(pTrue, pLoop))
                     {
-                        Vector<ushort> d = (Vector<ushort>)Sve.LoadVector(pLoop, p + i);
+                        Vector<ushort> d = Sve.LoadVector(pLoop, ((ushort*)p) + i);
                         // Compute dot product of the data and a vector of 1.
                         // The result is widened to 64-bit.
                         acc = Sve.DotProduct(acc, d, ones);
 
                         // Handle loop predicate.
-                        i += (int)Sve.Count8BitElements();
-                        pLoop = Sve.CreateWhileLessThanMask8Bit(i, length);
+                        i += (int)Sve.Count16BitElements();
+                        pLoop = Sve.CreateWhileLessThanMask16Bit(i, lengthWords);
                     }
                     // Reduce result to scalar.
                     ulong sum = Sve.AddAcross(acc).ToScalar();
