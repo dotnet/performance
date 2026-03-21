@@ -48,7 +48,7 @@
        modified MainPage.xaml.cs in src/ for the incremental deploy simulation. -->
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIAndroidInnerLoopScenario)">
-      <Command>$(Python) pre.py</Command>
+      <Command>$(Python) pre.py default -f $(PERFLAB_Framework)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
