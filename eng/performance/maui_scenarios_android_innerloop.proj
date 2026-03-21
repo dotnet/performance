@@ -58,7 +58,7 @@
   <ItemGroup>
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Deploy - %(Identity)')">
       <PreCommands>set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages</PreCommands>
-      <Command>echo === STEP 1: Workload Install === &amp;&amp; %HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet workload install maui --from-rollback-file %HELIX_WORKITEM_ROOT%\rollback_maui.json --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config --skip-manifest-update &amp;&amp; echo === STEP 2: Restore === &amp;&amp; %HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet restore %HELIX_WORKITEM_ROOT%\app\MauiAndroidInnerLoop.csproj --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config &amp;&amp; echo === STEP 3: Test === &amp;&amp; python test.py androidinnerloop --csproj-path app\MauiAndroidInnerLoop.csproj --edit-src src\MainPage.xaml.cs --edit-dest app\MainPage.xaml.cs -f $(PERFLAB_Framework)-android -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs) &amp;&amp; echo === ALL STEPS SUCCEEDED ===</Command>
+      <Command>run.cmd $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot;</Command>
       <PostCommands>python post.py</PostCommands>
     </HelixWorkItem>
   </ItemGroup>
