@@ -20,7 +20,7 @@ echo. >> "%LOGFILE%" 2>&1
 
 echo === STEP 1: Workload Install === >> "%LOGFILE%" 2>&1
 echo [%DATE% %TIME%] Starting workload install >> "%LOGFILE%" 2>&1
-%HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet workload install maui --from-rollback-file %HELIX_WORKITEM_ROOT%\rollback_maui.json --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config >> "%LOGFILE%" 2>&1
+%DOTNET_ROOT%\dotnet workload install maui --from-rollback-file %HELIX_WORKITEM_ROOT%\rollback_maui.json --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config >> "%LOGFILE%" 2>&1
 if errorlevel 1 (
     echo [%DATE% %TIME%] STEP 1 FAILED with errorlevel !errorlevel! >> "%LOGFILE%" 2>&1
     type "%LOGFILE%"
@@ -30,7 +30,7 @@ echo [%DATE% %TIME%] Workload install succeeded >> "%LOGFILE%" 2>&1
 
 echo === STEP 2: Restore === >> "%LOGFILE%" 2>&1
 echo [%DATE% %TIME%] Starting restore >> "%LOGFILE%" 2>&1
-%HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet restore %HELIX_WORKITEM_ROOT%\app\MauiAndroidInnerLoop.csproj --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config /p:AllowMissingPrunePackageData=true >> "%LOGFILE%" 2>&1
+%DOTNET_ROOT%\dotnet restore %HELIX_WORKITEM_ROOT%\app\MauiAndroidInnerLoop.csproj --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config /p:AllowMissingPrunePackageData=true >> "%LOGFILE%" 2>&1
 if errorlevel 1 (
     echo [%DATE% %TIME%] STEP 2 FAILED with errorlevel !errorlevel! >> "%LOGFILE%" 2>&1
     type "%LOGFILE%"
