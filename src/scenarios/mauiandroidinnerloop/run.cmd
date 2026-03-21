@@ -29,6 +29,24 @@ echo DOTNET_ROOT=!DOTNET_ROOT! >> "%LOGFILE%" 2>&1
 %DOTNET_ROOT%\dotnet --version >> "%LOGFILE%" 2>&1
 echo. >> "%LOGFILE%" 2>&1
 
+REM === Set up ANDROID_HOME from XHarness bundled ADB ===
+REM The Helix queue (Windows.11.Amd64.Pixel.Perf) has Pixel devices but
+REM ANDROID_HOME is not set and ADB is not on PATH.  XHarness ships a
+REM bundled ADB, so we create a minimal fake Android SDK directory and
+REM point ANDROID_HOME at it.  dotnet build -t:Install then finds ADB.
+echo === Setting up Android SDK from XHarness === >> "%LOGFILE%" 2>&1
+for /d %%d in (!HELIX_CORRELATION_PAYLOAD!\microsoft.dotnet.xharness.cli\*) do set "XHARNESS_DIR=%%d"
+set "ADB_SRC=!XHARNESS_DIR!\runtimes\any\native\adb\windows"
+set "ANDROID_HOME=%HELIX_WORKITEM_ROOT%\android-sdk"
+mkdir "!ANDROID_HOME!\platform-tools" >> "%LOGFILE%" 2>&1
+copy /Y "!ADB_SRC!\*" "!ANDROID_HOME!\platform-tools\" >> "%LOGFILE%" 2>&1
+set "PATH=!ANDROID_HOME!\platform-tools;!PATH!"
+echo XHARNESS_DIR=!XHARNESS_DIR! >> "%LOGFILE%" 2>&1
+echo ADB_SRC=!ADB_SRC! >> "%LOGFILE%" 2>&1
+echo ANDROID_HOME=!ANDROID_HOME! >> "%LOGFILE%" 2>&1
+where adb >> "%LOGFILE%" 2>&1
+echo. >> "%LOGFILE%" 2>&1
+
 REM Helix machines cannot reach NuGet certificate revocation servers (NU3018).
 REM Use the local CRL cache instead of contacting the server online.
 set "NUGET_CERT_REVOCATION_MODE=offline"
