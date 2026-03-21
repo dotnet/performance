@@ -52,14 +52,14 @@
     </PreparePayloadWorkItem>
   </ItemGroup>
 
-  <!-- HelixWorkItem: build and deploy on the Helix machine with an attached Android device.
-       test.py runs two dotnet build -t:Install commands (first deploy + incremental deploy
-       after a file edit) and parses the resulting binlogs for per-task timing data. -->
+  <!-- HelixWorkItem: MINIMAL diagnostic to isolate infrastructure failures.
+       We can't access Helix console logs, so this verifies the basics:
+       dotnet SDK available, workitem payload extracted, files present. -->
   <ItemGroup>
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Deploy - %(Identity)')">
-      <PreCommands>echo === Setting up environment ===&amp;&amp; set DOTNET_ROOT=%HELIX_CORRELATION_PAYLOAD%\dotnet&amp;&amp; set PATH=%HELIX_CORRELATION_PAYLOAD%\dotnet;%PATH%&amp;&amp; set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages&amp;&amp; echo DOTNET_ROOT=%DOTNET_ROOT%&amp;&amp; echo NUGET_PACKAGES=%NUGET_PACKAGES%&amp;&amp; echo === Checking files ===&amp;&amp; dir %HELIX_WORKITEM_ROOT%\rollback_maui.json&amp;&amp; dir %HELIX_WORKITEM_ROOT%\app\NuGet.config&amp;&amp; dir %HELIX_WORKITEM_ROOT%\app\MauiAndroidInnerLoop.csproj&amp;&amp; echo === Installing MAUI workload ===&amp;&amp; %HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet workload install maui --from-rollback-file %HELIX_WORKITEM_ROOT%\rollback_maui.json --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config --skip-manifest-update --verbosity detailed&amp;&amp; echo === Restoring NuGet packages ===&amp;&amp; %HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet restore %HELIX_WORKITEM_ROOT%\app\MauiAndroidInnerLoop.csproj --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config --verbosity detailed&amp;&amp; echo === PreCommands complete ===</PreCommands>
-      <Command>$(Python) test.py androidinnerloop --csproj-path app\MauiAndroidInnerLoop.csproj --edit-src src\MainPage.xaml.cs --edit-dest app\MainPage.xaml.cs -f $(PERFLAB_Framework)-android -c $(BuildConfig) --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
-      <PostCommands>$(Python) post.py</PostCommands>
+      <PreCommands>set DOTNET_ROOT=%HELIX_CORRELATION_PAYLOAD%\dotnet&amp;&amp;set PATH=%HELIX_CORRELATION_PAYLOAD%\dotnet;%PATH%&amp;&amp;set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages</PreCommands>
+      <Command>%HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet --info &amp;&amp; echo --- WORKITEM ROOT --- &amp;&amp; dir %HELIX_WORKITEM_ROOT% &amp;&amp; echo --- APP DIR --- &amp;&amp; dir %HELIX_WORKITEM_ROOT%\app 2>&amp;1 &amp;&amp; echo --- ROLLBACK FILE --- &amp;&amp; type %HELIX_WORKITEM_ROOT%\rollback_maui.json 2>&amp;1 &amp;&amp; echo DIAGNOSTIC_SUCCESS</Command>
+      <PostCommands>echo Post-commands complete</PostCommands>
     </HelixWorkItem>
   </ItemGroup>
 
