@@ -47,6 +47,45 @@ echo ANDROID_HOME=!ANDROID_HOME! >> "%LOGFILE%" 2>&1
 where adb >> "%LOGFILE%" 2>&1
 echo. >> "%LOGFILE%" 2>&1
 
+REM === Set up JAVA_HOME for Android builds ===
+REM dotnet workload install maui-android does NOT install Java/OpenJDK.
+REM dotnet build -t:Install fails with XA5300 if Java is missing.
+REM Search common JDK locations on Windows Helix machines.
+echo === Java SDK Setup === >> "%LOGFILE%" 2>&1
+
+REM Check common JDK locations on Windows
+for /d %%d in ("C:\Program Files\Microsoft\jdk-*") do set "JAVA_HOME=%%~d"
+if not defined JAVA_HOME for /d %%d in ("D:\Program Files\Microsoft\jdk-*") do set "JAVA_HOME=%%~d"
+if not defined JAVA_HOME for /d %%d in ("C:\Program Files\Java\jdk-*") do set "JAVA_HOME=%%~d"
+if not defined JAVA_HOME for /d %%d in ("C:\Program Files\Eclipse Adoptium\jdk-*") do set "JAVA_HOME=%%~d"
+
+if not defined JAVA_HOME (
+    echo Java not found in common paths, searching... >> "%LOGFILE%" 2>&1
+    for /f "delims=" %%f in ('where java 2^>nul') do (
+        set "JAVA_EXE=%%f"
+    )
+    if defined JAVA_EXE (
+        REM Extract JAVA_HOME from java.exe path (remove \bin\java.exe)
+        for %%p in ("!JAVA_EXE!\..\..\") do set "JAVA_HOME=%%~fp"
+    )
+)
+
+if not defined JAVA_HOME (
+    echo WARNING: Java SDK not found. Build will fail with XA5300. >> "%LOGFILE%" 2>&1
+    echo Searching for any java.exe on the system... >> "%LOGFILE%" 2>&1
+    dir /s /b "C:\java.exe" >> "%LOGFILE%" 2>&1
+    dir /s /b "D:\java.exe" >> "%LOGFILE%" 2>&1
+    dir "C:\Program Files" >> "%LOGFILE%" 2>&1
+    dir "D:\Program Files" >> "%LOGFILE%" 2>&1
+)
+
+echo JAVA_HOME=!JAVA_HOME! >> "%LOGFILE%" 2>&1
+if defined JAVA_HOME (
+    set "PATH=!JAVA_HOME!\bin;!PATH!"
+    dir "!JAVA_HOME!\bin\java.exe" >> "%LOGFILE%" 2>&1
+)
+echo. >> "%LOGFILE%" 2>&1
+
 REM Helix machines cannot reach NuGet certificate revocation servers (NU3018).
 REM Use the local CRL cache instead of contacting the server online.
 set "NUGET_CERT_REVOCATION_MODE=offline"
