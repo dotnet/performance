@@ -21,9 +21,6 @@
     <!-- CoreCLR NativeAOT -->
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true</_MSBuildArgs>
 
-    <!-- Debug builds use Fast Deployment by default, which excludes assemblies from the APK. -->
-    <_MSBuildArgs Condition="'$(BuildConfig)' == 'Debug'">$(_MSBuildArgs);/p:EmbedAssembliesIntoApk=true</_MSBuildArgs>
-
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
   </PropertyGroup>
 
