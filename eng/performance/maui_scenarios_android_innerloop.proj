@@ -24,11 +24,10 @@
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
   </PropertyGroup>
 
-  <!--
-    NOTE: Unlike maui_scenarios_android.proj, we intentionally do NOT remove dotnet\packs
-    from the correlation staging. The inner loop scenario needs the full .NET SDK with
-    MAUI workload packs to build on the Helix machine.
-  -->
+  <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
+    <Message Text="Removing Dotnet Packs from Correlation Staging" Importance="high" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" />
+  </Target>
 
   <ItemDefinitionGroup>
     <HelixWorkItem>
@@ -58,7 +57,7 @@
        after a file edit) and parses the resulting binlogs for per-task timing data. -->
   <ItemGroup>
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Deploy - %(Identity)')">
-      <PreCommands>set DOTNET_ROOT=%HELIX_CORRELATION_PAYLOAD%\dotnet&amp;&amp; set PATH=%HELIX_CORRELATION_PAYLOAD%\dotnet;%PATH%&amp;&amp; set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages&amp;&amp; if exist "%HELIX_WORKITEM_ROOT%\.packages" rmdir /s /q "%HELIX_WORKITEM_ROOT%\.packages"&amp;&amp; %HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet restore app\MauiAndroidInnerLoop.csproj</PreCommands>
+      <PreCommands>set DOTNET_ROOT=%HELIX_CORRELATION_PAYLOAD%\dotnet&amp;&amp; set PATH=%HELIX_CORRELATION_PAYLOAD%\dotnet;%PATH%&amp;&amp; set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages&amp;&amp; if exist "%HELIX_WORKITEM_ROOT%\.packages" rmdir /s /q "%HELIX_WORKITEM_ROOT%\.packages"&amp;&amp; %HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet workload install maui --from-rollback-file %HELIX_WORKITEM_ROOT%\rollback_maui.json --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config --skip-sign-check&amp;&amp; %HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet restore app\MauiAndroidInnerLoop.csproj</PreCommands>
       <Command>$(Python) test.py androidinnerloop --csproj-path app\MauiAndroidInnerLoop.csproj --edit-src src\MainPage.xaml.cs --edit-dest app\MainPage.xaml.cs -f $(PERFLAB_Framework)-android -c $(BuildConfig) --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
