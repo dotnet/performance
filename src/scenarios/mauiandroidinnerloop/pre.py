@@ -42,6 +42,17 @@ with MauiNuGetConfigContext(precommands.framework):
     shutil.copy2(repo_nuget_config, app_nuget_config)
     logger.info(f"Copied merged NuGet.config from {repo_nuget_config} to {app_nuget_config}")
 
+    # Disable NuGet signature validation for CI-signed packages (NU3018 on Helix)
+    import xml.etree.ElementTree as ET
+    tree = ET.parse(app_nuget_config)
+    root = tree.getroot()
+    config_elem = root.find('config')
+    if config_elem is None:
+        config_elem = ET.SubElement(root, 'config')
+    ET.SubElement(config_elem, 'add', key='signatureValidationMode', value='accept')
+    tree.write(app_nuget_config, xml_declaration=True, encoding='utf-8')
+    logger.info("Added signatureValidationMode=accept to NuGet.config for Helix CI packages")
+
     # Fix the .csproj to target only Android (remove iOS, MacCatalyst, Windows TFMs).
     # The MAUI template targets all platforms, but the Helix machine only has the Android SDK.
     csproj_path = os.path.join(const.APPDIR, f'{EXENAME}.csproj')

@@ -26,6 +26,9 @@ REM CI packages are signed with internal certs (CN=VS Bld Lab) not in the
 REM Helix machine trust store. Disable signature verification entirely.
 set "DOTNET_NUGET_SIGNATURE_VERIFICATION=false"
 
+REM Patch NuGet.config to accept CI-signed packages (NU3018 on Helix)
+powershell -Command "$f='app\NuGet.config'; [xml]$x=Get-Content $f; if(-not $x.configuration.config){$c=$x.CreateElement('config');[void]$x.configuration.AppendChild($c)}; $a=$x.CreateElement('add');$a.SetAttribute('key','signatureValidationMode');$a.SetAttribute('value','accept');[void]$x.configuration.config.AppendChild($a);$x.Save($f)" >> "!LOGFILE!" 2>&1
+
 echo === STEP 1: Workload Install === >> "%LOGFILE%" 2>&1
 echo [%DATE% %TIME%] Starting workload install >> "%LOGFILE%" 2>&1
 %DOTNET_ROOT%\dotnet workload install maui --from-rollback-file %HELIX_WORKITEM_ROOT%\rollback_maui.json --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config >> "%LOGFILE%" 2>&1
