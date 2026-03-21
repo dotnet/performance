@@ -72,19 +72,28 @@ if not defined JAVA_HOME (
 )
 
 if not defined JAVA_HOME (
-    echo Java not found in common paths. Installing via Chocolatey... >> "%LOGFILE%" 2>&1
-    choco install microsoft-openjdk-17 -y --no-progress >> "%LOGFILE%" 2>&1
-    REM After choco install, JDK is typically at %ProgramFiles%\Microsoft\jdk-17.*
-    for /d %%d in ("!ProgramW6432!\Microsoft\jdk-17*") do set "JAVA_HOME=%%~d"
-    if not defined JAVA_HOME for /d %%d in ("!ProgramFiles!\Microsoft\jdk-17*") do set "JAVA_HOME=%%~d"
-    echo Chocolatey JDK install complete. JAVA_HOME=!JAVA_HOME! >> "%LOGFILE%" 2>&1
+    echo Java not found in common paths. Downloading Microsoft OpenJDK 17... >> "%LOGFILE%" 2>&1
+    set "JDK_ZIP=%HELIX_WORKITEM_ROOT%\openjdk17.zip"
+    set "JDK_EXTRACT=%HELIX_WORKITEM_ROOT%\jdk"
+    echo [%DATE% %TIME%] Starting OpenJDK download >> "%LOGFILE%" 2>&1
+    curl.exe -L -o "!JDK_ZIP!" "https://aka.ms/download-jdk/microsoft-jdk-17.0.13-windows-x64.zip" >> "%LOGFILE%" 2>&1
+    if errorlevel 1 (
+        echo ERROR: Failed to download OpenJDK >> "%LOGFILE%" 2>&1
+    ) else (
+        echo [%DATE% %TIME%] Download complete. Extracting... >> "%LOGFILE%" 2>&1
+        powershell -Command "Expand-Archive -Path '!JDK_ZIP!' -DestinationPath '!JDK_EXTRACT!' -Force" >> "%LOGFILE%" 2>&1
+        echo [%DATE% %TIME%] Extraction complete >> "%LOGFILE%" 2>&1
+        REM The ZIP extracts to a subdirectory like jdk-17.0.13+11
+        for /d %%d in ("!JDK_EXTRACT!\jdk-*") do set "JAVA_HOME=%%~d"
+        echo Downloaded JDK JAVA_HOME=!JAVA_HOME! >> "%LOGFILE%" 2>&1
+    )
 )
 
 if not defined JAVA_HOME (
-    echo ERROR: Java SDK still not found after Chocolatey install >> "%LOGFILE%" 2>&1
+    echo ERROR: Java SDK still not found after download attempt >> "%LOGFILE%" 2>&1
     dir "!ProgramW6432!\Microsoft\" >> "%LOGFILE%" 2>&1
     dir "!ProgramFiles!\Microsoft\" >> "%LOGFILE%" 2>&1
-    choco list --local-only >> "%LOGFILE%" 2>&1
+    if exist "!JDK_EXTRACT!" dir /s "!JDK_EXTRACT!" >> "%LOGFILE%" 2>&1
 )
 
 echo JAVA_HOME=!JAVA_HOME! >> "%LOGFILE%" 2>&1
