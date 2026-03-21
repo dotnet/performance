@@ -18,6 +18,17 @@ where python >> "%LOGFILE%" 2>&1
 dotnet --version >> "%LOGFILE%" 2>&1
 echo. >> "%LOGFILE%" 2>&1
 
+REM ci_setup.py installs the .NET 11 SDK into %HELIX_CORRELATION_PAYLOAD%\dotnet
+REM but DOTNET_ROOT points to %HELIX_CORRELATION_PAYLOAD%\dotnet-cli (has .NET 8).
+REM Override DOTNET_ROOT to use the correct SDK for building.
+set "DOTNET_ROOT=%HELIX_CORRELATION_PAYLOAD%\dotnet"
+set "PATH=%DOTNET_ROOT%;%PATH%"
+
+echo === SDK after DOTNET_ROOT override === >> "%LOGFILE%" 2>&1
+echo DOTNET_ROOT=!DOTNET_ROOT! >> "%LOGFILE%" 2>&1
+%DOTNET_ROOT%\dotnet --version >> "%LOGFILE%" 2>&1
+echo. >> "%LOGFILE%" 2>&1
+
 REM Helix machines cannot reach NuGet certificate revocation servers (NU3018).
 REM Use the local CRL cache instead of contacting the server online.
 set "NUGET_CERT_REVOCATION_MODE=offline"
