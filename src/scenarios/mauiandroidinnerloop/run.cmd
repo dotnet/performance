@@ -18,6 +18,14 @@ where python >> "%LOGFILE%" 2>&1
 dotnet --version >> "%LOGFILE%" 2>&1
 echo. >> "%LOGFILE%" 2>&1
 
+REM Helix machines cannot reach NuGet certificate revocation servers (NU3018).
+REM Use the local CRL cache instead of contacting the server online.
+set "NUGET_CERT_REVOCATION_MODE=offline"
+
+REM CI packages are signed with internal certs (CN=VS Bld Lab) not in the
+REM Helix machine trust store. Disable signature verification entirely.
+set "DOTNET_NUGET_SIGNATURE_VERIFICATION=false"
+
 echo === STEP 1: Workload Install === >> "%LOGFILE%" 2>&1
 echo [%DATE% %TIME%] Starting workload install >> "%LOGFILE%" 2>&1
 %DOTNET_ROOT%\dotnet workload install maui --from-rollback-file %HELIX_WORKITEM_ROOT%\rollback_maui.json --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config >> "%LOGFILE%" 2>&1
