@@ -54,10 +54,11 @@ REM Search common JDK locations on Windows Helix machines.
 echo === Java SDK Setup === >> "%LOGFILE%" 2>&1
 
 REM Check common JDK locations on Windows
-for /d %%d in ("C:\Program Files\Microsoft\jdk-*") do set "JAVA_HOME=%%~d"
-if not defined JAVA_HOME for /d %%d in ("D:\Program Files\Microsoft\jdk-*") do set "JAVA_HOME=%%~d"
-if not defined JAVA_HOME for /d %%d in ("C:\Program Files\Java\jdk-*") do set "JAVA_HOME=%%~d"
-if not defined JAVA_HOME for /d %%d in ("C:\Program Files\Eclipse Adoptium\jdk-*") do set "JAVA_HOME=%%~d"
+for /d %%d in ("!ProgramW6432!\Microsoft\jdk-*") do set "JAVA_HOME=%%~d"
+if not defined JAVA_HOME for /d %%d in ("!ProgramFiles!\Microsoft\jdk-*") do set "JAVA_HOME=%%~d"
+if not defined JAVA_HOME for /d %%d in ("!ProgramW6432!\Android\openjdk\jdk-*") do set "JAVA_HOME=%%~d"
+if not defined JAVA_HOME for /d %%d in ("!ProgramFiles!\Java\jdk-*") do set "JAVA_HOME=%%~d"
+if not defined JAVA_HOME for /d %%d in ("!ProgramFiles!\Eclipse Adoptium\jdk-*") do set "JAVA_HOME=%%~d"
 
 if not defined JAVA_HOME (
     echo Java not found in common paths, searching... >> "%LOGFILE%" 2>&1
@@ -71,12 +72,19 @@ if not defined JAVA_HOME (
 )
 
 if not defined JAVA_HOME (
-    echo WARNING: Java SDK not found. Build will fail with XA5300. >> "%LOGFILE%" 2>&1
-    echo Searching for any java.exe on the system... >> "%LOGFILE%" 2>&1
-    dir /s /b "C:\java.exe" >> "%LOGFILE%" 2>&1
-    dir /s /b "D:\java.exe" >> "%LOGFILE%" 2>&1
-    dir "C:\Program Files" >> "%LOGFILE%" 2>&1
-    dir "D:\Program Files" >> "%LOGFILE%" 2>&1
+    echo Java not found in common paths. Installing via Chocolatey... >> "%LOGFILE%" 2>&1
+    choco install microsoft-openjdk-17 -y --no-progress >> "%LOGFILE%" 2>&1
+    REM After choco install, JDK is typically at %ProgramFiles%\Microsoft\jdk-17.*
+    for /d %%d in ("!ProgramW6432!\Microsoft\jdk-17*") do set "JAVA_HOME=%%~d"
+    if not defined JAVA_HOME for /d %%d in ("!ProgramFiles!\Microsoft\jdk-17*") do set "JAVA_HOME=%%~d"
+    echo Chocolatey JDK install complete. JAVA_HOME=!JAVA_HOME! >> "%LOGFILE%" 2>&1
+)
+
+if not defined JAVA_HOME (
+    echo ERROR: Java SDK still not found after Chocolatey install >> "%LOGFILE%" 2>&1
+    dir "!ProgramW6432!\Microsoft\" >> "%LOGFILE%" 2>&1
+    dir "!ProgramFiles!\Microsoft\" >> "%LOGFILE%" 2>&1
+    choco list --local-only >> "%LOGFILE%" 2>&1
 )
 
 echo JAVA_HOME=!JAVA_HOME! >> "%LOGFILE%" 2>&1
