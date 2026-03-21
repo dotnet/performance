@@ -55,13 +55,11 @@
   <!-- Note: -c Debug is hardcoded because $(BuildConfig) gets overridden by send_to_helix.py
        to the artifact config string (e.g., x64_main_maui_scenarios_android_innerloop).
        All inner loop jobs use Debug configuration. -->
-  <!-- HelixWorkItem: workload install, restore, and test with output captured
-       to a log file for upload. Diagnostics printed first to aid debugging. -->
   <ItemGroup>
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Deploy - %(Identity)')">
       <PreCommands>set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages</PreCommands>
-      <Command>(echo === DIAGNOSTICS === &amp;&amp; echo DOTNET_ROOT=%DOTNET_ROOT% &amp;&amp; echo PATH=%PATH% &amp;&amp; echo PYTHONPATH=%PYTHONPATH% &amp;&amp; echo NUGET_PACKAGES=%NUGET_PACKAGES% &amp;&amp; echo ANDROID_HOME=%ANDROID_HOME% &amp;&amp; echo ANDROID_SDK_ROOT=%ANDROID_SDK_ROOT% &amp;&amp; where adb &amp;&amp; where dotnet &amp;&amp; where python &amp;&amp; dotnet --version &amp;&amp; echo === STEP 1: Workload Install === &amp;&amp; %HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet workload install maui --from-rollback-file %HELIX_WORKITEM_ROOT%\rollback_maui.json --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config --skip-manifest-update &amp;&amp; echo === STEP 2: Restore === &amp;&amp; %HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet restore %HELIX_WORKITEM_ROOT%\app\MauiAndroidInnerLoop.csproj --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config &amp;&amp; echo === STEP 3: Test === &amp;&amp; python test.py androidinnerloop --csproj-path app\MauiAndroidInnerLoop.csproj --edit-src src\MainPage.xaml.cs --edit-dest app\MainPage.xaml.cs -f $(PERFLAB_Framework)-android -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)) > %HELIX_WORKITEM_UPLOAD_ROOT%\output.log 2>&amp;1</Command>
-      <PostCommands>type %HELIX_WORKITEM_UPLOAD_ROOT%\output.log; $(Python) post.py</PostCommands>
+      <Command>echo === STEP 1: Workload Install === &amp;&amp; %HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet workload install maui --from-rollback-file %HELIX_WORKITEM_ROOT%\rollback_maui.json --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config --skip-manifest-update &amp;&amp; echo === STEP 2: Restore === &amp;&amp; %HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet restore %HELIX_WORKITEM_ROOT%\app\MauiAndroidInnerLoop.csproj --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config &amp;&amp; echo === STEP 3: Test === &amp;&amp; python test.py androidinnerloop --csproj-path app\MauiAndroidInnerLoop.csproj --edit-src src\MainPage.xaml.cs --edit-dest app\MainPage.xaml.cs -f $(PERFLAB_Framework)-android -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs) &amp;&amp; echo === ALL STEPS SUCCEEDED ===</Command>
+      <PostCommands>python post.py</PostCommands>
     </HelixWorkItem>
   </ItemGroup>
 
