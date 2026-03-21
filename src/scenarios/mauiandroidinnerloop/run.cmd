@@ -20,7 +20,7 @@ echo. >> "%LOGFILE%" 2>&1
 
 echo === STEP 1: Workload Install === >> "%LOGFILE%" 2>&1
 echo [%DATE% %TIME%] Starting workload install >> "%LOGFILE%" 2>&1
-%HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet workload install maui --from-rollback-file %HELIX_WORKITEM_ROOT%\rollback_maui.json --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config --skip-manifest-update >> "%LOGFILE%" 2>&1
+%HELIX_CORRELATION_PAYLOAD%\dotnet\dotnet workload install maui --from-rollback-file %HELIX_WORKITEM_ROOT%\rollback_maui.json --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config >> "%LOGFILE%" 2>&1
 if errorlevel 1 (
     echo [%DATE% %TIME%] STEP 1 FAILED with errorlevel !errorlevel! >> "%LOGFILE%" 2>&1
     type "%LOGFILE%"
