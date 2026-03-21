@@ -1,9 +1,11 @@
 '''
 pre-command: Set up a MAUI Android app for deploy measurement.
-Creates the template, restores packages, and prepares the modified file for incremental deploy.
+Creates the template (without restore) and prepares the modified file for incremental deploy.
+NuGet packages are restored on the Helix machine, not shipped in the payload.
 '''
 import os
 import re
+import shutil
 import sys
 from performance.logger import setup_loggers, getLogger
 from shared import const
@@ -18,22 +20,27 @@ logger.info("Starting pre-command for MAUI Android deploy measurement")
 precommands = PreCommands()
 
 with MauiNuGetConfigContext(precommands.framework):
-    # Cache NuGet packages locally so they ship to Helix in the workitem payload.
-    # Without this, packages go to the global cache which isn't available on Helix.
-    packages_dir = os.path.join(sys.path[0], '.packages')
-    os.makedirs(packages_dir, exist_ok=True)
-    os.environ['NUGET_PACKAGES'] = packages_dir
-    logger.info(f"Set NUGET_PACKAGES to {packages_dir}")
-
     install_latest_maui(precommands)
     precommands.print_dotnet_info()
 
+    # Create template without restoring packages — packages will be restored
+    # on the Helix machine to avoid shipping ~1-2GB in the workitem payload.
     precommands.new(template='maui',
                     output_dir=const.APPDIR,
                     bin_dir=const.BINDIR,
                     exename=EXENAME,
                     working_directory=sys.path[0],
-                    no_restore=False)
+                    no_restore=True)
+
+    # Copy the merged NuGet.config (which includes MAUI feed URLs) into the app
+    # directory so the Helix machine can find feeds during restore.
+    # MauiNuGetConfigContext temporarily merges MAUI feeds into the repo-root
+    # NuGet.config; we must copy it before the context manager restores the original.
+    repo_root = os.path.normpath(os.path.join(sys.path[0], '..', '..', '..'))
+    repo_nuget_config = os.path.join(repo_root, 'NuGet.config')
+    app_nuget_config = os.path.join(const.APPDIR, 'NuGet.config')
+    shutil.copy2(repo_nuget_config, app_nuget_config)
+    logger.info(f"Copied merged NuGet.config from {repo_nuget_config} to {app_nuget_config}")
 
     # Fix the .csproj to target only Android (remove iOS, MacCatalyst, Windows TFMs).
     # The MAUI template targets all platforms, but the Helix machine only has the Android SDK.
