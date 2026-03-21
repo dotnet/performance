@@ -21,6 +21,8 @@
     <!-- CoreCLR NativeAOT -->
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true</_MSBuildArgs>
 
+    <_MSBuildArgs>$(_MSBuildArgs);/p:AllowMissingPrunePackageData=true</_MSBuildArgs>
+
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
   </PropertyGroup>
 
