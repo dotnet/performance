@@ -142,17 +142,49 @@ with MauiNuGetConfigContext(precommands.framework):
     with open(csproj_path, 'r') as f:
         csproj_content = f.read()
 
+    logger.info(f"Original .csproj content:\n{csproj_content}")
+
     android_tfm = f'{precommands.framework}-android'
-    csproj_content = re.sub(
+
+    # Handle both <TargetFrameworks> (plural) and <TargetFramework> (singular).
+    # Use re.DOTALL so .*? matches across newlines (the element may span multiple lines).
+    csproj_modified, plural_count = re.subn(
         r'<TargetFrameworks>.*?</TargetFrameworks>',
         f'<TargetFrameworks>{android_tfm}</TargetFrameworks>',
-        csproj_content
+        csproj_content,
+        flags=re.DOTALL
+    )
+    csproj_modified, singular_count = re.subn(
+        r'<TargetFramework>.*?</TargetFramework>',
+        f'<TargetFramework>{android_tfm}</TargetFramework>',
+        csproj_modified,
+        flags=re.DOTALL
     )
 
+    total_subs = plural_count + singular_count
+    logger.info(f"TFM substitutions: {plural_count} plural, {singular_count} singular, {total_subs} total")
+
+    if total_subs == 0:
+        raise Exception(
+            f"Failed to modify TargetFramework(s) in {csproj_path}. "
+            f"Neither <TargetFrameworks> nor <TargetFramework> elements were found."
+        )
+
+    # Verify: the modified .csproj must not reference non-Android TFMs
+    unwanted_tfms = ['ios', 'maccatalyst', 'windows']
+    tfm_elements = re.findall(r'<TargetFrameworks?>.*?</TargetFrameworks?>', csproj_modified, re.DOTALL)
+    for elem in tfm_elements:
+        for unwanted in unwanted_tfms:
+            if unwanted in elem.lower():
+                raise Exception(
+                    f"Verification failed: .csproj still contains '{unwanted}' in TFM element: {elem}"
+                )
+
     with open(csproj_path, 'w') as f:
-        f.write(csproj_content)
+        f.write(csproj_modified)
 
     logger.info(f"Updated {csproj_path}: TargetFrameworks set to {android_tfm}")
+    logger.info(f"Modified .csproj content:\n{csproj_modified}")
 
     # Copy the modified MainPage.xaml.cs into src/ for the incremental deploy simulation.
     # test.py will copy this over app/MainPage.xaml.cs between deploys.

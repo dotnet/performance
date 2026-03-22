@@ -310,6 +310,7 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting restore" >> "$LOGFILE" 2>&1
 "$DOTNET_ROOT/dotnet" restore \
     "$HELIX_WORKITEM_ROOT/app/MauiAndroidInnerLoop.csproj" \
     --configfile "$HELIX_WORKITEM_ROOT/app/NuGet.config" \
+    /p:TargetFrameworks=$FRAMEWORK \
     $MSBUILD_ARGS \
     >> "$LOGFILE" 2>&1
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Restore succeeded" >> "$LOGFILE" 2>&1
