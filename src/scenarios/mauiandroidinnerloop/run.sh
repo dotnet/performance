@@ -34,6 +34,102 @@ export PATH="$DOTNET_ROOT:$PATH"
 export DOTNET_NUGET_SIGNATURE_VERIFICATION=false
 export NUGET_CERT_REVOCATION_MODE=offline
 
+# === Discover Android SDK ===
+# On the Ubuntu.2204.Amd64.Android.29 Helix queue, the Android SDK is
+# pre-installed at the machine level but ANDROID_HOME / ANDROID_SDK_ROOT
+# are NOT propagated into the workitem execution context.  Discover it.
+if [ -z "$ANDROID_HOME" ]; then
+    echo "ANDROID_HOME is empty — searching for Android SDK..." >> "$LOGFILE" 2>&1
+    CANDIDATE_PATHS=(
+        "/usr/local/lib/android/sdk"
+        "/opt/android-sdk"
+        "$HOME/android-sdk"
+        "$HOME/Android/Sdk"
+    )
+    for candidate in "${CANDIDATE_PATHS[@]}"; do
+        if [ -d "$candidate/platform-tools" ]; then
+            export ANDROID_HOME="$candidate"
+            echo "  Found Android SDK at $ANDROID_HOME" >> "$LOGFILE" 2>&1
+            break
+        fi
+    done
+
+    # Fallback: derive from adb location (adb lives at <sdk>/platform-tools/adb)
+    if [ -z "$ANDROID_HOME" ]; then
+        ADB_PATH=$(which adb 2>/dev/null || true)
+        if [ -n "$ADB_PATH" ]; then
+            ADB_REAL=$(readlink -f "$ADB_PATH" 2>/dev/null || echo "$ADB_PATH")
+            PLATFORM_TOOLS_DIR=$(dirname "$ADB_REAL")
+            DERIVED_SDK=$(dirname "$PLATFORM_TOOLS_DIR")
+            if [ -d "$DERIVED_SDK/platform-tools" ]; then
+                export ANDROID_HOME="$DERIVED_SDK"
+                echo "  Derived Android SDK from adb at $ANDROID_HOME" >> "$LOGFILE" 2>&1
+            fi
+        fi
+    fi
+
+    if [ -z "$ANDROID_HOME" ]; then
+        echo "  WARNING: Could not find Android SDK in any known location" >> "$LOGFILE" 2>&1
+    fi
+fi
+
+export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+
+# Add Android tools to PATH
+if [ -n "$ANDROID_HOME" ]; then
+    export PATH="$ANDROID_HOME/platform-tools:$PATH"
+    export PATH="$ANDROID_HOME/emulator:$PATH"
+    # Add the latest build-tools version to PATH
+    if [ -d "$ANDROID_HOME/build-tools" ]; then
+        LATEST_BUILD_TOOLS=$(ls -1d "$ANDROID_HOME/build-tools"/*/ 2>/dev/null | sort -V | tail -1)
+        if [ -n "$LATEST_BUILD_TOOLS" ]; then
+            export PATH="${LATEST_BUILD_TOOLS%/}:$PATH"
+            echo "  Added build-tools to PATH: $LATEST_BUILD_TOOLS" >> "$LOGFILE" 2>&1
+        fi
+    fi
+fi
+
+# === Discover Java SDK ===
+# Same problem: JAVA_HOME may not be set in the workitem context.
+if [ -z "$JAVA_HOME" ]; then
+    echo "JAVA_HOME is empty — searching for Java SDK..." >> "$LOGFILE" 2>&1
+    JAVA_FOUND=""
+
+    # Check common JDK paths, prefer newest version
+    for pattern in /usr/lib/jvm/msopenjdk-* /usr/lib/jvm/temurin-* /usr/lib/jvm/java-*; do
+        for jdir in $(ls -1d $pattern 2>/dev/null | sort -V); do
+            if [ -x "$jdir/bin/java" ]; then
+                JAVA_FOUND="$jdir"
+            fi
+        done
+    done
+
+    # Fallback: derive from java binary location
+    if [ -z "$JAVA_FOUND" ]; then
+        JAVA_PATH=$(which java 2>/dev/null || true)
+        if [ -n "$JAVA_PATH" ]; then
+            JAVA_REAL=$(readlink -f "$JAVA_PATH" 2>/dev/null || echo "$JAVA_PATH")
+            # java is at <jdk>/bin/java
+            JAVA_BIN_DIR=$(dirname "$JAVA_REAL")
+            DERIVED_JDK=$(dirname "$JAVA_BIN_DIR")
+            if [ -x "$DERIVED_JDK/bin/java" ]; then
+                JAVA_FOUND="$DERIVED_JDK"
+            fi
+        fi
+    fi
+
+    if [ -n "$JAVA_FOUND" ]; then
+        export JAVA_HOME="$JAVA_FOUND"
+        echo "  Found Java SDK at $JAVA_HOME" >> "$LOGFILE" 2>&1
+    else
+        echo "  WARNING: Could not find Java SDK in any known location" >> "$LOGFILE" 2>&1
+    fi
+fi
+
+if [ -n "$JAVA_HOME" ]; then
+    export PATH="$JAVA_HOME/bin:$PATH"
+fi
+
 echo "=== DIAGNOSTICS ===" >> "$LOGFILE" 2>&1
 echo "DOTNET_ROOT=$DOTNET_ROOT" >> "$LOGFILE" 2>&1
 echo "ANDROID_HOME=$ANDROID_HOME" >> "$LOGFILE" 2>&1
@@ -41,10 +137,14 @@ echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$LOGFILE" 2>&1
 echo "JAVA_HOME=$JAVA_HOME" >> "$LOGFILE" 2>&1
 echo "NUGET_PACKAGES=$NUGET_PACKAGES" >> "$LOGFILE" 2>&1
 echo "PYTHONPATH=$PYTHONPATH" >> "$LOGFILE" 2>&1
+echo "PATH=$PATH" >> "$LOGFILE" 2>&1
 which adb >> "$LOGFILE" 2>&1 || true
 which dotnet >> "$LOGFILE" 2>&1 || true
+which java >> "$LOGFILE" 2>&1 || true
 which python3 >> "$LOGFILE" 2>&1 || true
 "$DOTNET_ROOT/dotnet" --version >> "$LOGFILE" 2>&1
+adb version >> "$LOGFILE" 2>&1 || echo "WARNING: adb version failed" >> "$LOGFILE" 2>&1
+java -version >> "$LOGFILE" 2>&1 || echo "WARNING: java -version failed" >> "$LOGFILE" 2>&1
 echo "" >> "$LOGFILE" 2>&1
 
 # === Verify emulator is ready ===
