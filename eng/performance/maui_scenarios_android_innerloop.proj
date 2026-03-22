@@ -34,7 +34,7 @@
 
   <ItemDefinitionGroup>
     <HelixWorkItem>
-      <Timeout>01:00</Timeout>
+      <Timeout>02:00</Timeout>
     </HelixWorkItem>
   </ItemDefinitionGroup>
 
@@ -65,6 +65,7 @@
       <PreCommands>set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages</PreCommands>
       <Command>run.cmd $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot;</Command>
       <PostCommands>python post.py</PostCommands>
+      <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>
   </ItemGroup>
 
@@ -74,6 +75,7 @@
       <PreCommands>export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages</PreCommands>
       <Command>bash run.sh $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot;</Command>
       <PostCommands>python3 post.py</PostCommands>
+      <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>
   </ItemGroup>
 

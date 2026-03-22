@@ -15,7 +15,8 @@ LOGFILE="$HELIX_WORKITEM_UPLOAD_ROOT/output.log"
 
 # On any error, log the failure location and dump the log for Helix diagnostics.
 on_error() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] FAILED at line $1" >> "$LOGFILE" 2>&1
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] FAILED at line $1" | tee -a "$LOGFILE"
+    echo "=== DUMPING FULL LOG ===" 
     cat "$LOGFILE"
     exit 1
 }
@@ -87,11 +88,11 @@ ET.SubElement(config, 'add', key='signatureValidationMode', value='accept')
 tree.write(f, xml_declaration=True, encoding='utf-8')
 " >> "$LOGFILE" 2>&1
 
-echo "=== DIAGNOSTICS ===" >> "$LOGFILE" 2>&1
-echo "DOTNET_ROOT=$DOTNET_ROOT" >> "$LOGFILE" 2>&1
-echo "JAVA_HOME=$JAVA_HOME" >> "$LOGFILE" 2>&1
-echo "NUGET_PACKAGES=$NUGET_PACKAGES" >> "$LOGFILE" 2>&1
-echo "PYTHONPATH=$PYTHONPATH" >> "$LOGFILE" 2>&1
+echo "=== DIAGNOSTICS ===" | tee -a "$LOGFILE"
+echo "DOTNET_ROOT=$DOTNET_ROOT" | tee -a "$LOGFILE"
+echo "JAVA_HOME=$JAVA_HOME" | tee -a "$LOGFILE"
+echo "NUGET_PACKAGES=$NUGET_PACKAGES" | tee -a "$LOGFILE"
+echo "PYTHONPATH=$PYTHONPATH" | tee -a "$LOGFILE"
 which dotnet >> "$LOGFILE" 2>&1 || true
 which java >> "$LOGFILE" 2>&1 || true
 which python3 >> "$LOGFILE" 2>&1 || true
@@ -100,7 +101,7 @@ java -version >> "$LOGFILE" 2>&1 2>&1 || echo "WARNING: java -version failed" >>
 echo "" >> "$LOGFILE" 2>&1
 
 # === STEP 1: Workload Install ===
-echo "=== STEP 1: Workload Install ===" >> "$LOGFILE" 2>&1
+echo "=== STEP 1: Workload Install ===" | tee -a "$LOGFILE"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting workload install" >> "$LOGFILE" 2>&1
 "$DOTNET_ROOT/dotnet" workload install maui-android \
     --from-rollback-file "$HELIX_WORKITEM_ROOT/rollback_maui.json" \
@@ -303,7 +304,7 @@ fi
 echo "" >> "$LOGFILE" 2>&1
 
 # === STEP 2: Restore ===
-echo "=== STEP 2: Restore ===" >> "$LOGFILE" 2>&1
+echo "=== STEP 2: Restore ===" | tee -a "$LOGFILE"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting restore" >> "$LOGFILE" 2>&1
 "$DOTNET_ROOT/dotnet" restore \
     "$HELIX_WORKITEM_ROOT/app/MauiAndroidInnerLoop.csproj" \
@@ -314,7 +315,7 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Restore succeeded" >> "$LOGFILE" 2>&1
 echo "" >> "$LOGFILE" 2>&1
 
 # === STEP 3: Test ===
-echo "=== STEP 3: Test ===" >> "$LOGFILE" 2>&1
+echo "=== STEP 3: Test ===" | tee -a "$LOGFILE"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting test.py" >> "$LOGFILE" 2>&1
 
 # Pass MSBuild args via environment variable to avoid shell quoting issues.
@@ -333,7 +334,7 @@ python3 test.py androidinnerloop \
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] test.py succeeded" >> "$LOGFILE" 2>&1
 echo "" >> "$LOGFILE" 2>&1
 
-echo "=== ALL STEPS SUCCEEDED ===" >> "$LOGFILE" 2>&1
+echo "=== ALL STEPS SUCCEEDED ===" | tee -a "$LOGFILE"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Complete" >> "$LOGFILE" 2>&1
 cat "$LOGFILE"
 exit 0
