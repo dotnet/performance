@@ -1038,7 +1038,13 @@ ex: C:\repos\performance;C:\repos\runtime
             # Step 4: Parse both binlogs using AndroidInnerLoopParser
             startup = StartupWrapper()
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='first-deploy.binlog', scenarioname=scenarioprefix + " - First Deploy")
-            startup.parsetraces(self.traits)
+            try:
+                startup.parsetraces(self.traits)
+            except SystemExit as e:
+                getLogger().warning("First Deploy: upload failed (exit code %s), continuing.", e.code)
 
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='incremental-deploy.binlog', scenarioname=scenarioprefix + " - Incremental Deploy")
-            startup.parsetraces(self.traits)
+            try:
+                startup.parsetraces(self.traits)
+            except SystemExit as e:
+                getLogger().warning("Incremental Deploy: upload failed (exit code %s), continuing.", e.code)
