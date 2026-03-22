@@ -45,6 +45,12 @@ if [ -z "$ANDROID_HOME" ]; then
         "/opt/android-sdk"
         "$HOME/android-sdk"
         "$HOME/Android/Sdk"
+        "/root/android-sdk"
+        "/root/Android/Sdk"
+        "/android"
+        "/sdk"
+        "/opt/android"
+        "/usr/local/android-sdk"
     )
     for candidate in "${CANDIDATE_PATHS[@]}"; do
         if [ -d "$candidate/platform-tools" ]; then
@@ -68,8 +74,89 @@ if [ -z "$ANDROID_HOME" ]; then
         fi
     fi
 
+    # Fallback: check /etc/environment for ANDROID_HOME
+    if [ -z "$ANDROID_HOME" ]; then
+        ANDROID_FROM_ETC=$(grep -i 'ANDROID_HOME' /etc/environment 2>/dev/null | head -1 | cut -d= -f2 | tr -d '"' || true)
+        if [ -n "$ANDROID_FROM_ETC" ] && [ -d "$ANDROID_FROM_ETC/platform-tools" ]; then
+            export ANDROID_HOME="$ANDROID_FROM_ETC"
+            echo "  Found Android SDK from /etc/environment: $ANDROID_HOME" >> "$LOGFILE" 2>&1
+        fi
+    fi
+
+    # Fallback: find running emulator process and extract SDK path
+    if [ -z "$ANDROID_HOME" ]; then
+        EMU_PATH=$(ps aux 2>/dev/null | grep -i '[e]mulator' | head -1 | grep -oP '\S*emulator\S*' | head -1 || true)
+        if [ -n "$EMU_PATH" ]; then
+            EMU_REAL=$(readlink -f "$EMU_PATH" 2>/dev/null || echo "$EMU_PATH")
+            EMU_DIR=$(dirname "$EMU_REAL")
+            DERIVED_SDK=$(dirname "$EMU_DIR")
+            if [ -d "$DERIVED_SDK/platform-tools" ]; then
+                export ANDROID_HOME="$DERIVED_SDK"
+                echo "  Derived Android SDK from emulator process: $ANDROID_HOME" >> "$LOGFILE" 2>&1
+            fi
+        fi
+    fi
+
+    # Last resort: find adb binary on disk
+    if [ -z "$ANDROID_HOME" ]; then
+        ADB_FOUND=$(find / -maxdepth 5 -name "adb" -type f 2>/dev/null | head -5 || true)
+        if [ -n "$ADB_FOUND" ]; then
+            echo "  Found adb binaries via find:" >> "$LOGFILE" 2>&1
+            echo "  $ADB_FOUND" >> "$LOGFILE" 2>&1
+            # Use the first result and derive SDK path
+            FIRST_ADB=$(echo "$ADB_FOUND" | head -1)
+            ADB_DIR=$(dirname "$FIRST_ADB")
+            DERIVED_SDK=$(dirname "$ADB_DIR")
+            if [ -d "$DERIVED_SDK/platform-tools" ]; then
+                export ANDROID_HOME="$DERIVED_SDK"
+                echo "  Derived Android SDK from find: $ANDROID_HOME" >> "$LOGFILE" 2>&1
+            fi
+        fi
+    fi
+
     if [ -z "$ANDROID_HOME" ]; then
         echo "  WARNING: Could not find Android SDK in any known location" >> "$LOGFILE" 2>&1
+
+        # Dump comprehensive diagnostics so we can figure out where the SDK is
+        echo "" >> "$LOGFILE" 2>&1
+        echo "=== ANDROID SDK DISCOVERY DIAGNOSTICS ===" >> "$LOGFILE" 2>&1
+
+        echo "--- /etc/environment ---" >> "$LOGFILE" 2>&1
+        cat /etc/environment >> "$LOGFILE" 2>&1 || true
+
+        echo "--- Full environment (sorted) ---" >> "$LOGFILE" 2>&1
+        env | sort >> "$LOGFILE" 2>&1 || true
+
+        echo "--- Android/emulator related processes ---" >> "$LOGFILE" 2>&1
+        ps aux 2>/dev/null | grep -iE 'emulator|adb|android' | grep -v grep >> "$LOGFILE" 2>&1 || echo "(none)" >> "$LOGFILE" 2>&1
+
+        echo "--- /opt/ contents ---" >> "$LOGFILE" 2>&1
+        ls -la /opt/ >> "$LOGFILE" 2>&1 || true
+
+        echo "--- /usr/local/lib/ contents ---" >> "$LOGFILE" 2>&1
+        ls -la /usr/local/lib/ >> "$LOGFILE" 2>&1 || true
+
+        echo "--- /root/ contents ---" >> "$LOGFILE" 2>&1
+        ls -la /root/ >> "$LOGFILE" 2>&1 || true
+
+        echo "--- /home/ contents ---" >> "$LOGFILE" 2>&1
+        ls -la /home/ >> "$LOGFILE" 2>&1 || true
+
+        echo "--- / top-level contents ---" >> "$LOGFILE" 2>&1
+        ls -la / >> "$LOGFILE" 2>&1 || true
+
+        echo "--- find adb (maxdepth 6) ---" >> "$LOGFILE" 2>&1
+        find / -maxdepth 6 -name "adb" -type f 2>/dev/null | head -10 >> "$LOGFILE" 2>&1 || true
+
+        echo "--- find emulator (maxdepth 6) ---" >> "$LOGFILE" 2>&1
+        find / -maxdepth 6 -name "emulator" -type f 2>/dev/null | head -10 >> "$LOGFILE" 2>&1 || true
+
+        echo "--- which adb / which emulator ---" >> "$LOGFILE" 2>&1
+        which adb >> "$LOGFILE" 2>&1 || echo "adb not on PATH" >> "$LOGFILE" 2>&1
+        which emulator >> "$LOGFILE" 2>&1 || echo "emulator not on PATH" >> "$LOGFILE" 2>&1
+
+        echo "=== END DISCOVERY DIAGNOSTICS ===" >> "$LOGFILE" 2>&1
+        echo "" >> "$LOGFILE" 2>&1
     fi
 fi
 

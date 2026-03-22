@@ -163,6 +163,49 @@ if exist "!BUILD_TOOLS_DIR!\zipalign.exe" (
 if exist "!BUILD_TOOLS_DIR!" dir "!BUILD_TOOLS_DIR!" >> "%LOGFILE%" 2>&1
 echo. >> "%LOGFILE%" 2>&1
 
+REM === Set up android.jar (platforms) ===
+REM The MAUI workload (version 36.99.0-ci.main.0) requires API level 36.1 but
+REM android.jar is NOT installed via the standard Android SDK.  The workload
+REM pack Microsoft.Android.Sdk.Windows bundles android.jar inside its payload.
+REM MSBuild expects it at ANDROID_HOME\platforms\android-<api>\android.jar,
+REM so find it in the workload pack and copy it into the expected location.
+echo === Android Platforms (android.jar) Setup === >> "%LOGFILE%" 2>&1
+set "ANDROID_PACK_DIR="
+for /d %%d in (!HELIX_CORRELATION_PAYLOAD!\dotnet\packs\Microsoft.Android.Sdk.Windows\*) do set "ANDROID_PACK_DIR=%%d"
+
+if defined ANDROID_PACK_DIR (
+    echo Found workload pack: !ANDROID_PACK_DIR! >> "%LOGFILE%" 2>&1
+
+    REM Search for android.jar inside the workload pack
+    set "ANDROID_JAR_PATH="
+    for /f "delims=" %%f in ('dir /s /b "!ANDROID_PACK_DIR!\android.jar" 2^>nul') do set "ANDROID_JAR_PATH=%%f"
+
+    if defined ANDROID_JAR_PATH (
+        echo Found android.jar at !ANDROID_JAR_PATH! >> "%LOGFILE%" 2>&1
+
+        REM Extract the parent directory name to determine the API level
+        REM e.g. ...\platforms\android-36.1\android.jar -> API_DIR_NAME=android-36.1
+        for %%f in ("!ANDROID_JAR_PATH!") do set "ANDROID_JAR_DIR=%%~dpf"
+        set "ANDROID_JAR_DIR=!ANDROID_JAR_DIR:~0,-1!"
+        for %%p in ("!ANDROID_JAR_DIR!") do set "API_DIR_NAME=%%~nxp"
+        echo API directory name: !API_DIR_NAME! >> "%LOGFILE%" 2>&1
+
+        REM Create the expected directory structure and copy android.jar
+        mkdir "!ANDROID_HOME!\platforms\!API_DIR_NAME!" >> "%LOGFILE%" 2>&1
+        copy /Y "!ANDROID_JAR_PATH!" "!ANDROID_HOME!\platforms\!API_DIR_NAME!\" >> "%LOGFILE%" 2>&1
+        echo Copied android.jar to !ANDROID_HOME!\platforms\!API_DIR_NAME!\ >> "%LOGFILE%" 2>&1
+    ) else (
+        echo WARNING: android.jar NOT found in workload pack >> "%LOGFILE%" 2>&1
+        echo Listing workload pack contents for diagnostics... >> "%LOGFILE%" 2>&1
+        dir /s "!ANDROID_PACK_DIR!" >> "%LOGFILE%" 2>&1
+    )
+) else (
+    echo WARNING: Microsoft.Android.Sdk.Windows pack not found >> "%LOGFILE%" 2>&1
+    echo Listing packs directory for diagnostics... >> "%LOGFILE%" 2>&1
+    dir "!HELIX_CORRELATION_PAYLOAD!\dotnet\packs\" >> "%LOGFILE%" 2>&1
+)
+echo. >> "%LOGFILE%" 2>&1
+
 echo === STEP 2: Restore === >> "%LOGFILE%" 2>&1
 echo [%DATE% %TIME%] Starting restore >> "%LOGFILE%" 2>&1
 %DOTNET_ROOT%\dotnet restore %HELIX_WORKITEM_ROOT%\app\MauiAndroidInnerLoop.csproj --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config /p:AllowMissingPrunePackageData=true >> "%LOGFILE%" 2>&1
