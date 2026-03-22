@@ -213,7 +213,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.editdest = args.editdest
             self.framework = args.framework
             self.configuration = args.configuration
-            self.msbuildargs = args.msbuildargs
+            self.msbuildargs = args.msbuildargs or os.environ.get('PERFLAB_MSBUILD_ARGS', '')
 
         if self.testtype == const.DEVICESTARTUP:
             self.packagepath = args.packagepath
@@ -1014,7 +1014,7 @@ ex: C:\repos\performance;C:\repos\runtime
             if self.framework:
                 base_cmd.extend(['-f', self.framework])
             if self.msbuildargs:
-                for arg in self.msbuildargs.split(';'):
+                for arg in re.split(r'[;\s]+', self.msbuildargs):
                     if arg.strip():
                         base_cmd.append(arg.strip())
 

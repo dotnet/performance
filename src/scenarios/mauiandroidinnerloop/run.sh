@@ -282,11 +282,22 @@ fi
 
 # Check emulator boot status if a device is present
 if [ "$FINAL_COUNT" -gt 0 ] 2>/dev/null; then
-    BOOT_COMPLETED=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n' || true)
-    echo "sys.boot_completed=$BOOT_COMPLETED" >> "$LOGFILE" 2>&1
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Waiting for emulator to fully boot (up to 60s)..." >> "$LOGFILE" 2>&1
+    BOOT_WAIT=0
+    BOOT_COMPLETED=""
+    while [ "$BOOT_WAIT" -lt 60 ]; do
+        BOOT_COMPLETED=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n' || true)
+        if [ "$BOOT_COMPLETED" = "1" ]; then
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] Emulator fully booted after ${BOOT_WAIT}s" >> "$LOGFILE" 2>&1
+            break
+        fi
+        sleep 5
+        BOOT_WAIT=$((BOOT_WAIT + 5))
+        echo "  sys.boot_completed=$BOOT_COMPLETED (waited ${BOOT_WAIT}s)" >> "$LOGFILE" 2>&1
+    done
     if [ "$BOOT_COMPLETED" != "1" ]; then
-        echo "WARNING: Emulator may not be fully booted (sys.boot_completed=$BOOT_COMPLETED)" >> "$LOGFILE" 2>&1
-        echo "Continuing anyway — emulator may still be booting" >> "$LOGFILE" 2>&1
+        echo "WARNING: Emulator did not report sys.boot_completed=1 after 60s (got '$BOOT_COMPLETED')" >> "$LOGFILE" 2>&1
+        echo "Continuing anyway — deploy may fail" >> "$LOGFILE" 2>&1
     fi
 fi
 echo "" >> "$LOGFILE" 2>&1
@@ -305,13 +316,18 @@ echo "" >> "$LOGFILE" 2>&1
 # === STEP 3: Test ===
 echo "=== STEP 3: Test ===" >> "$LOGFILE" 2>&1
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting test.py" >> "$LOGFILE" 2>&1
+
+# Pass MSBuild args via environment variable to avoid shell quoting issues.
+# runner.py reads PERFLAB_MSBUILD_ARGS as fallback when --msbuild-args is empty.
+export PERFLAB_MSBUILD_ARGS="$MSBUILD_ARGS"
+echo "PERFLAB_MSBUILD_ARGS=$PERFLAB_MSBUILD_ARGS" >> "$LOGFILE" 2>&1
+
 python3 test.py androidinnerloop \
     --csproj-path app/MauiAndroidInnerLoop.csproj \
     --edit-src src/MainPage.xaml.cs \
     --edit-dest app/MainPage.xaml.cs \
     -f "$FRAMEWORK" \
     -c Debug \
-    --msbuild-args "$MSBUILD_ARGS" \
     --scenario-name "$SCENARIO_NAME" \
     >> "$LOGFILE" 2>&1
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] test.py succeeded" >> "$LOGFILE" 2>&1
