@@ -6,6 +6,22 @@ set "FRAMEWORK=%~1"
 set "MSBUILD_ARGS=%~2"
 set "SCENARIO_NAME=%~3"
 
+REM Collect remaining arguments (ScenarioArgs from the proj file, e.g. --upload-to-perflab-container)
+set "EXTRA_ARGS="
+shift
+shift
+shift
+:parse_extra_args
+if "%~1"=="" goto :done_extra_args
+if defined EXTRA_ARGS (
+    set "EXTRA_ARGS=!EXTRA_ARGS! %~1"
+) else (
+    set "EXTRA_ARGS=%~1"
+)
+shift
+goto :parse_extra_args
+:done_extra_args
+
 echo === DIAGNOSTICS ===
 echo === DIAGNOSTICS === >> "!LOGFILE!" 2>&1
 echo DOTNET_ROOT=!DOTNET_ROOT!
@@ -120,7 +136,7 @@ powershell -Command "$f='app\NuGet.config'; [xml]$x=Get-Content $f; if(-not $x.c
 echo === STEP 1: Workload Install ===
 echo === STEP 1: Workload Install === >> "!LOGFILE!" 2>&1
 echo [!DATE! !TIME!] Starting workload install >> "!LOGFILE!" 2>&1
-!DOTNET_ROOT!\dotnet workload install maui --from-rollback-file !HELIX_WORKITEM_ROOT!\rollback_maui.json --configfile !HELIX_WORKITEM_ROOT!\app\NuGet.config >> "!LOGFILE!" 2>&1
+!DOTNET_ROOT!\dotnet workload install maui-android --from-rollback-file !HELIX_WORKITEM_ROOT!\rollback_maui.json --configfile !HELIX_WORKITEM_ROOT!\app\NuGet.config >> "!LOGFILE!" 2>&1
 if errorlevel 1 (
     echo [!DATE! !TIME!] STEP 1 FAILED with errorlevel !errorlevel!
     echo [!DATE! !TIME!] STEP 1 FAILED with errorlevel !errorlevel! >> "!LOGFILE!" 2>&1
@@ -309,7 +325,7 @@ REM runner.py reads PERFLAB_MSBUILD_ARGS as fallback when --msbuild-args is empt
 set "PERFLAB_MSBUILD_ARGS=!MSBUILD_ARGS!"
 echo PERFLAB_MSBUILD_ARGS=!PERFLAB_MSBUILD_ARGS! >> "!LOGFILE!" 2>&1
 
-python test.py androidinnerloop --csproj-path app\MauiAndroidInnerLoop.csproj --edit-src src\MainPage.xaml.cs --edit-dest app\MainPage.xaml.cs -f !FRAMEWORK! -c Debug --scenario-name "!SCENARIO_NAME!" >> "!LOGFILE!" 2>&1
+python test.py androidinnerloop --csproj-path app\MauiAndroidInnerLoop.csproj --edit-src src\MainPage.xaml.cs --edit-dest app\MainPage.xaml.cs -f !FRAMEWORK! -c Debug --scenario-name "!SCENARIO_NAME!" !EXTRA_ARGS! >> "!LOGFILE!" 2>&1
 if errorlevel 1 (
     echo [!DATE! !TIME!] STEP 3 FAILED with errorlevel !errorlevel!
     echo [!DATE! !TIME!] STEP 3 FAILED with errorlevel !errorlevel! >> "!LOGFILE!" 2>&1

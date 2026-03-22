@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
   <Import Project="Scenarios.Common.props" />
+  <!-- TODO: Scenarios.Common.props sets HelixResultsDestinationDir to a path under
+       CorrelationPayloadDirectory, which is cleaned up after SendToHelix. As a result,
+       output.log downloaded via DownloadFilesFromResults won't appear in published
+       pipeline artifacts. A future fix should override HelixResultsDestinationDir to
+       a path under ArtifactStagingDirectory that the pipeline's "Gather logs" step publishes. -->
 
   <PropertyGroup>
     <IncludeXHarnessCli>true</IncludeXHarnessCli>
@@ -63,7 +68,7 @@
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Deploy - %(Identity)')">
       <PreCommands>set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages</PreCommands>
-      <Command>run.cmd $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot;</Command>
+      <Command>run.cmd $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>python post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>
@@ -73,7 +78,7 @@
   <ItemGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Deploy Emulator - %(Identity)')">
       <PreCommands>export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages</PreCommands>
-      <Command>bash run.sh $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot;</Command>
+      <Command>bash run.sh $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>python3 post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>

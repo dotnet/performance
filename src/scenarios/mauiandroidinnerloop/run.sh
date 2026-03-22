@@ -10,6 +10,9 @@ set -e
 FRAMEWORK="$1"
 MSBUILD_ARGS="$2"
 SCENARIO_NAME="$3"
+# Remaining arguments (e.g. --upload-to-perflab-container from ScenarioArgs)
+shift 3
+EXTRA_ARGS=("$@")
 
 LOGFILE="$HELIX_WORKITEM_UPLOAD_ROOT/output.log"
 
@@ -97,7 +100,7 @@ which dotnet >> "$LOGFILE" 2>&1 || true
 which java >> "$LOGFILE" 2>&1 || true
 which python3 >> "$LOGFILE" 2>&1 || true
 "$DOTNET_ROOT/dotnet" --version >> "$LOGFILE" 2>&1
-java -version >> "$LOGFILE" 2>&1 2>&1 || echo "WARNING: java -version failed" >> "$LOGFILE" 2>&1
+java -version >> "$LOGFILE" 2>&1 || echo "WARNING: java -version failed" >> "$LOGFILE" 2>&1
 echo "" >> "$LOGFILE" 2>&1
 
 # === STEP 1: Workload Install ===
@@ -144,8 +147,7 @@ BUILD_TOOLS_DIR="$ANDROID_HOME/build-tools/35.0.0"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Downloading Android SDK Build-Tools from Google..." >> "$LOGFILE" 2>&1
 BT_ZIP="$HELIX_WORKITEM_ROOT/build-tools.zip"
 BT_EXTRACT="$HELIX_WORKITEM_ROOT/build-tools-extract"
-curl -L -o "$BT_ZIP" "https://dl.google.com/android/repository/build-tools_r35_linux.zip" >> "$LOGFILE" 2>&1
-if [ $? -ne 0 ]; then
+if ! curl -L -o "$BT_ZIP" "https://dl.google.com/android/repository/build-tools_r35_linux.zip" >> "$LOGFILE" 2>&1; then
     echo "ERROR: Failed to download Build-Tools. Build will likely fail with XA5205." >> "$LOGFILE" 2>&1
 else
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Download complete. Extracting..." >> "$LOGFILE" 2>&1
@@ -187,8 +189,7 @@ PLATFORM_DIR="$ANDROID_HOME/platforms/android-36.1"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Downloading Android SDK Platform from Google..." >> "$LOGFILE" 2>&1
 PLAT_ZIP="$HELIX_WORKITEM_ROOT/platform.zip"
 PLAT_EXTRACT="$HELIX_WORKITEM_ROOT/platform-extract"
-curl -L -o "$PLAT_ZIP" "https://dl.google.com/android/repository/platform-36.1_r01.zip" >> "$LOGFILE" 2>&1
-if [ $? -ne 0 ]; then
+if ! curl -L -o "$PLAT_ZIP" "https://dl.google.com/android/repository/platform-36.1_r01.zip" >> "$LOGFILE" 2>&1; then
     echo "ERROR: Failed to download Android SDK Platform. Build will likely fail." >> "$LOGFILE" 2>&1
 else
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Download complete. Extracting..." >> "$LOGFILE" 2>&1
@@ -330,6 +331,7 @@ python3 test.py androidinnerloop \
     -f "$FRAMEWORK" \
     -c Debug \
     --scenario-name "$SCENARIO_NAME" \
+    "${EXTRA_ARGS[@]}" \
     >> "$LOGFILE" 2>&1
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] test.py succeeded" >> "$LOGFILE" 2>&1
 echo "" >> "$LOGFILE" 2>&1
