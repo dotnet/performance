@@ -198,6 +198,28 @@ if exist "!PLATFORM_DIR!\android.jar" (
 if exist "!PLATFORM_DIR!" dir "!PLATFORM_DIR!" >> "%LOGFILE%" 2>&1
 echo. >> "%LOGFILE%" 2>&1
 
+REM === ADB Device Setup ===
+REM Start the ADB server and verify the Pixel device is visible.
+REM dotnet build -t:Install calls ADB directly (unlike XHarness which manages
+REM its own ADB server).  We must ensure the server is running and the device
+REM is authorized before the test step.
+echo === ADB DEVICE SETUP === >> "%LOGFILE%" 2>&1
+echo [%DATE% %TIME%] Starting ADB server... >> "%LOGFILE%" 2>&1
+adb start-server >> "%LOGFILE%" 2>&1
+if errorlevel 1 echo WARNING: adb start-server failed >> "%LOGFILE%" 2>&1
+
+echo [%DATE% %TIME%] Listing connected devices... >> "%LOGFILE%" 2>&1
+adb devices >> "%LOGFILE%" 2>&1
+
+echo [%DATE% %TIME%] Waiting for device (timeout 60s)... >> "%LOGFILE%" 2>&1
+start /b cmd /c "ping -n 61 127.0.0.1 >nul & taskkill /f /im adb.exe >nul 2>&1" >nul 2>&1
+adb wait-for-device >> "%LOGFILE%" 2>&1
+if errorlevel 1 echo WARNING: adb wait-for-device timed out or failed >> "%LOGFILE%" 2>&1
+
+echo [%DATE% %TIME%] Devices after wait: >> "%LOGFILE%" 2>&1
+adb devices >> "%LOGFILE%" 2>&1
+echo. >> "%LOGFILE%" 2>&1
+
 echo === STEP 2: Restore === >> "%LOGFILE%" 2>&1
 echo [%DATE% %TIME%] Starting restore >> "%LOGFILE%" 2>&1
 %DOTNET_ROOT%\dotnet restore %HELIX_WORKITEM_ROOT%\app\MauiAndroidInnerLoop.csproj --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config /p:AllowMissingPrunePackageData=true >> "%LOGFILE%" 2>&1

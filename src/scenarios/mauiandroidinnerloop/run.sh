@@ -143,7 +143,7 @@ BUILD_TOOLS_DIR="$ANDROID_HOME/build-tools/35.0.0"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Downloading Android SDK Build-Tools from Google..." >> "$LOGFILE" 2>&1
 BT_ZIP="$HELIX_WORKITEM_ROOT/build-tools.zip"
 BT_EXTRACT="$HELIX_WORKITEM_ROOT/build-tools-extract"
-curl -L -o "$BT_ZIP" "https://dl.google.com/android/repository/build-tools_r35-linux.zip" >> "$LOGFILE" 2>&1
+curl -L -o "$BT_ZIP" "https://dl.google.com/android/repository/build-tools_r35_linux.zip" >> "$LOGFILE" 2>&1
 if [ $? -ne 0 ]; then
     echo "ERROR: Failed to download Build-Tools. Build will likely fail with XA5205." >> "$LOGFILE" 2>&1
 else
@@ -210,10 +210,22 @@ fi
 ls -la "$PLATFORM_DIR" >> "$LOGFILE" 2>&1 || true
 echo "" >> "$LOGFILE" 2>&1
 
-# === Verify emulator is ready ===
-echo "=== EMULATOR STATUS ===" >> "$LOGFILE" 2>&1
+# === ADB Device Setup ===
+# Start the ADB server and verify the emulator is visible. On the emulator
+# queue the emulator should already be running at emulator-5554.
+echo "=== ADB DEVICE SETUP ===" >> "$LOGFILE" 2>&1
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting ADB server..." >> "$LOGFILE" 2>&1
+adb start-server >> "$LOGFILE" 2>&1 || echo "WARNING: adb start-server failed" >> "$LOGFILE" 2>&1
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Listing connected devices..." >> "$LOGFILE" 2>&1
 adb devices >> "$LOGFILE" 2>&1 || echo "WARNING: adb devices failed" >> "$LOGFILE" 2>&1
-adb wait-for-device >> "$LOGFILE" 2>&1 || echo "WARNING: adb wait-for-device failed" >> "$LOGFILE" 2>&1
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Waiting for device (timeout 60s)..." >> "$LOGFILE" 2>&1
+timeout 60 adb wait-for-device >> "$LOGFILE" 2>&1 || echo "WARNING: adb wait-for-device timed out or failed" >> "$LOGFILE" 2>&1
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Devices after wait:" >> "$LOGFILE" 2>&1
+adb devices >> "$LOGFILE" 2>&1 || echo "WARNING: adb devices failed" >> "$LOGFILE" 2>&1
+
 BOOT_COMPLETED=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n' || true)
 echo "sys.boot_completed=$BOOT_COMPLETED" >> "$LOGFILE" 2>&1
 if [ "$BOOT_COMPLETED" != "1" ]; then
