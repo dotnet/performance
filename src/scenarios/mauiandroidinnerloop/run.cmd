@@ -164,46 +164,38 @@ if exist "!BUILD_TOOLS_DIR!" dir "!BUILD_TOOLS_DIR!" >> "%LOGFILE%" 2>&1
 echo. >> "%LOGFILE%" 2>&1
 
 REM === Set up android.jar (platforms) ===
-REM The MAUI workload (version 36.99.0-ci.main.0) requires API level 36.1 but
-REM android.jar is NOT installed via the standard Android SDK.  The workload
-REM pack Microsoft.Android.Sdk.Windows bundles android.jar inside its payload.
-REM MSBuild expects it at ANDROID_HOME\platforms\android-<api>\android.jar,
-REM so find it in the workload pack and copy it into the expected location.
+REM android.jar is a Google Android SDK Platform artifact — it is NOT bundled
+REM in any .NET MAUI workload pack.  The CI Android SDK (36.99.0-ci.main.0)
+REM requires API level 36.1.  Download the platform ZIP from Google and place
+REM android.jar at ANDROID_HOME\platforms\android-36.1\android.jar where
+REM MSBuild expects it.
 echo === Android Platforms (android.jar) Setup === >> "%LOGFILE%" 2>&1
-set "ANDROID_PACK_DIR="
-for /d %%d in (!HELIX_CORRELATION_PAYLOAD!\dotnet\packs\Microsoft.Android.Sdk.Windows\*) do set "ANDROID_PACK_DIR=%%d"
+set "PLATFORM_DIR=!ANDROID_HOME!\platforms\android-36.1"
 
-if defined ANDROID_PACK_DIR (
-    echo Found workload pack: !ANDROID_PACK_DIR! >> "%LOGFILE%" 2>&1
-
-    REM Search for android.jar inside the workload pack
-    set "ANDROID_JAR_PATH="
-    for /f "delims=" %%f in ('dir /s /b "!ANDROID_PACK_DIR!\android.jar" 2^>nul') do set "ANDROID_JAR_PATH=%%f"
-
-    if defined ANDROID_JAR_PATH (
-        echo Found android.jar at !ANDROID_JAR_PATH! >> "%LOGFILE%" 2>&1
-
-        REM Extract the parent directory name to determine the API level
-        REM e.g. ...\platforms\android-36.1\android.jar -> API_DIR_NAME=android-36.1
-        for %%f in ("!ANDROID_JAR_PATH!") do set "ANDROID_JAR_DIR=%%~dpf"
-        set "ANDROID_JAR_DIR=!ANDROID_JAR_DIR:~0,-1!"
-        for %%p in ("!ANDROID_JAR_DIR!") do set "API_DIR_NAME=%%~nxp"
-        echo API directory name: !API_DIR_NAME! >> "%LOGFILE%" 2>&1
-
-        REM Create the expected directory structure and copy android.jar
-        mkdir "!ANDROID_HOME!\platforms\!API_DIR_NAME!" >> "%LOGFILE%" 2>&1
-        copy /Y "!ANDROID_JAR_PATH!" "!ANDROID_HOME!\platforms\!API_DIR_NAME!\" >> "%LOGFILE%" 2>&1
-        echo Copied android.jar to !ANDROID_HOME!\platforms\!API_DIR_NAME!\ >> "%LOGFILE%" 2>&1
-    ) else (
-        echo WARNING: android.jar NOT found in workload pack >> "%LOGFILE%" 2>&1
-        echo Listing workload pack contents for diagnostics... >> "%LOGFILE%" 2>&1
-        dir /s "!ANDROID_PACK_DIR!" >> "%LOGFILE%" 2>&1
-    )
+echo [%DATE% %TIME%] Downloading Android SDK Platform from Google... >> "%LOGFILE%" 2>&1
+set "PLAT_ZIP=%HELIX_WORKITEM_ROOT%\platform.zip"
+set "PLAT_EXTRACT=%HELIX_WORKITEM_ROOT%\platform-extract"
+curl.exe -L -o "!PLAT_ZIP!" "https://dl.google.com/android/repository/platform-36.1_r01.zip" >> "%LOGFILE%" 2>&1
+if errorlevel 1 (
+    echo ERROR: Failed to download Android SDK Platform. Build will likely fail. >> "%LOGFILE%" 2>&1
 ) else (
-    echo WARNING: Microsoft.Android.Sdk.Windows pack not found >> "%LOGFILE%" 2>&1
-    echo Listing packs directory for diagnostics... >> "%LOGFILE%" 2>&1
-    dir "!HELIX_CORRELATION_PAYLOAD!\dotnet\packs\" >> "%LOGFILE%" 2>&1
+    echo [%DATE% %TIME%] Download complete. Extracting... >> "%LOGFILE%" 2>&1
+    powershell -Command "Expand-Archive -Path '!PLAT_ZIP!' -DestinationPath '!PLAT_EXTRACT!' -Force" >> "%LOGFILE%" 2>&1
+    echo [%DATE% %TIME%] Extraction complete >> "%LOGFILE%" 2>&1
+    REM The ZIP contains a top-level directory (e.g. android-16/) with android.jar inside
+    mkdir "!PLATFORM_DIR!" >> "%LOGFILE%" 2>&1
+    for /d %%d in ("!PLAT_EXTRACT!\*") do (
+        echo Moving contents from %%d to !PLATFORM_DIR! >> "%LOGFILE%" 2>&1
+        xcopy /Y /E /Q "%%d\*" "!PLATFORM_DIR!\" >> "%LOGFILE%" 2>&1
+    )
 )
+
+if exist "!PLATFORM_DIR!\android.jar" (
+    echo android.jar found at !PLATFORM_DIR!\android.jar >> "%LOGFILE%" 2>&1
+) else (
+    echo WARNING: android.jar NOT found at !PLATFORM_DIR!\android.jar. Build will likely fail. >> "%LOGFILE%" 2>&1
+)
+if exist "!PLATFORM_DIR!" dir "!PLATFORM_DIR!" >> "%LOGFILE%" 2>&1
 echo. >> "%LOGFILE%" 2>&1
 
 echo === STEP 2: Restore === >> "%LOGFILE%" 2>&1

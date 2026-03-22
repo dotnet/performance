@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 # run.sh — Linux emulator track for MAUI Android inner loop measurements.
-# Runs on Ubuntu.2204.Amd64.Android.29 Helix queue which has:
-#   - Android emulator already running (emulator-5554)
-#   - ANDROID_HOME, ADB, Java JDK pre-installed
-#   - KVM enabled
-# This is the bash equivalent of run.cmd (Windows device track), but much
-# simpler because the environment is pre-configured.
+# Runs on Ubuntu.2204.Amd64.Android.29 Helix queue.
+# NOTE: The queue does NOT have Android SDK or ADB pre-installed.
+# We set up a minimal Android SDK from XHarness (ADB) and Google downloads
+# (build-tools, platform), same as the Windows track (run.cmd).
 
 set -e
 
@@ -34,150 +32,10 @@ export PATH="$DOTNET_ROOT:$PATH"
 export DOTNET_NUGET_SIGNATURE_VERIFICATION=false
 export NUGET_CERT_REVOCATION_MODE=offline
 
-# === Discover Android SDK ===
-# On the Ubuntu.2204.Amd64.Android.29 Helix queue, the Android SDK is
-# pre-installed at the machine level but ANDROID_HOME / ANDROID_SDK_ROOT
-# are NOT propagated into the workitem execution context.  Discover it.
-if [ -z "$ANDROID_HOME" ]; then
-    echo "ANDROID_HOME is empty — searching for Android SDK..." >> "$LOGFILE" 2>&1
-    CANDIDATE_PATHS=(
-        "/usr/local/lib/android/sdk"
-        "/opt/android-sdk"
-        "$HOME/android-sdk"
-        "$HOME/Android/Sdk"
-        "/root/android-sdk"
-        "/root/Android/Sdk"
-        "/android"
-        "/sdk"
-        "/opt/android"
-        "/usr/local/android-sdk"
-    )
-    for candidate in "${CANDIDATE_PATHS[@]}"; do
-        if [ -d "$candidate/platform-tools" ]; then
-            export ANDROID_HOME="$candidate"
-            echo "  Found Android SDK at $ANDROID_HOME" >> "$LOGFILE" 2>&1
-            break
-        fi
-    done
-
-    # Fallback: derive from adb location (adb lives at <sdk>/platform-tools/adb)
-    if [ -z "$ANDROID_HOME" ]; then
-        ADB_PATH=$(which adb 2>/dev/null || true)
-        if [ -n "$ADB_PATH" ]; then
-            ADB_REAL=$(readlink -f "$ADB_PATH" 2>/dev/null || echo "$ADB_PATH")
-            PLATFORM_TOOLS_DIR=$(dirname "$ADB_REAL")
-            DERIVED_SDK=$(dirname "$PLATFORM_TOOLS_DIR")
-            if [ -d "$DERIVED_SDK/platform-tools" ]; then
-                export ANDROID_HOME="$DERIVED_SDK"
-                echo "  Derived Android SDK from adb at $ANDROID_HOME" >> "$LOGFILE" 2>&1
-            fi
-        fi
-    fi
-
-    # Fallback: check /etc/environment for ANDROID_HOME
-    if [ -z "$ANDROID_HOME" ]; then
-        ANDROID_FROM_ETC=$(grep -i 'ANDROID_HOME' /etc/environment 2>/dev/null | head -1 | cut -d= -f2 | tr -d '"' || true)
-        if [ -n "$ANDROID_FROM_ETC" ] && [ -d "$ANDROID_FROM_ETC/platform-tools" ]; then
-            export ANDROID_HOME="$ANDROID_FROM_ETC"
-            echo "  Found Android SDK from /etc/environment: $ANDROID_HOME" >> "$LOGFILE" 2>&1
-        fi
-    fi
-
-    # Fallback: find running emulator process and extract SDK path
-    if [ -z "$ANDROID_HOME" ]; then
-        EMU_PATH=$(ps aux 2>/dev/null | grep -i '[e]mulator' | head -1 | grep -oP '\S*emulator\S*' | head -1 || true)
-        if [ -n "$EMU_PATH" ]; then
-            EMU_REAL=$(readlink -f "$EMU_PATH" 2>/dev/null || echo "$EMU_PATH")
-            EMU_DIR=$(dirname "$EMU_REAL")
-            DERIVED_SDK=$(dirname "$EMU_DIR")
-            if [ -d "$DERIVED_SDK/platform-tools" ]; then
-                export ANDROID_HOME="$DERIVED_SDK"
-                echo "  Derived Android SDK from emulator process: $ANDROID_HOME" >> "$LOGFILE" 2>&1
-            fi
-        fi
-    fi
-
-    # Last resort: find adb binary on disk
-    if [ -z "$ANDROID_HOME" ]; then
-        ADB_FOUND=$(find / -maxdepth 5 -name "adb" -type f 2>/dev/null | head -5 || true)
-        if [ -n "$ADB_FOUND" ]; then
-            echo "  Found adb binaries via find:" >> "$LOGFILE" 2>&1
-            echo "  $ADB_FOUND" >> "$LOGFILE" 2>&1
-            # Use the first result and derive SDK path
-            FIRST_ADB=$(echo "$ADB_FOUND" | head -1)
-            ADB_DIR=$(dirname "$FIRST_ADB")
-            DERIVED_SDK=$(dirname "$ADB_DIR")
-            if [ -d "$DERIVED_SDK/platform-tools" ]; then
-                export ANDROID_HOME="$DERIVED_SDK"
-                echo "  Derived Android SDK from find: $ANDROID_HOME" >> "$LOGFILE" 2>&1
-            fi
-        fi
-    fi
-
-    if [ -z "$ANDROID_HOME" ]; then
-        echo "  WARNING: Could not find Android SDK in any known location" >> "$LOGFILE" 2>&1
-
-        # Dump comprehensive diagnostics so we can figure out where the SDK is
-        echo "" >> "$LOGFILE" 2>&1
-        echo "=== ANDROID SDK DISCOVERY DIAGNOSTICS ===" >> "$LOGFILE" 2>&1
-
-        echo "--- /etc/environment ---" >> "$LOGFILE" 2>&1
-        cat /etc/environment >> "$LOGFILE" 2>&1 || true
-
-        echo "--- Full environment (sorted) ---" >> "$LOGFILE" 2>&1
-        env | sort >> "$LOGFILE" 2>&1 || true
-
-        echo "--- Android/emulator related processes ---" >> "$LOGFILE" 2>&1
-        ps aux 2>/dev/null | grep -iE 'emulator|adb|android' | grep -v grep >> "$LOGFILE" 2>&1 || echo "(none)" >> "$LOGFILE" 2>&1
-
-        echo "--- /opt/ contents ---" >> "$LOGFILE" 2>&1
-        ls -la /opt/ >> "$LOGFILE" 2>&1 || true
-
-        echo "--- /usr/local/lib/ contents ---" >> "$LOGFILE" 2>&1
-        ls -la /usr/local/lib/ >> "$LOGFILE" 2>&1 || true
-
-        echo "--- /root/ contents ---" >> "$LOGFILE" 2>&1
-        ls -la /root/ >> "$LOGFILE" 2>&1 || true
-
-        echo "--- /home/ contents ---" >> "$LOGFILE" 2>&1
-        ls -la /home/ >> "$LOGFILE" 2>&1 || true
-
-        echo "--- / top-level contents ---" >> "$LOGFILE" 2>&1
-        ls -la / >> "$LOGFILE" 2>&1 || true
-
-        echo "--- find adb (maxdepth 6) ---" >> "$LOGFILE" 2>&1
-        find / -maxdepth 6 -name "adb" -type f 2>/dev/null | head -10 >> "$LOGFILE" 2>&1 || true
-
-        echo "--- find emulator (maxdepth 6) ---" >> "$LOGFILE" 2>&1
-        find / -maxdepth 6 -name "emulator" -type f 2>/dev/null | head -10 >> "$LOGFILE" 2>&1 || true
-
-        echo "--- which adb / which emulator ---" >> "$LOGFILE" 2>&1
-        which adb >> "$LOGFILE" 2>&1 || echo "adb not on PATH" >> "$LOGFILE" 2>&1
-        which emulator >> "$LOGFILE" 2>&1 || echo "emulator not on PATH" >> "$LOGFILE" 2>&1
-
-        echo "=== END DISCOVERY DIAGNOSTICS ===" >> "$LOGFILE" 2>&1
-        echo "" >> "$LOGFILE" 2>&1
-    fi
-fi
-
-export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
-
-# Add Android tools to PATH
-if [ -n "$ANDROID_HOME" ]; then
-    export PATH="$ANDROID_HOME/platform-tools:$PATH"
-    export PATH="$ANDROID_HOME/emulator:$PATH"
-    # Add the latest build-tools version to PATH
-    if [ -d "$ANDROID_HOME/build-tools" ]; then
-        LATEST_BUILD_TOOLS=$(ls -1d "$ANDROID_HOME/build-tools"/*/ 2>/dev/null | sort -V | tail -1)
-        if [ -n "$LATEST_BUILD_TOOLS" ]; then
-            export PATH="${LATEST_BUILD_TOOLS%/}:$PATH"
-            echo "  Added build-tools to PATH: $LATEST_BUILD_TOOLS" >> "$LOGFILE" 2>&1
-        fi
-    fi
-fi
-
 # === Discover Java SDK ===
-# Same problem: JAVA_HOME may not be set in the workitem context.
+# Java 8 is pre-installed at /usr/lib/jvm/java-8-openjdk-amd64 on this queue.
+# NOTE: MAUI Android may require Java 11+ — if builds fail with Java version
+# errors, a JDK download step (similar to run.cmd) will be needed here.
 if [ -z "$JAVA_HOME" ]; then
     echo "JAVA_HOME is empty — searching for Java SDK..." >> "$LOGFILE" 2>&1
     JAVA_FOUND=""
@@ -196,7 +54,6 @@ if [ -z "$JAVA_HOME" ]; then
         JAVA_PATH=$(which java 2>/dev/null || true)
         if [ -n "$JAVA_PATH" ]; then
             JAVA_REAL=$(readlink -f "$JAVA_PATH" 2>/dev/null || echo "$JAVA_PATH")
-            # java is at <jdk>/bin/java
             JAVA_BIN_DIR=$(dirname "$JAVA_REAL")
             DERIVED_JDK=$(dirname "$JAVA_BIN_DIR")
             if [ -x "$DERIVED_JDK/bin/java" ]; then
@@ -217,35 +74,29 @@ if [ -n "$JAVA_HOME" ]; then
     export PATH="$JAVA_HOME/bin:$PATH"
 fi
 
+# Patch NuGet.config to accept CI-signed packages (NU3018 on Helix)
+python3 -c "
+import xml.etree.ElementTree as ET
+f = 'app/NuGet.config'
+tree = ET.parse(f)
+root = tree.getroot()
+config = root.find('config')
+if config is None:
+    config = ET.SubElement(root, 'config')
+ET.SubElement(config, 'add', key='signatureValidationMode', value='accept')
+tree.write(f, xml_declaration=True, encoding='utf-8')
+" >> "$LOGFILE" 2>&1
+
 echo "=== DIAGNOSTICS ===" >> "$LOGFILE" 2>&1
 echo "DOTNET_ROOT=$DOTNET_ROOT" >> "$LOGFILE" 2>&1
-echo "ANDROID_HOME=$ANDROID_HOME" >> "$LOGFILE" 2>&1
-echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$LOGFILE" 2>&1
 echo "JAVA_HOME=$JAVA_HOME" >> "$LOGFILE" 2>&1
 echo "NUGET_PACKAGES=$NUGET_PACKAGES" >> "$LOGFILE" 2>&1
 echo "PYTHONPATH=$PYTHONPATH" >> "$LOGFILE" 2>&1
-echo "PATH=$PATH" >> "$LOGFILE" 2>&1
-which adb >> "$LOGFILE" 2>&1 || true
 which dotnet >> "$LOGFILE" 2>&1 || true
 which java >> "$LOGFILE" 2>&1 || true
 which python3 >> "$LOGFILE" 2>&1 || true
 "$DOTNET_ROOT/dotnet" --version >> "$LOGFILE" 2>&1
-adb version >> "$LOGFILE" 2>&1 || echo "WARNING: adb version failed" >> "$LOGFILE" 2>&1
-java -version >> "$LOGFILE" 2>&1 || echo "WARNING: java -version failed" >> "$LOGFILE" 2>&1
-echo "" >> "$LOGFILE" 2>&1
-
-# === Verify emulator is ready ===
-echo "=== EMULATOR STATUS ===" >> "$LOGFILE" 2>&1
-adb devices >> "$LOGFILE" 2>&1
-adb wait-for-device >> "$LOGFILE" 2>&1
-BOOT_COMPLETED=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n')
-echo "sys.boot_completed=$BOOT_COMPLETED" >> "$LOGFILE" 2>&1
-if [ "$BOOT_COMPLETED" != "1" ]; then
-    echo "ERROR: Emulator is not fully booted (sys.boot_completed=$BOOT_COMPLETED)" >> "$LOGFILE" 2>&1
-    cat "$LOGFILE"
-    exit 1
-fi
-echo "Emulator is ready" >> "$LOGFILE" 2>&1
+java -version >> "$LOGFILE" 2>&1 2>&1 || echo "WARNING: java -version failed" >> "$LOGFILE" 2>&1
 echo "" >> "$LOGFILE" 2>&1
 
 # === STEP 1: Workload Install ===
@@ -256,6 +107,119 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting workload install" >> "$LOGFILE" 2>
     --configfile "$HELIX_WORKITEM_ROOT/app/NuGet.config" \
     >> "$LOGFILE" 2>&1
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Workload install succeeded" >> "$LOGFILE" 2>&1
+echo "" >> "$LOGFILE" 2>&1
+
+# === Set up ANDROID_HOME from XHarness bundled ADB ===
+# The Helix queue does NOT have ANDROID_HOME set or ADB available.
+# XHarness ships a bundled ADB, so we create a minimal Android SDK directory
+# and point ANDROID_HOME at it.
+echo "=== Setting up Android SDK ===" >> "$LOGFILE" 2>&1
+XHARNESS_DIR=$(ls -1d "$HELIX_CORRELATION_PAYLOAD/microsoft.dotnet.xharness.cli"/*/ 2>/dev/null | head -1)
+XHARNESS_DIR="${XHARNESS_DIR%/}"
+ADB_SRC="$XHARNESS_DIR/runtimes/any/native/adb/linux"
+export ANDROID_HOME="$HELIX_WORKITEM_ROOT/android-sdk"
+mkdir -p "$ANDROID_HOME/platform-tools"
+if [ -d "$ADB_SRC" ]; then
+    cp -a "$ADB_SRC"/* "$ANDROID_HOME/platform-tools/"
+    chmod +x "$ANDROID_HOME/platform-tools/adb" 2>/dev/null || true
+    echo "Copied ADB from XHarness: $ADB_SRC" >> "$LOGFILE" 2>&1
+else
+    echo "WARNING: XHarness ADB directory not found at $ADB_SRC" >> "$LOGFILE" 2>&1
+    echo "XHARNESS_DIR=$XHARNESS_DIR" >> "$LOGFILE" 2>&1
+    ls -la "$HELIX_CORRELATION_PAYLOAD/microsoft.dotnet.xharness.cli/" >> "$LOGFILE" 2>&1 || true
+fi
+export ANDROID_SDK_ROOT="$ANDROID_HOME"
+export PATH="$ANDROID_HOME/platform-tools:$PATH"
+echo "ANDROID_HOME=$ANDROID_HOME" >> "$LOGFILE" 2>&1
+which adb >> "$LOGFILE" 2>&1 || echo "WARNING: adb not on PATH" >> "$LOGFILE" 2>&1
+echo "" >> "$LOGFILE" 2>&1
+
+# === Set up Android Build-Tools (aapt2, zipalign) ===
+# dotnet build for Android requires aapt2 and zipalign from Android SDK
+# Build-Tools.  Download the complete package from Google.
+echo "=== Android Build-Tools Setup ===" >> "$LOGFILE" 2>&1
+BUILD_TOOLS_DIR="$ANDROID_HOME/build-tools/35.0.0"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Downloading Android SDK Build-Tools from Google..." >> "$LOGFILE" 2>&1
+BT_ZIP="$HELIX_WORKITEM_ROOT/build-tools.zip"
+BT_EXTRACT="$HELIX_WORKITEM_ROOT/build-tools-extract"
+curl -L -o "$BT_ZIP" "https://dl.google.com/android/repository/build-tools_r35-linux.zip" >> "$LOGFILE" 2>&1
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to download Build-Tools. Build will likely fail with XA5205." >> "$LOGFILE" 2>&1
+else
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Download complete. Extracting..." >> "$LOGFILE" 2>&1
+    mkdir -p "$BT_EXTRACT"
+    unzip -q "$BT_ZIP" -d "$BT_EXTRACT" >> "$LOGFILE" 2>&1
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Extraction complete" >> "$LOGFILE" 2>&1
+    mkdir -p "$BUILD_TOOLS_DIR"
+    # Find the top-level directory inside the ZIP (e.g. android-15/)
+    for d in "$BT_EXTRACT"/*/; do
+        echo "Moving contents from $d to $BUILD_TOOLS_DIR" >> "$LOGFILE" 2>&1
+        cp -a "$d"* "$BUILD_TOOLS_DIR/" >> "$LOGFILE" 2>&1
+    done
+fi
+
+if [ -f "$BUILD_TOOLS_DIR/aapt2" ]; then
+    chmod +x "$BUILD_TOOLS_DIR/aapt2"
+    echo "aapt2 found at $BUILD_TOOLS_DIR/aapt2" >> "$LOGFILE" 2>&1
+else
+    echo "WARNING: aapt2 NOT found. Build will likely fail with XA5205." >> "$LOGFILE" 2>&1
+fi
+if [ -f "$BUILD_TOOLS_DIR/zipalign" ]; then
+    chmod +x "$BUILD_TOOLS_DIR/zipalign"
+    echo "zipalign found at $BUILD_TOOLS_DIR/zipalign" >> "$LOGFILE" 2>&1
+else
+    echo "WARNING: zipalign NOT found. Build may fail." >> "$LOGFILE" 2>&1
+fi
+ls -la "$BUILD_TOOLS_DIR" >> "$LOGFILE" 2>&1 || true
+echo "" >> "$LOGFILE" 2>&1
+
+# === Set up android.jar (platforms) ===
+# android.jar is a Google Android SDK Platform artifact — it is NOT bundled
+# in any .NET MAUI workload pack.  The CI Android SDK (36.99.0-ci.main.0)
+# requires API level 36.1.  Download the platform ZIP from Google and place
+# android.jar at ANDROID_HOME/platforms/android-36.1/android.jar where
+# MSBuild expects it.
+echo "=== Android Platforms (android.jar) Setup ===" >> "$LOGFILE" 2>&1
+PLATFORM_DIR="$ANDROID_HOME/platforms/android-36.1"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Downloading Android SDK Platform from Google..." >> "$LOGFILE" 2>&1
+PLAT_ZIP="$HELIX_WORKITEM_ROOT/platform.zip"
+PLAT_EXTRACT="$HELIX_WORKITEM_ROOT/platform-extract"
+curl -L -o "$PLAT_ZIP" "https://dl.google.com/android/repository/platform-36.1_r01.zip" >> "$LOGFILE" 2>&1
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to download Android SDK Platform. Build will likely fail." >> "$LOGFILE" 2>&1
+else
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Download complete. Extracting..." >> "$LOGFILE" 2>&1
+    mkdir -p "$PLAT_EXTRACT"
+    unzip -q "$PLAT_ZIP" -d "$PLAT_EXTRACT" >> "$LOGFILE" 2>&1
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Extraction complete" >> "$LOGFILE" 2>&1
+    # The ZIP contains a top-level directory (e.g. android-16/) with android.jar inside
+    mkdir -p "$PLATFORM_DIR"
+    for d in "$PLAT_EXTRACT"/*/; do
+        echo "Moving contents from $d to $PLATFORM_DIR" >> "$LOGFILE" 2>&1
+        cp -a "$d"* "$PLATFORM_DIR/" >> "$LOGFILE" 2>&1
+    done
+fi
+
+if [ -f "$PLATFORM_DIR/android.jar" ]; then
+    echo "android.jar found at $PLATFORM_DIR/android.jar" >> "$LOGFILE" 2>&1
+else
+    echo "WARNING: android.jar NOT found at $PLATFORM_DIR/android.jar. Build will likely fail." >> "$LOGFILE" 2>&1
+fi
+ls -la "$PLATFORM_DIR" >> "$LOGFILE" 2>&1 || true
+echo "" >> "$LOGFILE" 2>&1
+
+# === Verify emulator is ready ===
+echo "=== EMULATOR STATUS ===" >> "$LOGFILE" 2>&1
+adb devices >> "$LOGFILE" 2>&1 || echo "WARNING: adb devices failed" >> "$LOGFILE" 2>&1
+adb wait-for-device >> "$LOGFILE" 2>&1 || echo "WARNING: adb wait-for-device failed" >> "$LOGFILE" 2>&1
+BOOT_COMPLETED=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n' || true)
+echo "sys.boot_completed=$BOOT_COMPLETED" >> "$LOGFILE" 2>&1
+if [ "$BOOT_COMPLETED" != "1" ]; then
+    echo "WARNING: Emulator may not be fully booted (sys.boot_completed=$BOOT_COMPLETED)" >> "$LOGFILE" 2>&1
+    echo "Continuing anyway — emulator may or may not be running on this queue" >> "$LOGFILE" 2>&1
+fi
 echo "" >> "$LOGFILE" 2>&1
 
 # === STEP 2: Restore ===
