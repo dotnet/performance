@@ -284,7 +284,7 @@ echo. >> "%LOGFILE%" 2>&1
 
 echo === STEP 2: Restore === >> "%LOGFILE%" 2>&1
 echo [%DATE% %TIME%] Starting restore >> "%LOGFILE%" 2>&1
-%DOTNET_ROOT%\dotnet restore %HELIX_WORKITEM_ROOT%\app\MauiAndroidInnerLoop.csproj --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config /p:AllowMissingPrunePackageData=true >> "%LOGFILE%" 2>&1
+%DOTNET_ROOT%\dotnet restore %HELIX_WORKITEM_ROOT%\app\MauiAndroidInnerLoop.csproj --configfile %HELIX_WORKITEM_ROOT%\app\NuGet.config %MSBUILD_ARGS% >> "%LOGFILE%" 2>&1
 if errorlevel 1 (
     echo [%DATE% %TIME%] STEP 2 FAILED with errorlevel !errorlevel! >> "%LOGFILE%" 2>&1
     type "%LOGFILE%"

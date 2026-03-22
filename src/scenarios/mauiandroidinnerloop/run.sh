@@ -297,7 +297,7 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting restore" >> "$LOGFILE" 2>&1
 "$DOTNET_ROOT/dotnet" restore \
     "$HELIX_WORKITEM_ROOT/app/MauiAndroidInnerLoop.csproj" \
     --configfile "$HELIX_WORKITEM_ROOT/app/NuGet.config" \
-    /p:AllowMissingPrunePackageData=true \
+    $MSBUILD_ARGS \
     >> "$LOGFILE" 2>&1
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Restore succeeded" >> "$LOGFILE" 2>&1
 echo "" >> "$LOGFILE" 2>&1
@@ -311,7 +311,7 @@ python3 test.py androidinnerloop \
     --edit-dest app/MainPage.xaml.cs \
     -f "$FRAMEWORK" \
     -c Debug \
-    --msbuild-args "$MSBUILD_ARGS /p:AllowMissingPrunePackageData=true" \
+    --msbuild-args "$MSBUILD_ARGS" \
     --scenario-name "$SCENARIO_NAME" \
     >> "$LOGFILE" 2>&1
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] test.py succeeded" >> "$LOGFILE" 2>&1
