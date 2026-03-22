@@ -124,60 +124,43 @@ if errorlevel 1 (
 )
 echo [%DATE% %TIME%] Workload install succeeded >> "%LOGFILE%" 2>&1
 
-REM === Set up Android Build-Tools (aapt2) ===
-REM dotnet build for Android requires aapt2.exe from Android SDK Build-Tools.
-REM MSBuild searches ANDROID_HOME\build-tools\<version>\aapt2.exe.
-REM Try the MAUI workload pack first, fall back to downloading from Google.
-echo === Android Build-Tools (aapt2) Setup === >> "%LOGFILE%" 2>&1
+REM === Set up Android Build-Tools (aapt2, zipalign) ===
+REM dotnet build for Android requires aapt2.exe and zipalign.exe from
+REM Android SDK Build-Tools.  MSBuild searches ANDROID_HOME\build-tools\
+REM <version>\aapt2.exe.  Download the complete package from Google — the
+REM workload pack only has aapt2, not zipalign.
+echo === Android Build-Tools Setup === >> "%LOGFILE%" 2>&1
 set "BUILD_TOOLS_DIR=!ANDROID_HOME!\build-tools\35.0.0"
-set "AAPT2_FOUND="
 
-REM Strategy 1: Copy from MAUI workload pack (avoids 57MB download)
-set "ANDROID_SDK_PACK="
-for /d %%d in ("!HELIX_CORRELATION_PAYLOAD!\dotnet\packs\Microsoft.Android.Sdk.Windows\*") do set "ANDROID_SDK_PACK=%%~d"
-if defined ANDROID_SDK_PACK (
-    echo Found workload pack: !ANDROID_SDK_PACK! >> "%LOGFILE%" 2>&1
-    if exist "!ANDROID_SDK_PACK!\tools\aapt2.exe" (
-        echo Copying aapt2 from workload pack... >> "%LOGFILE%" 2>&1
-        mkdir "!BUILD_TOOLS_DIR!" >> "%LOGFILE%" 2>&1
-        copy /Y "!ANDROID_SDK_PACK!\tools\*" "!BUILD_TOOLS_DIR!\" >> "%LOGFILE%" 2>&1
-        if exist "!BUILD_TOOLS_DIR!\aapt2.exe" set "AAPT2_FOUND=1"
-    ) else (
-        echo aapt2.exe not found in workload pack tools >> "%LOGFILE%" 2>&1
-        dir "!ANDROID_SDK_PACK!\tools\" >> "%LOGFILE%" 2>&1
-    )
+echo [%DATE% %TIME%] Downloading Android SDK Build-Tools from Google... >> "%LOGFILE%" 2>&1
+set "BT_ZIP=%HELIX_WORKITEM_ROOT%\build-tools.zip"
+set "BT_EXTRACT=%HELIX_WORKITEM_ROOT%\build-tools-extract"
+curl.exe -L -o "!BT_ZIP!" "https://dl.google.com/android/repository/build-tools_r35_windows.zip" >> "%LOGFILE%" 2>&1
+if errorlevel 1 (
+    echo ERROR: Failed to download Build-Tools. Build will likely fail with XA5205. >> "%LOGFILE%" 2>&1
 ) else (
-    echo No Microsoft.Android.Sdk.Windows pack found >> "%LOGFILE%" 2>&1
-)
-
-REM Strategy 2: Download Android SDK Build-Tools from Google
-if not defined AAPT2_FOUND (
-    echo [%DATE% %TIME%] Downloading Android SDK Build-Tools from Google... >> "%LOGFILE%" 2>&1
-    set "BT_ZIP=%HELIX_WORKITEM_ROOT%\build-tools.zip"
-    set "BT_EXTRACT=%HELIX_WORKITEM_ROOT%\build-tools-extract"
-    curl.exe -L -o "!BT_ZIP!" "https://dl.google.com/android/repository/build-tools_r35-windows.zip" >> "%LOGFILE%" 2>&1
-    if errorlevel 1 (
-        echo ERROR: Failed to download Build-Tools. Build will likely fail with XA5205. >> "%LOGFILE%" 2>&1
-    ) else (
-        echo [%DATE% %TIME%] Download complete. Extracting... >> "%LOGFILE%" 2>&1
-        powershell -Command "Expand-Archive -Path '!BT_ZIP!' -DestinationPath '!BT_EXTRACT!' -Force" >> "%LOGFILE%" 2>&1
-        echo [%DATE% %TIME%] Extraction complete >> "%LOGFILE%" 2>&1
-        REM Find the top-level directory inside the ZIP (e.g. android-15/)
-        mkdir "!BUILD_TOOLS_DIR!" >> "%LOGFILE%" 2>&1
-        for /d %%d in ("!BT_EXTRACT!\*") do (
-            echo Moving contents from %%d to !BUILD_TOOLS_DIR! >> "%LOGFILE%" 2>&1
-            xcopy /Y /E /Q "%%d\*" "!BUILD_TOOLS_DIR!\" >> "%LOGFILE%" 2>&1
-        )
-        if exist "!BUILD_TOOLS_DIR!\aapt2.exe" set "AAPT2_FOUND=1"
+    echo [%DATE% %TIME%] Download complete. Extracting... >> "%LOGFILE%" 2>&1
+    powershell -Command "Expand-Archive -Path '!BT_ZIP!' -DestinationPath '!BT_EXTRACT!' -Force" >> "%LOGFILE%" 2>&1
+    echo [%DATE% %TIME%] Extraction complete >> "%LOGFILE%" 2>&1
+    REM Find the top-level directory inside the ZIP (e.g. android-15/)
+    mkdir "!BUILD_TOOLS_DIR!" >> "%LOGFILE%" 2>&1
+    for /d %%d in ("!BT_EXTRACT!\*") do (
+        echo Moving contents from %%d to !BUILD_TOOLS_DIR! >> "%LOGFILE%" 2>&1
+        xcopy /Y /E /Q "%%d\*" "!BUILD_TOOLS_DIR!\" >> "%LOGFILE%" 2>&1
     )
 )
 
-if defined AAPT2_FOUND (
+if exist "!BUILD_TOOLS_DIR!\aapt2.exe" (
     echo aapt2.exe found at !BUILD_TOOLS_DIR!\aapt2.exe >> "%LOGFILE%" 2>&1
 ) else (
     echo WARNING: aapt2.exe NOT found. Build will likely fail with XA5205. >> "%LOGFILE%" 2>&1
-    if exist "!BUILD_TOOLS_DIR!" dir "!BUILD_TOOLS_DIR!" >> "%LOGFILE%" 2>&1
 )
+if exist "!BUILD_TOOLS_DIR!\zipalign.exe" (
+    echo zipalign.exe found at !BUILD_TOOLS_DIR!\zipalign.exe >> "%LOGFILE%" 2>&1
+) else (
+    echo WARNING: zipalign.exe NOT found. Build may fail. >> "%LOGFILE%" 2>&1
+)
+if exist "!BUILD_TOOLS_DIR!" dir "!BUILD_TOOLS_DIR!" >> "%LOGFILE%" 2>&1
 echo. >> "%LOGFILE%" 2>&1
 
 echo === STEP 2: Restore === >> "%LOGFILE%" 2>&1
