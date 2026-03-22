@@ -28,6 +28,10 @@
 
     <_MSBuildArgs>$(_MSBuildArgs) /p:AllowMissingPrunePackageData=true</_MSBuildArgs>
 
+    <!-- Windows targets physical Pixel 8 (ARM64); Linux targets x86_64 emulator -->
+    <_MSBuildArgs Condition="'$(TargetsWindows)' == 'true'">$(_MSBuildArgs) /p:RuntimeIdentifier=android-arm64</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(TargetsWindows)' != 'true'">$(_MSBuildArgs) /p:RuntimeIdentifier=android-x64</_MSBuildArgs>
+
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
   </PropertyGroup>
 
