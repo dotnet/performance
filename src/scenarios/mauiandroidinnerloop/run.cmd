@@ -85,7 +85,7 @@ if not defined JAVA_HOME (
         set "JAVA_EXE=%%f"
     )
     if defined JAVA_EXE (
-        REM Extract JAVA_HOME from java.exe path (remove \bin\java.exe)
+        REM Extract JAVA_HOME from java.exe path ^(remove \bin\java.exe^)
         for %%p in ("!JAVA_EXE!\..\..\") do set "JAVA_HOME=%%~fp"
     )
 )
@@ -163,7 +163,7 @@ if errorlevel 1 (
     echo [!DATE! !TIME!] Download complete. Extracting... >> "!LOGFILE!" 2>&1
     powershell -Command "Expand-Archive -Path '!BT_ZIP!' -DestinationPath '!BT_EXTRACT!' -Force" >> "!LOGFILE!" 2>&1
     echo [!DATE! !TIME!] Extraction complete >> "!LOGFILE!" 2>&1
-    REM Find the top-level directory inside the ZIP (e.g. android-15/)
+    REM Find the top-level directory inside the ZIP ^(e.g. android-15/^)
     mkdir "!BUILD_TOOLS_DIR!" >> "!LOGFILE!" 2>&1
     for /d %%d in ("!BT_EXTRACT!\*") do (
         echo Moving contents from %%d to !BUILD_TOOLS_DIR! >> "!LOGFILE!" 2>&1
@@ -203,7 +203,7 @@ if errorlevel 1 (
     echo [!DATE! !TIME!] Download complete. Extracting... >> "!LOGFILE!" 2>&1
     powershell -Command "Expand-Archive -Path '!PLAT_ZIP!' -DestinationPath '!PLAT_EXTRACT!' -Force" >> "!LOGFILE!" 2>&1
     echo [!DATE! !TIME!] Extraction complete >> "!LOGFILE!" 2>&1
-    REM The ZIP contains a top-level directory (e.g. android-16/) with android.jar inside
+    REM The ZIP contains a top-level directory ^(e.g. android-16/^) with android.jar inside
     mkdir "!PLATFORM_DIR!" >> "!LOGFILE!" 2>&1
     for /d %%d in ("!PLAT_EXTRACT!\*") do (
         echo Moving contents from %%d to !PLATFORM_DIR! >> "!LOGFILE!" 2>&1
@@ -279,7 +279,7 @@ if !DEVICE_COUNT! EQU 0 (
     if errorlevel 1 echo WARNING: Full-path ADB devices failed >> "!LOGFILE!" 2>&1
 
     REM Wait for device with 30-second timeout
-    echo [!DATE! !TIME!] Waiting for device (timeout 30s)... >> "!LOGFILE!" 2>&1
+    echo [!DATE! !TIME!] Waiting for device ^(timeout 30s^)... >> "!LOGFILE!" 2>&1
     start /b cmd /c "ping -n 31 127.0.0.1 >nul & taskkill /f /im adb.exe >nul 2>&1" >nul 2>&1
     adb wait-for-device >> "!LOGFILE!" 2>&1
     if errorlevel 1 echo WARNING: adb wait-for-device timed out or failed >> "!LOGFILE!" 2>&1
