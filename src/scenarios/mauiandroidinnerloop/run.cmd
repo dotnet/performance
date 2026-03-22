@@ -145,6 +145,19 @@ if errorlevel 1 (
 )
 echo [!DATE! !TIME!] Workload install succeeded >> "!LOGFILE!" 2>&1
 
+REM dotnet workload restore reads the .csproj and installs any implicit workload
+REM dependencies the SDK requires (e.g. ios workload pulled in by MAUI SDK even
+REM when only targeting Android).
+echo [!DATE! !TIME!] Running dotnet workload restore >> "!LOGFILE!" 2>&1
+echo dotnet workload restore !HELIX_WORKITEM_ROOT!\app\MauiAndroidInnerLoop.csproj --configfile !HELIX_WORKITEM_ROOT!\app\NuGet.config >> "!LOGFILE!" 2>&1
+!DOTNET_ROOT!\dotnet workload restore !HELIX_WORKITEM_ROOT!\app\MauiAndroidInnerLoop.csproj --configfile !HELIX_WORKITEM_ROOT!\app\NuGet.config >> "!LOGFILE!" 2>&1
+if errorlevel 1 (
+    echo [!DATE! !TIME!] WARNING: dotnet workload restore returned errorlevel !errorlevel! ^(non-fatal^) >> "!LOGFILE!" 2>&1
+) else (
+    echo [!DATE! !TIME!] Workload restore succeeded >> "!LOGFILE!" 2>&1
+)
+echo. >> "!LOGFILE!" 2>&1
+
 REM === Set up Android Build-Tools (aapt2, zipalign) ===
 REM dotnet build for Android requires aapt2.exe and zipalign.exe from
 REM Android SDK Build-Tools.  MSBuild searches ANDROID_HOME\build-tools\

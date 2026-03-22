@@ -111,6 +111,20 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting workload install" >> "$LOGFILE" 2>
     --configfile "$HELIX_WORKITEM_ROOT/app/NuGet.config" \
     >> "$LOGFILE" 2>&1
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Workload install succeeded" >> "$LOGFILE" 2>&1
+
+# dotnet workload restore reads the .csproj and installs any implicit workload
+# dependencies the SDK requires (e.g. ios workload pulled in by MAUI SDK even
+# when only targeting Android).
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Running dotnet workload restore" >> "$LOGFILE" 2>&1
+echo "dotnet workload restore $HELIX_WORKITEM_ROOT/app/MauiAndroidInnerLoop.csproj --configfile $HELIX_WORKITEM_ROOT/app/NuGet.config" >> "$LOGFILE" 2>&1
+if "$DOTNET_ROOT/dotnet" workload restore \
+    "$HELIX_WORKITEM_ROOT/app/MauiAndroidInnerLoop.csproj" \
+    --configfile "$HELIX_WORKITEM_ROOT/app/NuGet.config" \
+    >> "$LOGFILE" 2>&1; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Workload restore succeeded" >> "$LOGFILE" 2>&1
+else
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] WARNING: dotnet workload restore failed (non-fatal)" >> "$LOGFILE" 2>&1
+fi
 echo "" >> "$LOGFILE" 2>&1
 
 # === Set up ANDROID_HOME from XHarness bundled ADB ===
