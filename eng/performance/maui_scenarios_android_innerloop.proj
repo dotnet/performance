@@ -28,7 +28,8 @@
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
     <Message Text="Removing Dotnet Packs from Correlation Staging" Importance="high" />
-    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" Condition="'$(TargetsWindows)' == 'true'" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet/packs" Condition="'$(TargetsWindows)' != 'true'" />
   </Target>
 
   <ItemDefinitionGroup>
@@ -57,11 +58,22 @@
   <!-- Note: -c Debug is hardcoded because $(BuildConfig) gets overridden by send_to_helix.py
        to the artifact config string (e.g., x64_main_maui_scenarios_android_innerloop).
        All inner loop jobs use Debug configuration. -->
-  <ItemGroup>
+
+  <!-- Windows device track: runs on Windows.11.Amd64.Pixel.Perf via run.cmd -->
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Deploy - %(Identity)')">
       <PreCommands>set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages</PreCommands>
       <Command>run.cmd $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot;</Command>
       <PostCommands>python post.py</PostCommands>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <!-- Linux emulator track: runs on Ubuntu.2204.Amd64.Android.29 via run.sh -->
+  <ItemGroup Condition="'$(TargetsWindows)' != 'true'">
+    <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Deploy Emulator - %(Identity)')">
+      <PreCommands>export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages</PreCommands>
+      <Command>bash run.sh $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot;</Command>
+      <PostCommands>python3 post.py</PostCommands>
     </HelixWorkItem>
   </ItemGroup>
 
