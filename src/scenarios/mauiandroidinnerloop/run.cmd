@@ -204,20 +204,82 @@ REM dotnet build -t:Install calls ADB directly (unlike XHarness which manages
 REM its own ADB server).  We must ensure the server is running and the device
 REM is authorized before the test step.
 echo === ADB DEVICE SETUP === >> "%LOGFILE%" 2>&1
-echo [%DATE% %TIME%] Starting ADB server... >> "%LOGFILE%" 2>&1
+
+REM Log environment for debugging connectivity issues
+echo [%DATE% %TIME%] ADB diagnostics starting >> "%LOGFILE%" 2>&1
+echo ANDROID_HOME=!ANDROID_HOME! >> "%LOGFILE%" 2>&1
+echo PATH=!PATH! >> "%LOGFILE%" 2>&1
+
+REM Log ADB binary location and version
+echo --- ADB binary info --- >> "%LOGFILE%" 2>&1
+where adb >> "%LOGFILE%" 2>&1
+if errorlevel 1 echo CRITICAL: adb not found on PATH >> "%LOGFILE%" 2>&1
+adb version >> "%LOGFILE%" 2>&1
+if errorlevel 1 echo CRITICAL: adb version failed >> "%LOGFILE%" 2>&1
+
+REM Kill any existing ADB server to start fresh
+echo [%DATE% %TIME%] Killing existing ADB server... >> "%LOGFILE%" 2>&1
+adb kill-server >> "%LOGFILE%" 2>&1
+if errorlevel 1 echo WARNING: adb kill-server failed (may not have been running) >> "%LOGFILE%" 2>&1
+
+REM Start fresh ADB server
+echo [%DATE% %TIME%] Starting fresh ADB server... >> "%LOGFILE%" 2>&1
 adb start-server >> "%LOGFILE%" 2>&1
 if errorlevel 1 echo WARNING: adb start-server failed >> "%LOGFILE%" 2>&1
 
-echo [%DATE% %TIME%] Listing connected devices... >> "%LOGFILE%" 2>&1
-adb devices >> "%LOGFILE%" 2>&1
+REM First device listing (verbose)
+echo [%DATE% %TIME%] Initial device listing: >> "%LOGFILE%" 2>&1
+adb devices -l >> "%LOGFILE%" 2>&1
 
-echo [%DATE% %TIME%] Waiting for device (timeout 60s)... >> "%LOGFILE%" 2>&1
-start /b cmd /c "ping -n 61 127.0.0.1 >nul & taskkill /f /im adb.exe >nul 2>&1" >nul 2>&1
-adb wait-for-device >> "%LOGFILE%" 2>&1
-if errorlevel 1 echo WARNING: adb wait-for-device timed out or failed >> "%LOGFILE%" 2>&1
+REM Check USB devices for Android hardware
+echo --- USB Android devices (wmic) --- >> "%LOGFILE%" 2>&1
+wmic path Win32_PnPEntity where "Name like '%%Android%%'" get Name,DeviceID >> "%LOGFILE%" 2>&1
+if errorlevel 1 echo WARNING: wmic query for Android USB devices failed >> "%LOGFILE%" 2>&1
 
-echo [%DATE% %TIME%] Devices after wait: >> "%LOGFILE%" 2>&1
-adb devices >> "%LOGFILE%" 2>&1
+REM Count devices (skip header line "List of devices attached" and empty lines)
+set "DEVICE_COUNT=0"
+for /f "skip=1 tokens=1" %%a in ('adb devices 2^>nul') do (
+    if not "%%a"=="" set /a DEVICE_COUNT+=1
+)
+echo Device count: !DEVICE_COUNT! >> "%LOGFILE%" 2>&1
+
+if !DEVICE_COUNT! EQU 0 (
+    echo *** CRITICAL: NO DEVICES DETECTED *** >> "%LOGFILE%" 2>&1
+    echo This indicates a hardware/driver issue, not a software one. >> "%LOGFILE%" 2>&1
+    echo Possible causes: >> "%LOGFILE%" 2>&1
+    echo   - No Android device physically connected >> "%LOGFILE%" 2>&1
+    echo   - USB driver not installed >> "%LOGFILE%" 2>&1
+    echo   - Device not authorized for USB debugging >> "%LOGFILE%" 2>&1
+    echo   - ADB binary incompatible with device >> "%LOGFILE%" 2>&1
+
+    REM Try using the full ADB path explicitly
+    echo [%DATE% %TIME%] Retrying with full ADB path: !ANDROID_HOME!\platform-tools\adb.exe >> "%LOGFILE%" 2>&1
+    "!ANDROID_HOME!\platform-tools\adb.exe" devices -l >> "%LOGFILE%" 2>&1
+    if errorlevel 1 echo WARNING: Full-path ADB devices failed >> "%LOGFILE%" 2>&1
+
+    REM Wait for device with 30-second timeout
+    echo [%DATE% %TIME%] Waiting for device (timeout 30s)... >> "%LOGFILE%" 2>&1
+    start /b cmd /c "ping -n 31 127.0.0.1 >nul & taskkill /f /im adb.exe >nul 2>&1" >nul 2>&1
+    adb wait-for-device >> "%LOGFILE%" 2>&1
+    if errorlevel 1 echo WARNING: adb wait-for-device timed out or failed >> "%LOGFILE%" 2>&1
+) else (
+    echo Devices detected. Proceeding. >> "%LOGFILE%" 2>&1
+)
+
+REM Final device listing after all diagnostics
+echo [%DATE% %TIME%] Final device listing: >> "%LOGFILE%" 2>&1
+adb devices -l >> "%LOGFILE%" 2>&1
+
+REM Re-count devices after wait
+set "FINAL_COUNT=0"
+for /f "skip=1 tokens=1" %%a in ('adb devices 2^>nul') do (
+    if not "%%a"=="" set /a FINAL_COUNT+=1
+)
+echo Final device count: !FINAL_COUNT! >> "%LOGFILE%" 2>&1
+if !FINAL_COUNT! EQU 0 (
+    echo *** CRITICAL: STILL NO DEVICES AFTER ALL DIAGNOSTICS *** >> "%LOGFILE%" 2>&1
+    echo The build -t:Install step WILL FAIL with XA0010. >> "%LOGFILE%" 2>&1
+)
 echo. >> "%LOGFILE%" 2>&1
 
 echo === STEP 2: Restore === >> "%LOGFILE%" 2>&1

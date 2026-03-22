@@ -214,23 +214,80 @@ echo "" >> "$LOGFILE" 2>&1
 # Start the ADB server and verify the emulator is visible. On the emulator
 # queue the emulator should already be running at emulator-5554.
 echo "=== ADB DEVICE SETUP ===" >> "$LOGFILE" 2>&1
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting ADB server..." >> "$LOGFILE" 2>&1
+
+# Log environment for debugging connectivity issues
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] ADB diagnostics starting" >> "$LOGFILE" 2>&1
+echo "ANDROID_HOME=$ANDROID_HOME" >> "$LOGFILE" 2>&1
+echo "PATH=$PATH" >> "$LOGFILE" 2>&1
+
+# Log ADB binary location and version
+echo "--- ADB binary info ---" >> "$LOGFILE" 2>&1
+which adb >> "$LOGFILE" 2>&1 || echo "CRITICAL: adb not found on PATH" >> "$LOGFILE" 2>&1
+adb version >> "$LOGFILE" 2>&1 || echo "CRITICAL: adb version failed" >> "$LOGFILE" 2>&1
+
+# Kill any existing ADB server and start fresh
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Killing existing ADB server..." >> "$LOGFILE" 2>&1
+adb kill-server >> "$LOGFILE" 2>&1 || echo "WARNING: adb kill-server failed (may not have been running)" >> "$LOGFILE" 2>&1
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting fresh ADB server..." >> "$LOGFILE" 2>&1
 adb start-server >> "$LOGFILE" 2>&1 || echo "WARNING: adb start-server failed" >> "$LOGFILE" 2>&1
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Listing connected devices..." >> "$LOGFILE" 2>&1
-adb devices >> "$LOGFILE" 2>&1 || echo "WARNING: adb devices failed" >> "$LOGFILE" 2>&1
+# First device listing (verbose)
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Initial device listing:" >> "$LOGFILE" 2>&1
+adb devices -l >> "$LOGFILE" 2>&1 || echo "WARNING: adb devices failed" >> "$LOGFILE" 2>&1
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Waiting for device (timeout 60s)..." >> "$LOGFILE" 2>&1
-timeout 60 adb wait-for-device >> "$LOGFILE" 2>&1 || echo "WARNING: adb wait-for-device timed out or failed" >> "$LOGFILE" 2>&1
+# Count devices (skip header line)
+DEVICE_COUNT=$(adb devices 2>/dev/null | tail -n +2 | grep -c -w "device" || true)
+echo "Device count: $DEVICE_COUNT" >> "$LOGFILE" 2>&1
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Devices after wait:" >> "$LOGFILE" 2>&1
-adb devices >> "$LOGFILE" 2>&1 || echo "WARNING: adb devices failed" >> "$LOGFILE" 2>&1
+if [ "$DEVICE_COUNT" -eq 0 ] 2>/dev/null || [ -z "$DEVICE_COUNT" ]; then
+    echo "*** CRITICAL: NO DEVICES DETECTED ***" >> "$LOGFILE" 2>&1
+    echo "Checking if emulator process is running..." >> "$LOGFILE" 2>&1
 
-BOOT_COMPLETED=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n' || true)
-echo "sys.boot_completed=$BOOT_COMPLETED" >> "$LOGFILE" 2>&1
-if [ "$BOOT_COMPLETED" != "1" ]; then
-    echo "WARNING: Emulator may not be fully booted (sys.boot_completed=$BOOT_COMPLETED)" >> "$LOGFILE" 2>&1
-    echo "Continuing anyway — emulator may or may not be running on this queue" >> "$LOGFILE" 2>&1
+    # Check for running emulator processes
+    echo "--- Emulator processes ---" >> "$LOGFILE" 2>&1
+    ps aux 2>/dev/null | grep -i emulator | grep -v grep >> "$LOGFILE" 2>&1 || echo "  No emulator processes found" >> "$LOGFILE" 2>&1
+
+    # Check if anything is listening on the default emulator port
+    echo "--- Port 5554 (emulator) check ---" >> "$LOGFILE" 2>&1
+    ss -tlnp 2>/dev/null | grep 5554 >> "$LOGFILE" 2>&1 || \
+        netstat -tlnp 2>/dev/null | grep 5554 >> "$LOGFILE" 2>&1 || \
+        echo "  Nothing listening on port 5554" >> "$LOGFILE" 2>&1
+
+    # Try connecting to the emulator explicitly
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Trying adb connect localhost:5554..." >> "$LOGFILE" 2>&1
+    adb connect localhost:5554 >> "$LOGFILE" 2>&1 || echo "WARNING: adb connect localhost:5554 failed" >> "$LOGFILE" 2>&1
+
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Devices after connect attempt:" >> "$LOGFILE" 2>&1
+    adb devices -l >> "$LOGFILE" 2>&1 || echo "WARNING: adb devices failed" >> "$LOGFILE" 2>&1
+
+    # Wait for device with 30-second timeout
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Waiting for device (timeout 30s)..." >> "$LOGFILE" 2>&1
+    timeout 30 adb wait-for-device >> "$LOGFILE" 2>&1 || echo "WARNING: adb wait-for-device timed out or failed" >> "$LOGFILE" 2>&1
+else
+    echo "Devices detected. Proceeding." >> "$LOGFILE" 2>&1
+fi
+
+# Final device listing after all diagnostics
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Final device listing:" >> "$LOGFILE" 2>&1
+adb devices -l >> "$LOGFILE" 2>&1 || echo "WARNING: adb devices failed" >> "$LOGFILE" 2>&1
+
+# Re-count devices after diagnostics
+FINAL_COUNT=$(adb devices 2>/dev/null | tail -n +2 | grep -c -w "device" || true)
+echo "Final device count: $FINAL_COUNT" >> "$LOGFILE" 2>&1
+if [ "$FINAL_COUNT" -eq 0 ] 2>/dev/null || [ -z "$FINAL_COUNT" ]; then
+    echo "*** CRITICAL: STILL NO DEVICES AFTER ALL DIAGNOSTICS ***" >> "$LOGFILE" 2>&1
+    echo "The build -t:Install step WILL FAIL with XA0010." >> "$LOGFILE" 2>&1
+fi
+
+# Check emulator boot status if a device is present
+if [ "$FINAL_COUNT" -gt 0 ] 2>/dev/null; then
+    BOOT_COMPLETED=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n' || true)
+    echo "sys.boot_completed=$BOOT_COMPLETED" >> "$LOGFILE" 2>&1
+    if [ "$BOOT_COMPLETED" != "1" ]; then
+        echo "WARNING: Emulator may not be fully booted (sys.boot_completed=$BOOT_COMPLETED)" >> "$LOGFILE" 2>&1
+        echo "Continuing anyway — emulator may still be booting" >> "$LOGFILE" 2>&1
+    fi
 fi
 echo "" >> "$LOGFILE" 2>&1
 
