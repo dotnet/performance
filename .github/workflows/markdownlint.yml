@@ -27,4 +27,4 @@ jobs:
         npm install --global --no-audit --no-fund markdownlint-cli@0.45.0
     - name: Run markdownlint
       run: |
-        markdownlint --config ./.markdownlint.jsonc '**/*.md'
+        markdownlint --config ./.markdownlint.jsonc --ignore-path ./.markdownlintignore '**/*.md'
