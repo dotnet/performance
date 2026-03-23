@@ -29,7 +29,7 @@ namespace SveBenchmarks
 
         private uint[] _objects;
         private uint[] _indices;
-        private ulong _result;
+        private uint _result;
 
         [GlobalSetup]
         public virtual void Setup()
@@ -45,10 +45,10 @@ namespace SveBenchmarks
         [GlobalCleanup]
         public virtual void Verify()
         {
-            ulong current = _result;
+            uint current = _result;
             Setup();
             Scalar();
-            ulong scalar = _result;
+            uint scalar = _result;
             // Check that the result is the same as the scalar result.
             Debug.Assert(current == scalar);
         }
@@ -61,7 +61,7 @@ namespace SveBenchmarks
         {
             fixed (uint* objects = _objects, indices = _indices)
             {
-                ulong res = 0;
+                uint res = 0;
                 for (int i = 0; i < Size; i++)
                 {
                     res += objects[indices[i]];
@@ -94,7 +94,7 @@ namespace SveBenchmarks
                     pLoop = Sve.CreateWhileLessThanMask32Bit(i, Size);
                 }
                 // Add up all elements in resVec.
-                ulong res = (ulong)Sve.AddAcross(resVec).ToScalar();
+                uint res = (uint)Sve.AddAcross(resVec).ToScalar();
                 _result = res;
             }
         }
