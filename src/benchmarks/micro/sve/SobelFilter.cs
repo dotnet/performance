@@ -66,38 +66,38 @@ namespace SveBenchmarks
         public unsafe void Scalar()
         {
             // The image is a Size * Size square.
-            int img_size = Size;
+            int imgSize = Size;
             // The output image size is 2-pixel smaller in each direction.
-            int out_size = img_size - 2;
+            int outSize = imgSize - 2;
             fixed (float* input = _source, temp = _temp, output = _result)
             fixed (float* kx = _kx, ky = _ky)
             {
                 // Convolve the horizontal component first.
                 // The result is save to the temp array.
-                for (int j = 0; j < img_size; j++)
+                for (int j = 0; j < imgSize; j++)
                 {
-                    for (int i = 0; i < out_size; i++)
+                    for (int i = 0; i < outSize; i++)
                     {
                         float res = 0.0F;
                         for (int k = 0; k < 3; k++)
                         {
-                            res += kx[k] * input[j * img_size + i + k];
+                            res += kx[k] * input[j * imgSize + i + k];
                         }
-                        temp[j * out_size + i] = res;
+                        temp[j * outSize + i] = res;
                     }
                 }
                 // Then convolve the vertical component.
                 // Using the temp array as input.
-                for (int j = 0; j < out_size; j++)
+                for (int j = 0; j < outSize; j++)
                 {
-                    for (int i = 0; i < out_size; i++)
+                    for (int i = 0; i < outSize; i++)
                     {
                         float res = 0.0F;
                         for (int k = 0; k < 3; k++)
                         {
-                            res += ky[k] * temp[(j + k) * out_size + i];
+                            res += ky[k] * temp[(j + k) * outSize + i];
                         }
-                        output[j * out_size + i] = res;
+                        output[j * outSize + i] = res;
                     }
                 }
             }
