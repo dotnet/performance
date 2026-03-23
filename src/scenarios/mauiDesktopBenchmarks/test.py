@@ -8,10 +8,10 @@ delegates to the shared BDNDesktopHelper for the generic BDN workflow
 Usage: test.py --framework net11.0 --suite all
 '''
 import os
-import shutil
 import subprocess
 from argparse import ArgumentParser
 from logging import getLogger
+from performance.common import remove_directory
 from performance.logger import setup_loggers
 from shared.bdndesktop import BDNDesktopHelper
 
@@ -61,7 +61,7 @@ def clone_maui_repo(branch: str, repo_dir: str = MAUI_REPO_DIR):
     log.info(f'Cloning dotnet/maui branch {branch} (sparse, depth 1)...')
 
     if os.path.exists(repo_dir):
-        shutil.rmtree(repo_dir)
+        remove_directory(repo_dir)
 
     subprocess.run([
         'git', 'clone',

@@ -3,7 +3,7 @@ Post-commands for MAUI Desktop BenchmarkDotNet benchmarks.
 Cleans up the cloned maui repo and temporary artifacts.
 '''
 import os
-import shutil
+from performance.common import remove_directory
 from performance.logger import setup_loggers, getLogger
 
 setup_loggers(True)
@@ -16,7 +16,7 @@ def cleanup():
     """Remove the cloned maui repository and any leftover artifacts."""
     if os.path.exists(MAUI_REPO_DIR):
         log.info(f'Removing cloned MAUI repo: {MAUI_REPO_DIR}')
-        shutil.rmtree(MAUI_REPO_DIR, ignore_errors=True)
+        remove_directory(MAUI_REPO_DIR)
 
     # Clean up combined report if still in working directory
     combined = 'combined-perf-lab-report.json'

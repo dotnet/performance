@@ -231,7 +231,6 @@ ex: C:\repos\performance;C:\repos\runtime
             self.runtimeseconds = args.runtimeseconds
             self.closeToStartDelay = args.closeToStartDelay
 
-
         if args.scenarioname:
             self.scenarioname = args.scenarioname
 

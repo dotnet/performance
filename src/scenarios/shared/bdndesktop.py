@@ -103,10 +103,12 @@ class BDNDesktopHelper(object):
             content = f.read()
 
         for prop_name, new_value in self.disable_props.items():
-            pattern = rf'(<{prop_name}\b[^>]*>)true(</{prop_name}>)'
+            pattern = rf'(<{prop_name}\b[^>]*>)\s*true\s*(</{prop_name}>)'
             content, count = re.subn(pattern, rf'\g<1>{new_value}\g<2>', content)
             if count > 0:
                 log.info(f'  {prop_name}: replaced {count} occurrence(s)')
+            else:
+                log.warning(f'  {prop_name}: no occurrences of "true" found to replace')
 
         with open(props_path, 'w', encoding='utf-8') as f:
             f.write(content)
@@ -151,11 +153,14 @@ class BDNDesktopHelper(object):
         if root.tag.startswith('{'):
             ns = root.tag.split('}')[0] + '}'
 
-        # Remove existing BenchmarkDotNet PackageReference to avoid version conflicts
+        # Remove the primary BenchmarkDotNet PackageReference to avoid version conflicts.
+        # Only remove exact 'BenchmarkDotNet' to preserve optional subpackages
+        # (e.g. BenchmarkDotNet.Annotations, BenchmarkDotNet.Diagnostics.*).
+        bdn_packages_to_remove = {'BenchmarkDotNet', 'BenchmarkDotNet.Annotations'}
         for item_group in root.findall(f'{ns}ItemGroup'):
             for pkg_ref in item_group.findall(f'{ns}PackageReference'):
                 include = pkg_ref.get('Include', '')
-                if include.startswith('BenchmarkDotNet'):
+                if include in bdn_packages_to_remove:
                     item_group.remove(pkg_ref)
                     log.info(f'  Removed PackageReference: {include}')
 
@@ -200,7 +205,7 @@ class BDNDesktopHelper(object):
             '                config = config.AddExporter(new PerfLabExporter());\n'
             '            BenchmarkSwitcher\n'
             '                .FromAssembly(typeof(Program).Assembly)\n'
-            '                .Run(args, config)'
+            '                .Run(args, config);'
         )
 
         patterns = [
@@ -213,8 +218,7 @@ class BDNDesktopHelper(object):
         replaced = False
         for pattern in patterns:
             if pattern in content:
-                suffix = ';' if pattern.endswith(';') else ''
-                content = content.replace(pattern, new_run_call + suffix)
+                content = content.replace(pattern, new_run_call)
                 replaced = True
                 break
 
@@ -305,11 +309,11 @@ class BDNDesktopHelper(object):
         log = getLogger()
         upload_root = os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT', '')
 
-        report_pattern = os.path.join(self.repo_dir, '**', '*-perf-lab-report.json')
+        report_pattern = os.path.join(self.repo_dir, '**', '*perf-lab-report.json')
         report_files = glob.glob(report_pattern, recursive=True)
 
         if not report_files:
-            log.warning('No perf-lab-report.json files found. '
+            log.warning('No *perf-lab-report.json files found. '
                         'PerfLabExporter may not have been active (PERFLAB_INLAB not set?).')
             return
 
