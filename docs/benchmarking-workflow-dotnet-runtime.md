@@ -192,7 +192,7 @@ Make sure you have the v8 engine installed and in the PATH. Follow the installat
 
 ```cmd
 /path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py -f net11.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --run-isolated --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
-    --bdn-arguments="--anyCategories Libraries Runtime --category-exclusion-filter NoInterpreter NoWASM NoMono --logBuildOutput --wasmArgs=\"--module\" --wasmDataDir </path/to/dotnet/runtime>/src/mono/browser --filter <filter>"
+    --bdn-arguments="--anyCategories Libraries Runtime --category-exclusion-filter NoInterpreter NoWASM NoMono --logBuildOutput --filter <filter>"
 ```
 
 #### Run the benchmarks with AOT
@@ -201,7 +201,7 @@ Essentially, add `--aotcompilermode wasm` to the `--bdn-arguments=".."`:
 
 ```cmd
 /path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net11.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --run-isolated --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
-    --bdn-arguments="--category-exclusion-filter NoInterpreter NoWASM NoMono --aotcompilermode wasm --logBuildOutput --buildTimeout 3600 --wasmArgs=\"--module\" --wasmDataDir </path/to/dotnet/runtime>/src/mono/browser --filter <filter>"
+    --bdn-arguments="--category-exclusion-filter NoInterpreter NoWASM NoMono --aotcompilermode wasm --logBuildOutput --buildTimeout 3600 --filter <filter>"
 ```
 
 #### Note about "file ... being used by another process" error

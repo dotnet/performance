@@ -56,6 +56,12 @@ parameters:
     type: object
     default:
       enabled: true
+  - name: cobaltSveMicro
+    type: object
+    default:
+      enabled: true
+      configs:
+        - linux_arm64
   - name: androidCoreclrR2r
     type: object
     default:
@@ -269,6 +275,26 @@ jobs:
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           r2rRunType: nor2r
           additionalJobIdentifier: 'NoR2R'
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
+  # CoreCLR Cobalt SVE microbenchmarks — controlled by cobaltSveMicro toggle.
+  - ${{ if eq(parameters.cobaltSveMicro.enabled, true) }}:
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: coreclr
+        platforms: ${{ parameters.cobaltSveMicro.configs }}
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runKind: micro
+          logicalMachine: 'perfcobalt'
+          osDistro: 'azurelinux'
+          runCategories: 'SVE'
+          additionalJobIdentifier: 'SVE'
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
