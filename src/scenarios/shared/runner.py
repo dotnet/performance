@@ -1032,23 +1032,42 @@ ex: C:\repos\performance;C:\repos\runtime
                 raise Exception("For Android inner loop measurements, --package-name must be provided.")
 
             def measure_startup():
-                """Measure app startup time (ms) via logcat 'Displayed' time."""
+                """Measure app startup time (ms). Prefers WaitTime from am start, falls back to logcat."""
                 RunCommand(clear_logs_cmd, verbose=True).run()
-                RunCommand(start_app_cmd, verbose=True).run()
-                retrieve_result = RunCommand(retrieve_time_cmd, verbose=True)
-                retrieve_result.run()
-                dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
-                if not dirty_capture:
-                    raise Exception("Failed to capture the reported start time from logcat!")
-                capture_list = dirty_capture.group(1).split('s')
-                if len(capture_list) == 1:
-                    startup_ms = int(capture_list[0])
-                elif len(capture_list) == 2:
-                    startup_ms = int(capture_list[0]) * 1000 + int(capture_list[1].zfill(3))
+                start_result = RunCommand(start_app_cmd, verbose=True)
+                start_result.run()
+
+                startup_ms = None
+
+                # Primary: parse WaitTime or TotalTime from am start -W output
+                total_match = re.search(r"TotalTime:\s*(\d+)", start_result.stdout)
+                wait_match = re.search(r"WaitTime:\s*(\d+)", start_result.stdout)
+                if total_match:
+                    startup_ms = int(total_match.group(1))
+                    getLogger().info("Startup time (TotalTime): %d ms" % startup_ms)
+                elif wait_match:
+                    startup_ms = int(wait_match.group(1))
+                    getLogger().info("Startup time (WaitTime): %d ms" % startup_ms)
+
+                # Fallback: parse 'Displayed' time from logcat (stop app first, matching DEVICESTARTUP pattern)
+                if startup_ms is None:
+                    RunCommand(stop_app_cmd, verbose=True).run()
+                    retrieve_result = RunCommand(retrieve_time_cmd, verbose=True)
+                    retrieve_result.run()
+                    dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
+                    if not dirty_capture:
+                        raise Exception("Failed to capture startup time from am start output or logcat!")
+                    capture_list = dirty_capture.group(1).split('s')
+                    if len(capture_list) == 1:
+                        startup_ms = int(capture_list[0])
+                    elif len(capture_list) == 2:
+                        startup_ms = int(capture_list[0]) * 1000 + int(capture_list[1].zfill(3))
+                    else:
+                        raise Exception("Android time capture failed! Unexpected format: %s" % dirty_capture.group(0))
+                    getLogger().info("Startup time (logcat): %d ms" % startup_ms)
                 else:
-                    raise Exception("Android time capture failed! Unexpected format: %s" % dirty_capture.group(0))
-                getLogger().info("Startup time: %d ms" % startup_ms)
-                RunCommand(stop_app_cmd, verbose=True).run()
+                    RunCommand(stop_app_cmd, verbose=True).run()
+
                 return startup_ms
 
             def merge_build_and_startup(build_report_path, startup_ms, final_report_path):
