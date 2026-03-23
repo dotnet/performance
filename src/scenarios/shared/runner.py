@@ -1082,7 +1082,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     "results": [startup_ms]
                 }
                 # Report structure: [ { "tests": [ { "counters": [...] } ] } ]
-                report[0]["tests"][0]["counters"].append(startup_counter)
+                report["tests"][0]["counters"].append(startup_counter)
                 with open(final_report_path, 'w') as f:
                     json.dump(report, f, indent=2)
                 getLogger().info("Merged report written to: %s" % final_report_path)
