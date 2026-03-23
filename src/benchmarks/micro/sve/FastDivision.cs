@@ -94,7 +94,7 @@ namespace SveBenchmarks
                     // Estimate the reciprocal of 1/input2Vec.
                     Vector128<double> input2VecInv = AdvSimd.Arm64.ReciprocalEstimate(input2Vec);
 
-                    // Iteratively refine the estimation by multiplying the reicrocal step.
+                    // Iteratively refine the estimation by multiplying the reciprocal step.
                     Vector128<double> stp2;
                     for (int j = 0; j < 3; j++)
                     {
@@ -132,7 +132,7 @@ namespace SveBenchmarks
                     // Estimate the reciprocal of 1/input2Vec.
                     Vector<double> input2VecInv = Sve.ReciprocalEstimate(input2Vec);
 
-                    // Iteratively refine the estimation by multiplying the reicrocal step.
+                    // Iteratively refine the estimation by multiplying the reciprocal step.
                     Vector<double> stp2;
                     for (int j = 0; j < 3; j++)
                     {

@@ -116,7 +116,7 @@ namespace SveBenchmarks
                 Vector128<float> c3Vec = Vector128.Create(d[7]);
                 Vector128<float> c4Vec = Vector128.Create(d[8]);
 
-                for (; i < Size - 4; i += 4)
+                for (; i <= Size - 4; i += 4)
                 {
                     Vector128<float> x = AdvSimd.LoadVector128(input + i);
 
@@ -165,7 +165,7 @@ namespace SveBenchmarks
                 Vector<float> invln2Vec = new Vector<float>(d[2]);
                 Vector<float> shiftVec = new Vector<float>(d[8]);
                 Vector<float> ln2hiVec = new Vector<float>(d[7]);
-                Vector<float> constVec = Sve.LoadVector(Sve.CreateTrueMaskSingle(), &d[3]);
+                Vector<float> constVec = new Vector<float>(new ReadOnlySpan<float>(&d[3], 4));
 
                 Vector<uint> pTrue = Sve.CreateTrueMaskUInt32();
                 Vector<uint> pLoop = Sve.CreateWhileLessThanMask32Bit(0, Size);
