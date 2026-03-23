@@ -78,7 +78,6 @@ namespace SveBenchmarks
                 int i = 0;
                 int cntw = (int)Sve.Count32BitElements();
 
-                Vector<uint> ones = Vector<uint>.One;
                 Vector<uint> resVec = Vector<uint>.Zero;
                 Vector<uint> pTrue = Sve.CreateTrueMaskUInt32();
                 Vector<uint> pLoop = Sve.CreateWhileLessThanMask32Bit(0, Size);
