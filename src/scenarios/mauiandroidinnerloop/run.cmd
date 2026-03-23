@@ -346,6 +346,12 @@ python test.py devicestartup ^
     --scenario-name "!SCENARIO_NAME! - Startup" ^
     !EXTRA_ARGS! ^
     >> "!LOGFILE!" 2>&1
+if errorlevel 1 (
+    echo [!DATE! !TIME!] STEP 4 FAILED ^(devicestartup^) with errorlevel !errorlevel!
+    echo [!DATE! !TIME!] STEP 4 FAILED ^(devicestartup^) with errorlevel !errorlevel! >> "!LOGFILE!" 2>&1
+    type "!LOGFILE!"
+    exit /b 4
+)
 
 echo === ALL STEPS SUCCEEDED ===
 echo === ALL STEPS SUCCEEDED === >> "!LOGFILE!" 2>&1

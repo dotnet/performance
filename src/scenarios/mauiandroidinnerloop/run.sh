@@ -349,4 +349,3 @@ python3 test.py devicestartup \
 echo "=== ALL STEPS SUCCEEDED ===" | tee -a "$LOGFILE"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Complete" >> "$LOGFILE" 2>&1
 cat "$LOGFILE"
-exit 0
