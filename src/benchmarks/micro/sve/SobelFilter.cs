@@ -73,7 +73,7 @@ namespace SveBenchmarks
             fixed (float* kx = _kx, ky = _ky)
             {
                 // Convolve the horizontal component first.
-                // The result is save to the temp array.
+                // The result is saved to the temp array.
                 for (int j = 0; j < imgSize; j++)
                 {
                     for (int i = 0; i < outSize; i++)
