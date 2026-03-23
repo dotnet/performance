@@ -1026,28 +1026,10 @@ ex: C:\repos\performance;C:\repos\runtime
                     if arg.strip():
                         base_cmd.append(arg.strip())
 
-            # Resolve the Android activity name for startup measurement
+            # Validate package name early (needed after first deploy for activity resolution)
             packagename = self.packagename
             if not packagename:
                 raise Exception("For Android inner loop measurements, --package-name must be provided.")
-
-            getLogger().info("Resolving activity name for package: %s" % packagename)
-            resolve_cmd = xharness_adb() + [
-                'shell',
-                f'cmd package resolve-activity --brief {packagename} | tail -n 1'
-            ]
-            resolve_result = RunCommand(resolve_cmd, verbose=True)
-            resolve_result.run()
-            activityname = resolve_result.stdout.strip()
-            getLogger().info("Resolved activity: %s" % activityname)
-
-            stop_app_cmd = xharness_adb() + ['shell', 'am', 'force-stop', packagename]
-            start_app_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-S', '-n', activityname]
-            clear_logs_cmd = xharness_adb() + ['logcat', '-c']
-            retrieve_time_cmd = xharness_adb() + [
-                'shell',
-                f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
-            ]
 
             def measure_startup():
                 """Measure app startup time (ms) via logcat 'Displayed' time."""
@@ -1091,6 +1073,25 @@ ex: C:\repos\performance;C:\repos\runtime
             first_cmd = base_cmd + [f'-bl:{first_binlog}']
             getLogger().info("First deploy: %s" % ' '.join(first_cmd))
             subprocess.run(first_cmd, check=True)
+
+            # Resolve the Android activity name for startup measurement (must happen after install)
+            getLogger().info("Resolving activity name for package: %s" % packagename)
+            resolve_cmd = xharness_adb() + [
+                'shell',
+                f'cmd package resolve-activity --brief {packagename} | tail -n 1'
+            ]
+            resolve_result = RunCommand(resolve_cmd, verbose=True)
+            resolve_result.run()
+            activityname = resolve_result.stdout.strip()
+            getLogger().info("Resolved activity: %s" % activityname)
+
+            stop_app_cmd = xharness_adb() + ['shell', 'am', 'force-stop', packagename]
+            start_app_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-S', '-n', activityname]
+            clear_logs_cmd = xharness_adb() + ['logcat', '-c']
+            retrieve_time_cmd = xharness_adb() + [
+                'shell',
+                f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
+            ]
 
             # Step 2: Measure startup after first deploy
             first_startup_ms = measure_startup()
