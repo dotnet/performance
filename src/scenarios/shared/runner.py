@@ -31,108 +31,6 @@ from shared.testtraits import TestTraits, testtypes
 from subprocess import CalledProcessError
 
 
-def _measure_android_startup(packagename, trace_filepath, label):
-    """Launch Android app, measure startup time via logcat, and write to trace file.
-
-    Uses the same logcat-based approach as the DEVICESTARTUP handler: clears
-    logcat, launches the app with ``am start-activity -W``, force-stops the app,
-    then reads the "Displayed" timing from ActivityManager/ActivityTaskManager in
-    logcat.  Falls back to WaitTime from ``am start`` stdout if logcat doesn't
-    contain the expected timing line.
-
-    This function is intentionally non-fatal: if any step fails (adb commands,
-    activity resolution, time extraction), it logs a warning and returns
-    gracefully — possibly leaving an empty trace file.  The caller decides
-    whether to skip parsing based on trace-file content.
-    """
-    try:
-        getLogger().info("Measuring %s startup time for %s..." % (label, packagename))
-
-        # Resolve activity name from installed package
-        resolve_cmd = xharness_adb() + ['shell', 'cmd package resolve-activity --brief %s | tail -n 1' % packagename]
-        resolve_result = RunCommand(resolve_cmd, verbose=True)
-        resolve_result.run()
-        activityname = resolve_result.stdout.strip()
-        getLogger().info("Resolved activity: %s" % activityname)
-
-        # Clear logcat before launch
-        RunCommand(xharness_adb() + ['logcat', '-c'], verbose=True).run()
-
-        # Launch app and wait for first frame
-        start_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-n', activityname]
-        start_result = RunCommand(start_cmd, verbose=True)
-        start_result.run()
-
-        # Force stop the app before reading logcat — the timing is already
-        # recorded by ActivityManager once the first frame draws.
-        RunCommand(xharness_adb() + ['shell', 'am', 'force-stop', packagename], verbose=True).run()
-
-        # --- Primary: read startup time from logcat "Displayed" message ---
-        # The logcat line looks like:
-        #   ActivityTaskManager: Displayed com.pkg/.MainActivity: +241ms
-        #   ActivityTaskManager: Displayed com.pkg/.MainActivity: +2s500ms
-        retrieve_cmd = xharness_adb() + [
-            'shell',
-            f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
-        ]
-        retrieve_result = RunCommand(retrieve_cmd, verbose=True)
-        retrieve_result.run()
-
-        startup_time = None
-        time_source = None
-
-        dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
-        if dirty_capture:
-            capture_list = dirty_capture.group(1).split('s')
-            if len(capture_list) == 1:
-                # Only milliseconds, e.g. "+241ms" → "241"
-                startup_time = capture_list[0]
-            elif len(capture_list) == 2:
-                # Seconds and milliseconds, e.g. "+2s500ms" → "2500"
-                # zfill pads the ms portion to 3 digits (e.g. "50" → "050")
-                startup_time = "%s%s" % (capture_list[0], capture_list[1].zfill(3))
-            else:
-                getLogger().warning("Logcat time capture had unexpected format: %s" % dirty_capture.group(0))
-            if startup_time:
-                time_source = 'logcat'
-
-        # --- Fallback: WaitTime from am start stdout ---
-        if startup_time is None:
-            getLogger().warning("Could not extract timing from logcat for %s, falling back to am start stdout" % label)
-            getLogger().warning("logcat output was: %s" % retrieve_result.stdout)
-            for line in start_result.stdout.splitlines():
-                if 'WaitTime' in line:
-                    parts = line.split(':')
-                    if len(parts) >= 2:
-                        startup_time = parts[1].strip()
-                        time_source = 'WaitTime'
-                        break
-
-        if startup_time:
-            getLogger().info("%s startup %s: %s ms" % (label, time_source, startup_time))
-        else:
-            getLogger().warning("Could not extract startup time from logcat or am start output for %s" % label)
-            getLogger().warning("am start output was: %s" % start_result.stdout)
-
-        # Write startup timing to trace file for DeviceTimeToMain parser.
-        # Always write as "TotalTime:" because the parser regex expects that key.
-        trace_dir = os.path.dirname(trace_filepath)
-        os.makedirs(trace_dir, exist_ok=True)
-        with open(trace_filepath, 'w') as f:
-            if startup_time:
-                f.write('TotalTime: %s\n' % startup_time)
-
-    except Exception as e:
-        getLogger().warning("Non-fatal: %s startup measurement failed: %s" % (label, e))
-        # Ensure the trace file exists (possibly empty) so downstream code
-        # can simply check for content rather than file existence.
-        try:
-            trace_dir = os.path.dirname(trace_filepath)
-            os.makedirs(trace_dir, exist_ok=True)
-            if not os.path.exists(trace_filepath):
-                open(trace_filepath, 'w').close()
-        except Exception:
-            pass
 
 
 class Runner:
@@ -286,7 +184,6 @@ ex: C:\repos\performance;C:\repos\runtime
         androidinnerloopparser.add_argument('--framework', '-f', help='Target framework (e.g., net10.0-android)', dest='framework')
         androidinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', default='Debug')
         androidinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
-        androidinnerloopparser.add_argument('--package-name', help='Android package name for startup measurement', dest='packagename')
         self.add_common_arguments(androidinnerloopparser)
 
         args = parser.parse_args()
@@ -319,7 +216,6 @@ ex: C:\repos\performance;C:\repos\runtime
             self.framework = args.framework
             self.configuration = args.configuration
             self.msbuildargs = args.msbuildargs or os.environ.get('PERFLAB_MSBUILD_ARGS', '')
-            self.packagename = args.packagename
 
         if self.testtype == const.DEVICESTARTUP:
             self.packagepath = args.packagepath
@@ -1129,12 +1025,6 @@ ex: C:\repos\performance;C:\repos\runtime
             getLogger().info("First deploy: %s" % ' '.join(first_cmd))
             subprocess.run(first_cmd, check=True)
 
-            # Step 1b: Measure first deploy startup time
-            if self.packagename:
-                _measure_android_startup(self.packagename,
-                    os.path.join(const.TRACEDIR, 'PerfTest', 'first-deploy-startup.trace'),
-                    'First Deploy')
-
             # Step 2: Edit one source file to simulate a developer change
             if self.editsrc and self.editdest:
                 getLogger().info("Editing file: %s -> %s" % (self.editsrc, self.editdest))
@@ -1146,12 +1036,6 @@ ex: C:\repos\performance;C:\repos\runtime
             incremental_cmd = base_cmd + [f'-bl:{incremental_binlog}']
             getLogger().info("Incremental deploy: %s" % ' '.join(incremental_cmd))
             subprocess.run(incremental_cmd, check=True)
-
-            # Step 3b: Measure incremental deploy startup time
-            if self.packagename:
-                _measure_android_startup(self.packagename,
-                    os.path.join(const.TRACEDIR, 'PerfTest', 'incremental-deploy-startup.trace'),
-                    'Incremental Deploy')
 
             # Step 4: Parse both binlogs using AndroidInnerLoopParser
             startup = StartupWrapper()
@@ -1165,43 +1049,3 @@ ex: C:\repos\performance;C:\repos\runtime
             startup.reportjson = os.path.join(const.TRACEDIR, 'incremental-deploy-perf-lab-report.json')
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='incremental-deploy.binlog', scenarioname=scenarioprefix + " - Incremental Deploy")
             startup.parsetraces(self.traits)
-
-            # Step 5: Parse startup traces (if startup was measured)
-            # These are non-fatal: if the app failed to start, the trace file
-            # will be empty (no TotalTime line) and the DeviceTimeToMain parser
-            # would exit with -1.  We don't want that to kill the job and lose
-            # the build/deploy metrics from Step 4.
-            if self.packagename:
-                first_startup_trace = os.path.join(const.TRACEDIR, 'PerfTest', 'first-deploy-startup.trace')
-                if os.path.isfile(first_startup_trace) and 'TotalTime' in open(first_startup_trace).read():
-                    try:
-                        startup.reportjson = os.path.join(const.TRACEDIR, 'first-deploy-startup-report.json')
-                        self.traits.add_traits(overwrite=True, apptorun="app",
-                                              startupmetric=const.STARTUP_DEVICETIMETOMAIN,
-                                              tracefolder='PerfTest/',
-                                              tracename='first-deploy-startup.trace',
-                                              scenarioname=scenarioprefix + " - First Deploy Startup")
-                        startup.parsetraces(self.traits)
-                    except SystemExit as e:
-                        getLogger().warning("Non-fatal: First deploy startup parsetraces exited with code %s — skipping." % e.code)
-                    except Exception as e:
-                        getLogger().warning("Non-fatal: First deploy startup parsetraces failed: %s — skipping." % e)
-                else:
-                    getLogger().warning("Skipping first deploy startup parsing: trace file missing or has no TotalTime (%s)" % first_startup_trace)
-
-                incremental_startup_trace = os.path.join(const.TRACEDIR, 'PerfTest', 'incremental-deploy-startup.trace')
-                if os.path.isfile(incremental_startup_trace) and 'TotalTime' in open(incremental_startup_trace).read():
-                    try:
-                        startup.reportjson = os.path.join(const.TRACEDIR, 'incremental-deploy-startup-report.json')
-                        self.traits.add_traits(overwrite=True, apptorun="app",
-                                              startupmetric=const.STARTUP_DEVICETIMETOMAIN,
-                                              tracefolder='PerfTest/',
-                                              tracename='incremental-deploy-startup.trace',
-                                              scenarioname=scenarioprefix + " - Incremental Deploy Startup")
-                        startup.parsetraces(self.traits)
-                    except SystemExit as e:
-                        getLogger().warning("Non-fatal: Incremental deploy startup parsetraces exited with code %s — skipping." % e.code)
-                    except Exception as e:
-                        getLogger().warning("Non-fatal: Incremental deploy startup parsetraces failed: %s — skipping." % e)
-                else:
-                    getLogger().warning("Skipping incremental deploy startup parsing: trace file missing or has no TotalTime (%s)" % incremental_startup_trace)
