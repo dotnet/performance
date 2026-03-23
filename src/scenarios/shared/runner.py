@@ -1001,6 +1001,10 @@ ex: C:\repos\performance;C:\repos\runtime
         elif self.testtype == const.ANDROIDINNERLOOP:
             import subprocess
             import shutil
+            from shutil import copytree
+            from performance.common import runninginlab
+            from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
+            from shared.util import helixuploaddir
 
             if not self.csprojpath:
                 raise Exception("For Android inner loop measurements, --csproj-path must be provided.")
@@ -1022,32 +1026,125 @@ ex: C:\repos\performance;C:\repos\runtime
                     if arg.strip():
                         base_cmd.append(arg.strip())
 
+            # Resolve the Android activity name for startup measurement
+            packagename = self.packagename
+            if not packagename:
+                raise Exception("For Android inner loop measurements, --package-name must be provided.")
+
+            getLogger().info("Resolving activity name for package: %s" % packagename)
+            resolve_cmd = xharness_adb() + [
+                'shell',
+                f'cmd package resolve-activity --brief {packagename} | tail -n 1'
+            ]
+            resolve_result = RunCommand(resolve_cmd, verbose=True)
+            resolve_result.run()
+            activityname = resolve_result.stdout.strip()
+            getLogger().info("Resolved activity: %s" % activityname)
+
+            stop_app_cmd = xharness_adb() + ['shell', 'am', 'force-stop', packagename]
+            start_app_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-S', '-n', activityname]
+            clear_logs_cmd = xharness_adb() + ['logcat', '-c']
+            retrieve_time_cmd = xharness_adb() + [
+                'shell',
+                f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
+            ]
+
+            def measure_startup():
+                """Measure app startup time (ms) via logcat 'Displayed' time."""
+                RunCommand(clear_logs_cmd, verbose=True).run()
+                RunCommand(start_app_cmd, verbose=True).run()
+                retrieve_result = RunCommand(retrieve_time_cmd, verbose=True)
+                retrieve_result.run()
+                dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
+                if not dirty_capture:
+                    raise Exception("Failed to capture the reported start time from logcat!")
+                capture_list = dirty_capture.group(1).split('s')
+                if len(capture_list) == 1:
+                    startup_ms = int(capture_list[0])
+                elif len(capture_list) == 2:
+                    startup_ms = int(capture_list[0]) * 1000 + int(capture_list[1].zfill(3))
+                else:
+                    raise Exception("Android time capture failed! Unexpected format: %s" % dirty_capture.group(0))
+                getLogger().info("Startup time: %d ms" % startup_ms)
+                RunCommand(stop_app_cmd, verbose=True).run()
+                return startup_ms
+
+            def merge_build_and_startup(build_report_path, startup_ms, final_report_path):
+                """Load the build metrics report, append a startup time counter, write to final path."""
+                with open(build_report_path, 'r') as f:
+                    report = json.load(f)
+                startup_counter = {
+                    "name": "Time to Main",
+                    "topCounter": True,
+                    "defaultCounter": False,
+                    "higherIsBetter": False,
+                    "metricName": "ms",
+                    "results": [startup_ms]
+                }
+                # Report structure: [ { "tests": [ { "counters": [...] } ] } ]
+                report[0]["tests"][0]["counters"].append(startup_counter)
+                with open(final_report_path, 'w') as f:
+                    json.dump(report, f, indent=2)
+                getLogger().info("Merged report written to: %s" % final_report_path)
+
             # Step 1: First full deploy
             first_cmd = base_cmd + [f'-bl:{first_binlog}']
             getLogger().info("First deploy: %s" % ' '.join(first_cmd))
             subprocess.run(first_cmd, check=True)
 
-            # Step 2: Edit one source file to simulate a developer change
+            # Step 2: Measure startup after first deploy
+            first_startup_ms = measure_startup()
+
+            # Step 3: Parse first deploy binlog → temp build metrics
+            startup = StartupWrapper()
+            first_build_report = os.path.join(const.TRACEDIR, 'first-deploy-build-perf-lab-report.json')
+            startup.reportjson = first_build_report
+            saved_upload = self.traits.upload_to_perflab_container
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP,
+                                   tracename='first-deploy.binlog',
+                                   scenarioname=scenarioprefix + " - Initial Deploy",
+                                   upload_to_perflab_container=False)
+            startup.parsetraces(self.traits)
+
+            # Step 4: Edit one source file to simulate a developer change
             if self.editsrc and self.editdest:
                 getLogger().info("Editing file: %s -> %s" % (self.editsrc, self.editdest))
                 shutil.copy(self.editsrc, self.editdest)
             else:
                 getLogger().warning("No edit-src/edit-dest specified; incremental deploy will be a no-change rebuild")
 
-            # Step 3: Incremental deploy
+            # Step 5: Incremental deploy
             incremental_cmd = base_cmd + [f'-bl:{incremental_binlog}']
             getLogger().info("Incremental deploy: %s" % ' '.join(incremental_cmd))
             subprocess.run(incremental_cmd, check=True)
 
-            # Step 4: Parse both binlogs using AndroidInnerLoopParser
-            startup = StartupWrapper()
+            # Step 6: Measure startup after incremental deploy
+            incremental_startup_ms = measure_startup()
 
-            # Use distinct report filenames to avoid blob naming collision on upload
-            # (both deploys run in the same Helix work item with the same HELIX_WORKITEM_ID)
-            startup.reportjson = os.path.join(const.TRACEDIR, 'first-deploy-perf-lab-report.json')
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='first-deploy.binlog', scenarioname=scenarioprefix + " - First Deploy")
+            # Step 7: Parse incremental deploy binlog → temp build metrics
+            incremental_build_report = os.path.join(const.TRACEDIR, 'incremental-deploy-build-perf-lab-report.json')
+            startup.reportjson = incremental_build_report
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP,
+                                   tracename='incremental-deploy.binlog',
+                                   scenarioname=scenarioprefix + " - Inner Loop",
+                                   upload_to_perflab_container=False)
             startup.parsetraces(self.traits)
 
-            startup.reportjson = os.path.join(const.TRACEDIR, 'incremental-deploy-perf-lab-report.json')
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='incremental-deploy.binlog', scenarioname=scenarioprefix + " - Incremental Deploy")
-            startup.parsetraces(self.traits)
+            # Step 8: Merge build metrics + startup time → final reports
+            initial_final_report = os.path.join(const.TRACEDIR, 'initial-debug-e2e-perf-lab-report.json')
+            incremental_final_report = os.path.join(const.TRACEDIR, 'incremental-debug-e2e-perf-lab-report.json')
+            merge_build_and_startup(first_build_report, first_startup_ms, initial_final_report)
+            merge_build_and_startup(incremental_build_report, incremental_startup_ms, incremental_final_report)
+
+            # Step 9: Upload final merged reports
+            self.traits.add_traits(overwrite=True, upload_to_perflab_container=saved_upload)
+            helix_upload_dir = helixuploaddir()
+            if runninginlab() and helix_upload_dir is not None:
+                copytree(const.TRACEDIR, os.path.join(helix_upload_dir, 'traces'), dirs_exist_ok=True)
+                if self.traits.upload_to_perflab_container:
+                    import upload
+                    for report_path in [initial_final_report, incremental_final_report]:
+                        upload_code = upload.upload(report_path, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
+                        getLogger().info("Upload code for %s: %s" % (os.path.basename(report_path), upload_code))
+                        if upload_code != 0:
+                            sys.exit(upload_code)
