@@ -8,7 +8,11 @@ delegates to the shared BDNDesktopHelper for the generic BDN workflow
 Usage: test.py --framework net11.0 --suite all
 '''
 import os
+import shutil
 import subprocess
+import sys
+import urllib.request
+import zipfile
 from argparse import ArgumentParser
 from logging import getLogger
 from performance.common import remove_directory
@@ -55,16 +59,31 @@ def get_branch(framework: str) -> str:
     return 'net11.0'
 
 
-def clone_maui_repo(branch: str, repo_dir: str = MAUI_REPO_DIR):
-    '''Sparse-clone dotnet/maui at the given branch.'''
-    log = getLogger()
-    log.info(f'Cloning dotnet/maui branch {branch} (sparse, depth 1)...')
+def _find_git() -> str:
+    '''Find the git executable on PATH or at common Windows locations.'''
+    git = shutil.which('git')
+    if git:
+        return git
 
-    if os.path.exists(repo_dir):
-        remove_directory(repo_dir)
+    if sys.platform == 'win32':
+        for candidate in [
+            os.path.join(os.environ.get('ProgramFiles', r'C:\Program Files'), 'Git', 'cmd', 'git.exe'),
+            os.path.join(os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)'), 'Git', 'cmd', 'git.exe'),
+            os.path.join(os.environ.get('ProgramW6432', r'C:\Program Files'), 'Git', 'cmd', 'git.exe'),
+        ]:
+            if os.path.isfile(candidate):
+                return candidate
+
+    return None
+
+
+def _git_sparse_clone(git: str, branch: str, repo_dir: str):
+    '''Clone using git sparse checkout (preferred — smaller download).'''
+    log = getLogger()
+    log.info(f'Using git at: {git}')
 
     subprocess.run([
-        'git', 'clone',
+        git, 'clone',
         '-c', 'core.longpaths=true',
         '--depth', '1',
         '--filter=blob:none',
@@ -75,10 +94,74 @@ def clone_maui_repo(branch: str, repo_dir: str = MAUI_REPO_DIR):
     ], check=True)
 
     subprocess.run(
-        ['git', 'sparse-checkout', 'set'] + MAUI_SPARSE_CHECKOUT_DIRS,
+        [git, 'sparse-checkout', 'set'] + MAUI_SPARSE_CHECKOUT_DIRS,
         cwd=repo_dir, check=True)
 
-    log.info('Clone complete.')
+
+def _zip_download(branch: str, repo_dir: str):
+    '''Download the repo as a zip archive and extract needed directories.
+
+    Fallback when git is not available (e.g. Helix work items where git is
+    not on PATH and not installed).
+    '''
+    log = getLogger()
+    archive_url = f'https://github.com/dotnet/maui/archive/refs/heads/{branch}.zip'
+    zip_path = 'maui_download.zip'
+
+    log.info(f'git not found — downloading archive from {archive_url}')
+    urllib.request.urlretrieve(archive_url, zip_path)
+    log.info(f'Downloaded {os.path.getsize(zip_path) / (1024*1024):.1f} MB')
+
+    os.makedirs(repo_dir, exist_ok=True)
+
+    # Directories to extract (sparse checkout equivalent + root-level files)
+    sparse_prefixes = [d.rstrip('/') + '/' for d in MAUI_SPARSE_CHECKOUT_DIRS]
+
+    with zipfile.ZipFile(zip_path) as zf:
+        # GitHub archives have a top-level dir like "maui-net11.0/"
+        top_dir = zf.namelist()[0].split('/')[0] + '/'
+
+        for member in zf.namelist():
+            if not member.startswith(top_dir):
+                continue
+            rel_path = member[len(top_dir):]
+            if not rel_path:
+                continue
+
+            # Include root-level files and our sparse directories
+            is_root_file = '/' not in rel_path
+            in_sparse_dir = any(rel_path.startswith(p) for p in sparse_prefixes)
+
+            if not is_root_file and not in_sparse_dir:
+                continue
+
+            target = os.path.join(repo_dir, rel_path)
+            if member.endswith('/'):
+                os.makedirs(target, exist_ok=True)
+            else:
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                with zf.open(member) as src, open(target, 'wb') as dst:
+                    dst.write(src.read())
+
+    os.remove(zip_path)
+    log.info('Archive extracted.')
+
+
+def clone_maui_repo(branch: str, repo_dir: str = MAUI_REPO_DIR):
+    '''Clone or download dotnet/maui at the given branch.'''
+    log = getLogger()
+    log.info(f'Acquiring dotnet/maui branch {branch}...')
+
+    if os.path.exists(repo_dir):
+        remove_directory(repo_dir)
+
+    git = _find_git()
+    if git:
+        _git_sparse_clone(git, branch, repo_dir)
+    else:
+        _zip_download(branch, repo_dir)
+
+    log.info('MAUI source acquired.')
 
 
 def build_maui_dependencies(repo_dir: str = MAUI_REPO_DIR):
