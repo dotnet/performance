@@ -1037,14 +1037,13 @@ ex: C:\repos\performance;C:\repos\runtime
 
             # Step 4: Parse both binlogs using AndroidInnerLoopParser
             startup = StartupWrapper()
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='first-deploy.binlog', scenarioname=scenarioprefix + " - First Deploy")
-            try:
-                startup.parsetraces(self.traits)
-            except SystemExit as e:
-                getLogger().warning("First Deploy: upload failed (exit code %s), continuing.", e.code)
 
+            # Use distinct report filenames to avoid blob naming collision on upload
+            # (both deploys run in the same Helix work item with the same HELIX_WORKITEM_ID)
+            startup.reportjson = os.path.join(const.TRACEDIR, 'first-deploy-perf-lab-report.json')
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='first-deploy.binlog', scenarioname=scenarioprefix + " - First Deploy")
+            startup.parsetraces(self.traits)
+
+            startup.reportjson = os.path.join(const.TRACEDIR, 'incremental-deploy-perf-lab-report.json')
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='incremental-deploy.binlog', scenarioname=scenarioprefix + " - Incremental Deploy")
-            try:
-                startup.parsetraces(self.traits)
-            except SystemExit as e:
-                getLogger().warning("Incremental Deploy: upload failed (exit code %s), continuing.", e.code)
+            startup.parsetraces(self.traits)
