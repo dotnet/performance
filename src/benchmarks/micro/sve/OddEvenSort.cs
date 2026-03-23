@@ -112,7 +112,7 @@ namespace SveBenchmarks
                         (Vector128<uint> a0, Vector128<uint> a1) = AdvSimd.Arm64.Load2xVector128AndUnzip(source + j);
 
                         // Find elements that are not in order.
-                        Vector128<uint> cmp = AdvSimd.CompareGreaterThanOrEqual(a0, a1);
+                        Vector128<uint> cmp = AdvSimd.CompareGreaterThan(a0, a1);
                         // Swap those elements.
                         Vector128<uint> b0 = AdvSimd.BitwiseSelect(cmp, a1, a0);
                         Vector128<uint> b1 = AdvSimd.BitwiseSelect(cmp, a0, a1);
@@ -129,7 +129,7 @@ namespace SveBenchmarks
                         AdvSimd.Arm64.StoreVectorAndZip(source + j, (b0, b1));
                     }
 
-                    // Handle remaining elemnts in scalar.
+                    // Handle remaining elements in scalar.
                     for (; j < n; j += 2)
                     {
                         if (source[j - 1] > source[j])
@@ -184,7 +184,7 @@ namespace SveBenchmarks
                         (Vector<uint> a0, Vector<uint> a1) = Sve.Load2xVectorAndUnzip(pLoop, source + j);
 
                         // Find elements that are not in order.
-                        Vector<uint> pCmp = Sve.ConditionalSelect(pLoop, Sve.CompareGreaterThanOrEqual(a0, a1), Sve.CreateFalseMaskUInt32());
+                        Vector<uint> pCmp = Sve.ConditionalSelect(pLoop, Sve.CompareGreaterThan(a0, a1), Sve.CreateFalseMaskUInt32());
                         // Swap those elements.
                         Vector<uint> b0 = Sve.ConditionalSelect(pCmp, a1, a0);
                         Vector<uint> b1 = Sve.ConditionalSelect(pCmp, a0, a1);
@@ -229,7 +229,7 @@ namespace SveBenchmarks
                         (Vector<uint> a0, Vector<uint> a1) = Sve.Load2xVectorAndUnzip(pTrue, source + j);
 
                         // Find elements that are not in order.
-                        Vector<uint> pCmp = Sve.CompareGreaterThanOrEqual(a0, a1);
+                        Vector<uint> pCmp = Sve.CompareGreaterThan(a0, a1);
                         // Swap those elements.
                         Vector<uint> b0 = Sve.ConditionalSelect(pCmp, a1, a0);
                         Vector<uint> b1 = Sve.ConditionalSelect(pCmp, a0, a1);
@@ -250,7 +250,7 @@ namespace SveBenchmarks
                         Vector<uint> pLoop = Sve.CreateWhileLessThanMask32Bit(0, (n - j) / 2);
                         (Vector<uint> a0, Vector<uint> a1) = Sve.Load2xVectorAndUnzip(pLoop, source + j);
 
-                        Vector<uint> pCmp = Sve.ConditionalSelect(pLoop, Sve.CompareGreaterThanOrEqual(a0, a1), Sve.CreateFalseMaskUInt32());
+                        Vector<uint> pCmp = Sve.ConditionalSelect(pLoop, Sve.CompareGreaterThan(a0, a1), Sve.CreateFalseMaskUInt32());
                         Vector<uint> b0 = Sve.ConditionalSelect(pCmp, a1, a0);
                         Vector<uint> b1 = Sve.ConditionalSelect(pCmp, a0, a1);
 
