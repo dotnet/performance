@@ -328,6 +328,7 @@ python3 test.py androidinnerloop \
     -f "$FRAMEWORK" \
     -c Debug \
     --scenario-name "$SCENARIO_NAME" \
+    --package-name com.companyname.mauiandroidinnerloop \
     "${EXTRA_ARGS[@]}" \
     >> "$LOGFILE" 2>&1
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] test.py succeeded" >> "$LOGFILE" 2>&1

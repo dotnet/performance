@@ -327,7 +327,7 @@ REM runner.py reads PERFLAB_MSBUILD_ARGS as fallback when --msbuild-args is empt
 set "PERFLAB_MSBUILD_ARGS=!MSBUILD_ARGS!"
 echo PERFLAB_MSBUILD_ARGS=!PERFLAB_MSBUILD_ARGS! >> "!LOGFILE!" 2>&1
 
-python test.py androidinnerloop --csproj-path app\MauiAndroidInnerLoop.csproj --edit-src src\MainPage.xaml.cs --edit-dest app\MainPage.xaml.cs -f !FRAMEWORK! -c Debug --scenario-name "!SCENARIO_NAME!" !EXTRA_ARGS! >> "!LOGFILE!" 2>&1
+python test.py androidinnerloop --csproj-path app\MauiAndroidInnerLoop.csproj --edit-src src\MainPage.xaml.cs --edit-dest app\MainPage.xaml.cs -f !FRAMEWORK! -c Debug --scenario-name "!SCENARIO_NAME!" --package-name com.companyname.mauiandroidinnerloop !EXTRA_ARGS! >> "!LOGFILE!" 2>&1
 if errorlevel 1 (
     echo [!DATE! !TIME!] STEP 3 FAILED with errorlevel !errorlevel!
     echo [!DATE! !TIME!] STEP 3 FAILED with errorlevel !errorlevel! >> "!LOGFILE!" 2>&1

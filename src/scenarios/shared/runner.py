@@ -31,6 +31,50 @@ from shared.testtraits import TestTraits, testtypes
 from subprocess import CalledProcessError
 
 
+def _measure_android_startup(packagename, trace_filepath, label):
+    """Launch Android app, measure startup time via 'am start-activity -W', and write to trace file."""
+    getLogger().info("Measuring %s startup time for %s..." % (label, packagename))
+
+    # Resolve activity name from installed package
+    resolve_cmd = xharness_adb() + ['shell', 'cmd package resolve-activity --brief %s | tail -n 1' % packagename]
+    resolve_result = RunCommand(resolve_cmd, verbose=True)
+    resolve_result.run()
+    activityname = resolve_result.stdout.strip()
+    getLogger().info("Resolved activity: %s" % activityname)
+
+    # Clear logcat before launch
+    RunCommand(xharness_adb() + ['logcat', '-c'], verbose=True).run()
+
+    # Launch app and wait for first frame
+    start_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-n', activityname]
+    start_result = RunCommand(start_cmd, verbose=True)
+    start_result.run()
+
+    # Extract TotalTime from am start output
+    totaltime = None
+    for line in start_result.stdout.splitlines():
+        if 'TotalTime' in line:
+            parts = line.split(':')
+            if len(parts) >= 2:
+                totaltime = parts[1].strip()
+                break
+
+    if totaltime:
+        getLogger().info("%s startup TotalTime: %s ms" % (label, totaltime))
+    else:
+        getLogger().warning("Could not extract TotalTime from am start output for %s" % label)
+
+    # Write startup timing to trace file for DeviceTimeToMain parser
+    trace_dir = os.path.dirname(trace_filepath)
+    os.makedirs(trace_dir, exist_ok=True)
+    with open(trace_filepath, 'w') as f:
+        if totaltime:
+            f.write('TotalTime: %s\n' % totaltime)
+
+    # Force stop the app
+    RunCommand(xharness_adb() + ['shell', 'am', 'force-stop', packagename], verbose=True).run()
+
+
 class Runner:
     '''
     Wrapper for running all the things
@@ -182,6 +226,7 @@ ex: C:\repos\performance;C:\repos\runtime
         androidinnerloopparser.add_argument('--framework', '-f', help='Target framework (e.g., net10.0-android)', dest='framework')
         androidinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', default='Debug')
         androidinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
+        androidinnerloopparser.add_argument('--package-name', help='Android package name for startup measurement', dest='packagename')
         self.add_common_arguments(androidinnerloopparser)
 
         args = parser.parse_args()
@@ -214,6 +259,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.framework = args.framework
             self.configuration = args.configuration
             self.msbuildargs = args.msbuildargs or os.environ.get('PERFLAB_MSBUILD_ARGS', '')
+            self.packagename = args.packagename
 
         if self.testtype == const.DEVICESTARTUP:
             self.packagepath = args.packagepath
@@ -1023,6 +1069,12 @@ ex: C:\repos\performance;C:\repos\runtime
             getLogger().info("First deploy: %s" % ' '.join(first_cmd))
             subprocess.run(first_cmd, check=True)
 
+            # Step 1b: Measure first deploy startup time
+            if self.packagename:
+                _measure_android_startup(self.packagename,
+                    os.path.join(const.TRACEDIR, 'PerfTest', 'first-deploy-startup.trace'),
+                    'First Deploy')
+
             # Step 2: Edit one source file to simulate a developer change
             if self.editsrc and self.editdest:
                 getLogger().info("Editing file: %s -> %s" % (self.editsrc, self.editdest))
@@ -1034,6 +1086,12 @@ ex: C:\repos\performance;C:\repos\runtime
             incremental_cmd = base_cmd + [f'-bl:{incremental_binlog}']
             getLogger().info("Incremental deploy: %s" % ' '.join(incremental_cmd))
             subprocess.run(incremental_cmd, check=True)
+
+            # Step 3b: Measure incremental deploy startup time
+            if self.packagename:
+                _measure_android_startup(self.packagename,
+                    os.path.join(const.TRACEDIR, 'PerfTest', 'incremental-deploy-startup.trace'),
+                    'Incremental Deploy')
 
             # Step 4: Parse both binlogs using AndroidInnerLoopParser
             startup = StartupWrapper()
@@ -1047,3 +1105,21 @@ ex: C:\repos\performance;C:\repos\runtime
             startup.reportjson = os.path.join(const.TRACEDIR, 'incremental-deploy-perf-lab-report.json')
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP, tracename='incremental-deploy.binlog', scenarioname=scenarioprefix + " - Incremental Deploy")
             startup.parsetraces(self.traits)
+
+            # Step 5: Parse startup traces (if startup was measured)
+            if self.packagename:
+                startup.reportjson = os.path.join(const.TRACEDIR, 'first-deploy-startup-report.json')
+                self.traits.add_traits(overwrite=True, apptorun="app",
+                                      startupmetric=const.STARTUP_DEVICETIMETOMAIN,
+                                      tracefolder='PerfTest/',
+                                      tracename='first-deploy-startup.trace',
+                                      scenarioname=scenarioprefix + " - First Deploy Startup")
+                startup.parsetraces(self.traits)
+
+                startup.reportjson = os.path.join(const.TRACEDIR, 'incremental-deploy-startup-report.json')
+                self.traits.add_traits(overwrite=True, apptorun="app",
+                                      startupmetric=const.STARTUP_DEVICETIMETOMAIN,
+                                      tracefolder='PerfTest/',
+                                      tracename='incremental-deploy-startup.trace',
+                                      scenarioname=scenarioprefix + " - Incremental Deploy Startup")
+                startup.parsetraces(self.traits)
