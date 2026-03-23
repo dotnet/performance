@@ -65,7 +65,7 @@ public class LocalCertTests
     }
 
     [Fact]
-    public void GetLocalCerts_ShouldThrowException_WhenOneCertificateFound()
+    public void GetLocalCerts_ShouldRequireBootstrap_WhenOneCertificateFound()
     {
         // Arrange
         var mockStore = new Mock<IX509Store>();
@@ -75,12 +75,15 @@ public class LocalCertTests
         var certCollection = new X509Certificate2Collection { cert1 };
         mockStore.Setup(s => s.Certificates).Returns(certCollection);
 
-        // Act & Assert
-        Assert.Throws<Exception>(() => new LocalCert(mockStore.Object));
+        // Act
+        var localCert = new LocalCert(mockStore.Object);
+
+        // Assert
+        Assert.True(localCert.RequiresBootstrap);
     }
 
     [Fact]
-    public void GetLocalCerts_ShouldThrowException_WhenCertificatesHaveWrongSubject()
+    public void GetLocalCerts_ShouldRequireBootstrap_WhenCertificatesHaveWrongSubject()
     {
         // Arrange
         var mockStore = new Mock<IX509Store>();
@@ -94,19 +97,47 @@ public class LocalCertTests
         var certCollection = new X509Certificate2Collection { cert1, cert2 };
         mockStore.Setup(s => s.Certificates).Returns(certCollection);
 
-        // Act & Assert
-        Assert.Throws<Exception>(() => new LocalCert(mockStore.Object));
+        // Act
+        var localCert = new LocalCert(mockStore.Object);
+
+        // Assert
+        Assert.True(localCert.RequiresBootstrap);
     }
 
     [Fact]
-    public void GetLocalCerts_ShouldThrowException_WhenCertificatesNotFound()
+    public void GetLocalCerts_ShouldRequireBootstrap_WhenCertificatesNotFound()
     {
         // Arrange
         var mockStore = new Mock<IX509Store>();
         var certCollection = new X509Certificate2Collection();
         mockStore.Setup(s => s.Certificates).Returns(certCollection);
 
-        // Act & Assert
-        Assert.Throws<Exception>(() => new LocalCert(mockStore.Object));
+        // Act
+        var localCert = new LocalCert(mockStore.Object);
+
+        // Assert
+        Assert.True(localCert.RequiresBootstrap);
+    }
+
+    [Fact]
+    public void GetLocalCerts_ShouldNotRequireBootstrap_WhenCertificatesFound()
+    {
+        // Arrange
+        var mockStore = new Mock<IX509Store>();
+        var ecdsa1 = ECDsa.Create();
+        var req1 = new CertificateRequest("CN=dotnetperf.microsoft.com", ecdsa1, HashAlgorithmName.SHA256);
+        var cert1 = req1.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
+        var ecdsa2 = ECDsa.Create();
+        var req2 = new CertificateRequest("CN=dotnetperf.microsoft.com", ecdsa2, HashAlgorithmName.SHA256);
+        var cert2 = req2.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
+
+        var certCollection = new X509Certificate2Collection { cert1, cert2 };
+        mockStore.Setup(s => s.Certificates).Returns(certCollection);
+
+        // Act
+        var localCert = new LocalCert(mockStore.Object);
+
+        // Assert
+        Assert.False(localCert.RequiresBootstrap);
     }
 }

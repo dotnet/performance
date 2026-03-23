@@ -28,6 +28,7 @@ parameters:
   archType: ''                      # required -- Architecture of Helix machine
   osGroup: ''                       # required -- OS of Helix machine
   osSubGroup: ''                    # optional -- OS Subgroup of Helix machine
+  osDistro: ''                      # optional -- OS distribution (e.g. 'azurelinux', 'ubuntu'). Used to determine package manager.
   queue: ''                         # optional -- Helix queue to run on (required if logicalMachine is not set)
   logicalMachine: ''                # optional -- Type of Helix machine to use (required if queue is not set)
   channel: ''                       # optional -- .NET channel to test against (use channels). Ignored if channels or dotnetVersionLinks is non-empty
@@ -54,6 +55,7 @@ parameters:
   javascriptEngine: ''              # optional -- JavaScript engine to use
   iOSLlvmBuild: false               # optional -- Whether to build iOS with LLVM
   iOSStripSymbols: true            # optional -- Whether to strip symbols from the iOS build
+  machinePool: ''                   # optional -- Machine pool name (e.g. Pixel8, GalaxyA16, iPhone17)
   additionalSetupParameters: ''     # optional -- Additional arguments to pass to the script
   liveLibrariesBuildConfig: ''      # optional -- Build configuration when generating Core_Root for libraries
   crossBuild: false                 # optional -- Whether the Core_Root is being cross-compiled
@@ -129,6 +131,8 @@ jobs:
           value: 'py -3'
         ${{ else }}:
           value: 'python3'
+      - name: perfRepoBranch
+        value: $[ resources.repositories.${{ parameters.performanceRepoAlias }}.ref ]
       - ${{ each variable in parameters.variables }}:
         - ${{ variable }}
     steps:
@@ -161,10 +165,14 @@ jobs:
             - '--os-group ${{ parameters.osGroup }}'
             - ${{ if ne(parameters.osSubGroup, '') }}:
               - '--os-sub-group ${{ parameters.osSubGroup }}'
+            - ${{ if ne(parameters.osDistro, '') }}:
+              - '--os-distro ${{ parameters.osDistro }}'
             - ${{ if ne(parameters.queue, '') }}:
               - '--queue ${{ parameters.queue }}'
             - ${{ if ne(parameters.logicalMachine, '') }}:
               - '--logical-machine ${{ parameters.logicalMachine }}'
+            - ${{ if ne(parameters.machinePool, '') }}:
+              - '--machine-pool ${{ parameters.machinePool }}'
             - ${{ if or(ne(length(parameters.channels), 0), ne(length(parameters.dotnetVersionsLinks), 0)) }}:
               - '--performance-repo-ci'
               - '--channel $(_Channel)'
@@ -251,11 +259,11 @@ jobs:
               -TokensFilePath '$(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
           continueOnError: true
           condition: always()
-      - ${{ if eq(parameters.osGroup, 'ubuntu') }}:
+      - ${{ if eq(parameters.osGroup, 'linux') }}:
         - task: ShellScript@2
           displayName: Redact Logs
           inputs:
-            scriptPath: $(System.DefaultWorkingDirectory)/eng/performance/redact-logs.sh
-            args: '--input $(System.DefaultWorkingDirectory)/artifacts/log --version 1.0.11 --tokens-file $(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
+            scriptPath: $(System.DefaultWorkingDirectory)/performance/eng/performance/redact-logs.sh
+            args: '--input $(System.DefaultWorkingDirectory)/artifacts/log --version 1.0.11 --tokens-file $(System.DefaultWorkingDirectory)/performance/eng/BinlogSecretsRedactionFile.txt'
           continueOnError: true
           condition: always()
