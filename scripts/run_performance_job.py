@@ -434,14 +434,9 @@ def get_bdn_arguments(
     if runtime_type == "wasm":
         category_exclusions += ["NoInterpreter", "NoWASM", "NoMono"]
 
-        wasm_args = ["--expose_wasm"]
-        if javascript_engine == "v8":
-            wasm_args += ["--module"]
-
         assert javascript_engine_path is not None
         bdn_arguments += [
             "--wasmEngine", javascript_engine_path,
-            f"\\\"--wasmArgs={' '.join(wasm_args)}\\\"",
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
             "--wasmProcessTimeout", "20",
         ]
@@ -455,14 +450,9 @@ def get_bdn_arguments(
     if runtime_type == "wasm_coreclr":
         category_exclusions += ["NoWASM", "NoWasmCoreCLR", "NoMono"]
 
-        wasm_args = ["--expose_wasm"]
-        if javascript_engine == "v8":
-            wasm_args += ["--module"]
-
         assert javascript_engine_path is not None
         bdn_arguments += [
             "--wasmEngine", javascript_engine_path,
-            f"\\\"--wasmArgs={' '.join(wasm_args)}\\\"",
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
             "--buildTimeout", "1200",
             "--wasmProcessTimeout", "20"
@@ -733,6 +723,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
             args.runtime_flavor = "coreclr"
         else:
             raise Exception("iOS scenarios only support Mono and CoreCLR runtimes")
+
+    if args.run_kind == "micro" and args.runtime_type == "wasm_coreclr":
+        if not args.runtime_flavor:
+            args.runtime_flavor = "coreclr"
 
     branch = os.environ.get("BUILD_SOURCEBRANCH")
     cleaned_branch_name = "main"
