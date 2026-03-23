@@ -184,6 +184,7 @@ ex: C:\repos\performance;C:\repos\runtime
         androidinnerloopparser.add_argument('--framework', '-f', help='Target framework (e.g., net10.0-android)', dest='framework')
         androidinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', default='Debug')
         androidinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
+        androidinnerloopparser.add_argument('--package-name', help='Android package name for startup measurement (e.g. com.companyname.mauiandroidinnerloop)', dest='packagename')
         self.add_common_arguments(androidinnerloopparser)
 
         args = parser.parse_args()
@@ -216,6 +217,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.framework = args.framework
             self.configuration = args.configuration
             self.msbuildargs = args.msbuildargs or os.environ.get('PERFLAB_MSBUILD_ARGS', '')
+            self.packagename = args.packagename
 
         if self.testtype == const.DEVICESTARTUP:
             self.packagepath = args.packagepath
