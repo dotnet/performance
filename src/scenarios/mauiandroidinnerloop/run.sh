@@ -339,7 +339,7 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting startup measurement" >> "$LOGFILE"
 python3 test.py devicestartup \
     --device-type android \
     --package-name com.companyname.mauiandroidinnerloop \
-    --package-path "app/bin/Debug/$FRAMEWORK/com.companyname.mauiandroidinnerloop-Signed.apk" \
+    --package-path "app/bin/Debug/$FRAMEWORK/android-x64/com.companyname.mauiandroidinnerloop-Signed.apk" \
     --startup-iterations 5 \
     --disable-animations \
     --scenario-name "$SCENARIO_NAME - Startup" \
