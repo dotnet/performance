@@ -32,7 +32,13 @@ from subprocess import CalledProcessError
 
 
 def _measure_android_startup(packagename, trace_filepath, label):
-    """Launch Android app, measure startup time via 'am start-activity -W', and write to trace file.
+    """Launch Android app, measure startup time via logcat, and write to trace file.
+
+    Uses the same logcat-based approach as the DEVICESTARTUP handler: clears
+    logcat, launches the app with ``am start-activity -W``, force-stops the app,
+    then reads the "Displayed" timing from ActivityManager/ActivityTaskManager in
+    logcat.  Falls back to WaitTime from ``am start`` stdout if logcat doesn't
+    contain the expected timing line.
 
     This function is intentionally non-fatal: if any step fails (adb commands,
     activity resolution, time extraction), it logs a warning and returns
@@ -57,19 +63,43 @@ def _measure_android_startup(packagename, trace_filepath, label):
         start_result = RunCommand(start_cmd, verbose=True)
         start_result.run()
 
-        # Extract startup time from am start output.
-        # Prefer TotalTime (available on older Android), fall back to WaitTime
-        # (Android 14+ on Pixel 8 only reports WaitTime).
+        # Force stop the app before reading logcat — the timing is already
+        # recorded by ActivityManager once the first frame draws.
+        RunCommand(xharness_adb() + ['shell', 'am', 'force-stop', packagename], verbose=True).run()
+
+        # --- Primary: read startup time from logcat "Displayed" message ---
+        # The logcat line looks like:
+        #   ActivityTaskManager: Displayed com.pkg/.MainActivity: +241ms
+        #   ActivityTaskManager: Displayed com.pkg/.MainActivity: +2s500ms
+        retrieve_cmd = xharness_adb() + [
+            'shell',
+            f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
+        ]
+        retrieve_result = RunCommand(retrieve_cmd, verbose=True)
+        retrieve_result.run()
+
         startup_time = None
         time_source = None
-        for line in start_result.stdout.splitlines():
-            if 'TotalTime' in line:
-                parts = line.split(':')
-                if len(parts) >= 2:
-                    startup_time = parts[1].strip()
-                    time_source = 'TotalTime'
-                    break
+
+        dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
+        if dirty_capture:
+            capture_list = dirty_capture.group(1).split('s')
+            if len(capture_list) == 1:
+                # Only milliseconds, e.g. "+241ms" → "241"
+                startup_time = capture_list[0]
+            elif len(capture_list) == 2:
+                # Seconds and milliseconds, e.g. "+2s500ms" → "2500"
+                # zfill pads the ms portion to 3 digits (e.g. "50" → "050")
+                startup_time = "%s%s" % (capture_list[0], capture_list[1].zfill(3))
+            else:
+                getLogger().warning("Logcat time capture had unexpected format: %s" % dirty_capture.group(0))
+            if startup_time:
+                time_source = 'logcat'
+
+        # --- Fallback: WaitTime from am start stdout ---
         if startup_time is None:
+            getLogger().warning("Could not extract timing from logcat for %s, falling back to am start stdout" % label)
+            getLogger().warning("logcat output was: %s" % retrieve_result.stdout)
             for line in start_result.stdout.splitlines():
                 if 'WaitTime' in line:
                     parts = line.split(':')
@@ -81,20 +111,16 @@ def _measure_android_startup(packagename, trace_filepath, label):
         if startup_time:
             getLogger().info("%s startup %s: %s ms" % (label, time_source, startup_time))
         else:
-            getLogger().warning("Could not extract TotalTime or WaitTime from am start output for %s" % label)
+            getLogger().warning("Could not extract startup time from logcat or am start output for %s" % label)
             getLogger().warning("am start output was: %s" % start_result.stdout)
 
         # Write startup timing to trace file for DeviceTimeToMain parser.
-        # Always write as "TotalTime:" because the parser regex expects that
-        # key, regardless of whether we sourced it from TotalTime or WaitTime.
+        # Always write as "TotalTime:" because the parser regex expects that key.
         trace_dir = os.path.dirname(trace_filepath)
         os.makedirs(trace_dir, exist_ok=True)
         with open(trace_filepath, 'w') as f:
             if startup_time:
                 f.write('TotalTime: %s\n' % startup_time)
-
-        # Force stop the app
-        RunCommand(xharness_adb() + ['shell', 'am', 'force-stop', packagename], verbose=True).run()
 
     except Exception as e:
         getLogger().warning("Non-fatal: %s startup measurement failed: %s" % (label, e))
