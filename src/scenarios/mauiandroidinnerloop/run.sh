@@ -31,11 +31,6 @@ trap 'on_error $LINENO' ERR
 export DOTNET_ROOT="$HELIX_CORRELATION_PAYLOAD/dotnet"
 export PATH="$DOTNET_ROOT:$PATH"
 
-# CI packages are signed with internal certs not in the Helix machine trust store.
-# Disable signature verification entirely for workload install and restore.
-export DOTNET_NUGET_SIGNATURE_VERIFICATION=false
-export NUGET_CERT_REVOCATION_MODE=offline
-
 # === Discover Java SDK ===
 # Java 8 is pre-installed at /usr/lib/jvm/java-8-openjdk-amd64 on this queue.
 # NOTE: MAUI Android may require Java 11+ — if builds fail with Java version
@@ -77,19 +72,6 @@ fi
 if [ -n "$JAVA_HOME" ]; then
     export PATH="$JAVA_HOME/bin:$PATH"
 fi
-
-# Patch NuGet.config to accept CI-signed packages (NU3018 on Helix)
-python3 -c "
-import xml.etree.ElementTree as ET
-f = 'app/NuGet.config'
-tree = ET.parse(f)
-root = tree.getroot()
-config = root.find('config')
-if config is None:
-    config = ET.SubElement(root, 'config')
-ET.SubElement(config, 'add', key='signatureValidationMode', value='accept')
-tree.write(f, xml_declaration=True, encoding='utf-8')
-" >> "$LOGFILE" 2>&1
 
 echo "=== DIAGNOSTICS ===" | tee -a "$LOGFILE"
 echo "DOTNET_ROOT=$DOTNET_ROOT" | tee -a "$LOGFILE"

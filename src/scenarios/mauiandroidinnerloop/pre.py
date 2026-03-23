@@ -115,26 +115,15 @@ with MauiNuGetConfigContext(precommands.framework):
                     working_directory=sys.path[0],
                     no_restore=True)
 
-    # Copy the merged NuGet.config (which includes MAUI feed URLs) into the app
-    # directory so the Helix machine can find feeds during restore.
-    # MauiNuGetConfigContext temporarily merges MAUI feeds into the repo-root
-    # NuGet.config; we must copy it before the context manager restores the original.
+    # Copy the merged NuGet.config into the app directory. This file contains
+    # MAUI NuGet feed URLs added by MauiNuGetConfigContext. The Helix machine
+    # needs these feeds during restore, and we must copy before the context
+    # manager restores the original NuGet.config.
     repo_root = os.path.normpath(os.path.join(sys.path[0], '..', '..', '..'))
     repo_nuget_config = os.path.join(repo_root, 'NuGet.config')
     app_nuget_config = os.path.join(const.APPDIR, 'NuGet.config')
     shutil.copy2(repo_nuget_config, app_nuget_config)
     logger.info(f"Copied merged NuGet.config from {repo_nuget_config} to {app_nuget_config}")
-
-    # Disable NuGet signature validation for CI-signed packages (NU3018 on Helix)
-    import xml.etree.ElementTree as ET
-    tree = ET.parse(app_nuget_config)
-    root = tree.getroot()
-    config_elem = root.find('config')
-    if config_elem is None:
-        config_elem = ET.SubElement(root, 'config')
-    ET.SubElement(config_elem, 'add', key='signatureValidationMode', value='accept')
-    tree.write(app_nuget_config, xml_declaration=True, encoding='utf-8')
-    logger.info("Added signatureValidationMode=accept to NuGet.config for Helix CI packages")
 
     # Fix the .csproj to target only Android (remove iOS, MacCatalyst, Windows TFMs).
     # The MAUI template targets all platforms, but the Helix machine only has the Android SDK.
