@@ -25,7 +25,7 @@ namespace SveBenchmarks
         }
 
         [Params(15, 127, 527, 10015)]
-        public short Size;
+        public int Size;
 
         private short[] _input;
         private uint _output;
@@ -100,7 +100,7 @@ namespace SveBenchmarks
                 // Get the maximum element across the max vector.
                 short maxVal = AdvSimd.Arm64.MaxAcross(maxVec).ToScalar();
 
-                // Find the first occurence (min index) of the max value.
+                // Find the first occurrence (min index) of the max value.
                 Vector128<short> cmpIndex = AdvSimd.CompareEqual(maxVec, Vector128.Create(maxVal));
                 maxIdxVec = AdvSimd.BitwiseSelect(cmpIndex, maxIdxVec, Vector128.Create((short)-1));
                 short maxIdx = (short)AdvSimd.Arm64.MinAcross(maxIdxVec.AsUInt16()).ToScalar();
@@ -158,7 +158,7 @@ namespace SveBenchmarks
                 // Get the maximum element across the max vector.
                 short maxVal = Sve.MaxAcross(maxVec).ToScalar();
 
-                // Find the first occurence (min index) of the max value.
+                // Find the first occurrence (min index) of the max value.
                 Vector<short> pIndex = Sve.CompareEqual(maxVec, new Vector<short>(maxVal));
                 maxIdxVec = Sve.ConditionalSelect(pIndex, maxIdxVec, new Vector<short>(-1));
                 short maxIdx = (short)Sve.MinAcross((Vector<ushort>)maxIdxVec).ToScalar();
