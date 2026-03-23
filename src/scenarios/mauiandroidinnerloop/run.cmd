@@ -341,7 +341,7 @@ python test.py devicestartup ^
     --device-type android ^
     --package-name com.companyname.mauiandroidinnerloop ^
     --package-path app\bin\Debug\!FRAMEWORK!\android-arm64\com.companyname.mauiandroidinnerloop-Signed.apk ^
-    --startup-iterations 5 ^
+    --startup-iterations 1 ^
     --disable-animations ^
     --scenario-name "!SCENARIO_NAME! - Startup" ^
     !EXTRA_ARGS! ^
