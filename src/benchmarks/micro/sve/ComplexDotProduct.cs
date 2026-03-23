@@ -56,7 +56,7 @@ namespace SveBenchmarks
             int[] scalar = (int[])_output.Clone();
 
             // Check that the result is the same as scalar.
-            for (int i = 0; i < Size; i++)
+            for (int i = 0; i < Size * 2; i++)
             {
                 Debug.Assert(current[i] == scalar[i]);
             }
@@ -91,10 +91,10 @@ namespace SveBenchmarks
             {
 
                 // Helper function for calculating dot product.
-                Func<Vector128<int>, Vector128<int>, Vector128<int>, Vector128<int>,
-                     Vector128<int>, Vector128<int>, Vector128<int>, Vector128<int>,
-                     (Vector128<int>, Vector128<int>)> dotProduct = (a0, a1, a2, a3, b0, b1, b2, b3) => {
-
+                static (Vector128<int>, Vector128<int>) dotProduct(
+                    Vector128<int> a0, Vector128<int> a1, Vector128<int> a2, Vector128<int> a3,
+                    Vector128<int> b0, Vector128<int> b1, Vector128<int> b2, Vector128<int> b3)
+                {
                     Vector128<int> cr = Vector128<int>.Zero;
                     Vector128<int> ci = Vector128<int>.Zero;
 
@@ -110,7 +110,7 @@ namespace SveBenchmarks
                     ci = AdvSimd.MultiplyAdd(ci, a3, b2);
 
                     return (cr, ci);
-                };
+                }
 
                 int i = 0;
                 int lmt = Size - 16;
