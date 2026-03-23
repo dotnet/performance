@@ -325,6 +325,7 @@ python3 test.py androidinnerloop \
     --csproj-path app/MauiAndroidInnerLoop.csproj \
     --edit-src src/MainPage.xaml.cs \
     --edit-dest app/MainPage.xaml.cs \
+    --package-name com.companyname.mauiandroidinnerloop \
     -f "$FRAMEWORK" \
     -c Debug \
     --scenario-name "$SCENARIO_NAME" \
@@ -332,19 +333,6 @@ python3 test.py androidinnerloop \
     >> "$LOGFILE" 2>&1
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] test.py succeeded" >> "$LOGFILE" 2>&1
 echo "" >> "$LOGFILE" 2>&1
-
-# === STEP 4: Measure App Startup ===
-echo "=== STEP 4: Measure App Startup ===" | tee -a "$LOGFILE"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting startup measurement" >> "$LOGFILE" 2>&1
-python3 test.py devicestartup \
-    --device-type android \
-    --package-name com.companyname.mauiandroidinnerloop \
-    --package-path "app/bin/Debug/$FRAMEWORK/android-x64/com.companyname.mauiandroidinnerloop-Signed.apk" \
-    --startup-iterations 1 \
-    --disable-animations \
-    --scenario-name "$SCENARIO_NAME - Startup" \
-    "${EXTRA_ARGS[@]}" \
-    >> "$LOGFILE" 2>&1
 
 echo "=== ALL STEPS SUCCEEDED ===" | tee -a "$LOGFILE"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Complete" >> "$LOGFILE" 2>&1

@@ -327,30 +327,19 @@ REM runner.py reads PERFLAB_MSBUILD_ARGS as fallback when --msbuild-args is empt
 set "PERFLAB_MSBUILD_ARGS=!MSBUILD_ARGS!"
 echo PERFLAB_MSBUILD_ARGS=!PERFLAB_MSBUILD_ARGS! >> "!LOGFILE!" 2>&1
 
-python test.py androidinnerloop --csproj-path app\MauiAndroidInnerLoop.csproj --edit-src src\MainPage.xaml.cs --edit-dest app\MainPage.xaml.cs -f !FRAMEWORK! -c Debug --scenario-name "!SCENARIO_NAME!" !EXTRA_ARGS! >> "!LOGFILE!" 2>&1
+python test.py androidinnerloop ^
+    --csproj-path app\MauiAndroidInnerLoop.csproj ^
+    --edit-src src\MainPage.xaml.cs ^
+    --edit-dest app\MainPage.xaml.cs ^
+    --package-name com.companyname.mauiandroidinnerloop ^
+    -f !FRAMEWORK! -c Debug ^
+    --scenario-name "!SCENARIO_NAME!" ^
+    !EXTRA_ARGS! >> "!LOGFILE!" 2>&1
 if errorlevel 1 (
     echo [!DATE! !TIME!] STEP 3 FAILED with errorlevel !errorlevel!
     echo [!DATE! !TIME!] STEP 3 FAILED with errorlevel !errorlevel! >> "!LOGFILE!" 2>&1
     type "!LOGFILE!"
     exit /b 3
-)
-
-echo === STEP 4: Measure App Startup === >> "!LOGFILE!" 2>&1
-echo [!DATE! !TIME!] Starting startup measurement >> "!LOGFILE!" 2>&1
-python test.py devicestartup ^
-    --device-type android ^
-    --package-name com.companyname.mauiandroidinnerloop ^
-    --package-path app\bin\Debug\!FRAMEWORK!\android-arm64\com.companyname.mauiandroidinnerloop-Signed.apk ^
-    --startup-iterations 1 ^
-    --disable-animations ^
-    --scenario-name "!SCENARIO_NAME! - Startup" ^
-    !EXTRA_ARGS! ^
-    >> "!LOGFILE!" 2>&1
-if errorlevel 1 (
-    echo [!DATE! !TIME!] STEP 4 FAILED ^(devicestartup^) with errorlevel !errorlevel!
-    echo [!DATE! !TIME!] STEP 4 FAILED ^(devicestartup^) with errorlevel !errorlevel! >> "!LOGFILE!" 2>&1
-    type "!LOGFILE!"
-    exit /b 4
 )
 
 echo === ALL STEPS SUCCEEDED ===

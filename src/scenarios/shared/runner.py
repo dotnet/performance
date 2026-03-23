@@ -1081,7 +1081,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     "metricName": "ms",
                     "results": [startup_ms]
                 }
-                # Report structure: [ { "tests": [ { "counters": [...] } ] } ]
+                # Report structure: { "tests": [ { "counters": [...] } ] }
                 report["tests"][0]["counters"].append(startup_counter)
                 with open(final_report_path, 'w') as f:
                     json.dump(report, f, indent=2)
