@@ -130,6 +130,7 @@ namespace SveBenchmarks
                     }
 
                     // Handle remaining elements in scalar.
+                    if (j == 0) j = 1;
                     for (; j < n; j += 2)
                     {
                         if (source[j - 1] > source[j])
