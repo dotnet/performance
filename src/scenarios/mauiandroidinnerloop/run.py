@@ -466,10 +466,10 @@ def _dump_log():
 
 
 # ---------------------------------------------------------------------------
-# Main
+# Orchestration functions
 # ---------------------------------------------------------------------------
-def main():
-    # --- Parse CLI args ---
+def parse_args():
+    """Parse CLI arguments and return a dict."""
     if len(sys.argv) < 4:
         print(
             f"Usage: {sys.argv[0]} FRAMEWORK MSBUILD_ARGS SCENARIO_NAME "
@@ -477,26 +477,24 @@ def main():
             file=sys.stderr,
         )
         sys.exit(1)
+    return {
+        "framework": sys.argv[1],
+        "msbuild_args": sys.argv[2],
+        "scenario_name": sys.argv[3],
+        "extra_args": sys.argv[4:],
+    }
 
-    framework = sys.argv[1]
-    msbuild_args = sys.argv[2]
-    scenario_name = sys.argv[3]
-    extra_args = sys.argv[4:]
 
-    # --- Open log file ---
+def setup_logging():
+    """Open the output log file."""
     _open_logfile()
 
-    workitem_root = os.environ.get("HELIX_WORKITEM_ROOT", ".")
-    correlation_payload = os.environ.get("HELIX_CORRELATION_PAYLOAD", ".")
 
-    # === DIAGNOSTICS ===
+def print_diagnostics():
+    """Log essential environment variables and tool locations."""
     log_raw("=== DIAGNOSTICS ===", tee=True)
-    log_raw(f"DOTNET_ROOT={os.environ.get('DOTNET_ROOT', '')}")
-    log_raw(f"ANDROID_HOME={os.environ.get('ANDROID_HOME', '')}")
-    log_raw(f"ANDROID_SDK_ROOT={os.environ.get('ANDROID_SDK_ROOT', '')}")
-    log_raw(f"NUGET_PACKAGES={os.environ.get('NUGET_PACKAGES', '')}")
-    log_raw(f"PYTHONPATH={os.environ.get('PYTHONPATH', '')}")
-
+    for var in ("DOTNET_ROOT", "ANDROID_HOME", "ANDROID_SDK_ROOT", "NUGET_PACKAGES"):
+        log_raw(f"{var}={os.environ.get(var, '')}")
     which_cmd = "where" if IS_WINDOWS else "which"
     python_name = "python" if IS_WINDOWS else "python3"
     for tool in ["adb", "dotnet", python_name]:
@@ -504,39 +502,46 @@ def main():
     run_cmd(["dotnet", "--version"], check=False)
     log_raw("")
 
-    # === Override DOTNET_ROOT ===
-    # ci_setup.py installs the .NET SDK into $HELIX_CORRELATION_PAYLOAD/dotnet
-    # but DOTNET_ROOT may point to a different (older) SDK.  Override.
+
+def setup_dotnet(correlation_payload):
+    """Override DOTNET_ROOT to use the SDK from the correlation payload.
+
+    ci_setup.py installs the .NET SDK into $HELIX_CORRELATION_PAYLOAD/dotnet
+    but DOTNET_ROOT may point to a different (older) SDK.  Override it.
+
+    Returns the path to the dotnet executable.
+    """
     dotnet_root = os.path.join(correlation_payload, "dotnet")
     os.environ["DOTNET_ROOT"] = dotnet_root
     os.environ["PATH"] = dotnet_root + os.pathsep + os.environ.get("PATH", "")
     dotnet_exe = os.path.join(dotnet_root, f"dotnet{EXE}")
-
-    log_raw("=== SDK after DOTNET_ROOT override ===")
-    log_raw(f"DOTNET_ROOT={dotnet_root}")
+    log(f"DOTNET_ROOT={dotnet_root}")
     run_cmd([dotnet_exe, "--version"], check=False)
     log_raw("")
+    return dotnet_exe
 
-    # === Java SDK Setup ===
+
+def setup_java():
+    """Find or download a Java SDK and set JAVA_HOME."""
     log_raw("=== Java SDK Setup ===")
     find_java()
     if not IS_WINDOWS:
         run_cmd(["java", "-version"], check=False)
     log_raw("")
 
-    # =================================================================
-    # STEP 1: Workload Install
-    # =================================================================
+
+def install_workload(ctx):
+    """Step 1: Install the maui-android workload and run workload restore.
+
+    Exits with code 1 on failure.
+    """
     log_raw("=== STEP 1: Workload Install ===", tee=True)
-    log("Starting workload install")
-    nuget_config = os.path.join(workitem_root, "app", "NuGet.config")
-    csproj = os.path.join(workitem_root, "app", "MauiAndroidInnerLoop.csproj")
     result = run_cmd(
         [
-            dotnet_exe, "workload", "install", "maui-android",
+            ctx["dotnet_exe"], "workload", "install", "maui-android",
             "--from-rollback-file",
-            os.path.join(workitem_root, "rollback_maui.json"),
-            "--configfile", nuget_config,
+            os.path.join(ctx["workitem_root"], "rollback_maui.json"),
+            "--configfile", ctx["nuget_config"],
         ],
         check=False,
     )
@@ -546,12 +551,10 @@ def main():
         sys.exit(1)
     log("Workload install succeeded")
 
-    # dotnet workload restore — reads the .csproj and installs any implicit
-    # workload dependencies (non-fatal on failure).
-    log("Running dotnet workload restore")
-    log_raw(f"dotnet workload restore {csproj} --configfile {nuget_config}")
+    # workload restore — installs implicit workload deps (non-fatal)
     result = run_cmd(
-        [dotnet_exe, "workload", "restore", csproj, "--configfile", nuget_config],
+        [ctx["dotnet_exe"], "workload", "restore", ctx["csproj"],
+         "--configfile", ctx["nuget_config"]],
         check=False,
     )
     if result.returncode != 0:
@@ -561,10 +564,13 @@ def main():
         log("Workload restore succeeded")
     log_raw("")
 
-    # =================================================================
-    # Set up ANDROID_HOME from XHarness bundled ADB
-    # =================================================================
-    log_raw("=== Setting up Android SDK ===")
+
+def _setup_xharness_adb(correlation_payload, workitem_root):
+    """Copy ADB from XHarness into a local android-sdk directory.
+
+    Sets ANDROID_HOME, ANDROID_SDK_ROOT, and prepends platform-tools to PATH.
+    Returns the android_home path.
+    """
     xharness_base = os.path.join(
         correlation_payload, "microsoft.dotnet.xharness.cli"
     )
@@ -597,7 +603,6 @@ def main():
         log(f"Copied ADB from XHarness: {adb_src}")
     else:
         log(f"WARNING: XHarness ADB directory not found at {adb_src}")
-        log(f"XHARNESS_DIR={xharness_dir}")
         if os.path.isdir(xharness_base):
             log_raw(f"Contents of {xharness_base}:")
             for item in os.listdir(xharness_base):
@@ -606,23 +611,18 @@ def main():
     os.environ["ANDROID_HOME"] = android_home
     os.environ["ANDROID_SDK_ROOT"] = android_home
     os.environ["PATH"] = platform_tools + os.pathsep + os.environ.get("PATH", "")
-    log(f"XHARNESS_DIR={xharness_dir}")
-    log(f"ADB_SRC={adb_src}")
     log(f"ANDROID_HOME={android_home}")
-    run_cmd([which_cmd, "adb"], check=False)
-    log_raw("")
+    return android_home
 
-    # =================================================================
-    # Android Build-Tools Setup (aapt2, zipalign)
-    # =================================================================
-    log_raw("=== Android Build-Tools Setup ===")
+
+def _download_build_tools(android_home, workitem_root):
+    """Download and install Android SDK Build-Tools (aapt2, zipalign)."""
     build_tools_dir = os.path.join(
         android_home, "build-tools", BUILD_TOOLS_VERSION
     )
     bt_zip = os.path.join(workitem_root, "build-tools.zip")
     bt_extract = os.path.join(workitem_root, "build-tools-extract")
 
-    log("Downloading Android SDK Build-Tools from Google...")
     try:
         download(BUILD_TOOLS_URL, bt_zip)
         extract_zip(bt_zip, bt_extract)
@@ -630,51 +630,35 @@ def main():
     except Exception as e:
         log(f"ERROR: Failed to set up Build-Tools: {e}")
         log("Build will likely fail with XA5205.")
+        return
 
-    aapt2 = os.path.join(build_tools_dir, f"aapt2{EXE}")
-    zipalign_bin = os.path.join(build_tools_dir, f"zipalign{EXE}")
+    for tool_name in ("aapt2", "zipalign"):
+        tool_path = os.path.join(build_tools_dir, f"{tool_name}{EXE}")
+        if os.path.isfile(tool_path):
+            _chmod_exec(tool_path)
+            log(f"{tool_name} found at {tool_path}")
+        else:
+            log(f"WARNING: {tool_name} NOT found. Build may fail.")
 
-    if os.path.isfile(aapt2):
-        _chmod_exec(aapt2)
-        log(f"aapt2 found at {aapt2}")
-    else:
-        log("WARNING: aapt2 NOT found. Build will likely fail with XA5205.")
-
-    if os.path.isfile(zipalign_bin):
-        _chmod_exec(zipalign_bin)
-        log(f"zipalign found at {zipalign_bin}")
-    else:
-        log("WARNING: zipalign NOT found. Build may fail.")
-
-    # chmod +x all binaries on Linux (matches run.sh behavior)
+    # Ensure all binaries are executable on Linux
     if not IS_WINDOWS and os.path.isdir(build_tools_dir):
         for item in os.listdir(build_tools_dir):
-            fpath = os.path.join(build_tools_dir, item)
-            if os.path.isfile(fpath):
-                _chmod_exec(fpath)
+            _chmod_exec(os.path.join(build_tools_dir, item))
 
-    if os.path.isdir(build_tools_dir):
-        log_raw("Build-Tools directory contents:")
-        for item in os.listdir(build_tools_dir):
-            log_raw(f"  {item}")
-    log_raw("")
 
-    # =================================================================
-    # Android Platforms (android.jar) Setup
-    # =================================================================
-    log_raw("=== Android Platforms (android.jar) Setup ===")
+def _download_platform(android_home, workitem_root):
+    """Download and install the Android SDK Platform (android.jar)."""
     platform_dir = os.path.join(android_home, "platforms", PLATFORM_VERSION)
     plat_zip = os.path.join(workitem_root, "platform.zip")
     plat_extract = os.path.join(workitem_root, "platform-extract")
 
-    log("Downloading Android SDK Platform from Google...")
     try:
         download(PLATFORM_URL, plat_zip)
         extract_zip(plat_zip, plat_extract)
         move_inner_contents(plat_extract, platform_dir)
     except Exception as e:
         log(f"ERROR: Failed to set up Android Platform: {e}")
-        log("Build will likely fail.")
+        return
 
     android_jar = os.path.join(platform_dir, "android.jar")
     if os.path.isfile(android_jar):
@@ -683,35 +667,32 @@ def main():
         log(f"WARNING: android.jar NOT found at {android_jar}. "
             f"Build will likely fail.")
 
-    if os.path.isdir(platform_dir):
-        log_raw("Platform directory contents:")
-        for item in os.listdir(platform_dir):
-            log_raw(f"  {item}")
+
+def setup_android_sdk(ctx):
+    """Set up ANDROID_HOME with XHarness ADB, Build-Tools, and Platform."""
+    log_raw("=== Setting up Android SDK ===")
+    ctx["android_home"] = _setup_xharness_adb(
+        ctx["correlation_payload"], ctx["workitem_root"]
+    )
+    _download_build_tools(ctx["android_home"], ctx["workitem_root"])
+    _download_platform(ctx["android_home"], ctx["workitem_root"])
     log_raw("")
 
-    # =================================================================
-    # ADB Device Setup
-    # =================================================================
-    log_raw("=== ADB DEVICE SETUP ===")
-    log("ADB diagnostics starting")
-    log_raw(f"ANDROID_HOME={android_home}")
-    log_raw(f"PATH={os.environ.get('PATH', '')}")
 
-    log_raw("--- ADB binary info ---")
-    run_cmd([which_cmd, "adb"], check=False)
+def setup_adb_device(ctx):
+    """Restart ADB server, list devices, and run platform-specific setup."""
+    log_raw("=== ADB DEVICE SETUP ===")
     run_cmd(["adb", "version"], check=False)
 
-    log("Killing existing ADB server...")
+    log("Restarting ADB server...")
     run_cmd(["adb", "kill-server"], check=False)
-
-    log("Starting fresh ADB server...")
     run_cmd(["adb", "start-server"], check=False)
 
     log("Initial device listing:")
     run_cmd(["adb", "devices", "-l"], check=False)
 
     if IS_WINDOWS:
-        _setup_adb_windows(android_home)
+        _setup_adb_windows(ctx["android_home"])
     else:
         _setup_adb_linux()
 
@@ -719,18 +700,20 @@ def main():
     run_cmd(["adb", "devices", "-l"], check=False)
     log_raw("")
 
-    # =================================================================
-    # STEP 2: Restore
-    # =================================================================
+
+def restore_packages(ctx):
+    """Step 2: Restore NuGet packages.
+
+    Exits with code 2 on failure.
+    """
     log_raw("=== STEP 2: Restore ===", tee=True)
-    log("Starting restore")
     restore_args = [
-        dotnet_exe, "restore", csproj,
-        "--configfile", nuget_config,
-        f"/p:TargetFrameworks={framework}",
+        ctx["dotnet_exe"], "restore", ctx["csproj"],
+        "--configfile", ctx["nuget_config"],
+        f"/p:TargetFrameworks={ctx['framework']}",
     ]
-    if msbuild_args:
-        restore_args.extend(msbuild_args.split())
+    if ctx["msbuild_args"]:
+        restore_args.extend(ctx["msbuild_args"].split())
     result = run_cmd(restore_args, check=False)
     if result.returncode != 0:
         log(f"STEP 2 FAILED with exit code {result.returncode}", tee=True)
@@ -739,17 +722,19 @@ def main():
     log("Restore succeeded")
     log_raw("")
 
-    # =================================================================
-    # STEP 3: Test
-    # =================================================================
+
+def run_test(ctx):
+    """Step 3: Run test.py for the inner-loop measurement.
+
+    Exits with code 3 on failure.
+    """
     log_raw("=== STEP 3: Test ===", tee=True)
-    log("Starting test.py")
 
     # Pass MSBuild args via environment variable to avoid shell quoting
     # issues.  runner.py reads PERFLAB_MSBUILD_ARGS as a fallback when
     # --msbuild-args is empty.
-    os.environ["PERFLAB_MSBUILD_ARGS"] = msbuild_args
-    log(f"PERFLAB_MSBUILD_ARGS={msbuild_args}")
+    os.environ["PERFLAB_MSBUILD_ARGS"] = ctx["msbuild_args"]
+    log(f"PERFLAB_MSBUILD_ARGS={ctx['msbuild_args']}")
 
     test_cmd = [
         sys.executable, "test.py", "androidinnerloop",
@@ -757,10 +742,10 @@ def main():
         "--edit-src", os.path.join("src", "MainPage.xaml.cs"),
         "--edit-dest", os.path.join("app", "MainPage.xaml.cs"),
         "--package-name", "com.companyname.mauiandroidinnerloop",
-        "-f", framework,
+        "-f", ctx["framework"],
         "-c", "Debug",
-        "--scenario-name", scenario_name,
-    ] + extra_args
+        "--scenario-name", ctx["scenario_name"],
+    ] + ctx["extra_args"]
 
     result = run_cmd(test_cmd, check=False)
     if result.returncode != 0:
@@ -770,8 +755,39 @@ def main():
     log("test.py succeeded")
     log_raw("")
 
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+def main():
+    args = parse_args()
+    setup_logging()
+
+    workitem_root = os.environ.get("HELIX_WORKITEM_ROOT", ".")
+    correlation_payload = os.environ.get("HELIX_CORRELATION_PAYLOAD", ".")
+
+    ctx = {
+        "framework": args["framework"],
+        "msbuild_args": args["msbuild_args"],
+        "scenario_name": args["scenario_name"],
+        "extra_args": args["extra_args"],
+        "workitem_root": workitem_root,
+        "correlation_payload": correlation_payload,
+        "nuget_config": os.path.join(workitem_root, "app", "NuGet.config"),
+        "csproj": os.path.join(workitem_root, "app", "MauiAndroidInnerLoop.csproj"),
+    }
+
+    print_diagnostics()
+    ctx["dotnet_exe"] = setup_dotnet(correlation_payload)
+    setup_java()
+
+    install_workload(ctx)      # Step 1
+    setup_android_sdk(ctx)     # XHarness ADB + Build-Tools + Platform
+    setup_adb_device(ctx)      # Device detection / emulator wait
+    restore_packages(ctx)      # Step 2
+    run_test(ctx)              # Step 3
+
     log_raw("=== ALL STEPS SUCCEEDED ===", tee=True)
-    log("Complete")
     _dump_log()
 
 
