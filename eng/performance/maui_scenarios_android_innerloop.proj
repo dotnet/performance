@@ -26,15 +26,21 @@
     <!-- CoreCLR NativeAOT -->
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs) /p:PublishAot=true</_MSBuildArgs>
 
+    <!-- Avoids build failures when IL trimmer pruning data is missing for newer Android workloads -->
     <_MSBuildArgs>$(_MSBuildArgs) /p:AllowMissingPrunePackageData=true</_MSBuildArgs>
 
-    <!-- Windows targets physical Pixel 8 (ARM64); Linux targets x86_64 emulator -->
+    <!-- Windows targets physical Pixel 8 (ARM64); Linux targets x86_64 emulator.
+         If Linux is also used for physical device runs in the future, this will need
+         a separate condition (e.g., a new DeviceType property) instead of TargetsWindows. -->
     <_MSBuildArgs Condition="'$(TargetsWindows)' == 'true'">$(_MSBuildArgs) /p:RuntimeIdentifier=android-arm64</_MSBuildArgs>
     <_MSBuildArgs Condition="'$(TargetsWindows)' != 'true'">$(_MSBuildArgs) /p:RuntimeIdentifier=android-x64</_MSBuildArgs>
 
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
   </PropertyGroup>
 
+  <!-- Remove .NET SDK packs from the Helix correlation payload to reduce transfer size.
+       The workload packs (~1-2 GB) are restored on the Helix machine during the run step,
+       so shipping them in the payload is unnecessary and slows down payload upload. -->
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
     <Message Text="Removing Dotnet Packs from Correlation Staging" Importance="high" />
     <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" Condition="'$(TargetsWindows)' == 'true'" />
@@ -43,7 +49,7 @@
 
   <ItemDefinitionGroup>
     <HelixWorkItem>
-      <Timeout>02:00</Timeout>
+      <Timeout>01:00</Timeout>
     </HelixWorkItem>
   </ItemDefinitionGroup>
 
@@ -70,7 +76,7 @@
 
   <!-- Windows device track: runs on Windows.11.Amd64.Pixel.Perf via run.cmd -->
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
-    <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Deploy - %(Identity)')">
+    <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Device - %(Identity)')">
       <PreCommands>set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages</PreCommands>
       <Command>run.cmd $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>python post.py</PostCommands>
@@ -80,7 +86,7 @@
 
   <!-- Linux emulator track: runs on Ubuntu.2204.Amd64.Android.29 via run.sh -->
   <ItemGroup Condition="'$(TargetsWindows)' != 'true'">
-    <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Deploy Emulator - %(Identity)')">
+    <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Emulator - %(Identity)')">
       <PreCommands>export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages</PreCommands>
       <Command>bash run.sh $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>python3 post.py</PostCommands>

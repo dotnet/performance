@@ -15,13 +15,18 @@ from shared.mauisharedpython import extract_latest_dotnet_feed_from_nuget_config
 from shared.precommands import PreCommands
 from test import EXENAME
 
-def install_maui_android(precommands: PreCommands):
+def install_maui_android_workload(precommands: PreCommands):
     '''
     Install the maui-android workload (not the full 'maui' workload).
     The full 'maui' workload includes iOS/macOS/Windows components that aren't
     available on Linux. Since this scenario only needs Android, 'maui-android'
     is sufficient and works on both Windows and Linux.
     '''
+    # Why this is complex: we can't simply run `dotnet workload install maui-android`
+    # because that would install the latest public version, which may not match the
+    # SDK version being tested. Instead, we resolve the exact workload manifest version
+    # from the NuGet feed that matches our SDK, create a rollback file pinning that
+    # version, and install using --from-rollback-file.
     logger.info("########## Installing maui-android workload ##########")
 
     if precommands.has_workload:
@@ -103,7 +108,7 @@ logger.info("Starting pre-command for MAUI Android deploy measurement")
 precommands = PreCommands()
 
 with MauiNuGetConfigContext(precommands.framework):
-    install_maui_android(precommands)
+    install_maui_android_workload(precommands)
     precommands.print_dotnet_info()
 
     # Create template without restoring packages — packages will be restored

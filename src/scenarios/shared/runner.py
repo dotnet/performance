@@ -32,7 +32,6 @@ from subprocess import CalledProcessError
 
 
 
-
 class Runner:
     '''
     Wrapper for running all the things
@@ -1005,6 +1004,7 @@ ex: C:\repos\performance;C:\repos\runtime
             from performance.common import runninginlab
             from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
             from shared.util import helixuploaddir
+            import upload
 
             if not self.csprojpath:
                 raise Exception("For Android inner loop measurements, --csproj-path must be provided.")
@@ -1016,6 +1016,10 @@ ex: C:\repos\performance;C:\repos\runtime
             incremental_binlog = os.path.join(const.TRACEDIR, 'incremental-deploy.binlog')
 
             # Build the base MSBuild command
+            # NOTE: The performance repo normally sets UseSharedCompilation=false (see dotnet.py,
+            # ci_setup.py, init.sh), but we intentionally omit it here. The MAUI SDK defaults to
+            # UseSharedCompilation=true, and since inner loop measurements aim to replicate real
+            # developer build timing, we keep the MAUI SDK default.
             base_cmd = ['dotnet', 'build', self.csprojpath, '-t:Install']
             if self.configuration:
                 base_cmd.extend(['-c', self.configuration])
@@ -1088,9 +1092,9 @@ ex: C:\repos\performance;C:\repos\runtime
                     json.dump(report, f, indent=2)
                 getLogger().info("Merged report written to: %s" % final_report_path)
 
-            # Step 1: First full deploy
+            # Step 1: First build+deploy
             first_cmd = base_cmd + [f'-bl:{first_binlog}']
-            getLogger().info("First deploy: %s" % ' '.join(first_cmd))
+            getLogger().info("First build+deploy: %s" % ' '.join(first_cmd))
             subprocess.run(first_cmd, check=True)
 
             # Resolve the Android activity name for startup measurement (must happen after install)
@@ -1117,12 +1121,12 @@ ex: C:\repos\performance;C:\repos\runtime
 
             # Step 3: Parse first deploy binlog → temp build metrics
             startup = StartupWrapper()
-            first_build_report = os.path.join(const.TRACEDIR, 'first-deploy-build-perf-lab-report.json')
+            first_build_report = os.path.join(const.TRACEDIR, 'first-build-and-deploy-perf-lab-report.json')
             startup.reportjson = first_build_report
             saved_upload = self.traits.upload_to_perflab_container
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP,
                                    tracename='first-deploy.binlog',
-                                   scenarioname=scenarioprefix + " - Initial Deploy",
+                                   scenarioname=scenarioprefix + " - First Build and Deploy",
                                    upload_to_perflab_container=False)
             startup.parsetraces(self.traits)
 
@@ -1133,28 +1137,28 @@ ex: C:\repos\performance;C:\repos\runtime
             else:
                 getLogger().warning("No edit-src/edit-dest specified; incremental deploy will be a no-change rebuild")
 
-            # Step 5: Incremental deploy
+            # Step 5: Incremental build and deploy
             incremental_cmd = base_cmd + [f'-bl:{incremental_binlog}']
-            getLogger().info("Incremental deploy: %s" % ' '.join(incremental_cmd))
+            getLogger().info("Incremental build and deploy: %s" % ' '.join(incremental_cmd))
             subprocess.run(incremental_cmd, check=True)
 
             # Step 6: Measure startup after incremental deploy
             incremental_startup_ms = measure_startup()
 
-            # Step 7: Parse incremental deploy binlog → temp build metrics
+            # Step 7: Parse incremental build+deploy binlog → temp build metrics
             incremental_build_report = os.path.join(const.TRACEDIR, 'incremental-deploy-build-perf-lab-report.json')
             startup.reportjson = incremental_build_report
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP,
                                    tracename='incremental-deploy.binlog',
-                                   scenarioname=scenarioprefix + " - Inner Loop",
+                                   scenarioname=scenarioprefix + " - Incremental Build and Deploy",
                                    upload_to_perflab_container=False)
             startup.parsetraces(self.traits)
 
-            # Step 8: Merge build metrics + startup time → final reports
-            initial_final_report = os.path.join(const.TRACEDIR, 'initial-debug-e2e-perf-lab-report.json')
-            incremental_final_report = os.path.join(const.TRACEDIR, 'incremental-debug-e2e-perf-lab-report.json')
-            merge_build_and_startup(first_build_report, first_startup_ms, initial_final_report)
-            merge_build_and_startup(incremental_build_report, incremental_startup_ms, incremental_final_report)
+            # Step 8: Merge build metrics + startup time → e2e reports
+            first_e2e_report = os.path.join(const.TRACEDIR, 'first-build-and-deploy-e2e-perf-lab-report.json')
+            incremental_e2e_report = os.path.join(const.TRACEDIR, 'incremental-build-and-deploy-e2e-perf-lab-report.json')
+            merge_build_and_startup(first_build_report, first_startup_ms, first_e2e_report)
+            merge_build_and_startup(incremental_build_report, incremental_startup_ms, incremental_e2e_report)
 
             # Clean up intermediate build-only reports so they don't get uploaded.
             # Remove from TRACEDIR first, then also from the Helix upload dir
@@ -1177,8 +1181,7 @@ ex: C:\repos\performance;C:\repos\runtime
             if runninginlab() and helix_upload_dir is not None:
                 copytree(const.TRACEDIR, os.path.join(helix_upload_dir, 'traces'), dirs_exist_ok=True)
                 if self.traits.upload_to_perflab_container:
-                    import upload
-                    for report_path in [initial_final_report, incremental_final_report]:
+                    for report_path in [first_e2e_report, incremental_e2e_report]:
                         upload_code = upload.upload(report_path, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
                         getLogger().info("Upload code for %s: %s" % (os.path.basename(report_path), upload_code))
                         if upload_code != 0:
