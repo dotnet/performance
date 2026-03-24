@@ -127,8 +127,17 @@ def _zip_download(branch: str, repo_dir: str):
 
     os.makedirs(repo_dir, exist_ok=True)
 
-    # Directories to extract (sparse checkout equivalent + root-level files)
+    # Directories to extract (sparse checkout equivalent + root-level files).
+    # Also include files directly in parent directories of sparse dirs
+    # (e.g. src/MultiTargeting.targets, src/PublicAPI.targets) since git
+    # sparse-checkout includes parent-level files automatically.
     sparse_prefixes = [d.rstrip('/') + '/' for d in MAUI_SPARSE_CHECKOUT_DIRS]
+    parent_dirs = set()
+    for d in MAUI_SPARSE_CHECKOUT_DIRS:
+        parts = d.strip('/').split('/')
+        for i in range(1, len(parts)):
+            parent_dirs.add('/'.join(parts[:i]) + '/')
+    parent_dirs = list(parent_dirs)  # e.g. ['src/']
 
     with zipfile.ZipFile(zip_path) as zf:
         # GitHub archives have a top-level dir like "maui-net11.0/"
@@ -141,11 +150,16 @@ def _zip_download(branch: str, repo_dir: str):
             if not rel_path:
                 continue
 
-            # Include root-level files and our sparse directories
+            # Include: root-level files, sparse directories, and files
+            # directly in parent directories (not recursing into subdirs)
             is_root_file = '/' not in rel_path
             in_sparse_dir = any(rel_path.startswith(p) for p in sparse_prefixes)
+            in_parent_dir = any(
+                rel_path.startswith(p) and '/' not in rel_path[len(p):]
+                for p in parent_dirs
+            )
 
-            if not is_root_file and not in_sparse_dir:
+            if not is_root_file and not in_sparse_dir and not in_parent_dir:
                 continue
 
             target = os.path.join(repo_dir, rel_path)
