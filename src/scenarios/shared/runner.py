@@ -31,7 +31,6 @@ from shared.testtraits import TestTraits, testtypes
 from subprocess import CalledProcessError
 
 
-
 class Runner:
     '''
     Wrapper for running all the things
@@ -1146,7 +1145,7 @@ ex: C:\repos\performance;C:\repos\runtime
             incremental_startup_ms = measure_startup()
 
             # Step 7: Parse incremental build+deploy binlog → temp build metrics
-            incremental_build_report = os.path.join(const.TRACEDIR, 'incremental-deploy-build-perf-lab-report.json')
+            incremental_build_report = os.path.join(const.TRACEDIR, 'incremental-build-and-deploy-perf-lab-report.json')
             startup.reportjson = incremental_build_report
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP,
                                    tracename='incremental-deploy.binlog',

@@ -3,9 +3,10 @@
   <Import Project="Scenarios.Common.props" />
   <!-- TODO: Scenarios.Common.props sets HelixResultsDestinationDir to a path under
        CorrelationPayloadDirectory, which is cleaned up after SendToHelix. As a result,
-       output.log downloaded via DownloadFilesFromResults won't appear in published
-       pipeline artifacts. A future fix should override HelixResultsDestinationDir to
-       a path under ArtifactStagingDirectory that the pipeline's "Gather logs" step publishes. -->
+       this file's DownloadFilesFromResults artifacts (e.g., output.log) may not appear
+       in published pipeline artifacts. A future fix should override
+       HelixResultsDestinationDir to a path under ArtifactStagingDirectory that the
+       pipeline's "Gather logs" step publishes. -->
 
   <PropertyGroup>
     <IncludeXHarnessCli>true</IncludeXHarnessCli>
@@ -15,25 +16,17 @@
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
 
-    <!-- Mono AOT -->
-    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono' and '$(CodegenType)' == 'AOT'">$(_MSBuildArgs) /p:RunAOTCompilation=true /p:AndroidEnableProfiledAot=false</_MSBuildArgs>
-    <!-- CoreCLR JIT -->
+    <!-- CoreCLR JIT (all inner loop runs use codeGenType=Default; AOT/R2R/NativeAOT are unused) -->
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'JIT'">$(_MSBuildArgs) /p:PublishReadyToRun=false /p:PublishReadyToRunComposite=false</_MSBuildArgs>
-    <!-- CoreCLR R2R -->
-    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'R2R'">$(_MSBuildArgs) /p:PublishReadyToRun=true /p:PublishReadyToRunComposite=false</_MSBuildArgs>
-    <!-- CoreCLR R2R composite -->
-    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'R2RComposite'">$(_MSBuildArgs) /p:PublishReadyToRun=true /p:PublishReadyToRunComposite=true</_MSBuildArgs>
-    <!-- CoreCLR NativeAOT -->
-    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs) /p:PublishAot=true</_MSBuildArgs>
 
     <!-- Avoids build failures when IL trimmer pruning data is missing for newer Android workloads -->
     <_MSBuildArgs>$(_MSBuildArgs) /p:AllowMissingPrunePackageData=true</_MSBuildArgs>
 
-    <!-- Windows targets physical Pixel 8 (ARM64); Linux targets x86_64 emulator.
-         If Linux is also used for physical device runs in the future, this will need
-         a separate condition (e.g., a new DeviceType property) instead of TargetsWindows. -->
-    <_MSBuildArgs Condition="'$(TargetsWindows)' == 'true'">$(_MSBuildArgs) /p:RuntimeIdentifier=android-arm64</_MSBuildArgs>
-    <_MSBuildArgs Condition="'$(TargetsWindows)' != 'true'">$(_MSBuildArgs) /p:RuntimeIdentifier=android-x64</_MSBuildArgs>
+    <!-- AndroidRid: defaults based on target OS but can be overridden.
+         Windows targets physical Pixel 8 (ARM64); Linux targets x86_64 emulator. -->
+    <AndroidRid Condition="'$(AndroidRid)' == '' and '$(TargetsWindows)' == 'true'">android-arm64</AndroidRid>
+    <AndroidRid Condition="'$(AndroidRid)' == '' and '$(TargetsWindows)' != 'true'">android-x64</AndroidRid>
+    <_MSBuildArgs>$(_MSBuildArgs) /p:RuntimeIdentifier=$(AndroidRid)</_MSBuildArgs>
 
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
   </PropertyGroup>
@@ -70,9 +63,9 @@
     </PreparePayloadWorkItem>
   </ItemGroup>
 
-  <!-- Note: -c Debug is hardcoded because $(BuildConfig) gets overridden by send_to_helix.py
-       to the artifact config string (e.g., x64_main_maui_scenarios_android_innerloop).
-       All inner loop jobs use Debug configuration. -->
+  <!-- Note: -c Debug is hardcoded in run.sh and run.cmd because $(BuildConfig) gets
+       overridden by send_to_helix.py to the artifact config string (e.g.,
+       x64_main_maui_scenarios_android_innerloop). All inner loop jobs use Debug. -->
 
   <!-- Windows device track: runs on Windows.11.Amd64.Pixel.Perf via run.cmd -->
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
