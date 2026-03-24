@@ -67,22 +67,22 @@
        overridden by send_to_helix.py to the artifact config string (e.g.,
        x64_main_maui_scenarios_android_innerloop). All inner loop jobs use Debug. -->
 
-  <!-- Windows device track: runs on Windows.11.Amd64.Pixel.Perf via run.cmd -->
+  <!-- Windows device track: runs on Windows.11.Amd64.Pixel.Perf -->
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Device - %(Identity)')">
       <PreCommands>set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages</PreCommands>
-      <Command>run.cmd $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
-      <PostCommands>python post.py</PostCommands>
+      <Command>$(Python) run.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>
   </ItemGroup>
 
-  <!-- Linux emulator track: runs on Ubuntu.2204.Amd64.Android.29 via run.sh -->
+  <!-- Linux emulator track: runs on Ubuntu.2204.Amd64.Android.29 -->
   <ItemGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Emulator - %(Identity)')">
       <PreCommands>export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages</PreCommands>
-      <Command>bash run.sh $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
-      <PostCommands>python3 post.py</PostCommands>
+      <Command>$(Python) run.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>
   </ItemGroup>
