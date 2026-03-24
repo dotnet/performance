@@ -1156,6 +1156,21 @@ ex: C:\repos\performance;C:\repos\runtime
             merge_build_and_startup(first_build_report, first_startup_ms, initial_final_report)
             merge_build_and_startup(incremental_build_report, incremental_startup_ms, incremental_final_report)
 
+            # Clean up intermediate build-only reports so they don't get uploaded.
+            # Remove from TRACEDIR first, then also from the Helix upload dir
+            # (parsetraces() copies TRACEDIR contents there before we get here).
+            getLogger().info("Removing intermediate build reports: %s, %s" % (first_build_report, incremental_build_report))
+            os.remove(first_build_report)
+            os.remove(incremental_build_report)
+            if runninginlab():
+                helix_upload_dir = helixuploaddir()
+                if helix_upload_dir is not None:
+                    for report in [first_build_report, incremental_build_report]:
+                        uploaded_copy = os.path.join(helix_upload_dir, 'traces', os.path.basename(report))
+                        if os.path.exists(uploaded_copy):
+                            getLogger().info("Removing uploaded copy: %s" % uploaded_copy)
+                            os.remove(uploaded_copy)
+
             # Step 9: Upload final merged reports
             self.traits.add_traits(overwrite=True, upload_to_perflab_container=saved_upload)
             helix_upload_dir = helixuploaddir()
