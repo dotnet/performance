@@ -139,7 +139,7 @@ def _find_java_windows():
         base = os.environ.get(env_var, "")
         if not base:
             continue
-        for subdir in ("Microsoft", "Android/openjdk", "Java", "Eclipse Adoptium"):
+        for subdir in ("Microsoft", os.path.join("Android", "openjdk"), "Java", "Eclipse Adoptium"):
             for m in sorted(_glob.glob(os.path.join(base, subdir, "jdk-*"))):
                 log(f"Found Java SDK at {m}")
                 return m
@@ -428,7 +428,7 @@ def run_test(ctx):
         "-c", "Debug",
         "--scenario-name", ctx["scenario_name"],
     ] + ctx["extra_args"]
-    result = run_cmd(test_cmd, check=False)
+    result = run_cmd(test_cmd, check=False, cwd=ctx["workitem_root"])
     if result.returncode != 0:
         log(f"STEP 3 FAILED with exit code {result.returncode}", tee=True)
         _dump_log()
@@ -461,8 +461,8 @@ def main():
         "csproj": os.path.join(workitem_root, "app", "MauiAndroidInnerLoop.csproj"),
     }
 
-    print_diagnostics()
     ctx["dotnet_exe"] = setup_dotnet(correlation_payload)
+    print_diagnostics()
 
     log_raw("=== Java SDK Setup ===")
     find_java()
