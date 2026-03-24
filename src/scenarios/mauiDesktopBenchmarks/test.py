@@ -103,13 +103,26 @@ def _zip_download(branch: str, repo_dir: str):
 
     Fallback when git is not available (e.g. Helix work items where git is
     not on PATH and not installed).
+
+    Uses curl.exe (built into Windows 10+) for the download because Python's
+    bundled SSL certificates may not include the CA certs trusted by the
+    machine (common on Helix/corporate environments).
     '''
     log = getLogger()
     archive_url = f'https://github.com/dotnet/maui/archive/refs/heads/{branch}.zip'
     zip_path = 'maui_download.zip'
 
     log.info(f'git not found — downloading archive from {archive_url}')
-    urllib.request.urlretrieve(archive_url, zip_path)
+
+    # Use curl.exe (ships with Windows 10+/Server 2016+) which uses the
+    # Windows certificate store, avoiding Python SSL cert issues on Helix.
+    curl = shutil.which('curl') or shutil.which('curl.exe')
+    if curl:
+        subprocess.run([curl, '-L', '-o', zip_path, '--fail', '-s', '-S', archive_url], check=True)
+    else:
+        # Last resort: try urllib with default certs
+        urllib.request.urlretrieve(archive_url, zip_path)
+
     log.info(f'Downloaded {os.path.getsize(zip_path) / (1024*1024):.1f} MB')
 
     os.makedirs(repo_dir, exist_ok=True)
