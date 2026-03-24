@@ -155,7 +155,7 @@ jobs:
       pool:
         vmImage: ubuntu-latest
       container: ubuntu_x64_build_container
-      queue: Ubuntu.2204.Amd64.Android.29
+      queue: Ubuntu.2204.Amd64.Android.36
       machinePool: AndroidEmulator
       ${{ insert }}: ${{ parameters.jobParameters }}
 
