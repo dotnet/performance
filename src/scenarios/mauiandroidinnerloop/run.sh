@@ -234,6 +234,12 @@ adb start-server >> "$LOGFILE" 2>&1 || echo "WARNING: adb start-server failed" >
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Initial device listing:" >> "$LOGFILE" 2>&1
 adb devices -l >> "$LOGFILE" 2>&1 || echo "WARNING: adb devices failed" >> "$LOGFILE" 2>&1
 
+# The Android 36 emulator queue registers two ADB devices (emulator-5554 as
+# "device" and localhost:5554 as "offline"), causing bare adb commands to fail
+# with "more than one device/emulator". Pin to the real device serial.
+export ANDROID_SERIAL=emulator-5554
+echo "ANDROID_SERIAL=$ANDROID_SERIAL" >> "$LOGFILE" 2>&1
+
 # Count devices (skip header line)
 DEVICE_COUNT=$(adb devices 2>/dev/null | tail -n +2 | grep -c -w "device" || true)
 echo "Device count: $DEVICE_COUNT" >> "$LOGFILE" 2>&1
