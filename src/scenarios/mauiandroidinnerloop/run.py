@@ -143,18 +143,50 @@ def setup_dotnet(correlation_payload):
 
 
 def install_workload(ctx):
-    """Step 1: Install workloads required by the project via workload restore."""
+    """Step 1: Install workloads via restore (dependencies) then install (pinned).
+
+    First, ``workload restore`` installs whatever workloads the project
+    needs (including iOS/MacCatalyst if MAUI requires them) at whatever
+    version is available in the feeds.  This satisfies dependency packages
+    that may not exist at the pinned version.
+
+    Then, ``workload install maui-android --from-rollback-file`` pins the
+    android workload to the exact version from the rollback file we want
+    to test against.
+    """
     log_raw("=== STEP 1: Workload Install ===", tee=True)
+
+    # 1a. Workload restore — satisfy all project dependencies first.
+    #     Non-fatal: if it fails we still attempt the pinned install.
+    log("Step 1a: workload restore (satisfy project dependencies)", tee=True)
     result = run_cmd(
         [ctx["dotnet_exe"], "workload", "restore", ctx["csproj"],
          "--configfile", ctx["nuget_config"]],
         check=False,
     )
     if result.returncode != 0:
-        log(f"STEP 1 FAILED with exit code {result.returncode}", tee=True)
+        log(f"WARNING: workload restore exited with code {result.returncode} "
+            "— continuing with pinned install", tee=True)
+    else:
+        log("Workload restore succeeded")
+
+    # 1b. Workload install — pin maui-android to the rollback version.
+    #     This is the critical step; failure here is fatal.
+    rollback_file = os.path.join(ctx["workitem_root"], "rollback_maui.json")
+    log(f"Step 1b: workload install maui-android "
+        f"(pinned via {rollback_file})", tee=True)
+    result = run_cmd(
+        [ctx["dotnet_exe"], "workload", "install", "maui-android",
+         "--from-rollback-file", rollback_file,
+         "--configfile", ctx["nuget_config"]],
+        check=False,
+    )
+    if result.returncode != 0:
+        log(f"STEP 1 FAILED: workload install exited with code "
+            f"{result.returncode}", tee=True)
         _dump_log()
         sys.exit(1)
-    log("Workload restore succeeded")
+    log("Workload install (pinned maui-android) succeeded")
 
 
 def install_android_dependencies(ctx):
