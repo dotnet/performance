@@ -59,11 +59,11 @@ class BDNDesktopHelper(object):
         self.patch_benchmark_projects()
 
         # Build
-        self.build_benchmark_projects(suite)
+        built_suites = self.build_benchmark_projects(suite)
 
-        # Run
+        # Run (only suites that built successfully)
         if suite == 'all':
-            suites = self.benchmark_projects.items()
+            suites = [(n, p) for n, p in self.benchmark_projects.items() if n in built_suites]
         else:
             suites = [(suite, self.benchmark_projects[suite])]
 
@@ -253,26 +253,40 @@ class BDNDesktopHelper(object):
 
     # ── Build benchmarks ────────────────────────────────────────────────────
 
-    def build_benchmark_projects(self, suite: str):
+    def build_benchmark_projects(self, suite: str) -> set:
+        '''Build benchmark projects. Returns the set of suite names that built successfully.'''
         log = getLogger()
         if suite == 'all':
-            projects = self.benchmark_projects.items()
+            projects = list(self.benchmark_projects.items())
         else:
             projects = [(suite, self.benchmark_projects[suite])]
 
+        built = set()
         for name, csproj_rel in projects:
             csproj_path = os.path.join(self.repo_dir, csproj_rel)
             if not os.path.exists(csproj_path):
+                log.warning(f'Benchmark project not found, skipping: {csproj_path}')
                 continue
 
             log.info(f'Building benchmark: {name}')
-            subprocess.run([
+            result = subprocess.run([
                 'dotnet', 'build',
                 csproj_rel,
                 '-c', 'Release',
-            ], cwd=self.repo_dir, check=True)
+            ], cwd=self.repo_dir)
 
-        log.info('All benchmark projects built successfully.')
+            if result.returncode == 0:
+                built.add(name)
+            else:
+                log.warning(f'Build failed for {name} (exit code {result.returncode}) — skipping this suite')
+
+        if built:
+            log.info(f'Successfully built: {", ".join(sorted(built))}')
+        else:
+            log.error('No benchmark projects built successfully.')
+            sys.exit(1)
+
+        return built
 
     # ── Run benchmarks ──────────────────────────────────────────────────────
 
