@@ -1,6 +1,6 @@
 '''
-MAUI Android Deploy Time Measurement
-Orchestrates first deploy → file edit → incremental deploy → parse binlogs.
+MAUI Android Build and Deploy Time Measurement
+Orchestrates first build and deploy → file edit → incremental build and deploy → parse binlogs.
 '''
 import os
 from shared.runner import TestTraits, Runner

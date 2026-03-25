@@ -1008,11 +1008,11 @@ ex: C:\repos\performance;C:\repos\runtime
             if not self.csprojpath:
                 raise Exception("For Android inner loop measurements, --csproj-path must be provided.")
 
-            scenarioprefix = self.scenarioname or "MAUI Android Deploy"
+            scenarioprefix = self.scenarioname or "MAUI Android Build and Deploy"
 
             os.makedirs(const.TRACEDIR, exist_ok=True)
-            first_binlog = os.path.join(const.TRACEDIR, 'first-deploy.binlog')
-            incremental_binlog = os.path.join(const.TRACEDIR, 'incremental-deploy.binlog')
+            first_binlog = os.path.join(const.TRACEDIR, 'first-build-and-deploy.binlog')
+            incremental_binlog = os.path.join(const.TRACEDIR, 'incremental-build-and-deploy.binlog')
 
             # Build the base MSBuild command
             # NOTE: The performance repo normally sets UseSharedCompilation=false (see dotnet.py,
@@ -1124,7 +1124,7 @@ ex: C:\repos\performance;C:\repos\runtime
             startup.reportjson = first_build_report
             saved_upload = self.traits.upload_to_perflab_container
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP,
-                                   tracename='first-deploy.binlog',
+                                   tracename='first-build-and-deploy.binlog',
                                    scenarioname=scenarioprefix + " - First Build and Deploy",
                                    upload_to_perflab_container=False)
             startup.parsetraces(self.traits)
@@ -1148,14 +1148,14 @@ ex: C:\repos\performance;C:\repos\runtime
             incremental_build_report = os.path.join(const.TRACEDIR, 'incremental-build-and-deploy-perf-lab-report.json')
             startup.reportjson = incremental_build_report
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP,
-                                   tracename='incremental-deploy.binlog',
+                                   tracename='incremental-build-and-deploy.binlog',
                                    scenarioname=scenarioprefix + " - Incremental Build and Deploy",
                                    upload_to_perflab_container=False)
             startup.parsetraces(self.traits)
 
             # Step 8: Merge build metrics + startup time → e2e reports
-            first_e2e_report = os.path.join(const.TRACEDIR, 'first-build-and-deploy-e2e-perf-lab-report.json')
-            incremental_e2e_report = os.path.join(const.TRACEDIR, 'incremental-build-and-deploy-e2e-perf-lab-report.json')
+            first_e2e_report = os.path.join(const.TRACEDIR, 'first-debug-e2e-perf-lab-report.json')
+            incremental_e2e_report = os.path.join(const.TRACEDIR, 'incremental-debug-e2e-perf-lab-report.json')
             merge_build_and_startup(first_build_report, first_startup_ms, first_e2e_report)
             merge_build_and_startup(incremental_build_report, incremental_startup_ms, incremental_e2e_report)
 
