@@ -4,6 +4,7 @@ post cleanup script
 
 import os
 import subprocess
+import sys
 from performance.logger import setup_loggers, getLogger
 from shared.postcommands import clean_directories
 from test import EXENAME
@@ -20,16 +21,18 @@ def resolve_adb():
          (run.sh and run.cmd create the SDK there)
       3. Bare 'adb' (hope it's on PATH)
     '''
+    adb_name = 'adb.exe' if sys.platform == 'win32' else 'adb'
+
     for env_var in ('ANDROID_HOME', 'ANDROID_SDK_ROOT'):
         sdk_root = os.environ.get(env_var)
         if sdk_root:
-            candidate = os.path.join(sdk_root, 'platform-tools', 'adb')
+            candidate = os.path.join(sdk_root, 'platform-tools', adb_name)
             if os.path.isfile(candidate):
                 return candidate
 
     helix_root = os.environ.get('HELIX_WORKITEM_ROOT')
     if helix_root:
-        candidate = os.path.join(helix_root, 'android-sdk', 'platform-tools', 'adb')
+        candidate = os.path.join(helix_root, 'android-sdk', 'platform-tools', adb_name)
         if os.path.isfile(candidate):
             return candidate
 
