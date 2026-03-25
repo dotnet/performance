@@ -170,15 +170,14 @@ def install_workload(ctx):
 
 
 def install_android_dependencies(ctx):
-    """Use a temp project to run InstallAndroidDependencies.
+    """Restore the real MAUI csproj and run InstallAndroidDependencies.
 
-    The real csproj has MAUI NuGet dependencies that fail to restore on CI,
-    so we create a minimal temp project with just the Android TFM.  This lets
-    ``dotnet restore`` succeed (loading the Android SDK targets) and then
-    ``dotnet msbuild -t:InstallAndroidDependencies`` can run.
-
-    PublishTrimmed=false avoids NETSDK1226 on preview SDKs that lack prune
-    package data.
+    Uses the real project at ``ctx["csproj"]`` directly.
+    ``AllowMissingPrunePackageData=true`` bypasses NETSDK1226 on preview
+    SDKs that lack prune package data.  ``SkipResolvePackageAssets=true``
+    on the msbuild invocation avoids requiring a fully resolved
+    project.assets.json — the target only needs the Android SDK targets
+    loaded via the SDK, not NuGet package assets.
     """
     log_raw("=== Installing Android SDK & Java Dependencies ===", tee=True)
 
@@ -187,52 +186,39 @@ def install_android_dependencies(ctx):
     os.makedirs(android_home, exist_ok=True)
     os.makedirs(java_home, exist_ok=True)
 
-    # Create a minimal temp project — no NuGet deps so restore always succeeds
-    temp_csproj = os.path.join(ctx["workitem_root"], "TempAndroidSetup.csproj")
-    temp_content = (
-        '<Project Sdk="Microsoft.NET.Sdk">\n'
-        "  <PropertyGroup>\n"
-        f"    <TargetFramework>{ctx['framework']}</TargetFramework>\n"
-        "    <OutputType>Exe</OutputType>\n"
-        "    <PublishTrimmed>false</PublishTrimmed>\n"
-        "  </PropertyGroup>\n"
-        "</Project>\n"
+    csproj = ctx["csproj"]
+    log(f"Using project: {csproj}")
+
+    # Restore the real project — AllowMissingPrunePackageData avoids
+    # NETSDK1226 on preview SDKs missing prune package data.
+    result = run_cmd(
+        [ctx["dotnet_exe"], "restore", csproj,
+         "--configfile", ctx["nuget_config"],
+         "-p:AllowMissingPrunePackageData=true"],
+        check=False,
     )
-    with open(temp_csproj, "w") as f:
-        f.write(temp_content)
-    log(f"Created temp project: {temp_csproj}")
+    if result.returncode != 0:
+        log("WARNING: restore failed — "
+            "InstallAndroidDependencies may not work")
 
-    try:
-        # Restore the temp project to load Android SDK targets
-        result = run_cmd(
-            [ctx["dotnet_exe"], "restore", temp_csproj,
-             "--configfile", ctx["nuget_config"]],
-            check=False,
-        )
-        if result.returncode != 0:
-            log("WARNING: temp project restore failed — "
-                "InstallAndroidDependencies may not work")
-
-        # Use dotnet msbuild (not dotnet build) to avoid the full build
-        # pipeline which fails on CI preview SDKs with NETSDK1226
-        result = run_cmd(
-            [ctx["dotnet_exe"], "msbuild", temp_csproj,
-             "-t:InstallAndroidDependencies",
-             f"/p:AndroidSdkDirectory={android_home}",
-             f"/p:JavaSdkDirectory={java_home}",
-             "/p:AcceptAndroidSdkLicenses=True"],
-            check=False,
-        )
-        if result.returncode != 0:
-            log("InstallAndroidDependencies FAILED", tee=True)
-            _dump_log()
-            sys.exit(1)
-        log("Android SDK and Java dependencies installed successfully")
-    finally:
-        # Clean up the temp project
-        if os.path.exists(temp_csproj):
-            os.remove(temp_csproj)
-            log(f"Removed temp project: {temp_csproj}")
+    # Use dotnet msbuild (not dotnet build) to run only this target
+    # without the full build pipeline.  SkipResolvePackageAssets=true
+    # avoids NETSDK1004 if the assets file is incomplete — the target
+    # only needs Android SDK targets, not NuGet package resolution.
+    result = run_cmd(
+        [ctx["dotnet_exe"], "msbuild", csproj,
+         "-t:InstallAndroidDependencies",
+         f"/p:AndroidSdkDirectory={android_home}",
+         f"/p:JavaSdkDirectory={java_home}",
+         "/p:AcceptAndroidSdkLicenses=True",
+         "/p:SkipResolvePackageAssets=true"],
+        check=False,
+    )
+    if result.returncode != 0:
+        log("InstallAndroidDependencies FAILED", tee=True)
+        _dump_log()
+        sys.exit(1)
+    log("Android SDK and Java dependencies installed successfully")
 
     # Set environment variables
     platform_tools = os.path.join(android_home, "platform-tools")
