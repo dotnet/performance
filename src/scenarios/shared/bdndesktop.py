@@ -278,17 +278,23 @@ class BDNDesktopHelper(object):
             if result.returncode == 0:
                 built.add(name)
             else:
-                log.warning(f'Build failed for {name} (exit code {result.returncode}) — skipping this suite')
+                msg = f'Build failed for {name} (exit code {result.returncode}) — skipping this suite'
+                log.warning(msg)
+                print(f'##[warning]{msg}', flush=True)
 
         if built:
             log.info(f'Successfully built: {", ".join(sorted(built))}')
         else:
-            log.error('No benchmark projects built successfully.')
+            msg = 'No benchmark projects built successfully.'
+            log.error(msg)
+            print(f'##[error]{msg}', flush=True)
             sys.exit(1)
 
         failed = set(name for name, _ in projects) - built
         if failed:
-            log.warning(f'WARNING: The following suites failed to build and will be skipped: {", ".join(sorted(failed))}')
+            msg = f'The following suites failed to build and will be skipped: {", ".join(sorted(failed))}'
+            log.warning(msg)
+            print(f'##[warning]{msg}', flush=True)
 
         return built
 
