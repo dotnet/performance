@@ -198,10 +198,7 @@ def install_android_dependencies(ctx):
 
     Uses the real project at ``ctx["csproj"]`` directly.
     ``AllowMissingPrunePackageData=true`` bypasses NETSDK1226 on preview
-    SDKs that lack prune package data.  ``SkipResolvePackageAssets=true``
-    on the msbuild invocation avoids requiring a fully resolved
-    project.assets.json — the target only needs the Android SDK targets
-    loaded via the SDK, not NuGet package assets.
+    SDKs that lack prune package data.
     """
     log_raw("=== Installing Android SDK & Java Dependencies ===", tee=True)
 
@@ -229,16 +226,13 @@ def install_android_dependencies(ctx):
             "InstallAndroidDependencies may not work")
 
     # Use dotnet msbuild (not dotnet build) to run only this target
-    # without the full build pipeline.  SkipResolvePackageAssets=true
-    # avoids NETSDK1004 if the assets file is incomplete — the target
-    # only needs Android SDK targets, not NuGet package resolution.
+    # without the full build pipeline.
     result = run_cmd(
         [ctx["dotnet_exe"], "msbuild", csproj,
          "-t:InstallAndroidDependencies",
          f"/p:AndroidSdkDirectory={android_home}",
          f"/p:JavaSdkDirectory={java_home}",
          "/p:AcceptAndroidSdkLicenses=True",
-         "/p:SkipResolvePackageAssets=true",
          f"/p:TargetFramework={ctx['framework']}"],
         check=False,
     )
