@@ -286,6 +286,10 @@ class BDNDesktopHelper(object):
             log.error('No benchmark projects built successfully.')
             sys.exit(1)
 
+        failed = set(name for name, _ in projects) - built
+        if failed:
+            log.warning(f'WARNING: The following suites failed to build and will be skipped: {", ".join(sorted(failed))}')
+
         return built
 
     # ── Run benchmarks ──────────────────────────────────────────────────────
