@@ -8,6 +8,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import tarfile
 import time
 import zipfile
 from datetime import datetime
@@ -83,7 +84,6 @@ def extract(archive, dest_dir):
         with zipfile.ZipFile(archive, "r") as zf:
             zf.extractall(dest_dir)
     else:
-        import tarfile
         with tarfile.open(archive, "r:gz") as tf:
             tf.extractall(dest_dir)
 
@@ -91,16 +91,10 @@ def extract(archive, dest_dir):
 def move_inner_contents(extract_dir, target_dir):
     """Flatten top-level subdirectories from an extracted archive into *target_dir*."""
     os.makedirs(target_dir, exist_ok=True)
-    for subdir in (os.path.join(extract_dir, d) for d in os.listdir(extract_dir)
-                   if os.path.isdir(os.path.join(extract_dir, d))):
-        for item in os.listdir(subdir):
-            src = os.path.join(subdir, item)
-            dst = os.path.join(target_dir, item)
-            if os.path.isdir(dst):
-                shutil.rmtree(dst)
-            elif os.path.exists(dst):
-                os.remove(dst)
-            shutil.move(src, dst)
+    for d in os.listdir(extract_dir):
+        src = os.path.join(extract_dir, d)
+        if os.path.isdir(src):
+            shutil.copytree(src, target_dir, dirs_exist_ok=True)
 
 
 def _chmod_exec(path):
@@ -179,8 +173,12 @@ def _download_java():
 # --- ADB device setup ---
 def _count_adb_devices():
     result = subprocess.run(["adb", "devices"], capture_output=True, text=True)
-    return sum(1 for line in result.stdout.splitlines()[1:]
-               if len(line.split()) >= 2 and line.split()[1] == "device")
+    count = 0
+    for line in result.stdout.splitlines()[1:]:
+        parts = line.split()
+        if len(parts) >= 2 and parts[1] == "device":
+            count += 1
+    return count
 
 
 def _setup_adb_windows(android_home):

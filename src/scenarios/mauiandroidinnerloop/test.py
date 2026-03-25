@@ -1,6 +1,6 @@
 '''
-MAUI Android Build and Deploy Time Measurement
-Orchestrates first build and deploy → file edit → incremental build and deploy → parse binlogs.
+MAUI Android Inner Loop (Debug End-2-End) Time Measurement
+Orchestrates first build-deploy-startup → file edit → incremental build-deploy-startup → parse binlogs and startup times.
 '''
 import os
 from shared.runner import TestTraits, Runner
