@@ -158,10 +158,14 @@ def install_workload(ctx):
 
     # 1a. Workload restore — satisfy all project dependencies first.
     #     Non-fatal: if it fails we still attempt the pinned install.
+    #     Override TargetFrameworks so workload restore only considers the
+    #     android TFM, not the multi-platform TFMs in the MAUI template
+    #     csproj (which would demand the ios workload, etc.).
     log("Step 1a: workload restore (satisfy project dependencies)", tee=True)
     result = run_cmd(
         [ctx["dotnet_exe"], "workload", "restore", ctx["csproj"],
-         "--configfile", ctx["nuget_config"]],
+         "--configfile", ctx["nuget_config"],
+         f"-p:TargetFrameworks={ctx['framework']}"],
         check=False,
     )
     if result.returncode != 0:
@@ -211,10 +215,13 @@ def install_android_dependencies(ctx):
 
     # Restore the real project — AllowMissingPrunePackageData avoids
     # NETSDK1226 on preview SDKs missing prune package data.
+    # Override TargetFrameworks to android-only so restore doesn't fail
+    # with NETSDK1147 trying to resolve non-Android platform TFMs.
     result = run_cmd(
         [ctx["dotnet_exe"], "restore", csproj,
          "--configfile", ctx["nuget_config"],
-         "-p:AllowMissingPrunePackageData=true"],
+         "-p:AllowMissingPrunePackageData=true",
+         f"-p:TargetFrameworks={ctx['framework']}"],
         check=False,
     )
     if result.returncode != 0:
@@ -231,7 +238,8 @@ def install_android_dependencies(ctx):
          f"/p:AndroidSdkDirectory={android_home}",
          f"/p:JavaSdkDirectory={java_home}",
          "/p:AcceptAndroidSdkLicenses=True",
-         "/p:SkipResolvePackageAssets=true"],
+         "/p:SkipResolvePackageAssets=true",
+         f"/p:TargetFrameworks={ctx['framework']}"],
         check=False,
     )
     if result.returncode != 0:

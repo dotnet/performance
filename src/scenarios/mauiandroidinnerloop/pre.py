@@ -132,6 +132,9 @@ with MauiNuGetConfigContext(precommands.framework):
 
     # Fix the .csproj to target only Android (remove iOS, MacCatalyst, Windows TFMs).
     # The MAUI template targets all platforms, but the Helix machine only has the Android SDK.
+    # NOTE: run.py now passes /p:TargetFrameworks={android_tfm} to all dotnet commands,
+    # so this rewrite is largely redundant. Keeping it as a belt-and-suspenders safeguard
+    # for now — it could be removed in a future cleanup.
     csproj_path = os.path.join(const.APPDIR, f'{EXENAME}.csproj')
     with open(csproj_path, 'r') as f:
         csproj_content = f.read()
