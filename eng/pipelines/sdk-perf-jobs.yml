@@ -13,42 +13,11 @@ parameters:
     default: {}
 
 jobs:
-
-######################################################
-# TEMPORARY: Only MAUI Desktop BDN benchmarks enabled
-######################################################
-
-# MAUI Desktop BenchmarkDotNet benchmarks (public)
-- template: /eng/pipelines/templates/build-machine-matrix.yml
-  parameters:
-    jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-    buildMachines:
-      - win-x64
-    isPublic: true
-    jobParameters:
-      runKind: maui_desktop_benchmarks
-      projectFileName: maui_desktop_benchmarks.proj
-      channels:
-        - main
-
-# MAUI Desktop BDN benchmarks (private)
-- template: /eng/pipelines/templates/build-machine-matrix.yml
-  parameters:
-    jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-    buildMachines:
-      - win-x64-viper
-    isPublic: false
-    jobParameters:
-      runKind: maui_desktop_benchmarks
-      projectFileName: maui_desktop_benchmarks.proj
-      channels:
-        - main
-
 ######################################################
 # Public correctness jobs
 ######################################################
 
-- ${{ if false }}: # TEMPORARY: disabled for MAUI desktop testing
+- ${{ if parameters.runPublicJobs }}:
 
   # Scenario benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
@@ -370,7 +339,7 @@ jobs:
 # Private Jobs
 ###########################################
 
-- ${{ if false }}: # TEMPORARY: disabled for MAUI desktop testing
+- ${{ if parameters.runPrivateJobs }}:
 
   # Scenario benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
@@ -671,7 +640,7 @@ jobs:
 ################################################
 
 # Scheduled runs will run all of the jobs on the PerfTigers, as well as the Arm64 job
-- ${{ if false }}: # TEMPORARY: disabled for MAUI desktop testing
+- ${{ if parameters.runScheduledPrivateJobs }}:
 
   # SDK scenario benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
