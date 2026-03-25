@@ -1,28 +1,17 @@
 #!/usr/bin/env python3
 """run.py — Unified MAUI Android inner loop run script (Windows + Linux)."""
 
-import glob as _glob
 import os
 import platform
-import shutil
 import stat
 import subprocess
 import sys
-import tarfile
 import time
-import zipfile
 from datetime import datetime
-from urllib.request import urlretrieve
 
 # --- Constants ---
 IS_WINDOWS = platform.system() == "Windows"
 EXE = ".exe" if IS_WINDOWS else ""
-
-JDK_URL = (
-    "https://aka.ms/download-jdk/microsoft-jdk-17.0.13-windows-x64.zip"
-    if IS_WINDOWS
-    else "https://aka.ms/download-jdk/microsoft-jdk-17.0.12-linux-x64.tar.gz"
-)
 
 # --- Logging ---
 _logfile = None
@@ -62,95 +51,9 @@ def run_cmd(args, check=True, **kwargs):
     return result
 
 
-# --- Download / extraction helpers ---
-def download(url, dest):
-    log(f"Downloading {url} -> {dest}")
-    urlretrieve(url, dest)
-
-
-def extract(archive, dest_dir):
-    """Extract a ZIP or tar.gz archive to *dest_dir*."""
-    log(f"Extracting {archive} -> {dest_dir}")
-    os.makedirs(dest_dir, exist_ok=True)
-    if archive.endswith(".zip"):
-        with zipfile.ZipFile(archive, "r") as zf:
-            zf.extractall(dest_dir)
-    else:
-        with tarfile.open(archive, "r:gz") as tf:
-            tf.extractall(dest_dir)
-
-
 def _chmod_exec(path):
     if not IS_WINDOWS and os.path.isfile(path):
         os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
-
-
-# --- Java SDK discovery ---
-def find_java():
-    """Find or download a Java SDK.  Sets JAVA_HOME and prepends bin to PATH."""
-    java_home = os.environ.get("JAVA_HOME", "")
-    if java_home and os.path.isfile(os.path.join(java_home, "bin", f"java{EXE}")):
-        log(f"JAVA_HOME already set: {java_home}")
-        _apply_java_home(java_home)
-        return
-    log("JAVA_HOME not set — searching for Java SDK...")
-    java_home = _find_java_windows() if IS_WINDOWS else _find_java_linux()
-    if not java_home:
-        log("Java not found. Downloading Microsoft OpenJDK 17...")
-        java_home = _download_java()
-    if java_home:
-        _apply_java_home(java_home)
-    else:
-        log("ERROR: Java SDK not found after download attempt")
-
-
-def _apply_java_home(java_home):
-    os.environ["JAVA_HOME"] = java_home
-    os.environ["PATH"] = os.path.join(java_home, "bin") + os.pathsep + os.environ.get("PATH", "")
-    log(f"JAVA_HOME={java_home}")
-
-
-def _find_java_windows():
-    """Search common Windows JDK installation paths."""
-    for env_var in ("ProgramW6432", "ProgramFiles"):
-        base = os.environ.get(env_var, "")
-        if not base:
-            continue
-        for subdir in ("Microsoft", os.path.join("Android", "openjdk"), "Java", "Eclipse Adoptium"):
-            for m in sorted(_glob.glob(os.path.join(base, subdir, "jdk-*"))):
-                log(f"Found Java SDK at {m}")
-                return m
-    return None
-
-
-def _find_java_linux():
-    """Search common Linux JDK installation paths."""
-    java_home = None
-    for pattern in ["/usr/lib/jvm/msopenjdk-*", "/usr/lib/jvm/temurin-*",
-                    "/usr/lib/jvm/java-*"]:
-        for m in sorted(_glob.glob(pattern)):
-            if os.path.isfile(os.path.join(m, "bin", "java")):
-                java_home = m
-    if java_home:
-        log(f"Found Java SDK at {java_home}")
-    return java_home
-
-
-def _download_java():
-    """Download Microsoft OpenJDK 17 and return the JAVA_HOME path."""
-    workitem_root = os.environ.get("HELIX_WORKITEM_ROOT", ".")
-    ext = "zip" if IS_WINDOWS else "tar.gz"
-    jdk_archive = os.path.join(workitem_root, f"openjdk17.{ext}")
-    jdk_extract = os.path.join(workitem_root, "jdk")
-    download(JDK_URL, jdk_archive)
-    extract(jdk_archive, jdk_extract)
-    for entry in sorted(os.listdir(jdk_extract)):
-        candidate = os.path.join(jdk_extract, entry)
-        if os.path.isdir(candidate) and entry.startswith("jdk-"):
-            log(f"Downloaded JDK JAVA_HOME={candidate}")
-            return candidate
-    log("ERROR: Could not find jdk-* directory after extraction")
-    return None
 
 
 # --- ADB device setup ---
@@ -266,60 +169,66 @@ def install_workload(ctx):
         log("Workload restore succeeded")
 
 
-def _setup_xharness_adb(correlation_payload, workitem_root):
-    """Copy ADB from XHarness into a local android-sdk directory."""
-    xharness_base = os.path.join(correlation_payload, "microsoft.dotnet.xharness.cli")
-    xharness_dirs = sorted(_glob.glob(os.path.join(xharness_base, "*")))
-    xharness_dir = next((d for d in xharness_dirs if os.path.isdir(d)), None)
+def install_android_dependencies(ctx):
+    """Create a temp project and use InstallAndroidDependencies to install Android SDK and Java."""
+    log_raw("=== Installing Android SDK & Java Dependencies ===", tee=True)
 
-    adb_platform = "windows" if IS_WINDOWS else "linux"
-    adb_src = os.path.join(
-        xharness_dir or "", "runtimes", "any", "native", "adb", adb_platform
+    android_home = os.path.join(ctx["workitem_root"], "android-sdk")
+    java_home = os.path.join(ctx["workitem_root"], "jdk")
+    os.makedirs(android_home, exist_ok=True)
+    os.makedirs(java_home, exist_ok=True)
+
+    # Create a minimal temp project (following dotnet-optimization pattern)
+    temp_csproj = os.path.join(ctx["workitem_root"], "TempAndroidSetup.csproj")
+    with open(temp_csproj, "w") as f:
+        f.write(
+            '<Project Sdk="Microsoft.NET.Sdk">\n'
+            "  <PropertyGroup>\n"
+            f"    <TargetFramework>{ctx['framework']}</TargetFramework>\n"
+            "    <OutputType>Exe</OutputType>\n"
+            "  </PropertyGroup>\n"
+            "</Project>\n"
+        )
+
+    result = run_cmd(
+        [ctx["dotnet_exe"], "build", temp_csproj,
+         "-t:InstallAndroidDependencies",
+         f"/p:AndroidSdkDirectory={android_home}",
+         f"/p:JavaSdkDirectory={java_home}",
+         "/p:AcceptAndroidSdkLicenses=True"],
+        check=False,
     )
-    android_home = os.path.join(workitem_root, "android-sdk")
+    if result.returncode != 0:
+        log("InstallAndroidDependencies FAILED", tee=True)
+        _dump_log()
+        sys.exit(1)
+    log("Android SDK and Java dependencies installed successfully")
+
+    # Set environment variables
     platform_tools = os.path.join(android_home, "platform-tools")
-    os.makedirs(platform_tools, exist_ok=True)
-
-    if os.path.isdir(adb_src):
-        shutil.copytree(adb_src, platform_tools, dirs_exist_ok=True)
-        _chmod_exec(os.path.join(platform_tools, "adb"))
-        log(f"Copied ADB from XHarness: {adb_src}")
-    else:
-        log(f"WARNING: XHarness ADB directory not found at {adb_src}")
-
+    java_bin = os.path.join(java_home, "bin")
     os.environ["ANDROID_HOME"] = android_home
     os.environ["ANDROID_SDK_ROOT"] = android_home
-    os.environ["PATH"] = platform_tools + os.pathsep + os.environ.get("PATH", "")
+    os.environ["JAVA_HOME"] = java_home
+    os.environ["PATH"] = os.pathsep.join([
+        platform_tools, java_bin, os.environ.get("PATH", "")
+    ])
     log(f"ANDROID_HOME={android_home}")
-    return android_home
+    log(f"JAVA_HOME={java_home}")
 
+    _chmod_exec(os.path.join(platform_tools, "adb"))
+    ctx["android_home"] = android_home
 
-def install_android_dependencies(ctx):
-    """Use the Android SDK's built-in target to install required SDK components."""
-    log_raw("=== Installing Android SDK Dependencies ===", tee=True)
-    args = [
-        ctx["dotnet_exe"], "build", ctx["csproj"],
-        "-t:InstallAndroidDependencies",
-        "-f", ctx["framework"],
-        f"/p:AndroidSdkDirectory={ctx['android_home']}",
-        "/p:AcceptAndroidSdkLicenses=True",
-    ]
-    java_home = os.environ.get("JAVA_HOME")
-    if java_home:
-        args.append(f"/p:JavaSdkDirectory={java_home}")
-    result = run_cmd(args, check=False)
-    if result.returncode != 0:
-        log(f"WARNING: InstallAndroidDependencies returned {result.returncode} (non-fatal)")
-    else:
-        log("Android SDK dependencies installed successfully")
+    # Clean up temp project
+    try:
+        os.remove(temp_csproj)
+    except OSError:
+        pass
 
 
 def setup_android_sdk(ctx):
-    """Set up ANDROID_HOME with XHarness ADB, then install SDK components."""
+    """Install Android SDK and Java via the built-in MSBuild target."""
     log_raw("=== Setting up Android SDK ===")
-    ctx["android_home"] = _setup_xharness_adb(
-        ctx["correlation_payload"], ctx["workitem_root"]
-    )
     install_android_dependencies(ctx)
 
 
@@ -404,11 +313,6 @@ def main():
 
     ctx["dotnet_exe"] = setup_dotnet(correlation_payload)
     print_diagnostics()
-
-    log_raw("=== Java SDK Setup ===")
-    find_java()
-    if not IS_WINDOWS:
-        run_cmd(["java", "-version"], check=False)
 
     install_workload(ctx)
     setup_android_sdk(ctx)
