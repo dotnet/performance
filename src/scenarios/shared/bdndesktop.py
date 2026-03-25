@@ -310,8 +310,10 @@ class BDNDesktopHelper(object):
             '--project', csproj_rel,
             '--',
             '--filter', '*',
-            '--iterationCount', '15',
-            '--warmupCount', '3',
+            '--warmupCount', '1',
+            '--minIterationCount', '15',
+            '--maxIterationCount', '20',
+            '--iterationTime', '250',
         ] + extra_bdn_args
 
         result = subprocess.run(cmd, cwd=self.repo_dir)
