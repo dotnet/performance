@@ -18,14 +18,6 @@ from urllib.request import urlretrieve
 IS_WINDOWS = platform.system() == "Windows"
 EXE = ".exe" if IS_WINDOWS else ""
 
-BUILD_TOOLS_VERSION = "35.0.0"
-BUILD_TOOLS_URL = (
-    "https://dl.google.com/android/repository/build-tools_r35_windows.zip"
-    if IS_WINDOWS
-    else "https://dl.google.com/android/repository/build-tools_r35_linux.zip"
-)
-PLATFORM_VERSION = "android-36.1"
-PLATFORM_URL = "https://dl.google.com/android/repository/platform-36.1_r01.zip"
 JDK_URL = (
     "https://aka.ms/download-jdk/microsoft-jdk-17.0.13-windows-x64.zip"
     if IS_WINDOWS
@@ -86,15 +78,6 @@ def extract(archive, dest_dir):
     else:
         with tarfile.open(archive, "r:gz") as tf:
             tf.extractall(dest_dir)
-
-
-def move_inner_contents(extract_dir, target_dir):
-    """Flatten top-level subdirectories from an extracted archive into *target_dir*."""
-    os.makedirs(target_dir, exist_ok=True)
-    for d in os.listdir(extract_dir):
-        src = os.path.join(extract_dir, d)
-        if os.path.isdir(src):
-            shutil.copytree(src, target_dir, dirs_exist_ok=True)
 
 
 def _chmod_exec(path):
@@ -182,35 +165,29 @@ def _count_adb_devices():
 
 
 def _setup_adb_windows(android_home):
-    """Windows: detect device, wait if needed."""
+    """Windows: wait for a device, then verify."""
+    log("Waiting for device (timeout 30s)...")
+    try:
+        run_cmd(["adb", "wait-for-device"], check=False, timeout=30)
+    except subprocess.TimeoutExpired:
+        log("WARNING: adb wait-for-device timed out")
     device_count = _count_adb_devices()
     log(f"Device count: {device_count}")
     if device_count == 0:
-        log("No devices detected. Waiting for device (timeout 30s)...")
-        try:
-            run_cmd(["adb", "wait-for-device"], check=False, timeout=30)
-        except subprocess.TimeoutExpired:
-            log("WARNING: adb wait-for-device timed out")
-    final_count = _count_adb_devices()
-    log(f"Final device count: {final_count}")
-    if final_count == 0:
         log("WARNING: No devices detected — build -t:Install will likely fail")
 
 
 def _setup_adb_linux():
-    """Linux: target emulator-5554, wait for boot."""
+    """Linux: target emulator-5554, wait for device and boot."""
     os.environ["ANDROID_SERIAL"] = "emulator-5554"
     log("ANDROID_SERIAL=emulator-5554")
+    log("Waiting for device (timeout 30s)...")
+    try:
+        run_cmd(["adb", "wait-for-device"], check=False, timeout=30)
+    except subprocess.TimeoutExpired:
+        log("WARNING: adb wait-for-device timed out")
     device_count = _count_adb_devices()
     log(f"Device count: {device_count}")
-    if device_count == 0:
-        log("No devices detected. Waiting for device (timeout 30s)...")
-        try:
-            run_cmd(["timeout", "30", "adb", "wait-for-device"], check=False)
-        except Exception:
-            log("WARNING: adb wait-for-device timed out or failed")
-        device_count = _count_adb_devices()
-        log(f"Device count after wait: {device_count}")
     if device_count == 0:
         log("WARNING: No devices detected — build -t:Install will likely fail")
         return
@@ -248,9 +225,7 @@ def _dump_log():
 # --- Orchestration ---
 def print_diagnostics():
     log_raw("=== DIAGNOSTICS ===", tee=True)
-    for var in ("DOTNET_ROOT", "ANDROID_HOME"):
-        log_raw(f"{var}={os.environ.get(var, '')}")
-    run_cmd(["dotnet", "--version"], check=False)
+    log_raw(f"DOTNET_ROOT={os.environ.get('DOTNET_ROOT', '')}")
 
 
 def setup_dotnet(correlation_payload):
@@ -294,12 +269,8 @@ def install_workload(ctx):
 def _setup_xharness_adb(correlation_payload, workitem_root):
     """Copy ADB from XHarness into a local android-sdk directory."""
     xharness_base = os.path.join(correlation_payload, "microsoft.dotnet.xharness.cli")
-    xharness_dir = None
-    if os.path.isdir(xharness_base):
-        for d in sorted(os.listdir(xharness_base)):
-            candidate = os.path.join(xharness_base, d)
-            if os.path.isdir(candidate):
-                xharness_dir = candidate
+    xharness_dirs = sorted(_glob.glob(os.path.join(xharness_base, "*")))
+    xharness_dir = next((d for d in xharness_dirs if os.path.isdir(d)), None)
 
     adb_platform = "windows" if IS_WINDOWS else "linux"
     adb_src = os.path.join(
@@ -310,14 +281,7 @@ def _setup_xharness_adb(correlation_payload, workitem_root):
     os.makedirs(platform_tools, exist_ok=True)
 
     if os.path.isdir(adb_src):
-        for item in os.listdir(adb_src):
-            src, dst = os.path.join(adb_src, item), os.path.join(platform_tools, item)
-            if os.path.isdir(src):
-                if os.path.exists(dst):
-                    shutil.rmtree(dst)
-                shutil.copytree(src, dst)
-            else:
-                shutil.copy2(src, dst)
+        shutil.copytree(adb_src, platform_tools, dirs_exist_ok=True)
         _chmod_exec(os.path.join(platform_tools, "adb"))
         log(f"Copied ADB from XHarness: {adb_src}")
     else:
@@ -330,54 +294,33 @@ def _setup_xharness_adb(correlation_payload, workitem_root):
     return android_home
 
 
-def _download_build_tools(android_home, workitem_root):
-    """Download and install Android SDK Build-Tools."""
-    build_tools_dir = os.path.join(android_home, "build-tools", BUILD_TOOLS_VERSION)
-    bt_zip = os.path.join(workitem_root, "build-tools.zip")
-    bt_extract = os.path.join(workitem_root, "build-tools-extract")
-    try:
-        download(BUILD_TOOLS_URL, bt_zip)
-        extract(bt_zip, bt_extract)
-        move_inner_contents(bt_extract, build_tools_dir)
-    except Exception as e:
-        log(f"ERROR: Failed to set up Build-Tools: {e}")
-        return
-    for tool_name in ("aapt2", "zipalign"):
-        tool_path = os.path.join(build_tools_dir, f"{tool_name}{EXE}")
-        if os.path.isfile(tool_path):
-            _chmod_exec(tool_path)
-        else:
-            log(f"WARNING: {tool_name} NOT found in build-tools. Build may fail.")
-    if not IS_WINDOWS and os.path.isdir(build_tools_dir):
-        for item in os.listdir(build_tools_dir):
-            _chmod_exec(os.path.join(build_tools_dir, item))
-
-
-def _download_platform(android_home, workitem_root):
-    """Download and install the Android SDK Platform (android.jar)."""
-    platform_dir = os.path.join(android_home, "platforms", PLATFORM_VERSION)
-    plat_zip = os.path.join(workitem_root, "platform.zip")
-    plat_extract = os.path.join(workitem_root, "platform-extract")
-    try:
-        download(PLATFORM_URL, plat_zip)
-        extract(plat_zip, plat_extract)
-        move_inner_contents(plat_extract, platform_dir)
-    except Exception as e:
-        log(f"ERROR: Failed to set up Android Platform: {e}")
-        return
-    android_jar = os.path.join(platform_dir, "android.jar")
-    if not os.path.isfile(android_jar):
-        log(f"WARNING: android.jar NOT found at {android_jar}")
+def install_android_dependencies(ctx):
+    """Use the Android SDK's built-in target to install required SDK components."""
+    log_raw("=== Installing Android SDK Dependencies ===", tee=True)
+    args = [
+        ctx["dotnet_exe"], "build", ctx["csproj"],
+        "-t:InstallAndroidDependencies",
+        "-f", ctx["framework"],
+        f"/p:AndroidSdkDirectory={ctx['android_home']}",
+        "/p:AcceptAndroidSdkLicenses=True",
+    ]
+    java_home = os.environ.get("JAVA_HOME")
+    if java_home:
+        args.append(f"/p:JavaSdkDirectory={java_home}")
+    result = run_cmd(args, check=False)
+    if result.returncode != 0:
+        log(f"WARNING: InstallAndroidDependencies returned {result.returncode} (non-fatal)")
+    else:
+        log("Android SDK dependencies installed successfully")
 
 
 def setup_android_sdk(ctx):
-    """Set up ANDROID_HOME with XHarness ADB, Build-Tools, and Platform."""
+    """Set up ANDROID_HOME with XHarness ADB, then install SDK components."""
     log_raw("=== Setting up Android SDK ===")
     ctx["android_home"] = _setup_xharness_adb(
         ctx["correlation_payload"], ctx["workitem_root"]
     )
-    _download_build_tools(ctx["android_home"], ctx["workitem_root"])
-    _download_platform(ctx["android_home"], ctx["workitem_root"])
+    install_android_dependencies(ctx)
 
 
 def setup_adb_device(ctx):
