@@ -298,8 +298,13 @@ def run_test(ctx):
     """Step 3: Run test.py for the inner-loop measurement."""
     log_raw("=== STEP 3: Test ===", tee=True)
     # Pass MSBuild args via env var to avoid shell quoting issues.
-    os.environ["PERFLAB_MSBUILD_ARGS"] = ctx["msbuild_args"]
-    log(f"PERFLAB_MSBUILD_ARGS={ctx['msbuild_args']}")
+    # Add TargetFrameworks override so dotnet build's implicit restore
+    # only evaluates the android TFM, not multi-platform TFMs in the csproj.
+    msbuild_args = ctx["msbuild_args"]
+    if "/p:TargetFrameworks=" not in msbuild_args:
+        msbuild_args += f" /p:TargetFrameworks={ctx['framework']}"
+    os.environ["PERFLAB_MSBUILD_ARGS"] = msbuild_args
+    log(f"PERFLAB_MSBUILD_ARGS={msbuild_args}")
     test_cmd = [
         sys.executable, "test.py", "androidinnerloop",
         "--csproj-path", os.path.join("app", "MauiAndroidInnerLoop.csproj"),
