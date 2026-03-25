@@ -190,8 +190,15 @@ def install_android_dependencies(ctx):
             "</Project>\n"
         )
 
+    run_cmd(
+        [ctx["dotnet_exe"], "restore", temp_csproj,
+         f"/p:AndroidSdkDirectory={android_home}",
+         f"/p:JavaSdkDirectory={java_home}"],
+        check=False,
+    )
+
     result = run_cmd(
-        [ctx["dotnet_exe"], "build", temp_csproj,
+        [ctx["dotnet_exe"], "msbuild", temp_csproj,
          "-t:InstallAndroidDependencies",
          f"/p:AndroidSdkDirectory={android_home}",
          f"/p:JavaSdkDirectory={java_home}",
