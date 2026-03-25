@@ -63,9 +63,9 @@
     </PreparePayloadWorkItem>
   </ItemGroup>
 
-  <!-- Note: -c Debug is hardcoded in run.sh and run.cmd because $(BuildConfig) gets
-       overridden by send_to_helix.py to the artifact config string (e.g.,
-       x64_main_maui_scenarios_android_innerloop). All inner loop jobs use Debug. -->
+  <!-- Note: -c Debug is hardcoded in run.py (and the original run.sh/run.cmd) because
+       $(BuildConfig) gets overridden by send_to_helix.py to the artifact config string
+       (e.g., x64_main_maui_scenarios_android_innerloop). All inner loop jobs use Debug. -->
 
   <!-- Windows device track: runs on Windows.11.Amd64.Pixel.Perf -->
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
