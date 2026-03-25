@@ -239,7 +239,7 @@ def install_android_dependencies(ctx):
          f"/p:JavaSdkDirectory={java_home}",
          "/p:AcceptAndroidSdkLicenses=True",
          "/p:SkipResolvePackageAssets=true",
-         f"/p:TargetFrameworks={ctx['framework']}"],
+         f"/p:TargetFramework={ctx['framework']}"],
         check=False,
     )
     if result.returncode != 0:
