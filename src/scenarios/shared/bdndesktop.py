@@ -278,23 +278,17 @@ class BDNDesktopHelper(object):
             if result.returncode == 0:
                 built.add(name)
             else:
-                msg = f'Build failed for {name} (exit code {result.returncode}) — skipping this suite'
-                log.warning(msg)
-                print(f'##[warning]{msg}', flush=True)
+                log.warning(f'Build failed for {name} (exit code {result.returncode}) — skipping this suite')
 
         if built:
             log.info(f'Successfully built: {", ".join(sorted(built))}')
         else:
-            msg = 'No benchmark projects built successfully.'
-            log.error(msg)
-            print(f'##[error]{msg}', flush=True)
+            log.error('No benchmark projects built successfully.')
             sys.exit(1)
 
         failed = set(name for name, _ in projects) - built
         if failed:
-            msg = f'The following suites failed to build and will be skipped: {", ".join(sorted(failed))}'
-            log.warning(msg)
-            print(f'##[warning]{msg}', flush=True)
+            log.warning(f'The following suites failed to build and will be skipped: {", ".join(sorted(failed))}')
 
         return built
 
@@ -316,6 +310,8 @@ class BDNDesktopHelper(object):
             '--project', csproj_rel,
             '--',
             '--filter', '*',
+            '--iterationCount', '15',
+            '--warmupCount', '3',
         ] + extra_bdn_args
 
         result = subprocess.run(cmd, cwd=self.repo_dir)
