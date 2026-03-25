@@ -170,7 +170,16 @@ def install_workload(ctx):
 
 
 def install_android_dependencies(ctx):
-    """Use InstallAndroidDependencies on the real csproj to install Android SDK and Java."""
+    """Use a temp project to run InstallAndroidDependencies.
+
+    The real csproj has MAUI NuGet dependencies that fail to restore on CI,
+    so we create a minimal temp project with just the Android TFM.  This lets
+    ``dotnet restore`` succeed (loading the Android SDK targets) and then
+    ``dotnet msbuild -t:InstallAndroidDependencies`` can run.
+
+    PublishTrimmed=false avoids NETSDK1226 on preview SDKs that lack prune
+    package data.
+    """
     log_raw("=== Installing Android SDK & Java Dependencies ===", tee=True)
 
     android_home = os.path.join(ctx["workitem_root"], "android-sdk")
@@ -178,31 +187,52 @@ def install_android_dependencies(ctx):
     os.makedirs(android_home, exist_ok=True)
     os.makedirs(java_home, exist_ok=True)
 
-    # Restore the real project so SDK targets are available for msbuild
-    run_cmd(
-        [ctx["dotnet_exe"], "restore", ctx["csproj"],
-         "--configfile", ctx["nuget_config"],
-         f"/p:TargetFrameworks={ctx['framework']}",
-         f"/p:AndroidSdkDirectory={android_home}",
-         f"/p:JavaSdkDirectory={java_home}"],
-        check=False,
+    # Create a minimal temp project — no NuGet deps so restore always succeeds
+    temp_csproj = os.path.join(ctx["workitem_root"], "TempAndroidSetup.csproj")
+    temp_content = (
+        '<Project Sdk="Microsoft.NET.Sdk">\n'
+        "  <PropertyGroup>\n"
+        f"    <TargetFramework>{ctx['framework']}</TargetFramework>\n"
+        "    <OutputType>Exe</OutputType>\n"
+        "    <PublishTrimmed>false</PublishTrimmed>\n"
+        "  </PropertyGroup>\n"
+        "</Project>\n"
     )
+    with open(temp_csproj, "w") as f:
+        f.write(temp_content)
+    log(f"Created temp project: {temp_csproj}")
 
-    # Use dotnet msbuild (not dotnet build) to avoid the full build pipeline
-    # which fails on CI preview SDKs with NETSDK1226
-    result = run_cmd(
-        [ctx["dotnet_exe"], "msbuild", ctx["csproj"],
-         "-t:InstallAndroidDependencies",
-         f"/p:AndroidSdkDirectory={android_home}",
-         f"/p:JavaSdkDirectory={java_home}",
-         "/p:AcceptAndroidSdkLicenses=True"],
-        check=False,
-    )
-    if result.returncode != 0:
-        log("InstallAndroidDependencies FAILED", tee=True)
-        _dump_log()
-        sys.exit(1)
-    log("Android SDK and Java dependencies installed successfully")
+    try:
+        # Restore the temp project to load Android SDK targets
+        result = run_cmd(
+            [ctx["dotnet_exe"], "restore", temp_csproj,
+             "--configfile", ctx["nuget_config"]],
+            check=False,
+        )
+        if result.returncode != 0:
+            log("WARNING: temp project restore failed — "
+                "InstallAndroidDependencies may not work")
+
+        # Use dotnet msbuild (not dotnet build) to avoid the full build
+        # pipeline which fails on CI preview SDKs with NETSDK1226
+        result = run_cmd(
+            [ctx["dotnet_exe"], "msbuild", temp_csproj,
+             "-t:InstallAndroidDependencies",
+             f"/p:AndroidSdkDirectory={android_home}",
+             f"/p:JavaSdkDirectory={java_home}",
+             "/p:AcceptAndroidSdkLicenses=True"],
+            check=False,
+        )
+        if result.returncode != 0:
+            log("InstallAndroidDependencies FAILED", tee=True)
+            _dump_log()
+            sys.exit(1)
+        log("Android SDK and Java dependencies installed successfully")
+    finally:
+        # Clean up the temp project
+        if os.path.exists(temp_csproj):
+            os.remove(temp_csproj)
+            log(f"Removed temp project: {temp_csproj}")
 
     # Set environment variables
     platform_tools = os.path.join(android_home, "platform-tools")
