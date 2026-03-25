@@ -185,7 +185,9 @@ class BDNDesktopHelper(object):
             'using BenchmarkDotNet.Configs;',
             'using BenchmarkDotNet.Extensions;',
             'using System;',
+            'using System.Collections.Generic;',
             'using System.IO;',
+            'using System.Linq;',
         ]
         insert_block = ''
         for u in usings_to_add:
@@ -197,15 +199,19 @@ class BDNDesktopHelper(object):
         # ManualConfig without MandatoryCategoryValidator (external benchmarks
         # may not use [BenchmarkCategory])
         new_run_call = (
-            'var config = ManualConfig.Create(DefaultConfig.Instance)\n'
+            'var argsList = args.ToList();\n'
+            '            argsList = CommandLineOptions.ParseAndRemoveStringsParameter(\n'
+            '                argsList, "--exclusion-filter", out var exclusionFilterValue);\n'
+            '            var config = ManualConfig.Create(DefaultConfig.Instance)\n'
             '                .WithArtifactsPath(Path.Combine(\n'
             '                    Path.GetDirectoryName(typeof(Program).Assembly.Location),\n'
-            '                    "BenchmarkDotNet.Artifacts"));\n'
+            '                    "BenchmarkDotNet.Artifacts"))\n'
+            '                .AddFilter(new ExclusionFilter(exclusionFilterValue));\n'
             '            if (Environment.GetEnvironmentVariable("PERFLAB_INLAB") == "1")\n'
             '                config = config.AddExporter(new PerfLabExporter());\n'
             '            BenchmarkSwitcher\n'
             '                .FromAssembly(typeof(Program).Assembly)\n'
-            '                .Run(args, config);'
+            '                .Run(argsList.ToArray(), config);'
         )
 
         patterns = [

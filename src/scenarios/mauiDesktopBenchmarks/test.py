@@ -51,6 +51,12 @@ DESKTOP_ONLY_PROPS = {
     'IncludeTizenTargetFrameworks': 'false',
 }
 
+# Benchmarks to exclude: these emit millions of log lines per iteration,
+# bloating output and slowing runs (BindableProperty readonly errors).
+EXCLUDED_BENCHMARKS = [
+    '*MauiLoggerWithLoggerMinLevelErrorBenchmarker*',
+]
+
 
 def get_branch(framework: str) -> str:
     '''Map framework moniker to MAUI repo branch.'''
@@ -242,4 +248,7 @@ if __name__ == '__main__':
     build_maui_dependencies()
 
     # Run the generic BDN workflow
-    helper.runtests(args.suite, args.bdn_args, args.upload_to_perflab_container)
+    bdn_args = list(args.bdn_args)
+    if EXCLUDED_BENCHMARKS:
+        bdn_args.extend(['--exclusion-filter'] + EXCLUDED_BENCHMARKS)
+    helper.runtests(args.suite, bdn_args, args.upload_to_perflab_container)
