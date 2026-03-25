@@ -1007,7 +1007,6 @@ ex: C:\repos\performance;C:\repos\runtime
 
             if not self.csprojpath:
                 raise Exception("For Android inner loop measurements, --csproj-path must be provided.")
-
             scenarioprefix = self.scenarioname or "MAUI Android Build and Deploy"
 
             os.makedirs(const.TRACEDIR, exist_ok=True)
