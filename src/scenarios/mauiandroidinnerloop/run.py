@@ -170,7 +170,7 @@ def install_workload(ctx):
 
 
 def install_android_dependencies(ctx):
-    """Create a temp project and use InstallAndroidDependencies to install Android SDK and Java."""
+    """Use InstallAndroidDependencies on the real csproj to install Android SDK and Java."""
     log_raw("=== Installing Android SDK & Java Dependencies ===", tee=True)
 
     android_home = os.path.join(ctx["workitem_root"], "android-sdk")
@@ -178,27 +178,20 @@ def install_android_dependencies(ctx):
     os.makedirs(android_home, exist_ok=True)
     os.makedirs(java_home, exist_ok=True)
 
-    # Create a minimal temp project (following dotnet-optimization pattern)
-    temp_csproj = os.path.join(ctx["workitem_root"], "TempAndroidSetup.csproj")
-    with open(temp_csproj, "w") as f:
-        f.write(
-            '<Project Sdk="Microsoft.NET.Sdk">\n'
-            "  <PropertyGroup>\n"
-            f"    <TargetFramework>{ctx['framework']}</TargetFramework>\n"
-            "    <OutputType>Exe</OutputType>\n"
-            "  </PropertyGroup>\n"
-            "</Project>\n"
-        )
-
+    # Restore the real project so SDK targets are available for msbuild
     run_cmd(
-        [ctx["dotnet_exe"], "restore", temp_csproj,
+        [ctx["dotnet_exe"], "restore", ctx["csproj"],
+         "--configfile", ctx["nuget_config"],
+         f"/p:TargetFrameworks={ctx['framework']}",
          f"/p:AndroidSdkDirectory={android_home}",
          f"/p:JavaSdkDirectory={java_home}"],
         check=False,
     )
 
+    # Use dotnet msbuild (not dotnet build) to avoid the full build pipeline
+    # which fails on CI preview SDKs with NETSDK1226
     result = run_cmd(
-        [ctx["dotnet_exe"], "msbuild", temp_csproj,
+        [ctx["dotnet_exe"], "msbuild", ctx["csproj"],
          "-t:InstallAndroidDependencies",
          f"/p:AndroidSdkDirectory={android_home}",
          f"/p:JavaSdkDirectory={java_home}",
@@ -225,12 +218,6 @@ def install_android_dependencies(ctx):
 
     _chmod_exec(os.path.join(platform_tools, "adb"))
     ctx["android_home"] = android_home
-
-    # Clean up temp project
-    try:
-        os.remove(temp_csproj)
-    except OSError:
-        pass
 
 
 def setup_android_sdk(ctx):
