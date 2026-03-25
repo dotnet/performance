@@ -258,6 +258,8 @@
   <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
     <Compile Remove="sve\ComplexMultiply.cs" />
     <Compile Remove="sve\PairwiseAdd.cs" />
+    <Compile Remove="sve\ComplexDotProduct.cs" />
+    <Compile Remove="sve\UpscaleFilter.cs" />
     <Compile Remove="sve\FP64Overflow.cs" />
   </ItemGroup>
 
