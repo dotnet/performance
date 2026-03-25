@@ -143,12 +143,10 @@ def setup_dotnet(correlation_payload):
 
 
 def install_workload(ctx):
-    """Step 1: Install the maui-android workload and run workload restore."""
+    """Step 1: Install workloads required by the project via workload restore."""
     log_raw("=== STEP 1: Workload Install ===", tee=True)
     result = run_cmd(
-        [ctx["dotnet_exe"], "workload", "install", "maui-android",
-         "--from-rollback-file",
-         os.path.join(ctx["workitem_root"], "rollback_maui.json"),
+        [ctx["dotnet_exe"], "workload", "restore", ctx["csproj"],
          "--configfile", ctx["nuget_config"]],
         check=False,
     )
@@ -156,17 +154,7 @@ def install_workload(ctx):
         log(f"STEP 1 FAILED with exit code {result.returncode}", tee=True)
         _dump_log()
         sys.exit(1)
-    log("Workload install succeeded")
-    # workload restore — non-fatal
-    result = run_cmd(
-        [ctx["dotnet_exe"], "workload", "restore", ctx["csproj"],
-         "--configfile", ctx["nuget_config"]],
-        check=False,
-    )
-    if result.returncode != 0:
-        log(f"WARNING: workload restore returned {result.returncode} (non-fatal)")
-    else:
-        log("Workload restore succeeded")
+    log("Workload restore succeeded")
 
 
 def install_android_dependencies(ctx):
