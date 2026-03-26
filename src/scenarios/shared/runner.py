@@ -31,72 +31,6 @@ from shared.testtraits import TestTraits, testtypes
 from subprocess import CalledProcessError
 
 
-def _run_incremental_iteration(iteration, num_iterations, base_cmd, editsrc, editdest,
-                               original_content, modified_content, packagename, activityname,
-                               scenarioprefix, startup, traits, measure_startup_fn):
-    """Run one incremental build+deploy+startup iteration.
-
-    Returns (startup_ms, counters_list, binlog_path, test_metadata).
-    """
-    import subprocess
-
-    getLogger().info("=== Incremental iteration %d/%d ===" % (iteration, num_iterations))
-
-    # Toggle source file
-    if editsrc and editdest:
-        if iteration % 2 == 1:
-            if modified_content is not None:
-                with open(editdest, 'w') as f:
-                    f.write(modified_content)
-                getLogger().info("Applied modified source: %s" % editdest)
-            else:
-                getLogger().warning("Modified source content not available, skipping edit")
-        else:
-            if original_content is not None:
-                with open(editdest, 'w') as f:
-                    f.write(original_content)
-                getLogger().info("Restored original source: %s" % editdest)
-            else:
-                getLogger().warning("Original content not available, skipping edit")
-
-    # Incremental build+deploy with per-iteration binlog
-    iter_binlog_name = 'incremental-build-and-deploy-%d.binlog' % iteration
-    iter_binlog = os.path.join(const.TRACEDIR, iter_binlog_name)
-    incremental_cmd = base_cmd + [f'-bl:{iter_binlog}']
-    getLogger().info("Incremental build+deploy: %s" % ' '.join(incremental_cmd))
-    subprocess.run(incremental_cmd, check=True)
-
-    # Measure startup
-    ms = measure_startup_fn(packagename, activityname)
-    getLogger().info("Incremental iteration %d/%d: build+deploy done, startup: %d ms" % (iteration, num_iterations, ms))
-
-    # Parse this iteration's binlog → temp build report
-    iter_report_name = 'incremental-build-report-%d.json' % iteration
-    iter_report = os.path.join(const.TRACEDIR, iter_report_name)
-    startup.reportjson = iter_report
-    traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP,
-                      tracename=iter_binlog_name,
-                      scenarioname=scenarioprefix + " - Incremental Build and Deploy",
-                      upload_to_perflab_container=False)
-    startup.parsetraces(traits)
-
-    # Extract build counters and test metadata from temp report
-    with open(iter_report, 'r') as f:
-        iter_data = json.load(f)
-    test_obj = iter_data["tests"][0]
-    counters = test_obj["counters"]
-    # Return test metadata (without counters) for building the final report
-    test_metadata = test_obj.copy()
-    test_metadata["counters"] = []
-
-    # Clean up temp report (leave binlog for later cleanup)
-    if os.path.exists(iter_report):
-        os.remove(iter_report)
-        getLogger().info("Removed temp report: %s" % iter_report)
-
-    return ms, counters, iter_binlog, test_metadata
-
-
 class Runner:
     '''
     Wrapper for running all the things
@@ -1137,6 +1071,71 @@ ex: C:\repos\performance;C:\repos\runtime
                     json.dump(report, f, indent=2)
                 getLogger().info("Merged report written to: %s" % final_report_path)
 
+            def run_incremental_iteration(iteration, num_iterations, base_cmd, editsrc, editdest,
+                                          original_content, modified_content, packagename, activityname,
+                                          scenarioprefix, startup, traits, measure_startup_fn):
+                """Run one incremental build+deploy+startup iteration.
+
+                Returns (startup_ms, counters_list, binlog_path, test_metadata).
+                """
+                import subprocess
+
+                getLogger().info("=== Incremental iteration %d/%d ===" % (iteration, num_iterations))
+
+                # Toggle source file
+                if editsrc and editdest:
+                    if iteration % 2 == 1:
+                        if modified_content is not None:
+                            with open(editdest, 'w') as f:
+                                f.write(modified_content)
+                            getLogger().info("Applied modified source: %s" % editdest)
+                        else:
+                            getLogger().warning("Modified source content not available, skipping edit")
+                    else:
+                        if original_content is not None:
+                            with open(editdest, 'w') as f:
+                                f.write(original_content)
+                            getLogger().info("Restored original source: %s" % editdest)
+                        else:
+                            getLogger().warning("Original content not available, skipping edit")
+
+                # Incremental build+deploy with per-iteration binlog
+                iter_binlog_name = 'incremental-build-and-deploy-%d.binlog' % iteration
+                iter_binlog = os.path.join(const.TRACEDIR, iter_binlog_name)
+                incremental_cmd = base_cmd + [f'-bl:{iter_binlog}']
+                getLogger().info("Incremental build+deploy: %s" % ' '.join(incremental_cmd))
+                subprocess.run(incremental_cmd, check=True)
+
+                # Measure startup
+                ms = measure_startup_fn(packagename, activityname)
+                getLogger().info("Incremental iteration %d/%d: build+deploy done, startup: %d ms" % (iteration, num_iterations, ms))
+
+                # Parse this iteration's binlog → temp build report
+                iter_report_name = 'incremental-build-report-%d.json' % iteration
+                iter_report = os.path.join(const.TRACEDIR, iter_report_name)
+                startup.reportjson = iter_report
+                traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP,
+                                  tracename=iter_binlog_name,
+                                  scenarioname=scenarioprefix + " - Incremental Build and Deploy",
+                                  upload_to_perflab_container=False)
+                startup.parsetraces(traits)
+
+                # Extract build counters and test metadata from temp report
+                with open(iter_report, 'r') as f:
+                    iter_data = json.load(f)
+                test_obj = iter_data["tests"][0]
+                counters = test_obj["counters"]
+                # Return test metadata (without counters) for building the final report
+                test_metadata = test_obj.copy()
+                test_metadata["counters"] = []
+
+                # Clean up temp report (leave binlog for later cleanup)
+                if os.path.exists(iter_report):
+                    os.remove(iter_report)
+                    getLogger().info("Removed temp report: %s" % iter_report)
+
+                return ms, counters, iter_binlog, test_metadata
+
             # --- Validate inputs ---
             if not self.csprojpath:
                 raise Exception("For Android inner loop measurements, --csproj-path must be provided.")
@@ -1219,7 +1218,7 @@ ex: C:\repos\performance;C:\repos\runtime
             intermediate_files = []  # files to clean up
 
             for iteration in range(1, num_iterations + 1):
-                ms, counters, iter_binlog, test_metadata = _run_incremental_iteration(
+                ms, counters, iter_binlog, test_metadata = run_incremental_iteration(
                     iteration, num_iterations, base_cmd,
                     self.editsrc, self.editdest, original_content, modified_content,
                     self.packagename, activityname, scenarioprefix, startup, self.traits,
