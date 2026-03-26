@@ -1266,33 +1266,17 @@ ex: C:\repos\performance;C:\repos\runtime
             getLogger().info("Final incremental E2E report written to: %s" % incremental_e2e_report)
 
             # --- Cleanup and upload ---
-            # Remove intermediate first build report
-            getLogger().info("Removing intermediate first build report: %s" % first_build_report)
-            if os.path.exists(first_build_report):
-                os.remove(first_build_report)
-
-            # Remove intermediate incremental binlogs
-            for f_path in intermediate_files:
+            # Clean up intermediates from TRACEDIR
+            for f_path in intermediate_files + [first_build_report]:
                 if os.path.exists(f_path):
                     os.remove(f_path)
-                    getLogger().info("Removed intermediate file: %s" % f_path)
+                    getLogger().info("Removed intermediate: %s" % f_path)
 
-            # Clean up helix upload dir: parsetraces() copies TRACEDIR contents there
-            # on every call, so intermediate files accumulate. Remove them, then
-            # do a final copy of only the reports we want.
+            # Wipe helix upload traces dir so copytree repopulates it cleanly
             if runninginlab():
-                helix_upload_dir = helixuploaddir()
-                if helix_upload_dir is not None:
-                    traces_upload = os.path.join(helix_upload_dir, 'traces')
-                    if os.path.exists(traces_upload):
-                        for fname in os.listdir(traces_upload):
-                            fpath = os.path.join(traces_upload, fname)
-                            if os.path.isfile(fpath):
-                                if fname not in [os.path.basename(first_e2e_report),
-                                                 os.path.basename(incremental_e2e_report),
-                                                 os.path.basename(first_binlog)]:
-                                    os.remove(fpath)
-                                    getLogger().info("Removed uploaded intermediate: %s" % fpath)
+                traces_upload = os.path.join(helixuploaddir() or '', 'traces')
+                if os.path.exists(traces_upload):
+                    rmtree(traces_upload)
 
             # Final upload
             self.traits.add_traits(overwrite=True, upload_to_perflab_container=saved_upload)
