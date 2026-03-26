@@ -8,7 +8,7 @@ from azure.identity import DefaultAzureCredential, ClientAssertionCredential, Ce
 from traceback import format_exc
 from glob import glob
 from performance.common import retry_on_exception, base64_to_bytes, get_certificates
-from performance.constants import TENANT_ID, ARC_CLIENT_ID, CERT_CLIENT_ID
+from performance.constants import TENANT_ID, ARC_CLIENT_ID, CERT_CLIENT_ID, UAMI_CLIENT_ID
 import os
 import json
 
@@ -28,23 +28,42 @@ def get_unique_name(filename: str, unique_id: str) -> str:
         newname = "{0}-{1}-perf-lab-report.json".format(unique_id, randint(1000, 9999))
     return newname
 
-def get_credential():
+def _try_managed_identity(managed_identity_client_id: Optional[str] = None):
+    """Attempt auth via DefaultAzureCredential → ClientAssertionCredential (federated token exchange).
+    Returns a credential on success, or None on ClientAuthenticationError."""
     try:
-        dac = DefaultAzureCredential()
+        dac = DefaultAzureCredential(managed_identity_client_id=managed_identity_client_id)
         credential = ClientAssertionCredential(TENANT_ID, ARC_CLIENT_ID, lambda: dac.get_token("api://AzureADTokenExchange/.default").token)
         credential.get_token("https://storage.azure.com/.default")
         return credential
     except ClientAuthenticationError as ex:
-        getLogger().info("Unable to use managed identity. Falling back to certificate.")
-        certs = get_certificates()
-        for cert in certs:
-            credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert), send_certificate_chain=True)
-            try:
-                credential.get_token("https://storage.azure.com/.default")
-                return credential
-            except ClientAuthenticationError as ex:
-                getLogger().error(ex.message)
-                continue
+        getLogger().info("Managed identity auth failed (client_id=%s): %s", managed_identity_client_id or "system-assigned", ex.message)
+        return None
+
+def get_credential():
+    # 1. Try system-assigned managed identity
+    getLogger().info("Attempting auth with system-assigned managed identity.")
+    credential = _try_managed_identity()
+    if credential is not None:
+        return credential
+
+    # 2. Try user-assigned managed identity
+    getLogger().info("Attempting auth with user-assigned managed identity (client_id=%s).", UAMI_CLIENT_ID)
+    credential = _try_managed_identity(managed_identity_client_id=UAMI_CLIENT_ID)
+    if credential is not None:
+        return credential
+
+    # 3. Fall back to certificate-based auth
+    getLogger().info("Managed identity auth unavailable. Falling back to certificate.")
+    certs = get_certificates()
+    for cert in certs:
+        credential = CertificateCredential(TENANT_ID, CERT_CLIENT_ID, certificate_data=base64_to_bytes(cert), send_certificate_chain=True)
+        try:
+            credential.get_token("https://storage.azure.com/.default")
+            return credential
+        except ClientAuthenticationError as ex:
+            getLogger().error(ex.message)
+            continue
 
     raise RuntimeError("Authentication failed with managed identity and certificates. No valid authentication method available.")
 
