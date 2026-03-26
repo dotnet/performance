@@ -9,11 +9,9 @@ import sys
 from logging import getLogger
 from shutil import copytree
 from performance.common import RunCommand, runninginlab
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
 from shared.startup import StartupWrapper
 from shared.util import helixuploaddir, xharness_adb
 from shared import const
-import upload
 
 class AndroidInnerLoopHelper(object):
     '''
@@ -304,7 +302,10 @@ class AndroidInnerLoopHelper(object):
                                 os.remove(fpath)
                                 getLogger().info("Removed uploaded intermediate: %s" % fpath)
 
-        # Final upload
+        # Final upload — defer these imports to avoid pulling in azure.storage.blob at module load time
+        from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
+        import upload
+
         traits.add_traits(overwrite=True, upload_to_perflab_container=saved_upload)
         helix_upload_dir = helixuploaddir()
         if runninginlab() and helix_upload_dir is not None:
