@@ -14,7 +14,7 @@ jobs:
       displayName: Download Build Artifact ${{ artifact.artifactName }}
       artifact: ${{ artifact.artifactName }}
     - ${{ each fileName in artifact.files }}:
-      - script: echo "pvscmdupload/$web/builds/runtime/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}"
+      - script: echo "pvscmdupload/\$web/builds/runtime/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}"
         displayName: 'Artifact upload path'
       - task: AzureCLI@2
         displayName: 'Upload ${{ fileName }} file'
