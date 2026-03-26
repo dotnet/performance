@@ -285,7 +285,8 @@ jobs:
             ${{ parameter.key }}: ${{ parameter.value }}
 
   # CoreCLR Viper microbenchmarks Composite R2R with interpreter fallback — controlled by viperMicroR2RInterpreter toggle.
-  - ${{ if eq(parameters.viperMicroR2RInterpreter.enabled, true) }}:
+  # Excluded on release branches — the coreclr_r2r_interpreter build doesn't exist in older runtime branches.
+  - ${{ if and(eq(parameters.viperMicroR2RInterpreter.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
