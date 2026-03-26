@@ -26,7 +26,7 @@
     <_MSBuildArgs>$(_MSBuildArgs) /p:RuntimeIdentifier=$(AndroidRid)</_MSBuildArgs>
 
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
-    <StartupIterations Condition="'$(StartupIterations)' == ''">10</StartupIterations>
+    <InnerLoopIterations Condition="'$(InnerLoopIterations)' == ''">10</InnerLoopIterations>
   </PropertyGroup>
 
   <!-- Remove .NET SDK packs from the Helix correlation payload to reduce transfer size.
@@ -69,7 +69,7 @@
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Device - %(Identity)')">
       <PreCommands>set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages</PreCommands>
-      <Command>$(Python) run.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; --startup-iterations $(StartupIterations) $(ScenarioArgs)</Command>
+      <Command>$(Python) run.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>
@@ -79,7 +79,7 @@
   <ItemGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Emulator - %(Identity)')">
       <PreCommands>export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages</PreCommands>
-      <Command>$(Python) run.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; --startup-iterations $(StartupIterations) $(ScenarioArgs)</Command>
+      <Command>$(Python) run.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>
