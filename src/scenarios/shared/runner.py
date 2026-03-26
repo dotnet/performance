@@ -31,76 +31,9 @@ from shared.testtraits import TestTraits, testtypes
 from subprocess import CalledProcessError
 
 
-def _measure_startup(packagename, activityname):
-    """Measure app startup time (ms). Prefers TotalTime from am start, falls back to logcat."""
-    stop_app_cmd = xharness_adb() + ['shell', 'am', 'force-stop', packagename]
-    start_app_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-S', '-n', activityname]
-    clear_logs_cmd = xharness_adb() + ['logcat', '-c']
-    retrieve_time_cmd = xharness_adb() + [
-        'shell',
-        f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
-    ]
-
-    RunCommand(clear_logs_cmd, verbose=True).run()
-    start_result = RunCommand(start_app_cmd, verbose=True)
-    start_result.run()
-
-    startup_ms = None
-
-    # Primary: parse WaitTime or TotalTime from am start -W output
-    total_match = re.search(r"TotalTime:\s*(\d+)", start_result.stdout)
-    wait_match = re.search(r"WaitTime:\s*(\d+)", start_result.stdout)
-    if total_match:
-        startup_ms = int(total_match.group(1))
-        getLogger().info("Startup time (TotalTime): %d ms" % startup_ms)
-    elif wait_match:
-        startup_ms = int(wait_match.group(1))
-        getLogger().info("Startup time (WaitTime): %d ms" % startup_ms)
-
-    # Fallback: parse 'Displayed' time from logcat (stop app first, matching DEVICESTARTUP pattern)
-    if startup_ms is None:
-        RunCommand(stop_app_cmd, verbose=True).run()
-        retrieve_result = RunCommand(retrieve_time_cmd, verbose=True)
-        retrieve_result.run()
-        dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
-        if not dirty_capture:
-            raise Exception("Failed to capture startup time from am start output or logcat!")
-        capture_list = dirty_capture.group(1).split('s')
-        if len(capture_list) == 1:
-            startup_ms = int(capture_list[0])
-        elif len(capture_list) == 2:
-            startup_ms = int(capture_list[0]) * 1000 + int(capture_list[1].zfill(3))
-        else:
-            raise Exception("Android time capture failed! Unexpected format: %s" % dirty_capture.group(0))
-        getLogger().info("Startup time (logcat): %d ms" % startup_ms)
-    else:
-        RunCommand(stop_app_cmd, verbose=True).run()
-
-    return startup_ms
-
-
-def _merge_build_and_startup(build_report_path, startup_results, final_report_path):
-    """Load the build metrics report, append a startup time counter, write to final path."""
-    with open(build_report_path, 'r') as f:
-        report = json.load(f)
-    startup_counter = {
-        "name": "Time to Main",
-        "topCounter": True,
-        "defaultCounter": False,
-        "higherIsBetter": False,
-        "metricName": "ms",
-        "results": startup_results
-    }
-    # Report structure: { "tests": [ { "counters": [...] } ] }
-    report["tests"][0]["counters"].append(startup_counter)
-    with open(final_report_path, 'w') as f:
-        json.dump(report, f, indent=2)
-    getLogger().info("Merged report written to: %s" % final_report_path)
-
-
 def _run_incremental_iteration(iteration, num_iterations, base_cmd, editsrc, editdest,
                                original_content, modified_content, packagename, activityname,
-                               scenarioprefix, startup, traits):
+                               scenarioprefix, startup, traits, measure_startup_fn):
     """Run one incremental build+deploy+startup iteration.
 
     Returns (startup_ms, counters_list, binlog_path, test_metadata).
@@ -134,7 +67,7 @@ def _run_incremental_iteration(iteration, num_iterations, base_cmd, editsrc, edi
     subprocess.run(incremental_cmd, check=True)
 
     # Measure startup
-    ms = _measure_startup(packagename, activityname)
+    ms = measure_startup_fn(packagename, activityname)
     getLogger().info("Incremental iteration %d/%d: build+deploy done, startup: %d ms" % (iteration, num_iterations, ms))
 
     # Parse this iteration's binlog → temp build report
@@ -1139,6 +1072,71 @@ ex: C:\repos\performance;C:\repos\runtime
             from shared.util import helixuploaddir
             import upload
 
+            def measure_startup(packagename, activityname):
+                """Measure app startup time (ms). Prefers TotalTime from am start, falls back to logcat."""
+                stop_app_cmd = xharness_adb() + ['shell', 'am', 'force-stop', packagename]
+                start_app_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-S', '-n', activityname]
+                clear_logs_cmd = xharness_adb() + ['logcat', '-c']
+                retrieve_time_cmd = xharness_adb() + [
+                    'shell',
+                    f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
+                ]
+
+                RunCommand(clear_logs_cmd, verbose=True).run()
+                start_result = RunCommand(start_app_cmd, verbose=True)
+                start_result.run()
+
+                startup_ms = None
+
+                # Primary: parse WaitTime or TotalTime from am start -W output
+                total_match = re.search(r"TotalTime:\s*(\d+)", start_result.stdout)
+                wait_match = re.search(r"WaitTime:\s*(\d+)", start_result.stdout)
+                if total_match:
+                    startup_ms = int(total_match.group(1))
+                    getLogger().info("Startup time (TotalTime): %d ms" % startup_ms)
+                elif wait_match:
+                    startup_ms = int(wait_match.group(1))
+                    getLogger().info("Startup time (WaitTime): %d ms" % startup_ms)
+
+                # Fallback: parse 'Displayed' time from logcat (stop app first, matching DEVICESTARTUP pattern)
+                if startup_ms is None:
+                    RunCommand(stop_app_cmd, verbose=True).run()
+                    retrieve_result = RunCommand(retrieve_time_cmd, verbose=True)
+                    retrieve_result.run()
+                    dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
+                    if not dirty_capture:
+                        raise Exception("Failed to capture startup time from am start output or logcat!")
+                    capture_list = dirty_capture.group(1).split('s')
+                    if len(capture_list) == 1:
+                        startup_ms = int(capture_list[0])
+                    elif len(capture_list) == 2:
+                        startup_ms = int(capture_list[0]) * 1000 + int(capture_list[1].zfill(3))
+                    else:
+                        raise Exception("Android time capture failed! Unexpected format: %s" % dirty_capture.group(0))
+                    getLogger().info("Startup time (logcat): %d ms" % startup_ms)
+                else:
+                    RunCommand(stop_app_cmd, verbose=True).run()
+
+                return startup_ms
+
+            def merge_build_and_startup(build_report_path, startup_results, final_report_path):
+                """Load the build metrics report, append a startup time counter, write to final path."""
+                with open(build_report_path, 'r') as f:
+                    report = json.load(f)
+                startup_counter = {
+                    "name": "Time to Main",
+                    "topCounter": True,
+                    "defaultCounter": False,
+                    "higherIsBetter": False,
+                    "metricName": "ms",
+                    "results": startup_results
+                }
+                # Report structure: { "tests": [ { "counters": [...] } ] }
+                report["tests"][0]["counters"].append(startup_counter)
+                with open(final_report_path, 'w') as f:
+                    json.dump(report, f, indent=2)
+                getLogger().info("Merged report written to: %s" % final_report_path)
+
             # --- Validate inputs ---
             if not self.csprojpath:
                 raise Exception("For Android inner loop measurements, --csproj-path must be provided.")
@@ -1177,7 +1175,7 @@ ex: C:\repos\performance;C:\repos\runtime
             getLogger().info("Resolved activity: %s" % activityname)
 
             # --- First startup measurement ---
-            first_startup_ms = _measure_startup(self.packagename, activityname)
+            first_startup_ms = measure_startup(self.packagename, activityname)
             getLogger().info("First deploy startup: %d ms" % first_startup_ms)
 
             # --- Parse first build report ---
@@ -1193,7 +1191,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
             # Merge first build metrics + startup → first e2e report
             first_e2e_report = os.path.join(const.TRACEDIR, 'first-debug-e2e-perf-lab-report.json')
-            _merge_build_and_startup(first_build_report, [first_startup_ms], first_e2e_report)
+            merge_build_and_startup(first_build_report, [first_startup_ms], first_e2e_report)
 
             # --- Incremental loop ---
             num_iterations = self.innerloopiterations
@@ -1224,7 +1222,8 @@ ex: C:\repos\performance;C:\repos\runtime
                 ms, counters, iter_binlog, test_metadata = _run_incremental_iteration(
                     iteration, num_iterations, base_cmd,
                     self.editsrc, self.editdest, original_content, modified_content,
-                    self.packagename, activityname, scenarioprefix, startup, self.traits)
+                    self.packagename, activityname, scenarioprefix, startup, self.traits,
+                    measure_startup)
 
                 incremental_startup_results.append(ms)
                 intermediate_files.append(iter_binlog)
