@@ -183,6 +183,7 @@ ex: C:\repos\performance;C:\repos\runtime
         androidinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', default='Debug')
         androidinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
         androidinnerloopparser.add_argument('--package-name', help='Android package name for startup measurement (e.g. com.companyname.mauiandroidinnerloop)', dest='packagename')
+        androidinnerloopparser.add_argument('--startup-iterations', help='Number of startup measurements per deploy (1+)', type=int, default=10, dest='startupiterations')
         self.add_common_arguments(androidinnerloopparser)
 
         args = parser.parse_args()
@@ -216,6 +217,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.configuration = args.configuration
             self.msbuildargs = args.msbuildargs or os.environ.get('PERFLAB_MSBUILD_ARGS', '')
             self.packagename = args.packagename
+            self.startupiterations = args.startupiterations
 
         if self.testtype == const.DEVICESTARTUP:
             self.packagepath = args.packagepath
@@ -1029,8 +1031,16 @@ ex: C:\repos\performance;C:\repos\runtime
             if not packagename:
                 raise Exception("For Android inner loop measurements, --package-name must be provided.")
 
-            def measure_startup():
-                """Measure app startup time (ms). Prefers WaitTime from am start, falls back to logcat."""
+            def measure_startup(packagename, activityname):
+                """Measure app startup time (ms). Prefers TotalTime from am start, falls back to logcat."""
+                stop_app_cmd = xharness_adb() + ['shell', 'am', 'force-stop', packagename]
+                start_app_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-S', '-n', activityname]
+                clear_logs_cmd = xharness_adb() + ['logcat', '-c']
+                retrieve_time_cmd = xharness_adb() + [
+                    'shell',
+                    f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
+                ]
+
                 RunCommand(clear_logs_cmd, verbose=True).run()
                 start_result = RunCommand(start_app_cmd, verbose=True)
                 start_result.run()
@@ -1068,7 +1078,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 return startup_ms
 
-            def merge_build_and_startup(build_report_path, startup_ms, final_report_path):
+            def merge_build_and_startup(build_report_path, startup_results, final_report_path):
                 """Load the build metrics report, append a startup time counter, write to final path."""
                 with open(build_report_path, 'r') as f:
                     report = json.load(f)
@@ -1078,7 +1088,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     "defaultCounter": False,
                     "higherIsBetter": False,
                     "metricName": "ms",
-                    "results": [startup_ms]
+                    "results": startup_results
                 }
                 # Report structure: { "tests": [ { "counters": [...] } ] }
                 report["tests"][0]["counters"].append(startup_counter)
@@ -1102,16 +1112,14 @@ ex: C:\repos\performance;C:\repos\runtime
             activityname = resolve_result.stdout.strip()
             getLogger().info("Resolved activity: %s" % activityname)
 
-            stop_app_cmd = xharness_adb() + ['shell', 'am', 'force-stop', packagename]
-            start_app_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-S', '-n', activityname]
-            clear_logs_cmd = xharness_adb() + ['logcat', '-c']
-            retrieve_time_cmd = xharness_adb() + [
-                'shell',
-                f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
-            ]
-
-            # Step 2: Measure startup after first deploy
-            first_startup_ms = measure_startup()
+            # Step 2: Measure startup after first deploy (multiple iterations to reduce noise)
+            first_startup_results = []
+            for i in range(self.startupiterations):
+                ms = measure_startup(packagename, activityname)
+                getLogger().info("First deploy startup iteration %d/%d: %d ms" % (i + 1, self.startupiterations, ms))
+                first_startup_results.append(ms)
+                if i < self.startupiterations - 1:
+                    time.sleep(2)
 
             # Step 3: Parse first deploy binlog → temp build metrics
             startup = StartupWrapper()
@@ -1136,8 +1144,14 @@ ex: C:\repos\performance;C:\repos\runtime
             getLogger().info("Incremental build and deploy: %s" % ' '.join(incremental_cmd))
             subprocess.run(incremental_cmd, check=True)
 
-            # Step 6: Measure startup after incremental deploy
-            incremental_startup_ms = measure_startup()
+            # Step 6: Measure startup after incremental deploy (multiple iterations to reduce noise)
+            incremental_startup_results = []
+            for i in range(self.startupiterations):
+                ms = measure_startup(packagename, activityname)
+                getLogger().info("Incremental deploy startup iteration %d/%d: %d ms" % (i + 1, self.startupiterations, ms))
+                incremental_startup_results.append(ms)
+                if i < self.startupiterations - 1:
+                    time.sleep(2)
 
             # Step 7: Parse incremental build+deploy binlog → temp build metrics
             incremental_build_report = os.path.join(const.TRACEDIR, 'incremental-build-and-deploy-perf-lab-report.json')
@@ -1151,8 +1165,8 @@ ex: C:\repos\performance;C:\repos\runtime
             # Step 8: Merge build metrics + startup time → e2e reports
             first_e2e_report = os.path.join(const.TRACEDIR, 'first-debug-e2e-perf-lab-report.json')
             incremental_e2e_report = os.path.join(const.TRACEDIR, 'incremental-debug-e2e-perf-lab-report.json')
-            merge_build_and_startup(first_build_report, first_startup_ms, first_e2e_report)
-            merge_build_and_startup(incremental_build_report, incremental_startup_ms, incremental_e2e_report)
+            merge_build_and_startup(first_build_report, first_startup_results, first_e2e_report)
+            merge_build_and_startup(incremental_build_report, incremental_startup_results, incremental_e2e_report)
 
             # Clean up intermediate build-only reports so they don't get uploaded.
             # Remove from TRACEDIR first, then also from the Helix upload dir
