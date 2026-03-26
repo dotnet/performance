@@ -130,57 +130,40 @@ with MauiNuGetConfigContext(precommands.framework):
     shutil.copy2(repo_nuget_config, app_nuget_config)
     logger.info(f"Copied merged NuGet.config from {repo_nuget_config} to {app_nuget_config}")
 
-    # Fix the .csproj to target only Android (remove iOS, MacCatalyst, Windows TFMs).
-    # The MAUI template targets all platforms, but the Helix machine only has the Android SDK.
-    # NOTE: run.py now passes /p:TargetFrameworks={android_tfm} to all dotnet commands,
-    # so this rewrite is largely redundant. Keeping it as a belt-and-suspenders safeguard
-    # for now — it could be removed in a future cleanup.
+    # Inject properties into the csproj so they apply to every command that
+    # targets this project (restore, build, install).
     csproj_path = os.path.join(const.APPDIR, f'{EXENAME}.csproj')
     with open(csproj_path, 'r') as f:
         csproj_content = f.read()
 
     logger.info(f"Original .csproj content:\n{csproj_content}")
 
-    android_tfm = f'{precommands.framework}-android'
-
-    # Handle both <TargetFrameworks> (plural) and <TargetFramework> (singular).
-    # Use re.DOTALL so .*? matches across newlines (the element may span multiple lines).
-    csproj_modified, plural_count = re.subn(
-        r'<TargetFrameworks>.*?</TargetFrameworks>',
-        f'<TargetFrameworks>{android_tfm}</TargetFrameworks>',
-        csproj_content,
-        flags=re.DOTALL
-    )
-    csproj_modified, singular_count = re.subn(
-        r'<TargetFramework>.*?</TargetFramework>',
-        f'<TargetFramework>{android_tfm}</TargetFramework>',
-        csproj_modified,
-        flags=re.DOTALL
-    )
-
-    total_subs = plural_count + singular_count
-    logger.info(f"TFM substitutions: {plural_count} plural, {singular_count} singular, {total_subs} total")
-
-    if total_subs == 0:
+    injected_props = {
+        # Preview SDKs may lack prune-package-data files, causing NETSDK1226.
+        'AllowMissingPrunePackageData': 'true',
+        # The perf repo globally disables the Roslyn compiler server to avoid
+        # BenchmarkDotNet file-locking issues. Re-enable it here to match real
+        # MAUI developer inner loop experience.
+        'UseSharedCompilation': 'true',
+    }
+    csproj_modified = csproj_content
+    if '</PropertyGroup>' not in csproj_modified:
         raise Exception(
-            f"Failed to modify TargetFramework(s) in {csproj_path}. "
-            f"Neither <TargetFrameworks> nor <TargetFramework> elements were found."
+            f"Cannot inject properties into {csproj_path}: "
+            f"no <PropertyGroup> found in the generated template."
         )
-
-    # Verify: the modified .csproj must not reference non-Android TFMs
-    unwanted_tfms = ['ios', 'maccatalyst', 'windows']
-    tfm_elements = re.findall(r'<TargetFrameworks?>.*?</TargetFrameworks?>', csproj_modified, re.DOTALL)
-    for elem in tfm_elements:
-        for unwanted in unwanted_tfms:
-            if unwanted in elem.lower():
-                raise Exception(
-                    f"Verification failed: .csproj still contains '{unwanted}' in TFM element: {elem}"
-                )
+    for prop_name, prop_value in injected_props.items():
+        if prop_name not in csproj_modified:
+            csproj_modified = csproj_modified.replace(
+                '</PropertyGroup>',
+                f'    <{prop_name}>{prop_value}</{prop_name}>\n  </PropertyGroup>',
+                1  # only the first PropertyGroup
+            )
 
     with open(csproj_path, 'w') as f:
         f.write(csproj_modified)
 
-    logger.info(f"Updated {csproj_path}: TargetFrameworks set to {android_tfm}")
+    logger.info(f"Updated {csproj_path} with injected properties")
     logger.info(f"Modified .csproj content:\n{csproj_modified}")
 
     # Copy the modified MainPage.xaml.cs into src/ for the incremental deploy simulation.

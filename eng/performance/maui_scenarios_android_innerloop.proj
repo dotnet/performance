@@ -19,9 +19,6 @@
     <!-- CoreCLR JIT (all inner loop runs use codeGenType=Default; AOT/R2R/NativeAOT are unused) -->
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'JIT'">$(_MSBuildArgs) /p:PublishReadyToRun=false /p:PublishReadyToRunComposite=false</_MSBuildArgs>
 
-    <!-- Avoids build failures when IL trimmer pruning data is missing for newer Android workloads -->
-    <_MSBuildArgs>$(_MSBuildArgs) /p:AllowMissingPrunePackageData=true</_MSBuildArgs>
-
     <!-- AndroidRid: defaults based on target OS but can be overridden.
          Windows targets physical Pixel 8 (ARM64); Linux targets x86_64 emulator. -->
     <AndroidRid Condition="'$(AndroidRid)' == '' and '$(TargetsWindows)' == 'true'">android-arm64</AndroidRid>

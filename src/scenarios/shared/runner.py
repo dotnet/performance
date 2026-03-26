@@ -1013,11 +1013,7 @@ ex: C:\repos\performance;C:\repos\runtime
             first_binlog = os.path.join(const.TRACEDIR, 'first-build-and-deploy.binlog')
             incremental_binlog = os.path.join(const.TRACEDIR, 'incremental-build-and-deploy.binlog')
 
-            # Build the base MSBuild command
-            # NOTE: The performance repo normally sets UseSharedCompilation=false (see dotnet.py,
-            # ci_setup.py, init.sh), but we intentionally omit it here. The MAUI SDK defaults to
-            # UseSharedCompilation=true, and since inner loop measurements aim to replicate real
-            # developer build timing, we keep the MAUI SDK default.
+            # Build the base MSBuild command.
             base_cmd = ['dotnet', 'build', self.csprojpath, '-t:Install']
             if self.configuration:
                 base_cmd.extend(['-c', self.configuration])

@@ -68,7 +68,7 @@ def _count_adb_devices():
 
 
 def _setup_adb_windows(android_home):
-    """Windows: wait for a device, then verify."""
+    """Windows: wait for a physical device, then verify."""
     log("Waiting for device (timeout 30s)...")
     try:
         run_cmd(["adb", "wait-for-device"], check=False, timeout=30)
@@ -136,6 +136,8 @@ def setup_dotnet(correlation_payload):
     dotnet_root = os.path.join(correlation_payload, "dotnet")
     os.environ["DOTNET_ROOT"] = dotnet_root
     os.environ["PATH"] = dotnet_root + os.pathsep + os.environ.get("PATH", "")
+    os.environ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
+    os.environ["DOTNET_MULTILEVEL_LOOKUP"] = "0"
     dotnet_exe = os.path.join(dotnet_root, f"dotnet{EXE}")
     log(f"DOTNET_ROOT={dotnet_root}")
     run_cmd([dotnet_exe, "--version"], check=False)
@@ -157,10 +159,6 @@ def install_workload(ctx):
     log_raw("=== STEP 1: Workload Install ===", tee=True)
 
     # 1a. Workload restore — satisfy all project dependencies first.
-    #     Non-fatal: if it fails we still attempt the pinned install.
-    #     Override TargetFrameworks so workload restore only considers the
-    #     android TFM, not the multi-platform TFMs in the MAUI template
-    #     csproj (which would demand the ios workload, etc.).
     log("Step 1a: workload restore (satisfy project dependencies)", tee=True)
     result = run_cmd(
         [ctx["dotnet_exe"], "workload", "restore", ctx["csproj"],
@@ -175,7 +173,6 @@ def install_workload(ctx):
         log("Workload restore succeeded")
 
     # 1b. Workload install — pin maui-android to the rollback version.
-    #     This is the critical step; failure here is fatal.
     rollback_file = os.path.join(ctx["workitem_root"], "rollback_maui.json")
     log(f"Step 1b: workload install maui-android "
         f"(pinned via {rollback_file})", tee=True)
@@ -210,14 +207,10 @@ def install_android_dependencies(ctx):
     csproj = ctx["csproj"]
     log(f"Using project: {csproj}")
 
-    # Restore the real project — AllowMissingPrunePackageData avoids
-    # NETSDK1226 on preview SDKs missing prune package data.
-    # Override TargetFrameworks to android-only so restore doesn't fail
-    # with NETSDK1147 trying to resolve non-Android platform TFMs.
+    # Restore the project. Override TargetFrameworks to android-only.
     result = run_cmd(
         [ctx["dotnet_exe"], "restore", csproj,
          "--configfile", ctx["nuget_config"],
-         "-p:AllowMissingPrunePackageData=true",
          f"-p:TargetFrameworks={ctx['framework']}"],
         check=False,
     )
