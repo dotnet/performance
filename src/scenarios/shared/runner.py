@@ -17,7 +17,7 @@ from argparse import RawTextHelpFormatter
 from shutil import rmtree
 from typing import Optional
 from shared.androidhelper import AndroidHelper
-from shared.androidinnerloop import AndroidInnerLoopHelper
+from shared.androidinnerloophelper import AndroidInnerLoopHelper
 from shared.androidinstrumentation import AndroidInstrumentationHelper
 from shared.devicepowerconsumption import DevicePowerConsumptionHelper
 from shared.crossgen import CrossgenArguments
