@@ -1268,6 +1268,9 @@ ex: C:\repos\performance;C:\repos\runtime
             # --- Cleanup and upload ---
             # Clean up intermediates from TRACEDIR
             for f_path in intermediate_files + [first_build_report]:
+                if f_path.endswith('.binlog'):
+                    getLogger().info("Keeping binlog for upload: %s" % f_path)
+                    continue
                 if os.path.exists(f_path):
                     os.remove(f_path)
                     getLogger().info("Removed intermediate: %s" % f_path)
