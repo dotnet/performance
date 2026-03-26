@@ -302,7 +302,8 @@ jobs:
           additionalJobIdentifier: 'R2RInterpreter'
     
   # CoreCLR Cobalt SVE microbenchmarks — controlled by cobaltSveMicro toggle.
-  - ${{ if eq(parameters.cobaltSveMicro.enabled, true) }}:
+  # Excluded on release branches — the arm64 coreclr build doesn't exist in older runtime branches.
+  - ${{ if and(eq(parameters.cobaltSveMicro.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
