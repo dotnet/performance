@@ -146,6 +146,8 @@ with MauiNuGetConfigContext(precommands.framework):
         # BenchmarkDotNet file-locking issues. Re-enable it here to match real
         # MAUI developer inner loop experience.
         'UseSharedCompilation': 'true',
+        # Android dependencies like androidx.lifecycle require minSdkVersion 23+.
+        'SupportedOSPlatformVersion': '23',
     }
     csproj_modified = csproj_content
     if '</PropertyGroup>' not in csproj_modified:
