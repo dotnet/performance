@@ -254,6 +254,15 @@
     <Compile Remove="sve\*.cs" />
   </ItemGroup>
 
+  <!-- Remove Sve2 microbenchmarks when running on net versions < 10.0 -->
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
+    <Compile Remove="sve\ComplexMultiply.cs" />
+    <Compile Remove="sve\PairwiseAdd.cs" />
+    <Compile Remove="sve\ComplexDotProduct.cs" />
+    <Compile Remove="sve\UpscaleFilter.cs" />
+    <Compile Remove="sve\FP64Overflow.cs" />
+  </ItemGroup>
+
   <!-- This is not removing things from older Net versions, it is removing from newer Net versions -->
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
     <Compile Remove="libraries\System.Drawing\*.cs" />
