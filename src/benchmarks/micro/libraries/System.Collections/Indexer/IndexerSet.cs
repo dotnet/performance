@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
@@ -24,10 +25,14 @@ namespace System.Collections
 
         private T[] _array;
         private List<T> _list;
+        private ImmutableArray<T> _immutableArray;
+        private ImmutableList<T> _immutableList;
         private Dictionary<T, T> _dictionary;
         private SortedList<T, T> _sortedList;
         private SortedDictionary<T, T> _sortedDictionary;
         private ConcurrentDictionary<T, T> _concurrentDictionary;
+        private ImmutableDictionary<T, T> _immutableDictionary;
+        private ImmutableSortedDictionary<T, T> _immutableSortedDictionary;
 
         [GlobalSetup(Targets = new[] { nameof(Array), nameof(Span) })]
         public void SetupArray() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
@@ -62,6 +67,30 @@ namespace System.Collections
             for (int i = 0; i < list.Count; i++)
                 list[i] = default;
             return list;
+        }
+
+        [GlobalSetup(Target = nameof(ImmutableArray))]
+        public void SetupImmutableArray() => _immutableArray = Immutable.ImmutableArray.CreateRange(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
+
+        [Benchmark]
+        public ImmutableArray<T> ImmutableArray()
+        {
+            var immutableArray = _immutableArray;
+            for (int i = 0; i < immutableArray.Length; i++)
+                immutableArray = immutableArray.SetItem(i, default);
+            return immutableArray;
+        }
+
+        [GlobalSetup(Target = nameof(ImmutableList))]
+        public void SetupImmutableList() => _immutableList = Immutable.ImmutableList.CreateRange(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
+
+        [Benchmark]
+        public ImmutableList<T> ImmutableList()
+        {
+            var immutableList = _immutableList;
+            for (int i = 0; i < immutableList.Count; i++)
+                immutableList = immutableList.SetItem(i, default);
+            return immutableList;
         }
 
         [Benchmark]
@@ -142,6 +171,40 @@ namespace System.Collections
             for (int i = 0; i < keys.Length; i++)
                 dictionary[keys[i]] = default;
             return dictionary;
+        }
+
+        [GlobalSetup(Target = nameof(ImmutableDictionary))]
+        public void SetupImmutableDictionary()
+        {
+            _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _immutableDictionary = Immutable.ImmutableDictionary.CreateRange(_keys.Select(i => new KeyValuePair<T, T>(i, i)));
+        }
+
+        [Benchmark]
+        public ImmutableDictionary<T, T> ImmutableDictionary()
+        {
+            var immutableDictionary = _immutableDictionary;
+            var keys = _keys;
+            for (int i = 0; i < keys.Length; i++)
+                immutableDictionary = immutableDictionary.SetItem(keys[i], default);
+            return immutableDictionary;
+        }
+
+        [GlobalSetup(Target = nameof(ImmutableSortedDictionary))]
+        public void SetupImmutableSortedDictionary()
+        {
+            _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _immutableSortedDictionary = Immutable.ImmutableSortedDictionary.CreateRange(_keys.Select(i => new KeyValuePair<T, T>(i, i)));
+        }
+
+        [Benchmark]
+        public ImmutableSortedDictionary<T, T> ImmutableSortedDictionary()
+        {
+            var immutableSortedDictionary = _immutableSortedDictionary;
+            var keys = _keys;
+            for (int i = 0; i < keys.Length; i++)
+                immutableSortedDictionary = immutableSortedDictionary.SetItem(keys[i], default);
+            return immutableSortedDictionary;
         }
     }
 }

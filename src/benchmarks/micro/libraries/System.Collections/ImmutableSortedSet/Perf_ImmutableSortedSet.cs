@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -10,20 +11,17 @@ using MicroBenchmarks;
 namespace System.Collections.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
-    public class Perf_Dictionary
+    public class Perf_ImmutableSortedSet
     {
-        [Params(3_000)]
-        public int Items;
-
-        private Dictionary<int, int> _dict;
+        private ImmutableSortedSet<int> _set;
 
         [GlobalSetup]
-        public void InitializeContainsValue()
-        {
-            _dict = Enumerable.Range(0, 3_000).ToDictionary(i => i);
-        }
+        public void Setup() => _set = ImmutableSortedSet.CreateRange(Enumerable.Range(0, 100_000));
 
         [Benchmark]
-        public object Clone() => new Dictionary<int, int>(_dict);
+        public int Min() => _set.Min;
+
+        [Benchmark]
+        public int Max() => _set.Max;
     }
 }
