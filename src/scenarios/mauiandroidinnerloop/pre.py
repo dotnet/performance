@@ -118,7 +118,8 @@ with MauiNuGetConfigContext(precommands.framework):
                     bin_dir=const.BINDIR,
                     exename=EXENAME,
                     working_directory=sys.path[0],
-                    no_restore=True)
+                    no_restore=True,
+                    extra_args=['-sc'])
 
     # Copy the merged NuGet.config into the app directory. This file contains
     # MAUI NuGet feed URLs added by MauiNuGetConfigContext. The Helix machine
@@ -165,3 +166,45 @@ with MauiNuGetConfigContext(precommands.framework):
 
     logger.info(f"Updated {csproj_path} with injected properties")
     logger.info(f"Modified .csproj content:\n{csproj_modified}")
+
+    # Create modified source files in src/ for the incremental deploy simulation.
+    # The runner toggles between original and modified versions each iteration,
+    # exercising both the C# compiler (Csc) and XAML compiler (XamlC) paths.
+    src_dir = os.path.join(sys.path[0], const.SRCDIR)
+    os.makedirs(src_dir, exist_ok=True)
+
+    # --- Modified MainPage.xaml.cs: add a debug line in the constructor ---
+    cs_original = os.path.join(const.APPDIR, 'Pages', 'MainPage.xaml.cs')
+    cs_modified = os.path.join(src_dir, 'MainPage.xaml.cs')
+
+    with open(cs_original, 'r') as f:
+        cs_content = f.read()
+
+    cs_modified_content = cs_content.replace(
+        'InitializeComponent();',
+        'InitializeComponent();\n\t\tSystem.Diagnostics.Debug.WriteLine("incremental-touch");'
+    )
+    if cs_modified_content == cs_content:
+        raise Exception("Could not find 'InitializeComponent();' in %s — template may have changed" % cs_original)
+
+    with open(cs_modified, 'w') as f:
+        f.write(cs_modified_content)
+    logger.info(f"Modified MainPage.xaml.cs written to {cs_modified}")
+
+    # --- Modified MainPage.xaml: change a label's text ---
+    xaml_original = os.path.join(const.APPDIR, 'Pages', 'MainPage.xaml')
+    xaml_modified = os.path.join(src_dir, 'MainPage.xaml')
+
+    with open(xaml_original, 'r') as f:
+        xaml_content = f.read()
+
+    xaml_modified_content = xaml_content.replace(
+        'Text="Task Categories"',
+        'Text="Task Categories (updated)"'
+    )
+    if xaml_modified_content == xaml_content:
+        raise Exception("Could not find 'Text=\"Task Categories\"' in %s — template may have changed" % xaml_original)
+
+    with open(xaml_modified, 'w') as f:
+        f.write(xaml_modified_content)
+    logger.info(f"Modified MainPage.xaml written to {xaml_modified}")

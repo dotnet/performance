@@ -177,6 +177,7 @@ ex: C:\repos\performance;C:\repos\runtime
         androidinnerloopparser = subparsers.add_parser(const.ANDROIDINNERLOOP,
                                                  description='measure first and incremental deploy time via binlogs')
         androidinnerloopparser.add_argument('--csproj-path', help='Path to .csproj file to build', dest='csprojpath')
+        androidinnerloopparser.add_argument('--edit-src', help='Path to modified source file (copied before incremental deploy)', dest='editsrc')
         androidinnerloopparser.add_argument('--edit-dest', help='Destination path for the modified file', dest='editdest')
         androidinnerloopparser.add_argument('--framework', '-f', help='Target framework (e.g., net10.0-android)', dest='framework')
         androidinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', default='Debug')
@@ -210,7 +211,8 @@ ex: C:\repos\performance;C:\repos\runtime
 
         if self.testtype == const.ANDROIDINNERLOOP:
             self.csprojpath = args.csprojpath
-            self.editdest = args.editdest
+            self.editsrcs = args.editsrc.split(';') if args.editsrc else []
+            self.editdests = args.editdest.split(';') if args.editdest else []
             self.framework = args.framework
             self.configuration = args.configuration
             self.msbuildargs = args.msbuildargs or os.environ.get('PERFLAB_MSBUILD_ARGS', '')
@@ -997,6 +999,7 @@ ex: C:\repos\performance;C:\repos\runtime
             startup.parsetraces(self.traits)
 
         elif self.testtype == const.ANDROIDINNERLOOP:
+            import hashlib
             import subprocess
             from shutil import copytree
             from performance.common import runninginlab
@@ -1069,25 +1072,30 @@ ex: C:\repos\performance;C:\repos\runtime
                     json.dump(report, f, indent=2)
                 getLogger().info("Merged report written to: %s" % final_report_path)
 
-            def run_incremental_iteration(iteration, num_iterations, base_cmd, editdest,
+            def run_incremental_iteration(iteration, num_iterations, base_cmd, edit_pairs,
                                           packagename, activityname,
                                           scenarioprefix, startup, traits, measure_startup_fn):
                 """Run one incremental build+deploy+startup iteration.
 
+                edit_pairs is a list of (dest_path, original_content, modified_content) tuples.
                 Returns (startup_ms, counters_list, binlog_path, test_metadata).
                 """
                 import subprocess
 
                 getLogger().info("=== Incremental iteration %d/%d ===" % (iteration, num_iterations))
 
-                # Append '!' to the Hello, World string to guarantee a unique change each iteration
-                if editdest:
-                    with open(editdest, 'r') as f:
-                        content = f.read()
-                    modified = re.sub(r'(Hello, World!+)', r'\1!', content)
-                    with open(editdest, 'w') as f:
-                        f.write(modified)
-                    getLogger().info("Appended '!' to source file (iteration %d): %s" % (iteration, editdest))
+                # Toggle source files
+                for dest, original, modified in edit_pairs:
+                    if iteration % 2 == 1:
+                        with open(dest, 'w') as f:
+                            f.write(modified)
+                        content_hash = hashlib.md5(modified.encode()).hexdigest()[:8]
+                        getLogger().info("Applied modified source: %s (hash=%s, len=%d)" % (dest, content_hash, len(modified)))
+                    else:
+                        with open(dest, 'w') as f:
+                            f.write(original)
+                        content_hash = hashlib.md5(original.encode()).hexdigest()[:8]
+                        getLogger().info("Restored original source: %s (hash=%s, len=%d)" % (dest, content_hash, len(original)))
 
                 # Incremental build+deploy with per-iteration binlog
                 iter_binlog_name = 'incremental-build-and-deploy-%d.binlog' % iteration
@@ -1186,8 +1194,22 @@ ex: C:\repos\performance;C:\repos\runtime
             num_iterations = self.innerloopiterations
             getLogger().info("Starting incremental loop: %d iterations" % num_iterations)
 
-            if not self.editdest:
-                getLogger().warning("No edit-dest specified; incremental builds will be no-change rebuilds")
+            # Build list of (dest, original_content, modified_content) tuples for toggling
+            edit_pairs = []
+            if self.editsrcs and self.editdests:
+                if len(self.editsrcs) != len(self.editdests):
+                    raise Exception("--edit-src and --edit-dest must have the same number of semicolon-separated paths")
+                for src, dest in zip(self.editsrcs, self.editdests):
+                    original = None
+                    modified = None
+                    with open(dest, 'r') as f:
+                        original = f.read()
+                    with open(src, 'r') as f:
+                        modified = f.read()
+                    edit_pairs.append((dest, original, modified))
+                    getLogger().info("Edit pair: %s <-> %s" % (src, dest))
+            else:
+                raise Exception("No edit-src/edit-dest specified; incremental builds require file pairs to toggle")
 
             incremental_startup_results = []
             aggregated_counters = {}  # counter_name -> aggregated counter dict
@@ -1197,7 +1219,7 @@ ex: C:\repos\performance;C:\repos\runtime
             for iteration in range(1, num_iterations + 1):
                 ms, counters, iter_binlog, test_metadata = run_incremental_iteration(
                     iteration, num_iterations, base_cmd,
-                    self.editdest,
+                    edit_pairs,
                     self.packagename, activityname, scenarioprefix, startup, self.traits,
                     measure_startup)
 
