@@ -56,15 +56,16 @@ namespace System.Collections
     }
 
     /// <summary>
-    /// Measures ContainsKey on a 1M-entry dictionary to capture behavior when
-    /// the hash table far exceeds CPU cache. Probes only 512 keys per invocation
-    /// so BDN gets enough iterations for stable statistics.
+    /// Measures ContainsKey on a 1M-entry dictionary (~20 MB) to capture behavior
+    /// when the hash table far exceeds L1/L2 cache. Probes 8192 keys per invocation
+    /// for realistic cache-miss pressure while keeping per-call time low enough
+    /// for stable BDN statistics (~1-2% noise).
     /// </summary>
     [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     public class DictionaryContainsKeyLarge
     {
         private const int DictSize = 1_000_000;
-        private const int ProbeCount = 512;
+        private const int ProbeCount = 8192;
 
         private int[] _found;
         private int[] _notFound;
