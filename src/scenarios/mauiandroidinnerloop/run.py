@@ -297,9 +297,6 @@ def run_test(ctx):
     if "/p:TargetFrameworks=" not in msbuild_args:
         msbuild_args += f" /p:TargetFrameworks={ctx['framework']}"
     # TODO: https://github.com/dotnet/maui/issues/34706
-    # Force minSdkVersion 23+ — the MAUI template sets SupportedOSPlatformVersion
-    # conditionally in the csproj so csproj injection is skipped, but /p: overrides
-    # take highest precedence in MSBuild.
     msbuild_args += " /p:SupportedOSPlatformVersion=23"
     os.environ["PERFLAB_MSBUILD_ARGS"] = msbuild_args
     log(f"PERFLAB_MSBUILD_ARGS={msbuild_args}")
