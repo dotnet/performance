@@ -301,7 +301,6 @@ def run_test(ctx):
     test_cmd = [
         sys.executable, "test.py", "androidinnerloop",
         "--csproj-path", os.path.join("app", "MauiAndroidInnerLoop.csproj"),
-        "--edit-src", os.path.join("src", "MainPage.xaml.cs"),
         "--edit-dest", os.path.join("app", "MainPage.xaml.cs"),
         "--package-name", "com.companyname.mauiandroidinnerloop",
         "-f", ctx["framework"],

@@ -165,26 +165,3 @@ with MauiNuGetConfigContext(precommands.framework):
 
     logger.info(f"Updated {csproj_path} with injected properties")
     logger.info(f"Modified .csproj content:\n{csproj_modified}")
-
-    # Copy the modified MainPage.xaml.cs into src/ for the incremental deploy simulation.
-    # test.py will copy this over app/MainPage.xaml.cs between deploys.
-    src_dir = os.path.join(sys.path[0], const.SRCDIR)
-    os.makedirs(src_dir, exist_ok=True)
-
-    original_file = os.path.join(const.APPDIR, 'MainPage.xaml.cs')
-    modified_file = os.path.join(src_dir, 'MainPage.xaml.cs')
-
-    with open(original_file, 'r') as f:
-        content = f.read()
-
-    # Modify a string literal to trigger assembly recompilation
-    modified_content = content.replace('Hello, World!', 'Hello, World! ')
-
-    if modified_content == content:
-        # Fallback: append a partial class extension to guarantee a code change
-        modified_content = content + '\npartial class MainPage { static string _ts = "modified"; }\n'
-
-    with open(modified_file, 'w') as f:
-        f.write(modified_content)
-
-    logger.info(f"Modified MainPage.xaml.cs written to {modified_file}")

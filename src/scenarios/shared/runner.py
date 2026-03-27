@@ -177,7 +177,6 @@ ex: C:\repos\performance;C:\repos\runtime
         androidinnerloopparser = subparsers.add_parser(const.ANDROIDINNERLOOP,
                                                  description='measure first and incremental deploy time via binlogs')
         androidinnerloopparser.add_argument('--csproj-path', help='Path to .csproj file to build', dest='csprojpath')
-        androidinnerloopparser.add_argument('--edit-src', help='Path to modified source file (copied before incremental deploy)', dest='editsrc')
         androidinnerloopparser.add_argument('--edit-dest', help='Destination path for the modified file', dest='editdest')
         androidinnerloopparser.add_argument('--framework', '-f', help='Target framework (e.g., net10.0-android)', dest='framework')
         androidinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', default='Debug')
@@ -211,7 +210,6 @@ ex: C:\repos\performance;C:\repos\runtime
 
         if self.testtype == const.ANDROIDINNERLOOP:
             self.csprojpath = args.csprojpath
-            self.editsrc = args.editsrc
             self.editdest = args.editdest
             self.framework = args.framework
             self.configuration = args.configuration
@@ -1071,8 +1069,8 @@ ex: C:\repos\performance;C:\repos\runtime
                     json.dump(report, f, indent=2)
                 getLogger().info("Merged report written to: %s" % final_report_path)
 
-            def run_incremental_iteration(iteration, num_iterations, base_cmd, editsrc, editdest,
-                                          original_content, modified_content, packagename, activityname,
+            def run_incremental_iteration(iteration, num_iterations, base_cmd, editdest,
+                                          packagename, activityname,
                                           scenarioprefix, startup, traits, measure_startup_fn):
                 """Run one incremental build+deploy+startup iteration.
 
@@ -1082,22 +1080,14 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 getLogger().info("=== Incremental iteration %d/%d ===" % (iteration, num_iterations))
 
-                # Toggle source file
-                if editsrc and editdest:
-                    if iteration % 2 == 1:
-                        if modified_content is not None:
-                            with open(editdest, 'w') as f:
-                                f.write(modified_content)
-                            getLogger().info("Applied modified source: %s" % editdest)
-                        else:
-                            getLogger().warning("Modified source content not available, skipping edit")
-                    else:
-                        if original_content is not None:
-                            with open(editdest, 'w') as f:
-                                f.write(original_content)
-                            getLogger().info("Restored original source: %s" % editdest)
-                        else:
-                            getLogger().warning("Original content not available, skipping edit")
+                # Append '!' to the Hello, World string to guarantee a unique change each iteration
+                if editdest:
+                    with open(editdest, 'r') as f:
+                        content = f.read()
+                    modified = re.sub(r'(Hello, World!+)', r'\1!', content)
+                    with open(editdest, 'w') as f:
+                        f.write(modified)
+                    getLogger().info("Appended '!' to source file (iteration %d): %s" % (iteration, editdest))
 
                 # Incremental build+deploy with per-iteration binlog
                 iter_binlog_name = 'incremental-build-and-deploy-%d.binlog' % iteration
@@ -1196,21 +1186,8 @@ ex: C:\repos\performance;C:\repos\runtime
             num_iterations = self.innerloopiterations
             getLogger().info("Starting incremental loop: %d iterations" % num_iterations)
 
-            # Save original destination file content for toggling
-            original_content = None
-            if self.editsrc and self.editdest:
-                if os.path.exists(self.editdest):
-                    with open(self.editdest, 'r') as f:
-                        original_content = f.read()
-                else:
-                    getLogger().warning("edit-dest %s does not exist; will only copy edit-src" % self.editdest)
-            else:
-                getLogger().warning("No edit-src/edit-dest specified; incremental builds will be no-change rebuilds")
-
-            modified_content = None
-            if self.editsrc and os.path.exists(self.editsrc):
-                with open(self.editsrc, 'r') as f:
-                    modified_content = f.read()
+            if not self.editdest:
+                getLogger().warning("No edit-dest specified; incremental builds will be no-change rebuilds")
 
             incremental_startup_results = []
             aggregated_counters = {}  # counter_name -> aggregated counter dict
@@ -1220,7 +1197,7 @@ ex: C:\repos\performance;C:\repos\runtime
             for iteration in range(1, num_iterations + 1):
                 ms, counters, iter_binlog, test_metadata = run_incremental_iteration(
                     iteration, num_iterations, base_cmd,
-                    self.editsrc, self.editdest, original_content, modified_content,
+                    self.editdest,
                     self.packagename, activityname, scenarioprefix, startup, self.traits,
                     measure_startup)
 
