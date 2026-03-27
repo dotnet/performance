@@ -9,19 +9,25 @@ using BenchmarkDotNet.Reports;
 using Reporting;
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BenchmarkDotNet.Extensions
 {
-    public class PerfLabExporter : ExporterBase
+    /// <summary>
+    /// Exports benchmark results to JSON format for PerfLab ingestion.
+    /// </summary>
+    public class PerfLabExporter : IExporter
     {
-        protected override string FileExtension => "json";
-        protected override string FileCaption => "perf-lab-report";
+        public string Name => "PerfLab";
 
-        public PerfLabExporter()
+        public async ValueTask ExportAsync(Summary summary, ILogger logger, CancellationToken cancellationToken)
         {
+            await Task.CompletedTask;
+            Export(summary, logger);
         }
 
-        public override void ExportToLog(Summary summary, ILogger logger)
+        public void Export(Summary summary, ILogger logger)
         {
             var reporter = new Reporter();
 
@@ -132,7 +138,9 @@ namespace BenchmarkDotNet.Extensions
 
             var jsonOutput = reporter.GetJson();
             if (jsonOutput is not null)
-                logger.WriteLine(jsonOutput);
+            {
+                Console.WriteLine(jsonOutput);
+            }
         }
     }
 }
