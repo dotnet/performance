@@ -85,7 +85,6 @@ class StartupWrapper(object):
 
         helix_upload_dir = helixuploaddir()
         if runninginlab() and helix_upload_dir is not None:
-            # dirs_exist_ok=True: allow merging into an existing traces/ directory
             copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'), dirs_exist_ok=True)
             if traits.upload_to_perflab_container:
                 import upload
@@ -164,7 +163,6 @@ class StartupWrapper(object):
 
         helix_upload_dir = helixuploaddir()
         if runninginlab() and helix_upload_dir is not None:
-            # dirs_exist_ok=True: allow merging into an existing traces/ directory
             copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'), dirs_exist_ok=True)
             if traits.upload_to_perflab_container:
                 import upload
