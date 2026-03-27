@@ -54,4 +54,52 @@ namespace System.Collections
             return result;
         }
     }
+
+    /// <summary>
+    /// Measures ContainsKey on a 1M-entry dictionary to capture behavior when
+    /// the hash table far exceeds CPU cache. Probes only 512 keys per invocation
+    /// so BDN gets enough iterations for stable statistics.
+    /// </summary>
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
+    public class DictionaryContainsKeyLarge
+    {
+        private const int DictSize = 1_000_000;
+        private const int ProbeCount = 512;
+
+        private int[] _found;
+        private int[] _notFound;
+        private Dictionary<int, int> _dictionary;
+
+        [GlobalSetup]
+        public void Setup()
+        {
+            var allKeys = ValuesGenerator.ArrayOfUniqueValues<int>(DictSize + ProbeCount);
+            var inDict = allKeys.Take(DictSize).ToArray();
+            _found = inDict.Take(ProbeCount).ToArray();
+            _notFound = allKeys.Skip(DictSize).Take(ProbeCount).ToArray();
+            _dictionary = inDict.ToDictionary(k => k, k => k);
+        }
+
+        [Benchmark]
+        public bool ContainsKeyTrue()
+        {
+            bool result = default;
+            var collection = _dictionary;
+            var found = _found;
+            for (int i = 0; i < found.Length; i++)
+                result ^= collection.ContainsKey(found[i]);
+            return result;
+        }
+
+        [Benchmark]
+        public bool ContainsKeyFalse()
+        {
+            bool result = default;
+            var collection = _dictionary;
+            var notFound = _notFound;
+            for (int i = 0; i < notFound.Length; i++)
+                result ^= collection.ContainsKey(notFound[i]);
+            return result;
+        }
+    }
 }
