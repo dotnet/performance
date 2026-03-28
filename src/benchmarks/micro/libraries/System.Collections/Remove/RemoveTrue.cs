@@ -60,7 +60,7 @@ namespace System.Collections
             for (int i = 0; i < keys.Length; i++)
             {
                 result = collection.Remove(keys[i]);
-                collection[keys[i]] = default!;
+                collection.Add(keys[i], default!);
             }
             return result;
         }

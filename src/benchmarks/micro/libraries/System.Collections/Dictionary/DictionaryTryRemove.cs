@@ -38,7 +38,7 @@ namespace System.Collections
             for (int i = 0; i < keys.Length; i++)
             {
                 result = dict.Remove(keys[i], out _);
-                dict[keys[i]] = default!;
+                dict.Add(keys[i], default!);
             }
             return result;
         }
