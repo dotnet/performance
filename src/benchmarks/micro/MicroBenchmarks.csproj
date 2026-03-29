@@ -190,6 +190,7 @@
     <Compile Remove="runtime\Math\Functions\Single\SinCos.cs" />
     <Compile Remove="libraries\System.Collections\PriorityQueue\Perf_PriorityQueue.cs" />
     <Compile Remove="libraries\Common\AlignedMemory.cs" />
+    <Compile Remove="libraries\System.Memory\SpanHelpers.cs" />
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.cs" />
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.NoBuffering.cs" />
     <Compile Remove="libraries\System.Text.Json\Node\*.cs" />
