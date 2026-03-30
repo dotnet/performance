@@ -597,7 +597,7 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
             "--csproj", f"%HELIX_WORKITEM_ROOT%\\performance\\{target_csproj}"]
     else:
         work_item_command = [
-            "python",
+            "python3",
             "$HELIX_WORKITEM_ROOT/performance/scripts/benchmarks_ci.py", 
             "--csproj", f"$HELIX_WORKITEM_ROOT/performance/{target_csproj}"]
         
@@ -1314,7 +1314,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         download_files_from_helix=True,
         targets_windows=args.os_group == "windows",
         helix_results_destination_dir=helix_results_destination_dir,
-        python="python",
+        python=agent_python,
         affinity=args.affinity,
         compare=args.compare,
         compare_command=compare_command,
