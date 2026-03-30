@@ -219,6 +219,8 @@ def get_pre_commands(
         else:
             install_prerequisites += [
                 "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
+                'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
+                'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
                 "sudo apt-get -y remove nodejs",
                 "sudo apt-get update",
                 "sudo apt-get install -y ca-certificates curl gnupg",
