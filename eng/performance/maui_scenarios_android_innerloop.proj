@@ -25,6 +25,12 @@
     <AndroidRid Condition="'$(AndroidRid)' == '' and '$(TargetsWindows)' != 'true'">android-x64</AndroidRid>
     <_MSBuildArgs>$(_MSBuildArgs) /p:RuntimeIdentifier=$(AndroidRid)</_MSBuildArgs>
 
+    <!-- TODO: https://github.com/dotnet/maui/issues/34706 -->
+    <_MSBuildArgs>$(_MSBuildArgs) /p:SupportedOSPlatformVersion=23</_MSBuildArgs>
+    <!-- Add TargetFrameworks override so dotnet build's implicit restore
+         only evaluates the android TFM, not multi-platform TFMs in the csproj. -->
+    <_MSBuildArgs Condition="!$(_MSBuildArgs.Contains('/p:TargetFrameworks='))">$(_MSBuildArgs) /p:TargetFrameworks=$(PERFLAB_Framework)-android</_MSBuildArgs>
+
     <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
     <InnerLoopIterations Condition="'$(InnerLoopIterations)' == ''">10</InnerLoopIterations>
   </PropertyGroup>
@@ -61,9 +67,11 @@
     </PreparePayloadWorkItem>
   </ItemGroup>
 
-  <!-- Note: -c Debug is hardcoded below (and was previously in run.py) because
-       $(BuildConfig) gets overridden by send_to_helix.py to the artifact config string
-       (e.g., x64_main_maui_scenarios_android_innerloop). All inner loop jobs use Debug. -->
+  <!-- Note: -c Debug is hardcoded below because $(BuildConfig) gets overridden by send_to_helix.py to the artifact config string
+       (e.g., x64_main_maui_scenarios_android_innerloop). All inner loop jobs use Debug.
+       All MSBuild property manipulation (UseMonoRuntime, RuntimeIdentifier, TargetFrameworks,
+       SupportedOSPlatformVersion, etc.) is defined in _MSBuildArgs above;
+       setup_helix.py just passes them through to PERFLAB_MSBUILD_ARGS unchanged. -->
 
   <!-- Windows device track: runs on Windows.11.Amd64.Pixel.Perf -->
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">

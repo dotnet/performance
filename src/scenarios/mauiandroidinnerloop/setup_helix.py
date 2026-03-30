@@ -319,13 +319,9 @@ def main():
     restore_packages(ctx)
 
     # Set PERFLAB_MSBUILD_ARGS so the chained test.py picks them up.
-    # Add TargetFrameworks override so dotnet build's implicit restore
-    # only evaluates the android TFM, not multi-platform TFMs in the csproj.
+    # All MSBuild property manipulation (TargetFrameworks, SupportedOSPlatformVersion, etc.)
+    # is done in maui_scenarios_android_innerloop.proj; we just pass through here.
     msbuild_args = ctx["msbuild_args"]
-    if "/p:TargetFrameworks=" not in msbuild_args:
-        msbuild_args += f" /p:TargetFrameworks={ctx['framework']}"
-    # TODO: https://github.com/dotnet/maui/issues/34706
-    msbuild_args += " /p:SupportedOSPlatformVersion=23"
     os.environ["PERFLAB_MSBUILD_ARGS"] = msbuild_args
     log(f"PERFLAB_MSBUILD_ARGS={msbuild_args}")
 
