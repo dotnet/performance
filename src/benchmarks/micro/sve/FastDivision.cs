@@ -123,7 +123,7 @@ namespace SveBenchmarks
                 int cntd = (int)Sve.Count64BitElements();
 
                 Vector<ulong> pTrue = Sve.CreateTrueMaskUInt64();
-                Vector<ulong> pLoop = Sve.CreateWhileLessThanMask64Bit(i, Size);
+                Vector<ulong> pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt64(i, Size);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     Vector<double> input1Vec = (Vector<double>)Sve.LoadVector(pLoop, (ulong*)input1 + i);
@@ -145,7 +145,7 @@ namespace SveBenchmarks
                     Sve.StoreAndZip(pLoop, (ulong*)output + i, (Vector<ulong>)outVec);
 
                     i += cntd;
-                    pLoop = Sve.CreateWhileLessThanMask64Bit(i, Size);
+                    pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt64(i, Size);
                 }
             }
         }

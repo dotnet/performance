@@ -116,7 +116,7 @@ namespace SveBenchmarks
                 int cntd = (int)Sve.Count64BitElements();
 
                 Vector<ulong> pTrue = Sve.CreateTrueMaskUInt64();
-                Vector<ulong> pLoop = Sve.CreateWhileLessThanMask64Bit(i, Size);
+                Vector<ulong> pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt64(i, Size);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     // Cast the array pointers to ulong so the predicate can be shared.
@@ -129,7 +129,7 @@ namespace SveBenchmarks
 
                     // Handle loop.
                     i += cntd;
-                    pLoop = Sve.CreateWhileLessThanMask64Bit(i, Size);
+                    pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt64(i, Size);
                 }
             }
         }

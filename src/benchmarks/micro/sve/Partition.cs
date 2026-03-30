@@ -86,7 +86,7 @@ namespace SveBenchmarks
                 );
 
                 // Create a predicate for the loop.
-                Vector<uint> pLoop = Sve.CreateWhileLessThanMask32Bit(i, Size);
+                Vector<uint> pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt32(i, Size);
 
                 while (Sve.TestAnyTrue(Sve.CreateTrueMaskUInt32(), pLoop))
                 {
@@ -119,7 +119,7 @@ namespace SveBenchmarks
                     indexRight = Sve.SaturatingIncrementByActiveElementCount(indexRight, pInner);
 
                     i = Sve.SaturatingIncrementBy32BitElementCount(i, 1);
-                    pLoop = Sve.CreateWhileLessThanMask32Bit(i, Size);
+                    pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt32(i, Size);
                 }
 
                 return indexRight;

@@ -213,7 +213,7 @@ namespace SveBenchmarks
                 // Create mask for the imaginary half of a word.
                 Vector<short> imMask = (Vector<short>)(new Vector<uint>(0xFFFF0000u));
                 Vector<int> pTrue = Sve.CreateTrueMaskInt32();
-                Vector<int> pLoop = (Vector<int>)Sve.CreateWhileLessThanMask32Bit(0, Size);
+                Vector<int> pLoop = SveMaskHelper.CreateWhileLessThanMaskInt32(0, Size);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     // Load inputs.
@@ -248,7 +248,7 @@ namespace SveBenchmarks
 
                     // Handle loop.
                     i += cntw;
-                    pLoop = (Vector<int>)Sve.CreateWhileLessThanMask32Bit(i, Size);
+                    pLoop = SveMaskHelper.CreateWhileLessThanMaskInt32(i, Size);
                 }
             }
         }
@@ -263,7 +263,7 @@ namespace SveBenchmarks
                 int cntw = (int)Sve.Count32BitElements();
 
                 Vector<int> pTrue = Sve.CreateTrueMaskInt32();
-                Vector<int> pLoop = (Vector<int>)Sve.CreateWhileLessThanMask32Bit(0, Size);
+                Vector<int> pLoop = SveMaskHelper.CreateWhileLessThanMaskInt32(0, Size);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     Vector<sbyte> a1 = (Vector<sbyte>)Sve.LoadVector(pLoop, (int*)(a + 4 * i));
@@ -276,7 +276,7 @@ namespace SveBenchmarks
 
                     // Handle loop.
                     i += cntw;
-                    pLoop = (Vector<int>)Sve.CreateWhileLessThanMask32Bit(i, Size);
+                    pLoop = SveMaskHelper.CreateWhileLessThanMaskInt32(i, Size);
                 }
             }
         }
