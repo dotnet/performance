@@ -82,8 +82,7 @@ def _setup_adb_windows(android_home):
 
 def _setup_adb_linux():
     """Linux: target emulator-5554, wait for device and boot."""
-    os.environ["ANDROID_SERIAL"] = "emulator-5554"
-    log("ANDROID_SERIAL=emulator-5554")
+    log("ANDROID_SERIAL=emulator-5554 (set by PreCommands)")
     log("Waiting for device (timeout 30s)...")
     try:
         run_cmd(["adb", "wait-for-device"], check=False, timeout=30)
@@ -132,12 +131,8 @@ def print_diagnostics():
 
 
 def setup_dotnet(correlation_payload):
-    """Override DOTNET_ROOT to use the SDK from the correlation payload."""
+    """Return the path to the dotnet executable in the correlation payload."""
     dotnet_root = os.path.join(correlation_payload, "dotnet")
-    os.environ["DOTNET_ROOT"] = dotnet_root
-    os.environ["PATH"] = dotnet_root + os.pathsep + os.environ.get("PATH", "")
-    os.environ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
-    os.environ["DOTNET_MULTILEVEL_LOOKUP"] = "0"
     dotnet_exe = os.path.join(dotnet_root, f"dotnet{EXE}")
     log(f"DOTNET_ROOT={dotnet_root}")
     run_cmd([dotnet_exe, "--version"], check=False)
@@ -235,15 +230,8 @@ def install_android_dependencies(ctx):
         sys.exit(1)
     log("Android SDK and Java dependencies installed successfully")
 
-    # Set environment variables
+    # Set up paths for adb and log the values (env vars set by PreCommands)
     platform_tools = os.path.join(android_home, "platform-tools")
-    java_bin = os.path.join(java_home, "bin")
-    os.environ["ANDROID_HOME"] = android_home
-    os.environ["ANDROID_SDK_ROOT"] = android_home
-    os.environ["JAVA_HOME"] = java_home
-    os.environ["PATH"] = os.pathsep.join([
-        platform_tools, java_bin, os.environ.get("PATH", "")
-    ])
     log(f"ANDROID_HOME={android_home}")
     log(f"JAVA_HOME={java_home}")
 
