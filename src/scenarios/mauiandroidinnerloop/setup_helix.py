@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""run.py — Unified MAUI Android inner loop run script (Windows + Linux)."""
+"""setup_helix.py — Helix machine setup for MAUI Android inner loop (Windows + Linux)."""
 
 import os
 import platform
@@ -287,43 +287,6 @@ def restore_packages(ctx):
     log("Restore succeeded")
 
 
-def run_test(ctx):
-    """Step 3: Run test.py for the inner-loop measurement."""
-    log_raw("=== STEP 3: Test ===", tee=True)
-    # Pass MSBuild args via env var to avoid shell quoting issues.
-    # Add TargetFrameworks override so dotnet build's implicit restore
-    # only evaluates the android TFM, not multi-platform TFMs in the csproj.
-    msbuild_args = ctx["msbuild_args"]
-    if "/p:TargetFrameworks=" not in msbuild_args:
-        msbuild_args += f" /p:TargetFrameworks={ctx['framework']}"
-    # TODO: https://github.com/dotnet/maui/issues/34706
-    msbuild_args += " /p:SupportedOSPlatformVersion=23"
-    os.environ["PERFLAB_MSBUILD_ARGS"] = msbuild_args
-    log(f"PERFLAB_MSBUILD_ARGS={msbuild_args}")
-    test_cmd = [
-        sys.executable, "test.py", "androidinnerloop",
-        "--csproj-path", os.path.join("app", "MauiAndroidInnerLoop.csproj"),
-        "--edit-src", ";".join([
-            os.path.join("src", "MainPage.xaml.cs"),
-            os.path.join("src", "MainPage.xaml"),
-        ]),
-        "--edit-dest", ";".join([
-            os.path.join("app", "Pages", "MainPage.xaml.cs"),
-            os.path.join("app", "Pages", "MainPage.xaml"),
-        ]),
-        "--package-name", "com.companyname.mauiandroidinnerloop",
-        "-f", ctx["framework"],
-        "-c", "Debug",
-        "--scenario-name", ctx["scenario_name"],
-    ] + ctx["extra_args"]
-    result = run_cmd(test_cmd, check=False, cwd=ctx["workitem_root"])
-    if result.returncode != 0:
-        log(f"STEP 3 FAILED with exit code {result.returncode}", tee=True)
-        _dump_log()
-        sys.exit(3)
-    log("test.py succeeded")
-
-
 # --- Main ---
 def main():
     if len(sys.argv) < 4:
@@ -356,11 +319,22 @@ def main():
     setup_android_sdk(ctx)
     setup_adb_device(ctx)
     restore_packages(ctx)
-    run_test(ctx)
 
-    log_raw("=== ALL STEPS SUCCEEDED ===", tee=True)
+    # Set PERFLAB_MSBUILD_ARGS so the chained test.py picks them up.
+    # Add TargetFrameworks override so dotnet build's implicit restore
+    # only evaluates the android TFM, not multi-platform TFMs in the csproj.
+    msbuild_args = ctx["msbuild_args"]
+    if "/p:TargetFrameworks=" not in msbuild_args:
+        msbuild_args += f" /p:TargetFrameworks={ctx['framework']}"
+    # TODO: https://github.com/dotnet/maui/issues/34706
+    msbuild_args += " /p:SupportedOSPlatformVersion=23"
+    os.environ["PERFLAB_MSBUILD_ARGS"] = msbuild_args
+    log(f"PERFLAB_MSBUILD_ARGS={msbuild_args}")
+
+    log_raw("=== SETUP SUCCEEDED ===", tee=True)
     _dump_log()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
