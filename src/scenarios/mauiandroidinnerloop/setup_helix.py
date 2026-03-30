@@ -318,13 +318,6 @@ def main():
     setup_adb_device(ctx)
     restore_packages(ctx)
 
-    # Set PERFLAB_MSBUILD_ARGS so the chained test.py picks them up.
-    # All MSBuild property manipulation (TargetFrameworks, SupportedOSPlatformVersion, etc.)
-    # is done in maui_scenarios_android_innerloop.proj; we just pass through here.
-    msbuild_args = ctx["msbuild_args"]
-    os.environ["PERFLAB_MSBUILD_ARGS"] = msbuild_args
-    log(f"PERFLAB_MSBUILD_ARGS={msbuild_args}")
-
     log_raw("=== SETUP SUCCEEDED ===", tee=True)
     _dump_log()
     return 0
