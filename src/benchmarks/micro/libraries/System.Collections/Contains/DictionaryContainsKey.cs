@@ -20,7 +20,7 @@ namespace System.Collections
         private T[] _notFound;
         private Dictionary<T, T> _dictionary;
 
-        [Params(Utils.DefaultCollectionSize, 8192)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
         [GlobalSetup]

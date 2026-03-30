@@ -19,7 +19,7 @@ namespace System.Collections
         private Dictionary<TKey, TValue> _dictionary;
         private TKey[] _keys;
 
-        [Params(Utils.DefaultCollectionSize, 8192)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
         [GlobalSetup]

@@ -20,7 +20,7 @@ namespace System.Collections
         private T[] _notFound;
         private HashSet<T> _hashSet;
 
-        [Params(Utils.DefaultCollectionSize, 8192)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
         [GlobalSetup]

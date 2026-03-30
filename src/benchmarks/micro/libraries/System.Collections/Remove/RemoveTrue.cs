@@ -20,7 +20,7 @@ namespace System.Collections
         private HashSet<T> _hashSet;
         private Dictionary<T, T> _dictionary;
 
-        [Params(Utils.DefaultCollectionSize, 8192)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
         [GlobalSetup(Target = nameof(HashSet))]
