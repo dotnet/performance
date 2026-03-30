@@ -67,12 +67,6 @@
     </PreparePayloadWorkItem>
   </ItemGroup>
 
-  <!-- Note: -c Debug is hardcoded below because $(BuildConfig) gets overridden by send_to_helix.py to the artifact config string
-       (e.g., x64_main_maui_scenarios_android_innerloop). All inner loop jobs use Debug.
-       All MSBuild property manipulation (UseMonoRuntime, RuntimeIdentifier, TargetFrameworks,
-       SupportedOSPlatformVersion, etc.) is defined in _MSBuildArgs above and passed
-       explicitly to both setup_helix.py (for workload/restore) and test.py (for build). -->
-
   <!-- Windows device track: runs on Windows.11.Amd64.Pixel.Perf -->
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Device - %(Identity)')">
