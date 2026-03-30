@@ -41,7 +41,7 @@
        to .NET 8.0 (dotnet-cli/) during target execution. PropertyGroups are evaluated
        earlier (property evaluation phase), so the SDK's values would win. By running
        after AddXHarnessCli we re-override DOTNET_ROOT/PATH to our .NET 11 SDK. -->
-  <Target Name="OverrideDotnetCliRoot" AfterTargets="AddXHarnessCli" BeforeTargets="CoreTest">
+  <Target Name="OverrideDotnetCliRoot" AfterTargets="AddXHarnessCli">
     <PropertyGroup Condition="'$(IsPosixShell)' != 'true'">
       <HelixPreCommands>$(HelixPreCommands);set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages;set DOTNET_ROOT=%HELIX_CORRELATION_PAYLOAD%\dotnet;set DOTNET_CLI_TELEMETRY_OPTOUT=1;set DOTNET_MULTILEVEL_LOOKUP=0;set ANDROID_HOME=%HELIX_WORKITEM_ROOT%\android-sdk;set ANDROID_SDK_ROOT=%HELIX_WORKITEM_ROOT%\android-sdk;set JAVA_HOME=%HELIX_WORKITEM_ROOT%\jdk;set PATH=%HELIX_CORRELATION_PAYLOAD%\dotnet%3B%HELIX_WORKITEM_ROOT%\android-sdk\platform-tools%3B%HELIX_WORKITEM_ROOT%\jdk\bin%3B%PATH%</HelixPreCommands>
     </PropertyGroup>
