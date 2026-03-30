@@ -36,12 +36,19 @@
   </PropertyGroup>
 
   <!-- Set environment variables for the Helix workitems via HelixPreCommands.
-       The Helix SDK decodes %3B in $(HelixPreCommands) but NOT in per-work-item
-       <PreCommands> metadata, so PATH separators on Windows must go here. -->
-  <PropertyGroup>
-    <HelixPreCommands Condition="'$(IsPosixShell)' != 'true'">$(HelixPreCommands);set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages;set DOTNET_ROOT=%HELIX_CORRELATION_PAYLOAD%\dotnet;set DOTNET_CLI_TELEMETRY_OPTOUT=1;set DOTNET_MULTILEVEL_LOOKUP=0;set ANDROID_HOME=%HELIX_WORKITEM_ROOT%\android-sdk;set ANDROID_SDK_ROOT=%HELIX_WORKITEM_ROOT%\android-sdk;set JAVA_HOME=%HELIX_WORKITEM_ROOT%\jdk;set PATH=%HELIX_CORRELATION_PAYLOAD%\dotnet%3B%HELIX_WORKITEM_ROOT%\android-sdk\platform-tools%3B%HELIX_WORKITEM_ROOT%\jdk\bin%3B%PATH%</HelixPreCommands>
-    <HelixPreCommands Condition="'$(IsPosixShell)' == 'true'">$(HelixPreCommands);export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages;export DOTNET_ROOT=$HELIX_CORRELATION_PAYLOAD/dotnet;export DOTNET_CLI_TELEMETRY_OPTOUT=1;export DOTNET_MULTILEVEL_LOOKUP=0;export ANDROID_HOME=$HELIX_WORKITEM_ROOT/android-sdk;export ANDROID_SDK_ROOT=$HELIX_WORKITEM_ROOT/android-sdk;export JAVA_HOME=$HELIX_WORKITEM_ROOT/jdk;export ANDROID_SERIAL=emulator-5554;export PATH=$HELIX_CORRELATION_PAYLOAD/dotnet:$HELIX_WORKITEM_ROOT/android-sdk/platform-tools:$HELIX_WORKITEM_ROOT/jdk/bin:$PATH</HelixPreCommands>
-  </PropertyGroup>
+       This MUST be a Target (not a PropertyGroup) because the Helix SDK's AddDotNetSdk
+       target — triggered by IncludeXHarnessCli — appends DOTNET_ROOT and PATH pointing
+       to .NET 8.0 (dotnet-cli/) during target execution. PropertyGroups are evaluated
+       earlier (property evaluation phase), so the SDK's values would win. By running
+       after AddXHarnessCli we re-override DOTNET_ROOT/PATH to our .NET 11 SDK. -->
+  <Target Name="OverrideDotnetCliRoot" AfterTargets="AddXHarnessCli" BeforeTargets="CoreTest">
+    <PropertyGroup Condition="'$(IsPosixShell)' != 'true'">
+      <HelixPreCommands>$(HelixPreCommands);set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages;set DOTNET_ROOT=%HELIX_CORRELATION_PAYLOAD%\dotnet;set DOTNET_CLI_TELEMETRY_OPTOUT=1;set DOTNET_MULTILEVEL_LOOKUP=0;set ANDROID_HOME=%HELIX_WORKITEM_ROOT%\android-sdk;set ANDROID_SDK_ROOT=%HELIX_WORKITEM_ROOT%\android-sdk;set JAVA_HOME=%HELIX_WORKITEM_ROOT%\jdk;set PATH=%HELIX_CORRELATION_PAYLOAD%\dotnet%3B%HELIX_WORKITEM_ROOT%\android-sdk\platform-tools%3B%HELIX_WORKITEM_ROOT%\jdk\bin%3B%PATH%</HelixPreCommands>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IsPosixShell)' == 'true'">
+      <HelixPreCommands>$(HelixPreCommands);export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages;export DOTNET_ROOT=$HELIX_CORRELATION_PAYLOAD/dotnet;export DOTNET_CLI_TELEMETRY_OPTOUT=1;export DOTNET_MULTILEVEL_LOOKUP=0;export ANDROID_HOME=$HELIX_WORKITEM_ROOT/android-sdk;export ANDROID_SDK_ROOT=$HELIX_WORKITEM_ROOT/android-sdk;export JAVA_HOME=$HELIX_WORKITEM_ROOT/jdk;export ANDROID_SERIAL=emulator-5554;export PATH=$HELIX_CORRELATION_PAYLOAD/dotnet:$HELIX_WORKITEM_ROOT/android-sdk/platform-tools:$HELIX_WORKITEM_ROOT/jdk/bin:$PATH</HelixPreCommands>
+    </PropertyGroup>
+  </Target>
 
   <!-- Remove .NET SDK packs from the Helix correlation payload to reduce transfer size.
        The workload packs (~1-2 GB) are restored on the Helix machine during the run step,
