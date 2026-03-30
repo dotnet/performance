@@ -184,7 +184,7 @@ ex: C:\repos\performance;C:\repos\runtime
         androidinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
         androidinnerloopparser.add_argument('--package-name', help='Android package name for startup measurement (e.g. com.companyname.mauiandroidinnerloop)', dest='packagename')
         androidinnerloopparser.add_argument('--inner-loop-iterations', help='Number of incremental build+deploy+startup iterations (1+)', type=int, default=10, dest='innerloopiterations')
-        androidinnerloopparser.add_argument('--startup-iterations', help='Number of startup measurements per build cycle', type=int, default=3, dest='startupmeasurementiterations')
+        androidinnerloopparser.add_argument('--startup-iterations', help='Number of startup measurements for the first deploy (incremental builds use 1 each)', type=int, default=3, dest='startupmeasurementiterations')
         self.add_common_arguments(androidinnerloopparser)
 
         args = parser.parse_args()
@@ -1051,7 +1051,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
                     # Primary: parse 'Displayed' time from logcat (matches DEVICESTARTUP pattern lines 598-610)
                     startup_ms = None
-                    retrieve_result = RunCommand(retrieve_time_cmd, verbose=True)
+                    retrieve_result = RunCommand(retrieve_time_cmd, verbose=True, success_exit_codes=[0, 1])
                     retrieve_result.run()
                     dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
                     if dirty_capture:
@@ -1069,7 +1069,13 @@ ex: C:\repos\performance;C:\repos\runtime
                             startup_ms = int(total_match.group(1))
                             getLogger().warning("Logcat Displayed time not found, falling back to am-start TotalTime: %d ms" % startup_ms)
                         else:
-                            raise Exception("Failed to capture startup time from logcat Displayed or am-start TotalTime!")
+                            # Secondary fallback: WaitTime (Android 14+ may omit TotalTime)
+                            wait_match = re.search(r"WaitTime:\s*(\d+)", start_result.stdout)
+                            if wait_match:
+                                startup_ms = int(wait_match.group(1))
+                                getLogger().warning("Logcat Displayed and TotalTime not found, falling back to am-start WaitTime: %d ms" % startup_ms)
+                            else:
+                                raise Exception("Failed to capture startup time from logcat Displayed, am-start TotalTime, or WaitTime!")
 
                     results.append(startup_ms)
 
@@ -1099,7 +1105,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 """Run one incremental build+deploy+startup iteration.
 
                 edit_pairs is a list of (dest_path, original_content, modified_content) tuples.
-                Returns (startup_ms, counters_list, binlog_path, test_metadata).
+                Returns (startup_ms_list, counters_list, binlog_path, test_metadata).
                 """
                 import subprocess
 
@@ -1200,7 +1206,7 @@ ex: C:\repos\performance;C:\repos\runtime
             msbuildargs_str = self.msbuildargs or ''
             expected_runtime = 'mono' if 'UseMonoRuntime=true' in msbuildargs_str else 'coreclr'
             runtime_check_cmd = xharness_adb() + ['shell', 'logcat -d | grep -iE "monodroid|monoruntime|mono-rt|coreclr" | tail -5']
-            runtime_check_result = RunCommand(runtime_check_cmd, verbose=True)
+            runtime_check_result = RunCommand(runtime_check_cmd, verbose=True, success_exit_codes=[0, 1])
             runtime_check_result.run()
             getLogger().info("Runtime validation (expected=%s): %s" % (expected_runtime, runtime_check_result.stdout.strip()))
 
