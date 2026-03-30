@@ -67,10 +67,16 @@
     </PreparePayloadWorkItem>
   </ItemGroup>
 
+  <!-- Environment variables needed on Helix before setup_helix.py runs (so PATH includes adb). -->
+  <PropertyGroup>
+    <_WindowsEnvVars>set DOTNET_ROOT=%HELIX_CORRELATION_PAYLOAD%\dotnet;set DOTNET_CLI_TELEMETRY_OPTOUT=1;set DOTNET_MULTILEVEL_LOOKUP=0;set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages;set ANDROID_HOME=%HELIX_WORKITEM_ROOT%\android-sdk;set ANDROID_SDK_ROOT=%HELIX_WORKITEM_ROOT%\android-sdk;set JAVA_HOME=%HELIX_WORKITEM_ROOT%\jdk;set PATH=%HELIX_CORRELATION_PAYLOAD%\dotnet;;%HELIX_WORKITEM_ROOT%\android-sdk\platform-tools;;%HELIX_WORKITEM_ROOT%\jdk\bin;;%PATH%</_WindowsEnvVars>
+    <_LinuxEnvVars>export DOTNET_ROOT=$HELIX_CORRELATION_PAYLOAD/dotnet;export DOTNET_CLI_TELEMETRY_OPTOUT=1;export DOTNET_MULTILEVEL_LOOKUP=0;export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages;export ANDROID_HOME=$HELIX_WORKITEM_ROOT/android-sdk;export ANDROID_SDK_ROOT=$HELIX_WORKITEM_ROOT/android-sdk;export JAVA_HOME=$HELIX_WORKITEM_ROOT/jdk;export ANDROID_SERIAL=emulator-5554;export PATH=$HELIX_CORRELATION_PAYLOAD/dotnet:$HELIX_WORKITEM_ROOT/android-sdk/platform-tools:$HELIX_WORKITEM_ROOT/jdk/bin:$PATH</_LinuxEnvVars>
+  </PropertyGroup>
+
   <!-- Windows device track: runs on Windows.11.Amd64.Pixel.Perf -->
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Device - %(Identity)')">
-      <PreCommands>$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot;;set DOTNET_ROOT=%HELIX_CORRELATION_PAYLOAD%\dotnet;set DOTNET_CLI_TELEMETRY_OPTOUT=1;set DOTNET_MULTILEVEL_LOOKUP=0;set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages;set ANDROID_HOME=%HELIX_WORKITEM_ROOT%\android-sdk;set ANDROID_SDK_ROOT=%HELIX_WORKITEM_ROOT%\android-sdk;set JAVA_HOME=%HELIX_WORKITEM_ROOT%\jdk;set PATH=%HELIX_CORRELATION_PAYLOAD%\dotnet;;%HELIX_WORKITEM_ROOT%\android-sdk\platform-tools;;%HELIX_WORKITEM_ROOT%\jdk\bin;;%PATH%</PreCommands>
+      <PreCommands>$(_WindowsEnvVars);$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot;</PreCommands>
       <Command>$(Python) test.py androidinnerloop --csproj-path app/MauiAndroidInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --package-name com.companyname.mauiandroidinnerloop -f $(PERFLAB_Framework)-android -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
@@ -80,7 +86,7 @@
   <!-- Linux emulator track: runs on Ubuntu.2204.Amd64.Android.29 -->
   <ItemGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Emulator - %(Identity)')">
-      <PreCommands>$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot;;export DOTNET_ROOT=$HELIX_CORRELATION_PAYLOAD/dotnet;export DOTNET_CLI_TELEMETRY_OPTOUT=1;export DOTNET_MULTILEVEL_LOOKUP=0;export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages;export ANDROID_HOME=$HELIX_WORKITEM_ROOT/android-sdk;export ANDROID_SDK_ROOT=$HELIX_WORKITEM_ROOT/android-sdk;export JAVA_HOME=$HELIX_WORKITEM_ROOT/jdk;export ANDROID_SERIAL=emulator-5554;export PATH=$HELIX_CORRELATION_PAYLOAD/dotnet:$HELIX_WORKITEM_ROOT/android-sdk/platform-tools:$HELIX_WORKITEM_ROOT/jdk/bin:$PATH</PreCommands>
+      <PreCommands>$(_LinuxEnvVars);$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot;</PreCommands>
       <Command>$(Python) test.py androidinnerloop --csproj-path app/MauiAndroidInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --package-name com.companyname.mauiandroidinnerloop -f $(PERFLAB_Framework)-android -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
