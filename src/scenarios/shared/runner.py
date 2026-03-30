@@ -184,6 +184,7 @@ ex: C:\repos\performance;C:\repos\runtime
         androidinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
         androidinnerloopparser.add_argument('--package-name', help='Android package name for startup measurement (e.g. com.companyname.mauiandroidinnerloop)', dest='packagename')
         androidinnerloopparser.add_argument('--inner-loop-iterations', help='Number of incremental build+deploy+startup iterations (1+)', type=int, default=10, dest='innerloopiterations')
+        androidinnerloopparser.add_argument('--startup-iterations', help='Number of startup measurements per build cycle', type=int, default=3, dest='startupmeasurementiterations')
         self.add_common_arguments(androidinnerloopparser)
 
         args = parser.parse_args()
@@ -218,6 +219,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.msbuildargs = args.msbuildargs or os.environ.get('PERFLAB_MSBUILD_ARGS', '')
             self.packagename = args.packagename
             self.innerloopiterations = args.innerloopiterations
+            self.startupmeasurementiterations = args.startupmeasurementiterations
 
         if self.testtype == const.DEVICESTARTUP:
             self.packagepath = args.packagepath
@@ -1007,62 +1009,71 @@ ex: C:\repos\performance;C:\repos\runtime
             from shared.util import helixuploaddir
             import upload
 
-            def measure_startup(packagename, activityname):
-                """Measure cold app startup time (ms) using logcat Displayed time, matching DEVICESTARTUP pattern."""
-                stop_app_cmd = xharness_adb() + ['shell', 'am', 'force-stop', packagename]
-                start_app_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-n', activityname]
-                clear_logs_cmd = xharness_adb() + ['logcat', '-c']
-                retrieve_time_cmd = xharness_adb() + [
-                    'shell',
-                    f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
-                ]
+            def measure_startup(packagename, activityname, iterations=1):
+                """Measure cold app startup time (ms) using logcat Displayed time, matching DEVICESTARTUP pattern.
 
-                # Force-stop the app and wait for OS to fully release the process (cold start guarantee)
-                RunCommand(stop_app_cmd, verbose=True).run()
-                time.sleep(3)
+                Returns a list of startup times (one per iteration).
+                """
+                results = []
+                for i in range(iterations):
+                    getLogger().info("Startup measurement %d/%d" % (i + 1, iterations))
 
-                # Clear logcat before starting the app
-                RunCommand(clear_logs_cmd, verbose=True).run()
+                    stop_app_cmd = xharness_adb() + ['shell', 'am', 'force-stop', packagename]
+                    start_app_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-n', activityname]
+                    clear_logs_cmd = xharness_adb() + ['logcat', '-c']
+                    retrieve_time_cmd = xharness_adb() + [
+                        'shell',
+                        f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
+                    ]
 
-                # Start the app (no -S flag — separate force-stop above guarantees cold start)
-                start_result = RunCommand(start_app_cmd, verbose=True)
-                start_result.run()
+                    # Force-stop the app and wait for OS to fully release the process (cold start guarantee)
+                    RunCommand(stop_app_cmd, verbose=True).run()
+                    time.sleep(3)
 
-                # Verify cold start (warn but don't fail, matching DEVICESTARTUP behavior)
-                if "LaunchState: COLD" not in start_result.stdout:
-                    getLogger().warning("App start was not COLD! LaunchState may be WARM or UNKNOWN.")
+                    # Clear logcat before starting the app
+                    RunCommand(clear_logs_cmd, verbose=True).run()
 
-                # Log am-start TotalTime as diagnostic cross-reference
-                total_match = re.search(r"TotalTime:\s*(\d+)", start_result.stdout)
-                if total_match:
-                    getLogger().info("Diagnostic am-start TotalTime: %d ms" % int(total_match.group(1)))
+                    # Start the app (no -S flag — separate force-stop above guarantees cold start)
+                    start_result = RunCommand(start_app_cmd, verbose=True)
+                    start_result.run()
 
-                # Stop app to stabilize logcat before reading Displayed time
-                RunCommand(stop_app_cmd, verbose=True).run()
+                    # Verify cold start (warn but don't fail, matching DEVICESTARTUP behavior)
+                    if "LaunchState: COLD" not in start_result.stdout:
+                        getLogger().warning("App start was not COLD! LaunchState may be WARM or UNKNOWN.")
 
-                # Primary: parse 'Displayed' time from logcat (matches DEVICESTARTUP pattern lines 598-610)
-                startup_ms = None
-                retrieve_result = RunCommand(retrieve_time_cmd, verbose=True)
-                retrieve_result.run()
-                dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
-                if dirty_capture:
-                    capture_list = dirty_capture.group(1).split('s')
-                    if len(capture_list) == 1:
-                        startup_ms = int(capture_list[0])
-                    elif len(capture_list) == 2:
-                        startup_ms = int(capture_list[0]) * 1000 + int(capture_list[1].zfill(3))
-                    else:
-                        raise Exception("Android time capture failed! Unexpected format: %s" % dirty_capture.group(0))
-                    getLogger().info("Startup time (logcat Displayed): %d ms" % startup_ms)
-                else:
-                    # Fallback: use TotalTime from am start stdout if logcat Displayed time not found
+                    # Log am-start TotalTime as diagnostic cross-reference
+                    total_match = re.search(r"TotalTime:\s*(\d+)", start_result.stdout)
                     if total_match:
-                        startup_ms = int(total_match.group(1))
-                        getLogger().warning("Logcat Displayed time not found, falling back to am-start TotalTime: %d ms" % startup_ms)
-                    else:
-                        raise Exception("Failed to capture startup time from logcat Displayed or am-start TotalTime!")
+                        getLogger().info("Diagnostic am-start TotalTime: %d ms" % int(total_match.group(1)))
 
-                return startup_ms
+                    # Stop app to stabilize logcat before reading Displayed time
+                    RunCommand(stop_app_cmd, verbose=True).run()
+
+                    # Primary: parse 'Displayed' time from logcat (matches DEVICESTARTUP pattern lines 598-610)
+                    startup_ms = None
+                    retrieve_result = RunCommand(retrieve_time_cmd, verbose=True)
+                    retrieve_result.run()
+                    dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
+                    if dirty_capture:
+                        capture_list = dirty_capture.group(1).split('s')
+                        if len(capture_list) == 1:
+                            startup_ms = int(capture_list[0])
+                        elif len(capture_list) == 2:
+                            startup_ms = int(capture_list[0]) * 1000 + int(capture_list[1].zfill(3))
+                        else:
+                            raise Exception("Android time capture failed! Unexpected format: %s" % dirty_capture.group(0))
+                        getLogger().info("Startup time (logcat Displayed): %d ms" % startup_ms)
+                    else:
+                        # Fallback: use TotalTime from am start stdout if logcat Displayed time not found
+                        if total_match:
+                            startup_ms = int(total_match.group(1))
+                            getLogger().warning("Logcat Displayed time not found, falling back to am-start TotalTime: %d ms" % startup_ms)
+                        else:
+                            raise Exception("Failed to capture startup time from logcat Displayed or am-start TotalTime!")
+
+                    results.append(startup_ms)
+
+                return results
 
             def merge_build_and_startup(build_report_path, startup_results, final_report_path):
                 """Load the build metrics report, append a startup time counter, write to final path."""
@@ -1115,8 +1126,8 @@ ex: C:\repos\performance;C:\repos\runtime
                 subprocess.run(incremental_cmd, check=True)
 
                 # Measure startup
-                ms = measure_startup_fn(packagename, activityname)
-                getLogger().info("Incremental iteration %d/%d: build+deploy done, startup: %d ms" % (iteration, num_iterations, ms))
+                ms_list = measure_startup_fn(packagename, activityname)
+                getLogger().info("Incremental iteration %d/%d: build+deploy done, startup: %s ms" % (iteration, num_iterations, ms_list))
 
                 # Parse this iteration's binlog → temp build report
                 iter_report_name = 'incremental-build-report-%d.json' % iteration
@@ -1142,7 +1153,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     os.remove(iter_report)
                     getLogger().info("Removed temp report: %s" % iter_report)
 
-                return ms, counters, iter_binlog, test_metadata
+                return ms_list, counters, iter_binlog, test_metadata
 
             # --- Validate inputs ---
             if not self.csprojpath:
@@ -1182,8 +1193,16 @@ ex: C:\repos\performance;C:\repos\runtime
             getLogger().info("Resolved activity: %s" % activityname)
 
             # --- First startup measurement ---
-            first_startup_ms = measure_startup(self.packagename, activityname)
-            getLogger().info("First deploy startup: %d ms" % first_startup_ms)
+            first_startup_results = measure_startup(self.packagename, activityname, iterations=self.startupmeasurementiterations)
+            getLogger().info("First deploy startup: %s ms" % first_startup_results)
+
+            # --- Runtime validation (diagnostic only) ---
+            msbuildargs_str = self.msbuildargs or ''
+            expected_runtime = 'mono' if 'UseMonoRuntime=true' in msbuildargs_str else 'coreclr'
+            runtime_check_cmd = xharness_adb() + ['shell', 'logcat -d | grep -iE "monodroid|monoruntime|mono-rt|coreclr" | tail -5']
+            runtime_check_result = RunCommand(runtime_check_cmd, verbose=True)
+            runtime_check_result.run()
+            getLogger().info("Runtime validation (expected=%s): %s" % (expected_runtime, runtime_check_result.stdout.strip()))
 
             # --- Parse first build report ---
             startup = StartupWrapper()
@@ -1198,7 +1217,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
             # Merge first build metrics + startup → first e2e report
             first_e2e_report = os.path.join(const.TRACEDIR, 'first-debug-e2e-perf-lab-report.json')
-            merge_build_and_startup(first_build_report, [first_startup_ms], first_e2e_report)
+            merge_build_and_startup(first_build_report, first_startup_results, first_e2e_report)
 
             # --- Incremental loop ---
             num_iterations = self.innerloopiterations
@@ -1227,13 +1246,13 @@ ex: C:\repos\performance;C:\repos\runtime
             intermediate_files = []  # files to clean up
 
             for iteration in range(1, num_iterations + 1):
-                ms, counters, iter_binlog, test_metadata = run_incremental_iteration(
+                ms_list, counters, iter_binlog, test_metadata = run_incremental_iteration(
                     iteration, num_iterations, base_cmd,
                     edit_pairs,
                     self.packagename, activityname, scenarioprefix, startup, self.traits,
                     measure_startup)
 
-                incremental_startup_results.append(ms)
+                incremental_startup_results.extend(ms_list)
                 intermediate_files.append(iter_binlog)
 
                 # Save test metadata from the first iteration
