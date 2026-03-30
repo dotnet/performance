@@ -61,7 +61,7 @@
     </PreparePayloadWorkItem>
   </ItemGroup>
 
-  <!-- Note: -c Debug is hardcoded in run.py (and the original run.sh/run.cmd) because
+  <!-- Note: -c Debug is hardcoded below (and was previously in run.py) because
        $(BuildConfig) gets overridden by send_to_helix.py to the artifact config string
        (e.g., x64_main_maui_scenarios_android_innerloop). All inner loop jobs use Debug. -->
 
@@ -69,7 +69,7 @@
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Device - %(Identity)')">
       <PreCommands>set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages</PreCommands>
-      <Command>$(Python) run.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) $(ScenarioArgs)</Command>
+      <Command>$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &amp;&amp; $(Python) test.py androidinnerloop --csproj-path app/MauiAndroidInnerLoop.csproj --edit-src src/MainPage.xaml.cs;src/MainPage.xaml --edit-dest app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml --package-name com.companyname.mauiandroidinnerloop -f $(PERFLAB_Framework)-android -c Debug --scenario-name &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>
@@ -79,7 +79,7 @@
   <ItemGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Emulator - %(Identity)')">
       <PreCommands>export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages</PreCommands>
-      <Command>$(Python) run.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) $(ScenarioArgs)</Command>
+      <Command>$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &amp;&amp; $(Python) test.py androidinnerloop --csproj-path app/MauiAndroidInnerLoop.csproj --edit-src src/MainPage.xaml.cs;src/MainPage.xaml --edit-dest app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml --package-name com.companyname.mauiandroidinnerloop -f $(PERFLAB_Framework)-android -c Debug --scenario-name &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>

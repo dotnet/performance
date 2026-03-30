@@ -289,9 +289,9 @@ def restore_packages(ctx):
 
 # --- Main ---
 def main():
-    if len(sys.argv) < 4:
-        print(f"Usage: {sys.argv[0]} FRAMEWORK MSBUILD_ARGS SCENARIO_NAME "
-              f"[EXTRA_ARGS...]", file=sys.stderr)
+    if len(sys.argv) < 3:
+        print(f"Usage: {sys.argv[0]} FRAMEWORK MSBUILD_ARGS",
+              file=sys.stderr)
         sys.exit(1)
 
     global _logfile
@@ -304,8 +304,6 @@ def main():
     ctx = {
         "framework": sys.argv[1],
         "msbuild_args": sys.argv[2],
-        "scenario_name": sys.argv[3],
-        "extra_args": sys.argv[4:],
         "workitem_root": workitem_root,
         "correlation_payload": correlation_payload,
         "nuget_config": os.path.join(workitem_root, "app", "NuGet.config"),
