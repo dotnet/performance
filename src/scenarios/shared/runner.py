@@ -1008,39 +1008,44 @@ ex: C:\repos\performance;C:\repos\runtime
             import upload
 
             def measure_startup(packagename, activityname):
-                """Measure app startup time (ms). Prefers TotalTime from am start, falls back to logcat."""
+                """Measure cold app startup time (ms) using logcat Displayed time, matching DEVICESTARTUP pattern."""
                 stop_app_cmd = xharness_adb() + ['shell', 'am', 'force-stop', packagename]
-                start_app_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-S', '-n', activityname]
+                start_app_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-n', activityname]
                 clear_logs_cmd = xharness_adb() + ['logcat', '-c']
                 retrieve_time_cmd = xharness_adb() + [
                     'shell',
                     f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
                 ]
 
+                # Force-stop the app and wait for OS to fully release the process (cold start guarantee)
+                RunCommand(stop_app_cmd, verbose=True).run()
+                time.sleep(3)
+
+                # Clear logcat before starting the app
                 RunCommand(clear_logs_cmd, verbose=True).run()
+
+                # Start the app (no -S flag — separate force-stop above guarantees cold start)
                 start_result = RunCommand(start_app_cmd, verbose=True)
                 start_result.run()
 
-                startup_ms = None
+                # Verify cold start (warn but don't fail, matching DEVICESTARTUP behavior)
+                if "LaunchState: COLD" not in start_result.stdout:
+                    getLogger().warning("App start was not COLD! LaunchState may be WARM or UNKNOWN.")
 
-                # Primary: parse WaitTime or TotalTime from am start -W output
+                # Log am-start TotalTime as diagnostic cross-reference
                 total_match = re.search(r"TotalTime:\s*(\d+)", start_result.stdout)
-                wait_match = re.search(r"WaitTime:\s*(\d+)", start_result.stdout)
                 if total_match:
-                    startup_ms = int(total_match.group(1))
-                    getLogger().info("Startup time (TotalTime): %d ms" % startup_ms)
-                elif wait_match:
-                    startup_ms = int(wait_match.group(1))
-                    getLogger().info("Startup time (WaitTime): %d ms" % startup_ms)
+                    getLogger().info("Diagnostic am-start TotalTime: %d ms" % int(total_match.group(1)))
 
-                # Fallback: parse 'Displayed' time from logcat (stop app first, matching DEVICESTARTUP pattern)
-                if startup_ms is None:
-                    RunCommand(stop_app_cmd, verbose=True).run()
-                    retrieve_result = RunCommand(retrieve_time_cmd, verbose=True)
-                    retrieve_result.run()
-                    dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
-                    if not dirty_capture:
-                        raise Exception("Failed to capture startup time from am start output or logcat!")
+                # Stop app to stabilize logcat before reading Displayed time
+                RunCommand(stop_app_cmd, verbose=True).run()
+
+                # Primary: parse 'Displayed' time from logcat (matches DEVICESTARTUP pattern lines 598-610)
+                startup_ms = None
+                retrieve_result = RunCommand(retrieve_time_cmd, verbose=True)
+                retrieve_result.run()
+                dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
+                if dirty_capture:
                     capture_list = dirty_capture.group(1).split('s')
                     if len(capture_list) == 1:
                         startup_ms = int(capture_list[0])
@@ -1048,9 +1053,14 @@ ex: C:\repos\performance;C:\repos\runtime
                         startup_ms = int(capture_list[0]) * 1000 + int(capture_list[1].zfill(3))
                     else:
                         raise Exception("Android time capture failed! Unexpected format: %s" % dirty_capture.group(0))
-                    getLogger().info("Startup time (logcat): %d ms" % startup_ms)
+                    getLogger().info("Startup time (logcat Displayed): %d ms" % startup_ms)
                 else:
-                    RunCommand(stop_app_cmd, verbose=True).run()
+                    # Fallback: use TotalTime from am start stdout if logcat Displayed time not found
+                    if total_match:
+                        startup_ms = int(total_match.group(1))
+                        getLogger().warning("Logcat Displayed time not found, falling back to am-start TotalTime: %d ms" % startup_ms)
+                    else:
+                        raise Exception("Failed to capture startup time from logcat Displayed or am-start TotalTime!")
 
                 return startup_ms
 
