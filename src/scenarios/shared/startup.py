@@ -85,7 +85,7 @@ class StartupWrapper(object):
 
         helix_upload_dir = helixuploaddir()
         if runninginlab() and helix_upload_dir is not None:
-            copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'))
+            copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'), dirs_exist_ok=True)
             if traits.upload_to_perflab_container:
                 import upload
                 upload_code = upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
@@ -163,7 +163,7 @@ class StartupWrapper(object):
 
         helix_upload_dir = helixuploaddir()
         if runninginlab() and helix_upload_dir is not None:
-            copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'))
+            copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'), dirs_exist_ok=True)
             if traits.upload_to_perflab_container:
                 import upload
                 upload_code = upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
