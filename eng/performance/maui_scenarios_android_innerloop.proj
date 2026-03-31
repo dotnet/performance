@@ -1,0 +1,98 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <Import Project="Scenarios.Common.props" />
+  <!-- TODO: Scenarios.Common.props sets HelixResultsDestinationDir to a path under
+       CorrelationPayloadDirectory, which is cleaned up after SendToHelix. As a result,
+       this file's DownloadFilesFromResults artifacts (e.g., output.log) may not appear
+       in published pipeline artifacts. A future fix should override
+       HelixResultsDestinationDir to a path under ArtifactStagingDirectory that the
+       pipeline's "Gather logs" step publishes. -->
+
+  <PropertyGroup>
+    <IncludeXHarnessCli>true</IncludeXHarnessCli>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
+
+    <!-- CoreCLR JIT (all inner loop runs use codeGenType=Default; AOT/R2R/NativeAOT are unused) -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'JIT'">$(_MSBuildArgs) /p:PublishReadyToRun=false /p:PublishReadyToRunComposite=false</_MSBuildArgs>
+
+    <!-- AndroidRid: defaults based on target OS but can be overridden.
+         Windows targets physical Pixel 8 (ARM64); Linux targets x86_64 emulator. -->
+    <AndroidRid Condition="'$(AndroidRid)' == '' and '$(TargetsWindows)' == 'true'">android-arm64</AndroidRid>
+    <AndroidRid Condition="'$(AndroidRid)' == '' and '$(TargetsWindows)' != 'true'">android-x64</AndroidRid>
+    <_MSBuildArgs>$(_MSBuildArgs) /p:RuntimeIdentifier=$(AndroidRid)</_MSBuildArgs>
+
+    <!-- TODO: https://github.com/dotnet/maui/issues/34706 -->
+    <_MSBuildArgs>$(_MSBuildArgs) /p:SupportedOSPlatformVersion=23</_MSBuildArgs>
+    <!-- Add TargetFrameworks override so dotnet build's implicit restore
+         only evaluates the android TFM, not multi-platform TFMs in the csproj. -->
+    <_MSBuildArgs Condition="!$(_MSBuildArgs.Contains('/p:TargetFrameworks='))">$(_MSBuildArgs) /p:TargetFrameworks=$(PERFLAB_Framework)-android</_MSBuildArgs>
+
+    <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
+    <InnerLoopIterations Condition="'$(InnerLoopIterations)' == ''">10</InnerLoopIterations>
+  </PropertyGroup>
+
+  <!-- Remove .NET SDK packs from the Helix correlation payload to reduce transfer size.
+       The workload packs (~1-2 GB) are restored on the Helix machine during the run step,
+       so shipping them in the payload is unnecessary and slows down payload upload. -->
+  <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
+    <Message Text="Removing Dotnet Packs from Correlation Staging" Importance="high" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" Condition="'$(TargetsWindows)' == 'true'" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet/packs" Condition="'$(TargetsWindows)' != 'true'" />
+  </Target>
+
+  <ItemDefinitionGroup>
+    <HelixWorkItem>
+      <Timeout>01:00</Timeout>
+    </HelixWorkItem>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <MAUIAndroidInnerLoopScenario Include="MAUI Android Inner Loop">
+      <ScenarioDirectoryName>mauiandroidinnerloop</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </MAUIAndroidInnerLoopScenario>
+  </ItemGroup>
+
+  <!-- PreparePayloadWorkItem: create template and modified source on the build machine.
+       pre.py creates the MAUI template in app/, fixes .csproj TFMs, and prepares the
+       modified MainPage.xaml.cs in src/ for the incremental deploy simulation. -->
+  <ItemGroup>
+    <PreparePayloadWorkItem Include="@(MAUIAndroidInnerLoopScenario)">
+      <Command>$(Python) pre.py default -f $(PERFLAB_Framework)</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+  </ItemGroup>
+
+  <!-- Environment variables needed on Helix before setup_helix.py runs (so PATH includes adb). -->
+  <PropertyGroup>
+    <_WindowsEnvVars>set DOTNET_ROOT=%HELIX_CORRELATION_PAYLOAD%\dotnet;set DOTNET_CLI_TELEMETRY_OPTOUT=1;set DOTNET_MULTILEVEL_LOOKUP=0;set NUGET_PACKAGES=%HELIX_WORKITEM_ROOT%\.packages;set ANDROID_HOME=%HELIX_WORKITEM_ROOT%\android-sdk;set ANDROID_SDK_ROOT=%HELIX_WORKITEM_ROOT%\android-sdk;set JAVA_HOME=%HELIX_WORKITEM_ROOT%\jdk;set PATH=%HELIX_CORRELATION_PAYLOAD%\dotnet;;%HELIX_WORKITEM_ROOT%\android-sdk\platform-tools;;%HELIX_WORKITEM_ROOT%\jdk\bin;;%PATH%</_WindowsEnvVars>
+    <_LinuxEnvVars>export DOTNET_ROOT=$HELIX_CORRELATION_PAYLOAD/dotnet;export DOTNET_CLI_TELEMETRY_OPTOUT=1;export DOTNET_MULTILEVEL_LOOKUP=0;export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages;export ANDROID_HOME=$HELIX_WORKITEM_ROOT/android-sdk;export ANDROID_SDK_ROOT=$HELIX_WORKITEM_ROOT/android-sdk;export JAVA_HOME=$HELIX_WORKITEM_ROOT/jdk;export ANDROID_SERIAL=emulator-5554;export PATH=$HELIX_CORRELATION_PAYLOAD/dotnet:$HELIX_WORKITEM_ROOT/android-sdk/platform-tools:$HELIX_WORKITEM_ROOT/jdk/bin:$PATH</_LinuxEnvVars>
+  </PropertyGroup>
+
+  <!-- Windows device track: runs on Windows.11.Amd64.Pixel.Perf -->
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
+    <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Device - %(Identity)')">
+      <PreCommands>$(_WindowsEnvVars);$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot;</PreCommands>
+      <Command>$(Python) test.py androidinnerloop --csproj-path app/MauiAndroidInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --package-name com.companyname.mauiandroidinnerloop -f $(PERFLAB_Framework)-android -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) $(ScenarioArgs)</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <!-- Linux emulator track: runs on Ubuntu.2204.Amd64.Android.29 -->
+  <ItemGroup Condition="'$(TargetsWindows)' != 'true'">
+    <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Emulator - %(Identity)')">
+      <PreCommands>$(_LinuxEnvVars);$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot;</PreCommands>
+      <Command>$(Python) test.py androidinnerloop --csproj-path app/MauiAndroidInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --package-name com.companyname.mauiandroidinnerloop -f $(PERFLAB_Framework)-android -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) $(ScenarioArgs)</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <Import Project="PreparePayloadWorkItems.targets" />
+
+</Project>
