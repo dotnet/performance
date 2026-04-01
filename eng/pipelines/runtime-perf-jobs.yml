@@ -14,7 +14,7 @@ parameters:
   - name: viperMicro
     type: object
     default:
-      enabled: false
+      enabled: true
       configs:
         - linux_x64
         - windows_x64
@@ -22,46 +22,46 @@ parameters:
   - name: viperMicroNoR2R
     type: object
     default:
-      enabled: false
+      enabled: true
       configs:
         - linux_x64
         - windows_x64
   - name: viperMicroR2RInterpreter
     type: object
     default:
-      enabled: false
+      enabled: true
       configs:
         - linux_x64
   - name: monoMicro
     type: object
     default:
-      enabled: false
+      enabled: true
       configs:
         - linux_x64
   - name: monoInterpreter
     type: object
     default:
-      enabled: false
+      enabled: true
       configs:
         - linux_x64
   - name: monoAot
     type: object
     default:
-      enabled: false
+      enabled: true
       configs:
         - linux_x64
   - name: androidMonoJit
     type: object
     default:
-      enabled: false
+      enabled: true
   - name: androidMonoAot
     type: object
     default:
-      enabled: false
+      enabled: true
   - name: androidCoreclrJit
     type: object
     default:
-      enabled: false
+      enabled: true
   - name: cobaltSveMicro
     type: object
     default:
@@ -71,7 +71,7 @@ parameters:
   - name: androidCoreclrR2r
     type: object
     default:
-      enabled: false
+      enabled: true
 
 jobs:
   - template: /eng/pipelines/performance/templates/perf-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
@@ -79,13 +79,12 @@ jobs:
       perfBranch: ${{ parameters.perfBranch }}
 
   - ${{ if not(startswith(variables['Build.SourceBranch'], 'refs/heads/release')) }}:
-    # Build and run iOS Mono and NativeAOT scenarios — disabled for SVE-only test run
-    - ${{ if false }}:
-      - template: /eng/pipelines/runtime-ios-scenarios-perf-jobs.yml
-        parameters:
-          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          jobParameters: ${{ parameters.jobParameters }}
+    # Build and run iOS Mono and NativeAOT scenarios
+    - template: /eng/pipelines/runtime-ios-scenarios-perf-jobs.yml
+      parameters:
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        jobParameters: ${{ parameters.jobParameters }}
 
     # Android Mono JIT — controlled by androidMonoJit toggle
     - ${{ if eq(parameters.androidMonoJit.enabled, true) }}:
