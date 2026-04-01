@@ -19,19 +19,17 @@ namespace BenchmarkDotNet.Extensions
 
         public bool TreatsWarningsAsErrors => true;
 
-        public async IAsyncEnumerable<ValidationError> ValidateAsync(ValidationParameters validationParameters)
+        public IAsyncEnumerable<ValidationError> ValidateAsync(ValidationParameters validationParameters)
         {
-            var byDescriptor = validationParameters.Benchmarks
+            return validationParameters.Benchmarks
                 .Where(benchmark => !SkipValidation(benchmark.Descriptor.WorkloadMethod))
-                .GroupBy(benchmark => (benchmark.Descriptor, benchmark.Job)); // descriptor = type + method
-
-            foreach (var group in byDescriptor.Where(benchmarkCase => benchmarkCase.Count() > Limit))
-            {
-                yield return new ValidationError(
+                .GroupBy(benchmark => (benchmark.Descriptor, benchmark.Job))
+                .Where(group => group.Count() > Limit)
+                .Select(group => new ValidationError(
                     isCritical: true,
                     message: $"{group.Key.Descriptor.Type.Name}.{group.Key.Descriptor.WorkloadMethod.Name} has {group.Count()} test cases. It MUST NOT have more than {Limit} test cases. We don't have inifinite amount of time to run all the benchmarks!!",
-                    benchmarkCase: group.First());
-            }
+                    benchmarkCase: group.First()))
+                .AsAsyncEnumerable();
         }
 
         private static bool SkipValidation(MemberInfo member)

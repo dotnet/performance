@@ -21,17 +21,16 @@ namespace BenchmarkDotNet.Extensions
 
         public MandatoryCategoryValidator(ImmutableHashSet<string> categories) => _mandatoryCategories = categories;
 
-        public async IAsyncEnumerable<ValidationError> ValidateAsync(ValidationParameters validationParameters)
+        public IAsyncEnumerable<ValidationError> ValidateAsync(ValidationParameters validationParameters)
         {
-            foreach (var benchmarkId in validationParameters.Benchmarks
+            return validationParameters.Benchmarks
                 .Where(benchmark => !benchmark.Descriptor.Categories.Any(category => _mandatoryCategories.Contains(category)))
                 .Select(benchmark => benchmark.Descriptor.GetFilterName())
-                .Distinct())
-            {
-                yield return new ValidationError(
+                .Distinct()
+                .Select(benchmarkId => new ValidationError(
                     isCritical: TreatsWarningsAsErrors,
-                    $"{benchmarkId} does not belong to one of the mandatory categories: {string.Join(", ", _mandatoryCategories)}. Use [BenchmarkCategory(Categories.$)]");
-            }
+                    $"{benchmarkId} does not belong to one of the mandatory categories: {string.Join(", ", _mandatoryCategories)}. Use [BenchmarkCategory(Categories.$)]"))
+                .AsAsyncEnumerable();
         }
     }
 }

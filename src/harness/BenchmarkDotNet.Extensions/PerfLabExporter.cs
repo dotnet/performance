@@ -21,10 +21,10 @@ namespace BenchmarkDotNet.Extensions
     {
         public string Name => "PerfLab";
 
-        public async ValueTask ExportAsync(Summary summary, ILogger logger, CancellationToken cancellationToken)
+        public ValueTask ExportAsync(Summary summary, ILogger logger, CancellationToken cancellationToken)
         {
-            await Task.CompletedTask;
             Export(summary, logger);
+            return default;
         }
 
         public void Export(Summary summary, ILogger logger)

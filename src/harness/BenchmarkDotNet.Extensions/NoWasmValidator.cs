@@ -23,17 +23,16 @@ namespace BenchmarkDotNet.Extensions
 
         public NoWasmValidator(string noWasmCategory) => _noWasmCategory = noWasmCategory;
 
-        public async IAsyncEnumerable<ValidationError> ValidateAsync(ValidationParameters validationParameters)
+        public IAsyncEnumerable<ValidationError> ValidateAsync(ValidationParameters validationParameters)
         {
-            foreach (var benchmarkId in validationParameters.Benchmarks
+            return validationParameters.Benchmarks
                 .Where(benchmark => IsAsyncMethod(benchmark.Descriptor.WorkloadMethod) && !benchmark.Descriptor.Categories.Any(category => category.Equals(_noWasmCategory, StringComparison.Ordinal)))
                 .Select(benchmark => benchmark.Descriptor.GetFilterName())
-                .Distinct())
-            {
-                yield return new ValidationError(
+                .Distinct()
+                .Select(benchmarkId => new ValidationError(
                     isCritical: TreatsWarningsAsErrors,
-                    $"{benchmarkId} returns an awaitable object and has no: {_noWasmCategory} category applied. Use [BenchmarkCategory(Categories.NoWASM)]");
-            }
+                    $"{benchmarkId} returns an awaitable object and has no: {_noWasmCategory} category applied. Use [BenchmarkCategory(Categories.NoWASM)]"))
+                .AsAsyncEnumerable();
         }
 
         private bool IsAsyncMethod(MethodInfo workloadMethod)

@@ -14,9 +14,9 @@ namespace BenchmarkDotNet.Extensions
     {
         public bool TreatsWarningsAsErrors => true;
 
-        public async IAsyncEnumerable<ValidationError> ValidateAsync(ValidationParameters validationParameters)
+        public IAsyncEnumerable<ValidationError> ValidateAsync(ValidationParameters validationParameters)
         {
-            foreach (var error in validationParameters.Benchmarks
+            return validationParameters.Benchmarks
                 .Where(benchmark => benchmark.HasArguments || benchmark.HasParameters)
                 .GroupBy(benchmark => (benchmark.Descriptor.Type, benchmark.Descriptor.WorkloadMethod, benchmark.Job))
                 .Where(sameBenchmark =>
@@ -26,10 +26,8 @@ namespace BenchmarkDotNet.Extensions
 
                     return numberOfTestCases != numberOfUniqueTestCases;
                 })
-                .Select(duplicate => new ValidationError(true, $"Benchmark Arguments should be unique, {duplicate.Key.Type}.{duplicate.Key.WorkloadMethod} has duplicate arguments.", duplicate.First())))
-            {
-                yield return error;
-            }
+                .Select(duplicate => new ValidationError(true, $"Benchmark Arguments should be unique, {duplicate.Key.Type}.{duplicate.Key.WorkloadMethod} has duplicate arguments.", duplicate.First()))
+                .AsAsyncEnumerable();
         }
 
         private class BenchmarkArgumentsComparer : IEqualityComparer<BenchmarkCase>
