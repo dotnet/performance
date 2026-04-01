@@ -1100,7 +1100,7 @@ ex: C:\repos\performance;C:\repos\runtime
             first_binlog = os.path.join(const.TRACEDIR, 'first-build-and-deploy.binlog')
 
             # Build the base MSBuild command
-            base_cmd = ['dotnet', 'build', self.csprojpath, '-t:Install']
+            base_cmd = ['dotnet', 'build', self.csprojpath, '-t:Install', '--no-restore']
             if self.configuration:
                 base_cmd.extend(['-c', self.configuration])
             if self.framework:

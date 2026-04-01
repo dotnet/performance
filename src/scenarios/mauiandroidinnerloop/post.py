@@ -2,7 +2,6 @@
 post cleanup script
 '''
 
-import os
 import subprocess
 import sys
 import traceback
@@ -13,13 +12,6 @@ from test import EXENAME
 
 setup_loggers(True)
 logger = getLogger(__name__)
-
-# Pin to the emulator device to avoid "more than one device/emulator" errors
-# 'emulator-5554' is the standard ADB serial for the first Android emulator instance
-# and is stable across all Android SDK versions.
-if 'ANDROID_SERIAL' not in os.environ:
-    os.environ['ANDROID_SERIAL'] = 'emulator-5554'
-    logger.info("Set ANDROID_SERIAL=emulator-5554")
 
 try:
     # Uninstall the app from the connected device so re-runs start from a clean state

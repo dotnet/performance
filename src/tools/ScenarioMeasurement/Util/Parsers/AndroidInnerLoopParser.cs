@@ -136,7 +136,7 @@ public class AndroidInnerLoopParser : IParser
 
         // Overall duration
         if (publishTimes.Count > 0)
-            yield return new Counter { Name = "Publish Time", MetricName = "s", DefaultCounter = true, TopCounter = true, Results = publishTimes.ToArray() };
+            yield return new Counter { Name = "Build+Deploy Time", MetricName = "s", DefaultCounter = true, TopCounter = true, Results = publishTimes.ToArray() };
 
         // Build task counters
         if (cscTimes.Count > 0)

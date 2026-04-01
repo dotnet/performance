@@ -87,7 +87,7 @@
     </HelixWorkItem>
   </ItemGroup>
 
-  <!-- Linux emulator track: runs on Ubuntu.2204.Amd64.Android.29 -->
+  <!-- Linux emulator track: runs on Ubuntu.2204.Amd64.Android.36 -->
   <ItemGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Emulator - %(Identity)')">
       <PreCommands>$(_LinuxEnvVars);$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot;</PreCommands>
