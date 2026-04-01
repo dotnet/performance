@@ -1015,7 +1015,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     shutil.copytree(os.path.join(args.performance_repo_dir, "docs"), work_item_dir, dirs_exist_ok=True)
 
     if args.os_group == "windows":
-        agent_python = "py -3"
+        agent_python = "python"
     else:
         agent_python = "python3"
 
