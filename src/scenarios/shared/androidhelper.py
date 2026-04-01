@@ -301,6 +301,16 @@ class AndroidHelper:
         # Primary: parse TotalTime or WaitTime from am start -W output
         total_match = re.search(r"TotalTime:\s*(\d+)", start_result.stdout)
         wait_match = re.search(r"WaitTime:\s*(\d+)", start_result.stdout)
+        launch_state_match = re.search(r"LaunchState:\s*(\w+)", start_result.stdout)
+        if launch_state_match:
+            launch_state = launch_state_match.group(1)
+            getLogger().info("LaunchState: %s" % launch_state)
+            if launch_state != "COLD":
+                raise Exception(
+                    "Expected LaunchState: COLD but got LaunchState: %s. "
+                    "If UNKNOWN, the device screen may have turned off mid-run — "
+                    "increase --screen-timeout-ms." % launch_state
+                )
         if total_match:
             startup_ms = int(total_match.group(1))
             getLogger().info("Startup time (TotalTime): %d ms" % startup_ms)

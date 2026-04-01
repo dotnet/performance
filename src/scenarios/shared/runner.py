@@ -184,6 +184,7 @@ ex: C:\repos\performance;C:\repos\runtime
         androidinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
         androidinnerloopparser.add_argument('--package-name', help='Android package name for startup measurement (e.g. com.companyname.mauiandroidinnerloop)', dest='packagename')
         androidinnerloopparser.add_argument('--inner-loop-iterations', help='Number of incremental build+deploy+startup iterations (1+)', type=int, default=10, dest='innerloopiterations')
+        androidinnerloopparser.add_argument('--screen-timeout-ms', help='Screen timeout in milliseconds. Must be large enough so the display stays on for the entire scenario; a screen-off mid-run breaks cold startup measurement (am start reports LaunchState: UNKNOWN).', type=int, default=30 * 60 * 1000, dest='screentimeoutms')
         self.add_common_arguments(androidinnerloopparser)
 
         args = parser.parse_args()
@@ -218,6 +219,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.msbuildargs = args.msbuildargs or os.environ.get('PERFLAB_MSBUILD_ARGS', '')
             self.packagename = args.packagename
             self.innerloopiterations = args.innerloopiterations
+            self.screentimeoutms = args.screentimeoutms
 
         if self.testtype == const.DEVICESTARTUP:
             self.packagepath = args.packagepath
@@ -1120,7 +1122,7 @@ ex: C:\repos\performance;C:\repos\runtime
             # measurement impossible.
             androidHelper = AndroidHelper()
             try:
-                androidHelper.setup_device(self.packagename, packagepath=None, animationsdisabled=True, skip_install=True, skip_xharness_warmup=True, skip_package_verifier=True, skip_test_launch=True, screen_timeout_ms=30 * 60 * 1000)
+                androidHelper.setup_device(self.packagename, packagepath=None, animationsdisabled=True, skip_install=True, skip_xharness_warmup=True, skip_package_verifier=True, skip_test_launch=True, screen_timeout_ms=self.screentimeoutms)
 
                 activityname = androidHelper.activityname
                 getLogger().info("Using resolved activity: %s" % activityname)
