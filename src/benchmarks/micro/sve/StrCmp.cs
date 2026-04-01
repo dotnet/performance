@@ -120,7 +120,7 @@ namespace SveBenchmarks
             int elemsInVector = (int)Sve.Count8BitElements();
 
             Vector<byte> ptrue = Sve.CreateTrueMaskByte();
-            Vector<byte> pLoop = SveMaskHelper.CreateWhileLessThanMaskByte(i, Size);
+            Vector<byte> pLoop = Sve.CreateWhileLessThanMaskByte(i, Size);
             Vector<byte> cmp = Vector<byte>.Zero;
             Vector<byte> arr1_data, arr2_data;
 
@@ -141,7 +141,7 @@ namespace SveBenchmarks
 
                         i += elemsInVector;
 
-                        pLoop = SveMaskHelper.CreateWhileLessThanMaskByte(i, Size);
+                        pLoop = Sve.CreateWhileLessThanMaskByte(i, Size);
                     }
 
                     // create a bitmask to find position of changed value

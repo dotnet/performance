@@ -177,7 +177,7 @@ namespace SveBenchmarks
 
                     int i = 0;
                     Vector<ulong> acc = Vector<ulong>.Zero;
-                    Vector<ushort> pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt16(0, lengthWords);
+                    Vector<ushort> pLoop = Sve.CreateWhileLessThanMaskUInt16(0, lengthWords);
                     while (Sve.TestAnyTrue(pTrue, pLoop))
                     {
                         Vector<ushort> d = Sve.LoadVector(pLoop, ((ushort*)p) + i);
@@ -187,7 +187,7 @@ namespace SveBenchmarks
 
                         // Handle loop predicate.
                         i += (int)Sve.Count16BitElements();
-                        pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt16(i, lengthWords);
+                        pLoop = Sve.CreateWhileLessThanMaskUInt16(i, lengthWords);
                     }
                     // Reduce result to scalar.
                     ulong sum = Sve.AddAcross(acc).ToScalar();

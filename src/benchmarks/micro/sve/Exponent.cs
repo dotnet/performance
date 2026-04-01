@@ -168,7 +168,7 @@ namespace SveBenchmarks
                 Vector<float> constVec = new Vector<float>(new ReadOnlySpan<float>(&d[3], 4));
 
                 Vector<uint> pTrue = Sve.CreateTrueMaskUInt32();
-                Vector<uint> pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt32(0, Size);
+                Vector<uint> pLoop = Sve.CreateWhileLessThanMaskUInt32(0, Size);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     Vector<float> x = (Vector<float>)Sve.LoadVector(pLoop, (uint*)(input + i));
@@ -197,7 +197,7 @@ namespace SveBenchmarks
 
                     // Handle loop.
                     i += cntw;
-                    pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt32(i, Size);
+                    pLoop = Sve.CreateWhileLessThanMaskUInt32(i, Size);
                 }
             }
         }

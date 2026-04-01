@@ -109,7 +109,7 @@ namespace SveBenchmarks
             fixed (char* arr_ptr = _array)
             {
                 Vector<ushort> target = new Vector<ushort>((ushort)_searchValue);
-                var pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt16(i, Size);
+                var pLoop = Sve.CreateWhileLessThanMaskUInt16(i, Size);
 
                 while (Sve.TestFirstTrue(Sve.CreateTrueMaskUInt16(), pLoop))
                 {
@@ -126,7 +126,7 @@ namespace SveBenchmarks
                     }
 
                     i += (int)Sve.Count16BitElements();
-                    pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt16(i, Size);
+                    pLoop = Sve.CreateWhileLessThanMaskUInt16(i, Size);
                 }
 
                 return -1;

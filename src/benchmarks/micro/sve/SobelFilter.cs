@@ -195,8 +195,8 @@ namespace SveBenchmarks
 
                 Vector<float> resVec;
                 // Load coefficients of the filter into vectors.
-                Vector<float> kxVec = Sve.LoadVector(SveMaskHelper.CreateWhileLessThanMaskSingle(0, 3), kx);
-                Vector<float> kyVec = Sve.LoadVector(SveMaskHelper.CreateWhileLessThanMaskSingle(0, 3), ky);
+                Vector<float> kxVec = Sve.LoadVector(Sve.CreateWhileLessThanMaskSingle(0, 3), kx);
+                Vector<float> kyVec = Sve.LoadVector(Sve.CreateWhileLessThanMaskSingle(0, 3), ky);
                 for (int j = 0; j < img_size; j++)
                 {
                     // Load the elements from input and output the intermediate result to temp.
@@ -205,7 +205,7 @@ namespace SveBenchmarks
 
                     for (int i = 0; i < out_size; i += cntw)
                     {
-                        Vector<float> pRow = SveMaskHelper.CreateWhileLessThanMaskSingle(i, out_size);
+                        Vector<float> pRow = Sve.CreateWhileLessThanMaskSingle(i, out_size);
 
                         // Load input elements from the next 3 columns.
                         Vector<float> col0 = Sve.LoadVector(pRow, in_ptr + i);
@@ -228,7 +228,7 @@ namespace SveBenchmarks
 
                     for (int i = 0; i < out_size; i += cntw)
                     {
-                        Vector<float> pRow = SveMaskHelper.CreateWhileLessThanMaskSingle(i, out_size);
+                        Vector<float> pRow = Sve.CreateWhileLessThanMaskSingle(i, out_size);
 
                         // Load input elements from the next 3 rows.
                         Vector<float> row0 = Sve.LoadVector(pRow, in_ptr + i);

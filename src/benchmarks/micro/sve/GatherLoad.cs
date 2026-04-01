@@ -80,7 +80,7 @@ namespace SveBenchmarks
 
                 Vector<uint> resVec = Vector<uint>.Zero;
                 Vector<uint> pTrue = Sve.CreateTrueMaskUInt32();
-                Vector<uint> pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt32(0, Size);
+                Vector<uint> pLoop = Sve.CreateWhileLessThanMaskUInt32(0, Size);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     // Load indices
@@ -91,7 +91,7 @@ namespace SveBenchmarks
                     resVec = Sve.Add(resVec, objVec);
 
                     i += cntw;
-                    pLoop = SveMaskHelper.CreateWhileLessThanMaskUInt32(i, Size);
+                    pLoop = Sve.CreateWhileLessThanMaskUInt32(i, Size);
                 }
                 // Add up all elements in resVec.
                 uint res = (uint)Sve.AddAcross(resVec).ToScalar();
