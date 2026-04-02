@@ -82,3 +82,8 @@ jobs:
     - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         coreclr: true
+
+  - ${{ if containsValue(parameters.buildType, 'coreclr_r2r_interpreter') }}:
+    - template: /eng/pipelines/performance/templates/perf-coreclr-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        coreclr_r2r_interpreter: true
