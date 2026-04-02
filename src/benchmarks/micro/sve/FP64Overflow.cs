@@ -153,7 +153,7 @@ namespace SveBenchmarks
                 Vector<long> maskVec = new Vector<long>(1023);
 
                 Vector<ulong> pTrue = Sve.CreateTrueMaskUInt64();
-                Vector<ulong> pLoop = Sve.CreateWhileLessThanMask64Bit(i, Size);
+                Vector<ulong> pLoop = Sve.CreateWhileLessThanMaskUInt64(i, Size);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     // Load Vector<input1> as ulong then convert to Vector<double>.
@@ -178,7 +178,7 @@ namespace SveBenchmarks
 
                     // Handle loop.
                     i += cntd;
-                    pLoop = Sve.CreateWhileLessThanMask64Bit(i, Size);
+                    pLoop = Sve.CreateWhileLessThanMaskUInt64(i, Size);
                 }
             }
         }
@@ -193,7 +193,7 @@ namespace SveBenchmarks
                 int cntd = (int)Sve.Count64BitElements();
 
                 Vector<ulong> pTrue = Sve.CreateTrueMaskUInt64();
-                Vector<ulong> pLoop = Sve.CreateWhileLessThanMask64Bit(i, Size);
+                Vector<ulong> pLoop = Sve.CreateWhileLessThanMaskUInt64(i, Size);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     // Load input vectors.
@@ -214,7 +214,7 @@ namespace SveBenchmarks
 
                     // Handle loop.
                     i += cntd;
-                    pLoop = Sve.CreateWhileLessThanMask64Bit(i, Size);
+                    pLoop = Sve.CreateWhileLessThanMaskUInt64(i, Size);
                 }
             }
         }

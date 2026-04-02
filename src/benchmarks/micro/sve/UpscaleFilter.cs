@@ -137,7 +137,7 @@ namespace SveBenchmarks
             {
                 int lmt = Size - 1;
                 int i = 0;
-                Vector<byte> pLoop = Sve.CreateWhileLessThanMask8Bit(0, lmt);
+                Vector<byte> pLoop = Sve.CreateWhileLessThanMaskByte(0, lmt);
                 while (Sve.TestAnyTrue(pTrue, pLoop))
                 {
                     // Load two consecutive samples.
@@ -168,7 +168,7 @@ namespace SveBenchmarks
                     Sve.StoreAndZip(pLoop, output + i * 2, (b0, b1));
 
                     i += (int)Sve.Count8BitElements();
-                    pLoop = Sve.CreateWhileLessThanMask8Bit(i, lmt);
+                    pLoop = Sve.CreateWhileLessThanMaskByte(i, lmt);
                 }
             }
         }

@@ -90,7 +90,7 @@ namespace SveBenchmarks
             Vector<int> valVec = new Vector<int>(Size / 2);
             Vector<int> minVec = Vector<int>.Indices;
             Vector<int> pTrue = Sve.CreateTrueMaskInt32();
-            Vector<int> pLoop = (Vector<int>)Sve.CreateWhileLessThanMask32Bit(i, length);
+            Vector<int> pLoop = Sve.CreateWhileLessThanMaskInt32(i, length);
             while (Sve.TestFirstTrue(pTrue, pLoop))
             {
                 Vector<int> maxVec = Sve.ShiftLeftLogical(minVec, Vector<uint>.One);
@@ -99,7 +99,7 @@ namespace SveBenchmarks
                 minVec = Sve.Add(minVec, new Vector<int>(cntw));
 
                 i += cntw;
-                pLoop = (Vector<int>)Sve.CreateWhileLessThanMask32Bit(i, length);
+                pLoop = Sve.CreateWhileLessThanMaskInt32(i, length);
             }
             _output = (int)Sve.AddAcross(resVec).ToScalar();
         }
@@ -116,7 +116,7 @@ namespace SveBenchmarks
             Vector<int> minVec = Vector<int>.Indices;
             for (; i < length; i += cntw)
             {
-                Vector<int> pLoop = (Vector<int>)Sve.CreateWhileLessThanMask32Bit(i, length);
+                Vector<int> pLoop = Sve.CreateWhileLessThanMaskInt32(i, length);
                 Vector<int> maxVec = Sve.ShiftLeftLogical(minVec, Vector<uint>.One);
                 Vector<int> tmpVec = Sve.Min(Sve.Max(valVec, minVec), maxVec);
                 resVec = Sve.ConditionalSelect(pLoop, Sve.Add(resVec, tmpVec), resVec);
