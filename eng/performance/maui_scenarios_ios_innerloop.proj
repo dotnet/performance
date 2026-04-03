@@ -73,20 +73,29 @@
        which has both physical iPhones and Xcode simulator runtimes. -->
   <ItemGroup>
     <HelixWorkItem Include="@(MAUIiOSInnerLoopScenario -> 'Inner Loop Simulator - %(Identity)')">
-      <PreCommands>$(_MacEnvVars);$(Python) setup_helix.py $(PERFLAB_Framework)-ios &quot;$(_MSBuildArgs)&quot;</PreCommands>
-      <Command>$(Python) test.py iosinnerloop --csproj-path app/MauiiOSInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --bundle-id com.companyname.mauiiosinnerloop -f $(PERFLAB_Framework)-ios -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --inner-loop-iterations $(InnerLoopIterations) --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
-      <PostCommands>$(Python) post.py</PostCommands>
+      <PreCommands>$(_MacEnvVars);export IOS_RID=$(iOSRid);$(Python) setup_helix.py $(PERFLAB_Framework)-ios &quot;$(_MSBuildArgs)&quot;</PreCommands>
+      <Command>$(Python) test.py iosinnerloop --csproj-path app/MauiiOSInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --bundle-id com.companyname.mauiiosinnerloop -f $(PERFLAB_Framework)-ios -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --device-type simulator --inner-loop-iterations $(InnerLoopIterations) --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
+      <PostCommands>export IOS_RID=$(iOSRid);$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>
   </ItemGroup>
 
-  <!-- TODO: Physical device workitem (ios-arm64).
-       Requires physical device support in ioshelper.py and runner.py (Task 7).
-       Will need:
-       - iOSRid=ios-arm64
-       - Code signing (embedded.mobileprovision + sign command)
-       - xcrun devicectl for deploy instead of xcrun simctl
-       - Separate pipeline entry with buildConfig and runtimeFlavor parameters -->
+  <!-- Physical device workitem: runs on macOS machines with USB-connected
+       iPhones (Mac.iPhone.17.Perf queue). Uses xcrun devicectl for deploy
+       instead of xcrun simctl.
+       Code signing is handled by the Xcode toolchain during 'dotnet build' —
+       the Mac.iPhone.17.Perf Helix machines have development signing identities
+       and provisioning profiles pre-installed. Physical device builds
+       automatically enable code signing (unlike simulator builds which require
+       EnableCodeSigning=false). -->
+  <ItemGroup Condition="'$(iOSRid)' == 'ios-arm64'">
+    <HelixWorkItem Include="@(MAUIiOSInnerLoopScenario -> 'Inner Loop Device - %(Identity)')">
+      <PreCommands>$(_MacEnvVars);export IOS_RID=$(iOSRid);$(Python) setup_helix.py $(PERFLAB_Framework)-ios &quot;$(_MSBuildArgs)&quot;</PreCommands>
+      <Command>$(Python) test.py iosinnerloop --csproj-path app/MauiiOSInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --bundle-id com.companyname.mauiiosinnerloop -f $(PERFLAB_Framework)-ios -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --device-type device --inner-loop-iterations $(InnerLoopIterations) --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
+      <PostCommands>export IOS_RID=$(iOSRid);$(Python) post.py</PostCommands>
+      <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
+    </HelixWorkItem>
+  </ItemGroup>
 
   <Import Project="PreparePayloadWorkItems.targets" />
 

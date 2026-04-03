@@ -1,4 +1,6 @@
+import json
 import os
+import re
 import time
 import glob
 import subprocess
@@ -11,6 +13,92 @@ class iOSHelper:
         self.bundle_id = None
         self.device_id = None
         self.app_bundle_path = None
+        self.is_physical_device = False
+
+    @staticmethod
+    def detect_connected_device():
+        """Detect a connected physical iOS device and return its UDID.
+
+        Checks IOS_DEVICE_UDID environment variable first. If not set,
+        auto-detects using 'xcrun devicectl list devices' and returns the
+        UDID of the first connected device.
+
+        Returns the UDID string, or None if no device is found.
+        """
+        # Prefer explicit env var
+        udid = os.environ.get('IOS_DEVICE_UDID', '').strip()
+        if udid:
+            getLogger().info("Using IOS_DEVICE_UDID from environment: %s", udid)
+            return udid
+
+        # Auto-detect via devicectl (Xcode 15+)
+        getLogger().info("Auto-detecting connected iOS device via 'xcrun devicectl list devices'...")
+        try:
+            result = subprocess.run(
+                ['xcrun', 'devicectl', 'list', 'devices', '--json-output', '/dev/stdout'],
+                capture_output=True, text=True, timeout=30
+            )
+            if result.returncode != 0:
+                getLogger().warning("devicectl list devices failed (exit %d): %s",
+                                    result.returncode, result.stderr)
+                return None
+
+            data = json.loads(result.stdout)
+            # devicectl JSON output has "result.devices" array with "identifier" (UDID)
+            # and "connectionProperties.transportType" to filter for USB-connected devices
+            devices = data.get('result', {}).get('devices', [])
+            for device in devices:
+                conn = device.get('connectionProperties', {})
+                transport = conn.get('transportType', '')
+                state = device.get('deviceProperties', {}).get('developerModeStatus', '')
+                name = device.get('deviceProperties', {}).get('name', 'unknown')
+                device_udid = device.get('identifier', '')
+
+                # Only consider locally-connected (wired/WiFi) devices, not
+                # paired watches or other peripherals
+                if transport in ('wired', 'localNetwork', 'wifi') and device_udid:
+                    getLogger().info("Found connected device: %s (UDID: %s, transport: %s, devMode: %s)",
+                                    name, device_udid, transport, state)
+                    return device_udid
+
+            getLogger().warning("No connected iOS devices found in devicectl output")
+            return None
+
+        except subprocess.TimeoutExpired:
+            getLogger().warning("devicectl list devices timed out")
+            return None
+        except (json.JSONDecodeError, KeyError) as e:
+            getLogger().warning("Failed to parse devicectl JSON output: %s", e)
+            # Fall back to text parsing of non-JSON output
+            return iOSHelper._detect_device_fallback()
+
+    @staticmethod
+    def _detect_device_fallback():
+        """Fallback device detection using text output from devicectl.
+
+        Used when JSON parsing fails (e.g., older Xcode versions that don't
+        support --json-output).
+        """
+        try:
+            result = subprocess.run(
+                ['xcrun', 'devicectl', 'list', 'devices'],
+                capture_output=True, text=True, timeout=30
+            )
+            if result.returncode != 0:
+                return None
+
+            # Look for lines with a UUID pattern (device UDID)
+            # Example line: "  PERFIOS-01  00008101-001A09223E08001E  ..."
+            for line in (result.stdout or '').splitlines():
+                match = re.search(r'([0-9A-Fa-f]{8}-[0-9A-Fa-f]{16}|[0-9A-Fa-f]{25,40})', line)
+                if match:
+                    udid = match.group(1)
+                    getLogger().info("Fallback detection found device UDID: %s (from: %s)",
+                                    udid, line.strip())
+                    return udid
+            return None
+        except Exception:
+            return None
 
     def setup_simulator(self, bundle_id, app_bundle_path, device_id='booted'):
         """Boot the iOS simulator and install the app bundle."""
@@ -41,10 +129,12 @@ class iOSHelper:
         """Set up a physical iOS device for testing.
 
         Installs the app bundle on the connected physical device using devicectl.
+        Requires Xcode 15+ for the 'xcrun devicectl' toolchain.
         """
         self.bundle_id = bundle_id
         self.device_id = device_id
         self.app_bundle_path = app_bundle_path
+        self.is_physical_device = True
 
         getLogger().info("Installing app bundle on physical device %s: %s", device_id, app_bundle_path)
         RunCommand(['xcrun', 'devicectl', 'device', 'install', 'app',
@@ -121,11 +211,29 @@ class iOSHelper:
         getLogger().info("Uninstalling app: %s", bundle_id)
         RunCommand(['xcrun', 'simctl', 'uninstall', self.device_id, bundle_id], verbose=True).run()
 
+    def uninstall_app_physical(self, bundle_id):
+        """Uninstall the app from a physical device."""
+        getLogger().info("Uninstalling app from physical device: %s", bundle_id)
+        try:
+            RunCommand(['xcrun', 'devicectl', 'device', 'uninstall', 'app',
+                         '--device', self.device_id, bundle_id], verbose=True).run()
+        except subprocess.CalledProcessError:
+            getLogger().debug("Uninstall returned error (app may not be installed), ignoring.")
+
     def terminate_app(self, bundle_id):
         """Terminate the app on the simulator (ignore errors)."""
         getLogger().info("Terminating app: %s", bundle_id)
         try:
             RunCommand(['xcrun', 'simctl', 'terminate', self.device_id, bundle_id], verbose=True).run()
+        except subprocess.CalledProcessError:
+            getLogger().debug("Terminate returned error (app may not be running), ignoring.")
+
+    def terminate_app_physical(self, bundle_id):
+        """Terminate the app on a physical device (ignore errors)."""
+        getLogger().info("Terminating app on physical device: %s", bundle_id)
+        try:
+            RunCommand(['xcrun', 'devicectl', 'device', 'process', 'terminate',
+                         '--device', self.device_id, '--bundle-id', bundle_id], verbose=True).run()
         except subprocess.CalledProcessError:
             getLogger().debug("Terminate returned error (app may not be running), ignoring.")
 
@@ -139,6 +247,26 @@ class iOSHelper:
             getLogger().info("Stopping app for uninstall")
             self.terminate_app(self.bundle_id)
             self.uninstall_app(self.bundle_id)
+
+    def close_physical_device(self, skip_uninstall=False):
+        """Clean up the physical device session.
+
+        Terminates and uninstalls the app unless skip_uninstall is True.
+        """
+        if not skip_uninstall:
+            getLogger().info("Stopping app for uninstall on physical device")
+            self.terminate_app_physical(self.bundle_id)
+            self.uninstall_app_physical(self.bundle_id)
+
+    def cleanup(self, skip_uninstall=False):
+        """Clean up the device session (simulator or physical).
+
+        Dispatches to the appropriate cleanup method based on device type.
+        """
+        if self.is_physical_device:
+            self.close_physical_device(skip_uninstall=skip_uninstall)
+        else:
+            self.close_simulator(skip_uninstall=skip_uninstall)
 
     def find_app_bundle(self, build_output_dir, app_name, configuration='Debug'):
         """Find the .app bundle in the build output directory.

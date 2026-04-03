@@ -184,7 +184,8 @@ ex: C:\repos\performance;C:\repos\runtime
         iosinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', default='Debug')
         iosinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
         iosinnerloopparser.add_argument('--bundle-id', help='iOS bundle identifier', dest='bundleid')
-        iosinnerloopparser.add_argument('--device-id', help='iOS Simulator device ID', dest='deviceid', default='booted')
+        iosinnerloopparser.add_argument('--device-id', help='iOS device ID (UDID for physical device, simulator ID or "booted" for simulator)', dest='deviceid', default='booted')
+        iosinnerloopparser.add_argument('--device-type', choices=['simulator', 'device'], help='Target device type: simulator (default) or physical device. Auto-detected from RuntimeIdentifier if not set.', dest='devicetype', default=None)
         iosinnerloopparser.add_argument('--inner-loop-iterations', help='Number of incremental build+deploy+startup iterations (1+)', type=int, default=10, dest='innerloopiterations')
         self.add_common_arguments(iosinnerloopparser)
 
@@ -221,6 +222,14 @@ ex: C:\repos\performance;C:\repos\runtime
             self.bundleid = args.bundleid
             self.deviceid = args.deviceid
             self.innerloopiterations = args.innerloopiterations
+            # Determine device type: explicit arg, or infer from RuntimeIdentifier
+            # in msbuildargs (ios-arm64 → device, iossimulator-* → simulator)
+            if args.devicetype:
+                self.devicetype = args.devicetype
+            elif 'RuntimeIdentifier=ios-arm64' in self.msbuildargs:
+                self.devicetype = 'device'
+            else:
+                self.devicetype = 'simulator'
         
         if self.testtype == const.DEVICESTARTUP:
             self.packagepath = args.packagepath
@@ -1030,7 +1039,8 @@ ex: C:\repos\performance;C:\repos\runtime
 
             def run_incremental_iteration(iteration, num_iterations, base_cmd, edit_pairs,
                                           bundleid, app_bundle,
-                                          scenarioprefix, startup, traits, iosHelper):
+                                          scenarioprefix, startup, traits, iosHelper,
+                                          is_physical_device=False):
                 """Run one incremental build+deploy+startup iteration.
 
                 edit_pairs is a list of (dest_path, original_content, modified_content) tuples.
@@ -1060,11 +1070,13 @@ ex: C:\repos\performance;C:\repos\runtime
                 getLogger().info("Incremental build: %s" % ' '.join(incremental_cmd))
                 subprocess.run(incremental_cmd, check=True)
 
-                # Install app on simulator
-                iosHelper.install_app(app_bundle)
-
-                # Measure startup
-                ms = iosHelper.measure_cold_startup(bundleid)
+                # Install and measure startup — dispatch based on device type
+                if is_physical_device:
+                    iosHelper.install_app_physical(app_bundle)
+                    ms = iosHelper.measure_cold_startup_physical(bundleid)
+                else:
+                    iosHelper.install_app(app_bundle)
+                    ms = iosHelper.measure_cold_startup(bundleid)
                 getLogger().info("Incremental iteration %d/%d: build+deploy done, startup: %d ms" % (iteration, num_iterations, ms))
 
                 # Parse this iteration's binlog → temp build report
@@ -1098,6 +1110,16 @@ ex: C:\repos\performance;C:\repos\runtime
                 raise Exception("For iOS inner loop measurements, --csproj-path must be provided.")
             if not self.bundleid:
                 raise Exception("For iOS inner loop measurements, --bundle-id must be provided.")
+            is_physical = (self.devicetype == 'device')
+            if is_physical and self.deviceid == 'booted':
+                # Physical device requires a real UDID — auto-detect if not provided
+                detected = iOSHelper.detect_connected_device()
+                if not detected:
+                    raise Exception("Physical device mode requires a device UDID. "
+                                    "Set --device-id or IOS_DEVICE_UDID, or connect a device.")
+                self.deviceid = detected
+                getLogger().info("Auto-detected physical device UDID: %s" % self.deviceid)
+            getLogger().info("iOS inner loop device type: %s (device-id: %s)" % (self.devicetype, self.deviceid))
             scenarioprefix = self.scenarioname or "MAUI iOS Build and Deploy"
 
             os.makedirs(const.TRACEDIR, exist_ok=True)
@@ -1123,14 +1145,19 @@ ex: C:\repos\performance;C:\repos\runtime
             getLogger().info("First build: %s" % ' '.join(first_cmd))
             subprocess.run(first_cmd, check=True)
 
-            # --- Simulator setup and first deploy ---
+            # --- Device/simulator setup and first deploy ---
             iosHelper = iOSHelper()
             try:
                 app_bundle = iosHelper.find_app_bundle(project_dir, exename, self.configuration)
-                iosHelper.setup_simulator(self.bundleid, app_bundle, self.deviceid)
+
+                if is_physical:
+                    iosHelper.setup_physical_device(self.bundleid, app_bundle, self.deviceid)
+                    first_startup_ms = iosHelper.measure_cold_startup_physical(self.bundleid)
+                else:
+                    iosHelper.setup_simulator(self.bundleid, app_bundle, self.deviceid)
+                    first_startup_ms = iosHelper.measure_cold_startup(self.bundleid)
 
                 # --- First startup measurement ---
-                first_startup_ms = iosHelper.measure_cold_startup(self.bundleid)
                 getLogger().info("First deploy startup: %d ms" % first_startup_ms)
 
                 # --- Parse first build report ---
@@ -1179,7 +1206,7 @@ ex: C:\repos\performance;C:\repos\runtime
                         iteration, num_iterations, base_cmd,
                         edit_pairs,
                         self.bundleid, app_bundle, scenarioprefix, startup, self.traits,
-                        iosHelper)
+                        iosHelper, is_physical_device=is_physical)
 
                     incremental_startup_results.append(ms)
                     intermediate_files.append(iter_binlog)
@@ -1266,4 +1293,4 @@ ex: C:\repos\performance;C:\repos\runtime
                                 sys.exit(upload_code)
 
             finally:
-                iosHelper.close_simulator(skip_uninstall=True)
+                iosHelper.cleanup(skip_uninstall=True)

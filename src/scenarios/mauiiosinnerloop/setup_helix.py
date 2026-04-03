@@ -303,6 +303,60 @@ def disable_spotlight(workitem_root):
         log(f"Spotlight indexing disabled for {workitem_root}")
 
 
+def detect_physical_device():
+    """Detect whether a physical iOS device is connected and return its UDID.
+
+    Checks IOS_DEVICE_UDID env var first, then uses 'xcrun devicectl list devices'.
+    Returns the UDID string, or None if no device is found.
+    """
+    log_raw("=== PHYSICAL DEVICE DETECTION ===", tee=True)
+
+    udid = os.environ.get("IOS_DEVICE_UDID", "").strip()
+    if udid:
+        log(f"Using IOS_DEVICE_UDID from environment: {udid}", tee=True)
+        return udid
+
+    # Auto-detect via devicectl
+    result = run_cmd(
+        ["xcrun", "devicectl", "list", "devices"],
+        check=False,
+    )
+    if result.returncode != 0:
+        log("WARNING: 'xcrun devicectl list devices' failed. "
+            "No physical device detection available.", tee=True)
+        return None
+
+    # Log the full output for debugging
+    log("devicectl output:")
+    for line in (result.stdout or "").splitlines():
+        log_raw(f"  {line}")
+
+    # Try JSON output for structured parsing
+    json_result = run_cmd(
+        ["xcrun", "devicectl", "list", "devices", "--json-output", "/dev/stdout"],
+        check=False,
+    )
+    if json_result.returncode == 0 and json_result.stdout:
+        try:
+            import json
+            data = json.loads(json_result.stdout)
+            devices = data.get("result", {}).get("devices", [])
+            for device in devices:
+                conn = device.get("connectionProperties", {})
+                transport = conn.get("transportType", "")
+                name = device.get("deviceProperties", {}).get("name", "unknown")
+                device_udid = device.get("identifier", "")
+                if transport in ("wired", "localNetwork", "wifi") and device_udid:
+                    log(f"Found connected device: {name} (UDID: {device_udid}, "
+                        f"transport: {transport})", tee=True)
+                    return device_udid
+        except Exception as e:
+            log(f"JSON parsing failed: {e}", tee=True)
+
+    log("No connected physical devices found.", tee=True)
+    return None
+
+
 # --- Main ---
 
 def main():
@@ -316,6 +370,11 @@ def main():
 
     workitem_root = os.environ.get("HELIX_WORKITEM_ROOT", ".")
     correlation_payload = os.environ.get("HELIX_CORRELATION_PAYLOAD", ".")
+
+    # Determine target device type from iOSRid env var (set by .proj).
+    # ios-arm64 → physical device, iossimulator-* → simulator
+    ios_rid = os.environ.get("IOS_RID", "iossimulator-arm64")
+    is_physical_device = (ios_rid == "ios-arm64")
 
     # The simulator device name can be overridden via env var; default to
     # "iPhone 16" which is available on current macOS Helix images.
@@ -336,6 +395,8 @@ def main():
     }
 
     log_raw("=== iOS HELIX SETUP START ===", tee=True)
+    log(f"Target device type: {'physical device' if is_physical_device else 'simulator'} "
+        f"(IOS_RID={ios_rid})", tee=True)
 
     # Step 1: Configure the .NET SDK from the correlation payload
     ctx["dotnet_exe"] = setup_dotnet(correlation_payload)
@@ -344,11 +405,24 @@ def main():
     # Step 2: Select the correct Xcode version
     select_xcode()
 
-    # Step 3: Validate simulator runtimes are available
-    validate_simulator_runtimes()
-
-    # Step 4: Boot the target simulator device
-    boot_simulator(device_name)
+    # Step 3 & 4: Device-type-specific setup
+    if is_physical_device:
+        # Detect and validate the connected physical device
+        device_udid = detect_physical_device()
+        if not device_udid:
+            log("WARNING: No physical device found. Build may still succeed "
+                "but deploy will fail.", tee=True)
+        else:
+            # Log the detected UDID for diagnostics. Note: os.environ changes
+            # in this Python process do NOT persist to subsequent Helix commands
+            # (test.py, post.py). runner.py re-detects the device independently
+            # via iOSHelper.detect_connected_device().
+            os.environ["IOS_DEVICE_UDID"] = device_udid
+            log(f"IOS_DEVICE_UDID detected: {device_udid}", tee=True)
+    else:
+        # Simulator: validate runtimes and boot the device
+        validate_simulator_runtimes()
+        boot_simulator(device_name)
 
     # Step 5: Install the maui-ios workload
     # Must happen BEFORE restore because restore needs workload packs
