@@ -78,10 +78,10 @@
     <_MacEnvVars>export DOTNET_ROOT=$HELIX_CORRELATION_PAYLOAD/dotnet;export DOTNET_CLI_TELEMETRY_OPTOUT=1;export DOTNET_MULTILEVEL_LOOKUP=0;export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages;export PATH=$HELIX_CORRELATION_PAYLOAD/dotnet:$PATH</_MacEnvVars>
   </PropertyGroup>
 
-  <!-- Simulator workitem: runs on macOS machines with Xcode + iOS simulators.
-       The osx-x64-ios-arm64 build machine maps to Mac.iPhone.17.Perf queue,
-       which has both physical iPhones and Xcode simulator runtimes. -->
-  <ItemGroup>
+  <!-- Simulator workitem: only when NOT targeting physical devices.
+       When iOSRid=ios-arm64, _MSBuildArgs bakes in the device RID which
+       would produce an ARM64 binary incompatible with the simulator. -->
+  <ItemGroup Condition="'$(iOSRid)' != 'ios-arm64'">
     <HelixWorkItem Include="@(MAUIiOSInnerLoopScenario -> 'Inner Loop Simulator - %(Identity)')">
       <PreCommands>$(_MacEnvVars);export IOS_RID=$(iOSRid);$(Python) setup_helix.py $(PERFLAB_Framework)-ios &quot;$(_MSBuildArgs)&quot;</PreCommands>
       <!-- edit-dest paths assume Pages/ subdirectory. pre.py normalizes the
