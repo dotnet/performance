@@ -1012,7 +1012,6 @@ ex: C:\repos\performance;C:\repos\runtime
 
         elif self.testtype == const.IOSINNERLOOP:
             import hashlib
-            import subprocess
             from shutil import copytree
             from performance.common import runninginlab
             from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
@@ -1055,7 +1054,6 @@ ex: C:\repos\performance;C:\repos\runtime
                 edit_pairs is a list of (dest_path, original_content, modified_content) tuples.
                 Returns (startup_ms, counters_list, binlog_path, test_metadata).
                 """
-                import subprocess
 
                 getLogger().info("=== Incremental iteration %d/%d ===" % (iteration, num_iterations))
 
@@ -1072,18 +1070,14 @@ ex: C:\repos\performance;C:\repos\runtime
                         content_hash = hashlib.md5(original.encode()).hexdigest()[:8]
                         getLogger().info("Restored original source: %s (hash=%s, len=%d)" % (dest, content_hash, len(original)))
 
-                # Incremental build with per-iteration binlog
+                # Incremental build with per-iteration binlog.
+                # Use RunCommand to capture and log build output (see first build comment).
                 iter_binlog_name = 'incremental-build-and-deploy-%d.binlog' % iteration
                 iter_binlog = os.path.join(const.TRACEDIR, iter_binlog_name)
                 incremental_cmd = base_cmd + [f'-bl:{iter_binlog}']
-                getLogger().info("Incremental build: %s" % ' '.join(incremental_cmd))
                 try:
-                    result = subprocess.run(incremental_cmd)
-                    getLogger().info("Incremental build exit code: %d" % result.returncode)
-                    if result.returncode != 0:
-                        getLogger().error("Incremental build FAILED (iteration %d, exit code %d). Command: %s" % (iteration, result.returncode, ' '.join(incremental_cmd)))
-                        raise subprocess.CalledProcessError(result.returncode, incremental_cmd)
-                except subprocess.CalledProcessError:
+                    RunCommand(incremental_cmd, verbose=True).run()
+                except CalledProcessError:
                     getLogger().error("dotnet build failed during incremental iteration %d. "
                                       "Check the build output above and the binlog at: %s" % (iteration, iter_binlog))
                     raise
@@ -1153,7 +1147,8 @@ ex: C:\repos\performance;C:\repos\runtime
             first_binlog = os.path.join(const.TRACEDIR, 'first-build-and-deploy.binlog')
 
             # Build the base MSBuild command (no -t:Install for iOS — plain dotnet build)
-            base_cmd = ['dotnet', 'build', self.csprojpath]
+            # -v:n (normal verbosity) ensures MSBuild errors/warnings appear in the log
+            base_cmd = ['dotnet', 'build', self.csprojpath, '-v:n']
             if self.configuration:
                 base_cmd.extend(['-c', self.configuration])
             if self.framework:
@@ -1168,15 +1163,13 @@ ex: C:\repos\performance;C:\repos\runtime
             exename = self.traits.exename
 
             # --- First build + deploy ---
+            # Use RunCommand (verbose=True) to capture and log build output line-by-line
+            # through Python's logging, which Helix captures. Plain subprocess.run()
+            # inherits stdout/stderr but they don't appear in Helix console logs.
             try:
                 first_cmd = base_cmd + [f'-bl:{first_binlog}']
-                getLogger().info("First build: %s" % ' '.join(first_cmd))
-                result = subprocess.run(first_cmd)
-                getLogger().info("First build exit code: %d" % result.returncode)
-                if result.returncode != 0:
-                    getLogger().error("First build FAILED (exit code %d). Command: %s" % (result.returncode, ' '.join(first_cmd)))
-                    raise subprocess.CalledProcessError(result.returncode, first_cmd)
-            except subprocess.CalledProcessError:
+                RunCommand(first_cmd, verbose=True).run()
+            except CalledProcessError:
                 getLogger().error("dotnet build failed for iOS inner loop. "
                                   "Check the build output above and the binlog at: %s" % first_binlog)
                 raise
