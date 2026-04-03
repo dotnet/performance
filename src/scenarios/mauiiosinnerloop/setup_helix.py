@@ -435,7 +435,7 @@ def main():
     upload_root = os.environ.get("HELIX_WORKITEM_UPLOAD_ROOT")
     if upload_root:
         os.makedirs(upload_root, exist_ok=True)
-        _logfile = open(os.path.join(upload_root, "setup_helix.log"), "a")
+        _logfile = open(os.path.join(upload_root, "output.log"), "a")
 
     workitem_root = os.environ.get("HELIX_WORKITEM_ROOT", ".")
     correlation_payload = os.environ.get("HELIX_CORRELATION_PAYLOAD", ".")

@@ -1077,7 +1077,16 @@ ex: C:\repos\performance;C:\repos\runtime
                 iter_binlog = os.path.join(const.TRACEDIR, iter_binlog_name)
                 incremental_cmd = base_cmd + [f'-bl:{iter_binlog}']
                 getLogger().info("Incremental build: %s" % ' '.join(incremental_cmd))
-                subprocess.run(incremental_cmd, check=True)
+                try:
+                    result = subprocess.run(incremental_cmd)
+                    getLogger().info("Incremental build exit code: %d" % result.returncode)
+                    if result.returncode != 0:
+                        getLogger().error("Incremental build FAILED (iteration %d, exit code %d). Command: %s" % (iteration, result.returncode, ' '.join(incremental_cmd)))
+                        raise subprocess.CalledProcessError(result.returncode, incremental_cmd)
+                except subprocess.CalledProcessError:
+                    getLogger().error("dotnet build failed during incremental iteration %d. "
+                                      "Check the build output above and the binlog at: %s" % (iteration, iter_binlog))
+                    raise
 
                 # Install and measure startup — dispatch based on device type
                 if is_physical_device:
@@ -1159,9 +1168,18 @@ ex: C:\repos\performance;C:\repos\runtime
             exename = self.traits.exename
 
             # --- First build + deploy ---
-            first_cmd = base_cmd + [f'-bl:{first_binlog}']
-            getLogger().info("First build: %s" % ' '.join(first_cmd))
-            subprocess.run(first_cmd, check=True)
+            try:
+                first_cmd = base_cmd + [f'-bl:{first_binlog}']
+                getLogger().info("First build: %s" % ' '.join(first_cmd))
+                result = subprocess.run(first_cmd)
+                getLogger().info("First build exit code: %d" % result.returncode)
+                if result.returncode != 0:
+                    getLogger().error("First build FAILED (exit code %d). Command: %s" % (result.returncode, ' '.join(first_cmd)))
+                    raise subprocess.CalledProcessError(result.returncode, first_cmd)
+            except subprocess.CalledProcessError:
+                getLogger().error("dotnet build failed for iOS inner loop. "
+                                  "Check the build output above and the binlog at: %s" % first_binlog)
+                raise
 
             # --- Device/simulator setup and first deploy ---
             iosHelper = iOSHelper()
