@@ -394,7 +394,8 @@ def detect_physical_device():
     # Write to temp file instead of /dev/stdout because devicectl mixes
     # human-readable table text and JSON when writing to stdout.
     import tempfile
-    json_tmp = tempfile.mktemp(suffix='.json', prefix='devicectl_')
+    fd, json_tmp = tempfile.mkstemp(suffix='.json', prefix='devicectl_')
+    os.close(fd)
     try:
         json_result = run_cmd(
             ["xcrun", "devicectl", "list", "devices", "--json-output", json_tmp],

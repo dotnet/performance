@@ -36,7 +36,8 @@ class iOSHelper:
         json_tmp = None
         try:
             import tempfile
-            json_tmp = tempfile.mktemp(suffix='.json', prefix='devicectl_')
+            fd, json_tmp = tempfile.mkstemp(suffix='.json', prefix='devicectl_')
+            os.close(fd)
             result = subprocess.run(
                 ['xcrun', 'devicectl', 'list', 'devices', '--json-output', json_tmp],
                 capture_output=True, text=True, timeout=30
@@ -44,7 +45,9 @@ class iOSHelper:
             if result.returncode != 0:
                 getLogger().warning("devicectl list devices failed (exit %d): %s",
                                     result.returncode, result.stderr)
-                return None
+                # Non-zero exit likely means --json-output is unsupported (older Xcode).
+                # Fall back to text-based parsing.
+                return iOSHelper._detect_device_fallback()
 
             with open(json_tmp, 'r') as f:
                 data = json.load(f)

@@ -1020,9 +1020,18 @@ ex: C:\repos\performance;C:\repos\runtime
             import upload
 
             def merge_build_and_startup(build_report_path, startup_results, final_report_path):
-                """Load the build metrics report, append a startup time counter, write to final path."""
-                with open(build_report_path, 'r') as f:
-                    report = json.load(f)
+                """Load the build metrics report, append a startup time counter, write to final path.
+
+                If the build report doesn't exist (e.g., local runs without PERFLAB_INLAB=1),
+                creates a minimal report containing only the startup counter.
+                """
+                if not os.path.exists(build_report_path):
+                    getLogger().warning("Build report not found at %s. "
+                                        "Creating minimal report with startup data only." % build_report_path)
+                    report = {"tests": [{"counters": []}]}
+                else:
+                    with open(build_report_path, 'r') as f:
+                        report = json.load(f)
                 startup_counter = {
                     "name": "Time to Main",
                     "topCounter": True,
@@ -1089,14 +1098,23 @@ ex: C:\repos\performance;C:\repos\runtime
                                   upload_to_perflab_container=False)
                 startup.parsetraces(traits)
 
-                # Extract build counters and test metadata from temp report
-                with open(iter_report, 'r') as f:
-                    iter_data = json.load(f)
-                test_obj = iter_data["tests"][0]
-                counters = test_obj["counters"]
-                # Return test metadata (without counters) for building the final report
-                test_metadata = test_obj.copy()
-                test_metadata["counters"] = []
+                # Extract build counters and test metadata from temp report.
+                # The report is only written when PERFLAB_INLAB=1 (by Startup.cs).
+                # For local runs without that env var, degrade gracefully with empty counters.
+                if not os.path.exists(iter_report):
+                    getLogger().warning("Build report not found (expected at %s). "
+                                        "This is normal for local runs without PERFLAB_INLAB=1. "
+                                        "Returning empty counters." % iter_report)
+                    counters = []
+                    test_metadata = {"counters": []}
+                else:
+                    with open(iter_report, 'r') as f:
+                        iter_data = json.load(f)
+                    test_obj = iter_data["tests"][0]
+                    counters = test_obj["counters"]
+                    # Return test metadata (without counters) for building the final report
+                    test_metadata = test_obj.copy()
+                    test_metadata["counters"] = []
 
                 # Clean up temp report (leave binlog for later cleanup)
                 if os.path.exists(iter_report):
