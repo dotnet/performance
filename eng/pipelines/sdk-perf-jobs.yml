@@ -565,6 +565,25 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
+  # Maui iOS Inner Loop (Mono - Default) - Debug
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_ios_innerloop
+        projectFileName: maui_scenarios_ios_innerloop.proj
+        channels:
+          - main
+        runtimeFlavor: mono
+        codeGenType: Default
+        buildConfig: Debug
+        additionalJobIdentifier: Mono_InnerLoop
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
   # Maui scenario benchmarks
   - ${{ if false }}:
     - template: /eng/pipelines/templates/build-machine-matrix.yml
