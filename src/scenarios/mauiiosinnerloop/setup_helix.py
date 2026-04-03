@@ -325,6 +325,24 @@ def install_workload(ctx):
     install_args.append("--ignore-failed-sources")
 
     result = run_cmd(install_args, check=False)
+    if result.returncode != 0 and os.path.isfile(rollback_file):
+        # When a new manifest is published to the feed, referenced SDK packs
+        # may not have propagated to all NuGet feeds yet, causing
+        # "package NOT FOUND".  Retry without the rollback file so the SDK
+        # resolves a recent stable version that is already fully available.
+        log(f"WARNING: Workload install with rollback file failed "
+            f"(exit code {result.returncode}, possible NuGet version skew)", tee=True)
+        log("Retrying without rollback file (will use SDK default version)...", tee=True)
+
+        retry_args = [
+            ctx["dotnet_exe"], "workload", "install", "maui-ios",
+        ]
+        if os.path.isfile(nuget_config):
+            retry_args.extend(["--configfile", nuget_config])
+        retry_args.append("--ignore-failed-sources")
+
+        result = run_cmd(retry_args, check=False)
+
     if result.returncode != 0:
         log(f"WORKLOAD INSTALL FAILED (exit code {result.returncode})", tee=True)
         _dump_log()
