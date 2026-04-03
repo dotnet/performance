@@ -91,6 +91,11 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
                         string propertyNameToCheck = property.Name.ToLowerInvariant();
 
+                        if (!requestedPropertyNames.Contains(propertyNameToCheck))
+                        {
+                            continue;
+                        }
+
                         ComparisonResult result = resultItemComparison.GetComparison(property.Name);
                         comparisonResults.Add(result);
                     }
