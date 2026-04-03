@@ -219,6 +219,14 @@ ex: C:\repos\performance;C:\repos\runtime
             self.framework = args.framework
             self.configuration = args.configuration
             self.msbuildargs = args.msbuildargs or os.environ.get('PERFLAB_MSBUILD_ARGS', '')
+            # If IOS_RID is set (by .proj PreCommands or setup_helix.py arch
+            # detection), ensure RuntimeIdentifier in msbuildargs matches it.
+            ios_rid_env = os.environ.get('IOS_RID', '')
+            if ios_rid_env and 'RuntimeIdentifier=' in self.msbuildargs:
+                self.msbuildargs = re.sub(
+                    r'RuntimeIdentifier=\S+',
+                    f'RuntimeIdentifier={ios_rid_env}',
+                    self.msbuildargs)
             self.bundleid = args.bundleid
             self.deviceid = args.deviceid
             self.innerloopiterations = args.innerloopiterations

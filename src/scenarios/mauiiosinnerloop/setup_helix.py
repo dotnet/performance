@@ -13,6 +13,7 @@ for iOS builds:
 """
 
 import os
+import platform
 import subprocess
 import sys
 from datetime import datetime
@@ -442,8 +443,25 @@ def main():
 
     # Determine target device type from iOSRid env var (set by .proj).
     # ios-arm64 → physical device, iossimulator-* → simulator
-    ios_rid = os.environ.get("IOS_RID", "iossimulator-arm64")
+    ios_rid = os.environ.get("IOS_RID", "iossimulator-x64")
     is_physical_device = (ios_rid == "ios-arm64")
+
+    # Detect host architecture to select the correct simulator RID.
+    # Mac.iPhone.17.Perf queue uses Intel x64 machines which need
+    # iossimulator-x64, not iossimulator-arm64. Apple Silicon needs
+    # iossimulator-arm64. Physical device builds (ios-arm64) target the
+    # iPhone hardware, not the Mac, so skip architecture override.
+    if not is_physical_device:
+        host_arch = platform.machine()
+        if host_arch == "x86_64":
+            ios_rid = "iossimulator-x64"
+        elif host_arch == "arm64":
+            ios_rid = "iossimulator-arm64"
+        else:
+            log(f"WARNING: Unknown architecture '{host_arch}', "
+                f"keeping IOS_RID={ios_rid}", tee=True)
+        os.environ["IOS_RID"] = ios_rid
+        log(f"Host architecture: {host_arch}, using IOS_RID={ios_rid}", tee=True)
 
     # The simulator device name can be overridden via env var; default to
     # "iPhone 16" which is available on current macOS Helix images.
