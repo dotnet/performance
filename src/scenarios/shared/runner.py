@@ -1164,8 +1164,7 @@ ex: C:\repos\performance;C:\repos\runtime
             first_binlog = os.path.join(const.TRACEDIR, 'first-build-and-deploy.binlog')
 
             # Build the base MSBuild command (no -t:Install for iOS — plain dotnet build)
-            # -v:n (normal verbosity) ensures MSBuild errors/warnings appear in the log
-            base_cmd = ['dotnet', 'build', self.csprojpath, '-v:n']
+            base_cmd = ['dotnet', 'build', self.csprojpath]
             if self.configuration:
                 base_cmd.extend(['-c', self.configuration])
             if self.framework:
