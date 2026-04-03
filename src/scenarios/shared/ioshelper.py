@@ -33,9 +33,12 @@ class iOSHelper:
 
         # Auto-detect via devicectl (Xcode 15+)
         getLogger().info("Auto-detecting connected iOS device via 'xcrun devicectl list devices'...")
+        json_tmp = None
         try:
+            import tempfile
+            json_tmp = tempfile.mktemp(suffix='.json', prefix='devicectl_')
             result = subprocess.run(
-                ['xcrun', 'devicectl', 'list', 'devices', '--json-output', '/dev/stdout'],
+                ['xcrun', 'devicectl', 'list', 'devices', '--json-output', json_tmp],
                 capture_output=True, text=True, timeout=30
             )
             if result.returncode != 0:
@@ -43,7 +46,8 @@ class iOSHelper:
                                     result.returncode, result.stderr)
                 return None
 
-            data = json.loads(result.stdout)
+            with open(json_tmp, 'r') as f:
+                data = json.load(f)
             # devicectl JSON output has "result.devices" array with "identifier" (UDID)
             # and "connectionProperties.transportType" to filter for USB-connected devices
             devices = data.get('result', {}).get('devices', [])
@@ -71,6 +75,9 @@ class iOSHelper:
             getLogger().warning("Failed to parse devicectl JSON output: %s", e)
             # Fall back to text parsing of non-JSON output
             return iOSHelper._detect_device_fallback()
+        finally:
+            if json_tmp and os.path.exists(json_tmp):
+                os.remove(json_tmp)
 
     @staticmethod
     def _detect_device_fallback():
@@ -88,9 +95,10 @@ class iOSHelper:
                 return None
 
             # Look for lines with a UUID pattern (device UDID)
-            # Example line: "  PERFIOS-01  00008101-001A09223E08001E  ..."
+            # CoreDevice UUIDs use standard 8-4-4-4-12 format (e.g., 5AE7F3E5-C6A0-5FBE-BF3F-29CD735AAA0B).
+            # Old-style Apple UDIDs use 8-16 hex or 25-40 hex chars.
             for line in (result.stdout or '').splitlines():
-                match = re.search(r'([0-9A-Fa-f]{8}-[0-9A-Fa-f]{16}|[0-9A-Fa-f]{25,40})', line)
+                match = re.search(r'([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}|[0-9A-Fa-f]{8}-[0-9A-Fa-f]{16}|[0-9A-Fa-f]{25,40})', line)
                 if match:
                     udid = match.group(1)
                     getLogger().info("Fallback detection found device UDID: %s (from: %s)",
@@ -186,21 +194,15 @@ class iOSHelper:
     def measure_cold_startup_physical(self, bundle_id):
         """Measure app cold startup time on a physical device in milliseconds.
 
-        Terminates any running instance, waits briefly, then launches the app via devicectl.
+        Uses --terminate-existing to kill any running instance before launching.
+        devicectl's 'process terminate' only accepts --pid (not --bundle-id),
+        so we rely on launch's --terminate-existing flag instead.
         Returns wall-clock time for the launch command in milliseconds as int.
         """
-        getLogger().info("Terminating app for cold startup on physical device: %s", bundle_id)
-        try:
-            RunCommand(['xcrun', 'devicectl', 'device', 'process', 'terminate',
-                         '--device', self.device_id, '--bundle-id', bundle_id], verbose=True).run()
-        except subprocess.CalledProcessError:
-            getLogger().debug("Terminate returned error (app may not be running), ignoring.")
-
-        time.sleep(0.5)
-
-        getLogger().info("Launching app on physical device: %s", bundle_id)
+        getLogger().info("Launching app on physical device (with --terminate-existing): %s", bundle_id)
         start = time.time()
         RunCommand(['xcrun', 'devicectl', 'device', 'process', 'launch',
+                     '--terminate-existing',
                      '--device', self.device_id, bundle_id], verbose=True).run()
         elapsed_ms = (time.time() - start) * 1000
         getLogger().info("Cold startup time: %d ms", int(elapsed_ms))
@@ -229,13 +231,13 @@ class iOSHelper:
             getLogger().debug("Terminate returned error (app may not be running), ignoring.")
 
     def terminate_app_physical(self, bundle_id):
-        """Terminate the app on a physical device (ignore errors)."""
-        getLogger().info("Terminating app on physical device: %s", bundle_id)
-        try:
-            RunCommand(['xcrun', 'devicectl', 'device', 'process', 'terminate',
-                         '--device', self.device_id, '--bundle-id', bundle_id], verbose=True).run()
-        except subprocess.CalledProcessError:
-            getLogger().debug("Terminate returned error (app may not be running), ignoring.")
+        """No-op: devicectl 'process terminate' requires --pid (not --bundle-id).
+
+        Termination of running instances is handled by the --terminate-existing
+        flag on 'devicectl device process launch' in measure_cold_startup_physical().
+        This method is kept for API symmetry with terminate_app() but does nothing.
+        """
+        getLogger().debug("terminate_app_physical is a no-op — launch uses --terminate-existing")
 
     def close_simulator(self, skip_uninstall=False):
         """Clean up the simulator session.

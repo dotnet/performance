@@ -126,8 +126,15 @@ def select_xcode():
             run_cmd(["xcodebuild", "-version"], check=False)
             return
 
-        # Sort by version number (Xcode_16.2.app → key on "16.2")
-        candidates.sort(key=lambda p: p.rsplit("_", 1)[-1].replace(".app", ""))
+        # Sort by version number (Xcode_16.2.app → key on "16.2").
+        # Use tuple-of-ints to get correct version ordering (e.g., 16.10 > 16.2).
+        def _xcode_version_key(path):
+            ver = path.rsplit("_", 1)[-1].replace(".app", "")
+            try:
+                return tuple(int(x) for x in ver.split('.'))
+            except ValueError:
+                return (0,)
+        candidates.sort(key=_xcode_version_key)
         xcode_path = candidates[-1]
 
     log(f"Selected Xcode: {xcode_path}", tee=True)
@@ -174,11 +181,40 @@ def validate_simulator_runtimes():
             "Simulator-based testing will fail.", tee=True)
 
 
+def _find_latest_iphone_simulator():
+    """Find the latest available iPhone simulator device name.
+
+    Parses 'xcrun simctl list devices available' output to find iPhone devices
+    and returns the last one (typically the latest model).
+    Returns the device name string, or None if none found.
+    """
+    import re
+    result = run_cmd(["xcrun", "simctl", "list", "devices", "available"], check=False)
+    if result.returncode != 0 or not result.stdout:
+        return None
+
+    # Match lines like "    iPhone 16 Pro Max (UUID) (Shutdown)"
+    iphone_names = []
+    for line in result.stdout.splitlines():
+        m = re.match(r'\s+(iPhone\s+\d+[^(]*?)\s+\(', line)
+        if m:
+            iphone_names.append(m.group(1).strip())
+
+    if not iphone_names:
+        return None
+
+    # Return the last match — simctl lists devices in order, so the last
+    # iPhone entry is typically the latest model.
+    return iphone_names[-1]
+
+
 def boot_simulator(device_name):
     """Boot the target iOS simulator device.
 
     Handles the case where the device is already booted (exit code 149
     from simctl boot = "Unable to boot device in current state: Booted").
+    If the requested device fails to boot, tries the latest available iPhone
+    simulator as a fallback. Exits with code 1 if no simulator can be booted.
     """
     log_raw("=== SIMULATOR BOOT ===", tee=True)
     log(f"Booting simulator device: '{device_name}'", tee=True)
@@ -194,10 +230,33 @@ def boot_simulator(device_name):
         # Already booted — not an error
         log(f"Simulator '{device_name}' is already booted (OK).")
     else:
-        log(f"WARNING: Failed to boot simulator '{device_name}' "
+        log(f"Failed to boot simulator '{device_name}' "
             f"(exit code {result.returncode}). "
-            "Available devices:", tee=True)
-        run_cmd(["xcrun", "simctl", "list", "devices", "available"], check=False)
+            "Trying dynamic fallback...", tee=True)
+
+        # Try to find and boot the latest available iPhone simulator
+        fallback = _find_latest_iphone_simulator()
+        if fallback and fallback != device_name:
+            log(f"Attempting fallback device: '{fallback}'", tee=True)
+            fb_result = run_cmd(
+                ["xcrun", "simctl", "boot", fallback],
+                check=False,
+            )
+            if fb_result.returncode == 0:
+                log(f"Fallback simulator '{fallback}' booted successfully.", tee=True)
+            elif "Booted" in (fb_result.stdout or "") or fb_result.returncode == 149:
+                log(f"Fallback simulator '{fallback}' is already booted (OK).", tee=True)
+            else:
+                log(f"ERROR: Fallback simulator '{fallback}' also failed to boot "
+                    f"(exit code {fb_result.returncode}).", tee=True)
+                run_cmd(["xcrun", "simctl", "list", "devices", "available"], check=False)
+                _dump_log()
+                sys.exit(1)
+        else:
+            log("ERROR: No fallback iPhone simulator found. Available devices:", tee=True)
+            run_cmd(["xcrun", "simctl", "list", "devices", "available"], check=False)
+            _dump_log()
+            sys.exit(1)
 
     # Log booted devices for confirmation
     log("Currently booted devices:")
@@ -332,26 +391,35 @@ def detect_physical_device():
         log_raw(f"  {line}")
 
     # Try JSON output for structured parsing
-    json_result = run_cmd(
-        ["xcrun", "devicectl", "list", "devices", "--json-output", "/dev/stdout"],
-        check=False,
-    )
-    if json_result.returncode == 0 and json_result.stdout:
-        try:
-            import json
-            data = json.loads(json_result.stdout)
-            devices = data.get("result", {}).get("devices", [])
-            for device in devices:
-                conn = device.get("connectionProperties", {})
-                transport = conn.get("transportType", "")
-                name = device.get("deviceProperties", {}).get("name", "unknown")
-                device_udid = device.get("identifier", "")
-                if transport in ("wired", "localNetwork", "wifi") and device_udid:
-                    log(f"Found connected device: {name} (UDID: {device_udid}, "
-                        f"transport: {transport})", tee=True)
-                    return device_udid
-        except Exception as e:
-            log(f"JSON parsing failed: {e}", tee=True)
+    # Write to temp file instead of /dev/stdout because devicectl mixes
+    # human-readable table text and JSON when writing to stdout.
+    import tempfile
+    json_tmp = tempfile.mktemp(suffix='.json', prefix='devicectl_')
+    try:
+        json_result = run_cmd(
+            ["xcrun", "devicectl", "list", "devices", "--json-output", json_tmp],
+            check=False,
+        )
+        if json_result.returncode == 0 and os.path.exists(json_tmp):
+            try:
+                import json
+                with open(json_tmp, 'r') as f:
+                    data = json.load(f)
+                devices = data.get("result", {}).get("devices", [])
+                for device in devices:
+                    conn = device.get("connectionProperties", {})
+                    transport = conn.get("transportType", "")
+                    name = device.get("deviceProperties", {}).get("name", "unknown")
+                    device_udid = device.get("identifier", "")
+                    if transport in ("wired", "localNetwork", "wifi") and device_udid:
+                        log(f"Found connected device: {name} (UDID: {device_udid}, "
+                            f"transport: {transport})", tee=True)
+                        return device_udid
+            except Exception as e:
+                log(f"JSON parsing failed: {e}", tee=True)
+    finally:
+        if os.path.exists(json_tmp):
+            os.remove(json_tmp)
 
     log("No connected physical devices found.", tee=True)
     return None

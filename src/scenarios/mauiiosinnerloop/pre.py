@@ -299,6 +299,9 @@ with MauiNuGetConfigContext(precommands.framework):
 
     # --- Modified MainPage.xaml.cs: add a debug line in the constructor ---
     # The template may place MainPage in either the root or Pages/ subdirectory.
+    # Normalize to ALWAYS use Pages/ so that the hardcoded --edit-dest paths in
+    # maui_scenarios_ios_innerloop.proj ("app/Pages/MainPage.xaml.cs") are valid.
+    pages_dir = os.path.join(const.APPDIR, 'Pages')
     cs_candidates = [
         os.path.join(const.APPDIR, 'Pages', 'MainPage.xaml.cs'),
         os.path.join(const.APPDIR, 'MainPage.xaml.cs'),
@@ -313,6 +316,17 @@ with MauiNuGetConfigContext(precommands.framework):
             "Could not find MainPage.xaml.cs in template — "
             f"searched: {cs_candidates}"
         )
+
+    # If MainPage files are at the root, move them into Pages/ so that the
+    # .proj's hardcoded edit-dest paths are always correct.
+    if os.path.dirname(os.path.abspath(cs_original)) != os.path.abspath(pages_dir):
+        os.makedirs(pages_dir, exist_ok=True)
+        for fname in ['MainPage.xaml.cs', 'MainPage.xaml']:
+            src_file = os.path.join(const.APPDIR, fname)
+            if os.path.exists(src_file):
+                shutil.move(src_file, os.path.join(pages_dir, fname))
+                logger.info(f"Moved {src_file} → {os.path.join(pages_dir, fname)}")
+        cs_original = os.path.join(pages_dir, 'MainPage.xaml.cs')
 
     cs_modified = os.path.join(src_dir, 'MainPage.xaml.cs')
     with open(cs_original, 'r') as f:
