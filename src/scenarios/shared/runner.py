@@ -1026,19 +1026,27 @@ ex: C:\repos\performance;C:\repos\runtime
             from shared.util import helixuploaddir
             import upload
 
-            def merge_build_and_startup(build_report_path, startup_results, final_report_path):
-                """Load the build metrics report, append a startup time counter, write to final path.
+            def merge_build_deploy_and_startup(build_report_path, install_results, startup_results, final_report_path):
+                """Load the build metrics report, append install time and startup time counters, write to final path.
 
                 If the build report doesn't exist (e.g., local runs without PERFLAB_INLAB=1),
-                creates a minimal report containing only the startup counter.
+                creates a minimal report containing only the install and startup counters.
                 """
                 if not os.path.exists(build_report_path):
                     getLogger().warning("Build report not found at %s. "
-                                        "Creating minimal report with startup data only." % build_report_path)
+                                        "Creating minimal report with install and startup data only." % build_report_path)
                     report = {"tests": [{"counters": []}]}
                 else:
                     with open(build_report_path, 'r') as f:
                         report = json.load(f)
+                install_counter = {
+                    "name": "Install Time",
+                    "topCounter": False,
+                    "defaultCounter": False,
+                    "higherIsBetter": False,
+                    "metricName": "ms",
+                    "results": install_results
+                }
                 startup_counter = {
                     "name": "Time to Main",
                     "topCounter": True,
@@ -1048,6 +1056,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     "results": startup_results
                 }
                 # Report structure: { "tests": [ { "counters": [...] } ] }
+                report["tests"][0]["counters"].append(install_counter)
                 report["tests"][0]["counters"].append(startup_counter)
                 with open(final_report_path, 'w') as f:
                     json.dump(report, f, indent=2)
@@ -1060,7 +1069,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 """Run one incremental build+deploy+startup iteration.
 
                 edit_pairs is a list of (dest_path, original_content, modified_content) tuples.
-                Returns (startup_ms, counters_list, binlog_path, test_metadata).
+                Returns (startup_ms, install_ms, counters_list, binlog_path, test_metadata).
                 """
 
                 getLogger().info("=== Incremental iteration %d/%d ===" % (iteration, num_iterations))
@@ -1092,12 +1101,12 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 # Install and measure startup — dispatch based on device type
                 if is_physical_device:
-                    iosHelper.install_app_physical(app_bundle)
+                    install_ms = iosHelper.install_app_physical(app_bundle)
                     ms = iosHelper.measure_cold_startup_physical(bundleid)
                 else:
-                    iosHelper.install_app(app_bundle)
+                    install_ms = iosHelper.install_app(app_bundle)
                     ms = iosHelper.measure_cold_startup(bundleid)
-                getLogger().info("Incremental iteration %d/%d: build+deploy done, startup: %d ms" % (iteration, num_iterations, ms))
+                getLogger().info("Incremental iteration %d/%d: build+deploy done, install: %.1f ms, startup: %d ms" % (iteration, num_iterations, install_ms, ms))
 
                 # Parse this iteration's binlog → temp build report
                 iter_report_name = 'incremental-build-report-%d.json' % iteration
@@ -1141,7 +1150,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     os.remove(iter_report)
                     getLogger().info("Removed temp report: %s" % iter_report)
 
-                return ms, counters, iter_binlog, test_metadata
+                return ms, install_ms, counters, iter_binlog, test_metadata
 
             # --- Validate inputs ---
             if not self.csprojpath:
@@ -1197,13 +1206,15 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 if is_physical:
                     iosHelper.setup_physical_device(self.bundleid, app_bundle, self.deviceid)
+                    first_install_ms = iosHelper.install_app_physical(app_bundle)
                     first_startup_ms = iosHelper.measure_cold_startup_physical(self.bundleid)
                 else:
                     iosHelper.setup_simulator(self.bundleid, app_bundle, self.deviceid)
+                    first_install_ms = iosHelper.install_app(app_bundle)
                     first_startup_ms = iosHelper.measure_cold_startup(self.bundleid)
 
                 # --- First startup measurement ---
-                getLogger().info("First deploy startup: %d ms" % first_startup_ms)
+                getLogger().info("First deploy install: %.1f ms, startup: %d ms" % (first_install_ms, first_startup_ms))
 
                 # --- Parse first build report ---
                 startup = StartupWrapper()
@@ -1218,7 +1229,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 # Merge first build metrics + startup → first e2e report
                 first_e2e_report = os.path.join(const.TRACEDIR, 'first-debug-e2e-perf-lab-report.json')
-                merge_build_and_startup(first_build_report, [first_startup_ms], first_e2e_report)
+                merge_build_deploy_and_startup(first_build_report, [first_install_ms], [first_startup_ms], first_e2e_report)
 
                 # --- Incremental loop ---
                 num_iterations = self.innerloopiterations
@@ -1242,18 +1253,20 @@ ex: C:\repos\performance;C:\repos\runtime
                     raise Exception("No edit-src/edit-dest specified; incremental builds require file pairs to toggle")
 
                 incremental_startup_results = []
+                incremental_install_results = []
                 aggregated_counters = {}  # counter_name -> aggregated counter dict
                 report_template = None   # test metadata from first parsed report
                 intermediate_files = []  # files to clean up
 
                 for iteration in range(1, num_iterations + 1):
-                    ms, counters, iter_binlog, test_metadata = run_incremental_iteration(
+                    ms, install_ms, counters, iter_binlog, test_metadata = run_incremental_iteration(
                         iteration, num_iterations, base_cmd,
                         edit_pairs,
                         self.bundleid, app_bundle, scenarioprefix, startup, self.traits,
                         iosHelper, is_physical_device=is_physical)
 
                     incremental_startup_results.append(ms)
+                    incremental_install_results.append(install_ms)
                     intermediate_files.append(iter_binlog)
 
                     # Save test metadata from the first iteration
@@ -1276,6 +1289,14 @@ ex: C:\repos\performance;C:\repos\runtime
                 # --- Aggregate incremental results ---
                 incremental_e2e_report = os.path.join(const.TRACEDIR, 'incremental-debug-e2e-perf-lab-report.json')
                 final_counters = list(aggregated_counters.values())
+                final_counters.append({
+                    "name": "Install Time",
+                    "topCounter": False,
+                    "defaultCounter": False,
+                    "higherIsBetter": False,
+                    "metricName": "ms",
+                    "results": incremental_install_results
+                })
                 final_counters.append({
                     "name": "Time to Main",
                     "topCounter": True,

@@ -112,7 +112,12 @@ class iOSHelper:
             return None
 
     def setup_simulator(self, bundle_id, app_bundle_path, device_id='booted'):
-        """Boot the iOS simulator and install the app bundle."""
+        """Prepare the iOS simulator for testing.
+
+        Verifies the simulator is booted and uninstalls any existing app with
+        the bundle ID. Does NOT install the app — call install_app() separately
+        so install timing can be captured independently.
+        """
         self.bundle_id = bundle_id
         self.device_id = device_id
         self.app_bundle_path = app_bundle_path
@@ -131,26 +136,26 @@ class iOSHelper:
         else:
             getLogger().info("Using already-booted simulator (device_id='booted')")
 
-        # Install app
-        getLogger().info("Installing app bundle: %s", app_bundle_path)
-        RunCommand(['xcrun', 'simctl', 'install', device_id, app_bundle_path], verbose=True).run()
-        getLogger().info("Completed install.")
+        # Uninstall any existing app to ensure a clean install
+        getLogger().info("Uninstalling any existing app: %s", bundle_id)
+        try:
+            RunCommand(['xcrun', 'simctl', 'uninstall', device_id, bundle_id], verbose=True).run()
+        except subprocess.CalledProcessError:
+            getLogger().debug("Uninstall returned error (app may not be installed), ignoring.")
 
     def setup_physical_device(self, bundle_id, app_bundle_path, device_id):
         """Set up a physical iOS device for testing.
 
-        Installs the app bundle on the connected physical device using devicectl.
-        Requires Xcode 15+ for the 'xcrun devicectl' toolchain.
+        Configures the device for deployment. Does NOT install the app —
+        call install_app_physical() separately so install timing can be
+        captured independently. Requires Xcode 15+ for 'xcrun devicectl'.
         """
         self.bundle_id = bundle_id
         self.device_id = device_id
         self.app_bundle_path = app_bundle_path
         self.is_physical_device = True
 
-        getLogger().info("Installing app bundle on physical device %s: %s", device_id, app_bundle_path)
-        RunCommand(['xcrun', 'devicectl', 'device', 'install', 'app',
-                     '--device', device_id, app_bundle_path], verbose=True).run()
-        getLogger().info("Completed install on physical device.")
+        getLogger().info("Physical device setup complete for device %s", device_id)
 
     def install_app(self, app_bundle_path):
         """Install the app bundle and return install time in milliseconds."""

@@ -1170,6 +1170,12 @@ def run_performance_job(args: RunPerformanceJobArgs):
             os.environ["CodegenType"] = args.codegen_type or ''
             os.environ["BuildConfig"] = args.build_config or DEFAULT_BUILD_CONFIG
 
+            # Propagate run_env_vars to os.environ so they reach MSBuild
+            # evaluation as properties (e.g., iOSRid for device builds).
+            if args.run_env_vars:
+                for key, value in args.run_env_vars.items():
+                    os.environ[key] = value
+
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
             if args.os_group == "windows" or args.os_group == "osx":
                 break_system_packages = ["--break-system-packages"] if args.os_group == "osx" else []
