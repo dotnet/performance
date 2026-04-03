@@ -1107,6 +1107,15 @@ ex: C:\repos\performance;C:\repos\runtime
                                   tracename=iter_binlog_name,
                                   scenarioname=scenarioprefix + " - Incremental Build and Deploy",
                                   upload_to_perflab_container=False)
+                # Remove existing traces upload directory so copytree() in
+                # parsetraces() doesn't fail with FileExistsError on
+                # subsequent iterations (the first build already copied it).
+                helix_upload_dir = helixuploaddir()
+                if helix_upload_dir is not None:
+                    traces_upload = os.path.join(helix_upload_dir, 'traces')
+                    if os.path.exists(traces_upload):
+                        rmtree(traces_upload)
+
                 startup.parsetraces(traits)
 
                 # Extract build counters and test metadata from temp report.
