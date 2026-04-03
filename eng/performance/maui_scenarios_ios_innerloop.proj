@@ -34,7 +34,7 @@
       <!-- iOS builds are slower than Android (AOT compilation, code signing,
            native linking) and the workitem also includes workload install +
            NuGet restore on the Helix machine. -->
-      <Timeout>01:30</Timeout>
+      <Timeout>02:30</Timeout>
     </HelixWorkItem>
   </ItemDefinitionGroup>
 
