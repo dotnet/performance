@@ -21,6 +21,10 @@
          requires 26.3. The minor version gap doesn't affect build correctness,
          so bypass the _ValidateXcodeVersion target. -->
     <_MSBuildArgs>$(_MSBuildArgs) /p:ValidateXcodeVersion=false</_MSBuildArgs>
+    <!-- Disable managed linker for inner loop builds. Debug configuration
+         doesn't need linking, and it avoids ILLink errors (MT0180) on Helix
+         machines with older Xcode versions that lack the required SDK headers. -->
+    <_MSBuildArgs>$(_MSBuildArgs) /p:MtouchLink=None</_MSBuildArgs>
 
     <RunConfigsString>$(RuntimeFlavor)_Default</RunConfigsString>
     <InnerLoopIterations Condition="'$(InnerLoopIterations)' == ''">3</InnerLoopIterations>

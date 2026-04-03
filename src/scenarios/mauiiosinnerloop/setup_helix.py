@@ -161,6 +161,37 @@ def select_xcode():
     run_cmd(["xcodebuild", "-version"], check=False)
 
 
+def _validate_xcode_version(min_major=26):
+    """Fail fast if the active Xcode is too old for iOS inner loop builds.
+
+    Parses the version from 'xcodebuild -version' (e.g. "Xcode 15.0" → 15)
+    and exits with a clear diagnostic if the major version is below *min_major*.
+    """
+    result = run_cmd(["xcodebuild", "-version"], check=False)
+    if result.returncode != 0 or not result.stdout:
+        log("WARNING: Could not determine Xcode version — skipping check.", tee=True)
+        return
+
+    import re
+    m = re.search(r"Xcode\s+(\d+)\.(\d+)", result.stdout)
+    if not m:
+        log("WARNING: Could not parse Xcode version from output — skipping check.",
+            tee=True)
+        return
+
+    major, minor = int(m.group(1)), int(m.group(2))
+    if major < min_major:
+        log(f"ERROR: Xcode version {major}.{minor} is too old. "
+            f"iOS inner loop requires Xcode {min_major}.0 or later. "
+            "This Helix machine cannot run iOS inner loop measurements.",
+            tee=True)
+        _dump_log()
+        sys.exit(1)
+
+    log(f"Xcode version {major}.{minor} meets minimum requirement "
+        f"(>= {min_major}.0)", tee=True)
+
+
 def validate_simulator_runtimes():
     """Check that iOS simulator runtimes are available on this machine."""
     log_raw("=== SIMULATOR RUNTIME VALIDATION ===", tee=True)
@@ -491,6 +522,12 @@ def main():
 
     # Step 2: Select the correct Xcode version
     select_xcode()
+
+    # Step 2b: Validate minimum Xcode version for iOS inner loop builds.
+    # Machines with Xcode < 26 cannot build .NET MAUI iOS apps targeting the
+    # iOS 26+ SDK. Fail fast with a clear message instead of waiting 10+ min
+    # for ILLink to crash with MT0180.
+    _validate_xcode_version()
 
     # Step 3 & 4: Device-type-specific setup
     if is_physical_device:
