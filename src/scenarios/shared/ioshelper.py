@@ -18,8 +18,8 @@ class iOSHelper:
 
     Install and launch use mlaunch (the same tool Visual Studio uses for F5)
     to match the real developer inner-loop experience:
-      - Simulator: mlaunch --launchsim (combines install + launch)
-      - Device:    mlaunch --installdev / --launchdev (separate steps)
+      - Simulator: mlaunch --installsim / --launchsim
+      - Device:    mlaunch --installdev / --launchdev
     Device detection still uses devicectl; simulator management uses simctl.
     """
 
@@ -167,17 +167,17 @@ class iOSHelper:
     def install_app(self, app_bundle_path):
         """Install the app bundle and return wall-clock install time in ms.
 
-        Device: mlaunch --installdev (separate from launch, matching F5).
-        Simulator: no-op — mlaunch --launchsim combines install + launch,
-        so the install cost is captured in measure_cold_startup() instead.
+        Device:    mlaunch --installdev
+        Simulator: mlaunch --installsim
         """
-        if not self.is_physical_device:
-            getLogger().info("Simulator: skipping install (--launchsim handles it)")
-            return 0
-
         mlaunch = self._resolve_mlaunch()
-        cmd = [mlaunch, '--installdev', app_bundle_path,
-               '--devname', self.device_id]
+
+        if self.is_physical_device:
+            cmd = [mlaunch, '--installdev', app_bundle_path,
+                   '--devname', self.device_id]
+        else:
+            cmd = [mlaunch, '--installsim', app_bundle_path,
+                   '--device', f':v2:udid={self.device_id}']
 
         start = time.time()
         RunCommand(cmd, verbose=True).run()
@@ -189,8 +189,8 @@ class iOSHelper:
         """Measure app cold startup time in ms (int).
 
         Uses mlaunch to match the real F5 developer experience:
-          - Simulator: mlaunch --launchsim (installs + launches in one step)
-          - Device:    mlaunch --launchdev (install was done separately)
+          - Simulator: mlaunch --launchsim
+          - Device:    mlaunch --launchdev
 
         Terminates any running instance first. For simulator this uses
         simctl terminate (mlaunch has no simulator terminate command).
