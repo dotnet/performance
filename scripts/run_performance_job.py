@@ -1336,6 +1336,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         only_sanity_check=args.only_sanity_check,
         ios_strip_symbols=args.ios_strip_symbols,
         ios_llvm_build=args.ios_llvm_build,
+        ios_rid=args.run_env_vars.get("iOSRid"),
         fail_on_test_failure=fail_on_test_failure,
         scenario_arguments=scenario_arguments or None)
     
