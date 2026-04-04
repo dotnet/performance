@@ -32,6 +32,39 @@ from shared.testtraits import TestTraits, testtypes
 from subprocess import CalledProcessError
 
 
+# ── iOS Inner Loop report helpers ────────────────────────────────────
+
+def _make_counter(name, metric, results, top=False):
+    """Create a performance counter dict for JSON reports."""
+    return {
+        "name": name,
+        "topCounter": top,
+        "defaultCounter": False,
+        "higherIsBetter": False,
+        "metricName": metric,
+        "results": results,
+    }
+
+
+def _merge_deploy_report(build_report_path, install_results, startup_results, output_path):
+    """Merge build metrics with install/startup timing into a single E2E report.
+
+    If the build report doesn't exist (local runs without PERFLAB_INLAB=1),
+    creates a minimal report with only install and startup counters.
+    """
+    if os.path.exists(build_report_path):
+        with open(build_report_path, 'r') as f:
+            report = json.load(f)
+    else:
+        report = {"tests": [{"counters": []}]}
+
+    report["tests"][0]["counters"].append(_make_counter("Install Time", "ms", install_results))
+    report["tests"][0]["counters"].append(_make_counter("Time to Main", "ms", startup_results, top=True))
+
+    with open(output_path, 'w') as f:
+        json.dump(report, f, indent=2)
+
+
 class Runner:
     '''
     Wrapper for running all the things
@@ -1020,203 +1053,59 @@ ex: C:\repos\performance;C:\repos\runtime
 
         elif self.testtype == const.IOSINNERLOOP:
             import hashlib
-            from shutil import copytree
+            from shutil import copy2, copytree
             from performance.common import runninginlab
             from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
             from shared.util import helixuploaddir
             import upload
 
-            def merge_build_deploy_and_startup(build_report_path, install_results, startup_results, final_report_path):
-                """Load the build metrics report, append install time and startup time counters, write to final path.
-
-                If the build report doesn't exist (e.g., local runs without PERFLAB_INLAB=1),
-                creates a minimal report containing only the install and startup counters.
-                """
-                if not os.path.exists(build_report_path):
-                    getLogger().warning("Build report not found at %s. "
-                                        "Creating minimal report with install and startup data only." % build_report_path)
-                    report = {"tests": [{"counters": []}]}
-                else:
-                    with open(build_report_path, 'r') as f:
-                        report = json.load(f)
-                install_counter = {
-                    "name": "Install Time",
-                    "topCounter": False,
-                    "defaultCounter": False,
-                    "higherIsBetter": False,
-                    "metricName": "ms",
-                    "results": install_results
-                }
-                startup_counter = {
-                    "name": "Time to Main",
-                    "topCounter": True,
-                    "defaultCounter": False,
-                    "higherIsBetter": False,
-                    "metricName": "ms",
-                    "results": startup_results
-                }
-                # Report structure: { "tests": [ { "counters": [...] } ] }
-                report["tests"][0]["counters"].append(install_counter)
-                report["tests"][0]["counters"].append(startup_counter)
-                with open(final_report_path, 'w') as f:
-                    json.dump(report, f, indent=2)
-                getLogger().info("Merged report written to: %s" % final_report_path)
-
-            def run_incremental_iteration(iteration, num_iterations, base_cmd, edit_pairs,
-                                          bundleid, app_bundle,
-                                          scenarioprefix, startup, traits, iosHelper,
-                                          is_physical_device=False):
-                """Run one incremental build+deploy+startup iteration.
-
-                edit_pairs is a list of (dest_path, original_content, modified_content) tuples.
-                Returns (startup_ms, install_ms, counters_list, binlog_path, test_metadata).
-                """
-
-                getLogger().info("=== Incremental iteration %d/%d ===" % (iteration, num_iterations))
-
-                # Toggle source files
-                for dest, original, modified in edit_pairs:
-                    if iteration % 2 == 1:
-                        with open(dest, 'w') as f:
-                            f.write(modified)
-                        content_hash = hashlib.md5(modified.encode()).hexdigest()[:8]
-                        getLogger().info("Applied modified source: %s (hash=%s, len=%d)" % (dest, content_hash, len(modified)))
-                    else:
-                        with open(dest, 'w') as f:
-                            f.write(original)
-                        content_hash = hashlib.md5(original.encode()).hexdigest()[:8]
-                        getLogger().info("Restored original source: %s (hash=%s, len=%d)" % (dest, content_hash, len(original)))
-
-                # Incremental build with per-iteration binlog.
-                # Use RunCommand to capture and log build output (see first build comment).
-                iter_binlog_name = 'incremental-build-and-deploy-%d.binlog' % iteration
-                iter_binlog = os.path.join(const.TRACEDIR, iter_binlog_name)
-                incremental_cmd = base_cmd + [f'-bl:{iter_binlog}']
-                try:
-                    RunCommand(incremental_cmd, verbose=True).run()
-                except CalledProcessError:
-                    getLogger().error("dotnet build failed during incremental iteration %d. "
-                                      "Check the build output above and the binlog at: %s" % (iteration, iter_binlog))
-                    raise
-
-                # Install and measure startup — dispatch based on device type
-                if is_physical_device:
-                    install_ms = iosHelper.install_app_physical(app_bundle)
-                    ms = iosHelper.measure_cold_startup_physical(bundleid)
-                else:
-                    install_ms = iosHelper.install_app(app_bundle)
-                    ms = iosHelper.measure_cold_startup(bundleid)
-                getLogger().info("Incremental iteration %d/%d: build+deploy done, install: %.1f ms, startup: %d ms" % (iteration, num_iterations, install_ms, ms))
-
-                # Parse this iteration's binlog → temp build report
-                iter_report_name = 'incremental-build-report-%d.json' % iteration
-                iter_report = os.path.join(const.TRACEDIR, iter_report_name)
-                startup.reportjson = iter_report
-                traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.IOSINNERLOOP,
-                                  tracename=iter_binlog_name,
-                                  scenarioname=scenarioprefix + " - Incremental Build and Deploy",
-                                  upload_to_perflab_container=False)
-                # Remove existing traces upload directory so copytree() in
-                # parsetraces() doesn't fail with FileExistsError on
-                # subsequent iterations (the first build already copied it).
-                helix_upload_dir = helixuploaddir()
-                if helix_upload_dir is not None:
-                    traces_upload = os.path.join(helix_upload_dir, 'traces')
-                    if os.path.exists(traces_upload):
-                        rmtree(traces_upload)
-
-                startup.parsetraces(traits)
-
-                # Extract build counters and test metadata from temp report.
-                # The report is only written when PERFLAB_INLAB=1 (by Startup.cs).
-                # For local runs without that env var, degrade gracefully with empty counters.
-                if not os.path.exists(iter_report):
-                    getLogger().warning("Build report not found (expected at %s). "
-                                        "This is normal for local runs without PERFLAB_INLAB=1. "
-                                        "Returning empty counters." % iter_report)
-                    counters = []
-                    test_metadata = {"counters": []}
-                else:
-                    with open(iter_report, 'r') as f:
-                        iter_data = json.load(f)
-                    test_obj = iter_data["tests"][0]
-                    counters = test_obj["counters"]
-                    # Return test metadata (without counters) for building the final report
-                    test_metadata = test_obj.copy()
-                    test_metadata["counters"] = []
-
-                # Clean up temp report (leave binlog for later cleanup)
-                if os.path.exists(iter_report):
-                    os.remove(iter_report)
-                    getLogger().info("Removed temp report: %s" % iter_report)
-
-                return ms, install_ms, counters, iter_binlog, test_metadata
-
             # --- Validate inputs ---
             if not self.csprojpath:
-                raise Exception("For iOS inner loop measurements, --csproj-path must be provided.")
+                raise Exception("--csproj-path is required for iOS inner loop measurements.")
             if not self.bundleid:
-                raise Exception("For iOS inner loop measurements, --bundle-id must be provided.")
+                raise Exception("--bundle-id is required for iOS inner loop measurements.")
             is_physical = (self.devicetype == 'device')
             if is_physical and self.deviceid == 'booted':
-                # Physical device requires a real UDID — auto-detect if not provided
                 detected = iOSHelper.detect_connected_device()
                 if not detected:
                     raise Exception("Physical device mode requires a device UDID. "
                                     "Set --device-id or IOS_DEVICE_UDID, or connect a device.")
                 self.deviceid = detected
-                getLogger().info("Auto-detected physical device UDID: %s" % self.deviceid)
-            getLogger().info("iOS inner loop device type: %s (device-id: %s)" % (self.devicetype, self.deviceid))
+            getLogger().info("iOS inner loop: device_type=%s, device_id=%s", self.devicetype, self.deviceid)
             scenarioprefix = self.scenarioname or "MAUI iOS Build and Deploy"
 
             os.makedirs(const.TRACEDIR, exist_ok=True)
             first_binlog = os.path.join(const.TRACEDIR, 'first-build-and-deploy.binlog')
 
-            # Build the base MSBuild command (no -t:Install for iOS — plain dotnet build)
+            # Build base command (no -t:Install for iOS — plain dotnet build)
             base_cmd = ['dotnet', 'build', self.csprojpath]
             if self.configuration:
                 base_cmd.extend(['-c', self.configuration])
             if self.framework:
                 base_cmd.extend(['-f', self.framework])
             if self.msbuildargs:
-                for arg in re.split(r'[;\s]+', self.msbuildargs):
-                    if arg.strip():
-                        base_cmd.append(arg.strip())
+                base_cmd.extend(arg.strip() for arg in re.split(r'[;\s]+', self.msbuildargs) if arg.strip())
 
-            # Determine the project directory from csprojpath
             project_dir = os.path.dirname(os.path.abspath(self.csprojpath))
             exename = self.traits.exename
 
-            # --- First build + deploy ---
-            # Use RunCommand (verbose=True) to capture and log build output line-by-line
-            # through Python's logging, which Helix captures. Plain subprocess.run()
-            # inherits stdout/stderr but they don't appear in Helix console logs.
+            # --- First build ---
             try:
-                first_cmd = base_cmd + [f'-bl:{first_binlog}']
-                RunCommand(first_cmd, verbose=True).run()
+                RunCommand(base_cmd + [f'-bl:{first_binlog}'], verbose=True).run()
             except CalledProcessError:
-                getLogger().error("dotnet build failed for iOS inner loop. "
-                                  "Check the build output above and the binlog at: %s" % first_binlog)
+                getLogger().error("First build failed. Binlog: %s", first_binlog)
                 raise
 
-            # --- Device/simulator setup and first deploy ---
+            # --- Device setup + first deploy ---
             iosHelper = iOSHelper()
             try:
                 app_bundle = iosHelper.find_app_bundle(project_dir, exename, self.configuration)
+                iosHelper.setup_device(self.bundleid, app_bundle, self.deviceid, is_physical=is_physical)
+                first_install_ms = iosHelper.install_app(app_bundle)
+                first_startup_ms = iosHelper.measure_cold_startup(self.bundleid)
+                getLogger().info("First deploy: install=%.1f ms, startup=%d ms", first_install_ms, first_startup_ms)
 
-                if is_physical:
-                    iosHelper.setup_physical_device(self.bundleid, app_bundle, self.deviceid)
-                    first_install_ms = iosHelper.install_app_physical(app_bundle)
-                    first_startup_ms = iosHelper.measure_cold_startup_physical(self.bundleid)
-                else:
-                    iosHelper.setup_simulator(self.bundleid, app_bundle, self.deviceid)
-                    first_install_ms = iosHelper.install_app(app_bundle)
-                    first_startup_ms = iosHelper.measure_cold_startup(self.bundleid)
-
-                # --- First startup measurement ---
-                getLogger().info("First deploy install: %.1f ms, startup: %d ms" % (first_install_ms, first_startup_ms))
-
-                # --- Parse first build report ---
+                # Parse first build binlog
                 startup = StartupWrapper()
                 first_build_report = os.path.join(const.TRACEDIR, 'first-build-and-deploy-perf-lab-report.json')
                 startup.reportjson = first_build_report
@@ -1227,134 +1116,128 @@ ex: C:\repos\performance;C:\repos\runtime
                                        upload_to_perflab_container=False)
                 startup.parsetraces(self.traits)
 
-                # Merge first build metrics + startup → first e2e report
+                # Merge first build metrics + install/startup → first E2E report
                 first_e2e_report = os.path.join(const.TRACEDIR, 'first-debug-e2e-perf-lab-report.json')
-                merge_build_deploy_and_startup(first_build_report, [first_install_ms], [first_startup_ms], first_e2e_report)
+                _merge_deploy_report(first_build_report, [first_install_ms], [first_startup_ms], first_e2e_report)
 
                 # --- Incremental loop ---
-                num_iterations = self.innerloopiterations
-                getLogger().info("Starting incremental loop: %d iterations" % num_iterations)
+                if not self.editsrcs or not self.editdests:
+                    raise Exception("--edit-src and --edit-dest are required for incremental builds")
+                if len(self.editsrcs) != len(self.editdests):
+                    raise Exception("--edit-src and --edit-dest must have the same number of semicolon-separated paths")
 
-                # Build list of (dest, original_content, modified_content) tuples for toggling
                 edit_pairs = []
-                if self.editsrcs and self.editdests:
-                    if len(self.editsrcs) != len(self.editdests):
-                        raise Exception("--edit-src and --edit-dest must have the same number of semicolon-separated paths")
-                    for src, dest in zip(self.editsrcs, self.editdests):
-                        original = None
-                        modified = None
-                        with open(dest, 'r') as f:
-                            original = f.read()
-                        with open(src, 'r') as f:
-                            modified = f.read()
-                        edit_pairs.append((dest, original, modified))
-                        getLogger().info("Edit pair: %s <-> %s" % (src, dest))
-                else:
-                    raise Exception("No edit-src/edit-dest specified; incremental builds require file pairs to toggle")
+                for src, dest in zip(self.editsrcs, self.editdests):
+                    with open(dest, 'r') as f:
+                        original = f.read()
+                    with open(src, 'r') as f:
+                        modified = f.read()
+                    edit_pairs.append((dest, original, modified))
+
+                num_iterations = self.innerloopiterations
+                getLogger().info("Starting %d incremental iterations", num_iterations)
 
                 incremental_startup_results = []
                 incremental_install_results = []
-                aggregated_counters = {}  # counter_name -> aggregated counter dict
-                report_template = None   # test metadata from first parsed report
-                intermediate_files = []  # files to clean up
+                aggregated_counters = {}
+                report_template = None
+                intermediate_binlogs = []
 
                 for iteration in range(1, num_iterations + 1):
-                    ms, install_ms, counters, iter_binlog, test_metadata = run_incremental_iteration(
-                        iteration, num_iterations, base_cmd,
-                        edit_pairs,
-                        self.bundleid, app_bundle, scenarioprefix, startup, self.traits,
-                        iosHelper, is_physical_device=is_physical)
+                    getLogger().info("=== Incremental iteration %d/%d ===", iteration, num_iterations)
 
-                    incremental_startup_results.append(ms)
+                    # Toggle source files (odd → modified, even → original)
+                    for dest, original, modified in edit_pairs:
+                        content = modified if iteration % 2 == 1 else original
+                        with open(dest, 'w') as f:
+                            f.write(content)
+
+                    # Build
+                    iter_binlog_name = 'incremental-build-and-deploy-%d.binlog' % iteration
+                    iter_binlog = os.path.join(const.TRACEDIR, iter_binlog_name)
+                    try:
+                        RunCommand(base_cmd + [f'-bl:{iter_binlog}'], verbose=True).run()
+                    except CalledProcessError:
+                        getLogger().error("Incremental build %d failed. Binlog: %s", iteration, iter_binlog)
+                        raise
+
+                    # Install + startup
+                    install_ms = iosHelper.install_app(app_bundle)
+                    startup_ms = iosHelper.measure_cold_startup(self.bundleid)
+                    getLogger().info("Iteration %d: install=%.1f ms, startup=%d ms", iteration, install_ms, startup_ms)
+
                     incremental_install_results.append(install_ms)
-                    intermediate_files.append(iter_binlog)
+                    incremental_startup_results.append(startup_ms)
+                    intermediate_binlogs.append(iter_binlog)
 
-                    # Save test metadata from the first iteration
-                    if report_template is None:
-                        report_template = test_metadata
+                    # Parse iteration binlog → temp report
+                    iter_report = os.path.join(const.TRACEDIR, 'incremental-build-report-%d.json' % iteration)
+                    startup.reportjson = iter_report
+                    self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.IOSINNERLOOP,
+                                           tracename=iter_binlog_name,
+                                           scenarioname=scenarioprefix + " - Incremental Build and Deploy",
+                                           upload_to_perflab_container=False)
+                    # Clear stale traces upload dir so copytree in parsetraces doesn't collide
+                    helix_upload_dir = helixuploaddir()
+                    if helix_upload_dir is not None:
+                        traces_upload = os.path.join(helix_upload_dir, 'traces')
+                        if os.path.exists(traces_upload):
+                            rmtree(traces_upload)
 
-                    for counter in counters:
-                        name = counter["name"]
-                        if name not in aggregated_counters:
-                            aggregated_counters[name] = {
-                                "name": name,
-                                "topCounter": counter.get("topCounter", False),
-                                "defaultCounter": counter.get("defaultCounter", False),
-                                "higherIsBetter": counter.get("higherIsBetter", False),
-                                "metricName": counter.get("metricName", "ms"),
-                                "results": []
-                            }
-                        aggregated_counters[name]["results"].extend(counter.get("results", []))
+                    startup.parsetraces(self.traits)
 
-                # --- Aggregate incremental results ---
+                    # Extract counters from temp report (may not exist on local runs)
+                    if os.path.exists(iter_report):
+                        with open(iter_report, 'r') as f:
+                            iter_data = json.load(f)
+                        test_obj = iter_data["tests"][0]
+                        if report_template is None:
+                            report_template = {k: v for k, v in test_obj.items() if k != "counters"}
+                        for counter in test_obj["counters"]:
+                            name = counter["name"]
+                            if name not in aggregated_counters:
+                                aggregated_counters[name] = {
+                                    "name": name,
+                                    "topCounter": counter.get("topCounter", False),
+                                    "defaultCounter": counter.get("defaultCounter", False),
+                                    "higherIsBetter": counter.get("higherIsBetter", False),
+                                    "metricName": counter.get("metricName", "ms"),
+                                    "results": []
+                                }
+                            aggregated_counters[name]["results"].extend(counter.get("results", []))
+                        os.remove(iter_report)
+
+                # --- Build final incremental report ---
                 incremental_e2e_report = os.path.join(const.TRACEDIR, 'incremental-debug-e2e-perf-lab-report.json')
                 final_counters = list(aggregated_counters.values())
-                final_counters.append({
-                    "name": "Install Time",
-                    "topCounter": False,
-                    "defaultCounter": False,
-                    "higherIsBetter": False,
-                    "metricName": "ms",
-                    "results": incremental_install_results
-                })
-                final_counters.append({
-                    "name": "Time to Main",
-                    "topCounter": True,
-                    "defaultCounter": False,
-                    "higherIsBetter": False,
-                    "metricName": "ms",
-                    "results": incremental_startup_results
-                })
-                if report_template is not None:
-                    report_template["counters"] = final_counters
-                    final_report_data = {"tests": [report_template]}
-                else:
-                    # Fallback: should not happen if at least 1 iteration ran
-                    final_report_data = {"tests": [{"counters": final_counters}]}
-                with open(incremental_e2e_report, 'w') as f:
-                    json.dump(final_report_data, f, indent=2)
-                getLogger().info("Final incremental E2E report written to: %s" % incremental_e2e_report)
+                final_counters.append(_make_counter("Install Time", "ms", incremental_install_results))
+                final_counters.append(_make_counter("Time to Main", "ms", incremental_startup_results, top=True))
 
-                # --- Persist Reports for Local Runs ---
-                # Save both first and incremental E2E reports to a results directory so they survive cleanup.
-                # This is especially important for local runs where post.py cleans up the traces directory.
-                runtime_flavor = os.environ.get('RUNTIME_FLAVOR', 'unknown')
-                results_dir = os.path.join(os.getcwd(), 'results', runtime_flavor)
+                final_test = dict(report_template or {})
+                final_test["counters"] = final_counters
+                with open(incremental_e2e_report, 'w') as f:
+                    json.dump({"tests": [final_test]}, f, indent=2)
+
+                # --- Persist reports for local runs ---
+                results_dir = os.path.join(os.getcwd(), 'results', os.environ.get('RUNTIME_FLAVOR', 'unknown'))
                 try:
                     os.makedirs(results_dir, exist_ok=True)
-                    from shutil import copy2
-                    copy2(first_e2e_report, os.path.join(results_dir, os.path.basename(first_e2e_report)))
-                    getLogger().info("Persisted first E2E report to: %s" % os.path.join(results_dir, os.path.basename(first_e2e_report)))
-                    copy2(incremental_e2e_report, os.path.join(results_dir, os.path.basename(incremental_e2e_report)))
-                    getLogger().info("Persisted incremental E2E report to: %s" % os.path.join(results_dir, os.path.basename(incremental_e2e_report)))
+                    for report in [first_e2e_report, incremental_e2e_report]:
+                        copy2(report, os.path.join(results_dir, os.path.basename(report)))
                 except Exception as e:
-                    getLogger().warning("Failed to persist reports: %s" % str(e))
+                    getLogger().warning("Failed to persist reports: %s", e)
 
-                # --- Cleanup and upload ---
-                # Clean up intermediates from TRACEDIR
-                for f_path in intermediate_files + [first_build_report]:
-                    if f_path.endswith('.binlog'):
-                        getLogger().info("Keeping binlog for upload: %s" % f_path)
-                        continue
-                    if os.path.exists(f_path):
-                        os.remove(f_path)
-                        getLogger().info("Removed intermediate: %s" % f_path)
-
-                # Wipe helix upload traces dir so copytree repopulates it cleanly
-                if runninginlab():
-                    traces_upload = os.path.join(helixuploaddir() or '', 'traces')
-                    if os.path.exists(traces_upload):
-                        rmtree(traces_upload)
-
-                # Final upload
+                # --- Upload to Helix ---
                 self.traits.add_traits(overwrite=True, upload_to_perflab_container=saved_upload)
                 helix_upload_dir = helixuploaddir()
                 if runninginlab() and helix_upload_dir is not None:
-                    copytree(const.TRACEDIR, os.path.join(helix_upload_dir, 'traces'), dirs_exist_ok=True)
+                    traces_upload = os.path.join(helix_upload_dir, 'traces')
+                    if os.path.exists(traces_upload):
+                        rmtree(traces_upload)
+                    copytree(const.TRACEDIR, traces_upload, dirs_exist_ok=True)
                     if self.traits.upload_to_perflab_container:
                         for report_path in [first_e2e_report, incremental_e2e_report]:
                             upload_code = upload.upload(report_path, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
-                            getLogger().info("Upload code for %s: %s" % (os.path.basename(report_path), upload_code))
                             if upload_code != 0:
                                 sys.exit(upload_code)
 

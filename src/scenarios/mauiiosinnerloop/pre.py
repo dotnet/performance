@@ -229,6 +229,26 @@ def strip_non_ios_tfms(csproj_path: str, framework: str):
 
     logger.info(f"Stripped non-iOS TFMs. csproj now targets: {framework}")
 
+def inject_csproj_properties(csproj_path: str, properties: dict):
+    '''Inject MSBuild properties into the first PropertyGroup of a csproj.'''
+    with open(csproj_path, 'r') as f:
+        content = f.read()
+
+    if '</PropertyGroup>' not in content:
+        raise Exception(f"No <PropertyGroup> found in {csproj_path}")
+
+    for name, value in properties.items():
+        if name not in content:
+            content = content.replace(
+                '</PropertyGroup>',
+                f'    <{name}>{value}</{name}>\n  </PropertyGroup>',
+                1
+            )
+
+    with open(csproj_path, 'w') as f:
+        f.write(content)
+    logger.info(f"Injected properties into {csproj_path}: {list(properties.keys())}")
+
 setup_loggers(True)
 logger = getLogger(__name__)
 logger.info("Starting pre-command for MAUI iOS deploy measurement")
@@ -259,46 +279,16 @@ with MauiNuGetConfigContext(precommands.framework):
     shutil.copy2(repo_nuget_config, app_nuget_config)
     logger.info(f"Copied merged NuGet.config from {repo_nuget_config} to {app_nuget_config}")
 
-    # Strip non-iOS TFMs from the csproj. The MAUI template generates
-    # multi-TFM projects with conditional elements for android, ios,
-    # maccatalyst, and windows. We only need iOS.
+    # Prepare the csproj: strip non-iOS TFMs and inject required properties
     csproj_path = os.path.join(const.APPDIR, f'{EXENAME}.csproj')
     strip_non_ios_tfms(csproj_path, precommands.framework)
-
-    # Inject properties into the csproj so they apply to every command that
-    # targets this project (restore, build, install).
-    with open(csproj_path, 'r') as f:
-        csproj_content = f.read()
-
-    logger.info(f"Csproj content after TFM stripping:\n{csproj_content}")
-
-    injected_props = {
+    inject_csproj_properties(csproj_path, {
         # Preview SDKs may lack prune-package-data files, causing NETSDK1226.
         'AllowMissingPrunePackageData': 'true',
-        # The perf repo globally disables the Roslyn compiler server to avoid
-        # BenchmarkDotNet file-locking issues. Re-enable it here to match real
-        # MAUI developer inner loop experience.
+        # Re-enable Roslyn compiler server (perf repo disables it globally
+        # for BenchmarkDotNet) to match real developer inner loop.
         'UseSharedCompilation': 'true',
-    }
-    csproj_modified = csproj_content
-    if '</PropertyGroup>' not in csproj_modified:
-        raise Exception(
-            f"Cannot inject properties into {csproj_path}: "
-            f"no <PropertyGroup> found in the generated template."
-        )
-    for prop_name, prop_value in injected_props.items():
-        if prop_name not in csproj_modified:
-            csproj_modified = csproj_modified.replace(
-                '</PropertyGroup>',
-                f'    <{prop_name}>{prop_value}</{prop_name}>\n  </PropertyGroup>',
-                1  # only the first PropertyGroup
-            )
-
-    with open(csproj_path, 'w') as f:
-        f.write(csproj_modified)
-
-    logger.info(f"Updated {csproj_path} with injected properties")
-    logger.info(f"Final .csproj content:\n{csproj_modified}")
+    })
 
     # Create modified source files in src/ for the incremental deploy simulation.
     # The runner toggles between original and modified versions each iteration,
