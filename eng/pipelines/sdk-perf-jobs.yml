@@ -577,7 +577,7 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS Inner Loop (Mono - Default) - Debug
+  # Maui iOS Inner Loop (Mono - Default) - Debug - Simulator
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -592,11 +592,11 @@ jobs:
         runtimeFlavor: mono
         codeGenType: Default
         buildConfig: Debug
-        additionalJobIdentifier: Mono_InnerLoop
+        additionalJobIdentifier: Mono_InnerLoop_Simulator
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS Inner Loop (CoreCLR - Default) - Debug
+  # Maui iOS Inner Loop (CoreCLR - Default) - Debug - Simulator
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -611,7 +611,7 @@ jobs:
         runtimeFlavor: coreclr
         codeGenType: Default
         buildConfig: Debug
-        additionalJobIdentifier: CoreCLR_InnerLoop
+        additionalJobIdentifier: CoreCLR_InnerLoop_Simulator
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
