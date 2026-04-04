@@ -83,11 +83,7 @@
        would produce an ARM64 binary incompatible with the simulator. -->
   <ItemGroup Condition="'$(iOSRid)' != 'ios-arm64'">
     <HelixWorkItem Include="@(MAUIiOSInnerLoopScenario -> 'Inner Loop Simulator - %(Identity)')">
-      <PreCommands>$(_MacEnvVars);export IOS_RID=$(iOSRid);$(Python) setup_helix.py $(PERFLAB_Framework)-ios &quot;$(_MSBuildArgs)&quot;</PreCommands>
-      <!-- edit-dest paths assume Pages/ subdirectory. pre.py normalizes the
-           template to always place MainPage files under app/Pages/, even if the
-           MAUI template puts them at the root. Do not change these paths without
-           updating the normalization logic in pre.py. -->
+      <PreCommands>$(_MacEnvVars);export IOS_RID=$(iOSRid);$(Python) setup_helix.py $(PERFLAB_Framework)-ios &quot;$(_MSBuildArgs)&quot; || exit $?</PreCommands>
       <Command>$(Python) test.py iosinnerloop --csproj-path app/MauiiOSInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --bundle-id com.companyname.mauiiosinnerloop -f $(PERFLAB_Framework)-ios -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --device-type simulator --inner-loop-iterations $(InnerLoopIterations) --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>export IOS_RID=$(iOSRid);$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
@@ -104,7 +100,7 @@
        EnableCodeSigning=false). -->
   <ItemGroup Condition="'$(iOSRid)' == 'ios-arm64'">
     <HelixWorkItem Include="@(MAUIiOSInnerLoopScenario -> 'Inner Loop Device - %(Identity)')">
-      <PreCommands>$(_MacEnvVars);export IOS_RID=$(iOSRid);$(Python) setup_helix.py $(PERFLAB_Framework)-ios &quot;$(_MSBuildArgs)&quot;</PreCommands>
+      <PreCommands>$(_MacEnvVars);export IOS_RID=$(iOSRid);$(Python) setup_helix.py $(PERFLAB_Framework)-ios &quot;$(_MSBuildArgs)&quot; || exit $?</PreCommands>
       <Command>$(Python) test.py iosinnerloop --csproj-path app/MauiiOSInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --bundle-id com.companyname.mauiiosinnerloop -f $(PERFLAB_Framework)-ios -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --device-type device --inner-loop-iterations $(InnerLoopIterations) --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>export IOS_RID=$(iOSRid);$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>

@@ -1340,6 +1340,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
         scenario_arguments=scenario_arguments or None)
     
     if args.send_to_helix:
+        # Re-apply run_env_vars so they reach SendToHelix MSBuild evaluation.
+        # The env was snapshot/restored earlier (environ_copy), and while
+        # os.environ.update() preserves new keys, some shell wrappers may not
+        # inherit them reliably. Explicitly re-setting ensures properties like
+        # iOSRid (used in .proj ItemGroup conditions) are available.
+        if args.run_env_vars:
+            for key, value in args.run_env_vars.items():
+                os.environ[key] = value
+
         perf_send_to_helix(perf_send_to_helix_args)
 
         results_glob = os.path.join(helix_results_destination_dir, '**', '*perf-lab-report.json')
