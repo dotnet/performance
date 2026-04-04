@@ -14,15 +14,48 @@ class iOSHelper:
     """Unified helper for iOS simulator and physical device operations.
 
     Callers use the same API (setup_device, install_app, measure_cold_startup,
-    cleanup) regardless of device type. The helper dispatches to simctl
-    (simulator) or devicectl (physical) commands internally.
+    cleanup) regardless of device type.
+
+    Install and launch use mlaunch (the same tool Visual Studio uses for F5)
+    to match the real developer inner-loop experience:
+      - Simulator: mlaunch --launchsim (combines install + launch)
+      - Device:    mlaunch --installdev / --launchdev (separate steps)
+    Device detection still uses devicectl; simulator management uses simctl.
     """
+
+    _mlaunch_path = None  # resolved once, cached for the process
 
     def __init__(self):
         self.bundle_id = None
         self.device_id = None
         self.app_bundle_path = None
         self.is_physical_device = False
+
+    # ── mlaunch Resolution ────────────────────────────────────────────
+
+    @staticmethod
+    def _resolve_mlaunch():
+        """Resolve the mlaunch binary from the iOS SDK pack.
+
+        Searches $DOTNET_ROOT/packs/Microsoft.iOS.Sdk.*/tools/bin/mlaunch,
+        falling back to ~/.dotnet if DOTNET_ROOT is unset. Caches the result.
+        """
+        if iOSHelper._mlaunch_path is not None:
+            return iOSHelper._mlaunch_path
+
+        dotnet_root = os.environ.get('DOTNET_ROOT', os.path.expanduser('~/.dotnet'))
+        pattern = os.path.join(dotnet_root, 'packs', 'Microsoft.iOS.Sdk.*', '*', 'tools', 'bin', 'mlaunch')
+        matches = sorted(glob.glob(pattern))
+        if not matches:
+            raise FileNotFoundError(
+                f"mlaunch not found. Searched: {pattern}\n"
+                f"Ensure the iOS SDK workload is installed (dotnet workload install ios)."
+            )
+        # Use the last match (highest version when sorted lexicographically)
+        mlaunch = matches[-1]
+        getLogger().info("Resolved mlaunch: %s", mlaunch)
+        iOSHelper._mlaunch_path = mlaunch
+        return mlaunch
 
     # ── Device Detection ─────────────────────────────────────────────
 
@@ -132,12 +165,19 @@ class iOSHelper:
     # ── Unified Operations ───────────────────────────────────────────
 
     def install_app(self, app_bundle_path):
-        """Install the app bundle and return wall-clock install time in ms."""
-        if self.is_physical_device:
-            cmd = ['xcrun', 'devicectl', 'device', 'install', 'app',
-                   '--device', self.device_id, app_bundle_path]
-        else:
-            cmd = ['xcrun', 'simctl', 'install', self.device_id, app_bundle_path]
+        """Install the app bundle and return wall-clock install time in ms.
+
+        Device: mlaunch --installdev (separate from launch, matching F5).
+        Simulator: no-op — mlaunch --launchsim combines install + launch,
+        so the install cost is captured in measure_cold_startup() instead.
+        """
+        if not self.is_physical_device:
+            getLogger().info("Simulator: skipping install (--launchsim handles it)")
+            return 0
+
+        mlaunch = self._resolve_mlaunch()
+        cmd = [mlaunch, '--installdev', app_bundle_path,
+               '--devname', self.device_id]
 
         start = time.time()
         RunCommand(cmd, verbose=True).run()
@@ -148,17 +188,23 @@ class iOSHelper:
     def measure_cold_startup(self, bundle_id):
         """Measure app cold startup time in ms (int).
 
-        Terminates any running instance, waits briefly, then launches.
-        For physical devices, uses --terminate-existing on the launch command
-        since devicectl's 'process terminate' requires --pid not --bundle-id.
+        Uses mlaunch to match the real F5 developer experience:
+          - Simulator: mlaunch --launchsim (installs + launches in one step)
+          - Device:    mlaunch --launchdev (install was done separately)
+
+        Terminates any running instance first. For simulator this uses
+        simctl terminate (mlaunch has no simulator terminate command).
         """
+        mlaunch = self._resolve_mlaunch()
+
         if self.is_physical_device:
-            cmd = ['xcrun', 'devicectl', 'device', 'process', 'launch',
-                   '--terminate-existing', '--device', self.device_id, bundle_id]
+            cmd = [mlaunch, '--launchdev', self.app_bundle_path,
+                   '--devname', self.device_id]
         else:
             self._run_quiet(['xcrun', 'simctl', 'terminate', self.device_id, bundle_id])
             time.sleep(0.5)
-            cmd = ['xcrun', 'simctl', 'launch', self.device_id, bundle_id]
+            cmd = [mlaunch, '--launchsim', self.app_bundle_path,
+                   '--device', f':v2:udid={self.device_id}']
 
         start = time.time()
         RunCommand(cmd, verbose=True).run()
@@ -167,12 +213,17 @@ class iOSHelper:
         return elapsed_ms
 
     def cleanup(self, skip_uninstall=False):
-        """Clean up the device session (simulator or physical)."""
+        """Clean up the device session (simulator or physical).
+
+        Device uses mlaunch --uninstalldevbundleid. Simulator keeps simctl
+        (mlaunch has no simulator terminate/uninstall commands).
+        """
         if skip_uninstall:
             return
         if self.is_physical_device:
-            self._run_quiet(['xcrun', 'devicectl', 'device', 'uninstall', 'app',
-                             '--device', self.device_id, self.bundle_id])
+            mlaunch = self._resolve_mlaunch()
+            self._run_quiet([mlaunch, '--uninstalldevbundleid', self.bundle_id,
+                             '--devname', self.device_id])
         else:
             self._run_quiet(['xcrun', 'simctl', 'terminate', self.device_id, self.bundle_id])
             self._run_quiet(['xcrun', 'simctl', 'uninstall', self.device_id, self.bundle_id])
