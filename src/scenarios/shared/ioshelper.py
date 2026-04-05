@@ -225,8 +225,10 @@ class iOSHelper:
         """Measure app cold startup time in ms (int).
 
         Uses mlaunch to match the real F5 developer experience:
-          - Simulator: mlaunch --launchsim
-          - Device:    mlaunch --launchdev
+          - Simulator: mlaunch --launchsim (run as background process since
+            it blocks until the app exits; we detect launch via simctl and
+            then terminate the process)
+          - Device:    mlaunch --launchdev (returns immediately with PID)
 
         Terminates any running instance first. For simulator this uses
         simctl terminate (mlaunch has no simulator terminate command).
@@ -236,17 +238,56 @@ class iOSHelper:
         if self.is_physical_device:
             cmd = [mlaunch, '--launchdev', self.app_bundle_path,
                    '--devname', self.device_id]
-        else:
-            self._run_quiet(['xcrun', 'simctl', 'terminate', self.device_id, bundle_id])
-            time.sleep(0.5)
-            cmd = [mlaunch, '--launchsim', self.app_bundle_path,
-                   '--device', f':v2:udid={self.device_id}']
+            start = time.time()
+            RunCommand(cmd, verbose=True).run()
+            elapsed_ms = int((time.time() - start) * 1000)
+            getLogger().info("Cold startup: %d ms", elapsed_ms)
+            return elapsed_ms
+
+        # Simulator: --launchsim blocks until the app exits, so run it
+        # in a subprocess and poll for the app to appear in the process list.
+        self._run_quiet(['xcrun', 'simctl', 'terminate', self.device_id, bundle_id])
+        time.sleep(0.5)
+        cmd = [mlaunch, '--launchsim', self.app_bundle_path,
+               '--device', f':v2:udid={self.device_id}']
+        getLogger().info("$ %s", ' '.join(cmd))
 
         start = time.time()
-        RunCommand(cmd, verbose=True).run()
-        elapsed_ms = int((time.time() - start) * 1000)
-        getLogger().info("Cold startup: %d ms", elapsed_ms)
-        return elapsed_ms
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            # Poll until the app is running in the simulator (max 120s)
+            app_name = os.path.splitext(os.path.basename(self.app_bundle_path))[0]
+            timeout = 120
+            poll_interval = 0.5
+            elapsed = 0.0
+            while elapsed < timeout:
+                # Check if mlaunch exited with an error
+                ret = proc.poll()
+                if ret is not None and ret != 0:
+                    stdout = proc.stdout.read().decode() if proc.stdout else ''
+                    stderr = proc.stderr.read().decode() if proc.stderr else ''
+                    raise subprocess.CalledProcessError(ret, cmd, stdout, stderr)
+
+                # Check if the app process is running via simctl
+                check = subprocess.run(
+                    ['xcrun', 'simctl', 'spawn', self.device_id, 'launchctl', 'list'],
+                    capture_output=True, text=True, timeout=10
+                )
+                if bundle_id in (check.stdout or ''):
+                    break
+                time.sleep(poll_interval)
+                elapsed = time.time() - start
+
+            elapsed_ms = int((time.time() - start) * 1000)
+            getLogger().info("Cold startup: %d ms", elapsed_ms)
+            return elapsed_ms
+        finally:
+            proc.terminate()
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait()
 
     def cleanup(self, skip_uninstall=False):
         """Clean up the device session (simulator or physical).
