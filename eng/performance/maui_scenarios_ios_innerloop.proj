@@ -1,0 +1,109 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <Import Project="Scenarios.Common.props" />
+
+  <!-- No XHarness needed — iOS inner loop uses xcrun simctl directly for
+       simulator deploy and does not use the XHarness test infrastructure. -->
+
+  <PropertyGroup>
+    <!-- Map RuntimeFlavor to the UseMonoRuntime MSBuild property.
+         Same pattern as maui_scenarios_ios.proj. -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
+
+    <!-- RuntimeIdentifier: simulator by default. Physical device (ios-arm64)
+         can be set via pipeline parameter when device support is enabled.
+         Default is iossimulator-x64 because the Mac.iPhone.17.Perf Helix
+         queue runs on Intel x64 machines (e.g. DNCENGMAC045). -->
+    <iOSRid Condition="'$(iOSRid)' == ''">iossimulator-x64</iOSRid>
+    <_MSBuildArgs>$(_MSBuildArgs) /p:RuntimeIdentifier=$(iOSRid)</_MSBuildArgs>
+
+    <!-- Disable managed linker for inner loop builds. Debug configuration
+         doesn't need linking, and it avoids ILLink errors (MT0180) on Helix
+         machines with older Xcode versions that lack the required SDK headers. -->
+    <_MSBuildArgs>$(_MSBuildArgs) /p:MtouchLink=None</_MSBuildArgs>
+
+    <RunConfigsString>$(RuntimeFlavor)_Default</RunConfigsString>
+    <InnerLoopIterations Condition="'$(InnerLoopIterations)' == ''">3</InnerLoopIterations>
+  </PropertyGroup>
+
+  <!-- Remove .NET SDK packs from the Helix correlation payload to reduce
+       transfer size. The maui-ios workload packs (~1-2 GB) are installed on
+       the Helix machine by setup_helix.py, so shipping them is unnecessary
+       and would exceed Helix payload limits. -->
+  <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
+    <Message Text="Removing Dotnet Packs from Correlation Staging" Importance="high" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet/packs" />
+  </Target>
+
+  <ItemDefinitionGroup>
+    <HelixWorkItem>
+      <!-- iOS builds are slower than Android (AOT compilation, code signing,
+           native linking) and the workitem also includes workload install +
+           NuGet restore on the Helix machine. -->
+      <Timeout>02:30</Timeout>
+    </HelixWorkItem>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <MAUIiOSInnerLoopScenario Include="MAUI iOS Inner Loop">
+      <ScenarioDirectoryName>mauiiosinnerloop</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </MAUIiOSInnerLoopScenario>
+  </ItemGroup>
+
+  <!-- PreparePayloadWorkItem: runs on the build agent (macOS).
+       Selects the highest versioned Xcode, then runs pre.py to create the MAUI
+       app template, strip non-iOS TFMs, and prepare modified source files for
+       the incremental deploy simulation. NuGet restore is NOT done here —
+       packages are restored on the Helix machine by setup_helix.py. -->
+  <ItemGroup>
+    <PreparePayloadWorkItem Include="@(MAUIiOSInnerLoopScenario)">
+      <!-- Select highest versioned Xcode_*.app and avoid runner-image symlink
+           aliases that do not work with the iOS SDK (same pattern as
+           maui_scenarios_ios.proj PreparePayloadWorkItem). -->
+      <Command>XCODE_PATH=`find /Applications -maxdepth 1 -type d -name 'Xcode_*.app' | sort -t_ -k2 -V | tail -1` &amp;&amp; echo &quot;Selected Xcode: $XCODE_PATH&quot; &amp;&amp; sudo xcode-select -s &quot;$XCODE_PATH&quot; &amp;&amp; $(Python) pre.py default -f $(PERFLAB_Framework)-ios</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+  </ItemGroup>
+
+  <!-- Environment variables for the macOS Helix machine.
+       Must be set via shell 'export' in PreCommands because env vars set via
+       os.environ in a Python script (setup_helix.py) do not persist to
+       subsequent commands (test.py, post.py) in the Helix shell session. -->
+  <PropertyGroup>
+    <_MacEnvVars>export DOTNET_ROOT=$HELIX_CORRELATION_PAYLOAD/dotnet;export DOTNET_CLI_TELEMETRY_OPTOUT=1;export DOTNET_MULTILEVEL_LOOKUP=0;export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages;export PATH=$HELIX_CORRELATION_PAYLOAD/dotnet:$PATH</_MacEnvVars>
+  </PropertyGroup>
+
+  <!-- Simulator workitem: only when NOT targeting physical devices.
+       When iOSRid=ios-arm64, _MSBuildArgs bakes in the device RID which
+       would produce an ARM64 binary incompatible with the simulator. -->
+  <ItemGroup Condition="'$(iOSRid)' != 'ios-arm64'">
+    <HelixWorkItem Include="@(MAUIiOSInnerLoopScenario -> 'Inner Loop Simulator - %(Identity)')">
+      <PreCommands>$(_MacEnvVars);export IOS_RID=$(iOSRid);$(Python) setup_helix.py $(PERFLAB_Framework)-ios &quot;$(_MSBuildArgs)&quot; || exit $?</PreCommands>
+      <Command>$(Python) test.py iosinnerloop --csproj-path app/MauiiOSInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --bundle-id com.companyname.mauiiosinnerloop -f $(PERFLAB_Framework)-ios -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --device-type simulator --inner-loop-iterations $(InnerLoopIterations) --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
+      <PostCommands>export IOS_RID=$(iOSRid);$(Python) post.py</PostCommands>
+      <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <!-- Physical device workitem: runs on macOS machines with USB-connected
+       iPhones (Mac.iPhone.17.Perf queue). Uses xcrun devicectl for deploy
+       instead of xcrun simctl.
+       Code signing is handled by the Xcode toolchain during 'dotnet build' —
+       the Mac.iPhone.17.Perf Helix machines have development signing identities
+       and provisioning profiles pre-installed. Physical device builds
+       automatically enable code signing (unlike simulator builds which require
+       EnableCodeSigning=false). -->
+  <ItemGroup Condition="'$(iOSRid)' == 'ios-arm64'">
+    <HelixWorkItem Include="@(MAUIiOSInnerLoopScenario -> 'Inner Loop Device - %(Identity)')">
+      <PreCommands>$(_MacEnvVars);export IOS_RID=$(iOSRid);$(Python) setup_helix.py $(PERFLAB_Framework)-ios &quot;$(_MSBuildArgs)&quot; || exit $?</PreCommands>
+      <Command>$(Python) test.py iosinnerloop --csproj-path app/MauiiOSInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --bundle-id com.companyname.mauiiosinnerloop -f $(PERFLAB_Framework)-ios -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --device-type device --inner-loop-iterations $(InnerLoopIterations) --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
+      <PostCommands>export IOS_RID=$(iOSRid);$(Python) post.py</PostCommands>
+      <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <Import Project="PreparePayloadWorkItems.targets" />
+
+</Project>
