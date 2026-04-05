@@ -351,6 +351,91 @@ def install_workload(ctx):
     log("maui-ios workload installed successfully")
 
 
+def _reselect_xcode_for_sdk(framework):
+    """Re-select Xcode to match the installed iOS SDK's required version.
+
+    After workload install, the iOS SDK pack's Versions.props declares
+    _RecommendedXcodeVersion. If the currently active Xcode doesn't match,
+    look for a matching Xcode_*.app and switch to it.
+    """
+    import glob
+    import re
+
+    log_raw("=== XCODE SDK COMPATIBILITY CHECK ===", tee=True)
+
+    # 1. Get the active Xcode version
+    result = run_cmd(["xcodebuild", "-version"], check=False)
+    if result.returncode != 0 or not result.stdout:
+        log("WARNING: Could not determine active Xcode version — skipping", tee=True)
+        return
+    m = re.search(r'Xcode\s+(\d+\.\d+)', result.stdout)
+    if not m:
+        log("WARNING: Could not parse Xcode version — skipping", tee=True)
+        return
+    active_xcode = m.group(1)
+
+    # 2. Find the SDK's _RecommendedXcodeVersion
+    dotnet_root = os.environ.get("DOTNET_ROOT", "")
+    if not dotnet_root:
+        log("WARNING: DOTNET_ROOT not set — skipping Xcode SDK check", tee=True)
+        return
+    tfm_prefix = framework.split('-')[0] if '-' in framework else framework
+    search = os.path.join(
+        dotnet_root, 'packs', f'Microsoft.iOS.Sdk.{tfm_prefix}_*',
+        '*', 'targets', 'Microsoft.iOS.Sdk.Versions.props'
+    )
+    props_files = sorted(glob.glob(search))
+    if not props_files:
+        log(f"WARNING: No iOS SDK Versions.props found ({search}) — skipping", tee=True)
+        return
+    with open(props_files[-1], 'r') as f:
+        content = f.read()
+    rec = re.search(r'<_RecommendedXcodeVersion>([^<]+)</_RecommendedXcodeVersion>', content)
+    if not rec:
+        log("WARNING: _RecommendedXcodeVersion not found in Versions.props", tee=True)
+        return
+    required_xcode = rec.group(1)
+
+    # 3. Compare major.minor
+    active_mm = '.'.join(active_xcode.split('.')[:2])
+    required_mm = '.'.join(required_xcode.split('.')[:2])
+    if active_mm == required_mm:
+        log(f"Xcode {active_xcode} matches SDK requirement ({required_xcode})", tee=True)
+        return
+
+    log(f"Xcode mismatch: active={active_xcode}, SDK requires={required_xcode}. "
+        f"Looking for Xcode_{required_mm}*.app ...", tee=True)
+
+    # 4. Find a matching Xcode installation
+    find_result = run_cmd(
+        ["find", "/Applications", "-maxdepth", "1", "-type", "d",
+         "-name", f"Xcode_{required_mm}*.app"],
+        check=False,
+    )
+    candidates = [l.strip() for l in (find_result.stdout or "").splitlines() if l.strip()]
+    if not candidates:
+        log(f"WARNING: No Xcode_{required_mm}*.app found in /Applications. "
+            f"Continuing with Xcode {active_xcode} — build may fail.", tee=True)
+        return
+
+    # Pick the best match (sort by version, take highest patch)
+    def _ver_key(path):
+        ver = path.rsplit("_", 1)[-1].replace(".app", "")
+        try:
+            return tuple(int(x) for x in ver.split('.'))
+        except ValueError:
+            return (0,)
+    candidates.sort(key=_ver_key)
+    target = candidates[-1]
+
+    log(f"Switching Xcode to: {target}", tee=True)
+    result = run_cmd(["sudo", "xcode-select", "-s", target], check=False)
+    if result.returncode != 0:
+        log(f"WARNING: xcode-select -s failed — setting DEVELOPER_DIR instead", tee=True)
+        os.environ["DEVELOPER_DIR"] = os.path.join(target, "Contents", "Developer")
+    run_cmd(["xcodebuild", "-version"], check=False)
+
+
 def restore_packages(ctx):
     """Restore NuGet packages for the app project.
 
@@ -569,6 +654,10 @@ def main():
     # Step 5: Install the maui-ios workload
     # Must happen BEFORE restore because restore needs workload packs
     install_workload(ctx)
+
+    # Step 5b: Re-select Xcode to match the installed iOS SDK's requirement.
+    # Step 2 picks the highest Xcode, but the SDK may need an older one.
+    _reselect_xcode_for_sdk(framework)
 
     # Step 6: Restore NuGet packages
     restore_packages(ctx)
