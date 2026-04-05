@@ -17,10 +17,7 @@
          queue runs on Intel x64 machines (e.g. DNCENGMAC045). -->
     <iOSRid Condition="'$(iOSRid)' == ''">iossimulator-x64</iOSRid>
     <_MSBuildArgs>$(_MSBuildArgs) /p:RuntimeIdentifier=$(iOSRid)</_MSBuildArgs>
-    <!-- Helix machines have Xcode 26.2 but the iOS SDK (26.2.11591-net11-p4)
-         requires 26.3. The minor version gap doesn't affect build correctness,
-         so bypass the _ValidateXcodeVersion target. -->
-    <_MSBuildArgs>$(_MSBuildArgs) /p:ValidateXcodeVersion=false</_MSBuildArgs>
+
     <!-- Disable managed linker for inner loop builds. Debug configuration
          doesn't need linking, and it avoids ILLink errors (MT0180) on Helix
          machines with older Xcode versions that lack the required SDK headers. -->

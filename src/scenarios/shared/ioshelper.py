@@ -131,6 +131,32 @@ class iOSHelper:
         except Exception:
             return None
 
+    # ── Simulator UDID Resolution ────────────────────────────────────
+
+    @staticmethod
+    def _resolve_booted_simulator_udid():
+        """Return the UDID of the first booted simulator.
+
+        mlaunch requires a real UDID (--device :v2:udid=<uuid>); it does
+        not understand simctl's "booted" shortcut.  This method queries
+        ``simctl list devices booted`` to find the actual UDID.
+        """
+        try:
+            result = subprocess.run(
+                ['xcrun', 'simctl', 'list', 'devices', 'booted', '-j'],
+                capture_output=True, text=True, timeout=15
+            )
+            if result.returncode != 0:
+                return None
+            data = json.loads(result.stdout)
+            for runtime_devices in data.get('devices', {}).values():
+                for dev in runtime_devices:
+                    if dev.get('state', '').lower() == 'booted':
+                        return dev['udid']
+            return None
+        except Exception:
+            return None
+
     # ── Unified Device Setup ─────────────────────────────────────────
 
     def setup_device(self, bundle_id, app_bundle_path, device_id='booted', is_physical=False):
@@ -160,7 +186,17 @@ class iOSHelper:
             if result.returncode != 0 and 'already booted' not in (result.stderr or '').lower():
                 raise subprocess.CalledProcessError(result.returncode, result.args, result.stdout, result.stderr)
 
-        self._run_quiet(['xcrun', 'simctl', 'uninstall', device_id, bundle_id])
+        # Resolve the actual UDID — mlaunch needs a real UDID, not "booted"
+        if self.device_id == 'booted':
+            resolved = self._resolve_booted_simulator_udid()
+            if not resolved:
+                raise RuntimeError(
+                    "Could not resolve booted simulator UDID. "
+                    "Ensure a simulator is booted (setup_helix.py should have done this).")
+            getLogger().info("Resolved booted simulator UDID: %s", resolved)
+            self.device_id = resolved
+
+        self._run_quiet(['xcrun', 'simctl', 'uninstall', self.device_id, bundle_id])
 
     # ── Unified Operations ───────────────────────────────────────────
 
