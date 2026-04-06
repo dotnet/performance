@@ -323,6 +323,8 @@ jobs:
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           additionalJobIdentifier: 'R2RInterpreter'
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # run coreclr crossgen perf job
   - ${{ if false }}: # Disabling as all crossgen jobs are failing at the moment - https://github.com/dotnet/performance/issues/4819
