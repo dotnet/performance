@@ -68,6 +68,12 @@ parameters:
       enabled: true
       configs:
         - linux_arm64
+  - name: cobaltMicroR2RInterpreter
+    type: object
+    default:
+      enabled: true
+      configs:
+        - linux_arm64
   - name: androidCoreclrR2r
     type: object
     default:
@@ -322,6 +328,25 @@ jobs:
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
+
+  # CoreCLR Cobalt microbenchmarks Composite R2R with interpreter fallback — controlled by cobaltMicroR2RInterpreter toggle.
+  # Excluded on release branches — the coreclr_r2r_interpreter build doesn't exist in older runtime branches.
+  - ${{ if and(eq(parameters.cobaltMicroR2RInterpreter.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: coreclr
+        platforms: ${{ parameters.cobaltMicroR2RInterpreter.configs }}
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runtimeType: coreclr_r2r_interpreter
+          runKind: micro
+          logicalMachine: 'perfcobalt'
+          osDistro: 'azurelinux'
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          additionalJobIdentifier: 'R2RInterpreter'
 
   # run coreclr crossgen perf job
   - ${{ if false }}: # Disabling as all crossgen jobs are failing at the moment - https://github.com/dotnet/performance/issues/4819
