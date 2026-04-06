@@ -35,7 +35,7 @@ jobs:
       parameters:
         android_arm64: true
           
-  - ${{ if containsValue(parameters.buildType, 'wasm') }}:
+  - ${{ if or(containsValue(parameters.buildType, 'wasm'), containsValue(parameters.buildType, 'wasm_coreclr')) }}:
     - template: /eng/pipelines/performance/templates/perf-wasm-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
     
   - ${{ if containsValue(parameters.buildType, 'monoAot_arm64_linux') }}:
