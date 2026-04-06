@@ -1101,6 +1101,7 @@ ex: C:\repos\performance;C:\repos\runtime
             try:
                 app_bundle = iosHelper.find_app_bundle(project_dir, exename, self.configuration)
                 iosHelper.setup_device(self.bundleid, app_bundle, self.deviceid, is_physical=is_physical)
+                iosHelper.sign_app_for_device(app_bundle)
                 first_install_ms = iosHelper.install_app(app_bundle)
                 first_startup_ms = iosHelper.measure_cold_startup(self.bundleid)
                 getLogger().info("First deploy: install=%.1f ms, startup=%d ms", first_install_ms, first_startup_ms)
@@ -1160,6 +1161,9 @@ ex: C:\repos\performance;C:\repos\runtime
                     except CalledProcessError:
                         getLogger().error("Incremental build %d failed. Binlog: %s", iteration, iter_binlog)
                         raise
+
+                    # Sign (device only — no-op for simulator)
+                    iosHelper.sign_app_for_device(app_bundle)
 
                     # Install + startup
                     install_ms = iosHelper.install_app(app_bundle)

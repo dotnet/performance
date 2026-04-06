@@ -198,6 +198,41 @@ class iOSHelper:
 
         self._run_quiet(['xcrun', 'simctl', 'uninstall', self.device_id, bundle_id])
 
+    # ── Device Code Signing ──────────────────────────────────────────
+
+    def sign_app_for_device(self, app_bundle_path):
+        """Sign the .app bundle for physical device deployment.
+
+        Mirrors the signing flow from maui_scenarios_ios.proj device startup:
+          1. Copy embedded.mobileprovision into the .app bundle
+          2. Run the Helix-provided 'sign' tool
+
+        Both 'embedded.mobileprovision' and 'sign' are pre-installed on the
+        Mac.iPhone.17.Perf Helix machines. The build must use
+        EnableCodeSigning=false so MSBuild skips automatic signing.
+
+        No-op for simulator builds.
+        """
+        if not self.is_physical_device:
+            return
+
+        import shutil
+        provision_src = 'embedded.mobileprovision'
+        provision_dst = os.path.join(app_bundle_path, 'embedded.mobileprovision')
+
+        if not os.path.exists(provision_src):
+            getLogger().warning(
+                "embedded.mobileprovision not found in working directory. "
+                "Device signing may fail if the Helix machine doesn't have it.")
+        else:
+            shutil.copy2(provision_src, provision_dst)
+            getLogger().info("Copied provisioning profile into %s", app_bundle_path)
+
+        app_name = os.path.basename(app_bundle_path)
+        app_dir = os.path.dirname(os.path.abspath(app_bundle_path))
+        getLogger().info("Signing %s for device deployment", app_name)
+        RunCommand(['sign', app_name], verbose=True).run(working_directory=app_dir)
+
     # ── Unified Operations ───────────────────────────────────────────
 
     def install_app(self, app_bundle_path):

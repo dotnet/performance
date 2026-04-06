@@ -17,7 +17,11 @@
          queue runs on Intel x64 machines (e.g. DNCENGMAC045). -->
     <iOSRid Condition="'$(iOSRid)' == ''">iossimulator-x64</iOSRid>
     <_MSBuildArgs>$(_MSBuildArgs) /p:RuntimeIdentifier=$(iOSRid)</_MSBuildArgs>
-
+    <!-- Device builds: disable automatic code signing during 'dotnet build'.
+         Signing is handled post-build by ioshelper.sign_app_for_device() using
+         the provisioning profile and 'sign' tool pre-installed on the Helix
+         machines (same flow as maui_scenarios_ios.proj device startup). -->
+    <_MSBuildArgs Condition="'$(iOSRid)' == 'ios-arm64'">$(_MSBuildArgs) /p:EnableCodeSigning=false</_MSBuildArgs>
     <!-- Disable managed linker for inner loop builds. Debug configuration
          doesn't need linking, and it avoids ILLink errors (MT0180) on Helix
          machines with older Xcode versions that lack the required SDK headers. -->
@@ -88,13 +92,11 @@
   </ItemGroup>
 
   <!-- Physical device workitem: runs on macOS machines with USB-connected
-       iPhones (Mac.iPhone.17.Perf queue). Uses xcrun devicectl for deploy
-       instead of xcrun simctl.
-       Code signing is handled by the Xcode toolchain during 'dotnet build' —
-       the Mac.iPhone.17.Perf Helix machines have development signing identities
-       and provisioning profiles pre-installed. Physical device builds
-       automatically enable code signing (unlike simulator builds which require
-       EnableCodeSigning=false). -->
+       iPhones (Mac.iPhone.17.Perf queue).
+       Code signing is disabled during 'dotnet build' (EnableCodeSigning=false)
+       and handled post-build: ioshelper copies embedded.mobileprovision into
+       the .app and runs the Helix-provided 'sign' tool — same flow as
+       maui_scenarios_ios.proj device startup scenarios. -->
   <ItemGroup Condition="'$(iOSRid)' == 'ios-arm64'">
     <HelixWorkItem Include="@(MAUIiOSInnerLoopScenario -> 'Inner Loop Device - %(Identity)')">
       <PreCommands>$(_MacEnvVars);export IOS_RID=$(iOSRid);$(Python) setup_helix.py $(PERFLAB_Framework)-ios &quot;$(_MSBuildArgs)&quot; || exit $?</PreCommands>
