@@ -30,7 +30,7 @@ namespace BenchmarkDotNet.Extensions
                 .Select(benchmarkId => new ValidationError(
                     isCritical: TreatsWarningsAsErrors,
                     $"{benchmarkId} does not belong to one of the mandatory categories: {string.Join(", ", _mandatoryCategories)}. Use [BenchmarkCategory(Categories.$)]"))
-                .AsAsyncEnumerable();
+                .ToAsyncEnumerable();
         }
     }
 }

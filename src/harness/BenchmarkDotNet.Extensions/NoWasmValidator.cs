@@ -32,7 +32,7 @@ namespace BenchmarkDotNet.Extensions
                 .Select(benchmarkId => new ValidationError(
                     isCritical: TreatsWarningsAsErrors,
                     $"{benchmarkId} returns an awaitable object and has no: {_noWasmCategory} category applied. Use [BenchmarkCategory(Categories.NoWASM)]"))
-                .AsAsyncEnumerable();
+                .ToAsyncEnumerable();
         }
 
         private bool IsAsyncMethod(MethodInfo workloadMethod)

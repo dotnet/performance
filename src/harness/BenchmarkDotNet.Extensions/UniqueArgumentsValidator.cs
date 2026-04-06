@@ -27,7 +27,7 @@ namespace BenchmarkDotNet.Extensions
                     return numberOfTestCases != numberOfUniqueTestCases;
                 })
                 .Select(duplicate => new ValidationError(true, $"Benchmark Arguments should be unique, {duplicate.Key.Type}.{duplicate.Key.WorkloadMethod} has duplicate arguments.", duplicate.First()))
-                .AsAsyncEnumerable();
+                .ToAsyncEnumerable();
         }
 
         private class BenchmarkArgumentsComparer : IEqualityComparer<BenchmarkCase>
