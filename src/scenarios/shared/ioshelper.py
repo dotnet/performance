@@ -231,7 +231,34 @@ class iOSHelper:
         app_name = os.path.basename(app_bundle_path)
         app_dir = os.path.dirname(os.path.abspath(app_bundle_path))
         getLogger().info("Signing %s for device deployment", app_name)
-        RunCommand(['sign', app_name], verbose=True).run(working_directory=app_dir)
+
+        # Find the sign tool — it's pre-installed on Helix Mac machines
+        # but may not be on PATH in HelixWorkItem (vs XHarness) runners
+        sign_cmd = shutil.which('sign')
+        if not sign_cmd:
+            # Search common Helix machine locations
+            for candidate in ['/usr/local/bin/sign',
+                              os.path.join(os.environ.get('HELIX_SCRIPT_ROOT', ''), 'sign')]:
+                if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+                    sign_cmd = candidate
+                    break
+        if not sign_cmd:
+            # Last resort: try via login shell which may have broader PATH
+            try:
+                result = subprocess.run(
+                    ['bash', '-lc', 'which sign'],
+                    capture_output=True, text=True, timeout=5)
+                if result.returncode == 0 and result.stdout.strip():
+                    sign_cmd = result.stdout.strip()
+            except Exception:
+                pass
+        if not sign_cmd:
+            raise FileNotFoundError(
+                "Could not find 'sign' tool on this machine. "
+                "PATH=" + os.environ.get('PATH', ''))
+
+        getLogger().info("Using sign tool: %s", sign_cmd)
+        RunCommand([sign_cmd, app_name], verbose=True).run(working_directory=app_dir)
 
     # ── Unified Operations ───────────────────────────────────────────
 
