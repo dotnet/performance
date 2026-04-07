@@ -4,12 +4,19 @@
 Runs on the Helix machine BEFORE test.py. Bootstraps the macOS environment
 for iOS builds:
   1. Configure DOTNET_ROOT and PATH from the correlation payload SDK.
-  2. Select the correct Xcode version (highest versioned Xcode_*.app).
+  2. Log the system Xcode version (diagnostic only — no switching).
   3. Validate iOS simulator runtime availability.
   4. Boot the target iOS simulator device.
   5. Install the maui-ios workload.
   6. Restore NuGet packages for the app project.
   7. Disable Spotlight indexing on the workitem directory.
+
+Xcode selection strategy: this script trusts the system-default Xcode that
+is already configured on the Helix machine. The build agent's
+PreparePayloadWorkItem (in maui_scenarios_ios_innerloop.proj) selects the
+highest versioned Xcode_*.app — that is the only place Xcode switching
+happens. This matches the working "Device Startup - iOS" scenario
+(maui_scenarios_ios.proj), which does no Xcode manipulation on Helix.
 """
 
 import os
@@ -100,96 +107,21 @@ def setup_dotnet(correlation_payload):
 
 
 def select_xcode():
-    """Select the highest versioned Xcode_*.app installation.
+    """Log the current system Xcode for diagnostics (no switching).
 
-    Follows the same pattern as maui_scenarios_ios.proj PreparePayloadWorkItem:
-    find /Applications -maxdepth 1 -type d -name 'Xcode_*.app' | sort ... | tail -1
+    The working "Device Startup - iOS" scenario (maui_scenarios_ios.proj)
+    does NO Xcode manipulation on the Helix machine — it trusts the system
+    default. We follow the same approach: Xcode selection only happens on
+    the build agent via PreparePayloadWorkItem in the .proj file.
 
-    This avoids runner-image symlink aliases that don't work with the iOS SDK.
-    If XCODE_PATH env var is already set, uses that instead of auto-detecting.
+    This function only logs what's already configured so we have diagnostic
+    info if builds fail.
     """
-    log_raw("=== XCODE SELECTION ===", tee=True)
-
-    xcode_path = os.environ.get("XCODE_PATH", "")
-    if not xcode_path:
-        # Auto-detect: find highest versioned Xcode_*.app
-        result = run_cmd(
-            ["find", "/Applications", "-maxdepth", "1", "-type", "d",
-             "-name", "Xcode_*.app"],
-            check=False,
-        )
-        candidates = [line.strip() for line in (result.stdout or "").splitlines()
-                      if line.strip()]
-        if not candidates:
-            log("WARNING: No Xcode_*.app found in /Applications. "
-                "Falling back to system default Xcode.", tee=True)
-            run_cmd(["xcode-select", "-p"], check=False)
-            run_cmd(["xcodebuild", "-version"], check=False)
-            return
-
-        # Sort by version number (Xcode_16.2.app → key on "16.2").
-        # Use tuple-of-ints to get correct version ordering (e.g., 16.10 > 16.2).
-        def _xcode_version_key(path):
-            ver = path.rsplit("_", 1)[-1].replace(".app", "")
-            try:
-                return tuple(int(x) for x in ver.split('.'))
-            except ValueError:
-                return (0,)
-        candidates.sort(key=_xcode_version_key)
-        xcode_path = candidates[-1]
-
-    log(f"Selected Xcode: {xcode_path}", tee=True)
-
-    if not os.path.isdir(os.path.join(xcode_path, "Contents", "Developer")):
-        log(f"WARNING: {xcode_path} does not look like a valid Xcode installation "
-            "(missing Contents/Developer)", tee=True)
-        return
-
-    # Use sudo xcode-select -s to switch the system Xcode (same as .proj pattern)
-    result = run_cmd(
-        ["sudo", "xcode-select", "-s", xcode_path],
-        check=False,
-    )
-    if result.returncode != 0:
-        log(f"WARNING: xcode-select -s failed (exit {result.returncode}). "
-            "Falling back to DEVELOPER_DIR.", tee=True)
-        os.environ["DEVELOPER_DIR"] = os.path.join(xcode_path, "Contents", "Developer")
-    else:
-        log(f"Xcode switched to: {xcode_path}")
-
-    # Log the active Xcode version for diagnostics
+    log_raw("=== XCODE DIAGNOSTICS ===", tee=True)
+    log("Trusting system-default Xcode (matches Device Startup scenario approach).",
+        tee=True)
+    run_cmd(["xcode-select", "-p"], check=False)
     run_cmd(["xcodebuild", "-version"], check=False)
-
-
-def _validate_xcode_version(min_major=26):
-    """Fail fast if the active Xcode is too old for iOS inner loop builds.
-
-    Parses the version from 'xcodebuild -version' (e.g. "Xcode 15.0" → 15)
-    and exits with a clear diagnostic if the major version is below *min_major*.
-    """
-    result = run_cmd(["xcodebuild", "-version"], check=False)
-    if result.returncode != 0 or not result.stdout:
-        log("WARNING: Could not determine Xcode version — skipping check.", tee=True)
-        return
-
-    import re
-    m = re.search(r"Xcode\s+(\d+)\.(\d+)", result.stdout)
-    if not m:
-        log("WARNING: Could not parse Xcode version from output — skipping check.",
-            tee=True)
-        return
-
-    major, minor = int(m.group(1)), int(m.group(2))
-    if major < min_major:
-        log(f"ERROR: Xcode version {major}.{minor} is too old. "
-            f"iOS inner loop requires Xcode {min_major}.0 or later. "
-            "This Helix machine cannot run iOS inner loop measurements.",
-            tee=True)
-        _dump_log()
-        sys.exit(1)
-
-    log(f"Xcode version {major}.{minor} meets minimum requirement "
-        f"(>= {min_major}.0)", tee=True)
 
 
 def validate_simulator_runtimes():
@@ -349,91 +281,6 @@ def install_workload(ctx):
         sys.exit(1)
 
     log("maui-ios workload installed successfully")
-
-
-def _reselect_xcode_for_sdk(framework):
-    """Re-select Xcode to match the installed iOS SDK's required version.
-
-    After workload install, the iOS SDK pack's Versions.props declares
-    _RecommendedXcodeVersion. If the currently active Xcode doesn't match,
-    look for a matching Xcode_*.app and switch to it.
-    """
-    import glob
-    import re
-
-    log_raw("=== XCODE SDK COMPATIBILITY CHECK ===", tee=True)
-
-    # 1. Get the active Xcode version
-    result = run_cmd(["xcodebuild", "-version"], check=False)
-    if result.returncode != 0 or not result.stdout:
-        log("WARNING: Could not determine active Xcode version — skipping", tee=True)
-        return
-    m = re.search(r'Xcode\s+(\d+\.\d+)', result.stdout)
-    if not m:
-        log("WARNING: Could not parse Xcode version — skipping", tee=True)
-        return
-    active_xcode = m.group(1)
-
-    # 2. Find the SDK's _RecommendedXcodeVersion
-    dotnet_root = os.environ.get("DOTNET_ROOT", "")
-    if not dotnet_root:
-        log("WARNING: DOTNET_ROOT not set — skipping Xcode SDK check", tee=True)
-        return
-    tfm_prefix = framework.split('-')[0] if '-' in framework else framework
-    search = os.path.join(
-        dotnet_root, 'packs', f'Microsoft.iOS.Sdk.{tfm_prefix}_*',
-        '*', 'targets', 'Microsoft.iOS.Sdk.Versions.props'
-    )
-    props_files = sorted(glob.glob(search))
-    if not props_files:
-        log(f"WARNING: No iOS SDK Versions.props found ({search}) — skipping", tee=True)
-        return
-    with open(props_files[-1], 'r') as f:
-        content = f.read()
-    rec = re.search(r'<_RecommendedXcodeVersion>([^<]+)</_RecommendedXcodeVersion>', content)
-    if not rec:
-        log("WARNING: _RecommendedXcodeVersion not found in Versions.props", tee=True)
-        return
-    required_xcode = rec.group(1)
-
-    # 3. Compare major.minor
-    active_mm = '.'.join(active_xcode.split('.')[:2])
-    required_mm = '.'.join(required_xcode.split('.')[:2])
-    if active_mm == required_mm:
-        log(f"Xcode {active_xcode} matches SDK requirement ({required_xcode})", tee=True)
-        return
-
-    log(f"Xcode mismatch: active={active_xcode}, SDK requires={required_xcode}. "
-        f"Looking for Xcode_{required_mm}*.app ...", tee=True)
-
-    # 4. Find a matching Xcode installation
-    find_result = run_cmd(
-        ["find", "/Applications", "-maxdepth", "1", "-type", "d",
-         "-name", f"Xcode_{required_mm}*.app"],
-        check=False,
-    )
-    candidates = [l.strip() for l in (find_result.stdout or "").splitlines() if l.strip()]
-    if not candidates:
-        log(f"WARNING: No Xcode_{required_mm}*.app found in /Applications. "
-            f"Continuing with Xcode {active_xcode} — build may fail.", tee=True)
-        return
-
-    # Pick the best match (sort by version, take highest patch)
-    def _ver_key(path):
-        ver = path.rsplit("_", 1)[-1].replace(".app", "")
-        try:
-            return tuple(int(x) for x in ver.split('.'))
-        except ValueError:
-            return (0,)
-    candidates.sort(key=_ver_key)
-    target = candidates[-1]
-
-    log(f"Switching Xcode to: {target}", tee=True)
-    result = run_cmd(["sudo", "xcode-select", "-s", target], check=False)
-    if result.returncode != 0:
-        log(f"WARNING: xcode-select -s failed — setting DEVELOPER_DIR instead", tee=True)
-        os.environ["DEVELOPER_DIR"] = os.path.join(target, "Contents", "Developer")
-    run_cmd(["xcodebuild", "-version"], check=False)
 
 
 def restore_packages(ctx):
@@ -623,14 +470,11 @@ def main():
     ctx["dotnet_exe"] = setup_dotnet(correlation_payload)
     print_diagnostics()
 
-    # Step 2: Select the correct Xcode version
+    # Step 2: Log the system Xcode for diagnostics (no switching).
+    # Xcode selection happens on the build agent (PreparePayloadWorkItem in
+    # the .proj file). On Helix we trust the system default — same approach
+    # as the working "Device Startup - iOS" scenario.
     select_xcode()
-
-    # Step 2b: Validate minimum Xcode version for iOS inner loop builds.
-    # Machines with Xcode < 26 cannot build .NET MAUI iOS apps targeting the
-    # iOS 26+ SDK. Fail fast with a clear message instead of waiting 10+ min
-    # for ILLink to crash with MT0180.
-    _validate_xcode_version()
 
     # Step 3 & 4: Device-type-specific setup
     if is_physical_device:
@@ -654,10 +498,6 @@ def main():
     # Step 5: Install the maui-ios workload
     # Must happen BEFORE restore because restore needs workload packs
     install_workload(ctx)
-
-    # Step 5b: Re-select Xcode to match the installed iOS SDK's requirement.
-    # Step 2 picks the highest Xcode, but the SDK may need an older one.
-    _reselect_xcode_for_sdk(framework)
 
     # Step 6: Restore NuGet packages
     restore_packages(ctx)
