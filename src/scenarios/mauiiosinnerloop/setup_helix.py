@@ -4,19 +4,19 @@
 Runs on the Helix machine BEFORE test.py. Bootstraps the macOS environment
 for iOS builds:
   1. Configure DOTNET_ROOT and PATH from the correlation payload SDK.
-  2. Log the system Xcode version (diagnostic only — no switching).
+  2. Select the highest versioned Xcode_*.app in /Applications.
   3. Validate iOS simulator runtime availability.
   4. Boot the target iOS simulator device.
   5. Install the maui-ios workload.
   6. Restore NuGet packages for the app project.
   7. Disable Spotlight indexing on the workitem directory.
 
-Xcode selection strategy: this script trusts the system-default Xcode that
-is already configured on the Helix machine. The build agent's
-PreparePayloadWorkItem (in maui_scenarios_ios_innerloop.proj) selects the
-highest versioned Xcode_*.app — that is the only place Xcode switching
-happens. This matches the working "Device Startup - iOS" scenario
-(maui_scenarios_ios.proj), which does no Xcode manipulation on Helix.
+Xcode selection strategy: Helix machines may have multiple Xcode versions
+installed (e.g., Xcode 15.0 and Xcode_26.2.app) with varying defaults.
+This script actively selects the highest versioned Xcode_*.app via
+``sudo xcode-select -s`` to ensure builds use the correct SDK. This is
+necessary because — unlike Device Startup which pre-builds on the build
+agent — Inner Loop builds ON the Helix machine itself.
 """
 
 import os
@@ -107,21 +107,104 @@ def setup_dotnet(correlation_payload):
 
 
 def select_xcode():
-    """Log the current system Xcode for diagnostics (no switching).
+    """Select the highest versioned Xcode_*.app on this Helix machine.
 
-    The working "Device Startup - iOS" scenario (maui_scenarios_ios.proj)
-    does NO Xcode manipulation on the Helix machine — it trusts the system
-    default. We follow the same approach: Xcode selection only happens on
-    the build agent via PreparePayloadWorkItem in the .proj file.
+    Helix machines have multiple Xcode versions installed (e.g., Xcode 15.0
+    and Xcode_26.2.app) with varying defaults. Inner Loop builds ON the
+    Helix machine, so we must actively select the correct Xcode — unlike
+    Device Startup which pre-builds on the build agent.
 
-    This function only logs what's already configured so we have diagnostic
-    info if builds fail.
+    Selection order:
+      1. XCODE_PATH env var (explicit override)
+      2. Highest versioned /Applications/Xcode_*.app (auto-detected)
+      3. DEVELOPER_DIR env var (fallback if xcode-select fails)
+      4. System default (if no Xcode_*.app found — build may fail naturally)
     """
-    log_raw("=== XCODE DIAGNOSTICS ===", tee=True)
-    log("Trusting system-default Xcode (matches Device Startup scenario approach).",
-        tee=True)
-    run_cmd(["xcode-select", "-p"], check=False)
+    import re as _re
+
+    log_raw("=== XCODE SELECTION ===", tee=True)
+
+    # 1. Check for explicit override via env var
+    xcode_path = os.environ.get("XCODE_PATH", "").strip()
+    if xcode_path:
+        log(f"XCODE_PATH override: {xcode_path}", tee=True)
+        if os.path.isdir(xcode_path):
+            _try_xcode_select(xcode_path)
+            run_cmd(["xcodebuild", "-version"], check=False)
+            return
+        else:
+            log(f"WARNING: XCODE_PATH '{xcode_path}' does not exist, "
+                "falling through to auto-detection.", tee=True)
+
+    # 2. Auto-detect: find all Xcode_*.app in /Applications
+    result = run_cmd(
+        ["find", "/Applications", "-maxdepth", "1", "-type", "d",
+         "-name", "Xcode_*.app"],
+        check=False,
+    )
+    candidates = [
+        line.strip() for line in (result.stdout or "").splitlines()
+        if line.strip()
+    ]
+
+    if not candidates:
+        log("WARNING: No Xcode_*.app found in /Applications. "
+            "Trusting system default Xcode.", tee=True)
+        run_cmd(["xcode-select", "-p"], check=False)
+        run_cmd(["xcodebuild", "-version"], check=False)
+        return
+
+    log(f"Found {len(candidates)} Xcode candidate(s):")
+    for c in candidates:
+        log(f"  {c}")
+
+    # Sort by version number extracted from the directory name.
+    # e.g., "Xcode_26.2.app" → (26, 2), "Xcode_15.0.app" → (15, 0)
+    def _version_key(path):
+        name = os.path.basename(path)
+        # Extract version digits from "Xcode_<version>.app"
+        m = _re.search(r'Xcode[_\s]+([\d.]+)', name)
+        if m:
+            return tuple(int(x) for x in m.group(1).split("."))
+        return (0,)
+
+    candidates.sort(key=_version_key)
+    selected = candidates[-1]  # highest version
+    log(f"Selected highest version: {selected}", tee=True)
+
+    # 3. Switch Xcode
+    if not _try_xcode_select(selected):
+        # xcode-select failed — try DEVELOPER_DIR as fallback
+        developer_dir = os.environ.get("DEVELOPER_DIR", "").strip()
+        if developer_dir and os.path.isdir(developer_dir):
+            log(f"xcode-select failed; falling back to DEVELOPER_DIR={developer_dir}",
+                tee=True)
+        else:
+            # Set DEVELOPER_DIR to point to the selected Xcode's Developer dir
+            dev_path = os.path.join(selected, "Contents", "Developer")
+            if os.path.isdir(dev_path):
+                os.environ["DEVELOPER_DIR"] = dev_path
+                log(f"xcode-select failed; set DEVELOPER_DIR={dev_path}", tee=True)
+            else:
+                log("WARNING: xcode-select failed and no DEVELOPER_DIR fallback. "
+                    "Build may fail.", tee=True)
+
+    # 4. Log the active Xcode version for diagnostics
     run_cmd(["xcodebuild", "-version"], check=False)
+
+
+def _try_xcode_select(xcode_app_path):
+    """Run ``sudo xcode-select -s <path>`` and return True on success."""
+    result = run_cmd(
+        ["sudo", "xcode-select", "-s", xcode_app_path],
+        check=False,
+    )
+    if result.returncode == 0:
+        log(f"xcode-select switched to {xcode_app_path}")
+        return True
+    log(f"WARNING: xcode-select -s {xcode_app_path} failed "
+        f"(exit code {result.returncode})", tee=True)
+    return False
 
 
 def validate_simulator_runtimes():
@@ -475,10 +558,11 @@ def main():
     ctx["dotnet_exe"] = setup_dotnet(correlation_payload)
     print_diagnostics()
 
-    # Step 2: Log the system Xcode for diagnostics (no switching).
-    # Xcode selection happens on the build agent (PreparePayloadWorkItem in
-    # the .proj file). On Helix we trust the system default — same approach
-    # as the working "Device Startup - iOS" scenario.
+    # Step 2: Select the correct Xcode version.
+    # Helix machines may have multiple Xcode versions with varying defaults.
+    # Inner Loop builds ON the Helix machine, so we must actively select
+    # the highest Xcode_*.app — unlike Device Startup which pre-builds on
+    # the build agent.
     select_xcode()
 
     # Step 3 & 4: Device-type-specific setup
