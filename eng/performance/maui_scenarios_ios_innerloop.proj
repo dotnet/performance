@@ -76,10 +76,7 @@
        os.environ in a Python script (setup_helix.py) do not persist to
        subsequent commands (test.py, post.py) in the Helix shell session. -->
   <PropertyGroup>
-    <!-- /usr/local/bin is needed for the 'sign' tool on Helix device machines.
-         The HelixWorkItem runner sets a minimal PATH that excludes it, unlike
-         the XHarness runner used by Device Startup scenarios. -->
-    <_MacEnvVars>export DOTNET_ROOT=$HELIX_CORRELATION_PAYLOAD/dotnet;export DOTNET_CLI_TELEMETRY_OPTOUT=1;export DOTNET_MULTILEVEL_LOOKUP=0;export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages;export PATH=$HELIX_CORRELATION_PAYLOAD/dotnet:/usr/local/bin:$PATH</_MacEnvVars>
+    <_MacEnvVars>export DOTNET_ROOT=$HELIX_CORRELATION_PAYLOAD/dotnet;export DOTNET_CLI_TELEMETRY_OPTOUT=1;export DOTNET_MULTILEVEL_LOOKUP=0;export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages;export PATH=$HELIX_CORRELATION_PAYLOAD/dotnet:$PATH</_MacEnvVars>
   </PropertyGroup>
 
   <!-- Simulator workitem: only when NOT targeting physical devices.
