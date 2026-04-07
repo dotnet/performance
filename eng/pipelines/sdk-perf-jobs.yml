@@ -527,12 +527,13 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui Android inner loop benchmarks on Pixel (Mono Default) - Debug
+  # Maui Android inner loop benchmarks on devices (Mono Default) - Debug
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
         runKind: maui_scenarios_android_innerloop
@@ -546,12 +547,13 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui Android inner loop benchmarks on Pixel (CoreCLR Default) - Debug
+  # Maui Android inner loop benchmarks on devices (CoreCLR Default) - Debug
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
         runKind: maui_scenarios_android_innerloop
@@ -562,44 +564,6 @@ jobs:
         codeGenType: Default
         buildConfig: Debug
         additionalJobIdentifier: CoreCLR_Debug_InnerLoop
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # Maui Android inner loop benchmarks on Galaxy (Mono Default) - Debug
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android_innerloop
-        projectFileName: maui_scenarios_android_innerloop.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Debug
-        additionalJobIdentifier: Mono_Debug_InnerLoop_Galaxy
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # Maui Android inner loop benchmarks on Galaxy (CoreCLR Default) - Debug
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android_innerloop
-        projectFileName: maui_scenarios_android_innerloop.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: Default
-        buildConfig: Debug
-        additionalJobIdentifier: CoreCLR_Debug_InnerLoop_Galaxy
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
