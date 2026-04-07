@@ -268,6 +268,11 @@ def install_workload(ctx):
 
         retry_args = [
             ctx["dotnet_exe"], "workload", "install", "maui-ios",
+            # --skip-manifest-update prevents the SDK from pulling a newer
+            # manifest that may reference packs not yet published to all feeds.
+            # This matches PreCommands.install_workload() default behavior on
+            # the build agent (precommands.py).
+            "--skip-manifest-update",
         ]
         if os.path.isfile(nuget_config):
             retry_args.extend(["--configfile", nuget_config])
