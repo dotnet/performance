@@ -315,25 +315,27 @@ def boot_simulator(device_name):
 def install_workload(ctx):
     """Install the maui-ios workload using the shipped SDK.
 
-    Uses the rollback file created by pre.py to pin to the exact workload
-    version. Falls back to a plain install if no rollback file is present.
-    Always uses --ignore-failed-sources because dead NuGet feeds are common
-    in CI.
+    Uses --skip-manifest-update so the SDK's in-box manifest determines the
+    workload version. This ensures the installed iOS SDK packs are compatible
+    with the Xcode version available on this Helix machine.
+
+    We intentionally do NOT use the rollback file (rollback_maui.json) from
+    the build agent here. The rollback file pins to whatever version the
+    build agent's manifest resolved — which may reference a newer iOS SDK
+    that requires a Xcode version not yet installed on Helix machines. Using
+    the in-box manifest avoids this version skew.
     """
     log_raw("=== WORKLOAD INSTALL ===", tee=True)
 
-    rollback_file = os.path.join(ctx["workitem_root"], "rollback_maui.json")
     nuget_config = ctx["nuget_config"]
 
     install_args = [
         ctx["dotnet_exe"], "workload", "install", "maui-ios",
+        # --skip-manifest-update uses the in-box manifest bundled with the SDK,
+        # avoiding version skew where the feed manifest references iOS SDK packs
+        # that require a newer Xcode than what's on this Helix machine.
+        "--skip-manifest-update",
     ]
-
-    if os.path.isfile(rollback_file):
-        log(f"Using rollback file: {rollback_file}")
-        install_args.extend(["--from-rollback-file", rollback_file])
-    else:
-        log("No rollback_maui.json found — installing latest maui-ios workload")
 
     if os.path.isfile(nuget_config):
         install_args.extend(["--configfile", nuget_config])
@@ -342,28 +344,6 @@ def install_workload(ctx):
     install_args.append("--ignore-failed-sources")
 
     result = run_cmd(install_args, check=False)
-    if result.returncode != 0 and os.path.isfile(rollback_file):
-        # When a new manifest is published to the feed, referenced SDK packs
-        # may not have propagated to all NuGet feeds yet, causing
-        # "package NOT FOUND".  Retry without the rollback file so the SDK
-        # resolves a recent stable version that is already fully available.
-        log(f"WARNING: Workload install with rollback file failed "
-            f"(exit code {result.returncode}, possible NuGet version skew)", tee=True)
-        log("Retrying without rollback file (will use SDK default version)...", tee=True)
-
-        retry_args = [
-            ctx["dotnet_exe"], "workload", "install", "maui-ios",
-            # --skip-manifest-update prevents the SDK from pulling a newer
-            # manifest that may reference packs not yet published to all feeds.
-            # This matches PreCommands.install_workload() default behavior on
-            # the build agent (precommands.py).
-            "--skip-manifest-update",
-        ]
-        if os.path.isfile(nuget_config):
-            retry_args.extend(["--configfile", nuget_config])
-        retry_args.append("--ignore-failed-sources")
-
-        result = run_cmd(retry_args, check=False)
 
     if result.returncode != 0:
         log(f"WORKLOAD INSTALL FAILED (exit code {result.returncode})", tee=True)
