@@ -162,10 +162,12 @@ def select_xcode():
     # e.g., "Xcode_26.2.app" → (26, 2), "Xcode_15.0.app" → (15, 0)
     def _version_key(path):
         name = os.path.basename(path)
-        # Extract version digits from "Xcode_<version>.app"
-        m = _re.search(r'Xcode[_\s]+([\d.]+)', name)
+        # Extract version from "Xcode_26.2.app" → "26.2"
+        # Use [\d]+(?:\.[\d]+)* to avoid greedily capturing the trailing
+        # dot before ".app" (which [\d.]+ would do).
+        m = _re.search(r'Xcode[_\s]+([\d]+(?:\.[\d]+)*)', name)
         if m:
-            return tuple(int(x) for x in m.group(1).split("."))
+            return tuple(int(x) for x in m.group(1).split(".") if x)
         return (0,)
 
     candidates.sort(key=_version_key)
