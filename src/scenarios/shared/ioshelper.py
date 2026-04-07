@@ -233,32 +233,44 @@ class iOSHelper:
         getLogger().info("Signing %s for device deployment", app_name)
 
         # Find the sign tool — it's pre-installed on Helix Mac machines
-        # but may not be on PATH in HelixWorkItem (vs XHarness) runners
+        # but may not be on PATH in HelixWorkItem (vs XHarness) runners.
+        # Fast path: try direct resolution first, then fall back to running
+        # through a login shell (which is how Device Startup's XHarness
+        # CustomCommands find it — the login shell has the full PATH).
         sign_cmd = shutil.which('sign')
-        if not sign_cmd:
-            # Search common Helix machine locations
-            for candidate in ['/usr/local/bin/sign',
-                              os.path.join(os.environ.get('HELIX_SCRIPT_ROOT', ''), 'sign')]:
-                if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
-                    sign_cmd = candidate
-                    break
-        if not sign_cmd:
-            # Last resort: try via login shell which may have broader PATH
-            try:
-                result = subprocess.run(
-                    ['bash', '-lc', 'which sign'],
-                    capture_output=True, text=True, timeout=5)
-                if result.returncode == 0 and result.stdout.strip():
-                    sign_cmd = result.stdout.strip()
-            except Exception:
-                pass
-        if not sign_cmd:
-            raise FileNotFoundError(
-                "Could not find 'sign' tool on this machine. "
-                "PATH=" + os.environ.get('PATH', ''))
+        if sign_cmd:
+            getLogger().info("Found sign tool on PATH: %s", sign_cmd)
+            RunCommand([sign_cmd, app_name], verbose=True).run(working_directory=app_dir)
+            return
 
-        getLogger().info("Using sign tool: %s", sign_cmd)
-        RunCommand([sign_cmd, app_name], verbose=True).run(working_directory=app_dir)
+        # Check known Helix machine locations
+        for candidate in ['/usr/local/bin/sign',
+                          os.path.join(os.environ.get('HELIX_SCRIPT_ROOT', ''), 'sign')]:
+            if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+                getLogger().info("Found sign tool at known path: %s", candidate)
+                RunCommand([candidate, app_name], verbose=True).run(working_directory=app_dir)
+                return
+
+        # Last resort: run through a login shell to get the full PATH.
+        # This mirrors how Device Startup's XHarness CustomCommands execute
+        # 'sign' — the XHarness runner's shell has the right PATH.
+        getLogger().info("sign tool not found on PATH or known locations; "
+                         "trying login shell (bash -lc)")
+        shell_result = subprocess.run(
+            ['bash', '-lc', f'cd "{app_dir}" && sign "{app_name}"'],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        )
+        if shell_result.stdout:
+            getLogger().info("sign output:\n%s", shell_result.stdout)
+        if shell_result.returncode != 0:
+            raise FileNotFoundError(
+                f"Could not run 'sign' tool via any method. "
+                f"Tried: shutil.which('sign'), /usr/local/bin/sign, "
+                f"HELIX_SCRIPT_ROOT/sign, bash -lc 'sign'. "
+                f"Login shell exit code: {shell_result.returncode}. "
+                f"PATH={os.environ.get('PATH', '')}"
+            )
+        getLogger().info("Signed %s via login shell successfully", app_name)
 
     # ── Unified Operations ───────────────────────────────────────────
 
