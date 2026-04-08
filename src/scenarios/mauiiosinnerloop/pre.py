@@ -84,17 +84,28 @@ def install_maui_ios_workload(precommands: PreCommands):
         raise Exception(f"No packages available for {workload} after filtering")
 
     latest = packages[0]
-    logger.info(f"Latest package on feed: ID={latest['id']}, Version={latest['latestVersion']}, SDK={latest['sdk_version']}")
+    logger.info(f"Latest package: ID={latest['id']}, Version={latest['latestVersion']}, SDK={latest['sdk_version']}")
 
-    # Install maui-ios using --skip-manifest-update (the default).
-    # We intentionally do NOT use the rollback file here. The rollback file
-    # pins to whatever the latest feed manifest resolves (e.g., iOS SDK 26.4),
-    # but those packs go into the correlation payload and then onto Helix
-    # machines which may only have an older Xcode (e.g., 26.2). Using
-    # --skip-manifest-update installs the version from the SDK's in-box
-    # manifest, which is compatible with the SDK release and the Xcode
-    # version it was designed for.
-    precommands.install_workload('maui-ios')
+    # Create rollback file with only the iOS workload
+    rollback_value = f"{latest['latestVersion']}/{latest['sdk_version']}"
+    rollback_dict = {workload: rollback_value}
+    logger.info(f"Rollback dictionary: {rollback_dict}")
+    with open("rollback_maui.json", "w", encoding="utf-8") as f:
+        f.write(json.dumps(rollback_dict, indent=4))
+    logger.info("Created rollback_maui.json file")
+
+    # Install maui-ios (not 'maui') — only installs iOS components.
+    # Uses --from-rollback-file to pin to the latest nightly packs from the
+    # feed. When a new manifest is published, referenced SDK packs may not
+    # have propagated to all NuGet feeds yet, causing "package NOT FOUND".
+    # Fall back to installing without the rollback file, which lets the SDK
+    # resolve a recent stable version that is already fully available.
+    try:
+        precommands.install_workload('maui-ios', ['--from-rollback-file', 'rollback_maui.json'])
+    except Exception as e:
+        logger.warning(f"Workload install with rollback file failed (possible NuGet version skew): {e}")
+        logger.info("Retrying without rollback file (will use SDK default version)...")
+        precommands.install_workload('maui-ios')
     logger.info("########## Finished installing maui-ios workload ##########")
 
 def check_xcode_compatibility(framework: str):

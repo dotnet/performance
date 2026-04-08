@@ -4,19 +4,17 @@
 Runs on the Helix machine BEFORE test.py. Bootstraps the macOS environment
 for iOS builds:
   1. Configure DOTNET_ROOT and PATH from the correlation payload SDK.
-  2. Select the highest versioned Xcode_*.app in /Applications.
+  2. Log the system Xcode version (diagnostic only — no switching).
   3. Validate iOS simulator runtime availability.
   4. Boot the target iOS simulator device.
   5. Install the maui-ios workload.
   6. Restore NuGet packages for the app project.
   7. Disable Spotlight indexing on the workitem directory.
 
-Xcode selection strategy: Helix machines may have multiple Xcode versions
-installed (e.g., Xcode 15.0 and Xcode_26.2.app) with varying defaults.
-This script actively selects the highest versioned Xcode_*.app via
-``sudo xcode-select -s`` to ensure builds use the correct SDK. This is
-necessary because — unlike Device Startup which pre-builds on the build
-agent — Inner Loop builds ON the Helix machine itself.
+Xcode selection strategy: this script trusts the system-default Xcode that
+is already configured on the Helix machine. The SDK validates Xcode
+compatibility at build time (_ValidateXcodeVersion), which will produce a
+clear error if there's a mismatch. We log the version here for diagnostics.
 """
 
 import os
@@ -107,106 +105,14 @@ def setup_dotnet(correlation_payload):
 
 
 def select_xcode():
-    """Select the highest versioned Xcode_*.app on this Helix machine.
+    """Log the current system Xcode for diagnostics (no switching).
 
-    Helix machines have multiple Xcode versions installed (e.g., Xcode 15.0
-    and Xcode_26.2.app) with varying defaults. Inner Loop builds ON the
-    Helix machine, so we must actively select the correct Xcode — unlike
-    Device Startup which pre-builds on the build agent.
-
-    Selection order:
-      1. XCODE_PATH env var (explicit override)
-      2. Highest versioned /Applications/Xcode_*.app (auto-detected)
-      3. DEVELOPER_DIR env var (fallback if xcode-select fails)
-      4. System default (if no Xcode_*.app found — build may fail naturally)
+    The SDK validates Xcode compatibility at build time via
+    _ValidateXcodeVersion — if there's a mismatch, the build will fail with
+    a clear error. We just log the version here for diagnostic purposes.
     """
-    import re as _re
-
-    log_raw("=== XCODE SELECTION ===", tee=True)
-
-    # 1. Check for explicit override via env var
-    xcode_path = os.environ.get("XCODE_PATH", "").strip()
-    if xcode_path:
-        log(f"XCODE_PATH override: {xcode_path}", tee=True)
-        if os.path.isdir(xcode_path):
-            _try_xcode_select(xcode_path)
-            run_cmd(["xcodebuild", "-version"], check=False)
-            return
-        else:
-            log(f"WARNING: XCODE_PATH '{xcode_path}' does not exist, "
-                "falling through to auto-detection.", tee=True)
-
-    # 2. Auto-detect: find all Xcode_*.app in /Applications
-    result = run_cmd(
-        ["find", "/Applications", "-maxdepth", "1", "-type", "d",
-         "-name", "Xcode_*.app"],
-        check=False,
-    )
-    candidates = [
-        line.strip() for line in (result.stdout or "").splitlines()
-        if line.strip()
-    ]
-
-    if not candidates:
-        log("WARNING: No Xcode_*.app found in /Applications. "
-            "Trusting system default Xcode.", tee=True)
-        run_cmd(["xcode-select", "-p"], check=False)
-        run_cmd(["xcodebuild", "-version"], check=False)
-        return
-
-    log(f"Found {len(candidates)} Xcode candidate(s):")
-    for c in candidates:
-        log(f"  {c}")
-
-    # Sort by version number extracted from the directory name.
-    # e.g., "Xcode_26.2.app" → (26, 2), "Xcode_15.0.app" → (15, 0)
-    def _version_key(path):
-        name = os.path.basename(path)
-        # Extract version from "Xcode_26.2.app" → "26.2"
-        # Use [\d]+(?:\.[\d]+)* to avoid greedily capturing the trailing
-        # dot before ".app" (which [\d.]+ would do).
-        m = _re.search(r'Xcode[_\s]+([\d]+(?:\.[\d]+)*)', name)
-        if m:
-            return tuple(int(x) for x in m.group(1).split(".") if x)
-        return (0,)
-
-    candidates.sort(key=_version_key)
-    selected = candidates[-1]  # highest version
-    log(f"Selected highest version: {selected}", tee=True)
-
-    # 3. Switch Xcode
-    if not _try_xcode_select(selected):
-        # xcode-select failed — try DEVELOPER_DIR as fallback
-        developer_dir = os.environ.get("DEVELOPER_DIR", "").strip()
-        if developer_dir and os.path.isdir(developer_dir):
-            log(f"xcode-select failed; falling back to DEVELOPER_DIR={developer_dir}",
-                tee=True)
-        else:
-            # Set DEVELOPER_DIR to point to the selected Xcode's Developer dir
-            dev_path = os.path.join(selected, "Contents", "Developer")
-            if os.path.isdir(dev_path):
-                os.environ["DEVELOPER_DIR"] = dev_path
-                log(f"xcode-select failed; set DEVELOPER_DIR={dev_path}", tee=True)
-            else:
-                log("WARNING: xcode-select failed and no DEVELOPER_DIR fallback. "
-                    "Build may fail.", tee=True)
-
-    # 4. Log the active Xcode version for diagnostics
+    log_raw("=== XCODE DIAGNOSTICS ===", tee=True)
     run_cmd(["xcodebuild", "-version"], check=False)
-
-
-def _try_xcode_select(xcode_app_path):
-    """Run ``sudo xcode-select -s <path>`` and return True on success."""
-    result = run_cmd(
-        ["sudo", "xcode-select", "-s", xcode_app_path],
-        check=False,
-    )
-    if result.returncode == 0:
-        log(f"xcode-select switched to {xcode_app_path}")
-        return True
-    log(f"WARNING: xcode-select -s {xcode_app_path} failed "
-        f"(exit code {result.returncode})", tee=True)
-    return False
 
 
 def validate_simulator_runtimes():
@@ -315,27 +221,25 @@ def boot_simulator(device_name):
 def install_workload(ctx):
     """Install the maui-ios workload using the shipped SDK.
 
-    Uses --skip-manifest-update so the SDK's in-box manifest determines the
-    workload version. This ensures the installed iOS SDK packs are compatible
-    with the Xcode version available on this Helix machine.
-
-    We intentionally do NOT use the rollback file (rollback_maui.json) from
-    the build agent here. The rollback file pins to whatever version the
-    build agent's manifest resolved — which may reference a newer iOS SDK
-    that requires a Xcode version not yet installed on Helix machines. Using
-    the in-box manifest avoids this version skew.
+    Uses the rollback file created by pre.py to pin to the exact workload
+    version (latest nightly packs). Falls back to a plain install if no
+    rollback file is present. Always uses --ignore-failed-sources because
+    dead NuGet feeds are common in CI.
     """
     log_raw("=== WORKLOAD INSTALL ===", tee=True)
 
+    rollback_file = os.path.join(ctx["workitem_root"], "rollback_maui.json")
     nuget_config = ctx["nuget_config"]
 
     install_args = [
         ctx["dotnet_exe"], "workload", "install", "maui-ios",
-        # --skip-manifest-update uses the in-box manifest bundled with the SDK,
-        # avoiding version skew where the feed manifest references iOS SDK packs
-        # that require a newer Xcode than what's on this Helix machine.
-        "--skip-manifest-update",
     ]
+
+    if os.path.isfile(rollback_file):
+        log(f"Using rollback file: {rollback_file}")
+        install_args.extend(["--from-rollback-file", rollback_file])
+    else:
+        log("No rollback_maui.json found — installing latest maui-ios workload")
 
     if os.path.isfile(nuget_config):
         install_args.extend(["--configfile", nuget_config])
@@ -344,6 +248,26 @@ def install_workload(ctx):
     install_args.append("--ignore-failed-sources")
 
     result = run_cmd(install_args, check=False)
+    if result.returncode != 0 and os.path.isfile(rollback_file):
+        # When a new manifest is published to the feed, referenced SDK packs
+        # may not have propagated to all NuGet feeds yet, causing
+        # "package NOT FOUND".  Retry without the rollback file so the SDK
+        # resolves a recent stable version that is already fully available.
+        log(f"WARNING: Workload install with rollback file failed "
+            f"(exit code {result.returncode}, possible NuGet version skew)", tee=True)
+        log("Retrying without rollback file (will use SDK default version)...", tee=True)
+
+        retry_args = [
+            ctx["dotnet_exe"], "workload", "install", "maui-ios",
+            # --skip-manifest-update prevents the SDK from pulling a newer
+            # manifest that may reference packs not yet published to all feeds.
+            "--skip-manifest-update",
+        ]
+        if os.path.isfile(nuget_config):
+            retry_args.extend(["--configfile", nuget_config])
+        retry_args.append("--ignore-failed-sources")
+
+        result = run_cmd(retry_args, check=False)
 
     if result.returncode != 0:
         log(f"WORKLOAD INSTALL FAILED (exit code {result.returncode})", tee=True)
@@ -540,11 +464,9 @@ def main():
     ctx["dotnet_exe"] = setup_dotnet(correlation_payload)
     print_diagnostics()
 
-    # Step 2: Select the correct Xcode version.
-    # Helix machines may have multiple Xcode versions with varying defaults.
-    # Inner Loop builds ON the Helix machine, so we must actively select
-    # the highest Xcode_*.app — unlike Device Startup which pre-builds on
-    # the build agent.
+    # Step 2: Log the system Xcode for diagnostics (no switching).
+    # The SDK validates Xcode compatibility at build time — if the installed
+    # packs require a newer Xcode, the build will fail with a clear error.
     select_xcode()
 
     # Step 3 & 4: Device-type-specific setup
