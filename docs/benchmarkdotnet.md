@@ -61,7 +61,7 @@ In order to build or run the benchmarks you will need the **.NET Core command-li
 
 ### Using .NET Cli
 
-To build the benchmarks you need to have the right `dotnet cli`. This repository allows you to benchmark .NET Core 3.1, .NET 6.0, .NET 7.0, and .NET 8.0 so you need to install all of them.
+To build the benchmarks you need the appropriate `dotnet` SDKs for the target frameworks you plan to run. By default, the microbenchmarks target current supported TFMs (`net8.0`, `net9.0`, and newer TFMs when your installed SDK supports them).
 
 All you need to do is run the following command:
 
@@ -72,11 +72,11 @@ dotnet build -c Release
 If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file.
 
 ```diff
--<TargetFrameworks>netcoreapp3.1;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
-+<TargetFrameworks>net9.0</TargetFrameworks>
+-<SupportedTargetFrameworks>net8.0;net9.0;net10.0</SupportedTargetFrameworks>
++<SupportedTargetFrameworks>net9.0</SupportedTargetFrameworks>
 ```
 
-The alternative is to set `PERFLAB_TARGET_FRAMEWORKS` environment variable to selected Target Framework Moniker.
+The alternative is to set `PERFLAB_TARGET_FRAMEWORKS` environment variable to selected Target Framework Moniker. For the common `dotnet run -c Release -f <tfm>` flow, the selected `-f` value is picked up automatically, so you don't need to set the environment variable just to run one target framework interactively.
 
 ### Using Python script
 
