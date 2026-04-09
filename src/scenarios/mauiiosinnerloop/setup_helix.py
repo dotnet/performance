@@ -4,22 +4,23 @@
 Runs on the Helix machine BEFORE test.py. Bootstraps the macOS environment
 for iOS builds:
   1. Configure DOTNET_ROOT and PATH from the correlation payload SDK.
-  2. Select and validate the system Xcode (>= 26.0).
+  2. Select the Xcode version that matches the iOS SDK workload packs.
   3. Validate iOS simulator runtime availability.
   4. Boot the target iOS simulator device.
   5. Install the maui-ios workload.
   6. Restore NuGet packages for the app project.
   7. Disable Spotlight indexing on the workitem directory.
 
-Xcode selection strategy: Helix machines in the Mac.iPhone.17.Perf pool may
-have multiple Xcode versions installed, and the default can vary per machine.
-This script first checks the system-default Xcode — if it's already >= 26.0,
-no switching is needed. Otherwise, it searches /Applications/Xcode_*.app for
-a newer version and activates it via ``sudo xcode-select -s``. This fails the
-work item early instead of wasting 20+ minutes on workload install before
-hitting _ValidateXcodeVersion.
+Xcode selection strategy: The iOS SDK packs require a SPECIFIC Xcode version
+(e.g. packs 26.2.x need Xcode 26.2). This script derives the required Xcode
+major.minor from the ``rollback_maui.json`` file created by pre.py (shipped in
+the workitem payload), then selects a matching ``/Applications/Xcode_*.app``.
+If rollback_maui.json is absent or unparseable, it falls back to a coarse
+``>= _MIN_XCODE_MAJOR`` check. This fails the work item early instead of
+wasting 20+ minutes on workload install before hitting _ValidateXcodeVersion.
 """
 
+import json
 import os
 import platform
 import re
@@ -128,37 +129,162 @@ def _parse_xcode_version(output):
     return None
 
 
-def select_xcode():
-    """Ensure the active Xcode meets the minimum version, selecting if needed.
+def _get_required_xcode_version(workitem_root):
+    """Derive the required Xcode major.minor from rollback_maui.json.
 
-    Checks the system-default Xcode first. If it's already >= _MIN_XCODE_MAJOR,
-    no switching is needed. Otherwise, searches /Applications/Xcode_*.app for
-    a higher version and activates it via ``sudo xcode-select -s``. Exits early
-    if no suitable Xcode is found to avoid wasting time on workload install.
+    The rollback file is created by pre.py and shipped in the workitem payload.
+    It contains e.g.::
+
+        {"microsoft.net.sdk.ios": "26.2.11591-net11-p4/11.0.100-preview.3"}
+
+    The version prefix ``26.2`` IS the required Xcode version (major.minor).
+    Returns ``(major, minor)`` as ints, or ``None`` if the file is absent or
+    unparseable.
+    """
+    rollback_path = os.path.join(workitem_root, "rollback_maui.json")
+    if not os.path.isfile(rollback_path):
+        log("rollback_maui.json not found — cannot derive required Xcode version")
+        return None
+
+    try:
+        with open(rollback_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        log(f"WARNING: Failed to read rollback_maui.json: {e}")
+        return None
+
+    ios_value = data.get("microsoft.net.sdk.ios")
+    if not ios_value:
+        log("WARNING: rollback_maui.json has no 'microsoft.net.sdk.ios' key")
+        return None
+
+    # Value format: "26.2.11591-net11-p4/11.0.100-preview.3"
+    # Extract version prefix before the "/" (band), then parse major.minor
+    version_part = ios_value.split("/")[0]  # "26.2.11591-net11-p4"
+    m = re.match(r"(\d+)\.(\d+)", version_part)
+    if not m:
+        log(f"WARNING: Could not parse major.minor from iOS SDK version '{version_part}'")
+        return None
+
+    major, minor = int(m.group(1)), int(m.group(2))
+    log(f"Required Xcode version from rollback_maui.json: {major}.{minor} "
+        f"(from '{ios_value}')", tee=True)
+    return (major, minor)
+
+
+def _parse_xcode_dir_version(dirname):
+    """Parse version components from an Xcode directory name.
+
+    ``"Xcode_26.2.app"`` → ``(26, 2)``, ``"Xcode_26.2.1.app"`` → ``(26, 2, 1)``.
+    Returns a tuple of ints, or ``None`` if parsing fails.
+    """
+    # Strip "Xcode_" prefix and ".app" suffix, then split on "."
+    stem = dirname.replace("Xcode_", "").replace(".app", "")
+    parts = stem.split(".")
+    try:
+        return tuple(int(p) for p in parts)
+    except ValueError:
+        return None
+
+
+def select_xcode(workitem_root):
+    """Select the Xcode version that matches the iOS SDK workload packs.
+
+    Derives the required Xcode major.minor from rollback_maui.json (created by
+    pre.py). If the system-default Xcode already matches, no switching is
+    needed. Otherwise, searches /Applications/Xcode_*.app for a matching
+    version and activates it via ``sudo xcode-select -s``. Falls back to the
+    coarse ``>= _MIN_XCODE_MAJOR`` check when rollback_maui.json is absent.
     """
     log_raw("=== XCODE SELECTION ===", tee=True)
+
+    required = _get_required_xcode_version(workitem_root)
 
     # Log the current default before any changes
     run_cmd(["xcode-select", "-p"], check=False)
     result = run_cmd(["xcodebuild", "-version"], check=False)
 
-    version = _parse_xcode_version(result.stdout)
-    if version is None:
+    current = _parse_xcode_version(result.stdout)
+    if current is None:
         log("ERROR: Could not parse Xcode version from xcodebuild output. "
             "Ensure Xcode is installed.", tee=True)
         _dump_log()
         sys.exit(1)
 
-    major, minor = version
-    log(f"Default Xcode version: {major}.{minor}", tee=True)
+    cur_major, cur_minor = current
+    log(f"Default Xcode version: {cur_major}.{cur_minor}", tee=True)
 
-    if major >= _MIN_XCODE_MAJOR:
-        log(f"Default Xcode {major}.{minor} meets minimum ({_MIN_XCODE_MAJOR}.0) "
-            "— no switching needed.", tee=True)
+    # --- Precise matching mode (rollback file provides required version) ---
+    if required is not None:
+        req_major, req_minor = required
+
+        if cur_major == req_major and cur_minor == req_minor:
+            log(f"Default Xcode {cur_major}.{cur_minor} matches required "
+                f"{req_major}.{req_minor} — no switching needed.", tee=True)
+            return
+
+        # Default doesn't match — search for a matching Xcode_*.app
+        log(f"Default Xcode {cur_major}.{cur_minor} does not match required "
+            f"{req_major}.{req_minor}. Searching /Applications/Xcode_*.app...",
+            tee=True)
+
+        matching_apps = []
+        for entry in os.listdir("/Applications"):
+            if not (entry.startswith("Xcode_") and entry.endswith(".app")):
+                continue
+            if not os.path.isdir(os.path.join("/Applications", entry)):
+                continue
+            ver = _parse_xcode_dir_version(entry)
+            if ver and len(ver) >= 2 and ver[0] == req_major and ver[1] == req_minor:
+                matching_apps.append((entry, ver))
+
+        if not matching_apps:
+            # List all available Xcode installations for diagnostics
+            all_xcodes = sorted(
+                e for e in os.listdir("/Applications")
+                if e.startswith("Xcode") and e.endswith(".app")
+            )
+            log(f"ERROR: No Xcode matching {req_major}.{req_minor} found. "
+                f"Available: {all_xcodes}", tee=True)
+            log(f"The iOS SDK packs require Xcode {req_major}.{req_minor}. "
+                "Install the matching Xcode or update the workload pin.",
+                tee=True)
+            _dump_log()
+            sys.exit(1)
+
+        # If multiple match (e.g. Xcode_26.2.app and Xcode_26.2.1.app),
+        # pick the highest patch version
+        matching_apps.sort(key=lambda x: x[1])
+        selected_name, selected_ver = matching_apps[-1]
+        selected = os.path.join("/Applications", selected_name)
+
+        log(f"Found matching Xcode installations: "
+            f"{[name for name, _ in matching_apps]}", tee=True)
+        log(f"Selecting: {selected}", tee=True)
+        run_cmd(["sudo", "xcode-select", "-s", selected], check=False)
+
+        # Log the new state after switching
+        run_cmd(["xcode-select", "-p"], check=False)
+        result = run_cmd(["xcodebuild", "-version"], check=False)
+
+        version = _parse_xcode_version(result.stdout)
+        if version:
+            log(f"Xcode version after switching: {version[0]}.{version[1]}",
+                tee=True)
+        return
+
+    # --- Fallback mode (no rollback file — coarse >= check) ---
+    log("WARNING: No rollback_maui.json — falling back to coarse "
+        f">= {_MIN_XCODE_MAJOR}.0 check", tee=True)
+
+    if cur_major >= _MIN_XCODE_MAJOR:
+        log(f"Default Xcode {cur_major}.{cur_minor} meets minimum "
+            f"({_MIN_XCODE_MAJOR}.0) — no switching needed.", tee=True)
         return
 
     # Default Xcode is too old — search for a newer Xcode_*.app
-    log(f"Default Xcode {major}.{minor} is below minimum ({_MIN_XCODE_MAJOR}.0). "
+    log(f"Default Xcode {cur_major}.{cur_minor} is below minimum "
+        f"({_MIN_XCODE_MAJOR}.0). "
         "Searching for a newer /Applications/Xcode_*.app...", tee=True)
 
     xcode_apps = sorted(
@@ -168,13 +294,12 @@ def select_xcode():
             if entry.startswith("Xcode_") and entry.endswith(".app")
             and os.path.isdir(os.path.join("/Applications", entry))
         ),
-        # Sort by numeric version components extracted from the name
-        # e.g. "Xcode_26.2.app" → [26, 2], "Xcode_15.0.app" → [15, 0]
         key=lambda name: [
             int(x) for x in re.findall(r"\d+", name.replace(".app", ""))
         ],
     )
 
+    version = current
     if xcode_apps:
         selected = os.path.join("/Applications", xcode_apps[-1])
         log(f"Found Xcode installations: {xcode_apps}", tee=True)
@@ -187,8 +312,8 @@ def select_xcode():
 
         version = _parse_xcode_version(result.stdout)
         if version:
-            major, minor = version
-            log(f"Xcode version after switching: {major}.{minor}", tee=True)
+            log(f"Xcode version after switching: {version[0]}.{version[1]}",
+                tee=True)
     else:
         log("WARNING: No /Applications/Xcode_*.app found.", tee=True)
 
@@ -585,10 +710,11 @@ def main():
     ctx["dotnet_exe"] = setup_dotnet(correlation_payload)
     print_diagnostics()
 
-    # Step 2: Select the highest-versioned Xcode and validate >= 26.0.
-    # Helix machines may default to an older Xcode; selecting early avoids
-    # wasting 20+ min on workload install before _ValidateXcodeVersion fails.
-    select_xcode()
+    # Step 2: Select the Xcode version matching the iOS SDK workload packs.
+    # The packs require a specific Xcode (e.g. 26.2.x packs need Xcode 26.2).
+    # Selecting early avoids wasting 20+ min on workload install before
+    # _ValidateXcodeVersion fails.
+    select_xcode(workitem_root)
 
     # Step 3 & 4: Device-type-specific setup
     if is_physical_device:
