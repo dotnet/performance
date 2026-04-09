@@ -271,6 +271,15 @@ def select_xcode(workitem_root):
         if version:
             log(f"Xcode version after switching: {version[0]}.{version[1]}",
                 tee=True)
+
+        # Validate the switch actually produced the required version
+        if version is None or version[0] != req_major or version[1] != req_minor:
+            effective = f"{version[0]}.{version[1]}" if version else "unknown"
+            log(f"ERROR: Xcode switch failed — active version is {effective} "
+                f"but {req_major}.{req_minor} is required. "
+                f"sudo xcode-select -s may have failed silently.", tee=True)
+            _dump_log()
+            sys.exit(1)
         return
 
     # --- Fallback mode (no rollback file — coarse >= check) ---
