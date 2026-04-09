@@ -36,11 +36,13 @@ namespace ResultsComparer
                 var diffValues = diffResult.Statistics.OriginalValues.ToArray();
 
                 var userTresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, args.StatisticalTestThreshold);
-                if (userTresholdResult.Conclusion == EquivalenceTestConclusion.Same)
+                if (userTresholdResult.Conclusion == EquivalenceTestConclusion.Same
+                    || userTresholdResult.Conclusion == EquivalenceTestConclusion.Base)
                     continue;
 
                 var noiseResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, args.NoiseThreshold);
-                if (noiseResult.Conclusion == EquivalenceTestConclusion.Same)
+                if (noiseResult.Conclusion == EquivalenceTestConclusion.Same
+                    || noiseResult.Conclusion == EquivalenceTestConclusion.Base)
                     continue;
 
                 yield return (id, baseResult, diffResult, userTresholdResult.Conclusion);

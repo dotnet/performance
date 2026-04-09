@@ -128,5 +128,89 @@ namespace Tests
 
             Assert.Throws<ArgumentException>(() => CommandLineOptions.ValidatePartitionParameters(count, index));
         }
+
+        [Fact]
+        public void ParseAndRemoveStringsParameterCollectsValuesUntilNextFlag()
+        {
+            List<string> argsList = new List<string> {
+                "--exclusion-filter",
+                "System.*",
+                "Microsoft.*",
+                "--partition-count",
+                "4"
+            };
+
+            var remaining = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--exclusion-filter", out List<string> filters);
+
+            Assert.Equal(new[] { "System.*", "Microsoft.*" }, filters);
+            Assert.Equal(new[] { "--partition-count", "4" }, remaining);
+        }
+
+        [Fact]
+        public void ParseAndRemoveBooleanParameterRemovesSwitchWhenPresent()
+        {
+            List<string> argsList = new List<string> {
+                "--wasm",
+                "--filter",
+                "*"
+            };
+
+            CommandLineOptions.ParseAndRemoveBooleanParameter(argsList, "--wasm", out bool enabled);
+
+            Assert.True(enabled);
+            Assert.Equal(new[] { "--filter", "*" }, argsList);
+        }
+
+        [Fact]
+        public void ParseAndRemoveStringsParameterLeavesArgsUntouchedWhenSwitchIsMissing()
+        {
+            List<string> argsList = new List<string> {
+                "literal-value",
+                "--filter",
+                "*"
+            };
+
+            var remaining = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--exclusion-filter", out List<string> filters);
+
+            Assert.Empty(filters);
+            Assert.Equal(new[] { "literal-value", "--filter", "*" }, remaining);
+        }
+
+        [Fact]
+        public void ParseAndRemoveBooleanParameterReturnsFalseWhenSwitchIsMissing()
+        {
+            List<string> argsList = new List<string> {
+                "--filter",
+                "*"
+            };
+
+            CommandLineOptions.ParseAndRemoveBooleanParameter(argsList, "--wasm", out bool enabled);
+
+            Assert.False(enabled);
+            Assert.Equal(new[] { "--filter", "*" }, argsList);
+        }
+
+        [Theory]
+        [InlineData("--partition-count")]
+        [InlineData("--partition-index")]
+        public void ParseAndRemoveIntParameterThrowsWhenValueIsMissing(string parameter)
+        {
+            List<string> argsList = new List<string> { parameter };
+
+            Assert.Throws<ArgumentException>(() => CommandLineOptions.ParseAndRemoveIntParameter(argsList, parameter, out int? _));
+        }
+
+        [Theory]
+        [InlineData("--partition-count", "abc")]
+        [InlineData("--partition-index", "3.14")]
+        public void ParseAndRemoveIntParameterThrowsWhenValueIsNotAnInteger(string parameter, string value)
+        {
+            List<string> argsList = new List<string> {
+                parameter,
+                value
+            };
+
+            Assert.Throws<ArgumentException>(() => CommandLineOptions.ParseAndRemoveIntParameter(argsList, parameter, out int? _));
+        }
     }
 }
