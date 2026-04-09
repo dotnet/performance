@@ -2,11 +2,10 @@
 
   <PropertyGroup>
     <!-- Supported target frameworks -->
-    <MaximumNetCoreTargetFramework Condition="'$(NETCoreAppMaximumVersion)' != ''">net$(NETCoreAppMaximumVersion)</MaximumNetCoreTargetFramework>
-    <SupportedTargetFrameworks Condition="'$(MaximumNetCoreTargetFramework)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('$(MaximumNetCoreTargetFramework)', 'net8.0'))">net8.0</SupportedTargetFrameworks>
-    <SupportedTargetFrameworks Condition="'$(MaximumNetCoreTargetFramework)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('$(MaximumNetCoreTargetFramework)', 'net9.0'))">$(SupportedTargetFrameworks);net9.0</SupportedTargetFrameworks>
-    <SupportedTargetFrameworks Condition="'$(MaximumNetCoreTargetFramework)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('$(MaximumNetCoreTargetFramework)', 'net10.0'))">$(SupportedTargetFrameworks);net10.0</SupportedTargetFrameworks>
-    <SupportedTargetFrameworks Condition="'$(MaximumNetCoreTargetFramework)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('$(MaximumNetCoreTargetFramework)', 'net11.0'))">$(SupportedTargetFrameworks);net11.0</SupportedTargetFrameworks>
+    <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net8.0'))">net8.0</SupportedTargetFrameworks>
+    <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net9.0'))">$(SupportedTargetFrameworks);net9.0</SupportedTargetFrameworks>
+    <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net10.0'))">$(SupportedTargetFrameworks);net10.0</SupportedTargetFrameworks>
+    <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net11.0'))">$(SupportedTargetFrameworks);net11.0</SupportedTargetFrameworks>
     <!-- Used by Python script to narrow down the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == '' and '$(TargetFramework)' != ''">$(TargetFramework)</TargetFrameworks>
