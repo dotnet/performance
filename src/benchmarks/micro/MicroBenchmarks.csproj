@@ -10,6 +10,7 @@
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == '' and '$(TargetFramework)' != ''">$(TargetFramework)</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">$(SupportedTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net8.0</TargetFrameworks>
     <NoWarn>$(NoWarn);CS8002</NoWarn>
     <!-- Suppress binaryformatter obsolete warning -->
     <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>

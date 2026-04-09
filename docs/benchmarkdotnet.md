@@ -69,14 +69,14 @@ All you need to do is run the following command:
 dotnet build -c Release
 ```
 
-If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file.
+If you only want to build or run the benchmarks for selected runtime(s), set `PERFLAB_TARGET_FRAMEWORKS` to the TFM or semicolon-delimited TFM list you want to use.
 
-```diff
--<SupportedTargetFrameworks>net8.0;net9.0;net10.0</SupportedTargetFrameworks>
-+<SupportedTargetFrameworks>net9.0</SupportedTargetFrameworks>
+```powershell
+$env:PERFLAB_TARGET_FRAMEWORKS = "net9.0"
+dotnet build -c Release
 ```
 
-The alternative is to set `PERFLAB_TARGET_FRAMEWORKS` environment variable to selected Target Framework Moniker. For the common `dotnet run -c Release -f <tfm>` flow, the selected `-f` value is picked up automatically, so you don't need to set the environment variable just to run one target framework interactively.
+For the common `dotnet run -c Release -f <tfm>` flow, the selected `-f` value is picked up automatically, so you don't need to set the environment variable just to run one target framework interactively.
 
 ### Using Python script
 
