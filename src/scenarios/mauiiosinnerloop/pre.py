@@ -30,64 +30,28 @@ def install_maui_ios_workload(precommands: PreCommands):
         logger.info("Skipping maui-ios installation due to --has-workload=true")
         return
 
-    feed = extract_latest_dotnet_feed_from_nuget_config(
-        path=os.path.join(get_repo_root_path(), "NuGet.config")
-    )
-    logger.info(f"Installing the latest maui-ios workload from feed {feed}")
-
     workload = "microsoft.net.sdk.ios"
-    try:
-        packages = precommands.get_packages_for_sdk_from_feed(workload, feed)
-    except Exception as e:
-        logger.warning(f"Failed to get packages for {workload} from latest feed: {e}")
-        logger.info("Trying second latest feed as fallback")
-        fallback_feed = extract_latest_dotnet_feed_from_nuget_config(
-            path=os.path.join(get_repo_root_path(), "NuGet.config"),
-            offset=1
-        )
-        logger.info(f"Using fallback feed: {fallback_feed}")
-        packages = precommands.get_packages_for_sdk_from_feed(workload, fallback_feed)
 
-    # Filter to manifest packages only
-    pattern = r'Microsoft\.NET\.Sdk\..*\.Manifest\-\d+\.\d+\.\d+(\-(preview|rc|alpha)\.\d+)?$'
-    packages = [pkg for pkg in packages if re.match(pattern, pkg['id'])]
-    logger.info(f"After manifest pattern filtering, found {len(packages)} packages for {workload}")
-
-    # Extract SDK and .NET versions from package IDs
-    for package in packages:
-        match = re.search(r'Manifest-(.+)$', package["id"])
-        if not match:
-            raise Exception(f"Unable to find .NET SDK version in package ID: {package['id']}")
-        sdk_version = match.group(1)
-        package['sdk_version'] = sdk_version
-
-        ver_match = re.search(r'^\d+\.\d+', sdk_version)
-        if not ver_match:
-            raise Exception(f"Unable to find .NET version in SDK version '{sdk_version}'")
-        package['dotnet_version'] = ver_match.group(0)
-
-    # Keep only packages targeting the highest .NET version
-    dotnet_versions = [float(pkg['dotnet_version']) for pkg in packages]
-    highest = max(dotnet_versions)
-    packages = [pkg for pkg in packages if float(pkg['dotnet_version']) == highest]
-    logger.info(f"After .NET version filtering for {workload}: {len(packages)} packages (highest={highest})")
-
-    # Prefer non-preview packages
-    preview_pattern = r'\-(preview|rc|alpha)\.\d+$'
-    non_preview = [pkg for pkg in packages if not re.search(preview_pattern, pkg['id'])]
-    if non_preview:
-        packages = non_preview
-
-    # Sort by SDK version descending and take the latest
-    packages.sort(key=lambda x: x['sdk_version'], reverse=True)
-    if not packages:
-        raise Exception(f"No packages available for {workload} after filtering")
-
-    latest = packages[0]
-    logger.info(f"Latest package: ID={latest['id']}, Version={latest['latestVersion']}, SDK={latest['sdk_version']}")
+    # TEMPORARY PIN: Hardcode the iOS workload version to 26.2.x instead of
+    # querying NuGet feeds dynamically. The dynamic query resolves to the
+    # latest nightly packs which now require Xcode 26.4, but Helix machines
+    # only have Xcode 26.2 installed.
+    #
+    # Cross-band note: the Helix SDK is preview.4 but the 26.2.x manifests
+    # only exist on the preview.3 band. Using --from-rollback-file to attempt
+    # cross-band installation — this is experimental and may need adjustment.
+    #
+    # TODO: Remove this pin when Helix machines have Xcode 26.4, and restore
+    # the dynamic NuGet feed query that was here before (see git history).
+    pinned_version = "26.2.11591-net11-p4"
+    pinned_band = "11.0.100-preview.3"
+    logger.info(
+        f"Using PINNED iOS workload: {workload} version={pinned_version} "
+        f"band={pinned_band} (Xcode 26.2 compatible)"
+    )
 
     # Create rollback file with only the iOS workload
-    rollback_value = f"{latest['latestVersion']}/{latest['sdk_version']}"
+    rollback_value = f"{pinned_version}/{pinned_band}"
     rollback_dict = {workload: rollback_value}
     logger.info(f"Rollback dictionary: {rollback_dict}")
     with open("rollback_maui.json", "w", encoding="utf-8") as f:
