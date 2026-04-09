@@ -4,21 +4,25 @@
 Runs on the Helix machine BEFORE test.py. Bootstraps the macOS environment
 for iOS builds:
   1. Configure DOTNET_ROOT and PATH from the correlation payload SDK.
-  2. Log the system Xcode version (diagnostic only — no switching).
+  2. Select and validate the system Xcode (>= 26.0).
   3. Validate iOS simulator runtime availability.
   4. Boot the target iOS simulator device.
   5. Install the maui-ios workload.
   6. Restore NuGet packages for the app project.
   7. Disable Spotlight indexing on the workitem directory.
 
-Xcode selection strategy: this script trusts the system-default Xcode that
-is already configured on the Helix machine. The SDK validates Xcode
-compatibility at build time (_ValidateXcodeVersion), which will produce a
-clear error if there's a mismatch. We log the version here for diagnostics.
+Xcode selection strategy: Helix machines in the Mac.iPhone.17.Perf pool may
+have multiple Xcode versions installed, and the default can vary per machine.
+This script finds the highest-versioned /Applications/Xcode_*.app, activates
+it via ``sudo xcode-select -s``, and validates that the version meets the
+minimum required by the iOS SDK packs (>= 26.0). This fails the work item
+early instead of wasting 20+ minutes on workload install before hitting
+_ValidateXcodeVersion.
 """
 
 import os
 import platform
+import re
 import subprocess
 import sys
 from datetime import datetime
@@ -104,15 +108,76 @@ def setup_dotnet(correlation_payload):
     return dotnet_exe
 
 
-def select_xcode():
-    """Log the current system Xcode for diagnostics (no switching).
+_MIN_XCODE_MAJOR = 26
 
-    The SDK validates Xcode compatibility at build time via
-    _ValidateXcodeVersion — if there's a mismatch, the build will fail with
-    a clear error. We just log the version here for diagnostic purposes.
+
+def _parse_xcode_version(output):
+    """Parse the major.minor version tuple from ``xcodebuild -version`` output.
+
+    Expects a line like "Xcode 26.2" or "Xcode 15.0.1".
+    Returns (major, minor) as ints, or None if parsing fails.
     """
-    log_raw("=== XCODE DIAGNOSTICS ===", tee=True)
-    run_cmd(["xcodebuild", "-version"], check=False)
+    m = re.search(r"Xcode\s+(\d+)\.(\d+)", output or "")
+    if m:
+        return int(m.group(1)), int(m.group(2))
+    return None
+
+
+def select_xcode():
+    """Select the highest-versioned Xcode and validate it meets the minimum.
+
+    Searches /Applications/Xcode_*.app for available Xcode installations,
+    selects the highest version via ``sudo xcode-select -s``, then validates
+    the version is >= _MIN_XCODE_MAJOR. Exits early if validation fails to
+    avoid wasting time on workload install.
+    """
+    log_raw("=== XCODE SELECTION ===", tee=True)
+
+    # Find all /Applications/Xcode_*.app directories
+    xcode_apps = sorted(
+        (
+            entry
+            for entry in os.listdir("/Applications")
+            if entry.startswith("Xcode_") and entry.endswith(".app")
+            and os.path.isdir(os.path.join("/Applications", entry))
+        ),
+        # Sort by numeric version components extracted from the name
+        # e.g. "Xcode_26.2.app" → [26, 2], "Xcode_15.0.app" → [15, 0]
+        key=lambda name: [
+            int(x) for x in re.findall(r"\d+", name.replace(".app", ""))
+        ],
+    )
+
+    if xcode_apps:
+        selected = os.path.join("/Applications", xcode_apps[-1])
+        log(f"Found Xcode installations: {xcode_apps}", tee=True)
+        log(f"Selecting highest version: {selected}", tee=True)
+        run_cmd(["sudo", "xcode-select", "-s", selected], check=False)
+    else:
+        log("WARNING: No /Applications/Xcode_*.app found. "
+            "Continuing with system default Xcode.", tee=True)
+
+    # Log the active Xcode version
+    result = run_cmd(["xcodebuild", "-version"], check=False)
+
+    # Validate the Xcode version meets our minimum
+    version = _parse_xcode_version(result.stdout)
+    if version is None:
+        log("ERROR: Could not parse Xcode version from xcodebuild output. "
+            "Ensure Xcode is installed.", tee=True)
+        _dump_log()
+        sys.exit(1)
+
+    major, minor = version
+    log(f"Detected Xcode version: {major}.{minor}", tee=True)
+
+    if major < _MIN_XCODE_MAJOR:
+        log(f"ERROR: Xcode {major}.{minor} is below the minimum required "
+            f"version ({_MIN_XCODE_MAJOR}.0). The iOS SDK packs require "
+            f"Xcode >= {_MIN_XCODE_MAJOR}.0. Failing early to avoid wasting "
+            "time on workload install.", tee=True)
+        _dump_log()
+        sys.exit(1)
 
 
 def validate_simulator_runtimes():
@@ -497,9 +562,9 @@ def main():
     ctx["dotnet_exe"] = setup_dotnet(correlation_payload)
     print_diagnostics()
 
-    # Step 2: Log the system Xcode for diagnostics (no switching).
-    # The SDK validates Xcode compatibility at build time — if the installed
-    # packs require a newer Xcode, the build will fail with a clear error.
+    # Step 2: Select the highest-versioned Xcode and validate >= 26.0.
+    # Helix machines may default to an older Xcode; selecting early avoids
+    # wasting 20+ min on workload install before _ValidateXcodeVersion fails.
     select_xcode()
 
     # Step 3 & 4: Device-type-specific setup
