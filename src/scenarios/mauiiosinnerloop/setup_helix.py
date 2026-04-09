@@ -13,11 +13,11 @@ for iOS builds:
 
 Xcode selection strategy: Helix machines in the Mac.iPhone.17.Perf pool may
 have multiple Xcode versions installed, and the default can vary per machine.
-This script finds the highest-versioned /Applications/Xcode_*.app, activates
-it via ``sudo xcode-select -s``, and validates that the version meets the
-minimum required by the iOS SDK packs (>= 26.0). This fails the work item
-early instead of wasting 20+ minutes on workload install before hitting
-_ValidateXcodeVersion.
+This script first checks the system-default Xcode — if it's already >= 26.0,
+no switching is needed. Otherwise, it searches /Applications/Xcode_*.app for
+a newer version and activates it via ``sudo xcode-select -s``. This fails the
+work item early instead of wasting 20+ minutes on workload install before
+hitting _ValidateXcodeVersion.
 """
 
 import os
@@ -108,6 +108,11 @@ def setup_dotnet(correlation_payload):
     return dotnet_exe
 
 
+# Coarse pre-filter: packs are not yet installed at this point (workload
+# install happens at step 5), so we can't read _RecommendedXcodeVersion from
+# the pack's Versions.props. This >= 26 check catches clearly incompatible
+# machines early. The SDK's _ValidateXcodeVersion target performs the exact
+# version check at build time.
 _MIN_XCODE_MAJOR = 26
 
 
@@ -124,16 +129,38 @@ def _parse_xcode_version(output):
 
 
 def select_xcode():
-    """Select the highest-versioned Xcode and validate it meets the minimum.
+    """Ensure the active Xcode meets the minimum version, selecting if needed.
 
-    Searches /Applications/Xcode_*.app for available Xcode installations,
-    selects the highest version via ``sudo xcode-select -s``, then validates
-    the version is >= _MIN_XCODE_MAJOR. Exits early if validation fails to
-    avoid wasting time on workload install.
+    Checks the system-default Xcode first. If it's already >= _MIN_XCODE_MAJOR,
+    no switching is needed. Otherwise, searches /Applications/Xcode_*.app for
+    a higher version and activates it via ``sudo xcode-select -s``. Exits early
+    if no suitable Xcode is found to avoid wasting time on workload install.
     """
     log_raw("=== XCODE SELECTION ===", tee=True)
 
-    # Find all /Applications/Xcode_*.app directories
+    # Log the current default before any changes
+    run_cmd(["xcode-select", "-p"], check=False)
+    result = run_cmd(["xcodebuild", "-version"], check=False)
+
+    version = _parse_xcode_version(result.stdout)
+    if version is None:
+        log("ERROR: Could not parse Xcode version from xcodebuild output. "
+            "Ensure Xcode is installed.", tee=True)
+        _dump_log()
+        sys.exit(1)
+
+    major, minor = version
+    log(f"Default Xcode version: {major}.{minor}", tee=True)
+
+    if major >= _MIN_XCODE_MAJOR:
+        log(f"Default Xcode {major}.{minor} meets minimum ({_MIN_XCODE_MAJOR}.0) "
+            "— no switching needed.", tee=True)
+        return
+
+    # Default Xcode is too old — search for a newer Xcode_*.app
+    log(f"Default Xcode {major}.{minor} is below minimum ({_MIN_XCODE_MAJOR}.0). "
+        "Searching for a newer /Applications/Xcode_*.app...", tee=True)
+
     xcode_apps = sorted(
         (
             entry
@@ -153,26 +180,22 @@ def select_xcode():
         log(f"Found Xcode installations: {xcode_apps}", tee=True)
         log(f"Selecting highest version: {selected}", tee=True)
         run_cmd(["sudo", "xcode-select", "-s", selected], check=False)
+
+        # Log the new state after switching
+        run_cmd(["xcode-select", "-p"], check=False)
+        result = run_cmd(["xcodebuild", "-version"], check=False)
+
+        version = _parse_xcode_version(result.stdout)
+        if version:
+            major, minor = version
+            log(f"Xcode version after switching: {major}.{minor}", tee=True)
     else:
-        log("WARNING: No /Applications/Xcode_*.app found. "
-            "Continuing with system default Xcode.", tee=True)
+        log("WARNING: No /Applications/Xcode_*.app found.", tee=True)
 
-    # Log the active Xcode version
-    result = run_cmd(["xcodebuild", "-version"], check=False)
-
-    # Validate the Xcode version meets our minimum
-    version = _parse_xcode_version(result.stdout)
-    if version is None:
-        log("ERROR: Could not parse Xcode version from xcodebuild output. "
-            "Ensure Xcode is installed.", tee=True)
-        _dump_log()
-        sys.exit(1)
-
-    major, minor = version
-    log(f"Detected Xcode version: {major}.{minor}", tee=True)
-
-    if major < _MIN_XCODE_MAJOR:
-        log(f"ERROR: Xcode {major}.{minor} is below the minimum required "
+    # Final validation — fail fast if still below minimum
+    if version is None or version[0] < _MIN_XCODE_MAJOR:
+        effective = f"{version[0]}.{version[1]}" if version else "unknown"
+        log(f"ERROR: Xcode {effective} is still below the minimum required "
             f"version ({_MIN_XCODE_MAJOR}.0). The iOS SDK packs require "
             f"Xcode >= {_MIN_XCODE_MAJOR}.0. Failing early to avoid wasting "
             "time on workload install.", tee=True)
