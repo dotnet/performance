@@ -218,6 +218,36 @@ def boot_simulator(device_name):
     run_cmd(["xcrun", "simctl", "list", "devices", "booted"], check=False)
 
 
+def _run_workload_cmd(args, timeout_seconds):
+    """Run a workload install command with a timeout.
+
+    Returns a CompletedProcess. If the command times out, kills the process
+    and returns a synthetic CompletedProcess with returncode=-1.
+
+    The dotnet CLI can hang for hours when NuGet feeds are slow or broken
+    (internal download retries). A timeout ensures the fallback retry has
+    time to run within the Helix work item timeout.
+    """
+    try:
+        return run_cmd(args, check=False, timeout=timeout_seconds)
+    except subprocess.TimeoutExpired as e:
+        log(f"WARNING: Command timed out after {timeout_seconds}s — killed", tee=True)
+        # Log tail of any partial output captured before the kill
+        partial = getattr(e, 'output', '') or ''
+        if partial:
+            if not isinstance(partial, str):
+                partial = partial.decode('utf-8', errors='replace')
+            for line in partial.splitlines()[-20:]:
+                log_raw(line)
+        return subprocess.CompletedProcess(args, returncode=-1)
+
+
+# Cap each workload install attempt so there's time for the fallback retry
+# within the Helix work item timeout (2:30). Without this, the dotnet CLI
+# can hang for 2+ hours on NuGet download failures (internal retries).
+_WORKLOAD_INSTALL_TIMEOUT = 1200  # 20 minutes per attempt
+
+
 def install_workload(ctx):
     """Install the maui-ios workload using the shipped SDK.
 
@@ -225,6 +255,9 @@ def install_workload(ctx):
     version (latest nightly packs). Falls back to a plain install if no
     rollback file is present. Always uses --ignore-failed-sources because
     dead NuGet feeds are common in CI.
+
+    Each attempt is capped at _WORKLOAD_INSTALL_TIMEOUT seconds to prevent
+    slow NuGet downloads from consuming the entire Helix work item timeout.
     """
     log_raw("=== WORKLOAD INSTALL ===", tee=True)
 
@@ -247,7 +280,7 @@ def install_workload(ctx):
     # Dead NuGet feeds are common in CI — always tolerate failures
     install_args.append("--ignore-failed-sources")
 
-    result = run_cmd(install_args, check=False)
+    result = _run_workload_cmd(install_args, _WORKLOAD_INSTALL_TIMEOUT)
     if result.returncode != 0 and os.path.isfile(rollback_file):
         # When a new manifest is published to the feed, referenced SDK packs
         # may not have propagated to all NuGet feeds yet, causing
@@ -267,7 +300,7 @@ def install_workload(ctx):
             retry_args.extend(["--configfile", nuget_config])
         retry_args.append("--ignore-failed-sources")
 
-        result = run_cmd(retry_args, check=False)
+        result = _run_workload_cmd(retry_args, _WORKLOAD_INSTALL_TIMEOUT)
 
     if result.returncode != 0:
         log(f"WORKLOAD INSTALL FAILED (exit code {result.returncode})", tee=True)
