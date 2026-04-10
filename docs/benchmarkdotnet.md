@@ -63,6 +63,8 @@ In order to build or run the benchmarks you will need the **.NET Core command-li
 
 To build the benchmarks you need the appropriate `dotnet` SDKs for the target frameworks you plan to run. By default, the microbenchmarks target current supported TFMs (`net8.0`, `net9.0`, and newer TFMs when your installed SDK supports them).
 
+In practice, local runs need the SDK for the runtime you want to test **and** the SDK version required by the repo's `global.json` file (or a newer SDK that satisfies that requirement). If you want to drive the repo with a different SDK locally, an alternative is to update `global.json` to the SDK version you want to use for the test run.
+
 All you need to do is run the following command:
 
 ```cmd
