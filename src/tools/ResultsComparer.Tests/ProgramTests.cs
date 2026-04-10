@@ -4,6 +4,7 @@ using Xunit;
 
 namespace ResultsComparer.Tests;
 
+[Collection("Console output")]
 public class ProgramTests
 {
     [Fact]

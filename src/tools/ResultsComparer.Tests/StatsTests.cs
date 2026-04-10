@@ -6,12 +6,13 @@ using Xunit;
 
 namespace ResultsComparer.Tests;
 
+[Collection("Console output")]
 public class StatsTests
 {
     [Fact]
     public void GetSimplifiedOSNameRemovesParentheticalSuffix()
     {
-        Assert.Equal("Windows 11 ", global::ResultsComparer.Stats.GetSimplifiedOSName("Windows 11 (10.0.26100)"));
+        Assert.Equal("Windows 11", global::ResultsComparer.Stats.GetSimplifiedOSName("Windows 11 (10.0.26100)"));
     }
 
     [Fact]

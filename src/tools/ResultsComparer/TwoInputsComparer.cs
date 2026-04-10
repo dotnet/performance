@@ -35,9 +35,9 @@ namespace ResultsComparer
                 var baseValues = baseResult.Statistics.OriginalValues.ToArray();
                 var diffValues = diffResult.Statistics.OriginalValues.ToArray();
 
-                var userTresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, args.StatisticalTestThreshold);
-                if (userTresholdResult.Conclusion == EquivalenceTestConclusion.Same
-                    || userTresholdResult.Conclusion == EquivalenceTestConclusion.Base)
+                var userThresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, args.StatisticalTestThreshold);
+                if (userThresholdResult.Conclusion == EquivalenceTestConclusion.Same
+                    || userThresholdResult.Conclusion == EquivalenceTestConclusion.Base)
                     continue;
 
                 var noiseResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, args.NoiseThreshold);
@@ -45,7 +45,7 @@ namespace ResultsComparer
                     || noiseResult.Conclusion == EquivalenceTestConclusion.Base)
                     continue;
 
-                yield return (id, baseResult, diffResult, userTresholdResult.Conclusion);
+                yield return (id, baseResult, diffResult, userThresholdResult.Conclusion);
             }
         }
 
