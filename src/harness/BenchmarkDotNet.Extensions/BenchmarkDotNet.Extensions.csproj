@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(BenchmarkDotNetSources)' != ''">
     <_BenchmarkDotNetSourcesN>$([MSBuild]::NormalizeDirectory('$(BenchmarkDotNetSources)'))</_BenchmarkDotNetSourcesN>
@@ -11,6 +12,14 @@
   <ItemGroup Condition="'$(BenchmarkDotNetSources)' == ''">
     <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(BenchmarkDotNetVersion)" />
+    <PackageReference Include="System.Linq.AsyncEnumerable" Version="10.0.5">
+      <PrivateAssets>none</PrivateAssets>
+      <Publish>true</Publish>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.5">
+      <PrivateAssets>none</PrivateAssets>
+      <Publish>true</Publish>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup Condition="'$(BenchmarkDotNetSources)' != ''">
     <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet\BenchmarkDotNet.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />

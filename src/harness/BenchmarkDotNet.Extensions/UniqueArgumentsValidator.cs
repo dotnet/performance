@@ -14,8 +14,9 @@ namespace BenchmarkDotNet.Extensions
     {
         public bool TreatsWarningsAsErrors => true;
 
-        public IEnumerable<ValidationError> Validate(ValidationParameters validationParameters)
-            => validationParameters.Benchmarks
+        public IAsyncEnumerable<ValidationError> ValidateAsync(ValidationParameters validationParameters)
+        {
+            return validationParameters.Benchmarks
                 .Where(benchmark => benchmark.HasArguments || benchmark.HasParameters)
                 .GroupBy(benchmark => (benchmark.Descriptor.Type, benchmark.Descriptor.WorkloadMethod, benchmark.Job))
                 .Where(sameBenchmark =>
@@ -25,7 +26,9 @@ namespace BenchmarkDotNet.Extensions
 
                     return numberOfTestCases != numberOfUniqueTestCases;
                 })
-                .Select(duplicate => new ValidationError(true, $"Benchmark Arguments should be unique, {duplicate.Key.Type}.{duplicate.Key.WorkloadMethod} has duplicate arguments.", duplicate.First()));
+                .Select(duplicate => new ValidationError(true, $"Benchmark Arguments should be unique, {duplicate.Key.Type}.{duplicate.Key.WorkloadMethod} has duplicate arguments.", duplicate.First()))
+                .ToAsyncEnumerable();
+        }
 
         private class BenchmarkArgumentsComparer : IEqualityComparer<BenchmarkCase>
         {
@@ -34,7 +37,7 @@ namespace BenchmarkDotNet.Extensions
                 if (FullNameProvider.GetBenchmarkName(x).Equals(FullNameProvider.GetBenchmarkName(y), System.StringComparison.Ordinal))
                     return true;
 
-                return Enumerable.SequenceEqual(
+                return System.Linq.Enumerable.SequenceEqual(
                     x.Parameters.Items.Select(argument => argument.Value), 
                     y.Parameters.Items.Select(argument => argument.Value));
             }
