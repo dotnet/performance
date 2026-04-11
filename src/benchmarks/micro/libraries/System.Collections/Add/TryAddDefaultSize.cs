@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
-using System.Drawing;
 
 namespace System.Collections
 {
