@@ -148,7 +148,7 @@ namespace System.Collections
         }
 
 #if NET9_0_OR_GREATER
-        [GlobalSetup(Targets = [ nameof(OrderedDictionary), nameof(OrderedDictionary_SetAt) ])]
+        [GlobalSetup(Targets = new[] { nameof(OrderedDictionary), nameof(OrderedDictionary_SetAt) })]
         public void SetupOrderedDictionary()
         {
             _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);

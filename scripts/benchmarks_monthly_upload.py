@@ -1,5 +1,5 @@
 from json import loads, dumps
-from typing import Optional
+from typing import Any, Optional
 from urllib.request import urlopen, Request
 from urllib.parse import urlencode
 from urllib.error import HTTPError
@@ -34,9 +34,9 @@ def get_token() -> str:
     if token:
         try:
             with urlopen(Request(authDetailsEndpoint,
-                    headers = { "X-ZUMO-AUTH": token })) as response:
+                    headers = { "X-ZUMO-AUTH": token })):
                 print("Using cached credentials.")
-        except HTTPError as error:
+        except HTTPError:
             token = None
 
     if not token:
@@ -62,7 +62,7 @@ def authenticate() -> str:
 
     print(devicecodeResponse["message"])
     
-    authBody2 = {
+    authBody2: dict[str, Any] = {
         "tenant": tenantId, 
         "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
         "client_id": appId,
@@ -71,29 +71,30 @@ def authenticate() -> str:
     
     authBody2Encoded = urlencode(authBody2).encode()
     
-    authStatus = "waiting"
     print("waiting", end="", flush=True)
-    while (authStatus == "waiting"):
+    tokenResponse = None
+    while True:
         # Try to get the access token. if we encounter an error check the reason.
         # If the reason is we are waiting then sleep for some time.
         # If the reason is the user has declined or we timed out then quit.
         try:
             with urlopen(Request(f"{aadUrl}/oauth2/v2.0/token", data = authBody2Encoded)) as response:
                 tokenResponse = loads(response.read().decode('utf-8'))
-            authStatus = "done"
-        except Exception as ex:
+            break
+        except HTTPError as ex:
             reason = loads(ex.read().decode('utf-8'))["error"]
             if reason == "authorization_pending":
                 print(".", end="", flush=True)
                 time.sleep(5)
             elif reason == "authorization_declined":
-                authStatus = "failed"
+                break
             elif reason == "expired_token":
-                authStatus = "failed"
+                break
 
     print()
 
-    if authStatus == "failed": raise "Authentication failed"
+    if tokenResponse is None: 
+        raise Exception("Authentication failed")
 
     idToken = tokenResponse["id_token"]
 

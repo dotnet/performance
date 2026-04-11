@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -25,6 +26,7 @@ enum MetricType
     WinUI,
     WinUIBlazor,
     TimeToMain2,
+    BuildTime,
 }
 
 public class InnerLoopMarkerEventSource : EventSource
@@ -288,6 +290,7 @@ public class Startup
             MetricType.WinUI => new WinUIParser(),
             MetricType.WinUIBlazor => new WinUIBlazorParser(),
             MetricType.TimeToMain2 => new TimeToMain2Parser(AddTestProcessEnvironmentVariable),
+            MetricType.BuildTime => new BuildTimeParser(),
             _ => throw new ArgumentOutOfRangeException(),
         };
 
@@ -337,7 +340,19 @@ public class Startup
             try
             {
                 var counters = parser.Parse(traceFilePath, processName, pids, commandLine);
-                CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                if (!counters.Any() || counters.All(c => c.Results == null || c.Results.Count == 0))
+                {
+                    logger.Log("ERROR: Parser returned no results. The ETL trace may not contain the expected events.");
+                    logger.Log($"{nameof(parser)} = {parser.GetType().FullName}");
+                    logger.Log($"{nameof(processName)} = {processName}");
+                    logger.Log($"{nameof(pids)} = {string.Join(", ", pids)}");
+                    logger.Log($"{nameof(commandLine)} = {commandLine}");
+                    failed = true;
+                }
+                if (!failed)
+                {
+                    CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                }
             }
             catch
             {
@@ -535,11 +550,11 @@ public class Startup
 
     private static void CreateTestReport(string scenarioName, IEnumerable<Counter> counters, string reportJsonPath, Logger logger)
     {
-        var reporter = Reporter.CreateReporter();
+        var reporter = new Reporter();
         var test = new Test();
         test.Categories.Add("Startup");
         test.Name = scenarioName;
-        test.AddCounter(counters);
+        test.AddCounters(counters);
         reporter.AddTest(test);
         if (reporter.InLab && !string.IsNullOrEmpty(reportJsonPath))
         {

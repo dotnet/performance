@@ -7,7 +7,6 @@ import platform
 from os import environ, path
 from shared import const
 from performance.common import iswin, extension
-from performance.constants import UPLOAD_TOKEN_VAR
 
 def helixworkitempayload():
     '''
@@ -54,7 +53,7 @@ def getruntimeidentifier():
     else:
         raise Exception('Platform %s not supported.' % sys.platform)
 
-    if 'aarch64' in platform.machine() or os.environ.get('PERFLAB_BUILDARCH') == 'arm64':
+    if platform.machine() in ('aarch64', 'arm64') or os.environ.get('PERFLAB_BUILDARCH') == 'arm64':
         rid += 'arm64'
     elif platform.machine() == 's390x':
         rid += 's390x'
@@ -81,7 +80,10 @@ def pythoncommand():
         return 'python3'
 
 def xharnesscommand():
-    xharnesspath = os.environ.get('XHARNESSPATH')
+    xharnesspath = os.environ.get('XHARNESS_CLI_PATH')
     if xharnesspath is None or not os.path.exists(xharnesspath):
         return ['xharness']
     return ['dotnet','exec',xharnesspath]
+
+def xharness_adb():
+    return xharnesscommand() + ['android', 'adb', '--']

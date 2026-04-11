@@ -1,14 +1,14 @@
 import re
 import time
 from performance.common import RunCommand
-from logging import exception, getLogger
+from logging import getLogger
 from shared import const
-from shared.util import xharnesscommand
+from shared.util import xharness_adb, xharnesscommand
+from subprocess import CalledProcessError
 
 class AndroidHelper:
     def __init__(self):
         self.activityname = None
-        self.adbpath = None
         self.packagename = None
         self.startappcommand = None
         self.stopappcommand = None
@@ -17,51 +17,82 @@ class AndroidHelper:
         self.starttransitionanimationscale = None
         self.startanimatordurationscale = None
         self.startscreenofftimeout = None
+        # Original values for Android package verifier settings
+        self.startverifierverifyadbinstalls = None
+        self.startpackageverifierenable = None
 
     def setup_device(self, packagename: str, packagepath: str, animationsdisabled: bool, forcewaitstart: bool = True):
-        runSplitRegex = r":\s(.+)" 
+        run_split_regex = r":\s(.+)"
         self.screenwasoff = False
         self.packagename = packagename
-        cmdline = xharnesscommand() + ['android', 'state', '--adb']
-        adb = RunCommand(cmdline, verbose=True)
-        adb.run()
 
-        # Do not remove, XHarness install seems to fail without an adb command called before the xharness command
-        getLogger().info("Preparing ADB")
-        self.adbpath = adb.stdout.strip()
-        cmdline = [
-            self.adbpath,
+        # Try calling xharness with stdout=None and stderr=None to hopefully bypass the hang
+        getLogger().info("Clearing xharness stdout and stderr to avoid hang")
+        cmdline = xharness_adb() + [
+            'shell',
+            'echo', 'Hello World'
+        ]
+        RunCommand(cmdline, verbose=False).run()
+        getLogger().info("Ran echo command to clear stdout and stderr")
+
+        cmdline = xharness_adb() + [
             'shell',
             'wm',
             'size'
         ]
         RunCommand(cmdline, verbose=True).run()
 
+        # Capture and disable Android package verifier settings to avoid prompts/overhead during installs
+        try:
+            getLogger().info("Capturing current package verifier settings")
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'get', 'global', 'verifier_verify_adb_installs'
+            ]
+            get_verifier_adb_cmd = RunCommand(cmdline, verbose=True)
+            get_verifier_adb_cmd.run()
+            self.startverifierverifyadbinstalls = get_verifier_adb_cmd.stdout.strip()
+
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'get', 'global', 'package_verifier_enable'
+            ]
+            get_pkg_verifier_cmd = RunCommand(cmdline, verbose=True)
+            get_pkg_verifier_cmd.run()
+            self.startpackageverifierenable = get_pkg_verifier_cmd.stdout.strip()
+
+            getLogger().info("Disabling package verifier settings for the run")
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'global', 'verifier_verify_adb_installs', '0'
+            ]
+            RunCommand(cmdline, verbose=True).run()
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'global', 'package_verifier_enable', '0'
+            ]
+            RunCommand(cmdline, verbose=True).run()
+        except CalledProcessError:
+            # Best-effort: don't fail setup if device doesn't support these keys; proceed with the run
+            getLogger().warning("Failed to update package verifier settings; continuing without changes", exc_info=True)
+
         # Get animation values
         getLogger().info("Getting Values we will need set specifically")
-        cmdline = [
-            self.adbpath,
+        cmdline = xharness_adb() + [
             'shell', 'settings', 'get', 'global', 'window_animation_scale'
         ]
         window_animation_scale_cmd = RunCommand(cmdline, verbose=True)
         window_animation_scale_cmd.run()
         self.startwindowanimationscale = window_animation_scale_cmd.stdout.strip()
-        cmdline = [
-            self.adbpath,
+        cmdline = xharness_adb() + [
             'shell', 'settings', 'get', 'global', 'transition_animation_scale'
         ]
         transition_animation_scale_cmd = RunCommand(cmdline, verbose=True)
         transition_animation_scale_cmd.run()
         self.starttransitionanimationscale = transition_animation_scale_cmd.stdout.strip()
-        cmdline = [
-            self.adbpath,
+        cmdline = xharness_adb() + [
             'shell', 'settings', 'get', 'global', 'animator_duration_scale'
         ]
         animator_duration_scale_cmd = RunCommand(cmdline, verbose=True)
         animator_duration_scale_cmd.run()
         self.startanimatordurationscale = animator_duration_scale_cmd.stdout.strip()
-        cmdline = [
-            self.adbpath,
+        cmdline = xharness_adb() + [
             'shell', 'settings', 'get', 'system', 'screen_off_timeout'
         ]
         screen_off_timeout_cmd = RunCommand(cmdline, verbose=True)
@@ -76,23 +107,19 @@ class AndroidHelper:
         else:
             animationValue = 1
         minimumTimeoutValue = 2 * 60 * 1000 # milliseconds
-        cmdline = [
-            self.adbpath,
+        cmdline = xharness_adb() + [
             'shell', 'settings', 'put', 'global', 'window_animation_scale', str(animationValue)
         ]
         RunCommand(cmdline, verbose=True).run()
-        cmdline = [
-            self.adbpath,
+        cmdline = xharness_adb() + [
             'shell', 'settings', 'put', 'global', 'transition_animation_scale', str(animationValue)
         ]
         RunCommand(cmdline, verbose=True).run()
-        cmdline = [
-            self.adbpath,
+        cmdline = xharness_adb() + [
             'shell', 'settings', 'put', 'global', 'animator_duration_scale', str(animationValue)
         ]
         RunCommand(cmdline, verbose=True).run()
-        cmdline = [
-            self.adbpath,
+        cmdline = xharness_adb() + [
             'shell', 'settings', 'put', 'system', 'screen_off_timeout', str(minimumTimeoutValue)
         ]
         if minimumTimeoutValue > int(screen_off_timeout_cmd.stdout.strip()):
@@ -101,20 +128,17 @@ class AndroidHelper:
 
         # Check for success
         getLogger().info("Getting animation values to verify it worked")
-        cmdline = [
-            self.adbpath,
+        cmdline = xharness_adb() + [
             'shell', 'settings', 'get', 'global', 'window_animation_scale'
         ]
         windowSetValue = RunCommand(cmdline, verbose=True)
         windowSetValue.run()
-        cmdline = [
-            self.adbpath,
+        cmdline = xharness_adb() + [
             'shell', 'settings', 'get', 'global', 'transition_animation_scale'
         ]
         transitionSetValue = RunCommand(cmdline, verbose=True)
         transitionSetValue.run()
-        cmdline = [
-            self.adbpath,
+        cmdline = xharness_adb() + [
             'shell', 'settings', 'get', 'global', 'animator_duration_scale'
         ]
         animatorSetValue = RunCommand(cmdline, verbose=True)
@@ -126,8 +150,7 @@ class AndroidHelper:
         else:
             getLogger().info(f"Animation values successfully set to {animationValue}.")
 
-        self.stopappcommand = [ 
-            self.adbpath,
+        self.stopappcommand = xharness_adb() + [
             'shell',
             'am',
             'force-stop',
@@ -147,8 +170,7 @@ class AndroidHelper:
         RunCommand(installCmd, verbose=True).run()
 
         getLogger().info("Completed install, running shell.")
-        cmdline = [ 
-            self.adbpath,
+        cmdline = xharness_adb() + [
             'shell',
             f'cmd package resolve-activity --brief {self.packagename} | tail -n 1'
         ]
@@ -157,16 +179,14 @@ class AndroidHelper:
         getLogger().info(f"Target Activity {getActivity.stdout}")
 
         # More setup stuff
-        checkScreenOnCmd = [ 
-            self.adbpath,
+        checkScreenOnCmd = xharness_adb() + [
             'shell',
-            f'dumpsys input_method | grep mInteractive'
+            'dumpsys input_method | grep mInteractive'
         ]
         checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
         checkScreenOn.run()
 
-        keyInputCmd = [
-            self.adbpath,
+        keyInputCmd = xharness_adb() + [
             'shell',
             'input',
             'keyevent'
@@ -190,8 +210,7 @@ class AndroidHelper:
         self.activityname = getActivity.stdout.strip()
 
         # -W in the start command waits for the app to finish initial draw.
-        self.startappcommand = [ 
-            self.adbpath,
+        self.startappcommand = xharness_adb() + [
             'shell',
             'am',
             'start-activity',
@@ -202,7 +221,7 @@ class AndroidHelper:
 
         testRun = RunCommand(self.startappcommand, verbose=True)
         testRun.run()
-        testRunStats = re.findall(runSplitRegex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
+        testRunStats = re.findall(run_split_regex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
         getLogger().info(f"Test run activity: {testRunStats[3]}")
         time.sleep(10) # Add delay to ensure app is fully installed and give it some time to settle
         
@@ -223,7 +242,7 @@ class AndroidHelper:
             # Check to make sure it worked
             testRun = RunCommand(self.startappcommand, verbose=True)
             testRun.run()
-            testRunStats = re.findall(runSplitRegex, testRun.stdout) 
+            testRunStats = re.findall(run_split_regex, testRun.stdout) 
             getLogger().info(f"Test run activity: {testRunStats[3]}")
             RunCommand(self.stopappcommand, verbose=True).run() 
             
@@ -231,8 +250,7 @@ class AndroidHelper:
                 getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
                 raise Exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
             
-        self.startappcommand = [ 
-            self.adbpath,
+        self.startappcommand = xharness_adb() + [
             'shell',
             'am',
             'start-activity'
@@ -246,8 +264,7 @@ class AndroidHelper:
         ]
 
     def close_device(self):
-        keyInputCmd = [
-            self.adbpath,
+        keyInputCmd = xharness_adb() + [
             'shell',
             'input',
             'keyevent'
@@ -266,35 +283,64 @@ class AndroidHelper:
         RunCommand(uninstallAppCmd, verbose=True).run()
 
         
-        keyInputCmd = [
-            self.adbpath,
+        keyInputCmd = xharness_adb() + [
             'shell',
             'input',
             'keyevent'
         ]
 
+        # Restore Android package verifier settings
+        try:
+            getLogger().info("Restoring package verifier settings to pretest values")
+            # Restore verifier_verify_adb_installs
+            if self.startverifierverifyadbinstalls is not None:
+                if self.startverifierverifyadbinstalls == '' or self.startverifierverifyadbinstalls.lower() == 'null':
+                    cmdline = xharness_adb() + [
+                        'shell', 'settings', 'delete', 'global', 'verifier_verify_adb_installs'
+                    ]
+                else:
+                    cmdline = xharness_adb() + [
+                        'shell', 'settings', 'put', 'global', 'verifier_verify_adb_installs', self.startverifierverifyadbinstalls
+                    ]
+                RunCommand(cmdline, verbose=True).run()
+
+            # Restore package_verifier_enable
+            if self.startpackageverifierenable is not None:
+                if self.startpackageverifierenable == '' or self.startpackageverifierenable.lower() == 'null':
+                    cmdline = xharness_adb() + [
+                        'shell', 'settings', 'delete', 'global', 'package_verifier_enable'
+                    ]
+                else:
+                    cmdline = xharness_adb() + [
+                        'shell', 'settings', 'put', 'global', 'package_verifier_enable', self.startpackageverifierenable
+                    ]
+                RunCommand(cmdline, verbose=True).run()
+        except CalledProcessError:
+            # Best-effort restore; don't fail teardown if restore isn't possible
+            getLogger().warning("Failed to restore package verifier settings", exc_info=True)
+
         # Reset animation values 
         getLogger().info("Resetting animation values to pretest values")
-        cmdline = [
-            self.adbpath,
-            'shell', 'settings', 'put', 'global', 'window_animation_scale', self.startwindowanimationscale
-        ]
-        RunCommand(cmdline, verbose=True).run()
-        cmdline = [
-            self.adbpath,
-            'shell', 'settings', 'put', 'global', 'transition_animation_scale', self.starttransitionanimationscale
-        ]
-        RunCommand(cmdline, verbose=True).run()
-        cmdline = [
-            self.adbpath,
-            'shell', 'settings', 'put', 'global', 'animator_duration_scale', self.startanimatordurationscale
-        ]
-        RunCommand(cmdline, verbose=True).run()
-        cmdline = [
-            self.adbpath,
-            'shell', 'settings', 'put', 'system', 'screen_off_timeout', self.startscreenofftimeout
-        ]
-        RunCommand(cmdline, verbose=True).run()
+        if self.startwindowanimationscale is not None:
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'global', 'window_animation_scale', self.startwindowanimationscale
+            ]
+            RunCommand(cmdline, verbose=True).run()
+        if self.starttransitionanimationscale is not None:
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'global', 'transition_animation_scale', self.starttransitionanimationscale
+            ]
+            RunCommand(cmdline, verbose=True).run()
+        if self.startanimatordurationscale is not None:
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'global', 'animator_duration_scale', self.startanimatordurationscale
+            ]
+            RunCommand(cmdline, verbose=True).run()
+        if self.startscreenofftimeout is not None:
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'system', 'screen_off_timeout', self.startscreenofftimeout
+            ]
+            RunCommand(cmdline, verbose=True).run()
 
         if self.screenwasoff:
             RunCommand(keyInputCmd + ['26'], verbose=True).run() # Turn the screen back off

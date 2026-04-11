@@ -66,7 +66,27 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
         public double BaselineMetric { get; }
         public double ComparandMetric { get; }
         public double Delta => ComparandMetric - BaselineMetric;
-        public double PercentageDelta => (Delta / BaselineMetric) * 100;
+        public double PercentageDelta
+        {
+            get
+            {
+                if (BaselineMetric == 0)
+                {
+                    if (ComparandMetric == 0)
+                    {
+                        return 0;
+                    }
+                    else
+                    {
+                        return double.NaN;
+                    }
+                }
+                else
+                {
+                    return Delta / BaselineMetric * 100.0;
+                }
+            }
+        }
         public string Key => $"{Baseline.ConfigurationName}_{RunName}";
         public ResultItem Baseline { get; }
         public ResultItem Comparand { get; }

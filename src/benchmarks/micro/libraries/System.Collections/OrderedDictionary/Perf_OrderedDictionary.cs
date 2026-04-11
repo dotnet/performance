@@ -38,7 +38,7 @@ namespace System.Collections
                 var key = keys[i];
                 if (dictionary.TryGetValue(key, out T value))
                 {
-                    dictionary[key] = value ?? key;
+                    dictionary[key] = value is null ? key : value;
                 }
                 else
                 {

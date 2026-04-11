@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GC.Infrastructure.Commands.GCPerfSim
 {
-    internal sealed class GCPerfSimAnalyzeCommand : Command<GCPerfSimAnalyzeCommand.GCPerfSimAnalyzeSettings>
+    public sealed class GCPerfSimAnalyzeCommand : Command<GCPerfSimAnalyzeCommand.GCPerfSimAnalyzeSettings>
     {
         public sealed class GCPerfSimAnalyzeSettings : CommandSettings
         {
@@ -38,6 +38,12 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             string outputPath = Path.Combine(configuration.Output!.Path, "Results.md");
             IReadOnlyList<ComparisonResult> results = Markdown.GenerateTable(configuration, executionDetails, outputPath);
             AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to {outputPath} [/]");
+            if (configuration.Output.Formats.Contains("json"))
+            {
+                outputPath = Path.Combine(configuration.Output!.Path, "Results.json");
+                Json.GenerateDictionary(configuration, executionDetails, outputPath);
+                AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to {outputPath} [/]");
+            }
             return results;
         }
     }

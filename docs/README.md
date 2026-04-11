@@ -17,7 +17,7 @@ The documentation in this repo is organized into the following sections:
 - [Microbenchmarks Guide](../src/benchmarks/micro/README.md) for information on running our microbenchmarks.
 - [Micro Benchmarks of .NET Runtime(s)](../src/benchmarks/micro/README.md) - Information on benchmarks of .NET Runtime(s).
 - [Microbenchmarks design guidelines](microbenchmark-design-guidelines.md) - Detailed guidelines on how to design and write microbenchmarks.
-- [benchmarks_local.py script guide](../src/scripts/BENCHMARKS_LOCAL_README.md) - Description of a script for testing the performance of the different dotnet/runtime build types locally.
+- [benchmarks_local.py script guide](../scripts/BENCHMARKS_LOCAL_README.md) - Description of a script for testing the performance of the different dotnet/runtime build types locally.
 - [ResultsComparer tool](../src/tools/ResultsComparer/README.md) - Information on tool which allows for easy comparison of provided benchmark results.
 - [Serializers Benchmarks](../src/benchmarks/micro/Serializers/README.md) - Information on benchmarks of the most popular serializers.
 - [bepuphysics2 Benchmarks](../src/benchmarks/real-world/bepuphysics2/README.md) - Information on benchmarks of bepuphysics2 library.
@@ -30,13 +30,12 @@ The documentation in this repo is organized into the following sections:
 - [Testing GC.Infrastructure](../src/benchmarks/gc/GC.Infrastructure/README.md) - Information on testing GC.Infrastructure.
 - [GC.Analysis.API](../src/benchmarks/gc/GC.Infrastructure/GC.Analysis.API/README.md) - Information on conducting GC, CPU and Threading analysis using .NET Interactive notebooks.
 - [GC.Infrastructure Notebooks](../src/benchmarks/gc/GC.Infrastructure/Notebooks/README.md) - Information on notebooks that either provide examples or functionality for specialized analysis
-- [Benchmark Analysis](../src/benchmarks/gc/GC.Infrastructure/Notebooks/BenchmarkAnalysis.md) - Information on a notebook which contains code for producing charts (and soon, tables) for GC benchmarks. It can currently process data
-from the ASP.NET benchmarks obtained using crank as well as ETL data.
+- [Benchmark Analysis](../src/benchmarks/gc/GC.Infrastructure/Notebooks/BenchmarkAnalysis.md) - Information on a notebook which contains code for producing charts (and soon, tables) for GC benchmarks. It can currently process data from the ASP.NET benchmarks obtained using crank as well as ETL data.
 
 ## Running Scenarios
 
 - [Scenarios workflow](scenarios-workflow.md) - An introduction of how to run scenario tests.
 - [Basic scenarios](basic-scenarios.md) - Specific instruction of how to run various basic scenarios.
-- [Blazor scenarios](blazor-scenarios) - Specific instruction of how to run _New Blazorwasm Template Size On Disk_ scenarios.
+- [Blazor scenarios](blazor-scenarios.md) - Specific instruction of how to run _New Blazorwasm Template Size On Disk_ scenarios.
 - [Cross-gen scenarios](crossgen-scenarios.md) - Specific instruction of how to run _crossgen_ scenarios.
 - [SDK scenarios](sdk-scenarios.md) - Specific instruction of how to run _SDK Build Throughput Scenario_ scenarios.

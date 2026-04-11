@@ -1,8 +1,8 @@
-from typing import List, Optional, Union
+from typing import Optional, Union
 from dataclasses import dataclass, field
 from datetime import timedelta
 import os
-from performance.common import RunCommand, iswin, set_environment_variable
+from performance.common import run_msbuild_command, set_environment_variable
 
 @dataclass
 class PerfSendToHelixArgs:
@@ -24,7 +24,7 @@ class PerfSendToHelixArgs:
     helix_type: str = "tests/default/"
     build_config: str = ""
     helix_build: str = os.environ.get("BUILD_BUILDNUMBER", "")
-    helix_target_queues: List[str] = field(default_factory=list) # type: ignore
+    helix_target_queues: list[str] = field(default_factory=list[str])
 
     # Environment variables that need to be set
     env_build_reason: str = os.environ.get("BUILD_REASON", "pr")
@@ -35,8 +35,8 @@ class PerfSendToHelixArgs:
 
     # Optional for Helix SDK
     helix_access_token: Optional[str] = None
-    helix_pre_commands: List[str] = field(default_factory=list) # type: ignore
-    helix_post_commands: List[str] = field(default_factory=list) # type: ignore
+    helix_pre_commands: list[str] = field(default_factory=list[str])
+    helix_post_commands: list[str] = field(default_factory=list[str])
     include_dotnet_cli: bool = False
     dotnet_cli_package_type: str = ""
     dotnet_cli_version: str = ""
@@ -56,26 +56,27 @@ class PerfSendToHelixArgs:
     targets_windows: bool = True
 
     # Used by BDN projects
-    work_item_command: Optional[List[str]] = None
-    baseline_work_item_command: Optional[List[str]] = None
+    work_item_command: Optional[list[str]] = None
+    baseline_work_item_command: Optional[list[str]] = None
     partition_count: Optional[int] = None
-    bdn_arguments: Optional[List[str]] = None
-    baseline_bdn_arguments: Optional[List[str]] = None
+    bdn_arguments: Optional[list[str]] = None
+    baseline_bdn_arguments: Optional[list[str]] = None
     compare: bool = False
-    compare_command: Optional[List[str]] = None
+    compare_command: Optional[list[str]] = None
     only_sanity_check: bool = False
 
     # Used by scenarios projects
     runtime_flavor: Optional[str] = None
-    hybrid_globalization: Optional[bool] = None
+    codegen_type: Optional[str] = None
+    linking_type: Optional[str] = None
     python: Optional[str] = None
     affinity: Optional[str] = None
     ios_strip_symbols: Optional[bool] = None
     ios_llvm_build: Optional[bool] = None
-    scenario_arguments: Optional[List[str]] = None
+    scenario_arguments: Optional[list[str]] = None
 
     def set_environment_variables(self, save_to_pipeline: bool = True):
-        def set_env_var(name: str, value: Union[str, bool, List[str], timedelta, int, None], sep = " ", save_to_pipeline=save_to_pipeline):
+        def set_env_var(name: str, value: Union[str, bool, list[str], timedelta, int, None], sep: str = " ", save_to_pipeline: bool=save_to_pipeline):
             if value is None:
                 # None means don't set it
                 return
@@ -108,7 +109,8 @@ class PerfSendToHelixArgs:
         set_env_var("Creator", self.creator)
         set_env_var("PartitionCount", self.partition_count)
         set_env_var("RuntimeFlavor", self.runtime_flavor)
-        set_env_var("HybridGlobalization", self.hybrid_globalization)
+        set_env_var("CodegenType", self.codegen_type)
+        set_env_var("LinkingType", self.linking_type)
         set_env_var("iOSStripSymbols", self.ios_strip_symbols)
         set_env_var("iOSLlvmBuild", self.ios_llvm_build)
         set_env_var("TargetCsproj", self.target_csproj)
@@ -134,22 +136,11 @@ class PerfSendToHelixArgs:
         set_env_var("SYSTEM_TEAMPROJECT", self.env_system_team_project, save_to_pipeline=False)
         set_env_var("SYSTEM_ACCESSTOKEN", self.env_system_access_token, save_to_pipeline=False)
 
-def run_shell(script: str, args: List[str]):
-    RunCommand(["chmod", "+x", script]).run()
-    RunCommand([script, *args], verbose=True).run()
-
-def run_powershell(script: str, args: List[str]):
-    RunCommand(["powershell.exe", script, *args], verbose=True).run()
-
 def perf_send_to_helix(args: PerfSendToHelixArgs):
     args.set_environment_variables(save_to_pipeline=False)
 
     binlog_dest = os.path.join(args.performance_repo_dir, "artifacts", "log", args.build_config, "SendToHelix.binlog")
     send_params = [args.project_file, "/restore", "/t:Test", f"/bl:{binlog_dest}"]
 
-    common_dir = os.path.join(args.performance_repo_dir, "eng", "common")
-    if iswin():
-        run_powershell(os.path.join(common_dir, "msbuild.ps1"), ["-warnaserror", "0", *send_params])
-    else:
-        run_shell(os.path.join(common_dir, "msbuild.sh"), ["--warnaserror", "false", *send_params])
+    run_msbuild_command(send_params, warn_as_error=False)
 

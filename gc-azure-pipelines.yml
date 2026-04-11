@@ -47,6 +47,11 @@ jobs:
       inputs:
         version: 9.0.x
         includePreviewVersions: true
+    - task: UseDotNet@2
+      displayName: Install .NET 10.0 
+      inputs:
+        version: 10.0.x
+        includePreviewVersions: true
     - script: dotnet tool restore
     - script: dotnet tool install --global dotnet-repl 
     - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure.NotebookTests/GC.Infrastructure.NotebookTests.csproj --configuration Debug --framework net8.0

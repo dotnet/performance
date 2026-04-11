@@ -62,11 +62,6 @@
                 throw new ArgumentNullException($"{nameof(ASPNetBenchmarksConfigurationParser)}: {nameof(configuration.Output)} is null. Check the syntax of the configuration.");
             }
 
-            if (string.IsNullOrEmpty(configuration.Output.Path))
-            {
-                throw new ArgumentNullException($"{nameof(ASPNetBenchmarksConfigurationParser)}: {nameof(configuration.Output.Path)} is null or empty. Please specify an output path.");
-            }
-
             if (configuration.Environment == null)
             {
                 throw new ArgumentNullException($"{nameof(ASPNetBenchmarksConfigurationParser)}: {nameof(configuration.Environment)} is null. Please add the environment item in the configuration.");

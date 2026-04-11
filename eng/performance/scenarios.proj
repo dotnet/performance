@@ -31,19 +31,27 @@
       <ScenarioDirectoryName>emptyvbconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
-    <UIScenario Include="Static Winforms Template" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT'">
+    <!-- Static Winforms Template: limited to internal (SYSTEM_TEAMPROJECT=internal) runs due to flakiness (CloseFailed) on generic CI VMs.
+      Override with /p:IncludeVMFlakyScenarios=true to include on other builds. -->
+    <UIScenario Include="Static Winforms Template" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT' AND ( '$(SYSTEM_TEAMPROJECT)' == 'internal' OR '$(IncludeVMFlakyScenarios)' == 'true' )">
       <ScenarioDirectoryName>staticwinformstemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </UIScenario>
-    <UIScenario Include="WinForms Large" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT'">
+    <!-- WinForms Large: gated for consistency with Static Winforms Template.
+      Override with /p:IncludeVMFlakyScenarios=true to include on other builds. -->
+    <UIScenario Include="WinForms Large" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT' AND ( '$(SYSTEM_TEAMPROJECT)' == 'internal' OR '$(IncludeVMFlakyScenarios)' == 'true' )">
       <ScenarioDirectoryName>windowsformslarge</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </UIScenario>
-    <UIScenario Include="WPF Template" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT'">
+    <!-- WPF Template: limited to internal runs due to CloseFailed on generic CI VMs (same issue as WinForms).
+      Override with /p:IncludeVMFlakyScenarios=true to include on other builds. -->
+    <UIScenario Include="WPF Template" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT' AND ( '$(SYSTEM_TEAMPROJECT)' == 'internal' OR '$(IncludeVMFlakyScenarios)' == 'true' )">
       <ScenarioDirectoryName>wpf</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </UIScenario>
-    <UIScenario Include="WPF SFC" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT'">
+    <!-- WPF SFC: gated for consistency with WPF Template.
+      Override with /p:IncludeVMFlakyScenarios=true to include on other builds. -->
+    <UIScenario Include="WPF SFC" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT' AND ( '$(SYSTEM_TEAMPROJECT)' == 'internal' OR '$(IncludeVMFlakyScenarios)' == 'true' )">
       <ScenarioDirectoryName>wpfsfc</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </UIScenario>

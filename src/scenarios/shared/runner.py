@@ -22,7 +22,7 @@ from shared.devicepowerconsumption import DevicePowerConsumptionHelper
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.memoryconsumption import MemoryConsumptionWrapper
-from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, publisheddll
+from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, xharness_adb, publisheddll
 from shared.sod import SODWrapper
 from shared import const
 from performance.common import RunCommand, iswin, extension, helixworkitemroot
@@ -47,6 +47,7 @@ class Runner:
         self.crossgen_arguments = CrossgenArguments()
         self.affinity = None
         self.upload_to_perflab_container = False
+        self.binlogpath = None
         setup_loggers(True)
 
     def parseargs(self):
@@ -76,6 +77,7 @@ class Runner:
         devicestartupparser.add_argument('--fully-drawn-extra-delay', help='Set an additional delay time for an Android app to reportFullyDrawn (seconds), not on iOS. This should be greater than the greatest amount of extra time expected between first frame draw and reportFullyDrawn being called. Default = 3 seconds', type=int, default=3, dest='fullyDrawnDelaySecMax')
         devicestartupparser.add_argument('--fully-drawn-magic-string', help='Set the magic string that is logged by the app to indicate when the app is fully drawn. Required when using --use-fully-drawn-time on iOS.', type=str, dest='fullyDrawnMagicString')
         devicestartupparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
+        devicestartupparser.add_argument('--trace-perfetto', help='Android Only. Trace the startup with Perfetto and save to the "traces" directory.', action='store_true', dest='traceperfetto')
         self.add_common_arguments(devicestartupparser)
 
         devicememoryconsumptionparser = subparsers.add_parser(const.DEVICEMEMORYCONSUMPTION,
@@ -167,6 +169,11 @@ ex: C:\repos\performance;C:\repos\runtime
 '''                            )
         self.add_common_arguments(sodparser)
 
+        buildtimeparser = subparsers.add_parser(const.BUILDTIME,
+                                              description='measure build time from a binlog')
+        buildtimeparser.add_argument('--binlog-path', help='Location of binlog', dest='binlogpath')
+        self.add_common_arguments(buildtimeparser)
+
         args = parser.parse_args()
 
         if not args.testtype:
@@ -186,6 +193,9 @@ ex: C:\repos\performance;C:\repos\runtime
 
         if self.testtype == const.SOD:
             self.dirs = args.dirs
+
+        if self.testtype == const.BUILDTIME:
+            self.binlogpath = args.binlogpath
         
         if self.testtype == const.DEVICESTARTUP:
             self.packagepath = args.packagepath
@@ -197,6 +207,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.fullyDrawnDelaySecMax = args.fullyDrawnDelaySecMax
             self.fullyDrawnMagicString = args.fullyDrawnMagicString
             self.closeToStartDelay = args.closeToStartDelay
+            self.traceperfetto = args.traceperfetto
 
         if self.testtype == const.DEVICEMEMORYCONSUMPTION:
             self.packagepath = args.packagepath
@@ -257,7 +268,7 @@ ex: C:\repos\performance;C:\repos\runtime
         python_exe = python_command[0]
         python_args = " ".join(python_command[1:])
         self.traits.add_traits(upload_to_perflab_container=self.upload_to_perflab_container)
-        
+
         if self.testtype == const.INNERLOOP:
             startup = StartupWrapper()
             self.traits.add_traits(scenarioname=self.scenarioname,
@@ -434,16 +445,14 @@ ex: C:\repos\performance;C:\repos\runtime
                 androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
 
                 # Create the fullydrawn command
-                clearProcStatsCmd = [ 
-                    androidHelper.adbpath,
+                clearProcStatsCmd = xharness_adb() + [
                     'shell',
                     'dumpsys',
                     'procstats',
                     '--clear'
                 ]
 
-                captureProcStatsCmd = [ 
-                    androidHelper.adbpath,
+                captureProcStatsCmd = xharness_adb() + [
                     'shell',
                     'dumpsys',
                     'procstats',
@@ -452,8 +461,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'proc'
                 ]
 
-                clearLogsCmd = [
-                    androidHelper.adbpath,
+                clearLogsCmd = xharness_adb() + [
                     'logcat',
                     '-c'
                 ]
@@ -490,7 +498,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     print(f"Memory Capture: {memoryCapture}")
                     allResults.append(memoryCapture)
                     time.sleep(self.closeToStartDelay) # Delay in seconds for ensuring a cold start
-                
+
             finally:
                 androidHelper.close_device()
 
@@ -532,22 +540,19 @@ ex: C:\repos\performance;C:\repos\runtime
             androidHelper = AndroidHelper()
             try:
                 androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
-                
+
                 # Create the fullydrawn command
-                fullyDrawnRetrieveCmd = [ 
-                    androidHelper.adbpath,
+                fullyDrawnRetrieveCmd = xharness_adb() + [ 
                     'shell',
-                    f"logcat -d | grep 'ActivityTaskManager: Fully drawn {self.packagename}'"
+                    f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Fully drawn {self.packagename}'"
                 ]
 
-                basicStartupRetrieveCmd = [ 
-                    androidHelper.adbpath,
+                basicStartupRetrieveCmd = xharness_adb() + [ 
                     'shell',
-                    f"logcat -d | grep 'ActivityTaskManager: Displayed {androidHelper.activityname}'"
+                    f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {androidHelper.activityname}'"
                 ]
 
-                clearLogsCmd = [
-                    androidHelper.adbpath,
+                clearLogsCmd = xharness_adb() + [
                     'logcat',
                     '-c'
                 ]
@@ -579,11 +584,97 @@ ex: C:\repos\performance;C:\repos\runtime
                     elif len(captureList) == 2: # Have s and ms, but maybe not padded ms, pad and combine (zfill left pads with 0)
                         formattedTime = f"TotalTime: {captureList[0]}{captureList[1].zfill(3)}\n"
                     else:
-                        getLogger().error("Time capture failed, found {len(captureList)}")
+                        getLogger().error(f"Time capture failed, found {len(captureList)}")
                         raise Exception("Android Time Capture Failed! Incorrect number of captures found.")
                     allResults.append(formattedTime) # append TotalTime: (TIME)
                     time.sleep(self.closeToStartDelay) # Delay in seconds for ensuring a cold start
-                
+
+                if self.traceperfetto:
+                    perfetto_device_save_file = f'/data/misc/perfetto-traces/perfetto_trace_{time.time()}'
+                    original_traced_enable = None
+                    perfetto_terminated = False
+
+                    stop_perfetto_cmd = xharness_adb() + [ # Stop perfetto now that the app. Sending a Terminate signal should be enough per the longer trace capturing guidance here: https://perfetto.dev/docs/concepts/config#android.
+                        'shell',
+                        'pkill -TERM perfetto'
+                    ]
+
+                    try:
+                        getLogger().info("Clearing potential previous running perfetto traces")
+                        RunCommand(stop_perfetto_cmd, verbose=True).run()
+
+                        # Get the current value of persist.traced.enable
+                        getLogger().info("Getting current persist.traced.enable value")
+                        get_traced_cmd = xharness_adb() + [
+                            'shell',
+                            'getprop persist.traced.enable'
+                        ]
+                        get_traced_result = RunCommand(get_traced_cmd, verbose=True)
+                        get_traced_result.run()
+                        original_traced_enable = get_traced_result.stdout.strip()
+
+                        # Setup the phone props to allow perfetto to run properly
+                        getLogger().info("Setting up the device for Perfetto")
+                        setup_perfetto_cmd = xharness_adb() + [
+                            'shell',
+                            'setprop persist.traced.enable 1'
+                        ]
+                        RunCommand(setup_perfetto_cmd, verbose=True).run()
+
+                        getLogger().info("Tracing with Perfetto")
+                        # Get the max TotalTime from the allResults list in seconds
+                        max_startup_time_sec = int(max(int(re.search(r"TotalTime: (\d+)", str(result)).group(1)) for result in allResults) / 1000)
+                        perfetto_max_trace_time_sec = max_startup_time_sec * 2 # Set the max trace time to be double the max startup time
+                        if max_startup_time_sec > 60:
+                            getLogger().error(f"Max startup time is greater than 60 seconds (Max startup time: {max_startup_time_sec}), this means something probably went wrong.")
+                            raise Exception("Max startup time is greater than 60 seconds, this means something probably went wrong.")
+
+                        perfetto_cmd = xharness_adb() + [
+                            'shell',
+                            f'perfetto --background --txt -o {perfetto_device_save_file} --time {perfetto_max_trace_time_sec}s -b 64mb sched freq idle am wm gfx view binder_driver hal dalvik camera input res memory'
+                        ]
+                        RunCommand(perfetto_cmd, verbose=True).run()
+
+                        # Run the startup test with the trace running (only once)
+                        getLogger().info("Running startup test with Perfetto trace running")
+                        traced_start = RunCommand(androidHelper.startappcommand, verbose=True)
+                        traced_start.run()
+
+                        getLogger().info("Stopping perfetto trace capture")
+                        RunCommand(stop_perfetto_cmd, verbose=True).run()
+                        perfetto_terminated = True
+
+                        # Pull the trace from the device and store in the traceperfetto directory
+                        pull_trace_cmd = xharness_adb() + [
+                            'pull',
+                            perfetto_device_save_file,
+                            os.path.join(os.getcwd(), const.TRACEDIR, f'perfetto_startup_trace_{self.packagename}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.trace')
+                        ]
+                        RunCommand(pull_trace_cmd, verbose=True).run()
+
+                        # Delete the trace file on the android device
+                        getLogger().info("Deleting the trace file on the device.")
+                        delete_trace_cmd = xharness_adb() + [
+                            'shell',
+                            f'rm -rf {perfetto_device_save_file}'
+                        ]
+                        RunCommand(delete_trace_cmd, verbose=True).run()
+
+                    finally:
+                        if not perfetto_terminated:
+                            # If we didn't terminate perfetto, we need to stop it now, although it will time out as well if this manages to fail.
+                            getLogger().info("Perfetto not terminated, stopping it now")
+                            RunCommand(stop_perfetto_cmd, verbose=True).run()
+
+                        # Restore original persist.traced.enable value if we saved one
+                        if original_traced_enable is not None and original_traced_enable != "1":
+                            getLogger().info(f"Restoring persist.traced.enable to original value: {original_traced_enable}")
+                            restore_traced_cmd = xharness_adb() + [
+                                'shell',
+                                f'setprop persist.traced.enable {original_traced_enable}'
+                            ]
+                            RunCommand(restore_traced_cmd, verbose=True).run()
+
             finally:
                 androidHelper.close_device()
 
@@ -623,18 +714,20 @@ ex: C:\repos\performance;C:\repos\runtime
             apple_state = RunCommand(cmdline, verbose=True)
             apple_state.run()
 
-            # Get the name and version of the device from the output of apple_state above
-            # Example output expected (PERFIOS-01 is the device name, and 17.0.2 is the version):
+            # Get the name, UDID, and version of the device from the output of apple_state above
+            # Example output expected (PERFIOS-01 is the device name, 00008101-001A09223E08001E is the UDID, and 17.0.2 is the version):
             #  Connected Devices:
             #    PERFIOS-01 00008101-001A09223E08001E    17.0.2        iPhone iOS
-            deviceInfoMatch = re.search(r'Connected Devices:\s+(?P<deviceName>\S+)\s+\S+\s+(?P<deviceVersion>\S+)', apple_state.stdout)
+            deviceInfoMatch = re.search(r'Connected Devices:\s+(?P<deviceName>\S+)\s+(?P<deviceUDID>\S+)\s+(?P<deviceVersion>\S+)', apple_state.stdout)
             if deviceInfoMatch:
                 deviceName = deviceInfoMatch.group('deviceName')
+                deviceUDID = deviceInfoMatch.group('deviceUDID')
                 deviceVersion = deviceInfoMatch.group('deviceVersion')
                 getLogger().info(f"Device Name: {deviceName}")
+                getLogger().info(f"Device UDID: {deviceUDID}")
                 getLogger().info(f"Device Version: {deviceVersion}")
             else:
-                raise Exception("Device name or version not found in the output of apple_state command.")
+                raise Exception("Device name, UDID, or version not found in the output of apple_state command.")
             
             getLogger().info("Installing app on device.")
             installCmd = xharnesscommand() + [
@@ -662,7 +755,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'mlaunch',
                     '--',
                     '--launchdev', self.packagepath,
-                    '--devname', deviceName
+                    '--devname', deviceUDID
                 ]
                 runCmdCommand = RunCommand(runCmd, verbose=True)
 
@@ -722,7 +815,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'mlaunch',
                     '--',
                     f'--killdev={app_pid}',
-                    '--devname', deviceName
+                    '--devname', deviceUDID
                 ]
                 killCmdCommand = RunCommand(killCmd, verbose=True)
                 killCmdCommand.run()
@@ -760,7 +853,7 @@ ex: C:\repos\performance;C:\repos\runtime
                         if 'Now monitoring resource allowance' in lineData['eventMessage'] or 'Stopped monitoring' in lineData['eventMessage']:
                             events.append(lineData)
                     except:
-                        break
+                        continue
 
                 
                 if i == 0: # Use the warmup iteration to get the current device time
@@ -875,3 +968,10 @@ ex: C:\repos\performance;C:\repos\runtime
             if not (self.dirs or builtdir):
                 raise Exception("Dirs was not passed in and neither %s nor %s exist" % (const.PUBDIR, const.BINDIR))
             sod.runtests(scenarioname=self.scenarioname, dirs=self.dirs or builtdir, upload_to_perflab_container=self.upload_to_perflab_container, artifact=self.traits.artifact)
+
+        elif self.testtype == const.BUILDTIME:
+            startup = StartupWrapper()
+            if not (self.binlogpath and os.path.exists(os.path.join(const.TRACEDIR, self.binlogpath))):
+                raise Exception("For build time measurements a valid binlog path must be provided.")
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.BUILDTIME, tracename=self.binlogpath, scenarioname=self.scenarioname)
+            startup.parsetraces(self.traits)

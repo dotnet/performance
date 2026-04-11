@@ -21,19 +21,18 @@ https://github.com/dotnet/performance/blob/main/docs/benchmarking-workflow.md
 '''
 
 from argparse import ArgumentParser, ArgumentTypeError
-from datetime import datetime
 import json
 from logging import getLogger
 
 import os
 import shutil
 import sys
-from typing import Any, List, Optional
+from typing import Any, Optional
 
-from performance.common import validate_supported_runtime, get_artifacts_directory, helixuploadroot
+from performance.common import get_repo_root_path, validate_supported_runtime, get_artifacts_directory, helixuploadroot
 from performance.logger import setup_loggers
 from performance.tracer import setup_tracing, enable_trace_console_exporter, get_tracer
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
 from channel_map import ChannelMap
 from subprocess import CalledProcessError
 from glob import glob
@@ -44,11 +43,11 @@ import micro_benchmarks
 setup_tracing()
 tracer = get_tracer()
 
-@tracer.start_as_current_span(name="benchmarks_ci_init_tools") # type: ignore
+@tracer.start_as_current_span(name="benchmarks_ci_init_tools")
 def init_tools(
         architecture: str,
-        dotnet_versions: List[str],
-        target_framework_monikers: List[str],
+        dotnet_versions: list[str],
+        target_framework_monikers: list[str],
         verbose: bool,
         azure_feed_url: Optional[str] = None,
         internal_build_key: Optional[str] = None) -> None:
@@ -78,50 +77,11 @@ def init_tools(
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''Adds new arguments to the specified ArgumentParser object.'''
 
-    if not isinstance(parser, ArgumentParser):
-        raise TypeError('Invalid parser.')
-
     # Download DotNet Cli
     dotnet.add_arguments(parser)
 
     # Restore/Build/Run functionality for MicroBenchmarks.csproj
     micro_benchmarks.add_arguments(parser)
-
-    PRODUCT_INFO = [
-        'init-tools',  # Default
-        'repo',
-        'cli',
-        'args',
-    ]
-    parser.add_argument(
-        '--cli-source-info',
-        dest='cli_source_info',
-        required=False,
-        default=PRODUCT_INFO[0],
-        choices=PRODUCT_INFO,
-        help='Specifies where the product information comes from.',
-    )
-    parser.add_argument(
-        '--cli-branch',
-        dest='cli_branch',
-        required=False,
-        type=str,
-        help='Product branch.'
-    )
-    parser.add_argument(
-        '--cli-commit-sha',
-        dest='cli_commit_sha',
-        required=False,
-        type=str,
-        help='Product commit sha.'
-    )
-    parser.add_argument(
-        '--cli-repository',
-        dest='cli_repository',
-        required=False,
-        type=str,
-        help='Product repository.'
-    )
 
     def __is_valid_dotnet_path(dp: str) -> str:
         if not os.path.isdir(dp):
@@ -140,24 +100,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         type=__is_valid_dotnet_path,
         help='Path to a custom dotnet'
-    )
-
-    def __is_valid_datetime(dt: str) -> str:
-        try:
-            datetime.strptime(dt, '%Y-%m-%dT%H:%M:%SZ')
-            return dt
-        except ValueError:
-            raise ArgumentTypeError(
-                'Datetime "{}" is in the wrong format.'.format(dt))
-
-    parser.add_argument(
-        '--cli-source-timestamp',
-        dest='cli_source_timestamp',
-        required=False,
-        type=__is_valid_datetime,
-        help='''Product timestamp of the soruces used to generate this build
-            (date-time from RFC 3339, Section 5.6.
-            "%%Y-%%m-%%dT%%H:%%M:%%SZ").'''
     )
 
     parser.add_argument('--upload-to-perflab-container',
@@ -253,7 +195,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     return parser
 
 
-def __process_arguments(args: List[str]):
+def __process_arguments(args: list[str]):
     parser = ArgumentParser(
         description='Tool to run .NET micro benchmarks',
         allow_abbrev=False,
@@ -263,8 +205,8 @@ def __process_arguments(args: List[str]):
     add_arguments(parser)
     return parser.parse_args(args)
 
-@tracer.start_as_current_span("benchmarks_ci_main") # type: ignore
-def main(argv: List[str]):
+@tracer.start_as_current_span("benchmarks_ci_main")
+def main(argv: list[str]):
     validate_supported_runtime()
     args = __process_arguments(argv)
     verbose = not args.quiet
@@ -277,9 +219,7 @@ def main(argv: List[str]):
     if not args.frameworks:
         raise Exception("Framework version (-f) must be specified.")
 
-    target_framework_monikers = dotnet \
-        .FrameworkAction \
-        .get_target_framework_monikers(args.frameworks)
+    target_framework_monikers = dotnet.get_target_framework_monikers(args.frameworks)
     # Acquire necessary tools (dotnet)
     if not args.dotnet_path:
         init_tools(
@@ -345,20 +285,45 @@ def main(argv: List[str]):
 
             artifacts_dir = get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts
 
-            combined_file_prefix = "" if args.partition is None else f"Partition{args.partition}-"
-            globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
-            all_reports: List[Any] = []
-            for file in glob(globpath, recursive=True):
-                with open(file, 'r', encoding="utf8") as report_file:
-                    all_reports.append(json.load(report_file))
+            reports_globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
 
-            with open(os.path.join(artifacts_dir, f"{combined_file_prefix}combined-perf-lab-report.json"), "w", encoding="utf8") as all_reports_file:
-                json.dump(all_reports, all_reports_file)
-
+            # binlogs will always be in the performance/artifacts directory even if bdn_artifacts is set differently
+            binlogs_globpath = os.path.join(get_repo_root_path(), 'artifacts', '**', '*.binlog')
             helix_upload_root = helixuploadroot()
             if helix_upload_root is not None:
-                for file in glob(globpath, recursive=True):
-                    shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
+                # Check if reports directory is already within helix_upload_root to avoid duplicate copies
+                helix_upload_real = os.path.realpath(helix_upload_root)
+                artifacts_real = os.path.realpath(artifacts_dir)
+                reports_in_upload = artifacts_real.startswith(helix_upload_real + os.sep) or artifacts_real == helix_upload_real
+                
+                if reports_in_upload:
+                    getLogger().info(f"Skipping copy of reports - artifacts directory '{artifacts_real}' already in Helix upload root '{helix_upload_real}'")
+                else:
+                    for file in glob(reports_globpath, recursive=True):
+                        shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
+
+                # Create a combined JSON file that contains all the reports
+                combined_file_prefix = "" if args.partition is None else f"Partition{args.partition}-"
+                with open(os.path.join(helix_upload_root, f"{combined_file_prefix}combined-perf-lab-report.json"), "w", encoding="utf8") as all_reports_file:
+                    all_reports: list[Any] = []
+                    for file in glob(reports_globpath, recursive=True):
+                        with open(file, 'r', encoding="utf8") as report_file:
+                            try:
+                                all_reports.append(json.load(report_file))
+                            except Exception as e:
+                                getLogger().warning(f"Failed to load report file '{file}': {e}")
+                    json.dump(all_reports, all_reports_file)
+
+                # Check if binlogs directory is already within helix_upload_root to avoid duplicate copies
+                binlogs_dir = os.path.join(get_repo_root_path(), 'artifacts')
+                binlogs_dir_real = os.path.realpath(binlogs_dir)
+                binlogs_in_upload = binlogs_dir_real.startswith(helix_upload_real + os.sep) or binlogs_dir_real == helix_upload_real
+                
+                if binlogs_in_upload:
+                    getLogger().info(f"Skipping copy of binlogs - binlogs directory '{binlogs_dir_real}' already in Helix upload root '{helix_upload_real}'")
+                else:
+                    for file in glob(binlogs_globpath, recursive=True):
+                        shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
 
                 shutil.make_archive(os.path.join(helix_upload_root, "bdn-artifacts"), 'zip', artifacts_dir)
                 getLogger().info("Created \"bdn-artifacts\".zip")
@@ -373,9 +338,9 @@ def main(argv: List[str]):
         dotnet.shutdown_server(verbose)
 
         if args.upload_to_perflab_container:
-            globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
+            reports_globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
             import upload
-            upload_code = upload.upload(globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+            upload_code = upload.upload(reports_globpath, upload_container, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
             getLogger().info("Benchmarks Upload Code: " + str(upload_code))
             if upload_code != 0:
                 sys.exit(upload_code)

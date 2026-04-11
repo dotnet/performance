@@ -1,14 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- Supported target frameworks -->
+    <SupportedTargetFrameworks>net6.0;net7.0;net8.0;net9.0;net10.0;net11.0</SupportedTargetFrameworks>
+    <SupportedTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(SupportedTargetFrameworks);net472</SupportedTargetFrameworks>
     <!-- Used by Python script to narrow down the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
-    <!-- Supported target frameworks -->
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net462;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' != 'Windows_NT'">net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">$(SupportedTargetFrameworks)</TargetFrameworks>
     <NoWarn>$(NoWarn);CS8002</NoWarn>
     <!-- Suppress binaryformatter obsolete warning -->
     <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
+    <!-- Suppress Sve experimental feature warning -->
+    <NoWarn>$(NoWarn);SYSLIB5003</NoWarn>
     <OutputType>Exe</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>portable</DebugType>
@@ -47,6 +50,20 @@
     </When>
     <When Condition="'$(TargetFramework)' == 'net9.0'">
         <PropertyGroup>
+            <LangVersion>13</LangVersion>
+            <ExtensionsVersion>9.0.0</ExtensionsVersion>
+            <SystemVersion>9.0.0</SystemVersion>
+        </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net10.0'">
+        <PropertyGroup>
+            <LangVersion>14</LangVersion>
+            <ExtensionsVersion>10.0.0</ExtensionsVersion>
+            <SystemVersion>10.0.0</SystemVersion>
+        </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net11.0'">
+        <PropertyGroup>
             <LangVersion>preview</LangVersion>
             <ExtensionsVersion>$(MicrosoftExtensionsLoggingPackageVersion)</ExtensionsVersion>
             <SystemVersion>$(SystemThreadingChannelsPackageVersion)</SystemVersion>
@@ -73,24 +90,23 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="$(ExtensionsVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))" />
     <PackageReference Include="protobuf-net" Version="3.0.73" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="$(SystemVersion)" />
-    <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0'" />
-    <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt;= '5.0'" />
+    <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))" />
+    <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net5.0'))" />
     <PackageReference Include="System.IO.Hashing" Version="$(SystemVersion)" />
-    <PackageReference Include="System.IO.Pipelines" Version="$(SystemVersion)" />
     <PackageReference Include="System.Net.Http.WinHttpHandler" Version="$(SystemVersion)" Condition="'$(OS)' == 'Windows_NT'" />
-    <PackageReference Include="System.Threading.Channels" Version="$(SystemVersion)" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
-    <PackageReference Include="System.Collections.Immutable" Version="8.0.*-*" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0')" />
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.*-*" Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageReference Include="System.IO.Pipelines" Version="$(SystemVersion)" />
+    <PackageReference Include="System.Threading.Channels" Version="$(SystemVersion)" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt;= '8.0'">
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
     <!-- we want both net8.0 and net9.0 targets to use the 9.0.0 version of the NuGet package (since this is where the generic math APIs were first added) -->
     <PackageReference Include="System.Numerics.Tensors" Version="$(SystemThreadingChannelsPackageVersion)" />
   </ItemGroup>
@@ -138,7 +154,7 @@
     <Compile Remove="runtime\Math\Functions\Single\**\*.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.1')">
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
     <Compile Remove="runtime\Math\Functions\Double\CopySign.cs" />
     <Compile Remove="runtime\Math\Functions\Double\FusedMultiplyAdd.cs" />
     <Compile Remove="runtime\Math\Functions\Double\ILogB.cs" />
@@ -159,7 +175,7 @@
     <Compile Remove="libraries\Common\MultiArrayBuffer.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0')">
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net5.0'))">
     <Compile Remove="runtime\Interop\ComWrappers.cs" />
     <Compile Remove="libraries\System.Diagnostics\Perf_Activity.cs" />
     <Compile Remove="libraries\System.Text.Json\Serializer\ReadPreservedReferences.cs" />
@@ -169,7 +185,7 @@
     <Compile Remove="libraries\System.Runtime\Perf.Half.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '6.0')">
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">
     <Compile Remove="runtime\Math\Functions\Double\SinCos.cs" />
     <Compile Remove="runtime\Math\Functions\Single\SinCos.cs" />
     <Compile Remove="libraries\System.Collections\PriorityQueue\Perf_PriorityQueue.cs" />
@@ -179,7 +195,7 @@
     <Compile Remove="libraries\System.Text.Json\Node\*.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '7.0')">
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">
     <Compile Remove="runtime\Math\Functions\Double\AcosPi.cs" />
     <Compile Remove="runtime\Math\Functions\Double\AsinPi.cs" />
     <Compile Remove="runtime\Math\Functions\Double\AtanPi.cs" />
@@ -217,19 +233,65 @@
     <Compile Remove="libraries\System.Runtime\Perf.Int128.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0')">
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
     <Compile Remove="libraries\System.Buffers\SearchValuesByteTests.cs" />
     <Compile Remove="libraries\System.Buffers\SearchValuesCharTests.cs" />
     <Compile Remove="libraries\System.Text.Encoding\Perf.Ascii.cs" />
     <Compile Remove="libraries\System.Numerics.Tensors\*.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '9.0')">
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">
     <Compile Remove="libraries\System.Collections\OrderedDictionary\*.cs" />
+    <Compile Remove="libraries\System.Reflection.Metadata\*.cs" />
+  </ItemGroup>
+
+  <!-- Disabled: System.IO.Compression.Zstandard.dll is not yet included in the testhost payload. -->
+  <ItemGroup>
+    <Compile Remove="libraries\System.IO.Compression\Zstandard.cs" />
+  </ItemGroup>
+
+  <!-- Remove Sve microbenchmarks when running on net versions < 9.0 -->
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">
+    <Compile Remove="sve\*.cs" />
+  </ItemGroup>
+
+  <!-- Remove Sve2 microbenchmarks when running on net versions < 10.0 -->
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
+    <Compile Remove="sve\ComplexMultiply.cs" />
+    <Compile Remove="sve\PairwiseAdd.cs" />
+    <Compile Remove="sve\ComplexDotProduct.cs" />
+    <Compile Remove="sve\UpscaleFilter.cs" />
+    <Compile Remove="sve\FP64Overflow.cs" />
+  </ItemGroup>
+
+  <!-- Remove SVE microbenchmarks using the net11.0 CreateWhileLessThanMask API on older TFMs -->
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))">
+    <Compile Remove="sve\Clamp.cs" />
+    <Compile Remove="sve\ComplexDotProduct.cs" />
+    <Compile Remove="sve\ComplexMultiply.cs" />
+    <Compile Remove="sve\Exponent.cs" />
+    <Compile Remove="sve\FastDivision.cs" />
+    <Compile Remove="sve\FP64Overflow.cs" />
+    <Compile Remove="sve\GatherLoad.cs" />
+    <Compile Remove="sve\Logarithm.cs" />
+    <Compile Remove="sve\MultiplyAdd.cs" />
+    <Compile Remove="sve\MultiplyPow2.cs" />
+    <Compile Remove="sve\OddEvenSort.cs" />
+    <Compile Remove="sve\PairwiseAdd.cs" />
+    <Compile Remove="sve\Partition.cs" />
+    <Compile Remove="sve\ScatterStore.cs" />
+    <Compile Remove="sve\SobelFilter.cs" />
+    <Compile Remove="sve\SquareRoot.cs" />
+    <Compile Remove="sve\StrCmp.cs" />
+    <Compile Remove="sve\StrIndexOf.cs" />
+    <Compile Remove="sve\StrLen.cs" />
+    <Compile Remove="sve\TCPChecksum.cs" />
+    <Compile Remove="sve\UpscaleFilter.cs" />
+    <Compile Remove="sve\VectorMax.cs" />
   </ItemGroup>
 
   <!-- This is not removing things from older Net versions, it is removing from newer Net versions -->
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt;= '8.0')">
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
     <Compile Remove="libraries\System.Drawing\*.cs" />
   </ItemGroup>
 

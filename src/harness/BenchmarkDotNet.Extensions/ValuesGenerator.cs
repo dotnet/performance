@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -22,9 +23,9 @@ namespace BenchmarkDotNet.Extensions
         public static T GetNonDefaultValue<T>()
         {
             if (typeof(T) == typeof(byte) || typeof(T) == typeof(sbyte)) // we can't use ArrayOfUniqueValues for byte/sbyte (but they have the same range)
-                return Array<T>(byte.MaxValue).First(value => !value.Equals(default(T)));
+                return Array<T>(byte.MaxValue).First(value => !value!.Equals(default(T)));
             else
-                return ArrayOfUniqueValues<T>(2).First(value => !value.Equals(default(T)));
+                return ArrayOfUniqueValues<T>(2).First(value => !value!.Equals(default(T)));
         }
 
         /// <summary>
@@ -221,6 +222,9 @@ namespace BenchmarkDotNet.Extensions
                 return (T)(object)GenerateRandomString(random, 1, 50);  // note: all strings have only the characters 'a'..'z', 'A'..'Z', or '0'..'9'
             if (typeof(T) == typeof(Guid))
                 return (T)(object)GenerateRandomGuid(random);   // note: may return malformed Guids (not logically valid per RFC 4122 formatting)
+
+            if (typeof(T).GetConstructor(new[] { typeof(int) }) is ConstructorInfo ctor)
+                return (T)ctor.Invoke(new[] { (object)random.Next() });
 
             throw new NotImplementedException($"{typeof(T).Name} is not implemented");
         }

@@ -7,6 +7,7 @@ using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Reports;
 using Reporting;
+using System;
 using System.Linq;
 
 namespace BenchmarkDotNet.Extensions
@@ -22,12 +23,19 @@ namespace BenchmarkDotNet.Extensions
 
         public override void ExportToLog(Summary summary, ILogger logger)
         {
-            var reporter = Reporter.CreateReporter();
+            var reporter = new Reporter();
+
+            // Add BDN version to build AdditionalData when running in lab
+            var bdnVersion = summary.HostEnvironmentInfo.BenchmarkDotNetVersion;
+            if (reporter.Build != null && !string.IsNullOrEmpty(bdnVersion))
+            {
+                reporter.Build.AdditionalData["BenchmarkDotNetVersion"] = bdnVersion;
+            }
 
             var hasCriticalErrors = summary.HasCriticalValidationErrors;
 
-            DisassemblyDiagnoser disassemblyDiagnoser = summary.Reports
-                .FirstOrDefault()? // dissasembler was either enabled for all or none of them (so we use the first one)
+            DisassemblyDiagnoser? disassemblyDiagnoser = summary.Reports
+                .FirstOrDefault()? // disassembler was either enabled for all or none of them (so we use the first one)
                 .BenchmarkCase.Config.GetDiagnosers().OfType<DisassemblyDiagnoser>().FirstOrDefault();
 
             foreach (var report in summary.Reports)
@@ -122,7 +130,9 @@ namespace BenchmarkDotNet.Extensions
                 reporter.AddTest(test);
             }
 
-            logger.WriteLine(reporter.GetJson());
+            var jsonOutput = reporter.GetJson();
+            if (jsonOutput is not null)
+                logger.WriteLine(jsonOutput);
         }
     }
 }

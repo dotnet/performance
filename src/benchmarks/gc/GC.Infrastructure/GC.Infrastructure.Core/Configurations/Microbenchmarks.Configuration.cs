@@ -24,6 +24,7 @@ namespace GC.Infrastructure.Core.Configurations.Microbenchmarks
     public class Environment
     {
         public uint default_max_seconds { get; set; } = 300;
+        public uint iteration { get; set; } = 1;
     }
 
     public sealed class MicrobenchmarkConfigurations

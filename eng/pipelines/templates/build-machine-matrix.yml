@@ -1,0 +1,196 @@
+parameters:
+  buildMachines: []
+  isPublic: true
+  jobTemplate: ''
+  jobParameters: {}
+
+jobs:
+- ${{ if containsValue(parameters.buildMachines, 'win-x64') }}:
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: windows
+      archType: x64
+      ${{ if eq(parameters.isPublic, true) }}:
+        pool:
+          name: NetCore-Public
+          demands: ImageOverride -equals windows.vs2022.amd64.open
+      ${{ else }}:
+        pool:
+          vmImage: windows-2025
+      ${{ insert }}: ${{ parameters.jobParameters }}
+      ${{ if eq(parameters.isPublic, true) }}:
+        osVersion: 24H2
+        machinePool: Open
+        queue: Windows.11.Amd64.Client.Open
+      ${{ else }}:
+        osVersion: Win11
+        machinePool: Tiger
+        queue: Windows.11.Amd64.Tiger.Perf
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-rs5-x64'), eq(parameters.isPublic, true)) }}: # RS5 only used in public builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: windows
+      osVersion: RS5
+      archType: x64
+      pool:
+        name: NetCore-Public
+        demands: ImageOverride -equals windows.vs2022.amd64.open
+      machinePool: Open
+      queue: Windows.10.Amd64.ClientRS5.Open
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if containsValue(parameters.buildMachines, 'win-x86') }}:
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: windows
+      archType: x86
+      ${{ if eq(parameters.isPublic, true) }}:
+        pool:
+          name: NetCore-Public
+          demands: ImageOverride -equals windows.vs2022.amd64.open
+      ${{ else }}:
+        pool:
+          vmImage: windows-2025
+      ${{ insert }}: ${{ parameters.jobParameters }}
+      ${{ if eq(parameters.isPublic, true) }}:
+        osVersion: 24H2
+        machinePool: Open
+        queue: Windows.11.Amd64.Client.Open
+      ${{ else }}:
+        osVersion: Win11
+        machinePool: Tiger
+        queue: Windows.11.Amd64.Tiger.Perf
+
+- ${{ if containsValue(parameters.buildMachines, 'ubuntu-x64') }}:
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: ubuntu
+      osVersion: 2204
+      archType: x64
+      ${{ if eq(parameters.isPublic, true) }}:
+        pool:
+          name: NetCore-Public
+          demands: ImageOverride -equals build.azurelinux.3.amd64.open
+      ${{ else }}:
+        pool: 
+          vmImage: ubuntu-latest
+      container: ubuntu_x64_build_container
+      ${{ insert }}: ${{ parameters.jobParameters }}
+      ${{ if eq(parameters.isPublic, true) }}:
+        machinePool: Open
+        queue: Ubuntu.2204.Amd64.Open
+      ${{ else }}:
+        machinePool: Tiger
+        queue: Ubuntu.2204.Amd64.Tiger.Perf
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-arm64-ampere'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: windows
+      osVersion: 22H2
+      archType: arm64
+      pool:
+        vmImage: windows-2025
+      machinePool: Ampere
+      queue: Windows.Server.Arm64.Perf
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'ubuntu-arm64-ampere'), not(eq(parameters.isPublic, true))) }}: # Ubuntu ARM64 only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: ubuntu
+      osVersion: 2204
+      archType: arm64
+      pool:
+        vmImage: ubuntu-latest
+      container: ubuntu_x64_build_container
+      machinePool: Ampere
+      queue: Ubuntu.2204.Arm64.Perf
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'azurelinux3-arm64-cobalt'), not(eq(parameters.isPublic, true))) }}: # Azure Linux 3 ARM64 Cobalt only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: azurelinux
+      osVersion: 3
+      archType: arm64
+      pool:
+        vmImage: ubuntu-latest
+      container: ubuntu_x64_build_container
+      machinePool: Cobalt
+      queue: AzureLinux.3.Cobalt.Arm64.Perf
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-pixel'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: windows
+      archType: x64
+      osVersion: 22H2
+      pool:
+        vmImage: 'windows-2022'
+      queue: Windows.11.Amd64.Pixel.Perf
+      machinePool: Pixel8
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-galaxy'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Galaxy only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: windows
+      archType: x64
+      osVersion: 22H2
+      pool:
+        vmImage: 'windows-2022'
+      queue: Windows.11.Amd64.Galaxy.Lowend.Perf
+      machinePool: GalaxyA16
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 17 only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: osx
+      archType: x64
+      osVersion: 15
+      pool:
+        vmImage: 'macos-15'
+      queue: Mac.iPhone.17.Perf
+      machinePool: iPhone17
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-viper'), not(eq(parameters.isPublic, true))) }}: # Windows x64 Viper only used in private builds
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: windows
+      osVersion: Win11
+      archType: x64
+      pool:
+        vmImage: windows-2025
+      machinePool: Viper
+      queue: Windows.11.Amd64.Viper.Perf
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x86-viper'), not(eq(parameters.isPublic, true))) }}: # Windows x86 Viper only used in private builds
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: windows
+      osVersion: Win11
+      archType: x86
+      pool:
+        vmImage: windows-2025
+      machinePool: Viper
+      queue: Windows.11.Amd64.Viper.Perf
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'ubuntu-x64-viper'), not(eq(parameters.isPublic, true))) }}: # Ubuntu x64 Viper only used in private builds
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: ubuntu
+      osVersion: 2204
+      archType: x64
+      pool: 
+        vmImage: ubuntu-latest
+      container: ubuntu_x64_build_container
+      machinePool: Viper
+      queue: Ubuntu.2204.Amd64.Viper.Perf
+      ${{ insert }}: ${{ parameters.jobParameters }}

@@ -16,7 +16,7 @@ using Benchmarks.SIMD.RayTracer;
 
 namespace SIMD
 {
-[BenchmarkCategory(Categories.Runtime, Categories.SIMD, Categories.JIT)]
+[BenchmarkCategory(Categories.Runtime, Categories.SIMD, Categories.JIT, Categories.NoWasmCoreCLR)]
 public class RayTracerBench
 {
     private const int Width = 250;

@@ -5,7 +5,7 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
-		<TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net9.0</TargetFrameworks>
+		<TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net10.0</TargetFrameworks>
 		<IsShipping>false</IsShipping>
 		<!-- ignore warning about BenchmarkDotNet.Extensions being not signed -->
 		<NoWarn>$(NoWarn);8002</NoWarn>
@@ -16,10 +16,9 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Net.ILLink" Version="$(MicrosoftNetILLinkPackageVersion)" />
 		<PackageReference Include="Microsoft.Net.ILLink.Tasks" Version="$(MicrosoftNetILLinkTasksVersion)" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.5.0" />
 		<PackageReference Include="Microsoft.Build" Version="17.3.1" />
-		<PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.3.1" />
-		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.3.1" />
+		<PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.14.7" />
+		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.14.7" />
 	</ItemGroup>
 
 	<!-- Make a copy of the sample project with the latest version of ILLink.Tasks -->

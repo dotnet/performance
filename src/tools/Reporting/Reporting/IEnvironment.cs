@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
+
 namespace Reporting;
 
 public interface IEnvironment
 {
     string GetEnvironmentVariable(string variable);
-    System.Collections.IDictionary GetEnvironmentVariables(); 
+
+    IDictionary GetEnvironmentVariables(); 
 }

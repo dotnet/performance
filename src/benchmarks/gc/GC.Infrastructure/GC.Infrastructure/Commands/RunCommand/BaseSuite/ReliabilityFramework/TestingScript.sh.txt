@@ -1,0 +1,46 @@
+# create output folder
+mkdir -p $output_folder
+
+dump_folder=$output_folder/dumps
+mkdir -p $dump_folder
+
+log_folder=$output_folder/logs
+mkdir -p $log_folder
+
+# copy tests folder and ReliabilityFramework.dll to core_root
+cp -r $test_folder $CORE_ROOT
+cp $reliability_framework_dll $CORE_ROOT
+
+# dump
+export DOTNET_DbgEnableMiniDump=1
+export DOTNET_DbgMiniDumpType=4
+
+# gc log
+export DOTNET_GCLogEnabled=1
+export DOTNET_GCLogFileSize=100
+export DOTNET_StressLog=0
+
+# Run for 24 hours.
+pushd $CORE_ROOT
+config_content=$(cat $config_path)
+
+idx=0
+
+while true
+do
+	export DOTNET_DbgMiniDumpName=$dump_folder/stress_$idx.dmp
+	export DOTNET_GCLogFile=$log_folder/gclog-$idx
+	
+    if [[ "$config_content" == *"debugBreakOnTestHang=\"true\""* \
+        || "$config_content" == *"debugBreakOnBadTest=\"true\""* \
+        || "$config_content" == *"debugBreakOnOutOfMemory=\"true\""* \
+        || "$config_content" == *"debugBreakOnPathTooLong=\"true\""* \
+        || "$config_content" == *"debugBreakOnMissingTest=\"true\""* ]]; then
+        lldb -o "run" $CORE_ROOT/corerun $CORE_ROOT/ReliabilityFramework.dll $config_path
+    else
+        $CORE_ROOT/corerun $CORE_ROOT/ReliabilityFramework.dll $config_path
+    fi
+    echo "return value: $?"
+    dmesg -T | egrep -i 'killed process'
+	idx=$((idx+1))
+done

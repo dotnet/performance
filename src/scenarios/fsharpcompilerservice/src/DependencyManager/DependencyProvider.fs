@@ -141,7 +141,7 @@ type IDependencyManagerProvider =
         timeout: int ->
             IResolveDependenciesResult
 
-    type ReflectionDependencyManagerProvider
+type ReflectionDependencyManagerProvider
     (
         theType: Type,
         nameProperty: PropertyInfo,
@@ -154,7 +154,7 @@ type IDependencyManagerProvider =
         clearResultCache: MethodInfo option,
         outputDir: string option,
         useResultsCache: bool
-        ) =
+    ) =
 
     let instance =
         if not(isNull (theType.GetConstructor([|typeof<string option>; typeof<bool>|]))) then

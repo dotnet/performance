@@ -18,24 +18,29 @@ namespace BenchmarkDotNet.Extensions
 {
     public static class RecommendedConfig
     {
+        private static IEnvironment Environment = new EnvironmentProvider();
+
         public static IConfig Create(
             DirectoryInfo artifactsPath,
             ImmutableHashSet<string> mandatoryCategories,
             int? partitionCount = null,
             int? partitionIndex = null,
-            List<string> exclusionFilterValue = null,
-            List<string> categoryExclusionFilterValue = null,
-            Job job = null,
+            List<string>? exclusionFilterValue = null,
+            List<string>? categoryExclusionFilterValue = null,
+            Job? job = null,
             bool getDiffableDisasm = false)
         {
             if (job is null)
             {
+                #pragma warning disable CS0618 // WithEvaluateOverhead is obsolete but needed for WASM accuracy
                 job = Job.Default
                     .WithWarmupCount(1) // 1 warmup is enough for our purpose
                     .WithIterationTime(TimeInterval.FromMilliseconds(250)) // the default is 0.5s per iteration, which is slighlty too much for us
                     .WithMinIterationCount(15)
                     .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
+                    .WithEvaluateOverhead(Environment.GetEnvironmentVariable("PERFLAB_EVALUATE_OVERHEAD") == "1") // WASM has significant method-call overhead (1-10ns); subtract it when enabled
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
+                #pragma warning restore CS0618
             }
 
             var config = ManualConfig.CreateEmpty()
@@ -58,7 +63,7 @@ namespace BenchmarkDotNet.Extensions
                 .AddValidator(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
                 .WithSummaryStyle(SummaryStyle.Default.WithMaxParameterColumnWidth(36)); // the default is 20 and trims too aggressively some benchmark results
 
-            if (Reporter.CreateReporter().InLab)
+            if (Environment.IsLabEnvironment())
             {
                 config = config.AddExporter(new PerfLabExporter());
             }
