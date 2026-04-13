@@ -106,17 +106,14 @@ def install_maui_ios_workload(precommands: PreCommands):
     logger.info("Created rollback_maui.json file")
 
     # Install maui-ios (not 'maui') — only installs iOS components.
-    # Uses --from-rollback-file to pin to the latest nightly packs from the
-    # feed. When a new manifest is published, referenced SDK packs may not
-    # have propagated to all NuGet feeds yet, causing "package NOT FOUND".
-    # Fall back to installing without the rollback file, which lets the SDK
-    # resolve a recent stable version that is already fully available.
-    try:
-        precommands.install_workload('maui-ios', ['--from-rollback-file', 'rollback_maui.json'])
-    except Exception as e:
-        logger.warning(f"Workload install with rollback file failed (possible NuGet version skew): {e}")
-        logger.info("Retrying without rollback file (will use SDK default version)...")
-        precommands.install_workload('maui-ios')
+    # Uses --from-rollback-file to pin to the exact nightly packs we resolved
+    # above. No fallback: if the nightly packs aren't available yet, we fail
+    # loudly rather than silently installing stale in-box packs.
+    logger.info(
+        "Installing maui-ios workload from rollback file (nightly). "
+        "Failure here means the nightly packs are not available on configured feeds."
+    )
+    precommands.install_workload('maui-ios', ['--from-rollback-file', 'rollback_maui.json'])
     logger.info("########## Finished installing maui-ios workload ##########")
 
 def check_xcode_compatibility(framework: str):
