@@ -338,6 +338,7 @@ class CiSetupArgs:
         self.r2r_status = r2r_status
         self.experiment_name = experiment_name
         self.perf_repo_branch = "main"
+        self.only_sanity_check = False
 
 def main(args: CiSetupArgs):
     verbose = not args.quiet
@@ -469,6 +470,9 @@ def main(args: CiSetupArgs):
 
         if args.perf_repo_branch != "main":
             branch = f"{branch}-{args.perf_repo_branch}"
+
+        if args.only_sanity_check:
+            branch = f"{branch}-sanitycheck"
 
         getLogger().info("Writing script to %s" % output_file)
         

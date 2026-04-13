@@ -36,7 +36,7 @@ jobs:
     # Test job depends on the corresponding build job
     ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
       dependsOn:
-        - ${{ if not(in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSCoreCLR', 'iOSNativeAOT', 'wasm', 'wasm_coreclr', 'mono')) }}:
+        - ${{ if not(in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSCoreCLR', 'iOSNativeAOT', 'wasm', 'wasm_coreclr', 'mono', 'coreclr_r2r_interpreter')) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'coreclr') }}
         - ${{ if and(eq(parameters.runtimeType, 'mono'), ne(parameters.codeGenType, 'AOT')) }}:
           - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'mono') }}
@@ -57,6 +57,8 @@ jobs:
           - ${{ 'build_ios_arm64_release_iOSCoreCLR' }}
         - ${{ if eq(parameters.runtimeType, 'iOSNativeAOT')}}:
           - ${{ 'build_ios_arm64_release_iOSNativeAOT' }}
+        - ${{ if eq(parameters.runtimeType, 'coreclr_r2r_interpreter')}}:
+          - ${{ format('build_{0}{1}_{2}_{3}_{4}', parameters.osGroup, parameters.osSubgroup, parameters.archType, parameters.buildConfig, 'coreclr_r2r_interpreter') }}
 
     variables:
       - name: librariesDownloadDir
@@ -141,6 +143,13 @@ jobs:
             artifactFileName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_${{ parameters.runtimeType }}$(archiveExtension)'
             artifactName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_${{ parameters.runtimeType }}'
             displayName: 'Runtime artifacts'
+      - ${{ elseif eq(parameters.runtimeType, 'coreclr_r2r_interpreter') }}:
+        - template: /eng/pipelines/templates/download-artifact-step.yml
+          parameters:
+            unpackFolder: $(librariesDownloadDir)/bin
+            artifactFileName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_coreclr_r2r_interpreter$(archiveExtension)'
+            artifactName: 'BuildArtifacts_${{ parameters.osGroup }}${{ parameters.osSubgroup }}_${{ parameters.archType }}_$(buildConfigUpper)_coreclr_r2r_interpreter'
+            displayName: 'R2R Interpreter Runtime artifacts'
       - ${{ elseif or(eq(parameters.runtimeType, 'AndroidMono'), eq(parameters.runtimeType, 'AndroidCoreCLR'))}}:
         # Download artifacts for Android Testing
         - template: /eng/pipelines/templates/download-artifact-step.yml

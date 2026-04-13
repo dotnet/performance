@@ -14,4 +14,4 @@ jobs:
         scriptType: 'pscore'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          az storage blob upload --auth-mode login --account-name pvscmdupload --container-name builds --data '{"buildId":"${{ parameters.buildId }}"}' --name "buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/buildInfo.json" --overwrite true
+          az storage blob upload --auth-mode login --account-name pvscmdupload --container-name '$web' --data '{"buildId":"${{ parameters.buildId }}"}' --name "builds/runtime/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/buildInfo.json" --overwrite true
