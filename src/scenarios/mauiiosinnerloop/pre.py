@@ -10,6 +10,9 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
+import urllib.request
+import zipfile
 from performance.common import get_repo_root_path
 from performance.logger import setup_loggers, getLogger
 from shared import const
@@ -49,7 +52,8 @@ def install_maui_ios_workload(precommands: PreCommands):
             offset=1
         )
         logger.info(f"Using fallback feed: {fallback_feed}")
-        packages = precommands.get_packages_for_sdk_from_feed(workload, fallback_feed)
+        feed = fallback_feed
+        packages = precommands.get_packages_for_sdk_from_feed(workload, feed)
 
     # Filter to Manifest packages only
     pattern = r'Microsoft\.NET\.Sdk\..*\.Manifest\-\d+\.\d+\.\d+(\-(preview|rc|alpha)\.\d+)?$'
@@ -105,16 +109,158 @@ def install_maui_ios_workload(precommands: PreCommands):
         f.write(json.dumps(rollback_dict, indent=4))
     logger.info("Created rollback_maui.json file")
 
-    # Install maui-ios (not 'maui') — only installs iOS components.
-    # Uses --from-rollback-file to pin to the exact nightly packs we resolved
-    # above. No fallback: if the nightly packs aren't available yet, we fail
-    # loudly rather than silently installing stale in-box packs.
+    # Try the standard --from-rollback-file install first. This works when all
+    # upstream packs (including cross-targeting packs) are published on NuGet feeds.
     logger.info(
         "Installing maui-ios workload from rollback file (nightly). "
-        "Failure here means the nightly packs are not available on configured feeds."
+        "Failure here triggers the manifest-patching fallback."
     )
-    precommands.install_workload('maui-ios', ['--from-rollback-file', 'rollback_maui.json'])
-    logger.info("########## Finished installing maui-ios workload ##########")
+    try:
+        precommands.install_workload('maui-ios', ['--from-rollback-file', 'rollback_maui.json'])
+        logger.info("########## Finished installing maui-ios workload ##########")
+        return
+    except Exception as e:
+        logger.warning(
+            f"Rollback-file install failed: {e}. "
+            "This typically happens when the iOS workload manifest (e.g. v26.4) "
+            "declares net10.0 cross-targeting packs that don't exist on any NuGet feed. "
+            "Falling back to manifest-patching workaround."
+        )
+
+    # ── Manifest-patching fallback ──
+    # The iOS workload manifest can reference net10.0 cross-targeting packs that
+    # haven't been published yet (upstream coherency issue). We work around this
+    # by downloading the manifest nupkg, patching out net10.0 entries, placing the
+    # patched manifest on disk, and installing with --skip-manifest-update.
+    logger.info("########## Starting manifest-patching fallback ##########")
+
+    package_id = latest['id']
+    package_version = latest['latestVersion']
+    sdk_band = latest['sdk_version']
+
+    # Step 1: Resolve PackageBaseAddress from the NuGet v3 service index
+    logger.info(f"Fetching NuGet v3 service index from {feed}")
+    with urllib.request.urlopen(feed) as resp:
+        service_index = json.loads(resp.read().decode('utf-8'))
+
+    package_base_url = None
+    for resource in service_index.get('resources', []):
+        if 'PackageBaseAddress' in resource.get('@type', ''):
+            package_base_url = resource['@id'].rstrip('/')
+            break
+    if not package_base_url:
+        raise Exception(
+            f"Could not find PackageBaseAddress resource in NuGet v3 service index at {feed}"
+        )
+    logger.info(f"Resolved PackageBaseAddress: {package_base_url}")
+
+    # Step 2: Download the manifest nupkg (NuGet flat container uses lowercase IDs/versions)
+    nupkg_url = (
+        f"{package_base_url}/{package_id.lower()}/{package_version.lower()}"
+        f"/{package_id.lower()}.{package_version.lower()}.nupkg"
+    )
+    logger.info(f"Downloading manifest nupkg from {nupkg_url}")
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        nupkg_path = os.path.join(tmpdir, 'manifest.nupkg')
+        urllib.request.urlretrieve(nupkg_url, nupkg_path)
+        logger.info(f"Downloaded manifest nupkg to {nupkg_path}")
+
+        # Step 3: Extract all files from the data/ directory inside the nupkg
+        extracted_files = {}
+        with zipfile.ZipFile(nupkg_path, 'r') as zf:
+            for entry in zf.namelist():
+                if entry.startswith('data/') and not entry.endswith('/'):
+                    filename = os.path.basename(entry)
+                    extracted_files[filename] = zf.read(entry)
+                    logger.info(f"Extracted from nupkg: {entry} ({len(extracted_files[filename])} bytes)")
+
+        if 'WorkloadManifest.json' not in extracted_files:
+            raise Exception(
+                f"WorkloadManifest.json not found in data/ directory of {nupkg_url}. "
+                f"Found files: {list(extracted_files.keys())}"
+            )
+
+        # Step 4: Patch WorkloadManifest.json — remove entries containing "net10"
+        raw_text = extracted_files['WorkloadManifest.json'].decode('utf-8')
+        # The manifest uses trailing commas (invalid JSON). Strip them before parsing.
+        # Python's json.loads() (especially 3.14+) rejects trailing commas.
+        cleaned_text = re.sub(r',\s*([}\]])', r'\1', raw_text)
+        manifest = json.loads(cleaned_text)
+
+        removed_packs = []
+        removed_extends = []
+        removed_top_packs = []
+
+        # Patch workloads.ios.packs — remove keys containing "net10" (case-insensitive)
+        ios_workload = manifest.get('workloads', {}).get('ios', {})
+        if 'packs' in ios_workload:
+            original_keys = list(ios_workload['packs'].keys())
+            for key in original_keys:
+                if 'net10' in key.lower():
+                    del ios_workload['packs'][key]
+                    removed_packs.append(key)
+
+        # Patch workloads.ios.extends — remove list items containing "net10"
+        if 'extends' in ios_workload:
+            original_extends = list(ios_workload['extends'])
+            ios_workload['extends'] = [
+                item for item in ios_workload['extends']
+                if 'net10' not in item.lower()
+            ]
+            removed_extends = [
+                item for item in original_extends
+                if 'net10' in item.lower()
+            ]
+
+        # Patch top-level packs — remove keys containing "net10"
+        if 'packs' in manifest:
+            original_keys = list(manifest['packs'].keys())
+            for key in original_keys:
+                if 'net10' in key.lower():
+                    del manifest['packs'][key]
+                    removed_top_packs.append(key)
+
+        logger.info(
+            f"Patched WorkloadManifest.json — removed: "
+            f"workloads.ios.packs={removed_packs}, "
+            f"workloads.ios.extends={removed_extends}, "
+            f"top-level packs={removed_top_packs}"
+        )
+
+        # json.dumps produces valid JSON (no trailing commas) — the SDK accepts both.
+        patched_json = json.dumps(manifest, indent=2)
+        extracted_files['WorkloadManifest.json'] = patched_json.encode('utf-8')
+
+        # Step 5: Determine DOTNET_ROOT
+        dotnet_root = os.environ.get('DOTNET_ROOT')
+        if not dotnet_root:
+            dotnet_path = shutil.which('dotnet')
+            if not dotnet_path:
+                raise Exception("Cannot determine DOTNET_ROOT: not set and dotnet not found in PATH")
+            dotnet_root = os.path.dirname(os.path.realpath(dotnet_path))
+        logger.info(f"DOTNET_ROOT: {dotnet_root}")
+
+        # Step 6: Place patched manifest files on disk
+        # sdk_band comes from the manifest package ID (e.g., "11.0.100-preview.4")
+        # package_version is the NuGet version (e.g., "26.4.11427-net11-p4")
+        target_dir = os.path.join(
+            dotnet_root, 'sdk-manifests', sdk_band,
+            'microsoft.net.sdk.ios', package_version
+        )
+        os.makedirs(target_dir, exist_ok=True)
+        logger.info(f"Writing patched manifest files to {target_dir}")
+
+        for filename, content in extracted_files.items():
+            target_path = os.path.join(target_dir, filename)
+            with open(target_path, 'wb') as f:
+                f.write(content)
+            logger.info(f"Wrote {target_path} ({len(content)} bytes)")
+
+    # Step 7: Install with --skip-manifest-update (manifest is already on disk)
+    logger.info("Installing maui-ios workload with --skip-manifest-update (patched manifest)")
+    precommands.install_workload('maui-ios', ['--skip-manifest-update'])
+    logger.info("########## Finished installing maui-ios workload (manifest-patched) ##########")
 
 def check_xcode_compatibility(framework: str):
     '''
