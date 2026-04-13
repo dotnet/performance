@@ -219,6 +219,8 @@ def get_pre_commands(
         else:
             install_prerequisites += [
                 "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
+                'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
+                'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
                 "sudo apt-get -y remove nodejs",
                 "sudo apt-get update",
                 "sudo apt-get install -y ca-certificates curl gnupg",
@@ -458,6 +460,20 @@ def get_bdn_arguments(
             "--wasmProcessTimeout", "20"
         ]
 
+    if runtime_type == "coreclr_r2r_interpreter":
+        if os_group == "windows":
+            bdn_arguments += [
+                "--runtimes", "r2r11_0",
+                "--customruntimepack", "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\runtimepack",
+                "--aotcompilerpath", "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\crossgen2",
+            ]
+        else:
+            bdn_arguments += [
+                "--runtimes", "r2r11_0",
+                "--customruntimepack", "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/runtimepack",
+                "--aotcompilerpath", "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/crossgen2",
+            ]
+
     if category_exclusions:
         bdn_arguments += ["--category-exclusion-filter", *set(category_exclusions)]
 
@@ -531,6 +547,9 @@ def get_run_configurations(
     if r2r_run_type == "nor2r":
         configurations["R2RType"] = "nor2r"
 
+    if runtime_type == "coreclr_r2r_interpreter":
+        configurations["R2RType"] = "r2r_interpreter"
+
     if experiment_name is not None:
         configurations["ExperimentName"] = experiment_name
 
@@ -581,7 +600,7 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
             "--csproj", f"%HELIX_WORKITEM_ROOT%\\performance\\{target_csproj}"]
     else:
         work_item_command = [
-            "python",
+            "python3",
             "$HELIX_WORKITEM_ROOT/performance/scripts/benchmarks_ci.py", 
             "--csproj", f"$HELIX_WORKITEM_ROOT/performance/{target_csproj}"]
         
@@ -590,7 +609,7 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
         "--architecture", architecture,
         "-f", perf_lab_framework]
     
-    if internal and not only_sanity_check:
+    if internal:
         work_item_command += ["--upload-to-perflab-container"]
 
     if perf_lab_framework != "net472":
@@ -686,7 +705,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     if args.internal:
         creator = ""
-        scenario_arguments = [] if args.only_sanity_check else ["--upload-to-perflab-container"]
+        scenario_arguments = ["--upload-to-perflab-container"]
         helix_source_prefix = "official"
         if args.helix_access_token is None:
             raise Exception("HelixAccessToken environment variable is not configured")
@@ -748,6 +767,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         get_perf_hash=True)
 
     ci_setup_arguments.build_number = args.build_number
+    ci_setup_arguments.only_sanity_check = args.only_sanity_check
 
     # Detect performance repo branch from AzDO resource metadata and append to PERFLAB_BRANCH if non-main
     # Set DisableNewBranchLogic=true as a queue-time variable to revert to always uploading as main
@@ -901,6 +921,18 @@ def run_performance_job(args: RunPerformanceJobArgs):
         getLogger().info("Copying MonoAOT build to payload directory")
         build_monoaot_payload(linux_mono_aot_dir, monoaot_dotnet_path, args.architecture)
 
+    use_r2r_interpreter = False
+    if args.runtime_type == "coreclr_r2r_interpreter":
+        use_r2r_interpreter = True
+        if not args.libraries_download_dir:
+            raise Exception("Libraries not downloaded for R2R interpreter")
+
+        r2r_interpreter_dir = os.path.join(args.libraries_download_dir, "bin")
+        r2r_interpreter_payload = os.path.join(payload_dir, "r2r_interpreter")
+
+        getLogger().info("Copying R2R interpreter build to payload directory")
+        build_r2r_interpreter_payload(r2r_interpreter_dir, r2r_interpreter_payload, args.os_group, args.architecture)
+
     use_core_run = False
     use_baseline_core_run = False
     if not args.performance_repo_ci and args.runtime_type == "coreclr":
@@ -986,7 +1018,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     shutil.copytree(os.path.join(args.performance_repo_dir, "docs"), work_item_dir, dirs_exist_ok=True)
 
     if args.os_group == "windows":
-        agent_python = "py -3"
+        agent_python = "python"
     else:
         agent_python = "python3"
 
@@ -1285,7 +1317,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         download_files_from_helix=True,
         targets_windows=args.os_group == "windows",
         helix_results_destination_dir=helix_results_destination_dir,
-        python="python",
+        python=agent_python,
         affinity=args.affinity,
         compare=args.compare,
         compare_command=compare_command,

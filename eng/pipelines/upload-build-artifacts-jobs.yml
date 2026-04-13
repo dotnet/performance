@@ -152,3 +152,21 @@ jobs:
           files: [ 'iOSSampleAppCoreCLRInterpreterNoSymbols.zip' ]
         - artifactName: 'iOSSampleAppCoreCLRR2RNoSymbols'
           files: [ 'iOSSampleAppCoreCLRR2RNoSymbols.zip' ]
+
+  - ${{ if containsValue(parameters.buildType, 'wasm_coreclr') }}:
+    - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
+      parameters:
+        buildType: 'wasm_coreclr'
+        dependencyJobName: build_browser_wasm_linux_Release_wasm_coreclr
+        artifacts:
+        - artifactName: 'BrowserWasmCoreCLR'
+          files: [ 'BrowserWasmCoreCLR.tar.gz' ]
+
+  - ${{ if containsValue(parameters.buildType, 'coreclr_r2r_interpreter') }}:
+    - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
+      parameters:
+        buildType: 'coreclr_r2r_interpreter'
+        dependencyJobName: build_linux_x64_release_coreclr_r2r_interpreter
+        artifacts:
+        - artifactName: 'BuildArtifacts_linux_x64_Release_coreclr_r2r_interpreter'
+          files: [ 'BuildArtifacts_linux_x64_Release_coreclr_r2r_interpreter.tar.gz' ]
