@@ -56,6 +56,12 @@ parameters:
     type: object
     default:
       enabled: true
+  - name: cobaltMicro
+    type: object
+    default:
+      enabled: true
+      configs:
+        - linux_arm64
   - name: cobaltSveMicro
     type: object
     default:
@@ -284,6 +290,25 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
+  # CoreCLR Cobalt microbenchmarks — controlled by cobaltMicro toggle.
+  # Excluded on release branches — the arm64 coreclr build doesn't exist in older runtime branches.
+  - ${{ if and(eq(parameters.cobaltMicro.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: coreclr
+        platforms: ${{ parameters.cobaltMicro.configs }}
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runKind: micro
+          logicalMachine: 'perfcobalt'
+          osDistro: 'azurelinux'
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
   # CoreCLR Cobalt SVE microbenchmarks — controlled by cobaltSveMicro toggle.
   # Excluded on release branches — the arm64 coreclr build doesn't exist in older runtime branches.
   - ${{ if and(eq(parameters.cobaltSveMicro.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
@@ -295,7 +320,7 @@ jobs:
         platforms: ${{ parameters.cobaltSveMicro.configs }}
         jobParameters:
           liveLibrariesBuildConfig: Release
-          runKind: micro
+          runKind: SVE
           logicalMachine: 'perfcobalt'
           osDistro: 'azurelinux'
           runCategories: 'SVE'
