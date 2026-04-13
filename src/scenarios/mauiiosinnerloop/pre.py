@@ -32,26 +32,73 @@ def install_maui_ios_workload(precommands: PreCommands):
 
     workload = "microsoft.net.sdk.ios"
 
-    # TEMPORARY PIN: Hardcode the iOS workload version to 26.2.x instead of
-    # querying NuGet feeds dynamically. The dynamic query resolves to the
-    # latest nightly packs which now require Xcode 26.4, but Helix machines
-    # only have Xcode 26.2 installed.
-    #
-    # Cross-band note: the Helix SDK is preview.4 but the 26.2.x manifests
-    # only exist on the preview.3 band. Using --from-rollback-file to attempt
-    # cross-band installation — this is experimental and may need adjustment.
-    #
-    # TODO: Remove this pin when Helix machines have Xcode 26.4, and restore
-    # the dynamic NuGet feed query that was here before (see git history).
-    pinned_version = "26.2.11591-net11-p4"
-    pinned_band = "11.0.100-preview.3"
+    # Resolve the latest iOS workload version dynamically from NuGet feeds.
+    # This follows the same pattern as install_latest_maui() in mauisharedpython.py.
+    feed = extract_latest_dotnet_feed_from_nuget_config(
+        path=os.path.join(get_repo_root_path(), "NuGet.config")
+    )
+    logger.info(f"Installing the latest iOS workload from feed {feed}")
+
+    try:
+        packages = precommands.get_packages_for_sdk_from_feed(workload, feed)
+    except Exception as e:
+        logger.warning(f"Failed to get packages for {workload} from latest feed: {e}")
+        logger.info("Trying second latest feed as fallback")
+        fallback_feed = extract_latest_dotnet_feed_from_nuget_config(
+            path=os.path.join(get_repo_root_path(), "NuGet.config"),
+            offset=1
+        )
+        logger.info(f"Using fallback feed: {fallback_feed}")
+        packages = precommands.get_packages_for_sdk_from_feed(workload, fallback_feed)
+
+    # Filter to Manifest packages only
+    pattern = r'Microsoft\.NET\.Sdk\..*\.Manifest\-\d+\.\d+\.\d+(\-(preview|rc|alpha)\.\d+)?$'
+    packages = [pkg for pkg in packages if re.match(pattern, pkg['id'])]
+    logger.info(f"After manifest pattern filtering, found {len(packages)} packages for {workload}")
+
+    # Extract SDK version and .NET version from each package ID
+    for package in packages:
+        match = re.search(r'Manifest-(.+)$', package["id"])
+        if match:
+            sdk_version = match.group(1)
+            package['sdk_version'] = sdk_version
+
+            match = re.search(r'^\d+\.\d+', sdk_version)
+            if match:
+                package['dotnet_version'] = match.group(0)
+            else:
+                raise Exception(f"Unable to find .NET version in SDK version '{sdk_version}'")
+        else:
+            raise Exception(f"Unable to find .NET SDK version in package ID: {package['id']}")
+
+    # Keep only packages from the highest .NET version (feed may contain older releases)
+    dotnet_versions = [float(pkg['dotnet_version']) for pkg in packages]
+    highest_dotnet_version = max(dotnet_versions)
+    logger.info(f"Highest .NET version for {workload}: {highest_dotnet_version}")
+    packages = [pkg for pkg in packages if float(pkg['dotnet_version']) == highest_dotnet_version]
+
+    # Prefer non-preview packages; fall back to all if none available
+    preview_pattern = r'\-(preview|rc|alpha)\.\d+$'
+    non_preview_packages = [pkg for pkg in packages if not re.search(preview_pattern, pkg['id'])]
+    logger.info(f"Found {len(non_preview_packages)} non-preview packages for {workload} out of {len(packages)} total")
+    if non_preview_packages:
+        packages = non_preview_packages
+    else:
+        logger.info(f"No non-preview packages available for {workload}, using all packages")
+
+    # Sort by sdk_version descending and pick the latest
+    packages.sort(key=lambda x: x['sdk_version'], reverse=True)
+    if not packages:
+        raise Exception(f"No packages available for {workload} after filtering")
+    latest = packages[0]
     logger.info(
-        f"Using PINNED iOS workload: {workload} version={pinned_version} "
-        f"band={pinned_band} (Xcode 26.2 compatible)"
+        f"Latest package for {workload}: ID={latest['id']}, "
+        f"Version={latest['latestVersion']}, SDK_Version={latest['sdk_version']}, "
+        f".NET_Version={latest['dotnet_version']}"
     )
 
     # Create rollback file with only the iOS workload
-    rollback_value = f"{pinned_version}/{pinned_band}"
+    rollback_value = f"{latest['latestVersion']}/{latest['sdk_version']}"
     rollback_dict = {workload: rollback_value}
     logger.info(f"Rollback dictionary: {rollback_dict}")
     with open("rollback_maui.json", "w", encoding="utf-8") as f:
