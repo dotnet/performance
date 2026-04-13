@@ -40,8 +40,10 @@ namespace System.Linq.Tests
         public void SelectWithIndex(LinqTestData input) => input.Collection.Select((i, _) => i + 1).Consume(_consumer);
 
 #if NET9_0_OR_GREATER
+        // Index() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/dotnet/blob/b0f34d51fccc69fd334253924abd8d6853fad7aa/src/runtime/src/libraries/System.Linq/src/System/Linq/Index.cs
         [Benchmark]
-        [ArgumentsSource(nameof(SelectArguments))]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
         public void Index(LinqTestData input) => input.Collection.Index().Consume(_consumer);
 #endif
 
