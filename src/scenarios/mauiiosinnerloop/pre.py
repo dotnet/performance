@@ -16,7 +16,7 @@ import zipfile
 from performance.common import get_repo_root_path
 from performance.logger import setup_loggers, getLogger
 from shared import const
-from shared.mauisharedpython import extract_latest_dotnet_feed_from_nuget_config, MauiNuGetConfigContext
+from shared.mauisharedpython import extract_latest_dotnet_feed_from_nuget_config, install_latest_maui, MauiNuGetConfigContext
 from shared.precommands import PreCommands
 from test import EXENAME
 
@@ -26,6 +26,11 @@ def install_maui_ios_workload(precommands: PreCommands):
     The full 'maui' workload includes Android/Windows components that aren't
     needed for this scenario. Since this scenario only needs iOS, 'maui-ios'
     is sufficient and much smaller.
+
+    Uses the shared install_latest_maui() for rollback file creation and
+    workload install. Falls back to a manifest-patching workaround when
+    the iOS workload manifest references net10.0 cross-targeting packs
+    that don't exist on any NuGet feed (upstream coherency issue).
     '''
     logger.info("########## Installing maui-ios workload ##########")
 
@@ -33,95 +38,18 @@ def install_maui_ios_workload(precommands: PreCommands):
         logger.info("Skipping maui-ios installation due to --has-workload=true")
         return
 
-    workload = "microsoft.net.sdk.ios"
-
-    # Resolve the latest iOS workload version dynamically from NuGet feeds.
-    # This follows the same pattern as install_latest_maui() in mauisharedpython.py.
-    feed = extract_latest_dotnet_feed_from_nuget_config(
-        path=os.path.join(get_repo_root_path(), "NuGet.config")
-    )
-    logger.info(f"Installing the latest iOS workload from feed {feed}")
-
+    # Try the standard shared install path first.
     try:
-        packages = precommands.get_packages_for_sdk_from_feed(workload, feed)
-    except Exception as e:
-        logger.warning(f"Failed to get packages for {workload} from latest feed: {e}")
-        logger.info("Trying second latest feed as fallback")
-        fallback_feed = extract_latest_dotnet_feed_from_nuget_config(
-            path=os.path.join(get_repo_root_path(), "NuGet.config"),
-            offset=1
+        install_latest_maui(
+            precommands,
+            workloads=["microsoft.net.sdk.ios"],
+            workload_id='maui-ios',
         )
-        logger.info(f"Using fallback feed: {fallback_feed}")
-        feed = fallback_feed
-        packages = precommands.get_packages_for_sdk_from_feed(workload, feed)
-
-    # Filter to Manifest packages only
-    pattern = r'Microsoft\.NET\.Sdk\..*\.Manifest\-\d+\.\d+\.\d+(\-(preview|rc|alpha)\.\d+)?$'
-    packages = [pkg for pkg in packages if re.match(pattern, pkg['id'])]
-    logger.info(f"After manifest pattern filtering, found {len(packages)} packages for {workload}")
-
-    # Extract SDK version and .NET version from each package ID
-    for package in packages:
-        match = re.search(r'Manifest-(.+)$', package["id"])
-        if match:
-            sdk_version = match.group(1)
-            package['sdk_version'] = sdk_version
-
-            match = re.search(r'^\d+\.\d+', sdk_version)
-            if match:
-                package['dotnet_version'] = match.group(0)
-            else:
-                raise Exception(f"Unable to find .NET version in SDK version '{sdk_version}'")
-        else:
-            raise Exception(f"Unable to find .NET SDK version in package ID: {package['id']}")
-
-    # Keep only packages from the highest .NET version (feed may contain older releases)
-    dotnet_versions = [float(pkg['dotnet_version']) for pkg in packages]
-    highest_dotnet_version = max(dotnet_versions)
-    logger.info(f"Highest .NET version for {workload}: {highest_dotnet_version}")
-    packages = [pkg for pkg in packages if float(pkg['dotnet_version']) == highest_dotnet_version]
-
-    # Prefer non-preview packages; fall back to all if none available
-    preview_pattern = r'\-(preview|rc|alpha)\.\d+$'
-    non_preview_packages = [pkg for pkg in packages if not re.search(preview_pattern, pkg['id'])]
-    logger.info(f"Found {len(non_preview_packages)} non-preview packages for {workload} out of {len(packages)} total")
-    if non_preview_packages:
-        packages = non_preview_packages
-    else:
-        logger.info(f"No non-preview packages available for {workload}, using all packages")
-
-    # Sort by sdk_version descending and pick the latest
-    packages.sort(key=lambda x: x['sdk_version'], reverse=True)
-    if not packages:
-        raise Exception(f"No packages available for {workload} after filtering")
-    latest = packages[0]
-    logger.info(
-        f"Latest package for {workload}: ID={latest['id']}, "
-        f"Version={latest['latestVersion']}, SDK_Version={latest['sdk_version']}, "
-        f".NET_Version={latest['dotnet_version']}"
-    )
-
-    # Create rollback file with only the iOS workload
-    rollback_value = f"{latest['latestVersion']}/{latest['sdk_version']}"
-    rollback_dict = {workload: rollback_value}
-    logger.info(f"Rollback dictionary: {rollback_dict}")
-    with open("rollback_maui.json", "w", encoding="utf-8") as f:
-        f.write(json.dumps(rollback_dict, indent=4))
-    logger.info("Created rollback_maui.json file")
-
-    # Try the standard --from-rollback-file install first. This works when all
-    # upstream packs (including cross-targeting packs) are published on NuGet feeds.
-    logger.info(
-        "Installing maui-ios workload from rollback file (nightly). "
-        "Failure here triggers the manifest-patching fallback."
-    )
-    try:
-        precommands.install_workload('maui-ios', ['--from-rollback-file', 'rollback_maui.json'])
         logger.info("########## Finished installing maui-ios workload ##########")
         return
     except subprocess.CalledProcessError as e:
         logger.warning(
-            f"Rollback-file install failed: {e}. "
+            f"Standard workload install failed: {e}. "
             "This typically happens when the iOS workload manifest (e.g. v26.4) "
             "declares net10.0 cross-targeting packs that don't exist on any NuGet feed. "
             "Falling back to manifest-patching workaround."
@@ -134,9 +62,21 @@ def install_maui_ios_workload(precommands: PreCommands):
     # patched manifest on disk, and installing with --skip-manifest-update.
     logger.info("########## Starting manifest-patching fallback ##########")
 
-    package_id = latest['id']
-    package_version = latest['latestVersion']
-    sdk_band = latest['sdk_version']
+    # Read package info from rollback_maui.json (created by install_latest_maui)
+    with open("rollback_maui.json", "r", encoding="utf-8") as f:
+        rollback_data = json.load(f)
+    ios_rollback = rollback_data.get("microsoft.net.sdk.ios", "")
+    if not ios_rollback or "/" not in ios_rollback:
+        raise Exception(
+            f"rollback_maui.json has no valid microsoft.net.sdk.ios entry: {rollback_data}"
+        )
+    package_version, sdk_band = ios_rollback.split("/", 1)
+    # Reconstruct the manifest package ID from the SDK band
+    package_id = f"Microsoft.NET.Sdk.iOS.Manifest-{sdk_band}"
+
+    feed = extract_latest_dotnet_feed_from_nuget_config(
+        path=os.path.join(get_repo_root_path(), "NuGet.config")
+    )
 
     # Step 1: Resolve PackageBaseAddress from the NuGet v3 service index
     logger.info(f"Fetching NuGet v3 service index from {feed}")

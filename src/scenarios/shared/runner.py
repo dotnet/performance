@@ -59,7 +59,7 @@ def _merge_deploy_report(build_report_path, install_results, startup_results, ou
         report = {"tests": [{"counters": []}]}
 
     report["tests"][0]["counters"].append(_make_counter("Install Time", "ms", install_results))
-    report["tests"][0]["counters"].append(_make_counter("Time to Main", "ms", startup_results, top=True))
+    report["tests"][0]["counters"].append(_make_counter("Cold Startup Time", "ms", startup_results, top=True))
 
     with open(output_path, 'w') as f:
         json.dump(report, f, indent=2)
@@ -1103,7 +1103,7 @@ ex: C:\repos\performance;C:\repos\runtime
             RunCommand(['dotnet', '--info'], verbose=True).run()
             try:
                 from shared.versionmanager import versions_write_json, versions_write_env, get_sdk_versions
-                rid = 'ios-arm64' if is_physical else 'iossimulator-arm64'
+                rid = 'ios-arm64' if is_physical else os.environ.get('IOS_RID', 'iossimulator-arm64')
                 linked_dir = os.path.join(project_dir, 'obj', self.configuration or 'Debug',
                                           self.framework or 'net11.0-ios', rid, 'linked')
                 if os.path.isdir(linked_dir):
@@ -1236,7 +1236,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 incremental_e2e_report = os.path.join(const.TRACEDIR, 'incremental-debug-e2e-perf-lab-report.json')
                 final_counters = list(aggregated_counters.values())
                 final_counters.append(_make_counter("Install Time", "ms", incremental_install_results))
-                final_counters.append(_make_counter("Time to Main", "ms", incremental_startup_results, top=True))
+                final_counters.append(_make_counter("Cold Startup Time", "ms", incremental_startup_results, top=True))
 
                 final_test = dict(report_template or {})
                 final_test["counters"] = final_counters

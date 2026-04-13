@@ -617,6 +617,11 @@ def detect_physical_device():
 
     Checks IOS_DEVICE_UDID env var first, then uses 'xcrun devicectl list devices'.
     Returns the UDID string, or None if no device is found.
+
+    NOTE: This duplicates iOSHelper.detect_connected_device() intentionally.
+    setup_helix.py runs as a standalone Helix pre-command with minimal imports
+    (no performance.common, no shared.ioshelper). Keeping this self-contained
+    avoids import failures on the Helix machine.
     """
     log_raw("=== PHYSICAL DEVICE DETECTION ===", tee=True)
 
@@ -661,7 +666,11 @@ def detect_physical_device():
                     conn = device.get("connectionProperties", {})
                     transport = conn.get("transportType", "")
                     name = device.get("deviceProperties", {}).get("name", "unknown")
-                    device_udid = device.get("identifier", "")
+                    # Prefer hardware UDID (e.g. 00008020-001965D83C43002E) over
+                    # CoreDevice identifier (a UUID). mlaunch requires the hardware
+                    # UDID — same logic as iOSHelper.detect_connected_device().
+                    hw_udid = device.get("hardwareProperties", {}).get("udid", "")
+                    device_udid = hw_udid or device.get("identifier", "")
                     if transport in ("wired", "localNetwork", "wifi") and device_udid:
                         log(f"Found connected device: {name} (UDID: {device_udid}, "
                             f"transport: {transport})", tee=True)

@@ -360,6 +360,12 @@ class iOSHelper:
                 time.sleep(poll_interval)
                 elapsed = time.time() - start
 
+            if elapsed >= timeout:
+                raise RuntimeError(
+                    f"Simulator app launch timed out after {timeout}s — "
+                    f"bundle {bundle_id} never appeared in launchctl list."
+                )
+
             elapsed_ms = int((time.time() - start) * 1000)
             getLogger().info("Cold startup: %d ms", elapsed_ms)
             return elapsed_ms
