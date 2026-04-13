@@ -320,7 +320,7 @@ jobs:
         platforms: ${{ parameters.cobaltSveMicro.configs }}
         jobParameters:
           liveLibrariesBuildConfig: Release
-          runKind: SVE
+          runKind: sve
           logicalMachine: 'perfcobalt'
           osDistro: 'azurelinux'
           runCategories: 'SVE'
