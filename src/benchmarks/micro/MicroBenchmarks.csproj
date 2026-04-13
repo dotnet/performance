@@ -106,12 +106,9 @@
     <PackageReference Include="System.IO.Pipelines" Version="$(SystemVersion)" />
     <PackageReference Include="System.Threading.Channels" Version="$(SystemVersion)" />
   </ItemGroup>
-  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0')) and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
-    <!-- Newer System.Numerics.Tensors packages require net10+, so keep net8.0/net9.0 on the last compatible package line. -->
-    <PackageReference Include="System.Numerics.Tensors" Version="10.0.*-*" />
-  </ItemGroup>
-  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
-    <PackageReference Include="System.Numerics.Tensors" Version="$(SystemThreadingChannelsPackageVersion)" />
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
+    <!-- System.Numerics.Tensors 11.x requires net10+ and changes the API surface these benchmarks compile against. -->
+    <PackageReference Include="System.Numerics.Tensors" Version="[10.0.0, 11.0.0)" />
   </ItemGroup>
 
   <ItemGroup>
