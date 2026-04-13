@@ -19,6 +19,7 @@ __all__ = [
     "build_coreroot_payload_simple",
     "build_mono_payload",
     "build_monoaot_payload",
+    "build_r2r_interpreter_payload",
     "build_wasm_payload",
     "build_wasm_coreclr_payload",
 ]
@@ -372,3 +373,46 @@ def build_wasm_coreclr_payload(
             getLogger().warning("Microsoft.NETCore.App.Ref pack not found – cannot determine version")
 
     _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir], mode=0o664)
+
+
+def build_r2r_interpreter_payload(
+    artifacts_archive_or_dir: str,
+    payload_dest: str,
+    os_group: str,
+    architecture: str,
+) -> None:
+    """Build a Composite R2R with interpreter fallback payload.
+
+    Stages the runtime pack and crossgen2 tool from a runtime build produced
+    with ``-dynamiccodecompiled false``. The crossgen2 files are placed under
+    a ``tools/`` subdirectory as required by the SDK's
+    ``ResolveReadyToRunCompilers`` target.
+
+    Args:
+        artifacts_archive_or_dir: Path to the build artifacts (archive or directory).
+        payload_dest: Destination root for the payload.
+        os_group: Target OS group (e.g. "linux").
+        architecture: Target architecture (e.g. "x64").
+    """
+    runtimepack_dir = os.path.join(payload_dest, "runtimepack")
+    crossgen2_tools_dir = os.path.join(payload_dest, "crossgen2", "tools")
+    os.makedirs(runtimepack_dir, exist_ok=True)
+    os.makedirs(crossgen2_tools_dir, exist_ok=True)
+
+    extract_archive_or_copy(
+        artifacts_archive_or_dir,
+        runtimepack_dir,
+        prefix=f"microsoft.netcore.app.runtime.{os_group}-{architecture}/Release/",
+    )
+
+    extract_archive_or_copy(
+        artifacts_archive_or_dir,
+        crossgen2_tools_dir,
+        prefix=f"crossgen2_publish/{architecture}/Release/",
+    )
+
+    # Ensure crossgen2 is executable
+    if os_group != "windows":
+        crossgen2_executable = os.path.join(crossgen2_tools_dir, "crossgen2")
+        if os.path.exists(crossgen2_executable):
+            os.chmod(crossgen2_executable, 0o755)
