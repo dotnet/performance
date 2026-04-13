@@ -106,8 +106,11 @@
     <PackageReference Include="System.IO.Pipelines" Version="$(SystemVersion)" />
     <PackageReference Include="System.Threading.Channels" Version="$(SystemVersion)" />
   </ItemGroup>
-  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
-    <!-- we want both net8.0 and net9.0 targets to use the 9.0.0 version of the NuGet package (since this is where the generic math APIs were first added) -->
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0')) and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
+    <!-- Newer System.Numerics.Tensors packages require net10+, so keep net8.0/net9.0 on the last compatible package line. -->
+    <PackageReference Include="System.Numerics.Tensors" Version="10.0.*-*" />
+  </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
     <PackageReference Include="System.Numerics.Tensors" Version="$(SystemThreadingChannelsPackageVersion)" />
   </ItemGroup>
 
