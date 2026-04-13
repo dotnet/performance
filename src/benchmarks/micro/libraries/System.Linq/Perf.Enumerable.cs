@@ -39,9 +39,11 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(SelectArguments))]
         public void SelectTwoArgs(LinqTestData input) => input.Collection.Select((i, _) => i + 1).Consume(_consumer);
 
+#if NET9_0_OR_GREATER
         [Benchmark]
         [ArgumentsSource(nameof(SelectArguments))]
         public void Index(LinqTestData input) => input.Collection.Index().Consume(_consumer);
+#endif
 
         public IEnumerable<object> WhereArguments()
         {
