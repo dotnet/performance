@@ -480,6 +480,17 @@ def install_workload(ctx):
 
     Each attempt is capped at _WORKLOAD_INSTALL_TIMEOUT seconds to prevent
     slow NuGet downloads from consuming the entire Helix work item timeout.
+
+    Manifest-patching dependency (pre.py):
+        When the iOS workload manifest references net10.0 cross-targeting
+        packs that don't exist on NuGet, pre.py patches the manifest to
+        remove those entries and places the patched files inside the SDK tree
+        at ``$DOTNET_ROOT/sdk-manifests/{band}/microsoft.net.sdk.ios/{ver}/``.
+        The SDK tree ships to Helix as the correlation payload, so the
+        patched manifest is already on disk. The ``--skip-manifest-update``
+        retry below tells the CLI to use on-disk manifests instead of
+        downloading new ones, which picks up the patched manifest and only
+        installs packs that actually exist.
     """
     log_raw("=== WORKLOAD INSTALL ===", tee=True)
 
@@ -504,18 +515,26 @@ def install_workload(ctx):
 
     result = _run_workload_cmd(install_args, _WORKLOAD_INSTALL_TIMEOUT)
     if result.returncode != 0 and os.path.isfile(rollback_file):
-        # When a new manifest is published to the feed, referenced SDK packs
-        # may not have propagated to all NuGet feeds yet, causing
-        # "package NOT FOUND".  Retry without the rollback file so the SDK
-        # resolves a recent stable version that is already fully available.
+        # The --from-rollback-file attempt typically fails for one of two
+        # reasons:
+        #   1. NuGet version skew — packs referenced by a new manifest have
+        #      not propagated to all NuGet feeds yet ("package NOT FOUND").
+        #   2. net10.0 cross-targeting packs — the manifest references packs
+        #      that don't exist on any feed (upstream coherency issue).
+        #
+        # In case (2), pre.py's manifest-patching fallback has already
+        # placed a patched manifest (with net10.0 entries removed) inside
+        # the SDK tree, which was shipped here as the correlation payload.
+        # --skip-manifest-update tells the CLI to use that on-disk manifest
+        # instead of downloading a new one, so it only resolves packs that
+        # actually exist.
         log(f"WARNING: Workload install with rollback file failed "
-            f"(exit code {result.returncode}, possible NuGet version skew)", tee=True)
-        log("Retrying without rollback file (will use SDK default version)...", tee=True)
+            f"(exit code {result.returncode})", tee=True)
+        log("Retrying with --skip-manifest-update (uses on-disk manifest "
+            "from correlation payload)...", tee=True)
 
         retry_args = [
             ctx["dotnet_exe"], "workload", "install", "maui-ios",
-            # --skip-manifest-update prevents the SDK from pulling a newer
-            # manifest that may reference packs not yet published to all feeds.
             "--skip-manifest-update",
         ]
         if os.path.isfile(nuget_config):
