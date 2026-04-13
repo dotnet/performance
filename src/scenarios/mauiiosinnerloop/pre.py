@@ -119,7 +119,7 @@ def install_maui_ios_workload(precommands: PreCommands):
         precommands.install_workload('maui-ios', ['--from-rollback-file', 'rollback_maui.json'])
         logger.info("########## Finished installing maui-ios workload ##########")
         return
-    except Exception as e:
+    except subprocess.CalledProcessError as e:
         logger.warning(
             f"Rollback-file install failed: {e}. "
             "This typically happens when the iOS workload manifest (e.g. v26.4) "
@@ -140,7 +140,7 @@ def install_maui_ios_workload(precommands: PreCommands):
 
     # Step 1: Resolve PackageBaseAddress from the NuGet v3 service index
     logger.info(f"Fetching NuGet v3 service index from {feed}")
-    with urllib.request.urlopen(feed) as resp:
+    with urllib.request.urlopen(feed, timeout=60) as resp:
         service_index = json.loads(resp.read().decode('utf-8'))
 
     package_base_url = None
@@ -163,7 +163,11 @@ def install_maui_ios_workload(precommands: PreCommands):
 
     with tempfile.TemporaryDirectory() as tmpdir:
         nupkg_path = os.path.join(tmpdir, 'manifest.nupkg')
-        urllib.request.urlretrieve(nupkg_url, nupkg_path)
+        # urlretrieve doesn't support timeout — use urlopen + manual write instead.
+        # Explicit timeout prevents Helix jobs from hanging indefinitely on network issues.
+        with urllib.request.urlopen(nupkg_url, timeout=120) as resp:
+            with open(nupkg_path, 'wb') as dl_file:
+                dl_file.write(resp.read())
         logger.info(f"Downloaded manifest nupkg to {nupkg_path}")
 
         # Step 3: Extract all files from the data/ directory inside the nupkg
@@ -192,14 +196,24 @@ def install_maui_ios_workload(precommands: PreCommands):
         removed_extends = []
         removed_top_packs = []
 
-        # Patch workloads.ios.packs — remove keys containing "net10" (case-insensitive)
+        # Patch workloads.ios.packs — remove entries containing "net10" (case-insensitive).
+        # The packs field can be a list (of pack name strings) or a dict (pack names as keys),
+        # depending on the manifest version.
         ios_workload = manifest.get('workloads', {}).get('ios', {})
         if 'packs' in ios_workload:
-            original_keys = list(ios_workload['packs'].keys())
-            for key in original_keys:
-                if 'net10' in key.lower():
-                    del ios_workload['packs'][key]
-                    removed_packs.append(key)
+            if isinstance(ios_workload['packs'], list):
+                original_items = list(ios_workload['packs'])
+                ios_workload['packs'] = [
+                    item for item in ios_workload['packs']
+                    if 'net10' not in item.lower()
+                ]
+                removed_packs = [item for item in original_items if 'net10' in item.lower()]
+            else:
+                original_keys = list(ios_workload['packs'].keys())
+                for key in original_keys:
+                    if 'net10' in key.lower():
+                        del ios_workload['packs'][key]
+                        removed_packs.append(key)
 
         # Patch workloads.ios.extends — remove list items containing "net10"
         if 'extends' in ios_workload:
@@ -213,13 +227,20 @@ def install_maui_ios_workload(precommands: PreCommands):
                 if 'net10' in item.lower()
             ]
 
-        # Patch top-level packs — remove keys containing "net10"
+        # Patch top-level packs — remove keys containing "net10".
+        # This should always be a dict, but guard against unexpected list format.
         if 'packs' in manifest:
-            original_keys = list(manifest['packs'].keys())
-            for key in original_keys:
-                if 'net10' in key.lower():
-                    del manifest['packs'][key]
-                    removed_top_packs.append(key)
+            if isinstance(manifest['packs'], dict):
+                original_keys = list(manifest['packs'].keys())
+                for key in original_keys:
+                    if 'net10' in key.lower():
+                        del manifest['packs'][key]
+                        removed_top_packs.append(key)
+            else:
+                logger.warning(
+                    f"Top-level 'packs' is {type(manifest['packs']).__name__}, expected dict — "
+                    "skipping top-level packs patching"
+                )
 
         logger.info(
             f"Patched WorkloadManifest.json — removed: "
@@ -227,6 +248,13 @@ def install_maui_ios_workload(precommands: PreCommands):
             f"workloads.ios.extends={removed_extends}, "
             f"top-level packs={removed_top_packs}"
         )
+
+        if not removed_packs and not removed_extends and not removed_top_packs:
+            logger.warning(
+                "Manifest patching removed NO entries — the install failure may not be "
+                "caused by missing net10 packs. The subsequent install will likely fail "
+                "with the same error."
+            )
 
         # json.dumps produces valid JSON (no trailing commas) — the SDK accepts both.
         patched_json = json.dumps(manifest, indent=2)
