@@ -5,6 +5,7 @@ import re
 import subprocess
 import tempfile
 import time
+from datetime import datetime
 from logging import getLogger
 
 from performance.common import RunCommand
@@ -93,7 +94,11 @@ class iOSHelper:
             for device in data.get('result', {}).get('devices', []):
                 conn = device.get('connectionProperties', {})
                 transport = conn.get('transportType', '')
-                device_udid = device.get('identifier', '')
+                # mlaunch uses the hardware UDID (e.g. 00008020-001965D83C43002E),
+                # NOT the CoreDevice identifier (a UUID like 5AE7F3E5-...).
+                # Fall back to the CoreDevice identifier if hw UDID is missing.
+                hw_udid = device.get('hardwareProperties', {}).get('udid', '')
+                device_udid = hw_udid or device.get('identifier', '')
                 if transport in ('wired', 'localNetwork', 'wifi') and device_udid:
                     name = device.get('deviceProperties', {}).get('name', 'unknown')
                     getLogger().info("Found device: %s (UDID: %s, transport: %s)", name, device_udid, transport)
@@ -211,9 +216,15 @@ class iOSHelper:
         Mac.iPhone.17.Perf Helix machines. The build must use
         EnableCodeSigning=false so MSBuild skips automatic signing.
 
-        No-op for simulator builds.
+        No-op for simulator builds or local runs where MSBuild handles signing
+        automatically (EnableCodeSigning is not disabled).
         """
         if not self.is_physical_device:
+            return
+
+        from performance.common import runninginlab
+        if not runninginlab():
+            getLogger().info("Skipping post-build signing (local run — MSBuild handles signing)")
             return
 
         import shutil
@@ -277,20 +288,23 @@ class iOSHelper:
     def install_app(self, app_bundle_path):
         """Install the app bundle and return wall-clock install time in ms.
 
-        Device:    mlaunch --installdev
+        Device:    devicectl (direct, avoids mlaunch tunnel issues on local)
         Simulator: mlaunch --installsim
         """
-        mlaunch = self._resolve_mlaunch()
+        start = time.time()
 
         if self.is_physical_device:
-            cmd = [mlaunch, '--installdev', app_bundle_path,
-                   '--devname', self.device_id]
+            # Use devicectl directly — mlaunch's internal devicectl invocation
+            # often fails to establish the CoreDevice tunnel on local machines.
+            cmd = ['xcrun', 'devicectl', 'device', 'install', 'app',
+                   '--device', self.device_id, app_bundle_path]
+            RunCommand(cmd, verbose=True).run()
         else:
+            mlaunch = self._resolve_mlaunch()
             cmd = [mlaunch, '--installsim', app_bundle_path,
                    '--device', f':v2:udid={self.device_id}']
+            RunCommand(cmd, verbose=True).run()
 
-        start = time.time()
-        RunCommand(cmd, verbose=True).run()
         elapsed_ms = (time.time() - start) * 1000
         getLogger().info("Install completed in %.1f ms", elapsed_ms)
         return elapsed_ms
@@ -307,19 +321,13 @@ class iOSHelper:
         Terminates any running instance first. For simulator this uses
         simctl terminate (mlaunch has no simulator terminate command).
         """
-        mlaunch = self._resolve_mlaunch()
 
         if self.is_physical_device:
-            cmd = [mlaunch, '--launchdev', self.app_bundle_path,
-                   '--devname', self.device_id]
-            start = time.time()
-            RunCommand(cmd, verbose=True).run()
-            elapsed_ms = int((time.time() - start) * 1000)
-            getLogger().info("Cold startup: %d ms", elapsed_ms)
-            return elapsed_ms
+            return self._measure_device_startup_via_watchdog(bundle_id)
 
         # Simulator: --launchsim blocks until the app exits, so run it
         # in a subprocess and poll for the app to appear in the process list.
+        mlaunch = self._resolve_mlaunch()
         self._run_quiet(['xcrun', 'simctl', 'terminate', self.device_id, bundle_id])
         time.sleep(0.5)
         cmd = [mlaunch, '--launchsim', self.app_bundle_path,
@@ -362,6 +370,87 @@ class iOSHelper:
             except subprocess.TimeoutExpired:
                 proc.kill()
                 proc.wait()
+
+    def _measure_device_startup_via_watchdog(self, bundle_id):
+        """Measure physical device cold startup using SpringBoard watchdog events.
+
+        During every iOS app launch, SpringBoard emits four watchdog log events:
+          1. "Now monitoring resource allowance of 20.00s" — OS starts loading the process
+          2. "Stopped monitoring" — app reached main()
+          3. "Now monitoring resource allowance of N.NNs" — OS waits for first frame
+          4. "Stopped monitoring" — first frame drawn
+
+        Time to Main = event2.timestamp - event1.timestamp
+        Time to First Draw = event4.timestamp - event3.timestamp
+        Total startup = Time to Main + Time to First Draw
+
+        Requires sudo for `log collect --device`.
+        """
+        # Give device a moment to settle before launch
+        time.sleep(1)
+
+        # Record timestamp before launch for log collection window
+        start_ts = time.strftime('%Y-%m-%d %H:%M:%S%z')
+
+        # Launch the app
+        cmd = ['xcrun', 'devicectl', 'device', 'process', 'launch',
+               '--device', self.device_id, '--terminate-existing', bundle_id]
+        RunCommand(cmd, verbose=True).run()
+
+        # Wait for the app to fully start before collecting logs
+        time.sleep(5)
+
+        # Collect device logs covering the launch window
+        logarchive = os.path.join(tempfile.gettempdir(), 'ioshelper_startup.logarchive')
+        self._run_quiet(['rm', '-rf', logarchive])
+        collect_cmd = ['sudo', 'log', 'collect', '--device',
+                       '--start', start_ts, '--output', logarchive]
+        RunCommand(collect_cmd, verbose=True).run()
+
+        # Parse SpringBoard watchdog events for this bundle ID
+        show_cmd = ['log', 'show',
+                    '--predicate', '(process == "SpringBoard") && (category == "Watchdog")',
+                    '--info', '--style', 'ndjson', logarchive]
+        show = RunCommand(show_cmd, verbose=True)
+        show.run()
+
+        events = []
+        for line in show.stdout.splitlines():
+            try:
+                data = json.loads(line)
+                msg = data.get('eventMessage', '')
+                if bundle_id not in msg:
+                    continue
+                if 'Now monitoring resource allowance' in msg or 'Stopped monitoring' in msg:
+                    events.append(data)
+            except (json.JSONDecodeError, KeyError):
+                continue
+
+        if len(events) < 4:
+            getLogger().warning("Expected 4 watchdog events, got %d — falling back to wall-clock", len(events))
+            # Couldn't parse watchdog events; return -1 to signal invalid measurement
+            return -1
+
+        # Parse timestamps: "2026-04-13 20:36:19.836430+0200"
+        def parse_ts(evt):
+            return datetime.strptime(evt['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
+
+        t_main_start = parse_ts(events[0])
+        t_main_end = parse_ts(events[1])
+        t_draw_start = parse_ts(events[2])
+        t_draw_end = parse_ts(events[3])
+
+        time_to_main_ms = int((t_main_end - t_main_start).total_seconds() * 1000)
+        time_to_draw_ms = int((t_draw_end - t_draw_start).total_seconds() * 1000)
+        total_ms = time_to_main_ms + time_to_draw_ms
+
+        getLogger().info("Cold startup: %d ms (Time to Main: %d ms, Time to First Draw: %d ms)",
+                         total_ms, time_to_main_ms, time_to_draw_ms)
+
+        # Clean up logarchive
+        self._run_quiet(['rm', '-rf', logarchive])
+
+        return total_ms
 
     def cleanup(self, skip_uninstall=False):
         """Clean up the device session (simulator or physical).

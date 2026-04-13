@@ -1075,7 +1075,10 @@ ex: C:\repos\performance;C:\repos\runtime
             scenarioprefix = self.scenarioname or "MAUI iOS Build and Deploy"
 
             os.makedirs(const.TRACEDIR, exist_ok=True)
-            first_binlog = os.path.join(const.TRACEDIR, 'first-build-and-deploy.binlog')
+            # Prefix binlog filenames with runtime flavor to avoid overwrites between runs
+            runtime_flavor = os.environ.get('RUNTIME_FLAVOR', '')
+            binlog_prefix = f'{runtime_flavor}-' if runtime_flavor else ''
+            first_binlog = os.path.join(const.TRACEDIR, f'{binlog_prefix}first-build-and-deploy.binlog')
 
             # Build base command (no -t:Install for iOS — plain dotnet build)
             base_cmd = ['dotnet', 'build', self.csprojpath]
@@ -1096,6 +1099,24 @@ ex: C:\repos\performance;C:\repos\runtime
                 getLogger().error("First build failed. Binlog: %s", first_binlog)
                 raise
 
+            # --- Log SDK and workload versions ---
+            RunCommand(['dotnet', '--info'], verbose=True).run()
+            try:
+                from shared.versionmanager import versions_write_json, versions_write_env, get_sdk_versions
+                rid = 'ios-arm64' if is_physical else 'iossimulator-arm64'
+                linked_dir = os.path.join(project_dir, 'obj', self.configuration or 'Debug',
+                                          self.framework or 'net11.0-ios', rid, 'linked')
+                if os.path.isdir(linked_dir):
+                    version_dict = get_sdk_versions(linked_dir, False)
+                    versions_file = os.path.join(const.TRACEDIR, f'{binlog_prefix}versions.json')
+                    versions_write_json(version_dict, versions_file)
+                    versions_write_env(version_dict)
+                    getLogger().info("SDK versions: %s", version_dict)
+                else:
+                    getLogger().warning("Linked DLL dir not found at %s — skipping versions.json", linked_dir)
+            except Exception as e:
+                getLogger().warning("Could not extract SDK versions: %s", e)
+
             # --- Device setup + first deploy ---
             iosHelper = iOSHelper()
             try:
@@ -1112,7 +1133,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 startup.reportjson = first_build_report
                 saved_upload = self.traits.upload_to_perflab_container
                 self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.IOSINNERLOOP,
-                                       tracename='first-build-and-deploy.binlog',
+                                       tracename=f'{binlog_prefix}first-build-and-deploy.binlog',
                                        scenarioname=scenarioprefix + " - First Build and Deploy",
                                        upload_to_perflab_container=False)
                 startup.parsetraces(self.traits)
@@ -1154,7 +1175,7 @@ ex: C:\repos\performance;C:\repos\runtime
                             f.write(content)
 
                     # Build
-                    iter_binlog_name = 'incremental-build-and-deploy-%d.binlog' % iteration
+                    iter_binlog_name = '%sincremental-build-and-deploy-%d.binlog' % (binlog_prefix, iteration)
                     iter_binlog = os.path.join(const.TRACEDIR, iter_binlog_name)
                     try:
                         RunCommand(base_cmd + [f'-bl:{iter_binlog}'], verbose=True).run()
