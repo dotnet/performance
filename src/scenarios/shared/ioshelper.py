@@ -274,13 +274,20 @@ class iOSHelper:
         if shell_result.stdout:
             getLogger().info("sign output:\n%s", shell_result.stdout)
         if shell_result.returncode != 0:
-            raise FileNotFoundError(
-                f"Could not run 'sign' tool via any method. "
-                f"Tried: shutil.which('sign'), /usr/local/bin/sign, "
-                f"HELIX_SCRIPT_ROOT/sign, bash -lc 'sign'. "
-                f"Login shell exit code: {shell_result.returncode}. "
-                f"PATH={os.environ.get('PATH', '')}"
+            # The 'sign' tool only exists on Helix CI machines. For local
+            # device runs, MSBuild/Xcode already sign the app with the
+            # developer's identity during 'dotnet build', so re-signing is
+            # unnecessary.  Warn instead of crashing so local measurement
+            # scripts (which set PERFLAB_INLAB=1 for reporting) can proceed.
+            getLogger().warning(
+                "'sign' tool not found — skipping re-signing. "
+                "App should already be signed by MSBuild for local device deployment. "
+                "(Tried: shutil.which('sign'), /usr/local/bin/sign, "
+                "HELIX_SCRIPT_ROOT/sign, bash -lc 'sign'. "
+                "Login shell exit code: %d)",
+                shell_result.returncode,
             )
+            return
         getLogger().info("Signed %s via login shell successfully", app_name)
 
     # ── Unified Operations ───────────────────────────────────────────
