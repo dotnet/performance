@@ -83,6 +83,31 @@ public class ProgramTests
         }
     }
 
+    [Fact]
+    public void MatrixCommandTreatsEquivalentInputsAsSameNotNoise()
+    {
+        var tempDir = Directory.CreateTempSubdirectory();
+        try
+        {
+            var inputDirectory = Directory.CreateDirectory(Path.Combine(tempDir.FullName, "input"));
+            var baseDirectory = Directory.CreateDirectory(Path.Combine(inputDirectory.FullName, "run-base"));
+            var diffDirectory = Directory.CreateDirectory(Path.Combine(inputDirectory.FullName, "run-diff"));
+            var identicalJson = ResultsComparerTestData.CreateBdnJson();
+
+            File.WriteAllText(Path.Combine(baseDirectory.FullName, "SampleBenchmark.full.json"), identicalJson);
+            File.WriteAllText(Path.Combine(diffDirectory.FullName, "SampleBenchmark.full.json"), identicalJson);
+
+            var output = InvokeProgram(["matrix", "--input", inputDirectory.FullName, "--base", "base", "--diff", "diff", "--threshold", "5%", "--ratio-only"]);
+
+            Assert.Contains("Same", output);
+            Assert.DoesNotContain("Noise", output);
+        }
+        finally
+        {
+            tempDir.Delete(recursive: true);
+        }
+    }
+
     private static string InvokeProgram(string[] args)
     {
         using var writer = new StringWriter();
