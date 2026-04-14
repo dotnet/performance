@@ -178,6 +178,11 @@ class iOSHelper:
         self.is_physical_device = is_physical
 
         if is_physical:
+            # Uninstall any stale app so first-deploy timing isn't affected
+            getLogger().info("Uninstalling any existing app (%s) from physical device: %s", bundle_id, device_id)
+            mlaunch = self._resolve_mlaunch()
+            self._run_quiet([mlaunch, '--uninstalldevbundleid', bundle_id,
+                             '--devname', device_id])
             getLogger().info("Physical device setup complete: %s", device_id)
             return
 
