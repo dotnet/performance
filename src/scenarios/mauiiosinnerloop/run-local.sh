@@ -209,10 +209,13 @@ main() {
             --inner-loop-iterations "$ITERATIONS" \
             --scenario-name "$SCENARIO_NAME"
 
-        # Preserve binlogs before cleanup deletes traces/
+        # Preserve binlogs and version metadata before cleanup deletes traces/
         if [[ "$DRY_RUN" != true ]] && compgen -G "traces/*.binlog" >/dev/null; then
             mkdir -p "results/$RUNTIME_FLAVOR"
             cp traces/*.binlog "results/$RUNTIME_FLAVOR/"
+            if compgen -G "traces/*-versions.json" >/dev/null; then
+                cp traces/*-versions.json "results/$RUNTIME_FLAVOR/"
+            fi
             log "Copied binlogs to results/$RUNTIME_FLAVOR/"
         fi
 
