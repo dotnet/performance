@@ -1125,6 +1125,8 @@ ex: C:\repos\performance;C:\repos\runtime
                 iosHelper.sign_app_for_device(app_bundle)
                 first_install_ms = iosHelper.install_app(app_bundle)
                 first_startup_ms = iosHelper.measure_cold_startup(self.bundleid)
+                if first_startup_ms < 0:
+                    raise RuntimeError("First deploy cold startup measurement failed (watchdog event parsing error)")
                 getLogger().info("First deploy: install=%.1f ms, startup=%d ms", first_install_ms, first_startup_ms)
 
                 # Parse first build binlog
@@ -1189,6 +1191,8 @@ ex: C:\repos\performance;C:\repos\runtime
                     # Install + startup
                     install_ms = iosHelper.install_app(app_bundle)
                     startup_ms = iosHelper.measure_cold_startup(self.bundleid)
+                    if startup_ms < 0:
+                        raise RuntimeError("Incremental deploy %d cold startup measurement failed (watchdog event parsing error)" % iteration)
                     getLogger().info("Iteration %d: install=%.1f ms, startup=%d ms", iteration, install_ms, startup_ms)
 
                     incremental_install_results.append(install_ms)
