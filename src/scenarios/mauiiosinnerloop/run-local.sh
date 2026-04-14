@@ -209,6 +209,13 @@ main() {
             --inner-loop-iterations "$ITERATIONS" \
             --scenario-name "$SCENARIO_NAME"
 
+        # Preserve binlogs before cleanup deletes traces/
+        if [[ "$DRY_RUN" != true ]] && compgen -G "traces/*.binlog" >/dev/null; then
+            mkdir -p "results/$RUNTIME_FLAVOR"
+            cp traces/*.binlog "results/$RUNTIME_FLAVOR/"
+            log "Copied binlogs to results/$RUNTIME_FLAVOR/"
+        fi
+
         # Cleanup between configs
         if [[ "$SKIP_SETUP" != true ]]; then
             dry "python3 post.py" || python3 post.py
