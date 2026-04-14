@@ -46,7 +46,7 @@ def _make_counter(name, metric, results, top=False):
     }
 
 
-def _merge_deploy_report(build_report_path, install_results, startup_results, output_path):
+def _merge_deploy_report(build_report_path, install_results, startup_results, output_path, app_size_bytes=None):
     """Merge build metrics with install/startup timing into a single E2E report.
 
     If the build report doesn't exist (local runs without PERFLAB_INLAB=1),
@@ -60,9 +60,27 @@ def _merge_deploy_report(build_report_path, install_results, startup_results, ou
 
     report["tests"][0]["counters"].append(_make_counter("Install Time", "ms", install_results))
     report["tests"][0]["counters"].append(_make_counter("Cold Startup Time", "ms", startup_results, top=True))
+    if app_size_bytes is not None:
+        report["tests"][0]["counters"].append(_make_counter("App Bundle Size", "bytes", [app_size_bytes], top=True))
 
     with open(output_path, 'w') as f:
         json.dump(report, f, indent=2)
+
+
+def _measure_app_size(app_bundle_path):
+    """Return the total size of a .app bundle directory in bytes.
+
+    Lightweight inline equivalent of the SizeOnDisk tool (SizeOnDisk.cs / sod.py)
+    which is designed for standalone size-focused scenarios with per-file breakdowns.
+    This helper just needs the total for a single counter in the E2E report.
+    """
+    total = 0
+    for dirpath, _dirnames, filenames in os.walk(app_bundle_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            if not os.path.islink(fp):
+                total += os.path.getsize(fp)
+    return total
 
 
 class Runner:
@@ -1121,6 +1139,8 @@ ex: C:\repos\performance;C:\repos\runtime
             iosHelper = iOSHelper()
             try:
                 app_bundle = iosHelper.find_app_bundle(project_dir, exename, self.configuration)
+                first_app_size = _measure_app_size(app_bundle)
+                getLogger().info("App bundle size: %.2f MB (%d bytes)", first_app_size / 1048576, first_app_size)
                 iosHelper.setup_device(self.bundleid, app_bundle, self.deviceid, is_physical=is_physical)
                 iosHelper.sign_app_for_device(app_bundle)
                 first_install_ms = iosHelper.install_app(app_bundle)
@@ -1142,7 +1162,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 # Merge first build metrics + install/startup → first E2E report
                 first_e2e_report = os.path.join(const.TRACEDIR, 'first-debug-e2e-perf-lab-report.json')
-                _merge_deploy_report(first_build_report, [first_install_ms], [first_startup_ms], first_e2e_report)
+                _merge_deploy_report(first_build_report, [first_install_ms], [first_startup_ms], first_e2e_report, app_size_bytes=first_app_size)
 
                 # --- Incremental loop ---
                 if not self.editsrcs or not self.editdests:
@@ -1163,6 +1183,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 incremental_startup_results = []
                 incremental_install_results = []
+                incremental_app_size_results = []
                 aggregated_counters = {}
                 report_template = None
                 intermediate_binlogs = []
@@ -1188,6 +1209,10 @@ ex: C:\repos\performance;C:\repos\runtime
                     # Sign (device only — no-op for simulator)
                     iosHelper.sign_app_for_device(app_bundle)
 
+                    # Measure app size after incremental build
+                    iter_app_size = _measure_app_size(app_bundle)
+                    getLogger().info("Iteration %d app bundle size: %.2f MB", iteration, iter_app_size / 1048576)
+
                     # Install + startup
                     install_ms = iosHelper.install_app(app_bundle)
                     startup_ms = iosHelper.measure_cold_startup(self.bundleid)
@@ -1197,6 +1222,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
                     incremental_install_results.append(install_ms)
                     incremental_startup_results.append(startup_ms)
+                    incremental_app_size_results.append(iter_app_size)
                     intermediate_binlogs.append(iter_binlog)
 
                     # Parse iteration binlog → temp report
@@ -1241,6 +1267,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 final_counters = list(aggregated_counters.values())
                 final_counters.append(_make_counter("Install Time", "ms", incremental_install_results))
                 final_counters.append(_make_counter("Cold Startup Time", "ms", incremental_startup_results, top=True))
+                final_counters.append(_make_counter("App Bundle Size", "bytes", incremental_app_size_results, top=True))
 
                 final_test = dict(report_template or {})
                 final_test["counters"] = final_counters
