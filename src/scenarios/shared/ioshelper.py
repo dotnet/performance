@@ -449,6 +449,16 @@ class iOSHelper:
             # Couldn't parse watchdog events; return -1 to signal invalid measurement
             return -1
 
+        # Sort by timestamp — log show output is not guaranteed chronological
+        events.sort(key=lambda evt: evt['timestamp'])
+
+        # Validate expected sequence: monitor → stop → monitor → stop
+        expected = ['Now monitoring', 'Stopped monitoring', 'Now monitoring', 'Stopped monitoring']
+        for i, keyword in enumerate(expected):
+            if keyword not in events[i].get('eventMessage', ''):
+                getLogger().warning("Unexpected watchdog event sequence at index %d: %s", i, events[i].get('eventMessage', ''))
+                return -1
+
         # Parse timestamps: "2026-04-13 20:36:19.836430+0200"
         def parse_ts(evt):
             return datetime.strptime(evt['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
@@ -488,13 +498,14 @@ class iOSHelper:
 
     # ── App Bundle Discovery ─────────────────────────────────────────
 
-    def find_app_bundle(self, build_output_dir, app_name, configuration='Debug'):
+    def find_app_bundle(self, build_output_dir, app_name, configuration='Debug', is_physical=False):
         """Find the .app bundle in the build output directory.
 
         Searches for: bin/<config>/net*/<rid>/<app>.app
         Returns the absolute path. Raises FileNotFoundError if not found.
         """
-        for rid_pattern in ['iossimulator-*', 'ios-arm64']:
+        rid_patterns = ['ios-arm64'] if is_physical else ['iossimulator-*', 'ios-arm64']
+        for rid_pattern in rid_patterns:
             pattern = os.path.join(build_output_dir, 'bin', configuration, 'net*', rid_pattern, f'{app_name}.app')
             matches = glob.glob(pattern)
             if matches:

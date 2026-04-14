@@ -6,6 +6,7 @@ import sys
 import os
 import glob
 import re
+import shlex
 import time
 import json
 
@@ -55,6 +56,10 @@ def _merge_deploy_report(build_report_path, install_results, startup_results, ou
     if os.path.exists(build_report_path):
         with open(build_report_path, 'r') as f:
             report = json.load(f)
+        if not report.get("tests"):
+            report["tests"] = [{"counters": []}]
+        elif "counters" not in report["tests"][0]:
+            report["tests"][0]["counters"] = []
     else:
         report = {"tests": [{"counters": []}]}
 
@@ -1105,7 +1110,7 @@ ex: C:\repos\performance;C:\repos\runtime
             if self.framework:
                 base_cmd.extend(['-f', self.framework])
             if self.msbuildargs:
-                base_cmd.extend(arg.strip() for arg in re.split(r'[;\s]+', self.msbuildargs) if arg.strip())
+                base_cmd.extend(shlex.split(self.msbuildargs.replace(';', ' ')))
 
             project_dir = os.path.dirname(os.path.abspath(self.csprojpath))
             exename = self.traits.exename
@@ -1138,7 +1143,7 @@ ex: C:\repos\performance;C:\repos\runtime
             # --- Device setup + first deploy ---
             iosHelper = iOSHelper()
             try:
-                app_bundle = iosHelper.find_app_bundle(project_dir, exename, self.configuration)
+                app_bundle = iosHelper.find_app_bundle(project_dir, exename, self.configuration, is_physical=is_physical)
                 first_app_size = _measure_app_size(app_bundle)
                 getLogger().info("App bundle size: %.2f MB (%d bytes)", first_app_size / 1048576, first_app_size)
                 iosHelper.setup_device(self.bundleid, app_bundle, self.deviceid, is_physical=is_physical)
