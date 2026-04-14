@@ -186,6 +186,12 @@ main() {
 
         # Setup — create template and install workload
         if [[ "$SKIP_SETUP" != true ]]; then
+            # Clean stale artifacts from interrupted runs — XAML source generators
+            # produce duplicate errors when leftover obj/ exists alongside a fresh template.
+            if [[ -d app || -d traces ]]; then
+                log "Cleaning stale app/ and traces/ from prior run..."
+                dry "rm -rf app/ traces/" || rm -rf app/ traces/
+            fi
             log "Running pre.py for $config..."
             # shellcheck disable=SC2086
             dry "python3 pre.py default -f $FRAMEWORK $workload_flag" \
