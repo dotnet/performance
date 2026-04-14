@@ -129,7 +129,7 @@ namespace SveBenchmarks
                 short cnth = (short)Sve.Count16BitElements();
 
                 Vector<short> pTrue = Sve.CreateTrueMaskInt16();
-                Vector<short> pLoop = (Vector<short>)Sve.CreateWhileLessThanMask16Bit(0, Size);
+                Vector<short> pLoop = Sve.CreateWhileLessThanMaskInt16(0, Size);
                 Vector<short> idxVec = Vector<short>.Indices;
 
                 // Initialize the first vector worth of values.
@@ -137,7 +137,7 @@ namespace SveBenchmarks
                 Vector<short> maxIdxVec = idxVec;
 
                 i += cnth;
-                pLoop = (Vector<short>)Sve.CreateWhileLessThanMask16Bit(i, Size);
+                pLoop = Sve.CreateWhileLessThanMaskInt16(i, Size);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     Vector<short> val = Sve.LoadVector(pLoop, input + i);
@@ -152,7 +152,7 @@ namespace SveBenchmarks
 
                     // Handle loop.
                     i += cnth;
-                    pLoop = (Vector<short>)Sve.CreateWhileLessThanMask16Bit(i, Size);
+                    pLoop = Sve.CreateWhileLessThanMaskInt16(i, Size);
                 }
 
                 // Get the maximum element across the max vector.

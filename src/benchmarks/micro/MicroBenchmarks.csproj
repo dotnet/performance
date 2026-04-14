@@ -90,7 +90,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="$(ExtensionsVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))" />
     <PackageReference Include="protobuf-net" Version="3.0.73" />
     <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))" />
     <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net5.0'))" />
@@ -261,6 +261,32 @@
     <Compile Remove="sve\ComplexDotProduct.cs" />
     <Compile Remove="sve\UpscaleFilter.cs" />
     <Compile Remove="sve\FP64Overflow.cs" />
+  </ItemGroup>
+
+  <!-- Remove SVE microbenchmarks using the net11.0 CreateWhileLessThanMask API on older TFMs -->
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))">
+    <Compile Remove="sve\Clamp.cs" />
+    <Compile Remove="sve\ComplexDotProduct.cs" />
+    <Compile Remove="sve\ComplexMultiply.cs" />
+    <Compile Remove="sve\Exponent.cs" />
+    <Compile Remove="sve\FastDivision.cs" />
+    <Compile Remove="sve\FP64Overflow.cs" />
+    <Compile Remove="sve\GatherLoad.cs" />
+    <Compile Remove="sve\Logarithm.cs" />
+    <Compile Remove="sve\MultiplyAdd.cs" />
+    <Compile Remove="sve\MultiplyPow2.cs" />
+    <Compile Remove="sve\OddEvenSort.cs" />
+    <Compile Remove="sve\PairwiseAdd.cs" />
+    <Compile Remove="sve\Partition.cs" />
+    <Compile Remove="sve\ScatterStore.cs" />
+    <Compile Remove="sve\SobelFilter.cs" />
+    <Compile Remove="sve\SquareRoot.cs" />
+    <Compile Remove="sve\StrCmp.cs" />
+    <Compile Remove="sve\StrIndexOf.cs" />
+    <Compile Remove="sve\StrLen.cs" />
+    <Compile Remove="sve\TCPChecksum.cs" />
+    <Compile Remove="sve\UpscaleFilter.cs" />
+    <Compile Remove="sve\VectorMax.cs" />
   </ItemGroup>
 
   <!-- This is not removing things from older Net versions, it is removing from newer Net versions -->

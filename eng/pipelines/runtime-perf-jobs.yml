@@ -26,12 +26,6 @@ parameters:
       configs:
         - linux_x64
         - windows_x64
-  - name: viperMicroR2RInterpreter
-    type: object
-    default:
-      enabled: true
-      configs:
-        - linux_x64
   - name: monoMicro
     type: object
     default:
@@ -62,7 +56,19 @@ parameters:
     type: object
     default:
       enabled: true
+  - name: cobaltMicro
+    type: object
+    default:
+      enabled: true
+      configs:
+        - linux_arm64
   - name: cobaltSveMicro
+    type: object
+    default:
+      enabled: true
+      configs:
+        - linux_arm64
+  - name: cobaltMicroR2RInterpreter
     type: object
     default:
       enabled: true
@@ -284,24 +290,25 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-  # CoreCLR Viper microbenchmarks Composite R2R with interpreter fallback — controlled by viperMicroR2RInterpreter toggle.
-  # Excluded on release branches — the coreclr_r2r_interpreter build doesn't exist in older runtime branches.
-  - ${{ if and(eq(parameters.viperMicroR2RInterpreter.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
+  # CoreCLR Cobalt microbenchmarks — controlled by cobaltMicro toggle.
+  # Excluded on release branches — the arm64 coreclr build doesn't exist in older runtime branches.
+  - ${{ if and(eq(parameters.cobaltMicro.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: coreclr
-        platforms: ${{ parameters.viperMicroR2RInterpreter.configs }}
+        platforms: ${{ parameters.cobaltMicro.configs }}
         jobParameters:
           liveLibrariesBuildConfig: Release
-          runtimeType: coreclr_r2r_interpreter
           runKind: micro
-          logicalMachine: 'perfviper'
+          logicalMachine: 'perfcobalt'
+          osDistro: 'azurelinux'
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          additionalJobIdentifier: 'R2RInterpreter'
-    
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
   # CoreCLR Cobalt SVE microbenchmarks — controlled by cobaltSveMicro toggle.
   # Excluded on release branches — the arm64 coreclr build doesn't exist in older runtime branches.
   - ${{ if and(eq(parameters.cobaltSveMicro.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
@@ -313,13 +320,34 @@ jobs:
         platforms: ${{ parameters.cobaltSveMicro.configs }}
         jobParameters:
           liveLibrariesBuildConfig: Release
-          runKind: micro
+          runKind: sve
           logicalMachine: 'perfcobalt'
           osDistro: 'azurelinux'
           runCategories: 'SVE'
           additionalJobIdentifier: 'SVE'
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
+  # CoreCLR Cobalt microbenchmarks Composite R2R with interpreter fallback — controlled by cobaltMicroR2RInterpreter toggle.
+  # Excluded on release branches — the coreclr_r2r_interpreter build doesn't exist in older runtime branches.
+  - ${{ if and(eq(parameters.cobaltMicroR2RInterpreter.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: coreclr
+        platforms: ${{ parameters.cobaltMicroR2RInterpreter.configs }}
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runtimeType: coreclr_r2r_interpreter
+          runKind: micro
+          logicalMachine: 'perfcobalt'
+          osDistro: 'azurelinux'
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          additionalJobIdentifier: 'R2RInterpreter'
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
