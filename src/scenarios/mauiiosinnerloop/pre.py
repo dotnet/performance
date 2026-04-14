@@ -289,7 +289,7 @@ def check_xcode_compatibility(framework: str):
         if not rec_match:
             logger.warning(f"Could not find _RecommendedXcodeVersion in {versions_props}")
             return
-        required_xcode = rec_match.group(1)
+        required_xcode = rec_match.group(1).strip()
 
         active_major_minor = '.'.join(active_xcode.split('.')[:2])
         required_major_minor = '.'.join(required_xcode.split('.')[:2])
@@ -361,7 +361,7 @@ def inject_csproj_properties(csproj_path: str, properties: dict):
         raise Exception(f"No <PropertyGroup> found in {csproj_path}")
 
     for name, value in properties.items():
-        if name not in content:
+        if f'<{name}>' not in content:
             content = content.replace(
                 '</PropertyGroup>',
                 f'    <{name}>{value}</{name}>\n  </PropertyGroup>',

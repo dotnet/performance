@@ -111,7 +111,7 @@ public class Reporter
     private static Build ParseBuildInfo(IEnvironment environment)
     {
         var buildTimestampStr = environment.GetEnvironmentVariable("PERFLAB_BUILDTIMESTAMP");
-        var buildTimestamp = !string.IsNullOrEmpty(buildTimestampStr) ? DateTime.Parse(buildTimestampStr) : DateTime.Now;
+        var buildTimestamp = !string.IsNullOrEmpty(buildTimestampStr) ? DateTime.Parse(buildTimestampStr, CultureInfo.InvariantCulture) : DateTime.Now;
 
         var build = new Build()
         {

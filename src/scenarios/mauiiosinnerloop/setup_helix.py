@@ -373,7 +373,7 @@ def _find_latest_iphone_simulator():
     # Match lines like "    iPhone 16 Pro Max (UUID) (Shutdown)"
     iphone_names = []
     for line in result.stdout.splitlines():
-        m = re.match(r'\s+(iPhone\s+\d+[^(]*?)\s+\(', line)
+        m = re.match(r'\s+(iPhone[^(]*?)\s+\(', line)
         if m:
             iphone_names.append(m.group(1).strip())
 
