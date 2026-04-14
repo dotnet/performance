@@ -469,6 +469,11 @@ def _run_workload_cmd(args, timeout_seconds):
 # can hang for 2+ hours on NuGet download failures (internal retries).
 _WORKLOAD_INSTALL_TIMEOUT = 1200  # 20 minutes per attempt
 
+# NuGet restore should complete much faster than workload install, but can
+# still hang on dead feeds. 10 minutes is generous; prevents consuming the
+# entire Helix work item timeout (2:30) on a hung restore.
+_RESTORE_TIMEOUT = 600  # 10 minutes
+
 
 def install_workload(ctx):
     """Install the maui-ios workload using the shipped SDK.
@@ -583,7 +588,12 @@ def restore_packages(ctx):
     if msbuild_args:
         restore_args.extend(msbuild_args.split())
 
-    result = run_cmd(restore_args, check=False)
+    try:
+        result = run_cmd(restore_args, check=False, timeout=_RESTORE_TIMEOUT)
+    except subprocess.TimeoutExpired:
+        log(f"RESTORE TIMED OUT after {_RESTORE_TIMEOUT}s", tee=True)
+        _dump_log()
+        sys.exit(2)
     if result.returncode != 0:
         log(f"RESTORE FAILED (exit code {result.returncode})", tee=True)
         _dump_log()
