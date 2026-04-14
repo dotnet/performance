@@ -78,18 +78,17 @@ detect_rid() {
 
 select_xcode() {
     if [[ -z "$XCODE_PATH" ]]; then
-        # Find the highest-versioned Xcode_*.app in /Applications.
-        local best="" best_ver="0"
-        for app in /Applications/Xcode_*.app; do
-            [[ -d "$app" ]] || continue
-            local ver; ver="$(basename "$app" | sed 's/^Xcode_//; s/\.app$//')"
-            if printf '%s\n%s\n' "$best_ver" "$ver" | sort -V | tail -1 | grep -qx "$ver"; then
-                best="$app"; best_ver="$ver"
-            fi
-        done
-        if [[ -n "$best" ]]; then XCODE_PATH="$best"
-        elif [[ -d "/Applications/Xcode.app" ]]; then XCODE_PATH="/Applications/Xcode.app"
-        else die "No Xcode installation found in /Applications/"; fi
+        # Use the Python helper that matches Xcode to the iOS SDK version.
+        # It checks rollback_maui.json, then SDK packs, then falls back to highest.
+        # stderr has diagnostics (suppressed here); stdout has the path.
+        XCODE_PATH=$(python3 "$SCENARIO_DIR/select_xcode.py" \
+            --scenario-dir "$SCENARIO_DIR" \
+            ${DOTNET_ROOT:+--dotnet-root "$DOTNET_ROOT"} 2>/dev/null) \
+            || XCODE_PATH=""
+        if [[ -z "$XCODE_PATH" || ! -d "$XCODE_PATH" ]]; then
+            log "WARNING: select_xcode.py failed; falling back to /Applications/Xcode.app"
+            XCODE_PATH="/Applications/Xcode.app"
+        fi
     fi
     log "Using Xcode: $XCODE_PATH"
     export DEVELOPER_DIR="$XCODE_PATH/Contents/Developer"
