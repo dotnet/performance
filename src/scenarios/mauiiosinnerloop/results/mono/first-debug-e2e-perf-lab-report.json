@@ -14,7 +14,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            64.721308
+            27.623004
           ]
         },
         {
@@ -24,7 +24,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            2.535929
+            1.314646
           ]
         },
         {
@@ -34,7 +34,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.017494
+            0.8810159999999999
           ]
         },
         {
@@ -44,7 +44,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.133323
+            0.107845
           ]
         },
         {
@@ -54,7 +54,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.15768700000000002
+            0.198387
           ]
         },
         {
@@ -64,7 +64,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.299197
+            0.25089500000000003
           ]
         },
         {
@@ -74,7 +74,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.409491
+            0.398507
           ]
         },
         {
@@ -84,7 +84,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.022187000000000002
+            0.013312
           ]
         },
         {
@@ -94,7 +94,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.078523
+            0.069617
           ]
         },
         {
@@ -104,7 +104,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            35.952040000000004
+            4.987126
           ]
         },
         {
@@ -114,7 +114,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.473344
+            0.350964
           ]
         },
         {
@@ -124,7 +124,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.633447
+            0.5936699999999999
           ]
         },
         {
@@ -134,7 +134,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            2.536542
+            1.315191
           ]
         },
         {
@@ -144,7 +144,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.075119
+            0.887722
           ]
         },
         {
@@ -154,7 +154,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.301747
+            0.241028
           ]
         },
         {
@@ -164,7 +164,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.170754
+            0.211483
           ]
         },
         {
@@ -185,7 +185,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.032083,
+            0.026872,
             0.0,
             0.0,
             0.0
@@ -198,7 +198,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.000912,
+            0.001268,
             0.0,
             0.0,
             0.0,
@@ -222,7 +222,7 @@
           "higherIsBetter": false,
           "metricName": "ms",
           "results": [
-            7564.852952957153
+            4754.42099571228
           ]
         },
         {
@@ -232,17 +232,7 @@
           "higherIsBetter": false,
           "metricName": "ms",
           "results": [
-            4579
-          ]
-        },
-        {
-          "name": "App Bundle Size",
-          "topCounter": true,
-          "defaultCounter": false,
-          "higherIsBetter": false,
-          "metricName": "bytes",
-          "results": [
-            107207179
+            3548
           ]
         }
       ]
@@ -268,22 +258,21 @@
     "branch": "nguyendav/maui-ios-inner-loop",
     "architecture": null,
     "locale": null,
-    "gitHash": "2c46f0d6fa527f69e70952788acf3aa139414949",
-    "buildName": "local-20260415121719",
-    "timeStamp": "2026-04-15T12:17:19+02:00",
+    "gitHash": "c3d1ab62f641767c94d78f9013f1cade2200f66c",
+    "buildName": "local-20260414123803",
+    "timeStamp": "2026-04-14T12:38:03+02:00",
     "additionalData": {
-      "LC_TERMINAL_VERSION": "3.6.9",
+      "NET_IOS_COMMIT_HASH": "7e93cd39b3affdc7c6ffa02a8306981e7f687df2",
+      "SDK_INSTALL_DATETIME": "2026-04-14T10:38:42Z",
+      "NET_MAUI_COMMIT_HASH": "6f2c917d1fdf78a71f9dafd95cb543c69758b5f4",
+      "TERM_PROGRAM_VERSION": "3.6.9",
+      "RUNTIME_VERSION": "11.0.0-preview.4.26210.111",
+      "installerHash": "5bed4499b04cbbaec57ac4209ae993acca3648cc",
+      "sdkVersion": "11.0.100-preview.4.26210.111",
       "NET_IOS_VERSION": "26.4.11438-net11-p4",
       "NET_MAUI_VERSION": "11.0.0-preview.1.26102.3",
-      "RUNTIME_VERSION": "11.0.0-preview.4.26210.111",
-      "RUNTIME_COMMIT_HASH": "5bed4499b04cbbaec57ac4209ae993acca3648cc",
-      "NET_MAUI_COMMIT_HASH": "6f2c917d1fdf78a71f9dafd95cb543c69758b5f4",
-      "SDK_INSTALL_DATETIME": "2026-04-15T10:18:51Z",
-      "installerHash": "a8b33e7593686eaee701cd124daaabff2311634f",
-      "sdkVersion": "11.0.100-preview.3.26207.106",
-      "NET_IOS_COMMIT_HASH": "7e93cd39b3affdc7c6ffa02a8306981e7f687df2",
-      "COPILOT_CLI_BINARY_VERSION": "1.0.27",
-      "TERM_PROGRAM_VERSION": "3.6.9"
+      "LC_TERMINAL_VERSION": "3.6.9",
+      "RUNTIME_COMMIT_HASH": "5bed4499b04cbbaec57ac4209ae993acca3648cc"
     }
   },
   "inLab": true
