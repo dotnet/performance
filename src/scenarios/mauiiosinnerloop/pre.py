@@ -12,11 +12,12 @@ import subprocess
 import sys
 import tempfile
 import urllib.request
+import xml.etree.ElementTree as ET
 import zipfile
 from performance.common import get_repo_root_path
 from performance.logger import setup_loggers, getLogger
 from shared import const
-from shared.mauisharedpython import extract_latest_dotnet_feed_from_nuget_config, install_latest_maui, MauiNuGetConfigContext
+from shared.mauisharedpython import install_latest_maui, MauiNuGetConfigContext
 from shared.precommands import PreCommands
 from test import EXENAME
 
@@ -74,9 +75,24 @@ def install_maui_ios_workload(precommands: PreCommands):
     # Reconstruct the manifest package ID from the SDK band
     package_id = f"Microsoft.NET.Sdk.iOS.Manifest-{sdk_band}"
 
-    feed = extract_latest_dotnet_feed_from_nuget_config(
-        path=os.path.join(get_repo_root_path(), "NuGet.config")
-    )
+    # Look up the NuGet feed that matches the sdk_band from rollback_maui.json.
+    # install_latest_maui() may have fallen back to a different feed (e.g., dotnet10
+    # instead of dotnet11) when creating the rollback. Using the wrong feed here
+    # causes HTTP 404 when downloading the manifest nupkg.
+    sdk_major = sdk_band.split('.')[0]  # e.g., "10" from "10.0.100-preview.4"
+    nuget_config_path = os.path.join(get_repo_root_path(), "NuGet.config")
+    tree = ET.parse(nuget_config_path)
+    package_sources = tree.getroot().find(".//packageSources")
+    feed = None
+    for add_el in package_sources.findall("add"):
+        if add_el.get("key", "") == f"dotnet{sdk_major}":
+            feed = add_el.get("value")
+            break
+    if not feed:
+        raise Exception(
+            f"No NuGet feed found for dotnet{sdk_major} in {nuget_config_path}. "
+            f"sdk_band={sdk_band}, rollback entry={ios_rollback}"
+        )
 
     # Step 1: Resolve PackageBaseAddress from the NuGet v3 service index
     logger.info(f"Fetching NuGet v3 service index from {feed}")
