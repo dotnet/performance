@@ -4,23 +4,28 @@ class ChannelMap():
     channel_map = {
         'main': {
             'tfm': 'net11.0',
-            'branch': '11.0'
+            'branch': '11.0',
+            'quality': 'daily'
         },
         '10.0': {
             'tfm': 'net10.0',
-            'branch': '10.0'
+            'branch': '10.0',
+            'quality': 'daily'
         },
         'release/10.0': {
             'tfm': 'net10.0',
-            'branch': '10.0'
+            'branch': '10.0',
+            'quality': 'daily'
         },
         'nativeaot10.0': {
             'tfm': 'nativeaot10.0',
-            'branch': '10.0'
+            'branch': '10.0',
+            'quality': 'daily'
         },
         'nativeaot11.0': {
             'tfm': 'nativeaot11.0',
-            'branch': '11.0'
+            'branch': '11.0',
+            'quality': 'daily'
         },
         '9.0': {
             'tfm': 'net9.0',
