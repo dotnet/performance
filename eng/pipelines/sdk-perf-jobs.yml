@@ -17,7 +17,7 @@ jobs:
 # Public correctness jobs
 ######################################################
 
-- ${{ if or(parameters.runPublicJobs, parameters.runPrivateJobs, parameters.runScheduledPrivateJobs) }}:
+- ${{ if parameters.runPublicJobs }}:
   - job: Tooling_Tests_Windows
     displayName: Tooling Tests (Windows)
     timeoutInMinutes: 30
