@@ -14,7 +14,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            72.81466999999999
+            83.596443
           ]
         },
         {
@@ -24,7 +24,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            1.3180619999999998
+            1.3281020000000001
           ]
         },
         {
@@ -34,7 +34,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.029151
+            0.021168
           ]
         },
         {
@@ -44,7 +44,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.833853
+            0.683169
           ]
         },
         {
@@ -54,8 +54,8 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            1.122443,
-            0.209675
+            0.969544,
+            0.163928
           ]
         },
         {
@@ -65,7 +65,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.41167000000000004
+            0.318606
           ]
         },
         {
@@ -75,16 +75,16 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.016035,
-            0.002008,
-            0.0013440000000000001,
-            0.00093,
-            0.001557,
-            0.00087,
-            0.0012330000000000002,
-            0.0011149999999999999,
-            0.000875,
-            0.000833
+            0.012279,
+            0.002283,
+            0.001702,
+            0.000896,
+            0.0011719999999999999,
+            0.001694,
+            0.001632,
+            0.000968,
+            0.001554,
+            0.00125
           ]
         },
         {
@@ -94,7 +94,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.077476
+            0.077952
           ]
         },
         {
@@ -104,7 +104,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            7.26564
+            5.356667000000001
           ]
         },
         {
@@ -114,7 +114,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.386157
+            0.334575
           ]
         },
         {
@@ -124,16 +124,16 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.415099,
-            0.261854,
-            0.335716,
-            0.325077,
-            0.391615,
-            0.340798,
-            0.21774600000000002,
-            0.101225,
-            0.852708,
-            0.281479
+            0.224071,
+            0.027094999999999998,
+            0.030224,
+            0.02743,
+            0.025391999999999998,
+            0.039373,
+            0.030883,
+            0.029686,
+            0.7006420000000001,
+            0.159698
           ]
         },
         {
@@ -143,7 +143,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            1.31865
+            1.328687
           ]
         },
         {
@@ -153,7 +153,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.035371
+            0.023681999999999998
           ]
         },
         {
@@ -163,7 +163,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.849553
+            0.7000230000000001
           ]
         },
         {
@@ -173,7 +173,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.0,
+            1e-06,
             0.0
           ]
         },
@@ -184,7 +184,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.02687,
+            0.022409,
             0.0,
             0.0,
             0.0
@@ -197,7 +197,7 @@
           "higherIsBetter": false,
           "metricName": "s",
           "results": [
-            0.0008209999999999999,
+            0.000915,
             0.0,
             0.0,
             0.0,
@@ -221,7 +221,7 @@
           "higherIsBetter": false,
           "metricName": "ms",
           "results": [
-            19025.413990020752
+            26709.078788757324
           ]
         },
         {
@@ -231,7 +231,17 @@
           "higherIsBetter": false,
           "metricName": "ms",
           "results": [
-            3090
+            3075
+          ]
+        },
+        {
+          "name": "App Bundle Size",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "bytes",
+          "results": [
+            430485637
           ]
         }
       ]
@@ -257,21 +267,22 @@
     "branch": "nguyendav/maui-ios-inner-loop",
     "architecture": null,
     "locale": null,
-    "gitHash": "c3d1ab62f641767c94d78f9013f1cade2200f66c",
-    "buildName": "local-20260414123803",
-    "timeStamp": "2026-04-14T12:38:03+02:00",
+    "gitHash": "2c46f0d6fa527f69e70952788acf3aa139414949",
+    "buildName": "local-20260415121719",
+    "timeStamp": "2026-04-15T12:17:19+02:00",
     "additionalData": {
-      "NET_IOS_VERSION": "26.4.11438-net11-p4",
-      "NET_IOS_COMMIT_HASH": "7e93cd39b3affdc7c6ffa02a8306981e7f687df2",
-      "installerHash": "5bed4499b04cbbaec57ac4209ae993acca3648cc",
-      "sdkVersion": "11.0.100-preview.4.26210.111",
-      "RUNTIME_VERSION": "11.0.0-preview.4.26210.111",
-      "LC_TERMINAL_VERSION": "3.6.9",
       "NET_MAUI_COMMIT_HASH": "6f2c917d1fdf78a71f9dafd95cb543c69758b5f4",
-      "TERM_PROGRAM_VERSION": "3.6.9",
-      "NET_MAUI_VERSION": "11.0.0-preview.1.26102.3",
       "RUNTIME_COMMIT_HASH": "5bed4499b04cbbaec57ac4209ae993acca3648cc",
-      "SDK_INSTALL_DATETIME": "2026-04-14T10:49:11Z"
+      "installerHash": "a8b33e7593686eaee701cd124daaabff2311634f",
+      "sdkVersion": "11.0.100-preview.3.26207.106",
+      "NET_MAUI_VERSION": "11.0.0-preview.1.26102.3",
+      "LC_TERMINAL_VERSION": "3.6.9",
+      "COPILOT_CLI_BINARY_VERSION": "1.0.27",
+      "SDK_INSTALL_DATETIME": "2026-04-15T10:23:37Z",
+      "RUNTIME_VERSION": "11.0.0-preview.4.26210.111",
+      "NET_IOS_COMMIT_HASH": "7e93cd39b3affdc7c6ffa02a8306981e7f687df2",
+      "TERM_PROGRAM_VERSION": "3.6.9",
+      "NET_IOS_VERSION": "26.4.11438-net11-p4"
     }
   },
   "inLab": true
