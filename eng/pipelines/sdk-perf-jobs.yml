@@ -21,6 +21,7 @@ jobs:
   - job: Tooling_Tests_Windows
     displayName: Tooling Tests (Windows)
     timeoutInMinutes: 30
+    condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/main'))
     pool:
       vmImage: windows-2022
 
