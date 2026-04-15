@@ -13,7 +13,7 @@ EDIT_SRC="src/MainPage.xaml.cs;src/MainPage.xaml"
 EDIT_DEST="app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml"
 
 # ── Defaults ──
-CONFIGS="mono-default"  ITERATIONS=5  FRAMEWORK="net11.0-ios"
+CONFIGS="mono-default"  ITERATIONS=5  FRAMEWORK=""  CHANNEL=""
 DEVICE_TYPE="simulator"  DEVICE_NAME="iPhone 16"  XCODE_PATH=""  RID=""
 SKIP_SETUP=false  DRY_RUN=false  HAS_WORKLOAD=false
 
@@ -34,7 +34,8 @@ usage() {
 Usage: $(basename "$0") [OPTIONS]
   --configs CONFIGS     Space-separated configs (default: "mono-default"; valid: mono-default, coreclr-default)
   --iterations N        Inner loop iterations (default: 5)
-  --framework TFM       Target framework (default: net11.0-ios)
+  --channel CHANNEL     SDK channel for init.sh (auto-detected from global.json)
+  --framework TFM       Target framework (auto-detected from global.json, e.g. net10.0-ios)
   --device-type TYPE    simulator or device (default: simulator)
   --device-name NAME    Simulator name (default: "iPhone 16")
   --xcode-path PATH     Path to Xcode.app (auto-detected if omitted)
@@ -52,6 +53,7 @@ parse_args() {
         case "$1" in
             --configs)       CONFIGS="$2"; shift 2 ;;
             --iterations)    ITERATIONS="$2"; shift 2 ;;
+            --channel)       CHANNEL="$2"; shift 2 ;;
             --framework)     FRAMEWORK="$2"; shift 2 ;;
             --device-type)   DEVICE_TYPE="$2"; shift 2 ;;
             --device-name)   DEVICE_NAME="$2"; shift 2 ;;
@@ -74,6 +76,36 @@ detect_rid() {
         device)    RID="ios-arm64" ;;
         *)         die "Unknown device-type: $DEVICE_TYPE" ;;
     esac
+}
+
+# Derive CHANNEL and FRAMEWORK from global.json + channel_map.py when not
+# explicitly provided.  Uses the repo's authoritative channel_map so the
+# script always stays in sync with whatever SDK version the repo pins.
+detect_channel_and_framework() {
+    if [[ -n "$CHANNEL" && -n "$FRAMEWORK" ]]; then return 0; fi
+
+    local result
+    result=$(python3 -c "
+import json, sys, os
+sys.path.insert(0, os.path.join('$REPO_ROOT', 'scripts'))
+from channel_map import ChannelMap
+
+with open(os.path.join('$REPO_ROOT', 'global.json')) as f:
+    sdk_ver = json.load(f)['sdk']['version']
+major = sdk_ver.split('.')[0]
+tfm = 'net' + major + '.0'
+channel = ChannelMap.get_channel_from_target_framework_moniker(tfm)
+print(channel + ' ' + tfm + '-ios')
+") || die "Failed to derive channel/framework from global.json"
+
+    local derived_channel derived_framework
+    derived_channel="${result%% *}"
+    derived_framework="${result#* }"
+
+    [[ -z "$CHANNEL" ]]   && CHANNEL="$derived_channel"
+    [[ -z "$FRAMEWORK" ]] && FRAMEWORK="$derived_framework"
+
+    log "Auto-detected CHANNEL=$CHANNEL  FRAMEWORK=$FRAMEWORK (from global.json SDK)"
 }
 
 select_xcode() {
@@ -129,13 +161,13 @@ bootstrap() {
         export PYTHONPATH="${PYTHONPATH:+$PYTHONPATH:}$REPO_ROOT/scripts:$SCENARIOS_DIR"
         set -u
     else
-        dry ". init.sh -channel main" && return 0
+        dry ". init.sh -channel $CHANNEL" && return 0
         pushd "$SCENARIOS_DIR" > /dev/null
         # init.sh references $PYTHONPATH without a default, which fails under
         # set -u if PYTHONPATH hasn't been exported yet. Temporarily relax.
         set +u
         # shellcheck disable=SC1091
-        . ./init.sh -channel main
+        . ./init.sh -channel "$CHANNEL"
         set -u
         popd > /dev/null
         export UseSharedCompilation=true  # Override init.sh default (false) for realistic inner loop
@@ -163,6 +195,7 @@ main() {
     CONFIGS="${CONFIGS//,/ }"  # Normalize comma-separated configs to space-separated
     validate_prereqs
     detect_rid
+    detect_channel_and_framework
     select_xcode
     boot_simulator
     bootstrap
