@@ -13,7 +13,7 @@ EDIT_SRC="src/MainPage.xaml.cs;src/MainPage.xaml"
 EDIT_DEST="app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml"
 
 # ── Defaults ──
-CONFIGS="mono-default"  ITERATIONS=5  FRAMEWORK=""  CHANNEL=""
+CONFIGS="mono-default"  ITERATIONS=5  FRAMEWORK=""  CHANNEL=""  SDK_VERSION=""
 DEVICE_TYPE="simulator"  DEVICE_NAME="iPhone 16"  XCODE_PATH=""  RID=""
 SKIP_SETUP=false  DRY_RUN=false  HAS_WORKLOAD=false
 
@@ -82,7 +82,7 @@ detect_rid() {
 # explicitly provided.  Uses the repo's authoritative channel_map so the
 # script always stays in sync with whatever SDK version the repo pins.
 detect_channel_and_framework() {
-    if [[ -n "$CHANNEL" && -n "$FRAMEWORK" ]]; then return 0; fi
+    if [[ -n "$CHANNEL" && -n "$FRAMEWORK" && -n "$SDK_VERSION" ]]; then return 0; fi
 
     local result
     result=$(python3 -c "
@@ -95,17 +95,20 @@ with open(os.path.join('$REPO_ROOT', 'global.json')) as f:
 major = sdk_ver.split('.')[0]
 tfm = 'net' + major + '.0'
 channel = ChannelMap.get_channel_from_target_framework_moniker(tfm)
-print(channel + ' ' + tfm + '-ios')
+print(sdk_ver + ' ' + channel + ' ' + tfm + '-ios')
 ") || die "Failed to derive channel/framework from global.json"
 
-    local derived_channel derived_framework
-    derived_channel="${result%% *}"
-    derived_framework="${result#* }"
+    local derived_sdk derived_channel derived_framework
+    derived_sdk="${result%% *}"
+    local remainder="${result#* }"
+    derived_channel="${remainder%% *}"
+    derived_framework="${remainder#* }"
 
-    [[ -z "$CHANNEL" ]]   && CHANNEL="$derived_channel"
-    [[ -z "$FRAMEWORK" ]] && FRAMEWORK="$derived_framework"
+    [[ -z "$SDK_VERSION" ]] && SDK_VERSION="$derived_sdk"
+    [[ -z "$CHANNEL" ]]     && CHANNEL="$derived_channel"
+    [[ -z "$FRAMEWORK" ]]   && FRAMEWORK="$derived_framework"
 
-    log "Auto-detected CHANNEL=$CHANNEL  FRAMEWORK=$FRAMEWORK (from global.json SDK)"
+    log "Auto-detected SDK_VERSION=$SDK_VERSION  CHANNEL=$CHANNEL  FRAMEWORK=$FRAMEWORK (from global.json)"
 }
 
 select_xcode() {
@@ -161,13 +164,22 @@ bootstrap() {
         export PYTHONPATH="${PYTHONPATH:+$PYTHONPATH:}$REPO_ROOT/scripts:$SCENARIOS_DIR"
         set -u
     else
-        dry ". init.sh -channel $CHANNEL" && return 0
+        dry ". init.sh → dotnet.py install + init.sh -dotnetdir" && return 0
+        # Step 1: Install exact SDK version directly from CDN.
+        # Bypasses channel/quality resolution that fails for .NET 10.0 RC
+        # (channel_map.py maps 10.0 → quality 'daily', but daily builds don't exist).
+        python3 "$REPO_ROOT/scripts/dotnet.py" install --dotnet-versions "$SDK_VERSION" -v
+
+        # Step 2: Setup environment (DOTNET_ROOT, PATH, telemetry) using installed SDK.
+        # dotnet.py installs to <repo_root>/tools/dotnet/<arch>; pass that as -dotnetdir.
+        local arch; arch="$(uname -m)"
+        [[ "$arch" == "x86_64" ]] && arch="x64"
         pushd "$SCENARIOS_DIR" > /dev/null
         # init.sh references $PYTHONPATH without a default, which fails under
         # set -u if PYTHONPATH hasn't been exported yet. Temporarily relax.
         set +u
         # shellcheck disable=SC1091
-        . ./init.sh -channel "$CHANNEL"
+        . ./init.sh -dotnetdir "$REPO_ROOT/tools/dotnet/$arch"
         set -u
         popd > /dev/null
         export UseSharedCompilation=true  # Override init.sh default (false) for realistic inner loop
