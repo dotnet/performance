@@ -547,6 +547,9 @@ def get_run_configurations(
     if r2r_run_type == "nor2r":
         configurations["R2RType"] = "nor2r"
 
+    if runtime_type == "coreclr_r2r_interpreter":
+        configurations["R2RType"] = "r2r_interpreter"
+
     if experiment_name is not None:
         configurations["ExperimentName"] = experiment_name
 
