@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using Xunit;
 
@@ -109,10 +110,38 @@ public class ProgramTests
         }
     }
 
+    [Fact]
+    public void InvokeProgramRestoresCurrentCulture()
+    {
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUICulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            var expectedCulture = new CultureInfo("fr-FR");
+            var expectedUICulture = new CultureInfo("de-DE");
+
+            CultureInfo.CurrentCulture = expectedCulture;
+            CultureInfo.CurrentUICulture = expectedUICulture;
+
+            _ = InvokeProgram(["--base", "base.json", "--diff", "diff.json", "--threshold", "not-a-threshold"]);
+
+            Assert.Equal(expectedCulture.Name, CultureInfo.CurrentCulture.Name);
+            Assert.Equal(expectedUICulture.Name, CultureInfo.CurrentUICulture.Name);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUICulture;
+        }
+    }
+
     private static string InvokeProgram(string[] args)
     {
         using var writer = new StringWriter();
         var originalOut = Console.Out;
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUICulture = CultureInfo.CurrentUICulture;
         Console.SetOut(writer);
         try
         {
@@ -121,6 +150,8 @@ public class ProgramTests
         }
         finally
         {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUICulture;
             Console.SetOut(originalOut);
         }
     }
