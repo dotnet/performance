@@ -98,9 +98,10 @@ public class ProgramTests
             File.WriteAllText(Path.Combine(diffDirectory.FullName, "SampleBenchmark.full.json"), identicalJson);
 
             var output = InvokeProgram(["matrix", "--input", inputDirectory.FullName, "--base", "base", "--diff", "diff", "--threshold", "5%", "--ratio-only"]);
+            var lines = output.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
-            Assert.Contains("Same", output);
-            Assert.DoesNotContain("Noise", output);
+            Assert.Contains(lines, line => line.TrimStart().StartsWith("| Same", StringComparison.Ordinal));
+            Assert.DoesNotContain(lines, line => line.TrimStart().StartsWith("| Noise", StringComparison.Ordinal));
         }
         finally
         {
