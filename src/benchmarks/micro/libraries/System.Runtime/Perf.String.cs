@@ -329,7 +329,7 @@ namespace System.Tests
             for (int i = 0; i < lines.Length; i++)
             {
                 split = lines[i].Split(',');
-                fieldCount += split.Length;
+                fieldCount ^= split.Length;
             }
             s_splitCsvFieldCount = fieldCount;
             return split;
