@@ -305,6 +305,7 @@ namespace System.Tests
         private static readonly Lazy<string[]> s_csvLongMixed = new Lazy<string[]>(() => ReadInputFile("tri_2012_nd.csv"));
         // Retrieved from https://data.cdc.gov/api/views/dxpw-cm5u/rows.csv on Jan 22, 2025
         private static readonly Lazy<string[]> s_csvLongNumbers = new Lazy<string[]>(() => ReadInputFile("500_cities.csv"));
+        private static volatile int s_splitCsvFieldCount;
 
         public static IEnumerable<object[]> CsvCorpus()
         {
@@ -324,10 +325,13 @@ namespace System.Tests
         public string[] Split_Csv(string testName, string[] lines)
         {
             string[] split = null;
+            int fieldCount = 0;
             for (int i = 0; i < lines.Length; i++)
             {
                 split = lines[i].Split(',');
+                fieldCount += split.Length;
             }
+            s_splitCsvFieldCount = fieldCount;
             return split;
         }
 
