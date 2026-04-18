@@ -174,6 +174,19 @@ ex: C:\repos\performance;C:\repos\runtime
         buildtimeparser.add_argument('--binlog-path', help='Location of binlog', dest='binlogpath')
         self.add_common_arguments(buildtimeparser)
 
+        androidinnerloopparser = subparsers.add_parser(const.ANDROIDINNERLOOP,
+                                                 description='measure first and incremental deploy time via binlogs')
+        androidinnerloopparser.add_argument('--csproj-path', help='Path to .csproj file to build', dest='csprojpath')
+        androidinnerloopparser.add_argument('--edit-src', help='Path to modified source file (copied before incremental deploy)', dest='editsrc')
+        androidinnerloopparser.add_argument('--edit-dest', help='Destination path for the modified file', dest='editdest')
+        androidinnerloopparser.add_argument('--framework', '-f', help='Target framework (e.g., net10.0-android)', dest='framework')
+        androidinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', default='Debug')
+        androidinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
+        androidinnerloopparser.add_argument('--package-name', help='Android package name for startup measurement (e.g. com.companyname.mauiandroidinnerloop)', dest='packagename')
+        androidinnerloopparser.add_argument('--inner-loop-iterations', help='Number of incremental build+deploy+startup iterations (1+)', type=int, default=10, dest='innerloopiterations')
+        androidinnerloopparser.add_argument('--screen-timeout-ms', help='Screen timeout in milliseconds. Must be large enough so the display stays on for the entire scenario; a screen-off mid-run breaks cold startup measurement (am start reports LaunchState: UNKNOWN).', type=int, default=30 * 60 * 1000, dest='screentimeoutms')
+        self.add_common_arguments(androidinnerloopparser)
+
         args = parser.parse_args()
 
         if not args.testtype:
@@ -196,7 +209,18 @@ ex: C:\repos\performance;C:\repos\runtime
 
         if self.testtype == const.BUILDTIME:
             self.binlogpath = args.binlogpath
-        
+
+        if self.testtype == const.ANDROIDINNERLOOP:
+            self.csprojpath = args.csprojpath
+            self.editsrcs = args.editsrc.split(';') if args.editsrc else []
+            self.editdests = args.editdest.split(';') if args.editdest else []
+            self.framework = args.framework
+            self.configuration = args.configuration
+            self.msbuildargs = args.msbuildargs or os.environ.get('PERFLAB_MSBUILD_ARGS', '')
+            self.packagename = args.packagename
+            self.innerloopiterations = args.innerloopiterations
+            self.screentimeoutms = args.screentimeoutms
+
         if self.testtype == const.DEVICESTARTUP:
             self.packagepath = args.packagepath
             self.packagename = args.packagename
@@ -975,3 +999,254 @@ ex: C:\repos\performance;C:\repos\runtime
                 raise Exception("For build time measurements a valid binlog path must be provided.")
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.BUILDTIME, tracename=self.binlogpath, scenarioname=self.scenarioname)
             startup.parsetraces(self.traits)
+
+        elif self.testtype == const.ANDROIDINNERLOOP:
+            import hashlib
+            import subprocess
+            from shutil import copytree
+            from performance.common import runninginlab
+            from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
+            from shared.util import helixuploaddir
+            import upload
+
+            def merge_build_and_startup(build_report_path, startup_results, final_report_path):
+                """Load the build metrics report, append a startup time counter, write to final path."""
+                with open(build_report_path, 'r') as f:
+                    report = json.load(f)
+                startup_counter = {
+                    "name": "Time to Main",
+                    "topCounter": True,
+                    "defaultCounter": False,
+                    "higherIsBetter": False,
+                    "metricName": "ms",
+                    "results": startup_results
+                }
+                # Report structure: { "tests": [ { "counters": [...] } ] }
+                report["tests"][0]["counters"].append(startup_counter)
+                with open(final_report_path, 'w') as f:
+                    json.dump(report, f, indent=2)
+                getLogger().info("Merged report written to: %s" % final_report_path)
+
+            def run_incremental_iteration(iteration, num_iterations, base_cmd, edit_pairs,
+                                          packagename, activityname,
+                                          scenarioprefix, startup, traits, measure_startup_fn):
+                """Run one incremental build+deploy+startup iteration.
+
+                edit_pairs is a list of (dest_path, original_content, modified_content) tuples.
+                Returns (startup_ms, counters_list, binlog_path, test_metadata).
+                """
+                import subprocess
+
+                getLogger().info("=== Incremental iteration %d/%d ===" % (iteration, num_iterations))
+
+                # Toggle source files
+                for dest, original, modified in edit_pairs:
+                    if iteration % 2 == 1:
+                        with open(dest, 'w') as f:
+                            f.write(modified)
+                        content_hash = hashlib.md5(modified.encode()).hexdigest()[:8]
+                        getLogger().info("Applied modified source: %s (hash=%s, len=%d)" % (dest, content_hash, len(modified)))
+                    else:
+                        with open(dest, 'w') as f:
+                            f.write(original)
+                        content_hash = hashlib.md5(original.encode()).hexdigest()[:8]
+                        getLogger().info("Restored original source: %s (hash=%s, len=%d)" % (dest, content_hash, len(original)))
+
+                # Incremental build+deploy with per-iteration binlog
+                iter_binlog_name = 'incremental-build-and-deploy-%d.binlog' % iteration
+                iter_binlog = os.path.join(const.TRACEDIR, iter_binlog_name)
+                incremental_cmd = base_cmd + [f'-bl:{iter_binlog}']
+                getLogger().info("Incremental build+deploy: %s" % ' '.join(incremental_cmd))
+                subprocess.run(incremental_cmd, check=True)
+
+                # Measure startup
+                ms = measure_startup_fn(packagename, activityname)
+                getLogger().info("Incremental iteration %d/%d: build+deploy done, startup: %d ms" % (iteration, num_iterations, ms))
+
+                # Parse this iteration's binlog → temp build report
+                iter_report_name = 'incremental-build-report-%d.json' % iteration
+                iter_report = os.path.join(const.TRACEDIR, iter_report_name)
+                startup.reportjson = iter_report
+                traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP,
+                                  tracename=iter_binlog_name,
+                                  scenarioname=scenarioprefix + " - Incremental Build and Deploy",
+                                  upload_to_perflab_container=False)
+                startup.parsetraces(traits)
+
+                # Extract build counters and test metadata from temp report
+                with open(iter_report, 'r') as f:
+                    iter_data = json.load(f)
+                test_obj = iter_data["tests"][0]
+                counters = test_obj["counters"]
+                # Return test metadata (without counters) for building the final report
+                test_metadata = test_obj.copy()
+                test_metadata["counters"] = []
+
+                # Clean up temp report (leave binlog for later cleanup)
+                if os.path.exists(iter_report):
+                    os.remove(iter_report)
+                    getLogger().info("Removed temp report: %s" % iter_report)
+
+                return ms, counters, iter_binlog, test_metadata
+
+            # --- Validate inputs ---
+            if not self.csprojpath:
+                raise Exception("For Android inner loop measurements, --csproj-path must be provided.")
+            if not self.packagename:
+                raise Exception("For Android inner loop measurements, --package-name must be provided.")
+            scenarioprefix = self.scenarioname or "MAUI Android Build and Deploy"
+
+            os.makedirs(const.TRACEDIR, exist_ok=True)
+            first_binlog = os.path.join(const.TRACEDIR, 'first-build-and-deploy.binlog')
+
+            # Build the base MSBuild command
+            base_cmd = ['dotnet', 'build', self.csprojpath, '-t:Install', '--no-restore']
+            if self.configuration:
+                base_cmd.extend(['-c', self.configuration])
+            if self.framework:
+                base_cmd.extend(['-f', self.framework])
+            if self.msbuildargs:
+                for arg in re.split(r'[;\s]+', self.msbuildargs):
+                    if arg.strip():
+                        base_cmd.append(arg.strip())
+
+            # --- First build + deploy ---
+            first_cmd = base_cmd + [f'-bl:{first_binlog}']
+            getLogger().info("First build+deploy: %s" % ' '.join(first_cmd))
+            subprocess.run(first_cmd, check=True)
+
+            # --- Device setup for physical devices (screen wake, animations, timeout) ---
+            # Physical Helix CI devices have screens OFF. When the screen is off,
+            # am start-activity -W reports LaunchState: UNKNOWN, omits TotalTime, and
+            # ActivityTaskManager never logs the "Displayed" line — making startup
+            # measurement impossible.
+            androidHelper = AndroidHelper()
+            try:
+                androidHelper.setup_device(self.packagename, packagepath=None, animationsdisabled=True, skip_install=True, skip_xharness_warmup=True, skip_package_verifier=True, skip_test_launch=True, screen_timeout_ms=self.screentimeoutms)
+
+                activityname = androidHelper.activityname
+                getLogger().info("Using resolved activity: %s" % activityname)
+
+                # --- First startup measurement ---
+                first_startup_ms = androidHelper.measure_cold_startup(self.packagename, activityname)
+                getLogger().info("First deploy startup: %d ms" % first_startup_ms)
+
+                # --- Parse first build report ---
+                startup = StartupWrapper()
+                first_build_report = os.path.join(const.TRACEDIR, 'first-build-and-deploy-perf-lab-report.json')
+                startup.reportjson = first_build_report
+                saved_upload = self.traits.upload_to_perflab_container
+                self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.ANDROIDINNERLOOP,
+                                       tracename='first-build-and-deploy.binlog',
+                                       scenarioname=scenarioprefix + " - First Build and Deploy",
+                                       upload_to_perflab_container=False)
+                startup.parsetraces(self.traits)
+
+                # Merge first build metrics + startup → first e2e report
+                first_e2e_report = os.path.join(const.TRACEDIR, 'first-debug-e2e-perf-lab-report.json')
+                merge_build_and_startup(first_build_report, [first_startup_ms], first_e2e_report)
+
+                # --- Incremental loop ---
+                num_iterations = self.innerloopiterations
+                getLogger().info("Starting incremental loop: %d iterations" % num_iterations)
+
+                # Build list of (dest, original_content, modified_content) tuples for toggling
+                edit_pairs = []
+                if self.editsrcs and self.editdests:
+                    if len(self.editsrcs) != len(self.editdests):
+                        raise Exception("--edit-src and --edit-dest must have the same number of semicolon-separated paths")
+                    for src, dest in zip(self.editsrcs, self.editdests):
+                        original = None
+                        modified = None
+                        with open(dest, 'r') as f:
+                            original = f.read()
+                        with open(src, 'r') as f:
+                            modified = f.read()
+                        edit_pairs.append((dest, original, modified))
+                        getLogger().info("Edit pair: %s <-> %s" % (src, dest))
+                else:
+                    raise Exception("No edit-src/edit-dest specified; incremental builds require file pairs to toggle")
+
+                incremental_startup_results = []
+                aggregated_counters = {}  # counter_name -> aggregated counter dict
+                report_template = None   # test metadata from first parsed report
+                intermediate_files = []  # files to clean up
+
+                for iteration in range(1, num_iterations + 1):
+                    ms, counters, iter_binlog, test_metadata = run_incremental_iteration(
+                        iteration, num_iterations, base_cmd,
+                        edit_pairs,
+                        self.packagename, activityname, scenarioprefix, startup, self.traits,
+                        androidHelper.measure_cold_startup)
+
+                    incremental_startup_results.append(ms)
+                    intermediate_files.append(iter_binlog)
+
+                    # Save test metadata from the first iteration
+                    if report_template is None:
+                        report_template = test_metadata
+
+                    for counter in counters:
+                        name = counter["name"]
+                        if name not in aggregated_counters:
+                            aggregated_counters[name] = {
+                                "name": name,
+                                "topCounter": counter.get("topCounter", False),
+                                "defaultCounter": counter.get("defaultCounter", False),
+                                "higherIsBetter": counter.get("higherIsBetter", False),
+                                "metricName": counter.get("metricName", "ms"),
+                                "results": []
+                            }
+                        aggregated_counters[name]["results"].extend(counter.get("results", []))
+
+                # --- Aggregate incremental results ---
+                incremental_e2e_report = os.path.join(const.TRACEDIR, 'incremental-debug-e2e-perf-lab-report.json')
+                final_counters = list(aggregated_counters.values())
+                final_counters.append({
+                    "name": "Time to Main",
+                    "topCounter": True,
+                    "defaultCounter": False,
+                    "higherIsBetter": False,
+                    "metricName": "ms",
+                    "results": incremental_startup_results
+                })
+                if report_template is not None:
+                    report_template["counters"] = final_counters
+                    final_report_data = {"tests": [report_template]}
+                else:
+                    # Fallback: should not happen if at least 1 iteration ran
+                    final_report_data = {"tests": [{"counters": final_counters}]}
+                with open(incremental_e2e_report, 'w') as f:
+                    json.dump(final_report_data, f, indent=2)
+                getLogger().info("Final incremental E2E report written to: %s" % incremental_e2e_report)
+
+                # --- Cleanup and upload ---
+                # Clean up intermediates from TRACEDIR
+                for f_path in intermediate_files + [first_build_report]:
+                    if f_path.endswith('.binlog'):
+                        getLogger().info("Keeping binlog for upload: %s" % f_path)
+                        continue
+                    if os.path.exists(f_path):
+                        os.remove(f_path)
+                        getLogger().info("Removed intermediate: %s" % f_path)
+
+                # Wipe helix upload traces dir so copytree repopulates it cleanly
+                if runninginlab():
+                    traces_upload = os.path.join(helixuploaddir() or '', 'traces')
+                    if os.path.exists(traces_upload):
+                        rmtree(traces_upload)
+
+                # Final upload
+                self.traits.add_traits(overwrite=True, upload_to_perflab_container=saved_upload)
+                helix_upload_dir = helixuploaddir()
+                if runninginlab() and helix_upload_dir is not None:
+                    copytree(const.TRACEDIR, os.path.join(helix_upload_dir, 'traces'), dirs_exist_ok=True)
+                    if self.traits.upload_to_perflab_container:
+                        for report_path in [first_e2e_report, incremental_e2e_report]:
+                            upload_code = upload.upload(report_path, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
+                            getLogger().info("Upload code for %s: %s" % (os.path.basename(report_path), upload_code))
+                            if upload_code != 0:
+                                sys.exit(upload_code)
+
+            finally:
+                androidHelper.close_device(skip_uninstall=True)
