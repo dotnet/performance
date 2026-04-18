@@ -17,7 +17,7 @@ This section details the end-to-end workflow associated with getting the infrast
 1. Clone the performance repo: ``git clone https://github.com/dotnet/performance C:\performance\``.
 2. Install:
    1. The Dotnet 7 SDK.
-      1. The link to the installers can be found [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0).
+      1. The [Download .NET 7.0 page](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) contains the installers.
    2. [crank](https://github.com/dotnet/crank)
       1. crank can be installed by invoking: ``dotnet tool install Microsoft.Crank.Controller --version "0.2.0-*" --global``.
 3. Ensure that your machine can connected to Corp Net for the ASP.NET Scenarios. You can still run GCPerfSim and Microbenchmark test suites without being connected to Corp Net.
@@ -82,7 +82,7 @@ To run GCPerfSim on the ASP.NET Machines, do the following:
       2. ``sc.exe create "CrankAgentService" binpath= "%USERPROFILE%\crank-agent.exe --url http://*:5001 --service"``.
    2. Then run the crank-agent by invoking ``crank-agent`` locally.
 
-The list of machines you can choose to run the configuration can be found [here](https://github.com/aspnet/Benchmarks/tree/main/scenarios#profiles).
+The list of machines you can choose to run the configuration can be found in the [ASP.NET Core Benchmark Scenarios documentation](https://github.com/aspnet/Benchmarks/tree/main/scenarios#profiles).
 
 ##### Microbenchmarks
 
@@ -139,7 +139,7 @@ To run the infrastructure on a specific set of ASP.NET Benchmarks, do the follow
 1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
 2. ``.\GC.Infrastructure.exe aspnetbenchmarks --configuration C:\performance\src\benchmarks\gc\GC.Infrastructure\Configurations\ASPNetBenchmarks\ASPNetBenchmarks.yaml``.
 
-More details about running and troubleshooting ASP.NET benchmarks can be found [here](./docs/ASPNETBenchmarks.md).
+More details about running and troubleshooting ASP.NET benchmarks can be found in the [ASP.NET Benchmarks guide](./docs/ASPNETBenchmarks.md).
 
 ###### Uploading Your Own Binaries
 
@@ -181,7 +181,7 @@ runs:
 
 ###### Updating Which Benchmarks to Run
 
-The file that dictates which ASP.NET benchmarks to run is a CSV file and can be configured based on what test you need to run; an example of this file can be found [here](./Configurations/ASPNetBenchmarks/ASPNetBenchmarks.csv).
+The file that dictates which ASP.NET benchmarks to run is a CSV file and can be configured based on what test you need to run; an example is provided in [ASPNetBenchmarks.csv](./Configurations/ASPNetBenchmarks/ASPNetBenchmarks.csv).
 
 You can update this file by changing the following field:
 
@@ -197,7 +197,7 @@ The format of this file is:
 where:
 
 1. Legend column should contain the name of the ASP.NET benchmark followed by an underscore and the name of the OS.
-2. The Base CommandLine is the base crank command that's run. More details about how to appropriately set this can be found [here](#how-to-add-new-benchmarks).
+2. The Base CommandLine is the base crank command that's run. More details about how to appropriately set this can be found in the next section.
 
 It's worth noting that if you have specified Linux based binaries in the corerun path, the Windows based ASP.NET benchmarks will exhibit undefined behavior.
 

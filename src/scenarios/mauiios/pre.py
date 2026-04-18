@@ -14,12 +14,12 @@ from test import EXENAME
 setup_loggers(True)
 
 precommands = PreCommands()
-install_latest_maui(precommands)
-precommands.print_dotnet_info()
 
 # Use context manager to temporarily merge MAUI's NuGet feeds into repo config
-# This ensures both dotnet new and dotnet build/publish have access to MAUI packages
+# This ensures dotnet package search, dotnet new, and dotnet build/publish have access to MAUI packages
 with MauiNuGetConfigContext(precommands.framework):
+    install_latest_maui(precommands)
+    precommands.print_dotnet_info()
     # Setup the Maui folder - will use merged NuGet.config with MAUI feeds
     precommands.new(template='maui',
                     output_dir=const.APPDIR,
@@ -28,9 +28,9 @@ with MauiNuGetConfigContext(precommands.framework):
                     working_directory=sys.path[0],
                     no_restore=False)
     
-    # Build the IPA - will also use merged NuGet.config
+    # Build the IPA - will use merged NuGet.config
     precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauitesting'])
-# NuGet.config is automatically restored after this block
+    # NuGet.config is automatically restored after this block
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR
@@ -39,6 +39,6 @@ if precommands.output:
 remove_aab_files(output_dir)
 
 # Extract the versions of used SDKs from the linked folder DLLs
-version_dict = get_sdk_versions(rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked", False)
+version_dict = get_sdk_versions(rf"./{const.APPDIR}/obj/{precommands.configuration}/{precommands.framework}/ios-arm64/linked", False)
 versions_write_json(version_dict, rf"{output_dir}/versions.json")
-print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/linked")
+print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/{precommands.configuration}/{precommands.framework}/ios-arm64/linked")

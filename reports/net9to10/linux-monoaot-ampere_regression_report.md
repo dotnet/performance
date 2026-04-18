@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Regression Report - linux-monoaot-ampere
 
 ## 1. 4020e05 - Clean up in Number.Formatting.cs (#110955)

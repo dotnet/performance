@@ -20,6 +20,8 @@ from performance.common import RunCommand, set_environment_variable
 from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
+DEFAULT_BUILD_CONFIG = "Release"
+
 def output_counters_for_crank(reports: list[Any]):
     print("#StartJobStatistics")
 
@@ -59,9 +61,11 @@ class RunPerformanceJobArgs:
     run_kind: str
     architecture: str
     os_group: str
+    os_distro: Optional[str] = None
     
     logical_machine: Optional[str] = None
     queue: Optional[str] = None
+    machine_pool: Optional[str] = None
     framework: Optional[str] = None
     performance_repo_dir: str = "."
     runtime_repo_dir: Optional[str] = None
@@ -112,15 +116,17 @@ class RunPerformanceJobArgs:
     os_version: Optional[str] = None
     dotnet_version_link: Optional[str] = None
     target_csproj: Optional[str] = None
-    build_config: str = "Release"
+    build_config: str = DEFAULT_BUILD_CONFIG
     live_libraries_build_config: Optional[str] = None
     cross_build: bool = False
 
 def get_pre_commands(
         os_group: str,
+        os_distro: Optional[str],
         internal: bool,
         runtime_type: str,
         codegen_type: str,
+        build_config: str,
         v8_version: str):
     helix_pre_commands: list[str] = []
 
@@ -138,18 +144,23 @@ def get_pre_commands(
         # Run inside a python venv
         if os_group == "windows":
             install_prerequisites += [
-                "py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv",
+                "(py -3 -c \"exit(1 if __import__('sys').version_info[:2] == (3, 13) and 'experimental free-threading' in __import__('sys').version.lower() else 0)\" && py -3 -m venv %HELIX_WORKITEM_ROOT%\\.venv || py -3.13 -m venv %HELIX_WORKITEM_ROOT%\\.venv)",
                 "call %HELIX_WORKITEM_ROOT%\\.venv\\Scripts\\activate.bat",
                 "echo on" # venv activate script turns echo off, so turn it back on
             ]
         else:
             if os_group != "osx":
-                install_prerequisites += [
-                    'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
-                    'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
-                    "sudo apt-get remove -y lttng-modules-dkms", # https://github.com/dotnet/runtime/pull/101142
-                    "sudo apt-get -y install python3-pip"
-                ]
+                if os_distro == "azurelinux":
+                    install_prerequisites += [
+                        "sudo tdnf -y install python3-pip"
+                    ]
+                else:
+                    install_prerequisites += [
+                        'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
+                        'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
+                        "sudo apt-get remove -y lttng-modules-dkms", # https://github.com/dotnet/runtime/pull/101142
+                        "sudo apt-get -y install python3-pip"
+                    ]
 
             install_prerequisites += [
                 "python3 -m venv $HELIX_WORKITEM_ROOT/.venv",
@@ -157,14 +168,17 @@ def get_pre_commands(
             ]
 
         # Clear the PYTHONPATH first so that modules installed elsewhere are not used
+        # Note: On Windows, 'set PYTHONPATH=' must be a separate command, not chained with &&,
+        # otherwise Python fails with "OSError: failed to make path absolute"
         if os_group == "windows":
-            install_prerequisites += ["set PYTHONPATH="]
+            helix_pre_commands += ["set PYTHONPATH="]
         else:
             install_prerequisites += ["export PYTHONPATH="]
 
         # Install python pacakges needed to upload results to azure storage
         install_prerequisites += [
             f"python -m pip install -U pip",
+            f"python -m pip install cryptography==46.0.3",
             f"python -m pip install azure.storage.blob==12.13.0",
             f"python -m pip install azure.storage.queue==12.4.0",
             f"python -m pip install azure.identity==1.16.1",
@@ -177,38 +191,65 @@ def get_pre_commands(
         # Install prereqs for NodeJS https://github.com/dotnet/runtime/pull/40667 
         # TODO: is this still needed? It seems like it was added to support wasm which is already setting up everything
         if os_group != "windows" and os_group != "osx":
-            install_prerequisites += [
-                "sudo apt-get update",
-                "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
-            ]
+            if os_distro == "azurelinux":
+                install_prerequisites += [
+                    "sudo tdnf -y install curl ca-certificates"
+                ]
+            else:
+                install_prerequisites += [
+                    "sudo apt-get update",
+                    "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
+                ]
 
-    # Set up everything needed for WASM runs
-    if runtime_type == "wasm":
-        # nodejs installation steps from https://github.com/nodesource/distributions
-        install_prerequisites += [
-            "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
-            "sudo apt-get -y remove nodejs",
-            "sudo apt-get update",
-            "sudo apt-get install -y ca-certificates curl gnupg",
-            "sudo mkdir -p /etc/apt/keyrings",
-            "sudo rm -f /etc/apt/keyrings/nodesource.gpg",
-            "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor --batch -o /etc/apt/keyrings/nodesource.gpg",
-            "export NODE_MAJOR=18",
-            "echo \"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main\" | sudo tee /etc/apt/sources.list.d/nodesource.list",
-            "sudo apt-get update",
-            "sudo apt autoremove -y",
-            "sudo apt-get install nodejs -y",
-            f"test -n \"{v8_version}\"",
-            "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
-            f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
-            f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
-            "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
-        ]
+    # Set up everything needed for WASM runs (both Mono and CoreCLR)
+    if runtime_type in ("wasm", "wasm_coreclr"):  
+        if os_distro == "azurelinux":
+            # Azure Linux uses tdnf package manager
+            install_prerequisites += [
+                "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
+                "sudo tdnf -y update",
+                "sudo tdnf -y remove nodejs",
+                "sudo tdnf -y install ca-certificates curl gnupg nodejs npm",
+                f"test -n \"{v8_version}\"",
+                "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
+                f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
+                f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
+                "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
+            ]
+        else:
+            install_prerequisites += [
+                "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
+                'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
+                'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
+                "sudo apt-get -y remove nodejs",
+                "sudo apt-get update",
+                "sudo apt-get install -y ca-certificates curl gnupg",
+                "sudo mkdir -p /etc/apt/keyrings",
+                "sudo rm -f /etc/apt/keyrings/nodesource.gpg",
+                "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor --batch -o /etc/apt/keyrings/nodesource.gpg",
+                "export NODE_MAJOR=18",
+                "echo \"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main\" | sudo tee /etc/apt/sources.list.d/nodesource.list",
+                "sudo apt-get update",
+                "sudo apt autoremove -y",
+                "sudo apt-get install nodejs -y",
+                f"test -n \"{v8_version}\"",
+                "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
+                f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
+                f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
+                "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
+            ]
 
     # Add the install_prerequisites to the pre_commands
     if os_group == "windows":
-        # TODO: Should we also give Windows the same treatment as linux and ensure that each command succeeds?
-        helix_pre_commands += install_prerequisites
+        # Chain Windows commands with error checking using && to ensure each command succeeds
+        # If any command fails, set PERF_PREREQS_INSTALL_FAILED and report the error
+        if install_prerequisites:
+            combined_prerequisites = " && ".join(install_prerequisites)
+            helix_pre_commands += [
+                'echo ** Installing prerequisites **',
+                f'{combined_prerequisites} || set PERF_PREREQS_INSTALL_FAILED=1',
+                'if defined PERF_PREREQS_INSTALL_FAILED (echo ** Error: Failed to install prerequisites ** && exit /b 1)'
+            ]
     else:
         if install_prerequisites:
             combined_prequisites = " && ".join(install_prerequisites)
@@ -262,6 +303,16 @@ def get_pre_commands(
             helix_pre_commands += ["%HELIX_CORRELATION_PAYLOAD%\\monoaot\\mono-aot-cross --llvm --version"]
         else:
             helix_pre_commands += ["$HELIX_CORRELATION_PAYLOAD/monoaot/mono-aot-cross --llvm --version"]
+
+    # If we are running not release, make sure we make that very clear.
+    if build_config.lower() != "release":
+        banner = [
+            "(echo ======================================================)",
+            f"(echo NON-RELEASE BUILD CONFIG: {build_config})",
+            "(echo ======================================================)",
+        ]
+
+        helix_pre_commands = banner + helix_pre_commands
         
     return helix_pre_commands
 
@@ -272,7 +323,13 @@ def get_post_commands(os_group: str, internal: bool, runtime_type: str):
         helix_post_commands = ["export PYTHONPATH=$ORIGPYPATH"]
 
     if internal:
-        helix_post_commands += ["deactivate"] # deactivate venv
+        if os_group == "windows":
+            # Must use 'call' to invoke deactivate.bat, otherwise the batch file
+            # transfers control to deactivate.bat and never returns, causing the
+            # EXIT /b %_commandExitCode% at the end of the Helix work item to never run
+            helix_post_commands += ["call deactivate"]
+        else:
+            helix_post_commands += ["deactivate"] # deactivate venv
 
     if runtime_type == "wasm" and os_group != "windows":
         helix_post_commands += [
@@ -315,7 +372,8 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
         else:
             queue_map = {
                 "perfampere": "Ubuntu.2204.Arm64.Perf",
-                "perfiphone12mini": "OSX.13.Amd64.Iphone.Perf",
+                "perfcobalt": "AzureLinux.3.Cobalt.Arm64.Perf",
+                "perfiphone17": "Mac.iPhone.17.Perf",
                 "perftiger_crossgen": "Ubuntu.1804.Amd64.Tiger.Perf",
                 "perfviper": "Ubuntu.2204.Amd64.Viper.Perf",
                 "cloudvm": "Ubuntu.2204.Amd64"
@@ -378,22 +436,42 @@ def get_bdn_arguments(
     if runtime_type == "wasm":
         category_exclusions += ["NoInterpreter", "NoWASM", "NoMono"]
 
-        wasm_args = ["--expose_wasm"]
-        if javascript_engine == "v8":
-            wasm_args += ["--module"]
-
         assert javascript_engine_path is not None
         bdn_arguments += [
             "--wasmEngine", javascript_engine_path,
-            f"\\\"--wasmArgs={' '.join(wasm_args)}\\\"",
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
-            "--wasmDataDir", "$HELIX_CORRELATION_PAYLOAD/wasm-data"
+            "--wasmProcessTimeout", "20",
         ]
 
         if is_aot:
             bdn_arguments += [
                 "--aotcompilermode", "wasm",
                 "--buildTimeout", "3600"
+            ]
+
+    if runtime_type == "wasm_coreclr":
+        category_exclusions += ["NoWASM", "NoWasmCoreCLR", "NoMono"]
+
+        assert javascript_engine_path is not None
+        bdn_arguments += [
+            "--wasmEngine", javascript_engine_path,
+            "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
+            "--buildTimeout", "1200",
+            "--wasmProcessTimeout", "20"
+        ]
+
+    if runtime_type == "coreclr_r2r_interpreter":
+        if os_group == "windows":
+            bdn_arguments += [
+                "--runtimes", "r2r11_0",
+                "--customruntimepack", "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\runtimepack",
+                "--aotcompilerpath", "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\crossgen2",
+            ]
+        else:
+            bdn_arguments += [
+                "--runtimes", "r2r11_0",
+                "--customruntimepack", "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/runtimepack",
+                "--aotcompilerpath", "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/crossgen2",
             ]
 
     if category_exclusions:
@@ -434,7 +512,8 @@ def get_run_configurations(
         runtime_flavor: Optional[str] = None,
         ios_llvm_build: bool = False,
         ios_strip_symbols: bool = False,
-        javascript_engine: Optional[str] = None):
+        javascript_engine: Optional[str] = None,
+        build_config: Optional[str] = None):
     
     configurations = { "CompilationMode": "Tiered", "RunKind": run_kind }
 
@@ -453,6 +532,12 @@ def get_run_configurations(
         if javascript_engine == "javascriptcore":
             configurations["JSEngine"] = "javascriptcore"
 
+    if runtime_type == "wasm_coreclr":
+        configurations["CompilationMode"] = "wasm"
+        configurations["RuntimeType"] = str(runtime_flavor)
+        if is_aot:
+            configurations["AOT"] = "true"
+
     if pgo_run_type == "nodynamicpgo":
         configurations["PGOType"] = "nodynamicpgo"
 
@@ -461,6 +546,9 @@ def get_run_configurations(
 
     if r2r_run_type == "nor2r":
         configurations["R2RType"] = "nor2r"
+
+    if runtime_type == "coreclr_r2r_interpreter":
+        configurations["R2RType"] = "r2r_interpreter"
 
     if experiment_name is not None:
         configurations["ExperimentName"] = experiment_name
@@ -490,6 +578,8 @@ def get_run_configurations(
             raise Exception("Runtime flavor must be specified for maui_scenarios_android")
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)
+        if build_config is not None and build_config != DEFAULT_BUILD_CONFIG:
+            configurations["BuildConfig"] = build_config
 
     # .NET iOS and .NET MAUI iOS sample app scenarios
     if run_kind == "maui_scenarios_ios":
@@ -497,10 +587,12 @@ def get_run_configurations(
             raise Exception("Runtime flavor must be specified for maui_scenarios_ios")
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)
+        if build_config is not None and build_config != DEFAULT_BUILD_CONFIG:
+            configurations["BuildConfig"] = build_config
 
     return configurations
 
-def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str):
+def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str, wasm_coreclr: bool = False, only_sanity_check: bool = False):
     if os_group == "windows":
         work_item_command = [
             "python",
@@ -508,7 +600,7 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
             "--csproj", f"%HELIX_WORKITEM_ROOT%\\performance\\{target_csproj}"]
     else:
         work_item_command = [
-            "python",
+            "python3",
             "$HELIX_WORKITEM_ROOT/performance/scripts/benchmarks_ci.py", 
             "--csproj", f"$HELIX_WORKITEM_ROOT/performance/{target_csproj}"]
         
@@ -528,6 +620,8 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
 
     if wasm:
         work_item_command += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
+        if wasm_coreclr:
+            work_item_command += ["--wasm-runtime-flavor", "CoreCLR"]
 
     work_item_command += ["--bdn-artifacts", bdn_artifacts_dir]
 
@@ -586,8 +680,9 @@ def run_performance_job(args: RunPerformanceJobArgs):
     is_mono = args.runtime_type == "mono"
     mono_aot = is_mono and is_aot
     mono_dotnet = is_mono and not is_aot
-    wasm = args.runtime_type == "wasm"
-    wasm_aot = wasm and is_aot
+    wasm_coreclr = args.runtime_type == "wasm_coreclr"
+    wasm = args.runtime_type == "wasm" or wasm_coreclr  # wasm_coreclr also uses wasm infrastructure
+    wasm_aot = wasm and is_aot and not wasm_coreclr
 
     working_dir = os.path.join(args.performance_repo_dir, "CorrelationStaging") # folder in which the payload and workitem directories will be made
     work_item_dir = os.path.join(working_dir, "workitem", "") # Folder in which the work item commands will be run in
@@ -648,6 +743,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
         else:
             raise Exception("iOS scenarios only support Mono and CoreCLR runtimes")
 
+    if args.run_kind == "micro" and args.runtime_type == "wasm_coreclr":
+        if not args.runtime_flavor:
+            args.runtime_flavor = "coreclr"
+
     branch = os.environ.get("BUILD_SOURCEBRANCH")
     cleaned_branch_name = "main"
     if branch is not None and branch.startswith("refs/heads/release"):
@@ -656,7 +755,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
     configurations = get_run_configurations(
         args.run_kind, args.runtime_type, args.codegen_type, args.pgo_run_type, args.physical_promotion_run_type,
         args.r2r_run_type, args.experiment_name, args.linking_type,
-        args.runtime_flavor, args.ios_llvm_build, args.ios_strip_symbols, args.javascript_engine
+        args.runtime_flavor, args.ios_llvm_build, args.ios_strip_symbols, args.javascript_engine,
+        args.build_config
     )
 
     ci_setup_arguments = ci_setup.CiSetupArgs(
@@ -667,6 +767,17 @@ def run_performance_job(args: RunPerformanceJobArgs):
         get_perf_hash=True)
 
     ci_setup_arguments.build_number = args.build_number
+    ci_setup_arguments.only_sanity_check = args.only_sanity_check
+
+    # Detect performance repo branch from AzDO resource metadata and append to PERFLAB_BRANCH if non-main
+    # Set DisableNewBranchLogic=true as a queue-time variable to revert to always uploading as main
+    disable_branch_logic = os.environ.get("DISABLE_NEW_BRANCH_LOGIC", "").lower() == "true"
+    if not disable_branch_logic:
+        perf_repo_ref = os.environ.get("PERF_REPO_BRANCH")
+        if perf_repo_ref:
+            perf_branch = perf_repo_ref.replace("refs/heads/", "").replace("refs/tags/", "")
+            if perf_branch and perf_branch != "main":
+                ci_setup_arguments.perf_repo_branch = perf_branch
 
     if branch is not None and not (args.performance_repo_ci and branch == "refs/heads/main"):
         ci_setup_arguments.branch = branch
@@ -718,14 +829,29 @@ def run_performance_job(args: RunPerformanceJobArgs):
             shutil.copytree(args.mono_dotnet_dir, mono_dotnet_path, dirs_exist_ok=True)
 
     v8_version = ""
-    if wasm:
+    if wasm_coreclr:
+        if args.libraries_download_dir is None:
+            raise Exception("Libraries not downloaded for wasm_coreclr runs")
+        
+        getLogger().info("Building wasm_coreclr payload directory")
+        browser_wasm_coreclr_dir = os.path.join(args.libraries_download_dir, "BrowserWasmCoreCLR")
+        build_wasm_coreclr_payload(
+            browser_wasm_coreclr_dir,
+            payload_dir,
+        )
+
+    elif wasm:
         if args.libraries_download_dir is None:
             raise Exception("Libraries not downloaded for wasm runs")
         
         getLogger().info("Copying wasm bundle directory to payload directory")
         browser_wasm_dir = os.path.join(args.libraries_download_dir, "BrowserWasm")
-        build_wasm_payload(browser_wasm_dir, payload_dir, runtime_repo_dir=args.runtime_repo_dir)
+        build_wasm_payload(
+            browser_wasm_dir,
+            payload_dir,
+        )
 
+    if wasm:
         if args.javascript_engine == "v8":
             if args.browser_versions_props_path is None:
                 if args.runtime_repo_dir is None:
@@ -741,7 +867,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                         break
                 else:
                     raise Exception("Unable to find v8 version in BrowserVersions.props")
-            
+
             if args.javascript_engine_path is None:
                 args.javascript_engine_path = f"/home/helixbot/.jsvu/bin/v8-{v8_version}"
 
@@ -794,6 +920,18 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
         getLogger().info("Copying MonoAOT build to payload directory")
         build_monoaot_payload(linux_mono_aot_dir, monoaot_dotnet_path, args.architecture)
+
+    use_r2r_interpreter = False
+    if args.runtime_type == "coreclr_r2r_interpreter":
+        use_r2r_interpreter = True
+        if not args.libraries_download_dir:
+            raise Exception("Libraries not downloaded for R2R interpreter")
+
+        r2r_interpreter_dir = os.path.join(args.libraries_download_dir, "bin")
+        r2r_interpreter_payload = os.path.join(payload_dir, "r2r_interpreter")
+
+        getLogger().info("Copying R2R interpreter build to payload directory")
+        build_r2r_interpreter_payload(r2r_interpreter_dir, r2r_interpreter_payload, args.os_group, args.architecture)
 
     use_core_run = False
     use_baseline_core_run = False
@@ -880,17 +1018,29 @@ def run_performance_job(args: RunPerformanceJobArgs):
     shutil.copytree(os.path.join(args.performance_repo_dir, "docs"), work_item_dir, dirs_exist_ok=True)
 
     if args.os_group == "windows":
-        agent_python = "py -3"
+        agent_python = "python"
     else:
         agent_python = "python3"
 
-    helix_pre_commands = get_pre_commands(args.os_group, args.internal, args.runtime_type, args.codegen_type, v8_version)
+    helix_pre_commands = get_pre_commands(args.os_group, args.os_distro, args.internal, args.runtime_type, args.codegen_type, args.build_config, v8_version)
     helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
 
     ci_setup_arguments.local_build = args.local_build
 
     if args.affinity != "0":
         ci_setup_arguments.affinity = args.affinity
+
+    # Enable overhead evaluation for WASM jobs where method-call overhead is significant (1-10ns)
+    if wasm:
+        args.run_env_vars["PERFLAB_EVALUATE_OVERHEAD"] = "1"
+
+    # Set device name from machine pool for mobile queues
+    if args.machine_pool and args.queue and args.queue in (
+        "Windows.11.Amd64.Pixel.Perf",
+        "Windows.11.Amd64.Galaxy.Lowend.Perf",
+        "Mac.iPhone.17.Perf",
+    ):
+        args.run_env_vars["DEVICE_NAME"] = args.machine_pool
 
     if args.run_env_vars:
         ci_setup_arguments.run_env_vars = [f"{k}={v}" for k, v in args.run_env_vars.items()]
@@ -900,6 +1050,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
     ci_setup_arguments.output_file = os.path.join(root_payload_dir, "machine-setup")
     if args.is_scenario:
         ci_setup_arguments.install_dir = os.path.join(payload_dir, "dotnet")
+    elif wasm_coreclr:
+        # For wasm_coreclr, we already have the SDK in the payload - skip downloading
+        wasm_dotnet_path = os.path.join(payload_dir, "dotnet")
+        ci_setup_arguments.dotnet_path = wasm_dotnet_path
+        ci_setup_arguments.install_dir = wasm_dotnet_path
     else:
         tools_dir = os.path.join(performance_payload_dir, "tools")
         ci_setup_arguments.install_dir = os.path.join(tools_dir, "dotnet", args.architecture)
@@ -1007,12 +1162,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
             os.environ["Python"] = agent_python
             os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
             os.environ["CodegenType"] = args.codegen_type or ''
+            os.environ["BuildConfig"] = args.build_config or DEFAULT_BUILD_CONFIG
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
             if args.os_group == "windows" or args.os_group == "osx":
-                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "--upgrade", "pip"]).run()
-                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "urllib3==1.26.19"]).run()
-                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", "--user", "requests"]).run()
+                break_system_packages = ["--break-system-packages"] if args.os_group == "osx" else []
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", *break_system_packages, "--user", "--upgrade", "pip"]).run()
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", *break_system_packages, "--user", "urllib3==1.26.19"]).run()
+                RunCommand([*(agent_python.split(" ")), "-m", "pip", "install", *break_system_packages, "--user", "requests"]).run()
 
             scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
             script_path = os.path.join(args.performance_repo_dir, "scripts")
@@ -1094,7 +1251,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     def get_work_item_command_for_artifact_dir(artifact_dir: str):
         assert args.target_csproj is not None
-        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir)
+        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir, wasm_coreclr, args.only_sanity_check)
     
     work_item_command = get_work_item_command_for_artifact_dir(bdn_artifacts_directory)
     baseline_work_item_command = get_work_item_command_for_artifact_dir(bdn_baseline_artifacts_dir)
@@ -1160,7 +1317,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         download_files_from_helix=True,
         targets_windows=args.os_group == "windows",
         helix_results_destination_dir=helix_results_destination_dir,
-        python="python",
+        python=agent_python,
         affinity=args.affinity,
         compare=args.compare,
         compare_command=compare_command,
@@ -1243,6 +1400,7 @@ def main(argv: list[str]):
                 "--affinity": "affinity",
                 "--os-group": "os_group",
                 "--os-sub-group": "os_sub_group",
+                "--os-distro": "os_distro",
                 "--runtime-flavor": "runtime_flavor",
                 "--javascript-engine": "javascript_engine",
                 "--experiment-name": "experiment_name",
@@ -1254,6 +1412,7 @@ def main(argv: list[str]):
                 "--pdn-path": "pdn_path",
                 "--runtime-repo-dir": "runtime_repo_dir",
                 "--logical-machine": "logical_machine",
+                "--machine-pool": "machine_pool",
                 "--build-config": "build_config",
                 "--live-libraries-build-config": "live_libraries_build_config"
             }

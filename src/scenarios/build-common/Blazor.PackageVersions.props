@@ -1,4 +1,9 @@
 <Project>
+    <PropertyGroup Condition="$(TargetFrameworks.Contains('net11.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '11.0')))">
+        <AspNetCoreVersion>11.0.0-*</AspNetCoreVersion>
+        <BlazorVersion>11.0.0-*</BlazorVersion>
+        <SystemNetHttpJsonVersion>11.0.0-*</SystemNetHttpJsonVersion>
+    </PropertyGroup>
     <PropertyGroup Condition="$(TargetFrameworks.Contains('net10.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '10.0')))">
         <AspNetCoreVersion>10.0.0-*</AspNetCoreVersion>
         <BlazorVersion>10.0.0-*</BlazorVersion>
@@ -26,26 +31,4 @@
         <BlazorVersion Condition="'$(BlazorVersion)' == ''">6.0.0-preview*</BlazorVersion>
         <SystemNetHttpJsonVersion Condition="'$(SystemNetHttpJsonVersion)' == ''">6.0.0-preview*</SystemNetHttpJsonVersion>
     </PropertyGroup>
-
-      <!-- Workaround: Explicit Microsoft.Extensions pre-release versions for net10.0.
-       The WebAssembly SDK depends on Microsoft.Extensions packages with version >=10.0.0.
-       Only pre-release (rtm/rc) builds are presently available in internal feeds; since
-       NuGet treats pre-release < stable, transitive resolution fails. We force a floating
-       pre-release selection via explicit PackageReferences conditioned on net10.0. -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0' or $(TargetFrameworks.Contains('net10.0'))">
-    <ExtensionsVersion>10.0.0-*</ExtensionsVersion>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <!-- Explicit extensions packages (conditional) -->
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(ExtensionsVersion)" Condition="'$(TargetFramework)' == 'net10.0' or $(TargetFrameworks.Contains('net10.0'))" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="$(ExtensionsVersion)" Condition="'$(TargetFramework)' == 'net10.0' or $(TargetFrameworks.Contains('net10.0'))" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="$(ExtensionsVersion)" Condition="'$(TargetFramework)' == 'net10.0' or $(TargetFrameworks.Contains('net10.0'))" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(ExtensionsVersion)" Condition="'$(TargetFramework)' == 'net10.0' or $(TargetFrameworks.Contains('net10.0'))" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(ExtensionsVersion)" Condition="'$(TargetFramework)' == 'net10.0' or $(TargetFrameworks.Contains('net10.0'))" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(ExtensionsVersion)" Condition="'$(TargetFramework)' == 'net10.0' or $(TargetFrameworks.Contains('net10.0'))" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="$(ExtensionsVersion)" Condition="'$(TargetFramework)' == 'net10.0' or $(TargetFrameworks.Contains('net10.0'))" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" Condition="'$(TargetFramework)' == 'net10.0' or $(TargetFrameworks.Contains('net10.0'))" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics" Version="$(ExtensionsVersion)" Condition="'$(TargetFramework)' == 'net10.0' or $(TargetFrameworks.Contains('net10.0'))" />
-  </ItemGroup>
 </Project>

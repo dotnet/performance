@@ -19,9 +19,10 @@ namespace System.Memory
         where T : struct, IComparable<T>, IEquatable<T>
     {
         [Params(
-            4, // non-vectorized code path
-            33, // both vectorized and non-vectorized code path
-            512)] // vectorized code path
+            4,     // non-vectorized code path
+            33,    // both vectorized and non-vectorized code path
+            512,   // vectorized code path
+            3000)] // larger than memmove p/invoke threshold
         public int Size;
 
         private T[] _array, _same, _different, _emptyWithSingleValue;
@@ -39,7 +40,16 @@ namespace System.Memory
 
         [Benchmark]
         public void Clear() => new System.Span<T>(_array).Clear();
-        
+
+        [Benchmark]
+        public void CopyTo() => _array.AsSpan().CopyTo(_different);
+
+        [Benchmark]
+        public void CopyToSame() => _array.AsSpan().CopyTo(_array);
+
+        [Benchmark]
+        public void CopyToOverlap() => _array.AsSpan(0, _array.Length - 1).CopyTo(_array.AsSpan(1));
+
         [Benchmark]
         public void Fill() => new System.Span<T>(_array).Fill(default);
         

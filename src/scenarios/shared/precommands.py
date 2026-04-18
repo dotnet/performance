@@ -93,7 +93,6 @@ class PreCommands:
         self.operation = args.operation
         self.framework = args.framework
         self.runtime_identifier = args.runtime
-        self.nativeaot = args.nativeaot
         self.msbuild = args.msbuild
         print(self.msbuild)
         self.msbuildstatic = args.msbuildstatic
@@ -154,10 +153,6 @@ class PreCommands:
                             dest='runtime',
                             metavar='runtime',
                             help='runtime for build or publish - ex: win-x64')
-        parser.add_argument('-n', '--nativeaot',
-                            dest='nativeaot',
-                            metavar='nativeaot',
-                            help='use Native AOT runtime for build or publish')
         parser.add_argument('--msbuild',
                             dest='msbuild',
                             metavar='msbuild',
@@ -211,9 +206,6 @@ class PreCommands:
                 build_args.append('--self-contained')
             elif self.no_self_contained:
                 build_args.append('--no-self-contained')
-            if self.nativeaot:
-                build_args.append('/p:PublishAot=true')
-                build_args.append('/p:PublishAotUsingRuntimePack=true')
             build_args.append("/p:EnableWindowsTargeting=true")
             self._publish(configuration=self.configuration, runtime_identifier=self.runtime_identifier, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == CROSSGEN:

@@ -22,10 +22,14 @@ def writefile(file: str, lines: list[str]):
 # insert string after the first occurance of the search string
 def insert_after(file: str, search: str, insert: str):
     lines = readfile(file)
+    found = False
     for i in range(len(lines)):
         if search in lines[i]:
             lines.insert(i+1, ("%s\n" % insert))
+            found = True
             break
+    if not found:
+        raise Exception(f"insert_after: search string '{search}' not found in {file}")
     writefile(file, lines)
 
 def replace_line(file: str, search: str, replace: str):
