@@ -24,7 +24,7 @@ jobs:
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
-        logicalMachine: 'perfiphone12mini'
+        logicalMachine: 'perfiphone17'
         iOSLlvmBuild: False
         iOSStripSymbols: True
         additionalJobIdentifier: iOSStripSymbols
@@ -47,7 +47,7 @@ jobs:
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
-        logicalMachine: 'perfiphone12mini'
+        logicalMachine: 'perfiphone17'
         iOSLlvmBuild: True
         iOSStripSymbols: True
         additionalJobIdentifier: iOSLlvmBuild iOSStripSymbols
@@ -70,7 +70,7 @@ jobs:
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
-        logicalMachine: 'perfiphone12mini'
+        logicalMachine: 'perfiphone17'
         iOSStripSymbols: True
         additionalJobIdentifier: iOSStripSymbols
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
@@ -92,7 +92,7 @@ jobs:
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
-        logicalMachine: 'perfiphone12mini'
+        logicalMachine: 'perfiphone17'
         iOSStripSymbols: True
         additionalJobIdentifier: iOSStripSymbols
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
@@ -114,7 +114,7 @@ jobs:
         projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
         runKind: ios_scenarios
         isScenario: true
-        logicalMachine: 'perfiphone12mini'
+        logicalMachine: 'perfiphone17'
         iOSStripSymbols: True
         additionalJobIdentifier: iOSStripSymbols
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}

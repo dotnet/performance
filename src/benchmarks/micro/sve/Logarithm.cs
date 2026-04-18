@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace SveBenchmarks
 {
-    [BenchmarkCategory(Categories.Runtime)]
+    [BenchmarkCategory(Categories.Sve)]
     [OperatingSystemsArchitectureFilter(allowed: true, System.Runtime.InteropServices.Architecture.Arm64)]
     [Config(typeof(Config))]
     public class Logarithm
@@ -174,7 +174,7 @@ namespace SveBenchmarks
 
                 Vector<uint> pTrue = Sve.CreateTrueMaskUInt32();
                 Vector<float> pTruef = Sve.CreateTrueMaskSingle();
-                Vector<uint> pLoop = Sve.CreateWhileLessThanMask32Bit(0, Size);
+                Vector<uint> pLoop = Sve.CreateWhileLessThanMaskUInt32(0, Size);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     Vector<float> x = (Vector<float>)Sve.LoadVector(pLoop, (uint*)(input + i));
@@ -239,7 +239,7 @@ namespace SveBenchmarks
 
                     // Handle loop.
                     i += cntw;
-                    pLoop = Sve.CreateWhileLessThanMask32Bit(i, Size);
+                    pLoop = Sve.CreateWhileLessThanMaskUInt32(i, Size);
                 }
             }
         }
