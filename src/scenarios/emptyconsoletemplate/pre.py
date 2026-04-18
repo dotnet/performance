@@ -14,5 +14,5 @@ precommands.new(template='console',
                 bin_dir=const.BINDIR,
                 exename=EXENAME,
                 working_directory=sys.path[0])
-precommands.add_onmain_logging("Program.cs", "// See https://aka.ms/new-console-template for more information")
+precommands.add_onmain_logging("Program.cs", "Console.WriteLine")
 precommands.execute()

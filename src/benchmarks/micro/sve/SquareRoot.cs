@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace SveBenchmarks
 {
-    [BenchmarkCategory(Categories.Runtime)]
+    [BenchmarkCategory(Categories.Sve)]
     [OperatingSystemsArchitectureFilter(allowed: true, System.Runtime.InteropServices.Architecture.Arm64)]
     [Config(typeof(Config))]
     public class SquareRoot
@@ -94,7 +94,7 @@ namespace SveBenchmarks
                 // We use Vector<uint> for predicates since there are no Vector<float>
                 // overloads for TestFirstTrue and CreateWhileLessThanMask etc.
                 Vector<uint> pTrue = Sve.CreateTrueMaskUInt32();
-                Vector<uint> pLoop = Sve.CreateWhileLessThanMask32Bit(0, Size);
+                Vector<uint> pLoop = Sve.CreateWhileLessThanMaskUInt32(0, Size);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     // Since pLoop is a Vector<uint> predicate, we load the input as uint array,
@@ -107,7 +107,7 @@ namespace SveBenchmarks
 
                     // Handle loop.
                     i += cntw;
-                    pLoop = Sve.CreateWhileLessThanMask32Bit(i, Size);
+                    pLoop = Sve.CreateWhileLessThanMaskUInt32(i, Size);
                 }
             }
         }

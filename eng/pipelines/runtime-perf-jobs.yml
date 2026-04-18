@@ -11,47 +11,73 @@ parameters:
   - name: performanceRepoAlias
     type: string
     default: self
-  - name: crossgen
-    type: object
-    default:
-      enabled: true
-      configs:
-        - windows_x64
-        - windows_x86
-  - name: viperJitOptRepeat
-    type: object
-    default:
-      enabled: true
-      configs:
-        - windows_x64
-        - linux_x64
   - name: viperMicro
     type: object
     default:
       enabled: true
       configs:
-        - windows_x64
         - linux_x64
-  - name: owlMicro
+        - windows_x64
+        - windows_x86
+  - name: viperMicroNoR2R
     type: object
     default:
       enabled: true
       configs:
-        - windows_x64
         - linux_x64
-  - name: tigerMicro
+        - windows_x64
+  - name: monoMicro
     type: object
     default:
       enabled: true
       configs:
-        - windows_x64
         - linux_x64
-  - name: androidMono
+  - name: monoInterpreter
     type: object
     default:
       enabled: true
       configs:
-        - android_arm64
+        - linux_x64
+  - name: monoAot
+    type: object
+    default:
+      enabled: true
+      configs:
+        - linux_x64
+  - name: androidMonoJit
+    type: object
+    default:
+      enabled: true
+  - name: androidMonoAot
+    type: object
+    default:
+      enabled: true
+  - name: androidCoreclrJit
+    type: object
+    default:
+      enabled: true
+  - name: cobaltMicro
+    type: object
+    default:
+      enabled: true
+      configs:
+        - linux_arm64
+  - name: cobaltSveMicro
+    type: object
+    default:
+      enabled: true
+      configs:
+        - linux_arm64
+  - name: cobaltMicroR2RInterpreter
+    type: object
+    default:
+      enabled: true
+      configs:
+        - linux_arm64
+  - name: androidCoreclrR2r
+    type: object
+    default:
+      enabled: true
 
 jobs:
   - template: /eng/pipelines/performance/templates/perf-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
@@ -66,220 +92,264 @@ jobs:
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         jobParameters: ${{ parameters.jobParameters }}
 
-    # run android scenarios - Mono JIT
+    # Android Mono JIT — controlled by androidMonoJit toggle
+    - ${{ if eq(parameters.androidMonoJit.enabled, true) }}:
+      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+        parameters:
+          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+          buildConfig: release
+          runtimeFlavor: mono
+          platforms:
+            - windows_x64
+          jobParameters:
+            runtimeType: AndroidMono
+            codeGenType: JIT
+            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
+            runKind: android_scenarios
+            isScenario: true
+            logicalMachine: 'perfpixel4a'
+            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+            ${{ each parameter in parameters.jobParameters }}:
+              ${{ parameter.key }}: ${{ parameter.value }}
+
+    # Android Mono AOT — controlled by androidMonoAot toggle
+    - ${{ if eq(parameters.androidMonoAot.enabled, true) }}:
+      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+        parameters:
+          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+          buildConfig: release
+          runtimeFlavor: mono
+          platforms:
+            - windows_x64
+          jobParameters:
+            runtimeType: AndroidMono
+            codeGenType: AOT
+            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
+            runKind: android_scenarios
+            isScenario: true
+            logicalMachine: 'perfpixel4a'
+            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+            ${{ each parameter in parameters.jobParameters }}:
+              ${{ parameter.key }}: ${{ parameter.value }}
+
+    # Android CoreCLR JIT (includes static linking variant) — controlled by androidCoreclrJit toggle
+    - ${{ if eq(parameters.androidCoreclrJit.enabled, true) }}:
+      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+        parameters:
+          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+          buildConfig: release
+          runtimeFlavor: coreclr
+          platforms:
+            - windows_x64
+          jobParameters:
+            runtimeType: AndroidCoreCLR
+            codeGenType: JIT
+            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
+            runKind: android_scenarios
+            isScenario: true
+            logicalMachine: 'perfpixel4a'
+            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+            ${{ each parameter in parameters.jobParameters }}:
+              ${{ parameter.key }}: ${{ parameter.value }}
+
+      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+        parameters:
+          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+          buildConfig: release
+          runtimeFlavor: coreclr
+          platforms:
+            - windows_x64
+          jobParameters:
+            runtimeType: AndroidCoreCLR
+            codeGenType: JIT
+            linkingType: static
+            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
+            runKind: android_scenarios
+            isScenario: true
+            logicalMachine: 'perfpixel4a'
+            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+            ${{ each parameter in parameters.jobParameters }}:
+              ${{ parameter.key }}: ${{ parameter.value }}
+
+    # Android CoreCLR R2R — controlled by androidCoreclrR2r toggle
+    - ${{ if eq(parameters.androidCoreclrR2r.enabled, true) }}:
+      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+        parameters:
+          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+          buildConfig: release
+          runtimeFlavor: coreclr
+          platforms:
+            - windows_x64
+          jobParameters:
+            runtimeType: AndroidCoreCLR
+            codeGenType: R2R
+            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
+            runKind: android_scenarios
+            isScenario: true
+            logicalMachine: 'perfpixel4a'
+            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+            ${{ each parameter in parameters.jobParameters }}:
+              ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Mono microbenchmarks — controlled by monoMicro toggle
+  - ${{ if eq(parameters.monoMicro.enabled, true) }}:
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: mono
-        platforms:
-          - windows_x64
+        platforms: ${{ parameters.monoMicro.configs }}
         jobParameters:
-          runtimeType: AndroidMono
-          codeGenType: JIT
-          projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
-          runKind: android_scenarios
-          isScenario: true
-          logicalMachine: 'perfpixel4a'
+          liveLibrariesBuildConfig: Release
+          runtimeType: mono
+          runKind: micro_mono
+          logicalMachine: 'perfviper'
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-    # run android scenarios - Mono AOT
+  # Mono interpreter — controlled by monoInterpreter toggle
+  - ${{ if eq(parameters.monoInterpreter.enabled, true) }}:
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: mono
-        platforms:
-          - windows_x64
+        platforms: ${{ parameters.monoInterpreter.configs }}
         jobParameters:
-          runtimeType: AndroidMono
-          codeGenType: AOT
-          projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
-          runKind: android_scenarios
-          isScenario: true
-          logicalMachine: 'perfpixel4a'
+          liveLibrariesBuildConfig: Release
+          runtimeType: mono
+          codeGenType: 'Interpreter'
+          runKind: micro_mono
+          logicalMachine: 'perfviper'
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-    # run android scenarios - CoreCLR JIT
+  # Mono AOT microbenchmarks — controlled by monoAot toggle
+  - ${{ if eq(parameters.monoAot.enabled, true) }}:
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: aot
+        platforms: ${{ parameters.monoAot.configs }}
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runtimeType: mono
+          codeGenType: 'AOT'
+          runKind: micro_mono
+          logicalMachine: 'perfviper'
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
+  # CoreCLR Viper microbenchmarks — controlled by viperMicro toggle.
+  # Platform selection is driven by viperMicro.configs (default: linux_x64, windows_x64, windows_x86).
+  - ${{ if eq(parameters.viperMicro.enabled, true) }}:
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: coreclr
-        platforms:
-          - windows_x64
+        platforms: ${{ parameters.viperMicro.configs }}
         jobParameters:
-          runtimeType: AndroidCoreCLR
-          codeGenType: JIT
-          projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
-          runKind: android_scenarios
-          isScenario: true
-          logicalMachine: 'perfpixel4a'
+          liveLibrariesBuildConfig: Release
+          runKind: micro
+          logicalMachine: 'perfviper'
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-    # run android scenarios - CoreCLR JIT Static Linking
+  # CoreCLR Viper microbenchmarks NoR2R — controlled by viperMicroNoR2R toggle (separate from R2R runs).
+  # Platform selection is driven by viperMicroNoR2R.configs (default: linux_x64, windows_x64).
+  - ${{ if eq(parameters.viperMicroNoR2R.enabled, true) }}:
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: coreclr
-        platforms:
-          - windows_x64
+        platforms: ${{ parameters.viperMicroNoR2R.configs }}
         jobParameters:
-          runtimeType: AndroidCoreCLR
-          codeGenType: JIT
-          linkingType: static
-          projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
-          runKind: android_scenarios
-          isScenario: true
-          logicalMachine: 'perfpixel4a'
+          liveLibrariesBuildConfig: Release
+          runKind: micro
+          logicalMachine: 'perfviper'
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          r2rRunType: nor2r
+          additionalJobIdentifier: 'NoR2R'
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-    # run android scenarios - CoreCLR R2R
+  # CoreCLR Cobalt microbenchmarks — controlled by cobaltMicro toggle.
+  # Excluded on release branches — the arm64 coreclr build doesn't exist in older runtime branches.
+  - ${{ if and(eq(parameters.cobaltMicro.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: coreclr
-        platforms:
-          - windows_x64
+        platforms: ${{ parameters.cobaltMicro.configs }}
         jobParameters:
-          runtimeType: AndroidCoreCLR
-          codeGenType: R2R
-          projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
-          runKind: android_scenarios
-          isScenario: true
-          logicalMachine: 'perfpixel4a'
+          liveLibrariesBuildConfig: Release
+          runKind: micro
+          logicalMachine: 'perfcobalt'
+          osDistro: 'azurelinux'
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-  # run mono microbenchmarks perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: mono
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: mono
-        runKind: micro_mono
-        logicalMachine: 'perfviper'
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # CoreCLR Cobalt SVE microbenchmarks — controlled by cobaltSveMicro toggle.
+  # Excluded on release branches — the arm64 coreclr build doesn't exist in older runtime branches.
+  - ${{ if and(eq(parameters.cobaltSveMicro.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: coreclr
+        platforms: ${{ parameters.cobaltSveMicro.configs }}
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runKind: sve
+          logicalMachine: 'perfcobalt'
+          osDistro: 'azurelinux'
+          runCategories: 'SVE'
+          additionalJobIdentifier: 'SVE'
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
-
-  # run mono interpreter perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: mono
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: mono
-        codeGenType: 'Interpreter'
-        runKind: micro_mono
-        logicalMachine: 'perfviper'
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # run mono aot microbenchmarks perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: aot
-      platforms:
-      - linux_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runtimeType: mono
-        codeGenType: 'AOT'
-        runKind: micro_mono
-        logicalMachine: 'perfviper'
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # run coreclr perftiger microbenchmarks perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: coreclr
-      platforms:
-      - linux_x64
-      # - windows_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runKind: micro
-        logicalMachine: 'perftiger'
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # run coreclr perfviper microbenchmarks perf job
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: coreclr
-      platforms:
-      - linux_x64
-      - windows_x64
-      - windows_x86
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runKind: micro
-        logicalMachine: 'perfviper'
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # run coreclr perfviper microbenchmarks perf job with NoR2R
-  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-    parameters:
-      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-      buildConfig: release
-      runtimeFlavor: coreclr
-      platforms:
-      - linux_x64
-      - windows_x64
-      jobParameters:
-        liveLibrariesBuildConfig: Release
-        runKind: micro
-        logicalMachine: 'perfviper'
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        r2rRunType: nor2r
-        additionalJobIdentifier: 'NoR2R'
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  # CoreCLR Cobalt microbenchmarks Composite R2R with interpreter fallback — controlled by cobaltMicroR2RInterpreter toggle.
+  # Excluded on release branches — the coreclr_r2r_interpreter build doesn't exist in older runtime branches.
+  - ${{ if and(eq(parameters.cobaltMicroR2RInterpreter.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: coreclr
+        platforms: ${{ parameters.cobaltMicroR2RInterpreter.configs }}
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runtimeType: coreclr_r2r_interpreter
+          runKind: micro
+          logicalMachine: 'perfcobalt'
+          osDistro: 'azurelinux'
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          additionalJobIdentifier: 'R2RInterpreter'
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # run coreclr crossgen perf job
   - ${{ if false }}: # Disabling as all crossgen jobs are failing at the moment - https://github.com/dotnet/performance/issues/4819

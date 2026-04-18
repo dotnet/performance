@@ -337,6 +337,8 @@ class CiSetupArgs:
         self.physical_promotion_status = physical_promotion_status
         self.r2r_status = r2r_status
         self.experiment_name = experiment_name
+        self.perf_repo_branch = "main"
+        self.only_sanity_check = False
 
 def main(args: CiSetupArgs):
     verbose = not args.quiet
@@ -377,6 +379,10 @@ def main(args: CiSetupArgs):
         dotnet.setup_dotnet(args.dotnet_path)
 
     framework = ChannelMap.get_target_framework_moniker(args.channel)
+    if framework in ('net10.0', 'nativeaot10.0'):
+        global_json_path = os.path.join(get_repo_root_path(), 'global.json')
+        shutil.copy(os.path.join(get_repo_root_path(), 'global.net10.json'), global_json_path)
+        getLogger().info('Overwrote global.json with global.net10.json')
     if framework in ('net9.0', 'nativeaot9.0'):
         global_json_path = os.path.join(get_repo_root_path(), 'global.json')
         shutil.copy(os.path.join(get_repo_root_path(), 'global.net9.json'), global_json_path)
@@ -461,6 +467,12 @@ def main(args: CiSetupArgs):
             source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
 
         branch = ChannelMap.get_branch(args.channel) if not args.branch else args.branch
+
+        if args.perf_repo_branch != "main":
+            branch = f"{branch}-{args.perf_repo_branch}"
+
+        if args.only_sanity_check:
+            branch = f"{branch}-sanitycheck"
 
         getLogger().info("Writing script to %s" % output_file)
         

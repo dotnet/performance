@@ -11,12 +11,27 @@
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
     
-    <NativeAOTCommandProps Condition="'$(RuntimeFlavor)' == 'coreclr'">--nativeaot true</NativeAOTCommandProps>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
+
+    <!-- Mono FullAOT and CoreCLR R2R are considered as default configurations, so no need for explicit properties -->
+    
+    <!--  We have to set the following two variables until https://github.com/dotnet/runtime/pull/124604 flows to us -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">$(_MSBuildArgs);/p:PublishReadyToRunStripDebugInfo=false;/p:PublishReadyToRunStripInliningInfo=false</_MSBuildArgs>
+
+    <!-- CoreCLR Interpreter -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'Interpreter'">$(_MSBuildArgs);/p:PublishReadyToRun=false</_MSBuildArgs>
+    <!-- CoreCLR NativeAOT -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true;/p:PublishAotUsingRuntimePack=true</_MSBuildArgs>
+
   </PropertyGroup>
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
     <Message Text="Removing Dotnet Packs from Correlation Staging" Importance="high" />
-    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet/packs" />
+    <!-- Remove scenario build intermediates to reduce payload size (published output is in scenarios_out/) -->
+    <RemoveDir Directories="@(MAUIiOSScenario -> '%(PayloadDirectory)/app/obj')" />
+    <RemoveDir Directories="@(MAUIiOSScenario -> '%(PayloadDirectory)/app/bin')" />
   </Target>
 
   <ItemDefinitionGroup>
@@ -38,6 +53,12 @@
       <IPAName>MauiiOSDefault</IPAName>
       <PackageName>net.dot.mauitesting</PackageName>
     </MAUIiOSScenario>
+    <MAUIiOSScenario Include="Maui iOS Sample Content Template">
+      <ScenarioDirectoryName>mauisamplecontentios</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <IPAName>MauiSampleContentiOSDefault</IPAName>
+      <PackageName>net.dot.mauisamplecontenttesting</PackageName>
+    </MAUIiOSScenario>
     <MAUIiOSScenario Include="Maui Blazor iOS Default Template">
       <ScenarioDirectoryName>mauiblazorios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
@@ -48,7 +69,8 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <Command>sudo xcode-select -s /Applications/Xcode_26.0.1.app; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(NativeAOTCommandProps) --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)/%(PreparePayloadWorkItem.ScenarioDirectoryName).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <!-- Select the highest installed versioned Xcode bundle and avoid runner-image symlink aliases as they do not work with iOS SDK -->
+      <Command>XCODE_PATH=`find /Applications -maxdepth 1 -type d -name 'Xcode_*.app' | sort -t_ -k2 -V | tail -1` &amp;&amp; echo &quot;Selected Xcode: $XCODE_PATH&quot; &amp;&amp; sudo xcode-select -s &quot;$XCODE_PATH&quot; &amp;&amp; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c $(BuildConfig) -r ios-arm64 --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)/%(PreparePayloadWorkItem.ScenarioDirectoryName).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName) &amp;&amp; rm -rf app/obj app/bin &amp;&amp; cd ../ &amp;&amp; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
@@ -114,6 +136,34 @@
 
             # Testing commands
             $(Python) test.py devicestartup --device-type ios --package-path MauiiOSDefault.app --package-name net.dot.mauitesting --scenario-name "%(Identity)" $(ScenarioArgs)
+            ((result=$?))
+
+            # Post commands
+            $(Python) post.py
+            exit $result
+          ]]>
+        </CustomCommands>
+    </XHarnessAppBundleToTest>
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Sample Content Template">
+      <AppBundlePath>$(ScenariosDir)mauisamplecontentios.zip</AppBundlePath>
+      <WorkItemTimeout>00:15:00</WorkItemTimeout>
+      <TestTarget>ios-device</TestTarget>
+      <CustomCommands>
+        <![CDATA[
+            # PreCommands
+            export XHARNESSPATH=$XHARNESS_CLI_PATH
+            
+            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauisamplecontentios/MauiSampleContentiOSDefault.ipa $HELIX_WORKITEM_ROOT/mauisamplecontentios/MauiSampleContentiOSDefault.zip
+            mkdir $HELIX_WORKITEM_ROOT/mauisamplecontentios/pub
+            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauisamplecontentios/versions.json $HELIX_WORKITEM_ROOT/mauisamplecontentios/pub/versions.json
+            unzip -d $HELIX_WORKITEM_ROOT/mauisamplecontentios $HELIX_WORKITEM_ROOT/mauisamplecontentios/MauiSampleContentiOSDefault.zip
+            mv $HELIX_WORKITEM_ROOT/mauisamplecontentios/Payload/MauiSampleContentiOSDefault.app $HELIX_WORKITEM_ROOT/mauisamplecontentios/MauiSampleContentiOSDefault.app
+            cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/mauisamplecontentios/MauiSampleContentiOSDefault.app
+            cd $HELIX_WORKITEM_ROOT/mauisamplecontentios
+            sign MauiSampleContentiOSDefault.app
+
+            # Testing commands
+            $(Python) test.py devicestartup --device-type ios --package-path MauiSampleContentiOSDefault.app --package-name net.dot.mauisamplecontenttesting --scenario-name "%(Identity)" $(ScenarioArgs)
             ((result=$?))
 
             # Post commands
