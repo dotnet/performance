@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "counters": [
+        {
+          "name": "Install Time",
+          "topCounter": false,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "ms",
+          "results": [
+            5950.941801071167
+          ]
+        },
+        {
+          "name": "Cold Startup Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "ms",
+          "results": [
+            3416
+          ]
+        }
+      ]
+    }
+  ]
+}

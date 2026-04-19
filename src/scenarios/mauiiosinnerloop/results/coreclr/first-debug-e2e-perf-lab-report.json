@@ -1,0 +1,262 @@
+{
+  "tests": [
+    {
+      "categories": [
+        "Startup"
+      ],
+      "name": "MAUI iOS Inner Loop - Local - First Build and Deploy",
+      "additionalData": {},
+      "counters": [
+        {
+          "name": "Build Time",
+          "topCounter": true,
+          "defaultCounter": true,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            23.170403999999998
+          ]
+        },
+        {
+          "name": "Csc Task Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            0.8409099999999999
+          ]
+        },
+        {
+          "name": "XamlC Task Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            1.06176
+          ]
+        },
+        {
+          "name": "AOTCompile Task Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            0.14293
+          ]
+        },
+        {
+          "name": "Codesign Task Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            0.37211900000000003
+          ]
+        },
+        {
+          "name": "LinkNativeCode Task Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            1.156985
+          ]
+        },
+        {
+          "name": "DetectSigningIdentity Task Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            0.0018520000000000001
+          ]
+        },
+        {
+          "name": "CompileAppManifest Task Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            0.011933999999999998
+          ]
+        },
+        {
+          "name": "CompileEntitlements Task Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            0.00457
+          ]
+        },
+        {
+          "name": "ACTool Task Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            9.28797
+          ]
+        },
+        {
+          "name": "IBTool Task Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            1.905089
+          ]
+        },
+        {
+          "name": "CoreCompile Target Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            0.841482
+          ]
+        },
+        {
+          "name": "XamlC Target Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            1.0640640000000001
+          ]
+        },
+        {
+          "name": "_AOTCompile Target Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            0.73441
+          ]
+        },
+        {
+          "name": "_CodesignAppBundle Target Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            0.391214
+          ]
+        },
+        {
+          "name": "_CreateAppBundle Target Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            1e-06,
+            0.0
+          ]
+        },
+        {
+          "name": "_CopyResourcesToBundle Target Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            0.080441,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "_GenerateBundleName Target Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "s",
+          "results": [
+            0.0010689999999999999,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "Install Time",
+          "topCounter": false,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "ms",
+          "results": [
+            19482.423782348633
+          ]
+        },
+        {
+          "name": "Cold Startup Time",
+          "topCounter": true,
+          "defaultCounter": false,
+          "higherIsBetter": false,
+          "metricName": "ms",
+          "results": [
+            3093
+          ]
+        }
+      ]
+    }
+  ],
+  "run": {
+    "hidden": false,
+    "correlationId": null,
+    "perfRepoHash": null,
+    "name": null,
+    "queue": null,
+    "workItemName": null,
+    "configurations": {}
+  },
+  "os": {
+    "locale": "cs-CZ",
+    "architecture": "Arm64",
+    "name": "Mac OS X 10.21",
+    "machineName": "Davids-MacBook-Pro"
+  },
+  "build": {
+    "repo": null,
+    "branch": null,
+    "architecture": null,
+    "locale": null,
+    "gitHash": null,
+    "buildName": null,
+    "timeStamp": "2026-04-13T17:08:36+02:00",
+    "additionalData": {
+      "TERM_PROGRAM_VERSION": "3.6.9",
+      "COPILOT_CLI_BINARY_VERSION": "1.0.22",
+      "installerHash": "5bed4499b04cbbaec57ac4209ae993acca3648cc",
+      "sdkVersion": "11.0.100-preview.4.26210.111",
+      "LC_TERMINAL_VERSION": "3.6.9"
+    }
+  },
+  "inLab": true
+}

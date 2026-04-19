@@ -327,207 +327,257 @@ jobs:
 - ${{ if parameters.runPrivateJobs }}:
 
   # Scenario benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-viper
-        - ubuntu-x64-viper
-        - win-arm64-ampere
-        - ubuntu-arm64-ampere
-      isPublic: false
-      jobParameters:
-        runKind: scenarios
-        projectFileName: scenarios.proj
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64-viper
+          - ubuntu-x64-viper
+          - win-arm64-ampere
+          - ubuntu-arm64-ampere
+        isPublic: false
+        jobParameters:
+          runKind: scenarios
+          projectFileName: scenarios.proj
+          channels:
+            - main
+            - 9.0
+            - 8.0
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Affinitized Scenario benchmarks (Initially just PDN)
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-viper
-        - win-arm64-ampere
-      isPublic: false
-      jobParameters:
-        runKind: scenarios
-        projectFileName: scenarios_affinitized.proj
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        additionalJobIdentifier: 'Affinity_85'
-        affinity: '85'  # (01010101) Enables alternating process threads to take hyperthreading into account
-        runEnvVars: 
-          - DOTNET_GCgen0size=410000 # ~4MB
-          - DOTNET_GCHeapCount=4
-          - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64-viper
+          - win-arm64-ampere
+        isPublic: false
+        jobParameters:
+          runKind: scenarios
+          projectFileName: scenarios_affinitized.proj
+          channels:
+            - main
+            - 9.0
+            - 8.0
+          additionalJobIdentifier: 'Affinity_85'
+          affinity: '85'  # (01010101) Enables alternating process threads to take hyperthreading into account
+          runEnvVars: 
+            - DOTNET_GCgen0size=410000 # ~4MB
+            - DOTNET_GCHeapCount=4
+            - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui Android scenario benchmarks (Mono Default) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: Mono
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64-android-arm64-pixel
+          - win-x64-android-arm64-galaxy
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_android
+          projectFileName: maui_scenarios_android.proj
+          channels:
+            - main
+          runtimeFlavor: mono
+          codeGenType: Default
+          buildConfig: Release
+          additionalJobIdentifier: Mono
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui Android scenario benchmarks (CoreCLR Default) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: CoreCLR
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64-android-arm64-pixel
+          - win-x64-android-arm64-galaxy
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_android
+          projectFileName: maui_scenarios_android.proj
+          channels:
+            - main
+          runtimeFlavor: coreclr
+          codeGenType: Default
+          buildConfig: Release
+          additionalJobIdentifier: CoreCLR
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui Android scenario benchmarks (CoreCLR NativeAOT) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: NativeAOT
-        buildConfig: Release
-        additionalJobIdentifier: CoreCLR
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64-android-arm64-pixel
+          - win-x64-android-arm64-galaxy
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_android
+          projectFileName: maui_scenarios_android.proj
+          channels:
+            - main
+          runtimeFlavor: coreclr
+          codeGenType: NativeAOT
+          buildConfig: Release
+          additionalJobIdentifier: CoreCLR
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui iOS scenario benchmarks (Mono Default) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: Mono
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - osx-x64-ios-arm64
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_ios
+          projectFileName: maui_scenarios_ios.proj
+          channels:
+            - main
+          runtimeFlavor: mono
+          codeGenType: Default
+          buildConfig: Release
+          additionalJobIdentifier: Mono
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui iOS scenario benchmarks (CoreCLR Default) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: CoreCLR
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - osx-x64-ios-arm64
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_ios
+          projectFileName: maui_scenarios_ios.proj
+          channels:
+            - main
+          runtimeFlavor: coreclr
+          codeGenType: Default
+          buildConfig: Release
+          additionalJobIdentifier: CoreCLR
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui iOS scenario benchmarks (CoreCLR NativeAOT) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: NativeAOT
-        buildConfig: Release
-        additionalJobIdentifier: CoreCLR
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - osx-x64-ios-arm64
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_ios
+          projectFileName: maui_scenarios_ios.proj
+          channels:
+            - main
+          runtimeFlavor: coreclr
+          codeGenType: NativeAOT
+          buildConfig: Release
+          additionalJobIdentifier: CoreCLR
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui Android scenario benchmarks (Mono - Default) - Debug
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Debug
-        additionalJobIdentifier: Mono_Debug
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64-android-arm64-pixel
+          - win-x64-android-arm64-galaxy
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_android
+          projectFileName: maui_scenarios_android.proj
+          channels:
+            - main
+          runtimeFlavor: mono
+          codeGenType: Default
+          buildConfig: Debug
+          additionalJobIdentifier: Mono_Debug
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui Android scenario benchmarks (CoreCLR - Default) - Debug
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: Default
-        buildConfig: Debug
-        additionalJobIdentifier: CoreCLR_Debug
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64-android-arm64-pixel
+          - win-x64-android-arm64-galaxy
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_android
+          projectFileName: maui_scenarios_android.proj
+          channels:
+            - main
+          runtimeFlavor: coreclr
+          codeGenType: Default
+          buildConfig: Debug
+          additionalJobIdentifier: CoreCLR_Debug
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui iOS scenario benchmarks (Mono - Default) - Debug
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - osx-x64-ios-arm64
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_ios
+          projectFileName: maui_scenarios_ios.proj
+          channels:
+            - main
+          runtimeFlavor: mono
+          codeGenType: Default
+          buildConfig: Debug
+          additionalJobIdentifier: Mono_Debug
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+    
+  # Maui iOS scenario benchmarks (CoreCLR - Default) - Debug
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - osx-x64-ios-arm64
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_ios
+          projectFileName: maui_scenarios_ios.proj
+          channels:
+            - main
+          runtimeFlavor: coreclr
+          codeGenType: Default
+          buildConfig: Debug
+          additionalJobIdentifier: CoreCLR_Debug
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui iOS Inner Loop (Mono - Default) - Debug - Simulator
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -535,18 +585,18 @@ jobs:
         - osx-x64-ios-arm64
       isPublic: false
       jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
+        runKind: maui_scenarios_ios_innerloop
+        projectFileName: maui_scenarios_ios_innerloop.proj
         channels:
           - main
         runtimeFlavor: mono
         codeGenType: Default
         buildConfig: Debug
-        additionalJobIdentifier: Mono_Debug
+        additionalJobIdentifier: Mono_InnerLoop_Simulator
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
-    
-  # Maui iOS scenario benchmarks (CoreCLR - Default) - Debug
+
+  # Maui iOS Inner Loop (CoreCLR - Default) - Debug - Simulator
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
@@ -554,14 +604,56 @@ jobs:
         - osx-x64-ios-arm64
       isPublic: false
       jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
+        runKind: maui_scenarios_ios_innerloop
+        projectFileName: maui_scenarios_ios_innerloop.proj
         channels:
           - main
         runtimeFlavor: coreclr
         codeGenType: Default
         buildConfig: Debug
-        additionalJobIdentifier: CoreCLR_Debug
+        additionalJobIdentifier: CoreCLR_InnerLoop_Simulator
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui iOS Inner Loop (Mono - Default) - Debug - Device
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_ios_innerloop
+        projectFileName: maui_scenarios_ios_innerloop.proj
+        channels:
+          - main
+        runtimeFlavor: mono
+        codeGenType: Default
+        buildConfig: Debug
+        additionalJobIdentifier: Mono_InnerLoop_Device
+        runEnvVars:
+          - iOSRid=ios-arm64
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui iOS Inner Loop (CoreCLR - Default) - Debug - Device
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_ios_innerloop
+        projectFileName: maui_scenarios_ios_innerloop.proj
+        channels:
+          - main
+        runtimeFlavor: coreclr
+        codeGenType: Default
+        buildConfig: Debug
+        additionalJobIdentifier: CoreCLR_InnerLoop_Device
+        runEnvVars:
+          - iOSRid=ios-arm64
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -587,23 +679,24 @@ jobs:
             ${{ parameter.key }}: ${{ parameter.value }}
 
   # NativeAOT scenario benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-viper
-        - ubuntu-x64-viper
-        - win-arm64-ampere
-      isPublic: false
-      jobParameters:
-        runKind: nativeaot_scenarios
-        projectFileName: nativeaot_scenarios.proj
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64-viper
+          - ubuntu-x64-viper
+          - win-arm64-ampere
+        isPublic: false
+        jobParameters:
+          runKind: nativeaot_scenarios
+          projectFileName: nativeaot_scenarios.proj
+          channels:
+            - main
+            - 9.0
+            - 8.0
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
 ################################################
 # Scheduled Private jobs
@@ -613,40 +706,42 @@ jobs:
 - ${{ if parameters.runScheduledPrivateJobs }}:
 
   # SDK scenario benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-viper
-        - win-x86-viper
-        #- ubuntu-x64-1804 reenable under new machine on new ubuntu once lttng/events are available
-      isPublic: false
-      jobParameters:
-        runKind: sdk_scenarios
-        projectFileName: sdk_scenarios.proj
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64-viper
+          - win-x86-viper
+          #- ubuntu-x64-1804 reenable under new machine on new ubuntu once lttng/events are available
+        isPublic: false
+        jobParameters:
+          runKind: sdk_scenarios
+          projectFileName: sdk_scenarios.proj
+          channels:
+            - main
+            - 9.0
+            - 8.0
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Blazor 3.2 scenario benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-viper
-      isPublic: false
-      jobParameters:
-        runKind: blazor_scenarios
-        projectFileName: blazor_scenarios.proj
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - win-x64-viper
+        isPublic: false
+        jobParameters:
+          runKind: blazor_scenarios
+          projectFileName: blazor_scenarios.proj
+          channels:
+            - main
+            - 9.0
+            - 8.0
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # F# benchmarks
   - ${{ if false }}: # skipping, no useful benchmarks there currently
@@ -670,139 +765,145 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64-viper
-        - ubuntu-x64-viper
-        - win-arm64-ampere
-        - ubuntu-arm64-ampere
-      isPublic: false
-      jobParameters:
-        runKind: fsharpmicro
-        targetCsproj: src\benchmarks\micro-fsharp\MicrobenchmarksFSharp.fsproj
-        runCategories: 'FSharpMicro'
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+        buildMachines:
+          - win-x64-viper
+          - ubuntu-x64-viper
+          - win-arm64-ampere
+          - ubuntu-arm64-ampere
+        isPublic: false
+        jobParameters:
+          runKind: fsharpmicro
+          targetCsproj: src\benchmarks\micro-fsharp\MicrobenchmarksFSharp.fsproj
+          runCategories: 'FSharpMicro'
+          channels:
+            - main
+            - 9.0
+            - 8.0
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # bepuphysics benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64-viper
-        - ubuntu-x64-viper
-        - win-arm64-ampere
-        - ubuntu-arm64-ampere
-      isPublic: false
-      jobParameters:
-        runKind: bepuphysics
-        targetCsproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
-        runCategories: 'BepuPhysics'
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+        buildMachines:
+          - win-x64-viper
+          - ubuntu-x64-viper
+          - win-arm64-ampere
+          - ubuntu-arm64-ampere
+        isPublic: false
+        jobParameters:
+          runKind: bepuphysics
+          targetCsproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
+          runCategories: 'BepuPhysics'
+          channels:
+            - main
+            - 9.0
+            - 8.0
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # ImageSharp benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64-viper
-        - ubuntu-x64-viper
-        - win-arm64-ampere
-        - ubuntu-arm64-ampere
-      isPublic: false
-      jobParameters:
-        runKind: imagesharp
-        targetCsproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
-        runCategories: 'ImageSharp'
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+        buildMachines:
+          - win-x64-viper
+          - ubuntu-x64-viper
+          - win-arm64-ampere
+          - ubuntu-arm64-ampere
+        isPublic: false
+        jobParameters:
+          runKind: imagesharp
+          targetCsproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
+          runCategories: 'ImageSharp'
+          channels:
+            - main
+            - 9.0
+            - 8.0
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Akade.IndexedSet benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64-viper
-        - ubuntu-x64-viper
-        - win-arm64-ampere
-        - ubuntu-arm64-ampere
-      isPublic: false
-      jobParameters:
-        runKind: akadeindexedset
-        targetCsproj: src\benchmarks\real-world\Akade.IndexedSet.Benchmarks\Akade.IndexedSet.Benchmarks.csproj
-        runCategories: 'AkadeIndexedSet'
-        channels:
-          - main
-          - 9.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+        buildMachines:
+          - win-x64-viper
+          - ubuntu-x64-viper
+          - win-arm64-ampere
+          - ubuntu-arm64-ampere
+        isPublic: false
+        jobParameters:
+          runKind: akadeindexedset
+          targetCsproj: src\benchmarks\real-world\Akade.IndexedSet.Benchmarks\Akade.IndexedSet.Benchmarks.csproj
+          runCategories: 'AkadeIndexedSet'
+          channels:
+            - main
+            - 9.0
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # ML.NET benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64-viper
-        - ubuntu-x64-viper
-        - win-arm64-ampere
-        - ubuntu-arm64-ampere
-      isPublic: false
-      jobParameters:
-        runKind: mlnet
-        targetCsproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-        runCategories: 'mldotnet'
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
-        runEnvVars: 
-          - DOTNET_GCgen0size=410000 # ~4MB
-          - DOTNET_GCHeapCount=4
-          - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+        buildMachines:
+          - win-x64-viper
+          - ubuntu-x64-viper
+          - win-arm64-ampere
+          - ubuntu-arm64-ampere
+        isPublic: false
+        jobParameters:
+          runKind: mlnet
+          targetCsproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+          runCategories: 'mldotnet'
+          channels:
+            - main
+            - 9.0
+            - 8.0
+          affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
+          runEnvVars: 
+            - DOTNET_GCgen0size=410000 # ~4MB
+            - DOTNET_GCHeapCount=4
+            - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Roslyn benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64-viper
-        - ubuntu-x64-viper
-        - win-arm64-ampere
-        - ubuntu-arm64-ampere
-      isPublic: false
-      jobParameters:
-        runKind: roslyn
-        targetCsproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-        runCategories: 'roslyn'
-        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-          - main
-          - 9.0
-          - 8.0
-        affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
-        runEnvVars: 
-          - DOTNET_GCgen0size=410000 # ~4MB
-          - DOTNET_GCHeapCount=4
-          - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+        buildMachines:
+          - win-x64-viper
+          - ubuntu-x64-viper
+          - win-arm64-ampere
+          - ubuntu-arm64-ampere
+        isPublic: false
+        jobParameters:
+          runKind: roslyn
+          targetCsproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+          runCategories: 'roslyn'
+          channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+            - main
+            - 9.0
+            - 8.0
+          affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
+          runEnvVars: 
+            - DOTNET_GCgen0size=410000 # ~4MB
+            - DOTNET_GCHeapCount=4
+            - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # ILLink benchmarks
   # disabled because of: https://github.com/dotnet/performance/issues/3569
@@ -825,22 +926,23 @@ jobs:
             - 8.0
 
   # Powershell benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-performance-job.yml
-      buildMachines:
-        - win-x64-viper
-        - ubuntu-x64-viper
-        - win-arm64-ampere
-        - ubuntu-arm64-ampere
-      isPublic: false
-      jobParameters:
-        runKind: powershell
-        targetCsproj: src\benchmarks\real-world\PowerShell.Benchmarks\PowerShell.Benchmarks.csproj
-        runCategories: 'Public Internal'
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # [TEMP] Disabled for iOS inner loop CI validation
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-performance-job.yml
+        buildMachines:
+          - win-x64-viper
+          - ubuntu-x64-viper
+          - win-arm64-ampere
+          - ubuntu-arm64-ampere
+        isPublic: false
+        jobParameters:
+          runKind: powershell
+          targetCsproj: src\benchmarks\real-world\PowerShell.Benchmarks\PowerShell.Benchmarks.csproj
+          runCategories: 'Public Internal'
+          channels:
+            - main
+            - 9.0
+            - 8.0
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
