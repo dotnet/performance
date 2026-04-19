@@ -77,7 +77,7 @@ namespace ResultsComparer
             }
         }
 
-        internal static string GetSimplifiedOSName(string text) => text.Split('(')[0];
+        internal static string GetSimplifiedOSName(string text) => text.Split('(')[0].TrimEnd();
 
         private class PerConclusion
         {
