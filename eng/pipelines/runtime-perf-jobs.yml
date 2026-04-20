@@ -56,22 +56,23 @@ parameters:
     type: object
     default:
       enabled: true
+  # Temporarily disabling cobalt jobs because the cobalt machines are offline
   - name: cobaltMicro
     type: object
     default:
-      enabled: true
+      enabled: false
       configs:
         - linux_arm64
   - name: cobaltSveMicro
     type: object
     default:
-      enabled: true
+      enabled: false
       configs:
         - linux_arm64
   - name: cobaltMicroR2RInterpreter
     type: object
     default:
-      enabled: true
+      enabled: false
       configs:
         - linux_arm64
   - name: androidCoreclrR2r
