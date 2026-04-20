@@ -50,7 +50,7 @@ jobs:
           dotnet test src\tools\ResultsComparer.Tests\ResultsComparer.Tests.csproj --configuration Release --framework net11.0 --nologo --verbosity minimal
           dotnet test src\tools\Reporting\Reporting.Tests\Reporting.Tests.csproj --configuration Release --framework net11.0 --nologo --verbosity minimal
           dotnet test src\tools\CertHelperTests\CertRotatorTests.csproj --configuration Release --framework net10.0 --nologo --verbosity minimal
-          dotnet test src\tests\harness\BenchmarkDotNet.Extensions.Tests\BenchmarkDotNet.Extensions.Tests.csproj --configuration Release --framework net11.0 -p:PERFLAB_TARGET_FRAMEWORKS=net11.0 --nologo --verbosity minimal
+          dotnet test src\tests\harness\BenchmarkDotNet.Extensions.Tests\BenchmarkDotNet.Extensions.Tests.csproj --configuration Release --framework net11.0 -p:PERFLAB_TARGET_FRAMEWORKS=net10.0 --nologo --verbosity minimal
           dotnet test src\tools\ScenarioMeasurement\Startup.Tests\Startup.Tests.csproj --configuration Release --nologo --verbosity minimal
         displayName: Run tooling tests
 
