@@ -28,6 +28,7 @@ from shared import const
 from performance.common import RunCommand, iswin, extension, helixworkitemroot
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
+from shared.versionmanager import versions_write_json, versions_read_json_file_save_env, get_sdk_versions
 from subprocess import CalledProcessError
 
 
@@ -179,8 +180,8 @@ ex: C:\repos\performance;C:\repos\runtime
         androidinnerloopparser.add_argument('--csproj-path', help='Path to .csproj file to build', dest='csprojpath')
         androidinnerloopparser.add_argument('--edit-src', help='Path to modified source file (copied before incremental deploy)', dest='editsrc')
         androidinnerloopparser.add_argument('--edit-dest', help='Destination path for the modified file', dest='editdest')
-        androidinnerloopparser.add_argument('--framework', '-f', help='Target framework (e.g., net10.0-android)', dest='framework')
-        androidinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', default='Debug')
+        androidinnerloopparser.add_argument('--framework', '-f', help='Target framework (e.g., net10.0-android)', dest='framework', required=True)
+        androidinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', required=True)
         androidinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
         androidinnerloopparser.add_argument('--package-name', help='Android package name for startup measurement (e.g. com.companyname.mauiandroidinnerloop)', dest='packagename')
         androidinnerloopparser.add_argument('--inner-loop-iterations', help='Number of incremental build+deploy+startup iterations (1+)', type=int, default=10, dest='innerloopiterations')
@@ -1100,11 +1101,7 @@ ex: C:\repos\performance;C:\repos\runtime
             first_binlog = os.path.join(const.TRACEDIR, 'first-build-and-deploy.binlog')
 
             # Build the base MSBuild command
-            base_cmd = ['dotnet', 'build', self.csprojpath, '-t:Install', '--no-restore']
-            if self.configuration:
-                base_cmd.extend(['-c', self.configuration])
-            if self.framework:
-                base_cmd.extend(['-f', self.framework])
+            base_cmd = ['dotnet', 'build', self.csprojpath, '-t:Install', '--no-restore', '-c', self.configuration, '-f', self.framework]
             if self.msbuildargs:
                 for arg in re.split(r'[;\s]+', self.msbuildargs):
                     if arg.strip():
@@ -1114,6 +1111,29 @@ ex: C:\repos\performance;C:\repos\runtime
             first_cmd = base_cmd + [f'-bl:{first_binlog}']
             getLogger().info("First build+deploy: %s" % ' '.join(first_cmd))
             subprocess.run(first_cmd, check=True)
+
+            # Capture SDK versions from the just-built output. Other Android
+            # scenarios do this in pre.py on the build machine, but our first
+            # build runs on Helix and IS the measured build, so we have to
+            # do it here.
+            try:
+                fw_obj_dir = os.path.join(os.path.dirname(self.csprojpath), 'obj', self.configuration, self.framework, 'android-arm64')
+                dll_folder = os.path.join(fw_obj_dir, 'linked')
+                if not os.path.isdir(dll_folder):
+                    dll_folder = os.path.join(fw_obj_dir, 'android', 'assets', 'arm64-v8a')
+
+                getLogger().info("Capturing SDK versions from: %s" % dll_folder)
+                version_dict = get_sdk_versions(dll_folder)
+
+                os.makedirs(const.TRACEDIR, exist_ok=True)
+                versions_path = os.path.join(const.TRACEDIR, 'versions.json')
+                versions_write_json(version_dict, versions_path)
+                # Surface PERFLAB_DATA_* env vars so the Startup tool's Reporter
+                # picks them up into build.AdditionalData.
+                versions_read_json_file_save_env(versions_path)
+            except Exception as ex:
+                # Never let version capture regress the measurement pipeline.
+                getLogger().warning("Version capture failed, continuing without versions.json: %s" % ex)
 
             # --- Device setup for physical devices (screen wake, animations, timeout) ---
             # Physical Helix CI devices have screens OFF. When the screen is off,

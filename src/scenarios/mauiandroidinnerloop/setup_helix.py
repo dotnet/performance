@@ -303,6 +303,7 @@ def main():
 
     install_workload(ctx)
     setup_android_sdk(ctx)
+    run_cmd([ctx["dotnet_exe"], "--info"], check=False)
     setup_adb_device(ctx)
     restore_packages(ctx)
 

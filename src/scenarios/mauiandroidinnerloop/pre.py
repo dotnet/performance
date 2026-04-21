@@ -24,6 +24,12 @@ with MauiNuGetConfigContext(precommands.framework):
         workloads=["microsoft.net.sdk.android"],
         workload_name='maui-android',
     )
+
+    # Log the generated rollback file for diagnostics. install_latest_maui
+    # writes this; if it's missing the install failed and we want to crash.
+    with open("rollback_maui.json", "r") as f:
+        logger.info(f"Generated rollback_maui.json contents:\n{f.read()}")
+
     precommands.print_dotnet_info()
 
     # Create template without restoring packages — packages will be restored
