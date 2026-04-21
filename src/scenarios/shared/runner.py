@@ -177,13 +177,13 @@ ex: C:\repos\performance;C:\repos\runtime
 
         androidinnerloopparser = subparsers.add_parser(const.ANDROIDINNERLOOP,
                                                  description='measure first and incremental deploy time via binlogs')
-        androidinnerloopparser.add_argument('--csproj-path', help='Path to .csproj file to build', dest='csprojpath')
-        androidinnerloopparser.add_argument('--edit-src', help='Path to modified source file (copied before incremental deploy)', dest='editsrc')
-        androidinnerloopparser.add_argument('--edit-dest', help='Destination path for the modified file', dest='editdest')
+        androidinnerloopparser.add_argument('--csproj-path', help='Path to .csproj file to build', dest='csprojpath', required=True)
+        androidinnerloopparser.add_argument('--edit-src', help='Path to modified source file (copied before incremental deploy)', dest='editsrc', required=True)
+        androidinnerloopparser.add_argument('--edit-dest', help='Destination path for the modified file', dest='editdest', required=True)
         androidinnerloopparser.add_argument('--framework', '-f', help='Target framework (e.g., net10.0-android)', dest='framework', required=True)
         androidinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', required=True)
         androidinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
-        androidinnerloopparser.add_argument('--package-name', help='Android package name for startup measurement (e.g. com.companyname.mauiandroidinnerloop)', dest='packagename')
+        androidinnerloopparser.add_argument('--package-name', help='Android package name for startup measurement (e.g. com.companyname.mauiandroidinnerloop)', dest='packagename', required=True)
         androidinnerloopparser.add_argument('--inner-loop-iterations', help='Number of incremental build+deploy+startup iterations (1+)', type=int, default=10, dest='innerloopiterations')
         androidinnerloopparser.add_argument('--screen-timeout-ms', help='Screen timeout in milliseconds. Must be large enough so the display stays on for the entire scenario; a screen-off mid-run breaks cold startup measurement (am start reports LaunchState: UNKNOWN).', type=int, default=30 * 60 * 1000, dest='screentimeoutms')
         self.add_common_arguments(androidinnerloopparser)
@@ -1072,7 +1072,7 @@ ex: C:\repos\performance;C:\repos\runtime
                                   tracename=iter_binlog_name,
                                   scenarioname=scenarioprefix + " - Incremental Build and Deploy",
                                   upload_to_perflab_container=False)
-                startup.parsetraces(traits)
+                startup.parsetraces(traits, copy_traces=False)
 
                 # Extract build counters and test metadata from temp report
                 with open(iter_report, 'r') as f:
@@ -1090,11 +1090,6 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 return ms, counters, iter_binlog, test_metadata
 
-            # --- Validate inputs ---
-            if not self.csprojpath:
-                raise Exception("For Android inner loop measurements, --csproj-path must be provided.")
-            if not self.packagename:
-                raise Exception("For Android inner loop measurements, --package-name must be provided.")
             scenarioprefix = self.scenarioname or "MAUI Android Build and Deploy"
 
             os.makedirs(const.TRACEDIR, exist_ok=True)
@@ -1115,12 +1110,27 @@ ex: C:\repos\performance;C:\repos\runtime
             # Capture SDK versions from the just-built output. Other Android
             # scenarios do this in pre.py on the build machine, but our first
             # build runs on Helix and IS the measured build, so we have to
-            # do it here.
+            # do it here. Discover the RID folder the build actually produced
+            # (android-arm64 on physical devices, android-x64 on emulator).
             try:
-                fw_obj_dir = os.path.join(os.path.dirname(self.csprojpath), 'obj', self.configuration, self.framework, 'android-arm64')
-                dll_folder = os.path.join(fw_obj_dir, 'linked')
-                if not os.path.isdir(dll_folder):
-                    dll_folder = os.path.join(fw_obj_dir, 'android', 'assets', 'arm64-v8a')
+                framework_obj_root = os.path.join(os.path.dirname(self.csprojpath), 'obj', self.configuration, self.framework)
+                abi_by_rid = {'android-arm': 'armeabi-v7a', 'android-arm64': 'arm64-v8a', 'android-x86': 'x86', 'android-x64': 'x86_64'}
+
+                dll_folder = None
+                for rid_dir in sorted(glob.glob(os.path.join(framework_obj_root, 'android-*'))):
+                    rid = os.path.basename(rid_dir)
+                    linked = os.path.join(rid_dir, 'linked')
+                    if os.path.isdir(linked):
+                        dll_folder = linked
+                        break
+                    abi = abi_by_rid.get(rid)
+                    if abi:
+                        staging = os.path.join(rid_dir, 'android', 'assets', abi)
+                        if os.path.isdir(staging):
+                            dll_folder = staging
+                            break
+                if dll_folder is None:
+                    raise FileNotFoundError("No android-* RID folder with DLLs found under %s" % framework_obj_root)
 
                 getLogger().info("Capturing SDK versions from: %s" % dll_folder)
                 version_dict = get_sdk_versions(dll_folder)
@@ -1160,7 +1170,7 @@ ex: C:\repos\performance;C:\repos\runtime
                                        tracename='first-build-and-deploy.binlog',
                                        scenarioname=scenarioprefix + " - First Build and Deploy",
                                        upload_to_perflab_container=False)
-                startup.parsetraces(self.traits)
+                startup.parsetraces(self.traits, copy_traces=False)
 
                 # Merge first build metrics + startup → first e2e report
                 first_e2e_report = os.path.join(const.TRACEDIR, 'first-debug-e2e-perf-lab-report.json')
@@ -1171,21 +1181,18 @@ ex: C:\repos\performance;C:\repos\runtime
                 getLogger().info("Starting incremental loop: %d iterations" % num_iterations)
 
                 # Build list of (dest, original_content, modified_content) tuples for toggling
+                if len(self.editsrcs) != len(self.editdests):
+                    raise Exception("--edit-src and --edit-dest must have the same number of semicolon-separated paths")
                 edit_pairs = []
-                if self.editsrcs and self.editdests:
-                    if len(self.editsrcs) != len(self.editdests):
-                        raise Exception("--edit-src and --edit-dest must have the same number of semicolon-separated paths")
-                    for src, dest in zip(self.editsrcs, self.editdests):
-                        original = None
-                        modified = None
-                        with open(dest, 'r') as f:
-                            original = f.read()
-                        with open(src, 'r') as f:
-                            modified = f.read()
-                        edit_pairs.append((dest, original, modified))
-                        getLogger().info("Edit pair: %s <-> %s" % (src, dest))
-                else:
-                    raise Exception("No edit-src/edit-dest specified; incremental builds require file pairs to toggle")
+                for src, dest in zip(self.editsrcs, self.editdests):
+                    original = None
+                    modified = None
+                    with open(dest, 'r') as f:
+                        original = f.read()
+                    with open(src, 'r') as f:
+                        modified = f.read()
+                    edit_pairs.append((dest, original, modified))
+                    getLogger().info("Edit pair: %s <-> %s" % (src, dest))
 
                 incremental_startup_results = []
                 aggregated_counters = {}  # counter_name -> aggregated counter dict

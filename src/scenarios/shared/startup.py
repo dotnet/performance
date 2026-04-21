@@ -56,7 +56,7 @@ class StartupWrapper(object):
     def _setstartuppath(self, path: str):
         self.startuppath = os.path.join(path, "Startup%s" % extension()) 
 
-    def parsetraces(self, traits: TestTraits):
+    def parsetraces(self, traits: TestTraits, copy_traces: bool = True):
         directory = TRACEDIR
         if traits.tracefolder:
             directory = TRACEDIR + '/' + traits.tracefolder
@@ -82,6 +82,13 @@ class StartupWrapper(object):
             getLogger().info("Run failure registered")
             # rethrow the original exception 
             raise
+
+        # copy_traces=False skips the per-call TRACEDIR -> Helix upload-dir copy and
+        # the perflab container upload. Callers that parse repeatedly (e.g. the
+        # inner loop scenario) should pass False and do one final copy at the end
+        # to avoid O(N^2) I/O over accumulating binlogs.
+        if not copy_traces:
+            return
 
         helix_upload_dir = helixuploaddir()
         if runninginlab() and helix_upload_dir is not None:
