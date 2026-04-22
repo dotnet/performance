@@ -171,6 +171,8 @@ def install_workload(ctx):
     rollback_file = os.path.join(ctx["workitem_root"], "rollback_maui.json")
     log(f"Step 1b: workload install maui-android "
         f"(pinned via {rollback_file})", tee=True)
+    with open(rollback_file, "r", encoding="utf-8") as f:
+        log_raw(f"rollback_maui.json contents:\n{f.read()}", tee=True)
     result = run_cmd(
         [ctx["dotnet_exe"], "workload", "install", "maui-android",
          "--from-rollback-file", rollback_file,
