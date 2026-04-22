@@ -1095,8 +1095,12 @@ ex: C:\repos\performance;C:\repos\runtime
             os.makedirs(const.TRACEDIR, exist_ok=True)
             first_binlog = os.path.join(const.TRACEDIR, 'first-build-and-deploy.binlog')
 
-            # Build the base MSBuild command
-            base_cmd = ['dotnet', 'build', self.csprojpath, '-t:Install', '--no-restore', '-c', self.configuration, '-f', self.framework]
+            # Build the base MSBuild command. `dotnet run -p:WaitForExit=false`
+            # chains Build → Install → _Run in a single MSBuild invocation,
+            # mirroring the VS Code F5 path (see dotnet/android
+            # build-properties.md:1827-1843). WaitForExit=false returns once the
+            # activity is launched instead of blocking on logcat.
+            base_cmd = ['dotnet', 'run', '--project', self.csprojpath, '-p:WaitForExit=false', '--no-restore', '-c', self.configuration, '-f', self.framework]
             if self.msbuildargs:
                 for arg in re.split(r'[;\s]+', self.msbuildargs):
                     if arg.strip():
@@ -1158,6 +1162,10 @@ ex: C:\repos\performance;C:\repos\runtime
                 getLogger().info("Using resolved activity: %s" % activityname)
 
                 # --- First startup measurement ---
+                # `dotnet run -p:WaitForExit=false` already issued `am start -S`
+                # after deploy. measure_cold_startup below force-stops with -W -S
+                # and re-launches to obtain TotalTime. The user-visible
+                # double-launch is intentional and metrics-neutral.
                 first_startup_ms = androidHelper.measure_cold_startup(self.packagename, activityname)
                 getLogger().info("First deploy startup: %d ms" % first_startup_ms)
 
