@@ -24,7 +24,13 @@ namespace GC.Infrastructure.Core.Configurations.Microbenchmarks
     public class Environment
     {
         public uint default_max_seconds { get; set; } = 300;
-        public uint iteration { get; set; } = 1;
+        public uint iterations { get; set; } = 1;
+
+        [YamlMember(Alias = "iteration")]
+        public uint iteration
+        {
+            set => iterations = value;
+        }
     }
 
     public sealed class MicrobenchmarkConfigurations

@@ -1,10 +1,11 @@
-﻿using Spectre.Console.Cli;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using GC.Infrastructure.Core.Analysis.Microbenchmarks;
-using GC.Infrastructure.Core.Presentation.Microbenchmarks;
+﻿using GC.Infrastructure.Core.Analysis.Microbenchmarks;
 using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.Microbenchmarks;
+using GC.Infrastructure.Core.Presentation.Microbenchmarks;
+using Spectre.Console;
+using Spectre.Console.Cli;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GC.Infrastructure.Commands.Microbenchmark
 {
@@ -21,9 +22,42 @@ namespace GC.Infrastructure.Commands.Microbenchmark
         {
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(MicrobenchmarkAnalyzeCommand));
             MicrobenchmarkConfiguration configuration = MicrobenchmarkConfigurationParser.Parse(settings.ConfigurationPath);
-            IReadOnlyList<MicrobenchmarkComparisonResults> comparisonResults = MicrobenchmarkResultsAnalyzer.GetComparisons(configuration);
-            Presentation.Present(configuration, new()); // Execution details aren't available for the analysis-only mode.
+
+            var comparisonResultsGroupedName = ExecuteAnalysis(configuration);
+
+            Presentation.Present(configuration, comparisonResultsGroupedName, new()); // Execution details aren't available for the analysis-only mode.
             return 0;
+        }
+
+        public static List<MicrobenchmarkComparisonResults> ExecuteAnalysis(MicrobenchmarkConfiguration configuration)
+        {
+            Run? run = configuration.Runs.Values.FirstOrDefault();
+            if (run == null)
+            {
+                throw new InvalidOperationException("No runs found in the configuration.");
+            }
+            string outputPathForRun = Path.Combine(configuration.Output.Path, run.Name);
+            var benchmarkFullNameJsonMap = MicrobenchmarkResultComparison.MapBenchmarkFullNameToJsonForRun(outputPathForRun);
+            List<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks = new();
+
+            ParallelOptions options = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = System.Environment.ProcessorCount
+            };
+
+            object _lock = new();
+
+            Parallel.ForEach(benchmarkFullNameJsonMap.Keys, options, benchmarkFullName =>
+            {
+                List<MicrobenchmarkComparisonResult> comparisonResultsForBenchmark = MicrobenchmarkResultComparison.CompareMicrobenchmarkResultForBenchmark(configuration, benchmarkFullName);
+                AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Analysis For Microbenchmarks: {benchmarkFullName} completed. [/]\n");
+                lock (_lock)
+                {
+                    comparisonResultForAllBenchmarks.AddRange(comparisonResultsForBenchmark);
+                }
+            });
+
+            return MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResultForAllBenchmarks);
         }
     }
 }

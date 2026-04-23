@@ -225,6 +225,12 @@ namespace GC.Infrastructure.Commands.RunCommand
                 });
             }
 
+            // Set iterations if they exist.
+            if (inputConfiguration.iterations != null)
+            {
+                configuration.Environment.iterations = inputConfiguration.iterations.GetValueOrDefault<string, uint>("microbenchmarks", 1);
+            }
+
             // The first run is always the baseline.
             configuration.Runs.First().Value.is_baseline = true;
 
