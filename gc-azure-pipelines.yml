@@ -1,5 +1,5 @@
-# Project: src\benchmarks\gc\GC.Infrastructure\GC.Infrastructure.NotebookTests\GC.Infrastructure.NotebookTests.csproj. 
-# Output: artifacts\bin\GC.Infrastructure.NotebookTests\Debug\net8.0\GC.Infrastructure.NotebookTests.dll
+# Project: src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure.Core.UnitTests/GC.Infrastructure.Core.UnitTests.csproj.
+# Output: artifacts\bin\GC.Infrastructure.Core.UnitTests\Debug\net8.0\GC.Infrastructure.Core.UnitTests.dll
 
 resources:
   containers:
@@ -26,13 +26,13 @@ pr:
 jobs:
 
   # TODO: Add back once we have validated windows.
-  # - job: GCNotebookValidation_Ubuntu
+  # - job: GCInfrastructureValidation_Ubuntu
   #     pool:
   #       vmImage: ubuntu-latest
   #     container: ubuntu_x64_build_container
 
   # TODO: Add.
-  - job: GCNotebookValidation_Windows 
+  - job: GCInfrastructureValidation_Windows
     pool:
       vmImage: windows-2025
  
@@ -59,7 +59,7 @@ jobs:
         includePreviewVersions: true
     - script: dotnet tool restore
     - script: dotnet tool install --global dotnet-repl 
-    - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure.NotebookTests/GC.Infrastructure.NotebookTests.csproj --configuration Debug --framework net8.0
+    - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure.Core.UnitTests/GC.Infrastructure.Core.UnitTests.csproj --configuration Debug --framework net8.0
     - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Analysis.API/GC.Analysis.API.csproj --configuration Release --framework net8.0
 
     # Run tests. Template installed from: https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/vstest-v3?view=azure-pipelines
@@ -68,16 +68,16 @@ jobs:
         # -------------- #
         # Test selection #
         # -------------- #
-        testAssemblyVer2: GC.Infrastructure.NotebookTests.dll
-        searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/bin/GC.Infrastructure.NotebookTests/Debug/net8.0'
+        testAssemblyVer2: GC.Infrastructure.Core.UnitTests.dll
+        searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/bin/GC.Infrastructure.Core.UnitTests/Debug/net8.0'
         # Uncomment to save results in the future.
         # resultsFolder: '$(Agent.TempDirectory)\TestResults' # string. Test results folder. Default: $(Agent.TempDirectory)\TestResults.
 
         # ----------------- #
         # Reporting options #
         # ----------------- #
-        testRunTitle: 'GC Notebook Test' 
+        testRunTitle: 'GC Infrastructure Unit Test'
         # TODO: Double Check.
         platform: 'Windows' ## string. Build platform. 
         # TODO: Double Check.
-        configuration: 'Test Notebooks' # string. Build configuration. 
+        configuration: 'Test GC Infrastructure' # string. Build configuration.
