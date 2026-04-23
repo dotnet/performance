@@ -80,7 +80,7 @@ namespace SveBenchmarks
 
                 Vector<uint> ones = Vector<uint>.One;
                 Vector<uint> pTrue = Sve.CreateTrueMaskUInt32();
-                Vector<uint> pLoop = Sve.CreateWhileLessThanMask32Bit(0, Size);
+                Vector<uint> pLoop = Sve.CreateWhileLessThanMaskUInt32(0, Size);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     Vector<uint> idxVec = Sve.LoadVector(pLoop, indices + i);
@@ -89,7 +89,7 @@ namespace SveBenchmarks
                     Sve.Scatter(pLoop, objects, idxVec, ones);
 
                     i += cntw;
-                    pLoop = Sve.CreateWhileLessThanMask32Bit(i, Size);
+                    pLoop = Sve.CreateWhileLessThanMaskUInt32(i, Size);
                 }
             }
         }

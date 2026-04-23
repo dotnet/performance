@@ -25,6 +25,13 @@ namespace BenchmarkDotNet.Extensions
         {
             var reporter = new Reporter();
 
+            // Add BDN version to build AdditionalData when running in lab
+            var bdnVersion = summary.HostEnvironmentInfo.BenchmarkDotNetVersion;
+            if (reporter.Build != null && !string.IsNullOrEmpty(bdnVersion))
+            {
+                reporter.Build.AdditionalData["BenchmarkDotNetVersion"] = bdnVersion;
+            }
+
             var hasCriticalErrors = summary.HasCriticalValidationErrors;
 
             DisassemblyDiagnoser? disassemblyDiagnoser = summary.Reports

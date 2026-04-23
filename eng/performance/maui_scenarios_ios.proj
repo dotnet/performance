@@ -16,6 +16,9 @@
 
     <!-- Mono FullAOT and CoreCLR R2R are considered as default configurations, so no need for explicit properties -->
     
+    <!--  We have to set the following two variables until https://github.com/dotnet/runtime/pull/124604 flows to us -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">$(_MSBuildArgs);/p:PublishReadyToRunStripDebugInfo=false;/p:PublishReadyToRunStripInliningInfo=false</_MSBuildArgs>
+
     <!-- CoreCLR Interpreter -->
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'Interpreter'">$(_MSBuildArgs);/p:PublishReadyToRun=false</_MSBuildArgs>
     <!-- CoreCLR NativeAOT -->

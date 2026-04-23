@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -290,6 +291,48 @@ namespace System.Tests
             }
 
             return counter;
+        }
+
+        // Retrieved from https://data.cms.gov/sites/default/files/2024-05/b492c960-aea2-4f4e-a5f6-258c726b1a58/TMEDTREND_PUBLIC_240528.csv on Jan 22, 2025
+        private static readonly Lazy<string[]> s_csvShortText = new Lazy<string[]>(() => ReadInputFile("TMEDTREND_PUBLIC_240528.csv"));
+        // Retrieved from https://data.transportation.gov/api/views/kbvr-tyu5/rows.csv on Jan 22, 2025
+        private static readonly Lazy<string[]> s_csvShortMixed = new Lazy<string[]>(() => ReadInputFile("motor_fuel_sales.csv"));
+        // Retrieved from https://www.census.gov/econ/bfs/csv/date_table.csv on Jan 22, 2025
+        private static readonly Lazy<string[]> s_csvShortDates = new Lazy<string[]>(() => ReadInputFile("date_table.csv"));
+        // Retrieved from https://www.usda.gov/sites/default/files/documents/ai_inventory.csv on Jan 22, 2025
+        private static readonly Lazy<string[]> s_csvLongText = new Lazy<string[]>(() => ReadInputFile("ai_inventory.csv"));
+        // Retrieved from https://www.epa.gov/sites/production/files/2014-05/tri_2012_nd.csv on Jan 22, 2025
+        private static readonly Lazy<string[]> s_csvLongMixed = new Lazy<string[]>(() => ReadInputFile("tri_2012_nd.csv"));
+        // Retrieved from https://data.cdc.gov/api/views/dxpw-cm5u/rows.csv on Jan 22, 2025
+        private static readonly Lazy<string[]> s_csvLongNumbers = new Lazy<string[]>(() => ReadInputFile("500_cities.csv"));
+        private static volatile int s_splitCsvFieldCount;
+
+        public static IEnumerable<object[]> CsvCorpus()
+        {
+            yield return new object[] { "Short Text", s_csvShortText.Value };
+            yield return new object[] { "Short Mixed", s_csvShortMixed.Value };
+            yield return new object[] { "Short Dates", s_csvShortDates.Value };
+            yield return new object[] { "Long Text", s_csvLongText.Value };
+            yield return new object[] { "Long Mixed", s_csvLongMixed.Value };
+            yield return new object[] { "Long Numbers", s_csvLongNumbers.Value };
+        }
+
+        public static string[] ReadInputFile(string name)
+            => File.ReadAllLines(Path.Combine(AppContext.BaseDirectory, "libraries", "System.Runtime", "TestData", name));
+
+        [Benchmark]
+        [ArgumentsSource(nameof(CsvCorpus))]
+        public string[] Split_Csv(string testName, string[] lines)
+        {
+            string[] split = null;
+            int fieldCount = 0;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                split = lines[i].Split(',');
+                fieldCount ^= split.Length;
+            }
+            s_splitCsvFieldCount = fieldCount;
+            return split;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]

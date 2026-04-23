@@ -135,11 +135,11 @@ namespace SveBenchmarks
 
                 // Handle remaining elements using predicates.
                 lmt = Size * 2;
-                Vector<uint> pLoop = Sve.CreateWhileLessThanMask32Bit(i, lmt);
+                Vector<uint> pLoop = Sve.CreateWhileLessThanMaskUInt32(i, lmt);
                 if (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     // Compute the predicate for elements in i + cntw.
-                    Vector<uint> pTail = Sve.CreateWhileLessThanMask32Bit(i + cntw, lmt);
+                    Vector<uint> pTail = Sve.CreateWhileLessThanMaskUInt32(i + cntw, lmt);
                     // Unzip the predicates pLoop and pTail for 2xVector load/store.
                     Vector<uint> pInner = Sve.UnzipEven(pLoop, pTail);
 
@@ -190,7 +190,7 @@ namespace SveBenchmarks
 
                 // Handle remaining elements.
                 lmt = Size;
-                Vector<ulong> pLoop = Sve.CreateWhileLessThanMask64Bit(i, lmt);
+                Vector<ulong> pLoop = Sve.CreateWhileLessThanMaskUInt64(i, lmt);
                 while (Sve.TestFirstTrue(pTrue, pLoop))
                 {
                     Vector<uint> a1 = (Vector<uint>)Sve2.LoadVector(pLoop, (ulong*)a + i);
@@ -201,7 +201,7 @@ namespace SveBenchmarks
                     Sve.StoreAndZip(pLoop, (ulong*)c + i, (Vector<ulong>)(c1));
 
                     i += cntd;
-                    pLoop = Sve.CreateWhileLessThanMask64Bit(i, lmt);
+                    pLoop = Sve.CreateWhileLessThanMaskUInt64(i, lmt);
                 }
             }
         }

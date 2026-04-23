@@ -180,7 +180,7 @@ namespace SveBenchmarks
                     for (; j < n - 1; j += (cntw << 1))
                     {
                         // Get predicate for elements to load/store.
-                        Vector<uint> pLoop = Sve.CreateWhileLessThanMask32Bit(0, (n - j) / 2);
+                        Vector<uint> pLoop = Sve.CreateWhileLessThanMaskUInt32(0, (n - j) / 2);
                         // Interleaved load elements.
                         (Vector<uint> a0, Vector<uint> a1) = Sve.Load2xVectorAndUnzip(pLoop, source + j);
 
@@ -248,7 +248,7 @@ namespace SveBenchmarks
                     // Handle tail using predicates.
                     for (; j < n - 1; j += (cntw << 1))
                     {
-                        Vector<uint> pLoop = Sve.CreateWhileLessThanMask32Bit(0, (n - j) / 2);
+                        Vector<uint> pLoop = Sve.CreateWhileLessThanMaskUInt32(0, (n - j) / 2);
                         (Vector<uint> a0, Vector<uint> a1) = Sve.Load2xVectorAndUnzip(pLoop, source + j);
 
                         Vector<uint> pCmp = Sve.ConditionalSelect(pLoop, Sve.CompareGreaterThan(a0, a1), Sve.CreateFalseMaskUInt32());

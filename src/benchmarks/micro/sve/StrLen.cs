@@ -120,7 +120,7 @@ namespace SveBenchmarks
             ulong i = 0;
             ulong elemsInVector = Sve.Count8BitElements();
 
-            Vector<byte> pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit((int)i, Size);
+            Vector<byte> pLoop = Sve.CreateWhileLessThanMaskByte((int)i, Size);
 
             fixed (byte* arr_ptr = _array)
             {
@@ -134,7 +134,7 @@ namespace SveBenchmarks
                     else
                     {
                         i += elemsInVector;
-                        pLoop = (Vector<byte>)Sve.CreateWhileLessThanMask8Bit((int)i, Size);
+                        pLoop = Sve.CreateWhileLessThanMaskByte((int)i, Size);
                     }
                 }
 
