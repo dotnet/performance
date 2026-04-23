@@ -149,7 +149,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                     (string, string) fileNameAndCommand = MicrobenchmarkCommandBuilder.Build(configuration, run, benchmark, invocationCountFromBaseline);
                     run.Value.Name = run.Key;
 
-                    for (int index = 0; index < configuration.Environment.iteration; index++)
+                    for (int index = 0; index < configuration.Environment.iterations; index++)
                     {
                         AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Running Microbechmarks: {configuration.Name} - {run.Key} {benchmark} - iteration: {index} [/]\n");
                         // Run The BDN process with the trace collector.
