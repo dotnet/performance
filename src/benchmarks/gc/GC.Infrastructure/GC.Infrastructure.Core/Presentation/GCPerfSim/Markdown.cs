@@ -362,13 +362,10 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
                             string propertyNameToCheck = property.Name.ToLowerInvariant();
 
-                            // TODO: Add the property filter logic back in.
-                            /*
                             if (!requestedPropertyNames.Contains(propertyNameToCheck))
                             {
-                                //continue;
+                                continue;
                             }
-                            */
 
                             ComparisonResult result = resultItemComparison.GetComparison(property.Name);
                             comparisonResults.Add(result);
