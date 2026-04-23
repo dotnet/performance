@@ -34,8 +34,7 @@ jobs:
   # TODO: Add.
   - job: GCNotebookValidation_Windows 
     pool:
-      name: NetCore-Public
-      demands: ImageOverride -equals windows.vs2022.amd64.open
+      vmImage: windows-2025
  
     steps:
     # Install dotnet. We temporarily need both .NET 8 (for building and running the projects) and .NET 9 (for installing deps).
