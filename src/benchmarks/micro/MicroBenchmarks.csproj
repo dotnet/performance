@@ -16,6 +16,13 @@
     <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
     <!-- Suppress Sve experimental feature warning -->
     <NoWarn>$(NoWarn);SYSLIB5003</NoWarn>
+    <!-- Disable NuGet package pruning (.NET 10+) so Microsoft.Extensions.* and other
+         in-band but still-published packages remain app-local. The benchmarks are run
+         via BenchmarkDotNet's corerun option against a NetCoreApp CoreRoot that does
+         not include the Microsoft.AspNetCore.App shared framework, so app-local copies
+         of these assemblies are required. Also suppresses NU1510. -->
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
     <OutputType>Exe</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>portable</DebugType>
