@@ -1030,10 +1030,13 @@ ex: C:\repos\performance;C:\repos\runtime
 
             def run_incremental_iteration(iteration, num_iterations, base_cmd, edit_pairs,
                                           packagename, activityname,
-                                          scenarioprefix, startup, traits, measure_startup_fn):
+                                          scenarioprefix, startup, traits, measure_startup_fn,
+                                          pre_launch_fn=None):
                 """Run one incremental build+deploy+startup iteration.
 
                 edit_pairs is a list of (dest_path, original_content, modified_content) tuples.
+                pre_launch_fn, if provided, is called before each dotnet run (e.g. to clear
+                the logcat buffer so stale 'Displayed' lines don't pollute the measurement).
                 Returns (startup_ms, counters_list, binlog_path, test_metadata).
                 """
                 import subprocess
@@ -1058,6 +1061,8 @@ ex: C:\repos\performance;C:\repos\runtime
                 iter_binlog = os.path.join(const.TRACEDIR, iter_binlog_name)
                 incremental_cmd = base_cmd + [f'-bl:{iter_binlog}']
                 getLogger().info("Incremental build+deploy: %s" % ' '.join(incremental_cmd))
+                if pre_launch_fn is not None:
+                    pre_launch_fn()
                 subprocess.run(incremental_cmd, check=True)
 
                 # Measure startup
@@ -1107,66 +1112,70 @@ ex: C:\repos\performance;C:\repos\runtime
                         base_cmd.append(arg.strip())
 
             # --- First build + deploy ---
-            first_cmd = base_cmd + [f'-bl:{first_binlog}']
-            getLogger().info("First build+deploy: %s" % ' '.join(first_cmd))
-            subprocess.run(first_cmd, check=True)
-
-            # Capture SDK versions from the just-built output. Other Android
-            # scenarios do this in pre.py on the build machine, but our first
-            # build runs on Helix and IS the measured build, so we have to
-            # do it here. Discover the RID folder the build actually produced
-            # (android-arm64 on physical devices, android-x64 on emulator).
-            try:
-                framework_obj_root = os.path.join(os.path.dirname(self.csprojpath), 'obj', self.configuration, self.framework)
-                abi_by_rid = {'android-arm': 'armeabi-v7a', 'android-arm64': 'arm64-v8a', 'android-x86': 'x86', 'android-x64': 'x86_64'}
-
-                dll_folder = None
-                for rid_dir in sorted(glob.glob(os.path.join(framework_obj_root, 'android-*'))):
-                    rid = os.path.basename(rid_dir)
-                    linked = os.path.join(rid_dir, 'linked')
-                    if os.path.isdir(linked):
-                        dll_folder = linked
-                        break
-                    abi = abi_by_rid.get(rid)
-                    if abi:
-                        staging = os.path.join(rid_dir, 'android', 'assets', abi)
-                        if os.path.isdir(staging):
-                            dll_folder = staging
-                            break
-                if dll_folder is None:
-                    raise FileNotFoundError("No android-* RID folder with DLLs found under %s" % framework_obj_root)
-
-                getLogger().info("Capturing SDK versions from: %s" % dll_folder)
-                version_dict = get_sdk_versions(dll_folder)
-
-                os.makedirs(const.TRACEDIR, exist_ok=True)
-                versions_path = os.path.join(const.TRACEDIR, 'versions.json')
-                versions_write_json(version_dict, versions_path)
-                # Surface PERFLAB_DATA_* env vars so the Startup tool's Reporter
-                # picks them up into build.AdditionalData.
-                versions_read_json_file_save_env(versions_path)
-            except Exception as ex:
-                # Never let version capture regress the measurement pipeline.
-                getLogger().warning("Version capture failed, continuing without versions.json: %s" % ex)
-
-            # --- Device setup for physical devices (screen wake, animations, timeout) ---
-            # Physical Helix CI devices have screens OFF. When the screen is off,
-            # am start-activity -W reports LaunchState: UNKNOWN, omits TotalTime, and
-            # ActivityTaskManager never logs the "Displayed" line — making startup
-            # measurement impossible.
+            # AndroidHelper is instantiated here (before first_cmd) so we can
+            # wake the screen and clear logcat BEFORE dotnet run fires am start.
+            # Physical Helix CI devices have screens OFF; ActivityTaskManager
+            # only emits 'Displayed' when the screen is on.
             androidHelper = AndroidHelper()
             try:
+                first_cmd = base_cmd + [f'-bl:{first_binlog}']
+                getLogger().info("First build+deploy: %s" % ' '.join(first_cmd))
+                # Wake screen before first launch so ActivityTaskManager logs the 'Displayed' line.
+                # Physical Helix CI devices have screens OFF; Displayed is never logged with screen off.
+                androidHelper.ensure_screen_on()
+                androidHelper.clear_logcat()
+                subprocess.run(first_cmd, check=True)
+
+                # Capture SDK versions from the just-built output. Other Android
+                # scenarios do this in pre.py on the build machine, but our first
+                # build runs on Helix and IS the measured build, so we have to
+                # do it here. Discover the RID folder the build actually produced
+                # (android-arm64 on physical devices, android-x64 on emulator).
+                try:
+                    framework_obj_root = os.path.join(os.path.dirname(self.csprojpath), 'obj', self.configuration, self.framework)
+                    abi_by_rid = {'android-arm': 'armeabi-v7a', 'android-arm64': 'arm64-v8a', 'android-x86': 'x86', 'android-x64': 'x86_64'}
+
+                    dll_folder = None
+                    for rid_dir in sorted(glob.glob(os.path.join(framework_obj_root, 'android-*'))):
+                        rid = os.path.basename(rid_dir)
+                        linked = os.path.join(rid_dir, 'linked')
+                        if os.path.isdir(linked):
+                            dll_folder = linked
+                            break
+                        abi = abi_by_rid.get(rid)
+                        if abi:
+                            staging = os.path.join(rid_dir, 'android', 'assets', abi)
+                            if os.path.isdir(staging):
+                                dll_folder = staging
+                                break
+                    if dll_folder is None:
+                        raise FileNotFoundError("No android-* RID folder with DLLs found under %s" % framework_obj_root)
+
+                    getLogger().info("Capturing SDK versions from: %s" % dll_folder)
+                    version_dict = get_sdk_versions(dll_folder)
+
+                    os.makedirs(const.TRACEDIR, exist_ok=True)
+                    versions_path = os.path.join(const.TRACEDIR, 'versions.json')
+                    versions_write_json(version_dict, versions_path)
+                    # Surface PERFLAB_DATA_* env vars so the Startup tool's Reporter
+                    # picks them up into build.AdditionalData.
+                    versions_read_json_file_save_env(versions_path)
+                except Exception as ex:
+                    # Never let version capture regress the measurement pipeline.
+                    getLogger().warning("Version capture failed, continuing without versions.json: %s" % ex)
+
+                # --- Device setup for physical devices (animations, screen timeout, activity resolution) ---
+                # Note: ensure_screen_on() was already called above before the first deploy.
                 androidHelper.setup_device(self.packagename, packagepath=None, animationsdisabled=True, skip_install=True, skip_xharness_warmup=True, skip_package_verifier=True, skip_test_launch=True, screen_timeout_ms=self.screentimeoutms)
 
                 activityname = androidHelper.activityname
                 getLogger().info("Using resolved activity: %s" % activityname)
 
-                # --- First startup measurement ---
-                # `dotnet run -p:WaitForExit=false` already issued `am start -S`
-                # after deploy. measure_cold_startup below force-stops with -W -S
-                # and re-launches to obtain TotalTime. The user-visible
-                # double-launch is intentional and metrics-neutral.
-                first_startup_ms = androidHelper.measure_cold_startup(self.packagename, activityname)
+                # --- First startup measurement (logcat-based) ---
+                # `dotnet run -p:WaitForExit=false` issued `am start -S` (no -W).
+                # Poll logcat for ActivityTaskManager's 'Displayed <pkg>/: +NNNms' line.
+                # Screen was guaranteed on by ensure_screen_on() above.
+                first_startup_ms = androidHelper.measure_startup_from_logcat(self.packagename, activityname)
                 getLogger().info("First deploy startup: %d ms" % first_startup_ms)
 
                 # --- Parse first build report ---
@@ -1212,7 +1221,8 @@ ex: C:\repos\performance;C:\repos\runtime
                         iteration, num_iterations, base_cmd,
                         edit_pairs,
                         self.packagename, activityname, scenarioprefix, startup, self.traits,
-                        androidHelper.measure_cold_startup)
+                        androidHelper.measure_startup_from_logcat,
+                        pre_launch_fn=androidHelper.clear_logcat)
 
                     incremental_startup_results.append(ms)
                     intermediate_files.append(iter_binlog)

@@ -1,4 +1,5 @@
 import re
+import subprocess
 import time
 from performance.common import RunCommand
 from logging import getLogger
@@ -187,32 +188,7 @@ class AndroidHelper:
         getActivity.run()
         getLogger().info(f"Target Activity {getActivity.stdout}")
 
-        # More setup stuff
-        checkScreenOnCmd = xharness_adb() + [
-            'shell',
-            'dumpsys input_method | grep mInteractive'
-        ]
-        checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
-        checkScreenOn.run()
-
-        keyInputCmd = xharness_adb() + [
-            'shell',
-            'input',
-            'keyevent'
-        ]
-
-        if "mInteractive=false" in checkScreenOn.stdout: 
-            # Turn on the screen to make interactive and see if it worked
-            getLogger().info("Screen was off, turning on.")
-            self.screenwasoff = True
-            RunCommand(keyInputCmd + ['26'], verbose=True).run() # Press the power key
-            RunCommand(keyInputCmd + ['82'], verbose=True).run() # Unlock the screen with menu key (only works if it is not a password lock)
-
-            checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
-            checkScreenOn.run()
-            if "mInteractive=false" in checkScreenOn.stdout:
-                getLogger().exception("Failed to make screen interactive.")
-                raise Exception("Failed to make screen interactive.")
+        self.ensure_screen_on()
 
         self.activityname = getActivity.stdout.strip()
 
@@ -273,6 +249,117 @@ class AndroidHelper:
             '-n',
             self.activityname
         ]
+
+    def ensure_screen_on(self) -> None:
+        """Wake the device screen and unlock it if it is off.
+
+        Must be called before any launch we want ActivityTaskManager to log a
+        'Displayed' line for — Android never emits that line when the screen is
+        off. Physical Helix CI devices start with screens off.
+
+        Sets self.screenwasoff = True the FIRST time the screen is found off so
+        close_device() can restore it. A second call when the screen is already
+        on leaves the flag unchanged.
+        """
+        checkScreenOnCmd = xharness_adb() + [
+            'shell',
+            'dumpsys input_method | grep mInteractive'
+        ]
+        checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
+        checkScreenOn.run()
+
+        keyInputCmd = xharness_adb() + [
+            'shell',
+            'input',
+            'keyevent'
+        ]
+
+        if "mInteractive=false" in checkScreenOn.stdout:
+            # Turn on the screen to make interactive and see if it worked
+            getLogger().info("Screen was off, turning on.")
+            # Guard so a second call doesn't overwrite a True we already set.
+            if not self.screenwasoff:
+                self.screenwasoff = True
+            RunCommand(keyInputCmd + ['26'], verbose=True).run()  # Press the power key
+            RunCommand(keyInputCmd + ['82'], verbose=True).run()  # Unlock with menu key (no-op on password lock)
+
+            checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
+            checkScreenOn.run()
+            if "mInteractive=false" in checkScreenOn.stdout:
+                getLogger().exception("Failed to make screen interactive.")
+                raise Exception("Failed to make screen interactive.")
+
+    def clear_logcat(self) -> None:
+        """Clear the logcat ring buffer before a measured launch.
+
+        Called before every dotnet-run invocation so stale 'Displayed' lines
+        from previous iterations don't contaminate the next measurement.
+        """
+        RunCommand(xharness_adb() + ['logcat', '-c'], verbose=True).run()
+
+    def measure_startup_from_logcat(self, packagename: str, activityname: str, timeout_s: int = 30) -> int:
+        """Measure app startup time from logcat's 'Displayed' line.
+
+        Polls 'adb shell logcat -d' for the 'Displayed <packagename>/: +NNNms'
+        line emitted by ActivityTaskManager (API 29+) / ActivityManager (API
+        23-28) after the first frame is drawn.
+
+        Prerequisites (caller's responsibility):
+          - ensure_screen_on() called before the launch — Android never logs
+            'Displayed' when the screen is off.
+          - clear_logcat() called immediately before the launch — otherwise a
+            stale line from a previous iteration is returned instantly.
+
+        activityname is accepted for API symmetry with measure_cold_startup but
+        is not used in the grep; packagename alone uniquely identifies the app
+        and is robust to activity-name format variations.
+
+        Returns startup time in milliseconds.
+        Raises Exception with a logcat tail on timeout.
+        """
+        poll_cmd = xharness_adb() + [
+            'shell',
+            # Use packagename (not activityname) to match regardless of whether
+            # the activity is reported as '.MainActivity' or the fully-qualified
+            # 'com.company.app.MainActivity'.
+            f"logcat -d | grep -E 'ActivityTaskManager|ActivityManager' | grep 'Displayed {packagename}/'"
+        ]
+
+        deadline = time.time() + timeout_s
+        result = None
+        while time.time() < deadline:
+            # Use subprocess.run directly instead of RunCommand because grep
+            # returns exit code 1 when no lines match, which RunCommand treats
+            # as an error and raises CalledProcessError.
+            result = subprocess.run(poll_cmd, capture_output=True, text=True)
+            if result.stdout.strip():
+                break
+            time.sleep(1)
+        else:
+            # Dump recent logcat to help diagnose screen-off or timing issues
+            debug_cmd = xharness_adb() + ['shell', 'logcat -d -t 40']
+            debug_result = subprocess.run(debug_cmd, capture_output=True, text=True)
+            raise Exception(
+                "Timed out waiting for 'Displayed %s/' in logcat after %d seconds.\n"
+                "Last 40 logcat lines:\n%s" % (packagename, timeout_s, debug_result.stdout)
+            )
+
+        # Parse '+NNNms' or '+Ns NNNms' — same regex as measure_cold_startup's fallback
+        dirty_capture = re.search(r"\+(\d*s?\d+)ms", result.stdout)
+        if dirty_capture:
+            capture_list = dirty_capture.group(1).split('s')
+            if len(capture_list) == 1:
+                startup_ms = int(capture_list[0])
+            elif len(capture_list) == 2:
+                startup_ms = int(capture_list[0]) * 1000 + int(capture_list[1].zfill(3))
+            else:
+                raise Exception("Android time capture failed! Unexpected format: %s" % dirty_capture.group(0))
+            getLogger().info("Startup time (logcat Displayed): %d ms" % startup_ms)
+            return startup_ms
+
+        raise Exception(
+            "Logcat returned output but no '+NNNms' pattern found.\nOutput: %s" % result.stdout
+        )
 
     def measure_cold_startup(self, packagename: str, activityname: str) -> int:
         """Measure app cold startup time in milliseconds.
