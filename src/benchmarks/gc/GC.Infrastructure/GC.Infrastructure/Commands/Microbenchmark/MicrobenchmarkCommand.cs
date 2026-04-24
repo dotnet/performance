@@ -176,10 +176,10 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                                 consoleError.AppendLine(e.Data);
                             };
 
-                            bdnProcess.Start();
                             string traceName = $"{benchmarkCleanedName}_{index}";
-                            using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath, bdnProcess.Id))
+                            using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath))
                             {
+                                bdnProcess.Start();
                                 bdnProcess.BeginOutputReadLine();
                                 bdnProcess.BeginErrorReadLine();
                                 bdnProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
