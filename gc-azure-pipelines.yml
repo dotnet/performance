@@ -59,8 +59,10 @@ jobs:
         includePreviewVersions: true
     - script: dotnet tool restore
     - script: dotnet tool install --global dotnet-repl 
+    - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure.Core/GC.Infrastructure.Core.csproj --configuration Debug --framework net8.0
     - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure.Core.UnitTests/GC.Infrastructure.Core.UnitTests.csproj --configuration Debug --framework net8.0
     - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Analysis.API/GC.Analysis.API.csproj --configuration Release --framework net8.0
+    - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Analysis.API.UnitTests/GC.Analysis.API.UnitTests.csproj --configuration Release --framework net8.0
 
     # Run tests. Template installed from: https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/vstest-v3?view=azure-pipelines
     - task: VSTest@3
@@ -70,14 +72,34 @@ jobs:
         # -------------- #
         testAssemblyVer2: GC.Infrastructure.Core.UnitTests.dll
         searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/bin/GC.Infrastructure.Core.UnitTests/Debug/net8.0'
+	otherConsoleOptions: '--Framework:net8.0'
         # Uncomment to save results in the future.
         # resultsFolder: '$(Agent.TempDirectory)\TestResults' # string. Test results folder. Default: $(Agent.TempDirectory)\TestResults.
 
         # ----------------- #
         # Reporting options #
         # ----------------- #
-        testRunTitle: 'GC Infrastructure Unit Test'
+        testRunTitle: 'GC Infrastructure Core Unit Test'
         # TODO: Double Check.
         platform: 'Windows' ## string. Build platform. 
         # TODO: Double Check.
-        configuration: 'Test GC Infrastructure' # string. Build configuration.
+        configuration: 'Test GC Infrastructure Core' # string. Build configuration.
+    - task: VSTest@3
+      inputs:
+        # -------------- #
+        # Test selection #
+        # -------------- #
+        testAssemblyVer2: GC.Analysis.API.UnitTests.dll
+        searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/bin/GC.Analysis.API.UnitTests/Debug/net8.0'
+	otherConsoleOptions: '--Framework:net8.0'
+        # Uncomment to save results in the future.
+        # resultsFolder: '$(Agent.TempDirectory)\TestResults' # string. Test results folder. Default: $(Agent.TempDirectory)\TestResults.
+
+        # ----------------- #
+        # Reporting options #
+        # ----------------- #
+        testRunTitle: 'GC Analysis API Unit Test'
+        # TODO: Double Check.
+        platform: 'Windows' ## string. Build platform.
+        # TODO: Double Check.
+        configuration: 'Test GC Analysis API' # string. Build configuration.
