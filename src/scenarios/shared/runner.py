@@ -6,6 +6,7 @@ import sys
 import os
 import glob
 import re
+import shlex
 import time
 import json
 
@@ -18,6 +19,7 @@ from shutil import rmtree
 from typing import Optional
 from shared.androidhelper import AndroidHelper
 from shared.androidinstrumentation import AndroidInstrumentationHelper
+from shared.ioshelper import iOSHelper
 from shared.devicepowerconsumption import DevicePowerConsumptionHelper
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
@@ -29,6 +31,61 @@ from performance.common import RunCommand, iswin, extension, helixworkitemroot
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
 from subprocess import CalledProcessError
+
+
+# ── iOS Inner Loop report helpers ────────────────────────────────────
+
+def _make_counter(name, metric, results, top=False):
+    """Create a performance counter dict for JSON reports."""
+    return {
+        "name": name,
+        "topCounter": top,
+        "defaultCounter": False,
+        "higherIsBetter": False,
+        "metricName": metric,
+        "results": results,
+    }
+
+
+def _merge_deploy_report(build_report_path, install_results, startup_results, output_path, app_size_bytes=None):
+    """Merge build metrics with install/startup timing into a single E2E report.
+
+    If the build report doesn't exist (local runs without PERFLAB_INLAB=1),
+    creates a minimal report with only install and startup counters.
+    """
+    if os.path.exists(build_report_path):
+        with open(build_report_path, 'r') as f:
+            report = json.load(f)
+        if not report.get("tests"):
+            report["tests"] = [{"counters": []}]
+        elif "counters" not in report["tests"][0]:
+            report["tests"][0]["counters"] = []
+    else:
+        report = {"tests": [{"counters": []}]}
+
+    report["tests"][0]["counters"].append(_make_counter("Install Time", "ms", install_results))
+    report["tests"][0]["counters"].append(_make_counter("Cold Startup Time", "ms", startup_results, top=True))
+    if app_size_bytes is not None:
+        report["tests"][0]["counters"].append(_make_counter("App Bundle Size", "bytes", [app_size_bytes], top=True))
+
+    with open(output_path, 'w') as f:
+        json.dump(report, f, indent=2)
+
+
+def _measure_app_size(app_bundle_path):
+    """Return the total size of a .app bundle directory in bytes.
+
+    Lightweight inline equivalent of the SizeOnDisk tool (SizeOnDisk.cs / sod.py)
+    which is designed for standalone size-focused scenarios with per-file breakdowns.
+    This helper just needs the total for a single counter in the E2E report.
+    """
+    total = 0
+    for dirpath, _dirnames, filenames in os.walk(app_bundle_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            if not os.path.islink(fp):
+                total += os.path.getsize(fp)
+    return total
 
 
 class Runner:
@@ -174,6 +231,20 @@ ex: C:\repos\performance;C:\repos\runtime
         buildtimeparser.add_argument('--binlog-path', help='Location of binlog', dest='binlogpath')
         self.add_common_arguments(buildtimeparser)
 
+        iosinnerloopparser = subparsers.add_parser(const.IOSINNERLOOP,
+                                                 description='measure first and incremental build+deploy time via binlogs (iOS)')
+        iosinnerloopparser.add_argument('--csproj-path', help='Path to .csproj file to build', dest='csprojpath')
+        iosinnerloopparser.add_argument('--edit-src', help='Modified source file paths, semicolon-separated', dest='editsrc')
+        iosinnerloopparser.add_argument('--edit-dest', help='Destination paths for modified files, semicolon-separated', dest='editdest')
+        iosinnerloopparser.add_argument('--framework', '-f', help='Target framework (e.g., net11.0-ios)', dest='framework')
+        iosinnerloopparser.add_argument('--configuration', '-c', help='Build configuration', dest='configuration', default='Debug')
+        iosinnerloopparser.add_argument('--msbuild-args', help='Additional MSBuild arguments', dest='msbuildargs', default='')
+        iosinnerloopparser.add_argument('--bundle-id', help='iOS bundle identifier', dest='bundleid')
+        iosinnerloopparser.add_argument('--device-id', help='iOS device ID (UDID for physical device, simulator ID or "booted" for simulator)', dest='deviceid', default='booted')
+        iosinnerloopparser.add_argument('--device-type', choices=['simulator', 'device'], help='Target device type: simulator (default) or physical device. Auto-detected from RuntimeIdentifier if not set.', dest='devicetype', default=None)
+        iosinnerloopparser.add_argument('--inner-loop-iterations', help='Number of incremental build+deploy+startup iterations (1+)', type=int, default=10, dest='innerloopiterations')
+        self.add_common_arguments(iosinnerloopparser)
+
         args = parser.parse_args()
 
         if not args.testtype:
@@ -196,6 +267,33 @@ ex: C:\repos\performance;C:\repos\runtime
 
         if self.testtype == const.BUILDTIME:
             self.binlogpath = args.binlogpath
+
+        if self.testtype == const.IOSINNERLOOP:
+            self.csprojpath = args.csprojpath
+            self.editsrcs = args.editsrc.split(';') if args.editsrc else []
+            self.editdests = args.editdest.split(';') if args.editdest else []
+            self.framework = args.framework
+            self.configuration = args.configuration
+            self.msbuildargs = args.msbuildargs or os.environ.get('PERFLAB_MSBUILD_ARGS', '')
+            # If IOS_RID is set (by .proj PreCommands or setup_helix.py arch
+            # detection), ensure RuntimeIdentifier in msbuildargs matches it.
+            ios_rid_env = os.environ.get('IOS_RID', '')
+            if ios_rid_env and 'RuntimeIdentifier=' in self.msbuildargs:
+                self.msbuildargs = re.sub(
+                    r'RuntimeIdentifier=\S+',
+                    f'RuntimeIdentifier={ios_rid_env}',
+                    self.msbuildargs)
+            self.bundleid = args.bundleid
+            self.deviceid = args.deviceid
+            self.innerloopiterations = args.innerloopiterations
+            # Determine device type: explicit arg, or infer from RuntimeIdentifier
+            # in msbuildargs (ios-arm64 → device, iossimulator-* → simulator)
+            if args.devicetype:
+                self.devicetype = args.devicetype
+            elif 'RuntimeIdentifier=ios-arm64' in self.msbuildargs:
+                self.devicetype = 'device'
+            else:
+                self.devicetype = 'simulator'
         
         if self.testtype == const.DEVICESTARTUP:
             self.packagepath = args.packagepath
@@ -975,3 +1073,234 @@ ex: C:\repos\performance;C:\repos\runtime
                 raise Exception("For build time measurements a valid binlog path must be provided.")
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.BUILDTIME, tracename=self.binlogpath, scenarioname=self.scenarioname)
             startup.parsetraces(self.traits)
+
+        elif self.testtype == const.IOSINNERLOOP:
+            import hashlib
+            from shutil import copy2, copytree
+            from performance.common import runninginlab
+            from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
+            from shared.util import helixuploaddir
+            import upload
+
+            # --- Validate inputs ---
+            if not self.csprojpath:
+                raise Exception("--csproj-path is required for iOS inner loop measurements.")
+            if not self.bundleid:
+                raise Exception("--bundle-id is required for iOS inner loop measurements.")
+            is_physical = (self.devicetype == 'device')
+            if is_physical and self.deviceid == 'booted':
+                detected = iOSHelper.detect_connected_device()
+                if not detected:
+                    raise Exception("Physical device mode requires a device UDID. "
+                                    "Set --device-id or IOS_DEVICE_UDID, or connect a device.")
+                self.deviceid = detected
+            getLogger().info("iOS inner loop: device_type=%s, device_id=%s", self.devicetype, self.deviceid)
+            scenarioprefix = self.scenarioname or "MAUI iOS Build and Deploy"
+
+            os.makedirs(const.TRACEDIR, exist_ok=True)
+            # Prefix binlog filenames with runtime flavor to avoid overwrites between runs
+            runtime_flavor = os.environ.get('RUNTIME_FLAVOR', '')
+            binlog_prefix = f'{runtime_flavor}-' if runtime_flavor else ''
+            first_binlog = os.path.join(const.TRACEDIR, f'{binlog_prefix}first-build-and-deploy.binlog')
+
+            # Build base command (no -t:Install for iOS — plain dotnet build)
+            base_cmd = ['dotnet', 'build', self.csprojpath]
+            if self.configuration:
+                base_cmd.extend(['-c', self.configuration])
+            if self.framework:
+                base_cmd.extend(['-f', self.framework])
+            if self.msbuildargs:
+                base_cmd.extend(shlex.split(self.msbuildargs.replace(';', ' ')))
+
+            project_dir = os.path.dirname(os.path.abspath(self.csprojpath))
+            exename = self.traits.exename
+
+            # --- First build ---
+            try:
+                RunCommand(base_cmd + [f'-bl:{first_binlog}'], verbose=True).run()
+            except CalledProcessError:
+                getLogger().error("First build failed. Binlog: %s", first_binlog)
+                raise
+
+            # --- Log SDK and workload versions ---
+            RunCommand(['dotnet', '--info'], verbose=True).run()
+            try:
+                from shared.versionmanager import versions_write_json, versions_write_env, get_sdk_versions
+                rid = 'ios-arm64' if is_physical else os.environ.get('IOS_RID', 'iossimulator-arm64')
+                linked_dir = os.path.join(project_dir, 'obj', self.configuration or 'Debug',
+                                          self.framework or 'net11.0-ios', rid, 'linked')
+                if os.path.isdir(linked_dir):
+                    version_dict = get_sdk_versions(linked_dir, False)
+                    versions_file = os.path.join(const.TRACEDIR, f'{binlog_prefix}versions.json')
+                    versions_write_json(version_dict, versions_file)
+                    versions_write_env(version_dict)
+                    getLogger().info("SDK versions: %s", version_dict)
+                else:
+                    getLogger().warning("Linked DLL dir not found at %s — skipping versions.json", linked_dir)
+            except Exception as e:
+                getLogger().warning("Could not extract SDK versions: %s", e)
+
+            # --- Device setup + first deploy ---
+            iosHelper = iOSHelper()
+            try:
+                app_bundle = iosHelper.find_app_bundle(project_dir, exename, self.configuration, is_physical=is_physical)
+                first_app_size = _measure_app_size(app_bundle)
+                getLogger().info("App bundle size: %.2f MB (%d bytes)", first_app_size / 1048576, first_app_size)
+                iosHelper.setup_device(self.bundleid, app_bundle, self.deviceid, is_physical=is_physical)
+                iosHelper.sign_app_for_device(app_bundle)
+                first_install_ms = iosHelper.install_app(app_bundle)
+                first_startup_ms = iosHelper.measure_cold_startup(self.bundleid)
+                if first_startup_ms < 0:
+                    raise RuntimeError("First deploy cold startup measurement failed (watchdog event parsing error)")
+                getLogger().info("First deploy: install=%.1f ms, startup=%d ms", first_install_ms, first_startup_ms)
+
+                # Parse first build binlog
+                startup = StartupWrapper()
+                first_build_report = os.path.join(const.TRACEDIR, 'first-build-and-deploy-perf-lab-report.json')
+                startup.reportjson = first_build_report
+                saved_upload = self.traits.upload_to_perflab_container
+                self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.IOSINNERLOOP,
+                                       tracename=f'{binlog_prefix}first-build-and-deploy.binlog',
+                                       scenarioname=scenarioprefix + " - First Build and Deploy",
+                                       upload_to_perflab_container=False)
+                startup.parsetraces(self.traits)
+
+                # Merge first build metrics + install/startup → first E2E report
+                first_e2e_report = os.path.join(const.TRACEDIR, 'first-debug-e2e-perf-lab-report.json')
+                _merge_deploy_report(first_build_report, [first_install_ms], [first_startup_ms], first_e2e_report, app_size_bytes=first_app_size)
+
+                # --- Incremental loop ---
+                if not self.editsrcs or not self.editdests:
+                    raise Exception("--edit-src and --edit-dest are required for incremental builds")
+                if len(self.editsrcs) != len(self.editdests):
+                    raise Exception("--edit-src and --edit-dest must have the same number of semicolon-separated paths")
+
+                edit_pairs = []
+                for src, dest in zip(self.editsrcs, self.editdests):
+                    with open(dest, 'r') as f:
+                        original = f.read()
+                    with open(src, 'r') as f:
+                        modified = f.read()
+                    edit_pairs.append((dest, original, modified))
+
+                num_iterations = self.innerloopiterations
+                getLogger().info("Starting %d incremental iterations", num_iterations)
+
+                incremental_startup_results = []
+                incremental_install_results = []
+                incremental_app_size_results = []
+                aggregated_counters = {}
+                report_template = None
+                intermediate_binlogs = []
+
+                for iteration in range(1, num_iterations + 1):
+                    getLogger().info("=== Incremental iteration %d/%d ===", iteration, num_iterations)
+
+                    # Toggle source files (odd → modified, even → original)
+                    for dest, original, modified in edit_pairs:
+                        content = modified if iteration % 2 == 1 else original
+                        with open(dest, 'w') as f:
+                            f.write(content)
+
+                    # Build
+                    iter_binlog_name = '%sincremental-build-and-deploy-%d.binlog' % (binlog_prefix, iteration)
+                    iter_binlog = os.path.join(const.TRACEDIR, iter_binlog_name)
+                    try:
+                        RunCommand(base_cmd + [f'-bl:{iter_binlog}'], verbose=True).run()
+                    except CalledProcessError:
+                        getLogger().error("Incremental build %d failed. Binlog: %s", iteration, iter_binlog)
+                        raise
+
+                    # Sign (device only — no-op for simulator)
+                    iosHelper.sign_app_for_device(app_bundle)
+
+                    # Measure app size after incremental build
+                    iter_app_size = _measure_app_size(app_bundle)
+                    getLogger().info("Iteration %d app bundle size: %.2f MB", iteration, iter_app_size / 1048576)
+
+                    # Install + startup
+                    install_ms = iosHelper.install_app(app_bundle)
+                    startup_ms = iosHelper.measure_cold_startup(self.bundleid)
+                    if startup_ms < 0:
+                        raise RuntimeError("Incremental deploy %d cold startup measurement failed (watchdog event parsing error)" % iteration)
+                    getLogger().info("Iteration %d: install=%.1f ms, startup=%d ms", iteration, install_ms, startup_ms)
+
+                    incremental_install_results.append(install_ms)
+                    incremental_startup_results.append(startup_ms)
+                    incremental_app_size_results.append(iter_app_size)
+                    intermediate_binlogs.append(iter_binlog)
+
+                    # Parse iteration binlog → temp report
+                    iter_report = os.path.join(const.TRACEDIR, 'incremental-build-report-%d.json' % iteration)
+                    startup.reportjson = iter_report
+                    self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.IOSINNERLOOP,
+                                           tracename=iter_binlog_name,
+                                           scenarioname=scenarioprefix + " - Incremental Build and Deploy",
+                                           upload_to_perflab_container=False)
+                    # Clear stale traces upload dir so copytree in parsetraces doesn't collide
+                    helix_upload_dir = helixuploaddir()
+                    if helix_upload_dir is not None:
+                        traces_upload = os.path.join(helix_upload_dir, 'traces')
+                        if os.path.exists(traces_upload):
+                            rmtree(traces_upload)
+
+                    startup.parsetraces(self.traits)
+
+                    # Extract counters from temp report (may not exist on local runs)
+                    if os.path.exists(iter_report):
+                        with open(iter_report, 'r') as f:
+                            iter_data = json.load(f)
+                        test_obj = iter_data["tests"][0]
+                        if report_template is None:
+                            report_template = {k: v for k, v in test_obj.items() if k != "counters"}
+                        for counter in test_obj["counters"]:
+                            name = counter["name"]
+                            if name not in aggregated_counters:
+                                aggregated_counters[name] = {
+                                    "name": name,
+                                    "topCounter": counter.get("topCounter", False),
+                                    "defaultCounter": counter.get("defaultCounter", False),
+                                    "higherIsBetter": counter.get("higherIsBetter", False),
+                                    "metricName": counter.get("metricName", "ms"),
+                                    "results": []
+                                }
+                            aggregated_counters[name]["results"].extend(counter.get("results", []))
+                        os.remove(iter_report)
+
+                # --- Build final incremental report ---
+                incremental_e2e_report = os.path.join(const.TRACEDIR, 'incremental-debug-e2e-perf-lab-report.json')
+                final_counters = list(aggregated_counters.values())
+                final_counters.append(_make_counter("Install Time", "ms", incremental_install_results))
+                final_counters.append(_make_counter("Cold Startup Time", "ms", incremental_startup_results, top=True))
+                final_counters.append(_make_counter("App Bundle Size", "bytes", incremental_app_size_results, top=True))
+
+                final_test = dict(report_template or {})
+                final_test["counters"] = final_counters
+                with open(incremental_e2e_report, 'w') as f:
+                    json.dump({"tests": [final_test]}, f, indent=2)
+
+                # --- Persist reports for local runs ---
+                results_dir = os.path.join(os.getcwd(), 'results', os.environ.get('RUNTIME_FLAVOR', 'unknown'))
+                try:
+                    os.makedirs(results_dir, exist_ok=True)
+                    for report in [first_e2e_report, incremental_e2e_report]:
+                        copy2(report, os.path.join(results_dir, os.path.basename(report)))
+                except Exception as e:
+                    getLogger().warning("Failed to persist reports: %s", e)
+
+                # --- Upload to Helix ---
+                self.traits.add_traits(overwrite=True, upload_to_perflab_container=saved_upload)
+                helix_upload_dir = helixuploaddir()
+                if runninginlab() and helix_upload_dir is not None:
+                    traces_upload = os.path.join(helix_upload_dir, 'traces')
+                    if os.path.exists(traces_upload):
+                        rmtree(traces_upload)
+                    copytree(const.TRACEDIR, traces_upload, dirs_exist_ok=True)
+                    if self.traits.upload_to_perflab_container:
+                        for report_path in [first_e2e_report, incremental_e2e_report]:
+                            upload_code = upload.upload(report_path, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
+                            if upload_code != 0:
+                                sys.exit(upload_code)
+
+            finally:
+                iosHelper.cleanup(skip_uninstall=True)
