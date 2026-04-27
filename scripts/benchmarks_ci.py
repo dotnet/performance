@@ -21,26 +21,36 @@ https://github.com/dotnet/performance/blob/main/docs/benchmarking-workflow.md
 '''
 
 from argparse import ArgumentParser, ArgumentTypeError
-from datetime import datetime
+import json
 from logging import getLogger
 
 import os
+import shutil
 import sys
+from typing import Any, Optional
 
-from performance.common import extension, helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, RunCommand
+from performance.common import get_repo_root_path, validate_supported_runtime, get_artifacts_directory, helixuploadroot
 from performance.logger import setup_loggers
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
+from performance.tracer import setup_tracing, enable_trace_console_exporter, get_tracer
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
 from channel_map import ChannelMap
-from subprocess import Popen, CalledProcessError
+from subprocess import CalledProcessError
+from glob import glob
 
 import dotnet
 import micro_benchmarks
 
+setup_tracing()
+tracer = get_tracer()
+
+@tracer.start_as_current_span(name="benchmarks_ci_init_tools")
 def init_tools(
         architecture: str,
-        dotnet_versions: str,
-        target_framework_monikers: list,
-        verbose: bool) -> None:
+        dotnet_versions: list[str],
+        target_framework_monikers: list[str],
+        verbose: bool,
+        azure_feed_url: Optional[str] = None,
+        internal_build_key: Optional[str] = None) -> None:
     '''
     Install tools used by this repository into the tools folder.
     This function writes a semaphore file when tools have been successfully
@@ -52,19 +62,20 @@ def init_tools(
         for target_framework_moniker in target_framework_monikers
     ]
 
+    dotnet.remove_dotnet(
+        architecture=architecture
+    )
     dotnet.install(
         architecture=architecture,
         channels=channels,
         versions=dotnet_versions,
         verbose=verbose,
+        azure_feed_url=azure_feed_url,
+        internal_build_key=internal_build_key
     )
-
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''Adds new arguments to the specified ArgumentParser object.'''
-
-    if not isinstance(parser, ArgumentParser):
-        raise TypeError('Invalid parser.')
 
     # Download DotNet Cli
     dotnet.add_arguments(parser)
@@ -72,47 +83,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     # Restore/Build/Run functionality for MicroBenchmarks.csproj
     micro_benchmarks.add_arguments(parser)
 
-    PRODUCT_INFO = [
-        'init-tools',  # Default
-        'repo',
-        'cli',
-        'args',
-    ]
-    parser.add_argument(
-        '--cli-source-info',
-        dest='cli_source_info',
-        required=False,
-        default=PRODUCT_INFO[0],
-        choices=PRODUCT_INFO,
-        help='Specifies where the product information comes from.',
-    )
-    parser.add_argument(
-        '--cli-branch',
-        dest='cli_branch',
-        required=False,
-        type=str,
-        help='Product branch.'
-    )
-    parser.add_argument(
-        '--cli-commit-sha',
-        dest='cli_commit_sha',
-        required=False,
-        type=str,
-        help='Product commit sha.'
-    )
-    parser.add_argument(
-        '--cli-repository',
-        dest='cli_repository',
-        required=False,
-        type=str,
-        help='Product repository.'
-    )
-
     def __is_valid_dotnet_path(dp: str) -> str:
         if not os.path.isdir(dp):
             raise ArgumentTypeError('Path {} does not exist'.format(dp))
-        if not os.path.isfile(os.path.join(dp, 'dotnet')):
-            raise ArgumentTypeError('Could not find dotnet in {}'.format(dp))
+        if sys.platform == 'win32':
+            if not os.path.isfile(os.path.join(dp, 'dotnet.exe')):
+                raise ArgumentTypeError('Could not find dotnet.exe in {}'.format(dp))
+        else:
+            if not os.path.isfile(os.path.join(dp, 'dotnet')):
+                raise ArgumentTypeError('Could not find dotnet in {}'.format(dp))
         return dp
 
     parser.add_argument(
@@ -123,30 +102,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Path to a custom dotnet'
     )
 
-    def __is_valid_datetime(dt: str) -> str:
-        try:
-            datetime.strptime(dt, '%Y-%m-%dT%H:%M:%SZ')
-            return dt
-        except ValueError:
-            raise ArgumentTypeError(
-                'Datetime "{}" is in the wrong format.'.format(dt))
-
-    parser.add_argument(
-        '--cli-source-timestamp',
-        dest='cli_source_timestamp',
-        required=False,
-        type=__is_valid_datetime,
-        help='''Product timestamp of the soruces used to generate this build
-            (date-time from RFC 3339, Section 5.6.
-            "%%Y-%%m-%%dT%%H:%%M:%%SZ").'''
-    )
-
     parser.add_argument('--upload-to-perflab-container',
         dest="upload_to_perflab_container",
         required=False,
         help="Causes results files to be uploaded to perf container",
         action='store_true'
-    )   
+    )
 
     # Generic arguments.
     parser.add_argument(
@@ -173,17 +134,68 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Attempts to run the benchmarks without building.',
     )
     parser.add_argument(
+        '--resume',
+        dest='resume',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Resume a previous run from existing benchmark results',
+    )
+    parser.add_argument(
         '--skip-logger-setup',
         dest='skip_logger_setup',
         required=False,
         default=False,
         action='store_true',
-        help='Skips the logger setup, for cases when invoked by another script that already sets logging up')
+        help='Skips the logger setup, for cases when invoked by another script that already sets logging up',
+    )
+
+    parser.add_argument(
+        '--azure-feed-url',
+        dest='azure_feed_url',
+        required=False,
+        default=None,
+        help='Internal azure feed to fetch the build from',
+    )
+
+    parser.add_argument(
+        '--internal-build-key',
+        dest='internal_build_key',
+        required=False,
+        default=None,
+        help='Key used to fetch the build from an internal azure feed',
+    )
+
+    parser.add_argument(
+        '--partition',
+        dest='partition',
+        required=False,
+        type=int,
+        help='Partition Index of the run',
+    )
+
+    parser.add_argument(
+        '--enable-open-telemetry-logger',
+        dest='enable_open_telemetry_logger',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Enables OpenTelemetry logging',
+    )
+
+    parser.add_argument(
+        '--enable-open-telemetry-tracer-console',
+        dest='enable_open_telemetry_tracer_console',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Enables OpenTelemetry tracing',
+    )
 
     return parser
 
 
-def __process_arguments(args: list):
+def __process_arguments(args: list[str]):
     parser = ArgumentParser(
         description='Tool to run .NET micro benchmarks',
         allow_abbrev=False,
@@ -193,27 +205,30 @@ def __process_arguments(args: list):
     add_arguments(parser)
     return parser.parse_args(args)
 
-def __main(args: list) -> int:
+@tracer.start_as_current_span("benchmarks_ci_main")
+def main(argv: list[str]):
     validate_supported_runtime()
-    args = __process_arguments(args)
+    args = __process_arguments(argv)
     verbose = not args.quiet
 
     if not args.skip_logger_setup:
-        setup_loggers(verbose=verbose)
+        setup_loggers(verbose=verbose, enable_open_telemetry_logger=args.enable_open_telemetry_logger)
+        if args.enable_open_telemetry_tracer_console:
+            enable_trace_console_exporter()
 
     if not args.frameworks:
         raise Exception("Framework version (-f) must be specified.")
 
-    target_framework_monikers = dotnet \
-        .FrameworkAction \
-        .get_target_framework_monikers(args.frameworks)
+    target_framework_monikers = dotnet.get_target_framework_monikers(args.frameworks)
     # Acquire necessary tools (dotnet)
     if not args.dotnet_path:
         init_tools(
             architecture=args.architecture,
             dotnet_versions=args.dotnet_versions,
             target_framework_monikers=target_framework_monikers,
-            verbose=verbose
+            verbose=verbose,
+            azure_feed_url=args.azure_feed_url,
+            internal_build_key=args.internal_build_key
         )
     else:
         dotnet.setup_dotnet(args.dotnet_path)
@@ -245,15 +260,17 @@ def __main(args: list) -> int:
             target_framework_monikers,
             args.incremental,
             args.run_isolated,
+            args.wasm,
             verbose
         )
 
     # Run micro-benchmarks
     if not args.build_only:
+        run_contains_errors = False
         upload_container = UPLOAD_CONTAINER
         try:
             for framework in args.frameworks:
-                micro_benchmarks.run(
+                is_success = micro_benchmarks.run(
                     BENCHMARKS_CSPROJ,
                     args.configuration,
                     framework,
@@ -261,10 +278,58 @@ def __main(args: list) -> int:
                     verbose,
                     args
                 )
-            globpath = os.path.join(
-                get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
-                '**',
-                '*perf-lab-report.json')
+
+                if not is_success:
+                    getLogger().warning(f"Benchmark run for framework '{framework}' contains errors")
+                    run_contains_errors = True
+
+            artifacts_dir = get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts
+
+            reports_globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
+
+            # binlogs will always be in the performance/artifacts directory even if bdn_artifacts is set differently
+            binlogs_globpath = os.path.join(get_repo_root_path(), 'artifacts', '**', '*.binlog')
+            helix_upload_root = helixuploadroot()
+            if helix_upload_root is not None:
+                # Check if reports directory is already within helix_upload_root to avoid duplicate copies
+                helix_upload_real = os.path.realpath(helix_upload_root)
+                artifacts_real = os.path.realpath(artifacts_dir)
+                reports_in_upload = artifacts_real.startswith(helix_upload_real + os.sep) or artifacts_real == helix_upload_real
+                
+                if reports_in_upload:
+                    getLogger().info(f"Skipping copy of reports - artifacts directory '{artifacts_real}' already in Helix upload root '{helix_upload_real}'")
+                else:
+                    for file in glob(reports_globpath, recursive=True):
+                        shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
+
+                # Create a combined JSON file that contains all the reports
+                combined_file_prefix = "" if args.partition is None else f"Partition{args.partition}-"
+                with open(os.path.join(helix_upload_root, f"{combined_file_prefix}combined-perf-lab-report.json"), "w", encoding="utf8") as all_reports_file:
+                    all_reports: list[Any] = []
+                    for file in glob(reports_globpath, recursive=True):
+                        with open(file, 'r', encoding="utf8") as report_file:
+                            try:
+                                all_reports.append(json.load(report_file))
+                            except Exception as e:
+                                getLogger().warning(f"Failed to load report file '{file}': {e}")
+                    json.dump(all_reports, all_reports_file)
+
+                # Check if binlogs directory is already within helix_upload_root to avoid duplicate copies
+                binlogs_dir = os.path.join(get_repo_root_path(), 'artifacts')
+                binlogs_dir_real = os.path.realpath(binlogs_dir)
+                binlogs_in_upload = binlogs_dir_real.startswith(helix_upload_real + os.sep) or binlogs_dir_real == helix_upload_real
+                
+                if binlogs_in_upload:
+                    getLogger().info(f"Skipping copy of binlogs - binlogs directory '{binlogs_dir_real}' already in Helix upload root '{helix_upload_real}'")
+                else:
+                    for file in glob(binlogs_globpath, recursive=True):
+                        shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
+
+                shutil.make_archive(os.path.join(helix_upload_root, "bdn-artifacts"), 'zip', artifacts_dir)
+                getLogger().info("Created \"bdn-artifacts\".zip")
+            else:
+                getLogger().info("Skipping upload of artifacts to Helix as HELIX_WORKITEM_UPLOAD_ROOT environment variable is not set.")
+
         except CalledProcessError:
             getLogger().info("Run failure registered")
             # rethrow the caught CalledProcessError exception so that the exception being bubbled up correctly.
@@ -273,12 +338,17 @@ def __main(args: list) -> int:
         dotnet.shutdown_server(verbose)
 
         if args.upload_to_perflab_container:
+            reports_globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
             import upload
-            upload_code = upload.upload(globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+            upload_code = upload.upload(reports_globpath, upload_container, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
             getLogger().info("Benchmarks Upload Code: " + str(upload_code))
             if upload_code != 0:
                 sys.exit(upload_code)
         # TODO: Archive artifacts.
 
+        # Still return 1 so that the build pipeline shows failures even though there were some successful results
+        if run_contains_errors:
+            sys.exit(1)
+
 if __name__ == "__main__":
-    __main(sys.argv[1:])
+    main(sys.argv[1:])

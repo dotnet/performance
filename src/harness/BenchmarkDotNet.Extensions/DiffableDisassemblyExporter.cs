@@ -37,7 +37,7 @@ namespace BenchmarkDotNet.Extensions
                     {
                         checked
                         {
-                            totalSizeInBytes += (uint)asm.Instruction.Length;
+                            totalSizeInBytes += (uint)asm.InstructionLength;
                         }
 
                         sb.AppendLine($"       {element.TextRepresentation()}");

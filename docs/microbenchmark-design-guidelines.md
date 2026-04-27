@@ -242,6 +242,8 @@ reportedResult = 1/16*SpanCtor + 1*Slice
 
 **Note:** `OperationsPerInvoke` should be big enough to amortize the "setup" cost.
 
+**Tip:** To quickly run your new benchmark just enough to see how long the iterations are, you can add `--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart` to the end of your command line. It won't give accurate results, but can help you determine whether you need to add more operations to bring the iteration time up to the  100ms goal.
+
 ## Test Cases
 
 ### Code Paths
@@ -283,7 +285,7 @@ public static void Reverse<T>(T[] array, int index, int length)
 Does it make sense to test the code paths that throw?
 
 * No, because we would be measuring the performance of throwing and catching the exceptions. That was not the goal of this benchmark.
-* No, because throwing exceptions should be exceptional and [exceptions should not be used to control flow](https://docs.microsoft.com/en-US/visualstudio/profiling/da0007-avoid-using-exceptions-for-control-flow?view=vs-2019). It's an edge case, we should focus on [common use cases, not edge cases](#Benchmarks-are-not-Unit-Tests).
+* No, because throwing exceptions should be exceptional and [exceptions should not be used to control flow](https://docs.microsoft.com/en-US/visualstudio/profiling/da0007-avoid-using-exceptions-for-control-flow?view=vs-2019). It's an edge case, we should focus on [common use cases, not edge cases](#benchmarks-are-not-unit-tests).
 
 Should we test the code path for an array with one or zero elements?
 
@@ -366,7 +368,7 @@ T[] Array<T>(int count);
 Dictionary<TKey, TValue> Dictionary<TKey, TValue>(int count)
 ```
 
-As of today, the `T` can be: `byte`, `char`, `int`, `double`, `bool` and `string`. Extending `T` to more types is very welcomed!
+As of today, the `T` can be: `byte`, `sbyte`, `char`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double`, `bool`, `decimal`, `string`, and `Guid`. Extending `T` to more types is very welcomed!
 
 **Note:** `ValuesGenerator` is simply always creating a new instance of `Random` with a constant seed. It's a crucial component and its correctness is verified using  [Unit Tests](https://github.com/dotnet/performance/blob/main/src/tests/harness/BenchmarkDotNet.Extensions.Tests/UniqueValuesGeneratorTests.cs).
 

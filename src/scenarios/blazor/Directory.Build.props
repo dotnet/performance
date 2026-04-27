@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <BuildCommonPath>$(MSBuildThisFileDirectory)..\build-common\</BuildCommonPath>
+    <BuildCommonPath Condition="!Exists($(BuildCommonPath)) and '$(HELIX_CORRELATION_PAYLOAD)' != ''">$(HELIX_CORRELATION_PAYLOAD)\build-common\</BuildCommonPath>
+  </PropertyGroup>
+</Project>

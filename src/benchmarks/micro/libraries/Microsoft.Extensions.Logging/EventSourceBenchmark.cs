@@ -25,6 +25,7 @@ namespace Microsoft.Extensions.Logging
         public bool Json { get; set; } = false;
 
         [Benchmark]
+        [MemoryRandomization]
         public void NestedScopes_TwoMessages()
         {
             using (_logger.BeginScope("String scope"))

@@ -1,12 +1,18 @@
 import os
+from socket import timeout
 from shared.runner import TestTraits, Runner
 from shared import const
 
-EXENAME = 'windowsformslarge'
+EXENAME = 'WinformsNetCorePerfApp1'
 
 def main():
     traits = TestTraits(exename=EXENAME,
-                        guiapp='false', 
+                        guiapp='true',
+                        startupmetric='GenericStartup',
+                        timeout=30,
+                        measurementdelay='6',
+                        runwithoutexit='false',
+                        processwillexit="false",
                         )
     runner = Runner(traits)
     runner.run()

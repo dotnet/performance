@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -43,6 +44,11 @@ namespace System.Collections
         private ImmutableStack<T> _immutablestack;
         private ImmutableSortedDictionary<T, T> _immutablesorteddictionary;
         private ImmutableSortedSet<T> _immutablesortedset;
+        private FrozenDictionary<T, T> _frozenDictionary;
+        private FrozenSet<T> _frozenset;
+#if NET9_0_OR_GREATER
+        private OrderedDictionary<T, T> _orderedDictionary;
+#endif
 
         [GlobalSetup(Targets = new [] { nameof(Array), nameof(Span), nameof(ReadOnlySpan)})]
         public void SetupArray() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
@@ -367,5 +373,46 @@ namespace System.Collections
                 result = item;
             return result;
         }
+
+        [GlobalSetup(Target = nameof(FrozenDictionary))]
+        public void SetupFrozenDictionary() => _frozenDictionary = ValuesGenerator.Dictionary<T, T>(Size).ToFrozenDictionary();
+
+        [Benchmark]
+        public T FrozenDictionary()
+        {
+            T result = default;
+            var collection = _frozenDictionary;
+            foreach (var item in collection)
+                result = item.Value;
+            return result;
+        }
+
+        [GlobalSetup(Target = nameof(FrozenSet))]
+        public void SetupFrozenSet() => _frozenset = ValuesGenerator.ArrayOfUniqueValues<T>(Size).ToFrozenSet();
+
+        [Benchmark]
+        public T FrozenSet()
+        {
+            T result = default;
+            var collection = _frozenset;
+            foreach (var item in collection)
+                result = item;
+            return result;
+        }
+
+#if NET9_0_OR_GREATER
+        [GlobalSetup(Target = nameof(OrderedDictionary))]
+        public void SetupOrderedDictionary() => _orderedDictionary = new OrderedDictionary<T, T>(ValuesGenerator.Dictionary<T, T>(Size));
+
+        [Benchmark]
+        public T OrderedDictionary()
+        {
+            T result = default;
+            var collection = _orderedDictionary;
+            foreach (var item in collection)
+                result = item.Value;
+            return result;
+        }
+#endif
     }
 }

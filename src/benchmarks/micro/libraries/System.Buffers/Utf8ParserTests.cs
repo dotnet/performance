@@ -19,6 +19,7 @@ namespace System.Buffers.Text.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Int64Values))]
+        [MemoryRandomization]
         public bool TryParseInt64(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out long _, out int _);
 
         public IEnumerable<object> UInt64Values
@@ -26,6 +27,7 @@ namespace System.Buffers.Text.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(UInt64Values))]
+        [MemoryRandomization]
         public bool TryParseUInt64(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out ulong _, out int _);
 
         public IEnumerable<object> UInt64HexValues
@@ -75,6 +77,7 @@ namespace System.Buffers.Text.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ByteValues))]
+        [MemoryRandomization]
         public bool TryParseByte(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out byte _, out int _);
 
         public IEnumerable<object> SByteValues
@@ -89,6 +92,7 @@ namespace System.Buffers.Text.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(BooleanValues))]
+        [MemoryRandomization]
         public bool TryParseBool(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out bool _, out int _);
 
         public IEnumerable<object> DecimalValues
@@ -96,6 +100,7 @@ namespace System.Buffers.Text.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(DecimalValues))]
+        [MemoryRandomization]
         public bool TryParseDecimal(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out decimal _, out int _);
 
         public IEnumerable<object> DoubleValues
@@ -103,6 +108,7 @@ namespace System.Buffers.Text.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(DoubleValues))]
+        [MemoryRandomization]
         public bool TryParseDouble(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out double _, out int _);
 
         public IEnumerable<object> SingleValues
@@ -110,6 +116,7 @@ namespace System.Buffers.Text.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(SingleValues))]
+        [MemoryRandomization]
         public bool TryParseSingle(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out float _, out int _);
 
         public IEnumerable<object> DateTimeOffsetValues
@@ -117,6 +124,7 @@ namespace System.Buffers.Text.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(DateTimeOffsetValues))]
+        [MemoryRandomization]
         public bool TryParseDateTimeOffset(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out DateTimeOffset _, out int _);
 
         public class Utf8TestCase

@@ -1,53 +1,84 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
-
-  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
-    <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
-    <WorkItemCommand>scripts/benchmarks_ci.py --csproj $(TargetCsproj)</WorkItemCommand>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
-    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(_Framework) $(_PerfLabArguments)</WorkItemCommand>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(_Framework)' != 'net461'">
-    <WorkItemCommand>$(WorkItemCommand) $(CliArguments)</WorkItemCommand>
-  </PropertyGroup>
-
+  <!-- Add a correlation payload for every subdirectory -->
   <ItemGroup>
-    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
+    <HelixCorrelationPayload Include="$([System.IO.Directory]::GetDirectories(`$(CorrelationPayloadDirectory)`))">
       <PayloadDirectory>%(Identity)</PayloadDirectory>
+      <Destination>$([System.IO.Path]::GetFileName(`%(Identity)`))</Destination>
     </HelixCorrelationPayload>
   </ItemGroup>
 
   <PropertyGroup>
-    <PartitionCount>5</PartitionCount>
+    <PartitionCount Condition="'$(PartitionCount)' == ''">15</PartitionCount>
   </PropertyGroup>
   <ItemGroup>
-    <Partition Include="Partition0" Index="0" />
-    <Partition Include="Partition1" Index="1" />
-    <Partition Include="Partition2" Index="2" />
-    <Partition Include="Partition3" Index="3" />
-    <Partition Include="Partition4" Index="4" />
+    <Partition Include="$(BuildConfig).Partition0" Index="0" Condition="$(PartitionCount) &gt; 0" />
   </ItemGroup>
 
-  <!-- 
-    Partition the Microbenchamrks project, but nothing else
-  -->
+  <ItemGroup Condition="'$(OnlySanityCheck)' != 'true'">
+    <Partition Include="$(BuildConfig).Partition1" Index="1" Condition="$(PartitionCount) &gt; 1" />
+    <Partition Include="$(BuildConfig).Partition2" Index="2" Condition="$(PartitionCount) &gt; 2" />
+    <Partition Include="$(BuildConfig).Partition3" Index="3" Condition="$(PartitionCount) &gt; 3" />
+    <Partition Include="$(BuildConfig).Partition4" Index="4" Condition="$(PartitionCount) &gt; 4" />
+    <Partition Include="$(BuildConfig).Partition5" Index="5" Condition="$(PartitionCount) &gt; 5" />
+    <Partition Include="$(BuildConfig).Partition6" Index="6" Condition="$(PartitionCount) &gt; 6" />
+    <Partition Include="$(BuildConfig).Partition7" Index="7" Condition="$(PartitionCount) &gt; 7" />
+    <Partition Include="$(BuildConfig).Partition8" Index="8" Condition="$(PartitionCount) &gt; 8" />
+    <Partition Include="$(BuildConfig).Partition9" Index="9" Condition="$(PartitionCount) &gt; 9" />
+    <Partition Include="$(BuildConfig).Partition10" Index="10" Condition="$(PartitionCount) &gt; 10" />
+    <Partition Include="$(BuildConfig).Partition11" Index="11" Condition="$(PartitionCount) &gt; 11" />
+    <Partition Include="$(BuildConfig).Partition12" Index="12" Condition="$(PartitionCount) &gt; 12" />
+    <Partition Include="$(BuildConfig).Partition13" Index="13" Condition="$(PartitionCount) &gt; 13" />
+    <Partition Include="$(BuildConfig).Partition14" Index="14" Condition="$(PartitionCount) &gt; 14" />
+    <Partition Include="$(BuildConfig).Partition15" Index="15" Condition="$(PartitionCount) &gt; 15" />
+    <Partition Include="$(BuildConfig).Partition16" Index="16" Condition="$(PartitionCount) &gt; 16" />
+    <Partition Include="$(BuildConfig).Partition17" Index="17" Condition="$(PartitionCount) &gt; 17" />
+    <Partition Include="$(BuildConfig).Partition18" Index="18" Condition="$(PartitionCount) &gt; 18" />
+    <Partition Include="$(BuildConfig).Partition19" Index="19" Condition="$(PartitionCount) &gt; 19" />
+    <Partition Include="$(BuildConfig).Partition20" Index="20" Condition="$(PartitionCount) &gt; 20" />
+    <Partition Include="$(BuildConfig).Partition21" Index="21" Condition="$(PartitionCount) &gt; 21" />
+    <Partition Include="$(BuildConfig).Partition22" Index="22" Condition="$(PartitionCount) &gt; 22" />
+    <Partition Include="$(BuildConfig).Partition23" Index="23" Condition="$(PartitionCount) &gt; 23" />
+    <Partition Include="$(BuildConfig).Partition24" Index="24" Condition="$(PartitionCount) &gt; 24" />
+    <Partition Include="$(BuildConfig).Partition25" Index="25" Condition="$(PartitionCount) &gt; 25" />
+    <Partition Include="$(BuildConfig).Partition26" Index="26" Condition="$(PartitionCount) &gt; 26" />
+    <Partition Include="$(BuildConfig).Partition27" Index="27" Condition="$(PartitionCount) &gt; 27" />
+    <Partition Include="$(BuildConfig).Partition28" Index="28" Condition="$(PartitionCount) &gt; 28" />
+    <Partition Include="$(BuildConfig).Partition29" Index="29" Condition="$(PartitionCount) &gt; 29" />
+  </ItemGroup>
+
+  <!-- Partition the MicroBenchmarks project, but nothing else -->
   <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
     <HelixWorkItem Include="@(Partition)">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
-      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</Command>
-      <Timeout>4:00</Timeout>
+      <PreCommands Condition="'$(Compare)' == 'true'">$(BaselineWorkItemCommand) --partition=%(HelixWorkItem.Index) --bdn-arguments="$(BaselineBenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</PreCommands>
+      <Command Condition="'$(TargetsWindows)' == 'true'">$(WorkItemCommand) --partition=%(HelixWorkItem.Index) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</Command>
+      <Command Condition="'$(TargetsWindows)' != 'true'">
+        if [ "x$PERF_PREREQS_INSTALL_FAILED" = "x1" ]; then
+          echo "\n\n** Error: Failed to install prerequisites **\n\n"; (exit 1);
+        else
+          $(WorkItemCommand) --partition=%(HelixWorkItem.Index) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)";
+        fi
+      </Command>
+      <PostCommands Condition="'$(Compare)' == 'true'">$(CompareCommand)</PostCommands>
+      <Timeout>$(WorkItemTimeout)</Timeout>
+      <DownloadFilesFromResults Condition="'$(DownloadFilesFromHelix)' == 'true'">Partition%(HelixWorkItem.Index)-combined-perf-lab-report.json</DownloadFilesFromResults>
     </HelixWorkItem>
   </ItemGroup>
   <ItemGroup Condition="!$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
-    <HelixWorkItem Include="WorkItem">
+    <HelixWorkItem Include="$(BuildConfig).WorkItem">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
-      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments)"</Command>
-      <Timeout>4:00</Timeout>
+      <PreCommands Condition="'$(Compare)' == 'true'">$(BaselineWorkItemCommand) --bdn-arguments="$(BaselineBenchmarkDotNetArguments)"</PreCommands>
+      <Command Condition="'$(TargetsWindows)' == 'true'">$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments)"</Command>
+      <Command Condition="'$(TargetsWindows)' != 'true'">
+        if [ "x$PERF_PREREQS_INSTALL_FAILED" = "x1" ]; then
+          echo "\n\n** Error: Failed to install prerequisites **\n\n"; (exit 1);
+        else
+          $(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments)";
+        fi
+      </Command>
+      <PostCommands Condition="'$(Compare)' == 'true'">$(CompareCommand)</PostCommands>
+      <Timeout>$(WorkItemTimeout)</Timeout>
+      <DownloadFilesFromResults Condition="'$(DownloadFilesFromHelix)' == 'true'">combined-perf-lab-report.json</DownloadFilesFromResults>
     </HelixWorkItem>
   </ItemGroup>
 </Project>

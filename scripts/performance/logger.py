@@ -14,8 +14,16 @@ import __main__
 
 from .common import get_repo_root_path
 
+class LoggerStateManager:
+    def __init__(self):
+        self.logger_initialized = False
 
-def setup_loggers(verbose: bool):
+    def set_initialized(self, value: bool): self.logger_initialized = value
+    def get_initialized(self) -> bool: return self.logger_initialized
+
+logger_state_manager = LoggerStateManager()
+
+def setup_loggers(verbose: bool, enable_open_telemetry_logger: bool = False):
     '''Setup the root logger for the performance scripts.'''
     def __formatter() -> Formatter:
         fmt = '[%(asctime)s][%(levelname)s] %(message)s'
@@ -30,6 +38,22 @@ def setup_loggers(verbose: bool):
 
         # Log console handler
         getLogger().addHandler(__get_console_handler(verbose))
+
+        if enable_open_telemetry_logger:
+            try:
+                from opentelemetry._logs import set_logger_provider
+                from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+                from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, ConsoleLogExporter
+
+                logger_provider = LoggerProvider()
+                set_logger_provider(logger_provider)
+                logger_provider.add_log_record_processor(BatchLogRecordProcessor(ConsoleLogExporter()))
+                handler = LoggingHandler(level=INFO, logger_provider=logger_provider)
+
+                # Attach OTel handler to logger
+                getLogger().addHandler(handler)
+            except ImportError:
+                getLogger().warning('OpenTelemetry not imported. Skipping OpenTelemetry logger initialization.')
 
         # Log file handler
         log_file_name = __generate_log_file_name(launch_datetime)
@@ -46,8 +70,7 @@ def setup_loggers(verbose: bool):
     def __generate_log_file_name(launch_datetime: datetime) -> str:
         '''Generates a unique log file name for the current script.'''
         log_dir = path.join(get_repo_root_path(), 'logs')
-        if not path.exists(log_dir):
-            makedirs(log_dir)
+        makedirs(log_dir, exist_ok=True)
 
         if not hasattr(__main__, '__file__'):
             script_name = 'python_interactive_mode'
@@ -59,7 +82,7 @@ def setup_loggers(verbose: bool):
             timestamp, script_name, getpid())
         return path.join(log_dir, log_file_name)
 
-    def __get_console_handler(verbose: bool) -> StreamHandler:
+    def __get_console_handler(verbose: bool):
         console_handler = StreamHandler()
         level = INFO if verbose else WARNING
         console_handler.setLevel(level)
@@ -67,9 +90,11 @@ def setup_loggers(verbose: bool):
         return console_handler
 
     def __get_file_handler(file: str) -> FileHandler:
-        file_handler = FileHandler(file)
+        file_handler = FileHandler(file, encoding='utf-8')
         file_handler.setLevel(INFO)
         file_handler.setFormatter(__formatter())
         return file_handler
 
-    __initialize(verbose)
+    if not logger_state_manager.get_initialized():
+        __initialize(verbose)
+        logger_state_manager.set_initialized(True)

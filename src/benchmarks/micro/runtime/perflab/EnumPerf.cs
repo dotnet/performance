@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -28,6 +28,7 @@ namespace PerfLabTests
         public int EnumCompareTo(Color color) => color.CompareTo(Color.White);
 
         [Benchmark]
+        [MemoryRandomization]
         public Type ObjectGetType() => Color.Black.GetType();
 
         [Benchmark]

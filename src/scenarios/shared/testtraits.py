@@ -1,3 +1,4 @@
+from typing import Any
 from shared.util import const
 
 # These are the kinds of scenarios we run. Default here indicates whether ALL
@@ -8,7 +9,8 @@ testtypes = [const.STARTUP,
              const.CROSSGEN2,
              const.SOD,
              const.INNERLOOP,
-             const.DEVICESTARTUP]
+             const.DEVICESTARTUP,
+             const.BUILDTIME]
 
 class TestTraits:
 
@@ -20,6 +22,8 @@ class TestTraits:
         self.apptorun = ''
         self.guiapp = ''
         self.startupmetric = ''
+        self.memoryconsumptionmetric = ''
+        self.powerconsumptionmetric = ''
         self.appargs = ''
         self.iterations = ''
         self.timeout = ''
@@ -42,7 +46,10 @@ class TestTraits:
         self.skipmeasurementiteration = ''
         self.parseonly = ''
         self.tracename = ''
-        self.tracefolder=''
+        self.tracefolder = ''
+        self.runwithdotnet = ''
+        self.affinity = ''
+        self.upload_to_perflab_container = False
 
         # add test types to traits
         for testtype in testtypes:
@@ -56,7 +63,7 @@ class TestTraits:
             raise Exception("exename cannot be empty")
 
     # add traits if not present or overwrite existing traits if overwrite=True
-    def add_traits(self, overwrite=True, **kwargs):
+    def add_traits(self, overwrite=True, **kwargs: Any):
         for keyword in kwargs:
             if not self.is_valid_trait(keyword):
                 raise Exception("%s is not a valid trait." % keyword)

@@ -1,0 +1,43 @@
+# initial phase with 20 threads allocating at full speed
+[phase]
+  totalAllocGB 1000
+  totalLiveGB 10
+  requestAllocMB 10
+  requestLiveMB 1
+  threadCount 20
+  [bucket]
+    lowSize 48
+    highSize 84999
+    survInterval 50
+    reqSurvInterval 3
+    pinInterval 0
+    sizeDistribution 1
+  [bucket]
+    lowSize 85000
+    highSize 2000000000
+    survInterval 5
+    reqSurvInterval 2
+    pinInterval 0
+    sizeDistribution 1
+# "idle" phase with 1 thread mostly computing
+[phase]
+  totalAllocGB 100
+  totalLiveGB 1
+  requestAllocMB 10
+  requestLiveMB 1
+  threadCount 1
+  compute 1000
+  [bucket]
+    lowSize 48
+    highSize 84999
+    survInterval 50
+    reqSurvInterval 3
+    pinInterval 0
+    sizeDistribution 1
+  [bucket]
+    lowSize 85000
+    highSize 2000000000
+    survInterval 5
+    reqSurvInterval 2
+    pinInterval 0
+    sizeDistribution 1

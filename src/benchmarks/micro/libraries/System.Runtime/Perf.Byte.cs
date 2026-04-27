@@ -30,6 +30,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
+        [MemoryRandomization]
         public string ToString(byte value) => value.ToString();
     }
 }

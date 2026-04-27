@@ -24,15 +24,26 @@ namespace System.Net.Test.Common
             public static X509Certificate2 GetRSA4096Certificate() => GetCertificate("rsa4096.pfx");
 
             private static X509Certificate2 GetCertificate(string certificateFileName)
-                => new X509Certificate2(
-                    File.ReadAllBytes(
-                        Path.Combine(
-                            AppContext.BaseDirectory, 
-                            "libraries", 
-                            "System.Net.Http", 
-                            certificateFileName)),
-                    CertificatePassword,
-                    X509KeyStorageFlags.DefaultKeySet);
+            {
+                try
+                {
+                    #pragma warning disable SYSLIB0057 // Warning disabled per https://github.com/dotnet/docs/issues/41662, TODO: Update to use X509CertificateLoader.LoadPkcs12FromFile we are able to use it (will need to version block with this regardless).
+                    return new X509Certificate2(
+                         File.ReadAllBytes(
+                             Path.Combine(
+                                 AppContext.BaseDirectory,
+                                 "libraries",
+                                 "System.Net.Http",
+                                 certificateFileName)),
+                         CertificatePassword,
+                         X509KeyStorageFlags.DefaultKeySet);
+                    #pragma warning restore SYSLIB0057
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
         }
     }
 }

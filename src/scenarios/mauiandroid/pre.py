@@ -1,49 +1,49 @@
 '''
 pre-command
 '''
-import sys
 import os
-from zipfile import ZipFile
+import shutil
+import sys
 from performance.logger import setup_loggers, getLogger
-from shutil import copyfile
+from shared import const
+from shared.mauisharedpython import remove_aab_files, install_latest_maui, MauiNuGetConfigContext
 from shared.precommands import PreCommands
-from shared.const import PUBDIR
-from argparse import ArgumentParser
+from shared.versionmanager import versions_write_json, get_sdk_versions
+from test import EXENAME
 
 setup_loggers(True)
+logger = getLogger(__name__)
+logger.info("Starting pre-command for MAUI Android template app (dotnet new maui)")
 
-parser = ArgumentParser()
-parser.add_argument('--unzip', help='Unzip APK and report extracted tree', action='store_true', default=False)
-parser.add_argument(
-        '--apk-name',
-        dest='apk',
-        required=True,
-        type=str,
-        help='Name of the APK to setup')
-args = parser.parse_args()
+precommands = PreCommands()
 
-if not os.path.exists(PUBDIR):
-    os.mkdir(PUBDIR)
-apkname = args.apk
-apknamezip = '%s.zip' % (apkname)
-if not os.path.exists(apkname):
-    getLogger().error('Cannot find %s' % (apkname))
-    exit(-1)
-if args.unzip:
-    if not os.path.exists(apknamezip):
-        copyfile(apkname, apknamezip)
+# Use context manager to temporarily merge MAUI's NuGet feeds into repo config
+# This ensures dotnet package search, dotnet new, and dotnet build/publish have access to MAUI packages
+with MauiNuGetConfigContext(precommands.framework):
+    install_latest_maui(precommands)
+    precommands.print_dotnet_info()
+    # Setup the Maui folder - will use merged NuGet.config with MAUI feeds
+    precommands.new(template='maui',
+                    output_dir=const.APPDIR,
+                    bin_dir=const.BINDIR,
+                    exename=EXENAME,
+                    working_directory=sys.path[0],
+                    no_restore=False)
+    
+    # Build the APK - will also use merged NuGet.config
+    precommands.execute([])
+    # NuGet.config is automatically restored after this block
 
-    with ZipFile(apknamezip) as zip:
-        zip.extractall(os.path.join('.', PUBDIR))
+# Remove the aab files as we don't need them, this saves space
+output_dir = const.PUBDIR
+if precommands.output:
+    output_dir = precommands.output
+remove_aab_files(output_dir)
 
-    assets_dir = os.path.join(PUBDIR, 'assets')
-    assets_zip = os.path.join(assets_dir, 'assets.zip')
-    with ZipFile(assets_zip) as zip:
-        zip.extractall(assets_dir)
-
-    os.remove(assets_zip)
-else:
-    copyfile(apkname, os.path.join(PUBDIR, apkname))
-
-
-
+# Extract the versions of used SDKs from the linked folder DLLs (Release) or assets folder (Debug)
+dll_folder = os.path.join(".", const.APPDIR, "obj", precommands.configuration, precommands.framework, "android-arm64", "linked")
+if not os.path.isdir(dll_folder):
+    dll_folder = os.path.join(".", const.APPDIR, "obj", precommands.configuration, precommands.framework, "android-arm64", "android", "assets", "arm64-v8a")
+version_dict = get_sdk_versions(dll_folder)
+versions_write_json(version_dict, os.path.join(output_dir, "versions.json"))
+print(f"Versions: {version_dict} from location {dll_folder}")

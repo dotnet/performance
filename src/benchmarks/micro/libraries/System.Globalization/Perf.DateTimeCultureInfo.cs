@@ -46,6 +46,7 @@ namespace System.Globalization.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public string ToStringHebrewIsrael() => _time.ToString(_hebrewIsrael);
     }
 }

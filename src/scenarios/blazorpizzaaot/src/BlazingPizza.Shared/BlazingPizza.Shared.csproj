@@ -7,6 +7,8 @@
     <RootNamespace>BlazingPizza</RootNamespace>
   </PropertyGroup>
 
+  <Import Project="$(BuildCommonPath)\Blazor.PackageVersions.props" />
+
   <ItemGroup>
     <ProjectReference Include="..\BlazingPizza.ComponentsLibrary\BlazingPizza.ComponentsLibrary.csproj" />
   </ItemGroup>

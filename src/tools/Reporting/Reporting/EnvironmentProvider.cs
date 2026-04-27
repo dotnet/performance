@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Collections;
 
-namespace Reporting
+namespace Reporting;
+
+public class EnvironmentProvider : IEnvironment
 {
-    public class EnvironmentProvider : IEnvironment
-    {
-        public string GetEnvironmentVariable(string variable) => Environment.GetEnvironmentVariable(variable);
-    }
+    public string GetEnvironmentVariable(string variable) => Environment.GetEnvironmentVariable(variable);
+
+    public IDictionary GetEnvironmentVariables() => Environment.GetEnvironmentVariables();
 }

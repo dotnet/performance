@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -40,6 +40,7 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public byte GetByte()
         {
             byte result = 0;
@@ -54,6 +55,7 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public sbyte GetSByte()
         {
             sbyte result = 0;
@@ -68,6 +70,7 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public short GetInt16()
         {
             short result = 0;
@@ -96,6 +99,7 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public long GetInt64()
         {
             long result = 0;
@@ -110,6 +114,7 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ushort GetUInt16()
         {
             ushort result = 0;
@@ -124,6 +129,7 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public uint GetUInt32()
         {
             uint result = 0;
@@ -138,6 +144,7 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ulong GetUInt64()
         {
             ulong result = 0;
@@ -152,6 +159,7 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public float GetSingle()
         {
             float result = 0;
@@ -180,6 +188,7 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public decimal GetDecimal()
         {
             decimal result = 0;
@@ -222,6 +231,7 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public Guid GetGuid()
         {
             Guid result = default;

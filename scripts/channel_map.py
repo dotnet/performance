@@ -1,40 +1,125 @@
-from argparse import ArgumentParser
+from typing import Optional
 
 class ChannelMap():
     channel_map = {
-        'release/7.0-preview4': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview3': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview2': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview1': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/6.0': {
-            'tfm': 'net6.0',
-            'branch': '6.0.1xx',
-            'quality': 'daily'
-        },
-        '6.0': {
-            'tfm': 'net6.0',
-            'branch': '6.0.1xx',
-            'quality': 'daily'
-        },
         'main': {
+            'tfm': 'net11.0',
+            'branch': '11.0',
+            'quality': 'daily'
+        },
+        '10.0': {
+            'tfm': 'net10.0',
+            'branch': '10.0',
+            'quality': 'daily'
+        },
+        'release/10.0': {
+            'tfm': 'net10.0',
+            'branch': '10.0',
+            'quality': 'daily'
+        },
+        'nativeaot10.0': {
+            'tfm': 'nativeaot10.0',
+            'branch': '10.0',
+            'quality': 'daily'
+        },
+        'nativeaot11.0': {
+            'tfm': 'nativeaot11.0',
+            'branch': '11.0',
+            'quality': 'daily'
+        },
+        '9.0': {
+            'tfm': 'net9.0',
+            'branch': '9.0',
+            'quality': 'daily'
+        },
+        'release/9.0': {
+            'tfm': 'net9.0',
+            'branch': '9.0',
+            'quality': 'daily'
+        },
+        'nativeaot9.0': {
+            'tfm': 'nativeaot9.0',
+            'branch': '9.0',
+            'quality': 'daily'
+        },
+        '8.0': {
+            'tfm': 'net8.0',
+            'branch': '8.0',
+            'quality': 'daily'
+        },
+        'release/8.0': {
+            'tfm': 'net8.0',
+            'branch': '8.0',
+            'quality': 'daily'
+        },
+        'release/8.0-rc2': {
+            'tfm': 'net8.0',
+            'branch': '8.0-rc2',
+            'quality': 'daily'
+        },
+        'release/8.0-rc1': {
+            'tfm': 'net8.0',
+            'branch': '8.0-rc1',
+            'quality': 'daily'
+        },
+        '8.0-preview': {
+            'tfm': 'net8.0',
+            'branch': '8.0',
+            'qualtiy': 'preview'
+        },
+        'release/8.0-preview7': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview7',
+            'quality': 'daily'
+        },
+        'release/8.0-preview6': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview6',
+            'quality': 'daily'
+        },
+        'release/8.0-preview5': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview5',
+            'quality': 'daily'
+        },
+        'release/8.0-preview4': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview4',
+            'quality': 'daily'
+        },
+        'release/8.0-preview3': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview3',
+            'quality': 'daily'
+        },
+        'release/8.0-preview2': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview2',
+            'quality': 'daily'
+        },
+        'release/8.0-preview1': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview1',
+            'quality': 'daily'
+        },
+        'nativeaot8.0': {
+            'tfm': 'nativeaot8.0',
+            'branch': '8.0',
+            'quality': 'daily'
+        },
+        '7.0': {
             'tfm': 'net7.0',
-            'branch': '7.0.1xx',
+            'branch': '7.0',
+            'quality': 'daily'
+        },
+        'release/7.0-rc2': {
+            'tfm': 'net7.0',
+            'branch': '7.0-rc2',
+            'quality': 'daily'
+        },
+        'release/7.0-rc1': {
+            'tfm': 'net7.0',
+            'branch': '7.0-rc1',
             'quality': 'daily'
         },
         'nativeaot7.0': {
@@ -42,27 +127,25 @@ class ChannelMap():
             'branch': '7.0.1xx',
             'quality': 'daily'
         },
-        'master': {
+        'release/7.0': {
+            'tfm': 'net7.0',
+            'branch': '7.0',
+            'quality': 'daily'
+        },
+        '6.0': {
             'tfm': 'net6.0',
-            'branch': 'master'
+            'branch': '6.0',
+            'quality': 'daily'
+        },
+        'release/6.0': {
+            'tfm': 'net6.0',
+            'branch': '6.0',
+            'quality': 'daily'
         },
         'nativeaot6.0': {
             'tfm': 'nativeaot6.0',
-            'branch': '6.0.1xx',
+            'branch': '6.0',
             'quality': 'daily'
-        },
-        '5.0':{
-            'tfm': 'net5.0',
-            'branch': '5.0.4xx',
-            'quality': 'daily'
-        },
-        'release/5.0.1xx-rc2':{
-            'tfm': 'net5.0',
-            'branch': 'release/5.0.1xx-rc2'
-        },
-        'release/5.0.1xx':{
-            'tfm': 'net5.0',
-            'branch': 'release/5.0.1xx'
         },
         'release/3.1.3xx':{
             'tfm': 'netcoreapp3.1',
@@ -81,34 +164,27 @@ class ChannelMap():
             'branch': '3.1.4xx',
             'quality': 'daily'
         },
-        '3.0': {
-            'tfm': 'netcoreapp3.0',
-            'branch': 'release/3.0'
-        },
-        'release/2.1.6xx': {
-            'tfm': 'netcoreapp2.1',
-            'branch': 'release/2.1.6xx'
-        },
-        '2.1': {
-            'tfm': 'netcoreapp2.1',
-            'branch': 'release/2.1'
-        },
-        'LTS': {
-            'tfm': 'net461', # For Full Framework download the LTS for dotnet cli.
-            'branch': 'LTS'
+        'net472': {
+            'tfm': 'net472',
+            'branch': '9.0',
+            'quality': 'daily'
         },
         'net48': {
             'tfm': 'net48', # For Full Framework download the LTS for dotnet cli.
             'branch': 'LTS'
+        },
+        'master': {
+            'tfm': 'net6.0',
+            'branch': 'master'
         }
     }
     @staticmethod
-    def get_supported_channels() -> list:
+    def get_supported_channels() -> list[str]:
         '''List of supported channels.'''
         return list(ChannelMap.channel_map.keys())
 
     @staticmethod
-    def get_supported_frameworks() -> list:
+    def get_supported_frameworks() -> set[str]:
         '''List of supported frameworks'''
         frameworks = [ChannelMap.channel_map[channel]['tfm'] for channel in ChannelMap.channel_map]
         return set(frameworks)
@@ -121,7 +197,7 @@ class ChannelMap():
             raise Exception('Channel %s is not supported. Supported channels %s' % (channel, ChannelMap.get_supported_channels()))
 
     @staticmethod
-    def get_target_framework_monikers(channels: list) -> list:
+    def get_target_framework_monikers(channels: list[str]) -> list[str]:
         '''
         Translates channel names to Target Framework Monikers (TFMs).
         '''
@@ -142,7 +218,7 @@ class ChannelMap():
             raise Exception('Channel %s is not supported. Supported channels %s' % (channel, ChannelMap.get_supported_channels()))
 
     @staticmethod
-    def get_quality_from_channel(channel: str) -> str:
+    def get_quality_from_channel(channel: str) -> Optional[str]:
         '''Translate Target Framework Moniker (TFM) to channel name'''
         if 'quality' in ChannelMap.channel_map[channel]:
             return ChannelMap.channel_map[channel]['quality']

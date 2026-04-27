@@ -22,7 +22,6 @@ namespace MicroBenchmarks.Serializers
     {
         private readonly T value;
         private readonly MemoryStream memoryStream;
-        private readonly BinaryFormatter binaryFormatter;
 
         public Binary_ToStream()
         {
@@ -30,17 +29,8 @@ namespace MicroBenchmarks.Serializers
 
             // the stream is pre-allocated, we don't want the benchmarks to include stream allocaton cost
             memoryStream = new MemoryStream(capacity: short.MaxValue);
-            binaryFormatter = new BinaryFormatter();
 
             ProtoBuf.Meta.RuntimeTypeModel.Default.Add(typeof(DateTimeOffset), false).SetSurrogate(typeof(DateTimeOffsetSurrogate)); // https://stackoverflow.com/a/7046868
-        }
-
-        [BenchmarkCategory(Categories.Libraries)]
-        [Benchmark(Description = nameof(BinaryFormatter))]
-        public void BinaryFormatter_()
-        {
-            memoryStream.Position = 0;
-            binaryFormatter.Serialize(memoryStream, value);
         }
 
         [BenchmarkCategory(Categories.ThirdParty)]

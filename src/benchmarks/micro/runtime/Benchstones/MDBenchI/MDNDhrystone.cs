@@ -244,6 +244,7 @@ public class MDNDhrystone
     }
 
     [Benchmark(Description = nameof(MDNDhrystone))]
+    [MemoryRandomization]
     public bool Test() {
         m_array2Glob = new int[51, 51];
         Proc0();

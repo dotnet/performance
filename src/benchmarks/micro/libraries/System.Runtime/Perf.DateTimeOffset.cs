@@ -16,6 +16,7 @@ namespace System.Tests
         DateTimeOffset date2 = new DateTimeOffset(new DateTime(1996, 12, 6, 13, 2, 0), new TimeSpan(5, 0, 0));
         
         [Benchmark]
+        [MemoryRandomization]
         public DateTimeOffset GetNow() => DateTimeOffset.Now;
 
         [Benchmark]
@@ -32,6 +33,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ToString_MemberData))]
+        [MemoryRandomization]
         public string ToString(string format) => date1.ToString(format);
 
         [Benchmark]
@@ -46,6 +48,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
+        [MemoryRandomization]
         public string ToString(DateTimeOffset value) => value.ToString();
 
         [Benchmark]

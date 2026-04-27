@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -67,6 +67,7 @@ namespace System.Numerics.Tests
         public Quaternion CreateFromYawPitchRollBenchmark() => Quaternion.CreateFromYawPitchRoll(PI, PI / 2.0f, PI / 4.0f);
 
         [Benchmark]
+        [MemoryRandomization]
         public Quaternion DivideBenchmark() => Quaternion.Add(Quaternion.Identity, Quaternion.Identity);
 
         [Benchmark]

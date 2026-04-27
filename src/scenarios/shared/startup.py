@@ -3,14 +3,12 @@ Wrapper around startup tool.
 '''
 import sys
 import os
-import platform
 from logging import getLogger
 from shutil import copytree
-from performance.logger import setup_loggers
-from performance.common import extension, iswin, helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
+from performance.common import extension, helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import helixworkitempayload, helixuploaddir, builtexe, publishedexe, uploadtokenpresent, getruntimeidentifier, iswin
+from shared.util import helixworkitempayload, helixuploaddir, getruntimeidentifier
 from shared.const import *
 from shared.testtraits import TestTraits
 from subprocess import CalledProcessError
@@ -21,10 +19,12 @@ class StartupWrapper(object):
     def __init__(self):
         startupdir = 'startup'
         self.reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
-        if helixpayload() and os.path.exists(os.path.join(helixpayload(), startupdir)):
-            self._setstartuppath(os.path.join(helixpayload(), startupdir))
-        elif helixworkitempayload() and os.path.exists(os.path.join(helixworkitempayload(), startupdir)):
-            self._setstartuppath(os.path.join(helixworkitempayload(), startupdir))
+        helix_payload = helixpayload()
+        helix_workitem_payload = helixworkitempayload()
+        if helix_payload and os.path.exists(os.path.join(helix_payload, startupdir)):
+            self._setstartuppath(os.path.join(helix_payload, startupdir))
+        elif helix_workitem_payload and os.path.exists(os.path.join(helix_workitem_payload, startupdir)):
+            self._setstartuppath(os.path.join(helix_workitem_payload, startupdir))
         else:
             relpath = os.path.join(get_artifacts_directory(), startupdir)
             startupproj = os.path.join('..',
@@ -83,11 +83,15 @@ class StartupWrapper(object):
             # rethrow the original exception 
             raise
 
-        if runninginlab():
-            copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
-            if uploadtokenpresent():
+        helix_upload_dir = helixuploaddir()
+        if runninginlab() and helix_upload_dir is not None:
+            copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'))
+            if traits.upload_to_perflab_container:
                 import upload
-                upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                upload_code = upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
+                getLogger().info("Startup Upload Code: " + str(upload_code))
+                if upload_code != 0:
+                    sys.exit(upload_code)
 
     def runtests(self, traits: TestTraits):
         '''
@@ -98,7 +102,7 @@ class StartupWrapper(object):
             if not getattr(traits, key):
                 raise Exception('startup tests require %s' % key)
         
-        defaultiterations = '1' if runninginlab() and not uploadtokenpresent() else '5' # only run 1 iteration for PR-triggered build
+        defaultiterations = '1' if runninginlab() and not traits.upload_to_perflab_container else '5' # only run 1 iteration for PR-triggered build
         # required arguments & optional arguments with default values
         startup_args = [
             self.startuppath,
@@ -143,6 +147,10 @@ class StartupWrapper(object):
             startup_args.extend(['--hot-reload-iters', traits.hotreloaditers])
         if traits.skipmeasurementiteration:
             startup_args.extend(['--skip-measurement-iteration', traits.skipmeasurementiteration])
+        if traits.runwithdotnet:
+            startup_args.extend(['--run-with-dotnet'])
+        if traits.affinity:
+            startup_args.extend(['--affinity', traits.affinity])
             
         upload_container = UPLOAD_CONTAINER
 
@@ -153,11 +161,12 @@ class StartupWrapper(object):
             # rethrow the original exception 
             raise
 
-        if runninginlab():
-            copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
-            if uploadtokenpresent():
+        helix_upload_dir = helixuploaddir()
+        if runninginlab() and helix_upload_dir is not None:
+            copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'))
+            if traits.upload_to_perflab_container:
                 import upload
-                upload_code = upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                upload_code = upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_STORAGE_URI)
                 getLogger().info("Startup Upload Code: " + str(upload_code))
                 if upload_code != 0:
                     sys.exit(upload_code)

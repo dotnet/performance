@@ -1,83 +1,138 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
-  <ItemGroup>
-    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
-      <PayloadDirectory>%(Identity)</PayloadDirectory>
-    </HelixCorrelationPayload>
-  </ItemGroup>
+  <Import Project="Scenarios.Common.props" />
 
-  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
-    <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
-    <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
-    <RID>win-$(Architecture)</RID>
+  <PropertyGroup>
+    <AfterPreparePayloadWorkItemCommand>$(Python) post.py</AfterPreparePayloadWorkItemCommand>
+    <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
-    <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
-    <HelixPreCommands>$(HelixPreCommands);sudo apt-get update;chmod +x $HELIX_CORRELATION_PAYLOAD/startup/perfcollect</HelixPreCommands>
-    <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
-    <RID>linux-$(Architecture)</RID>
-  </PropertyGroup>
-
-  <ItemDefinitionGroup>
-      <HelixWorkItem>
-      <Timeout>4:00</Timeout>
-    </HelixWorkItem>
-  </ItemDefinitionGroup>
-  
 
   <ItemGroup>
     <Scenario Include="Static Console Template">
-      <PayloadDirectory>$(ScenariosDir)staticconsoletemplate</PayloadDirectory>
+      <ScenarioDirectoryName>staticconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
     <Scenario Include="Static VB Console Template">
-      <PayloadDirectory>$(ScenariosDir)staticvbconsoletemplate</PayloadDirectory>
+      <ScenarioDirectoryName>staticvbconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
     <Scenario Include="Static F# Console Template">
-      <PayloadDirectory>$(ScenariosDir)staticfsconsoletemplate</PayloadDirectory>
+      <ScenarioDirectoryName>staticfsconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
-    <!-- <Scenario Include="Static Winforms Template" Condition="'$(_Framework)' != 'netcoreapp5.0'">
-      <PayloadDirectory>$(ScenariosDir)staticwinformstemplate</PayloadDirectory>
-    </Scenario> -->
     <Scenario Include="New Console Template">
-      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
+      <ScenarioDirectoryName>emptyconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
     <Scenario Include="New VB Console Template">
-      <PayloadDirectory>$(ScenariosDir)emptyvbconsoletemplate</PayloadDirectory>
+      <ScenarioDirectoryName>emptyvbconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
+    <!-- Static Winforms Template: limited to internal (SYSTEM_TEAMPROJECT=internal) runs due to flakiness (CloseFailed) on generic CI VMs.
+      Override with /p:IncludeVMFlakyScenarios=true to include on other builds. -->
+    <UIScenario Include="Static Winforms Template" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT' AND ( '$(SYSTEM_TEAMPROJECT)' == 'internal' OR '$(IncludeVMFlakyScenarios)' == 'true' )">
+      <ScenarioDirectoryName>staticwinformstemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </UIScenario>
+    <!-- WinForms Large: gated for consistency with Static Winforms Template.
+      Override with /p:IncludeVMFlakyScenarios=true to include on other builds. -->
+    <UIScenario Include="WinForms Large" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT' AND ( '$(SYSTEM_TEAMPROJECT)' == 'internal' OR '$(IncludeVMFlakyScenarios)' == 'true' )">
+      <ScenarioDirectoryName>windowsformslarge</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </UIScenario>
+    <!-- WPF Template: limited to internal runs due to CloseFailed on generic CI VMs (same issue as WinForms).
+      Override with /p:IncludeVMFlakyScenarios=true to include on other builds. -->
+    <UIScenario Include="WPF Template" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT' AND ( '$(SYSTEM_TEAMPROJECT)' == 'internal' OR '$(IncludeVMFlakyScenarios)' == 'true' )">
+      <ScenarioDirectoryName>wpf</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </UIScenario>
+    <!-- WPF SFC: gated for consistency with WPF Template.
+      Override with /p:IncludeVMFlakyScenarios=true to include on other builds. -->
+    <UIScenario Include="WPF SFC" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT' AND ( '$(SYSTEM_TEAMPROJECT)' == 'internal' OR '$(IncludeVMFlakyScenarios)' == 'true' )">
+      <ScenarioDirectoryName>wpfsfc</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </UIScenario>
+    <UIScenario Include="PaintDotNet" Condition="'$(TargetsWindows)' == 'true' And $(BUILD_REPOSITORY_PROVIDER) == 'TfsGit' And '$(Architecture)' != 'x86'">
+      <ScenarioDirectoryName>paintdotnet</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <ExplicitPrepareCommand>$(Python) pre.py extract -p $(CorrelationPayloadDirectory)PDN\PDN.zip -o $(PreparePayloadWorkItemBaseDirectory)%(ScenarioDirectoryName)_fdd</ExplicitPrepareCommand>
+    </UIScenario>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PreparePayloadWorkItem Include="@(UIScenario -> '%(Identity) - FDD Publish')">
+      <Command Condition="'%(PreparePayloadWorkItem.ExplicitPrepareCommand)' != ''">%(PreparePayloadWorkItem.ExplicitPrepareCommand)</Command>
+      <Command Condition="'%(PreparePayloadWorkItem.ExplicitPrepareCommand)' == ''">$(Python) pre.py publish -f $(PERFLAB_Framework) -c Release --windowsui -r $(RID) --no-self-contained -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_fdd</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+    <PreparePayloadWorkItem Include="@(Scenario -> '%(Identity) - FDD Publish')">
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework) -c Release -r $(RID) --no-self-contained -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_fdd</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+    <PreparePayloadWorkItem Include="@(Scenario -> '%(Identity) - SCD Publish')">
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework) -c Release -r $(RID) --self-contained -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_scd</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+    <PreparePayloadWorkItem Include="@(Scenario -> '%(Identity) - Build')">
+      <Command>$(Python) pre.py build -f $(PERFLAB_Framework) -c Release -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_build</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+  </ItemGroup>
+
+  <!-- Startup scenarios are temporarily disabled on non-Windows runs as lttng kernel modules are failing to install: https://github.com/dotnet/performance/issues/4149 -->
+
+  <!-- UI Startup FDD publish -->
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
+    <HelixWorkItem Include="@(UIScenario -> 'Startup - %(Identity) - FDD Publish')">
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_fdd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_fdd $HELIX_WORKITEM_ROOT/pub</PreCommands>
+      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
+    </HelixWorkItem>
   </ItemGroup>
 
   <!-- Startup FDD publish -->
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="@(Scenario -> 'Startup - %(Identity) - FDD Publish')">
-      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
-      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_fdd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_fdd $HELIX_WORKITEM_ROOT/pub</PreCommands>
+      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
   </ItemGroup>
 
   <!-- SOD FDD publish -->
   <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - FDD Publish')">
-      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_fdd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_fdd $HELIX_WORKITEM_ROOT/pub</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
   </ItemGroup>
 
   <!-- SOD SCD publish w/ RID -->
   <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - SCD Publish')">
-      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release -r $(RID)</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_scd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_scd $HELIX_WORKITEM_ROOT/pub</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
   </ItemGroup>
 
   <!-- SOD build -->
   <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - Build')">
-      <PreCommands>$(Python) pre.py build -c Release -f $(_Framework)</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_build %HELIX_WORKITEM_ROOT%\bin /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_build $HELIX_WORKITEM_ROOT/bin</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
   </ItemGroup>
+
+
+  <Import Project="PreparePayloadWorkItems.targets" />
+
 
   <!--
     This is useful for local testing to print the produced helix items

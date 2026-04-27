@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -59,12 +59,15 @@ namespace System.Globalization.Tests
         }
 
         [Benchmark] // the most work to do: the strings have same content, but don't point to the same memory
+        [MemoryRandomization]
         public int Compare_Same() => Options.CultureInfo.CompareInfo.Compare(_value, _same, Options.CompareOptions);
 
         [Benchmark] // the most work to do for IgnoreCase: every char needs to be compared and uppercased
+        [MemoryRandomization]
         public int Compare_Same_Upper() => Options.CultureInfo.CompareInfo.Compare(_value, _sameUpper, Options.CompareOptions);
 
         [Benchmark] // this should return quickly
+        [MemoryRandomization]
         public int Compare_DifferentFirstChar() => Options.CultureInfo.CompareInfo.Compare(_value, _diffAtFirstChar, Options.CompareOptions);
     }
 }

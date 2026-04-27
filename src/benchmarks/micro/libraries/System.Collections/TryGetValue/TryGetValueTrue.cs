@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.Frozen;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
@@ -14,7 +15,9 @@ using MicroBenchmarks;
 namespace System.Collections
 {
     [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
-    [GenericTypeArguments(typeof(int), typeof(int))] // value type
+    [GenericTypeArguments(typeof(int), typeof(int))] // primitive value type
+    [GenericTypeArguments(typeof(BigStruct), typeof(BigStruct))] // big value type
+    [GenericTypeArguments(typeof(SmallClass), typeof(SmallClass))] // reference type
     [GenericTypeArguments(typeof(string), typeof(string))] // reference type
     public class TryGetValueTrue<TKey, TValue>
     {
@@ -27,6 +30,10 @@ namespace System.Collections
         private ConcurrentDictionary<TKey, TValue> _concurrentDictionary;
         private ImmutableDictionary<TKey, TValue> _immutableDictionary;
         private ImmutableSortedDictionary<TKey, TValue> _immutableSortedDictionary;
+        private FrozenDictionary<TKey, TValue> _frozenDictionary;
+#if NET9_0_OR_GREATER
+        private OrderedDictionary<TKey, TValue> _orderedDictionary;
+#endif
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
@@ -42,6 +49,10 @@ namespace System.Collections
             _concurrentDictionary = new ConcurrentDictionary<TKey, TValue>(_source);
             _immutableDictionary = Immutable.ImmutableDictionary.CreateRange<TKey, TValue>(_source);
             _immutableSortedDictionary = Immutable.ImmutableSortedDictionary.CreateRange<TKey, TValue>(_source);
+            _frozenDictionary = _source.ToFrozenDictionary();
+#if NET9_0_OR_GREATER
+            _orderedDictionary = new OrderedDictionary<TKey, TValue>(_source);
+#endif
         }
 
         [Benchmark]
@@ -123,5 +134,29 @@ namespace System.Collections
                 result ^= collection.TryGetValue(found[i], out _);
             return result;
         }
+
+        [Benchmark(Description = "FrozenDictionary")]
+        public bool FrozenDictionaryOptimized() // we kept the old name on purpose to avoid loosing historical data
+        {
+            bool result = default;
+            FrozenDictionary<TKey, TValue> collection = _frozenDictionary;
+            TKey[] found = _found;
+            for (int i = 0; i < found.Length; i++)
+                result ^= collection.TryGetValue(found[i], out _);
+            return result;
+        }
+
+#if NET9_0_OR_GREATER
+        [Benchmark]
+        public bool OrderedDictionary()
+        {
+            bool result = default;
+            OrderedDictionary<TKey, TValue> collection = _orderedDictionary;
+            TKey[] found = _found;
+            for (int i = 0; i < found.Length; i++)
+                result ^= collection.TryGetValue(found[i], out _);
+            return result;
+        }
+#endif
     }
 }

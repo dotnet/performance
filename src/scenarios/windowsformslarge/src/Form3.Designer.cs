@@ -84,7 +84,6 @@
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.label13 = new System.Windows.Forms.Label();
             this.label15 = new System.Windows.Forms.Label();
-            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.label12 = new System.Windows.Forms.Label();
             this.label14 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
@@ -376,15 +375,6 @@
             this.label15.Size = new System.Drawing.Size(343, 20);
             this.label15.TabIndex = 22;
             this.label15.Text = "FlowLayoutPanel>TabControl>TreeView";
-            // 
-            // webBrowser1
-            // 
-            this.webBrowser1.Location = new System.Drawing.Point(748, 333);
-            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
-            this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(189, 275);
-            this.webBrowser1.TabIndex = 21;
-            this.webBrowser1.Url = new System.Uri("https://msdn.microsoft.com/en-us/", System.UriKind.Absolute);
             // 
             // label12
             // 
@@ -921,7 +911,6 @@
             this.groupBox1.Controls.Add(this.panel1);
             this.groupBox1.Controls.Add(this.splitContainer1);
             this.groupBox1.Controls.Add(this.label15);
-            this.groupBox1.Controls.Add(this.webBrowser1);
             this.groupBox1.Controls.Add(this.label12);
             this.groupBox1.Controls.Add(this.tableLayoutPanel1);
             this.groupBox1.Controls.Add(this.flowLayoutPanel1);
@@ -1075,7 +1064,6 @@
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.Label label15;
-        private System.Windows.Forms.WebBrowser webBrowser1;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.Button button2;

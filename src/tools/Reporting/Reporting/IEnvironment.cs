@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Collections;
 
-namespace Reporting
+namespace Reporting;
+
+public interface IEnvironment
 {
-    public interface IEnvironment
-    {
-        string GetEnvironmentVariable(string variable);
-    }
+    string GetEnvironmentVariable(string variable);
+
+    IDictionary GetEnvironmentVariables(); 
 }

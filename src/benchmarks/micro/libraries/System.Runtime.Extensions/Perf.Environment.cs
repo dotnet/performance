@@ -31,10 +31,12 @@ namespace System.Tests
 
         [Benchmark]
         [Arguments(Environment.SpecialFolder.System, Environment.SpecialFolderOption.None)]
+        [MemoryRandomization]
         public void GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option)
             => Environment.GetFolderPath(folder, option);
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public string[] GetLogicalDrives() => Environment.GetLogicalDrives();
 
         [Benchmark(OperationsPerInvoke = 2)]

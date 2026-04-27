@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -163,6 +163,7 @@ namespace System.Numerics.Tests
         public Matrix4x4 NegateBenchmark() => Matrix4x4.Negate(Matrix4x4.Identity);
 
         [Benchmark]
+        [MemoryRandomization]
         public Matrix4x4 SubtractBenchmark() => Matrix4x4.Subtract(Matrix4x4.Identity, Matrix4x4.Identity);
 
         [Benchmark]

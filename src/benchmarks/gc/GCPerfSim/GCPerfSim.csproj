@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- For a desktop build, you could add e.g. `net472;` here. -->
+    <TargetFrameworks>net7.0</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
+    <RootNamespace>gcperfsim_core</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <NullableReferenceTypes>true</NullableReferenceTypes>
+  </PropertyGroup>
+</Project>

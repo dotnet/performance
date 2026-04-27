@@ -5,8 +5,11 @@ Commands and utilities for pre.py scripts
 import sys
 import os
 import shutil
+import subprocess
+import json
 from logging import getLogger
 from argparse import ArgumentParser
+from typing import Optional
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from shared.crossgen import CrossgenArguments
@@ -18,6 +21,7 @@ BUILD = 'build'
 PUBLISH = 'publish'
 CROSSGEN = 'crossgen'
 CROSSGEN2 = 'crossgen2'
+EXTRACT = 'extract'
 DEBUG = 'Debug'
 RELEASE = 'Release'
 
@@ -25,7 +29,8 @@ OPERATIONS = (DEFAULT,
               BUILD,
               PUBLISH,
               CROSSGEN,
-              CROSSGEN2
+              CROSSGEN2,
+              EXTRACT
              )
 
 class PreCommands:
@@ -40,17 +45,35 @@ class PreCommands:
         parser = ArgumentParser()
 
         subparsers = parser.add_subparsers(title='Operations', 
-                                           description='Common preperation steps for perf tests. Should run under src\scenarios\<test asset folder>',
+                                           description='Common preperation steps for perf tests. Should run under src\\scenarios\\<test asset folder>',
                                            dest='operation')
 
         default_parser = subparsers.add_parser(DEFAULT, help='Default operation (placeholder command and no specific operation will be executed)' )
         self.add_common_arguments(default_parser)
+        
+        extract_parser = subparsers.add_parser(EXTRACT, help='Used for local runs that extract the binaries to be run from a zip file. Requires a path to the zip' )
+        self.add_common_arguments(extract_parser)
+        extract_parser.add_argument('-p', '--pathtozip',
+                    dest='pathtozip',
+                    metavar='pathtozip',
+                    help='Path to the zip file to extract',
+                    required=True)
 
         build_parser = subparsers.add_parser(BUILD, help='Builds the project')
         self.add_common_arguments(build_parser)
 
         publish_parser = subparsers.add_parser(PUBLISH, help='Publishes the project')
         self.add_common_arguments(publish_parser)
+        publish_parser.add_argument('--self-contained',
+                                    dest='self_contained',
+                                    default=False,
+                                    action='store_true',
+                                    help='Publish SCD')
+        publish_parser.add_argument('--no-self-contained',
+                                    dest='no_self_contained',
+                                    default=False,
+                                    action='store_true',
+                                    help='Publish FDD')
 
         crossgen_parser = subparsers.add_parser(CROSSGEN, help='Runs crossgen on a particular file')
         self.add_common_arguments(crossgen_parser)
@@ -74,11 +97,20 @@ class PreCommands:
         print(self.msbuild)
         self.msbuildstatic = args.msbuildstatic
         self.binlog = args.binlog
-
+        self.has_workload = args.has_workload
+        self.readonly_dotnet = args.readonly_dotnet
+        self.windows = args.windows
+        self.output = args.output
+        
+        if self.operation == PUBLISH:
+            self.self_contained = args.self_contained
+            self.no_self_contained = args.no_self_contained
         if self.operation == CROSSGEN:
             self.crossgen_arguments.parse_crossgen_args(args)
         if self.operation == CROSSGEN2:
             self.crossgen_arguments.parse_crossgen2_args(args)
+        if self.operation == EXTRACT:
+            self.pathtozip = args.pathtozip
 
 
     def new(self,
@@ -87,8 +119,10 @@ class PreCommands:
             bin_dir: str,
             exename: str,
             working_directory: str,
-            language: str = None,
-            no_https: bool = False):
+            language: Optional[str] = None,
+            no_https: bool = False,
+            no_restore: bool = True,
+            extra_args: Optional[list[str]] = None):
         'makes a new app with the given template'
         self.project = CSharpProject.new(template=template,
                                  output_dir=output_dir,
@@ -98,7 +132,9 @@ class PreCommands:
                                  force=True,
                                  verbose=True,
                                  language=language,
-                                 no_https=no_https)
+                                 no_https=no_https,
+                                 no_restore=no_restore,
+                                 extra_args=extra_args)
         self._updateframework(self.project.csproj_file)
         self._addstaticmsbuildproperty(self.project.csproj_file)
 
@@ -130,6 +166,24 @@ class PreCommands:
                             dest='binlog',
                             metavar='<file-name>.binlog',
                             help='flag to turn on binlog for build or publish; ex: <file-name>.binlog')
+        parser.add_argument('--has-workload',
+                            dest='has_workload',
+                            default=False,
+                            action='store_true',
+                            help='Indicates that the dotnet being used has workload already installed')
+        parser.add_argument('--readonly-dotnet',
+                            dest='readonly_dotnet',
+                            default=False,
+                            action='store_true',
+                            help='Indicates that the dotnet being used should not be modified (for example, when it is ahared with other builds)')
+        parser.add_argument('--windowsui',
+                            dest='windows',
+                            action='store_true',
+                            help='must be set for UI tests so the proper rid is used')
+        parser.add_argument('-o', '--output',
+                            dest='output',
+                            metavar='output',
+                            help='output directory')
         parser.set_defaults(configuration=RELEASE)
 
     def existing(self, projectdir: str, projectfile: str):
@@ -139,18 +193,21 @@ class PreCommands:
         self.project = CSharpProject(csproj, const.BINDIR)
         self._updateframework(csproj.file_name)
 
-    def execute(self):
+    def execute(self, build_args: list[str] = []):
         'Parses args and runs precommands'
         if self.operation == DEFAULT:
             pass
         if self.operation == BUILD:
             self._restore()
-            self._build(configuration=self.configuration, framework=self.framework)
+            self._build(configuration=self.configuration, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == PUBLISH:
             self._restore()
-            self._publish(configuration=self.configuration,
-                          runtime_identifier=self.runtime_identifier,
-                          framework=self.framework)
+            if self.self_contained:
+                build_args.append('--self-contained')
+            elif self.no_self_contained:
+                build_args.append('--no-self-contained')
+            build_args.append("/p:EnableWindowsTargeting=true")
+            self._publish(configuration=self.configuration, runtime_identifier=self.runtime_identifier, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == CROSSGEN:
             startup_args = [
                 os.path.join(self.crossgen_arguments.coreroot, 'crossgen%s' % extension()),
@@ -165,10 +222,29 @@ class PreCommands:
             startup_args += self.crossgen_arguments.get_crossgen2_command_line()
             RunCommand(startup_args, verbose=True).run(self.crossgen_arguments.coreroot)
 
-    def add_startup_logging(self, file: str, line: str):
-        self.add_event_source(file, line, "PerfLabGenericEventSource.Log.Startup();")
+    def add_startup_logging(self, file: str, line: str, language_file_extension: str = 'cs', indent: int = 0):
+        if language_file_extension == 'cs':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.Startup();"
+        elif language_file_extension == 'vb':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.Startup()"
+        elif language_file_extension == 'fs':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.Startup()"
+        else:
+            raise Exception(f"{language_file_extension} not supported.")
+        self.add_event_source(file, line, trace_statement, language_file_extension)
 
-    def add_event_source(self, file: str, line: str, trace_statement: str):
+    def add_onmain_logging(self, file: str, line: str, language_file_extension: str = 'cs', indent: int = 0):
+        if language_file_extension == 'cs':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.OnMain();"
+        elif language_file_extension == 'vb':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.OnMain()"
+        elif language_file_extension == 'fs':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.OnMain()"
+        else:
+            raise Exception(f"{language_file_extension} not supported.")
+        self.add_event_source(file, line, trace_statement, language_file_extension)
+
+    def add_event_source(self, file: str, line: str, trace_statement: str, language_file_extension: str = 'cs'):
         '''
         Adds a copy of the event source to the project and inserts the correct call
         file: relative path to the root of the project (where the project file lives)
@@ -176,13 +252,86 @@ class PreCommands:
         trace_statement: Statement to insert
         '''
 
+        self.add_perflab_file(language_file_extension)
+        projpath = os.path.dirname(self.project.csproj_file)
+        filepath = os.path.join(projpath, file)
+        insert_after(filepath, line, trace_statement)
+
+    def add_perflab_file(self, language_file_extension: str = 'cs'):
         projpath = os.path.dirname(self.project.csproj_file)
         staticpath = os.path.join(get_repo_root_path(), "src", "scenarios", "staticdeps")
         if helixpayload():
             staticpath = os.path.join(helixpayload(), "staticdeps")
-        shutil.copyfile(os.path.join(staticpath, "PerfLab.cs"), os.path.join(projpath, "PerfLab.cs"))
-        filepath = os.path.join(projpath, file)
-        insert_after(filepath, line, trace_statement)
+        shutil.copyfile(os.path.join(staticpath, f"PerfLab.{language_file_extension}"), os.path.join(projpath, f"PerfLab.{language_file_extension}"))
+
+    def install_workload(self, workloadid: str, install_args: list[str] = ["--skip-manifest-update"]):
+        'Installs the workload, if needed'
+        if not self.has_workload:
+            if self.readonly_dotnet:
+                raise Exception('workload needed to build, but has_workload=false, and readonly_dotnet=true')
+            try:
+                subprocess.run(["dotnet", "workload", "install", workloadid] + install_args, check=True)
+                getLogger().info(f"Successfully installed workload {workloadid}")
+            except Exception as e:
+                getLogger().error(f"Error installing workload {workloadid}: {e}")
+                raise
+
+    def uninstall_workload(self, workloadid: str):
+        'Uninstalls the workload, if possible'
+        if self.has_workload and not self.readonly_dotnet:
+            subprocess.run(["dotnet", "workload", "uninstall", workloadid])
+
+    def setup_workload_update_mode(self, update_mode: str):
+        'Sets the workload update mode to the given value <manifests|workload-set>'
+        if update_mode != 'manifests' and update_mode != 'workload-set':
+            raise Exception('workload config --update-mode must be either manifests or workload-set')
+        
+        if self.readonly_dotnet:
+            raise Exception('workload config --update-mode not supported with readonly-dotnet=true')
+        
+        subprocess.run(["dotnet", "workload", "config", "--update-mode", update_mode], check=True)
+
+    def print_dotnet_info(self):
+        'Prints the dotnet info'
+        subprocess.run(["dotnet", "--info"], check=True)
+
+
+    def get_packages_for_sdk_from_feed(self, sdk_name: str, feed: str):
+        'Gets the packages for the given sdk from the given feed and returns parsed package list'
+
+        getLogger().debug(f"dotnet package search {sdk_name} --prerelease --take 999 --format json --source {feed}")
+
+        # Query the given feed for published SDKs using the `dotnet package search` command
+        result = subprocess.run(
+            ["dotnet", "package", "search", sdk_name, "--prerelease", "--take", "999", "--format", "json", "--source", feed], check=True, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            getLogger().error(f"Package search command failed: {result.stderr}")
+            raise Exception(f"Error querying package feed: {result.stderr}")
+        
+        getLogger().debug(f"Raw packages response for {sdk_name}: {result.stdout}")
+        
+        try:
+            parsed_response = json.loads(result.stdout)
+            getLogger().debug(f"Parsed JSON response for {sdk_name}: {parsed_response}")
+            
+            if not parsed_response.get("searchResult") or len(parsed_response["searchResult"]) == 0:
+                getLogger().error(f"No search results found for {sdk_name} in feed {feed}")
+                raise Exception(f"No search results found for {sdk_name} in feed {feed}")
+                
+            packages = parsed_response["searchResult"][0].get('packages', [])
+            getLogger().info(f"Found {len(packages)} total packages for {sdk_name}")
+            
+            if not packages:
+                getLogger().error(f"No packages found for SDK {sdk_name} in feed {feed}")
+                raise Exception(f"No packages found for SDK {sdk_name} in feed {feed}")
+                
+            return packages
+            
+        except json.JSONDecodeError as e:
+            getLogger().error(f"Failed to parse JSON response for {sdk_name}: {e}")
+            getLogger().debug(f"Raw response that failed to parse: {result.stdout}")
+            raise Exception(f"Error parsing JSON output for {sdk_name}: {e}")
 
     def _addstaticmsbuildproperty(self, projectfile: str):
         'Insert static msbuild property in the specified project file'
@@ -203,28 +352,35 @@ class PreCommands:
     def _updateframework(self, projectfile: str):
         'Update the <TargetFramework> property so we can re-use the template'
         if self.framework:
-            replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
+            if self.windows:
+                replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}-windows</TargetFramework>')
+            else:
+                replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
-    def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None):
+    def _publish(self, configuration: str, framework: str, runtime_identifier: Optional[str] = None, output: Optional[str] = None, build_args: list[str] = []):
         self.project.publish(configuration,
-                             const.PUBDIR, 
+                             output or const.PUBDIR,
                              True,
                              os.path.join(get_packages_directory(), ''), # blazor publish targets require the trailing slash for joining the paths
-                             framework,
+                             framework if not self.windows else f'{framework}-windows',
                              runtime_identifier,
                              self._parsemsbuildproperties(),
-                             '-bl:%s' % self.binlog if self.binlog else ""
-                             )
+                             *['-bl:%s' % self.binlog] if self.binlog else [],
+                             *build_args)
 
-    def _restore(self):
-        self.project.restore(packages_path=get_packages_directory(), verbose=True)
+    def _restore(self, restore_args: list[str] = ["/p:EnableWindowsTargeting=true"]):
+        self.project.restore(packages_path=get_packages_directory(),
+                             verbose=True,
+                             args=(['-bl:%s-restore.binlog' % self.binlog] if self.binlog else []) + restore_args)
 
-    def _build(self, configuration: str, framework: str = None):
-        self.project.build(configuration=configuration,
-                               verbose=True,
-                               packages_path=get_packages_directory(),
-                               target_framework_monikers=[framework],
-                               output_to_bindir=True)
+    def _build(self, configuration: str, framework: str, output: Optional[str] = None, build_args: list[str] = []):
+        self.project.build(configuration,
+                           True,
+                           get_packages_directory(),
+                           [framework],
+                           output is None,
+                           None,
+                           (['--output', output] if output else []) + build_args)
 
     def _backup(self, projectdir:str):
         'Copy from projectdir to appdir so we do not modify the source code'

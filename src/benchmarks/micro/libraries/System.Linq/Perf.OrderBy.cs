@@ -136,6 +136,7 @@ namespace System.Linq.Tests
         public void GlobalSetup() => _people = PersonData.Generate(NumberOfPeople);
 
         [Benchmark]
+        [MemoryRandomization]
         public void OrderByString() => _people.OrderBy(p => p.FirstName).Consume(_consumer);
 
         [Benchmark]

@@ -7,6 +7,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.Json;
+#if NET6_0_OR_GREATER
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
+#endif
 using System.Xml;
 using System.Xml.Serialization;
 using BenchmarkDotNet.Extensions;
@@ -55,6 +60,14 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)CreateLargeStructWithProperties();
             if (typeof(T) == typeof(DateTimeOffset?))
                 return (T)(object)new DateTimeOffset(2021, 08, 13, 11, 11, 05, TimeSpan.Zero);
+#if NET8_0_OR_GREATER
+            if (typeof(T) == typeof(ClassRecord))
+                return (T)(object)new ClassRecord(42, true, "param3", OptionalParam3: "Hello World");
+            if (typeof(T) == typeof(StructRecord))
+                return (T)(object)new StructRecord(42, true, "param3", OptionalParam3: "Hello World");
+            if (typeof(T) == typeof(TreeRecord))
+                return (T)(object)TreeRecord.Create(depth: 5);
+#endif
             if (typeof(T) == typeof(int))
                 return (T)(object)42;
 
@@ -215,6 +228,21 @@ namespace MicroBenchmarks.Serializers
             xmlElement.InnerText = "Element innertext";
             return xmlElement;
         }
+
+        internal static JsonSerializerOptions GetJsonSerializerOptions(SystemTextJsonSerializationMode mode)
+            => mode switch
+            {
+                SystemTextJsonSerializationMode.Reflection => new JsonSerializerOptions(),
+#if NET6_0_OR_GREATER
+                SystemTextJsonSerializationMode.SourceGen => SystemTextJsonSourceGeneratedContext.Default.Options,
+#endif
+                _ => throw new NotSupportedException(mode.ToString())
+            };
+
+#if NET6_0_OR_GREATER
+        internal static JsonTypeInfo<T> GetSystemTextJsonSourceGenMetadata<T>()
+            => (JsonTypeInfo<T>)SystemTextJsonSourceGeneratedContext.Default.GetTypeInfo(typeof(T));
+#endif
     }
 
     // the view models come from a real world app called "AllReady"
@@ -421,4 +449,76 @@ namespace MicroBenchmarks.Serializers
             writer.WriteAttributeString("BoolValue", BoolValue.ToString());
         }
     }
+
+    public class ClassWithObjectProperty
+    {
+        public object Prop { get; set; }
+    }
+
+#if NET8_0_OR_GREATER
+    public record ClassRecord(
+        int Param1, 
+        bool Param2,
+        string Param3,
+        int OptionalParam1 = 42,
+        bool OptionalParam2 = false,
+        string OptionalParam3 = null);
+
+    public record struct StructRecord(
+        int Param1,
+        bool Param2,
+        string Param3,
+        int OptionalParam1 = 42,
+        bool OptionalParam2 = false,
+        string OptionalParam3 = null);
+
+    [JsonDerivedType(typeof(Leaf), "leaf")]
+    [JsonDerivedType(typeof(Node), "node")]
+    public abstract record TreeRecord
+    {
+        public sealed record Leaf : TreeRecord;
+        public sealed record Node(int Value, TreeRecord Left, TreeRecord Right) : TreeRecord;
+        public static TreeRecord Create(int depth)
+            => depth == 0 ? new Leaf() : new Node(depth, Create(depth - 1), Create(depth - 1));
+    }
+
+#endif
+
+    public enum SystemTextJsonSerializationMode
+    {
+        Reflection = 0,
+        SourceGen = 1
+    }
+
+#if NET6_0_OR_GREATER
+    [JsonSerializable(typeof(ClassWithObjectProperty))]
+    [JsonSerializable(typeof(LoginViewModel))]
+    [JsonSerializable(typeof(Location))]
+    [JsonSerializable(typeof(IndexViewModel))]
+    [JsonSerializable(typeof(MyEventsListerViewModel))]
+    [JsonSerializable(typeof(BinaryData))]
+    [JsonSerializable(typeof(CollectionsOfPrimitives))]
+    [JsonSerializable(typeof(XmlElement))]
+    [JsonSerializable(typeof(SimpleStructWithProperties))]
+    [JsonSerializable(typeof(SimpleListOfInt))]
+    [JsonSerializable(typeof(ClassImplementingIXmlSerialiable))]
+    [JsonSerializable(typeof(Dictionary<string, string>))]
+    [JsonSerializable(typeof(ImmutableDictionary<string, string>))]
+    [JsonSerializable(typeof(ImmutableSortedDictionary<string, string>))]
+    [JsonSerializable(typeof(HashSet<string>))]
+    [JsonSerializable(typeof(ArrayList))]
+    [JsonSerializable(typeof(Hashtable))]
+    [JsonSerializable(typeof(LargeStructWithProperties))]
+    [JsonSerializable(typeof(DateTimeOffset?))]
+#if NET8_0_OR_GREATER
+    [JsonSerializable(typeof(ClassRecord))]
+    [JsonSerializable(typeof(StructRecord))]
+    [JsonSerializable(typeof(TreeRecord))]
+#endif
+    [JsonSerializable(typeof(int))]
+    [JsonSerializable(typeof(object))]
+    internal partial class SystemTextJsonSourceGeneratedContext : JsonSerializerContext
+    {
+    }
+#endif
 }

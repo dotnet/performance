@@ -34,6 +34,7 @@ namespace System.Collections.Tests
         public void Setup_BitArrayBitArrayCtor() => _original = new BitArray(Size, BooleanValue);
 
         [Benchmark]
+        [MemoryRandomization]
         public BitArray BitArrayBitArrayCtor() => new BitArray(_original);
 
         [GlobalSetup(Target = nameof(BitArrayBoolArrayCtor))]
@@ -52,12 +53,14 @@ namespace System.Collections.Tests
         public void Setup_BitArrayIntArrayCtor() => _ints = ValuesGenerator.Array<int>(Size);
 
         [Benchmark]
+        [MemoryRandomization]
         public BitArray BitArrayIntArrayCtor() => new BitArray(_ints);
 
         [GlobalSetup(Targets = new [] { nameof(BitArraySetAll), nameof(BitArrayNot), nameof(BitArrayGet) })]
         public void Setup_BitArraySetAll() => _original = new BitArray(ValuesGenerator.Array<byte>(Size));
 
         [Benchmark]
+        [MemoryRandomization]
         public void BitArraySetAll() => _original.SetAll(BooleanValue);
 
         [Benchmark]
@@ -115,6 +118,7 @@ namespace System.Collections.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public BitArray BitArraySetLengthGrow()
         {
             var original = new BitArray(_bytes);
@@ -139,6 +143,7 @@ namespace System.Collections.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void BitArrayCopyToIntArray() => _original.CopyTo(_ints, 0);
 
         [GlobalSetup(Target = nameof(BitArrayCopyToByteArray))]

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -45,6 +45,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = Size / 8)]
+        [MemoryRandomization]
         public void CopyBlock8()
         {
             for (int startOffset = 0; startOffset < Size; startOffset += 8)
@@ -72,6 +73,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = Size / 16)]
+        [MemoryRandomization]
         public void CopyBlock16()
         {
             for (int startOffset = 0; startOffset < Size; startOffset += 16)
@@ -99,6 +101,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = Size / 32)]
+        [MemoryRandomization]
         public void CopyBlock32()
         {
             for (int startOffset = 0; startOffset < Size; startOffset += 32)
@@ -108,6 +111,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = Size / 64)]
+        [MemoryRandomization]
         public void InitBlockAllZeros64()
         {
             for (int startOffset = 0; startOffset < Size; startOffset += 64)
@@ -117,6 +121,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = Size / 64)]
+        [MemoryRandomization]
         public void InitBlockAllOnes64()
         {
             for (int startOffset = 0; startOffset < Size; startOffset += 64)
@@ -126,6 +131,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = Size / 64)]
+        [MemoryRandomization]
         public void CopyBlock64()
         {
             for (int startOffset = 0; startOffset < Size; startOffset += 64)
@@ -135,6 +141,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = Size / 128)]
+        [MemoryRandomization]
         public void InitBlockAllZeros128()
         {
             for (int startOffset = 0; startOffset < Size; startOffset += 128)
@@ -144,6 +151,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = Size / 128)]
+        [MemoryRandomization]
         public void InitBlockAllOnes128()
         {
             for (int startOffset = 0; startOffset < Size; startOffset += 128)
@@ -153,6 +161,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = Size / 128)]
+        [MemoryRandomization]
         public void CopyBlock128()
         {
             for (int startOffset = 0; startOffset < Size; startOffset += 128)
@@ -258,6 +267,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        [MemoryRandomization]
         public unsafe void InitBlockAllOnes16()
         {
             Struct16 dstLcl;
@@ -300,6 +310,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        [MemoryRandomization]
         public unsafe void InitBlockAllOnes32()
         {
             Struct32 dstLcl;
@@ -342,6 +353,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        [MemoryRandomization]
         public unsafe void InitBlockAllOnes64()
         {
             Struct64 dstLcl;
@@ -371,6 +383,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        [MemoryRandomization]
         public unsafe void InitBlockAllZeros128()
         {
             Struct128 dstLcl;
@@ -384,6 +397,7 @@ namespace StoreBlock
         }
 
         [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        [MemoryRandomization]
         public unsafe void InitBlockAllOnes128()
         {
             Struct128 dstLcl;

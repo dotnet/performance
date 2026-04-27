@@ -33,6 +33,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
+        [MemoryRandomization]
         public bool TryParse(string value) => long.TryParse(value, out _);
 
 #if !NETFRAMEWORK // API added in .NET Core 2.1
@@ -47,6 +48,12 @@ namespace System.Tests
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
         public bool TryParseSpan(string value) => long.TryParse(value.AsSpan(), out _);
+#endif
+
+#if NET7_0_OR_GREATER
+        [Benchmark]
+        [Arguments(1, -1)]
+        public long CopySign(long value, long sign) => long.CopySign(value, sign);
 #endif
     }
 }

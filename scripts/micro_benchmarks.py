@@ -12,7 +12,7 @@ from logging import getLogger
 from os import path
 from subprocess import CalledProcessError
 from traceback import format_exc
-from typing import Tuple
+from typing import Any
 
 import csv
 import sys
@@ -23,12 +23,16 @@ from performance.common import get_packages_directory
 from performance.common import remove_directory
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
+from performance.tracer import setup_tracing, get_tracer
 from channel_map import ChannelMap
 
 import dotnet
 
+setup_tracing()
+tracer = get_tracer()
 
-def get_supported_configurations() -> list:
+@tracer.start_as_current_span(name="micro_benchmarks_get_supported_configurations")
+def get_supported_configurations() -> list[str]:
     '''
     The configuration to use for building the project. The default for most
     projects is 'Release'
@@ -120,7 +124,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Full path to dotnet.exe',
     )
 
-    def __get_bdn_arguments(user_input: str) -> list:
+    def __get_bdn_arguments(user_input: str) -> list[str]:
         file = StringIO(user_input)
         reader = csv.reader(file, delimiter=' ')
         for args in reader:
@@ -134,6 +138,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=False,
         action='store_true',
         help='Tests should be run with the wasm runtime'
+    )
+
+    parser.add_argument(
+        '--wasm-runtime-flavor',
+        dest='wasm_runtime_flavor',
+        required=False,
+        default='Mono',
+        choices=['Mono', 'CoreCLR'],
+        help='Runtime flavor for WASM benchmarks: Mono (default) or CoreCLR'
     )
 
     parser.add_argument(
@@ -162,13 +175,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_true',
         help='Move the binaries to a different directory for running',
     )
-
-    def __valid_dir_path(file_path: str) -> str:
-        '''Verifies that specified file path exists.'''
-        file_path = path.abspath(file_path)
-        if not path.isdir(file_path):
-            raise ArgumentTypeError('{} does not exist.'.format(file_path))
-        return file_path
 
     def __csproj_file_path(file_path: str) -> dotnet.CSharpProjFile:
         file_path = __valid_file_path(file_path)
@@ -205,7 +211,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--bin-directory',
         dest='bin_directory',
         required=False,
-        default=path.join(get_repo_root_path(), 'artifacts', 'bin'),
+        default=path.join(get_artifacts_directory(), 'bin'),
         type=__absolute_path,
         help='Root of the bin directory',
     )
@@ -213,7 +219,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     return parser
 
 
-def __process_arguments(args: list) -> Tuple[list, bool]:
+def __process_arguments(args: list[str]):
     parser = ArgumentParser(
         description="Builds the benchmarks.",
         allow_abbrev=False)
@@ -230,8 +236,8 @@ def __process_arguments(args: list) -> Tuple[list, bool]:
     return parser.parse_args(args)
 
 
-def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
-    run_args = []
+def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:
+    run_args: list[str] = []
     if args.corerun:
         run_args += ['--coreRun'] + args.corerun
     if args.cli:
@@ -243,6 +249,8 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
         ]
     if args.filter:
         run_args += ['--filter'] + args.filter
+    if args.resume:
+        run_args += ['--resume']
 
     # Extra BenchmarkDotNet cli arguments.
     if args.bdn_arguments:
@@ -260,10 +268,22 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
     if framework.startswith("nativeaot"):
         run_args += ['--runtimes', framework]
     if args.wasm:
-        if framework == "net5.0" or framework == "net6.0":
+        if framework == "net6.0":
             run_args += ['--runtimes', 'wasm']
-        else:
+        elif framework == "net7.0":
             run_args += ['--runtimes', 'wasmnet70']
+        elif framework == "net8.0":
+            run_args += ['--runtimes', 'wasmnet80']
+        elif framework == "net9.0":
+            run_args += ['--runtimes', 'wasmnet90']
+        elif framework == "net10.0":
+            run_args += ['--runtimes', 'wasmnet10_0']
+        elif framework == "net11.0":
+            run_args += ['--runtimes', 'wasmnet11_0']
+        else:
+            raise ArgumentTypeError('Framework {} is not supported for wasm'.format(framework))
+        if args.wasm_runtime_flavor != 'Mono':
+            run_args += ['--wasmRuntimeFlavor', args.wasm_runtime_flavor]
 
     # Increase default 2 min build timeout to accommodate slow (or even very slow) hardware
     if not args.bdn_arguments or '--buildTimeout' not in args.bdn_arguments:
@@ -271,6 +291,7 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
 
     return run_args
 
+@tracer.start_as_current_span(name="micro_benchmarks_get_bin_dir_to_use")
 def get_bin_dir_to_use(csprojfile: dotnet.CSharpProjFile, bin_directory: str, run_isolated: bool) -> str:
     '''
     Gets the bin_directory, which might be different if run_isolate=True
@@ -280,12 +301,14 @@ def get_bin_dir_to_use(csprojfile: dotnet.CSharpProjFile, bin_directory: str, ru
     else:
         return bin_directory
 
+@tracer.start_as_current_span(name="micro_benchmarks_build")
 def build(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
-        target_framework_monikers: list,
+        target_framework_monikers: list[str],
         incremental: str,
         run_isolated: bool,
+        for_wasm: bool,
         verbose: bool) -> None:
     '''Restores and builds the benchmarks'''
 
@@ -304,6 +327,10 @@ def build(
     __log_script_header("Restoring .NET micro benchmarks")
     BENCHMARKS_CSPROJ.restore(packages_path=packages, verbose=verbose)
 
+    build_args: list[str] = []
+    if for_wasm:
+        build_args += ['/p:BuildingForWasm=true']
+
     # dotnet build
     build_title = "Building .NET micro benchmarks for '{}'".format(
         ' '.join(target_framework_monikers))
@@ -313,7 +340,8 @@ def build(
         target_framework_monikers=target_framework_monikers,
         output_to_bindir=run_isolated,
         verbose=verbose,
-        packages_path=packages)
+        packages_path=packages,
+        args=build_args)
 
     # When running isolated, artifacts/obj/{project_name} will still be
     # there, and would interfere with any subsequent builds. So, remove
@@ -322,62 +350,68 @@ def build(
         objDir = path.join(get_artifacts_directory(), 'obj', BENCHMARKS_CSPROJ.project_name)
         remove_directory(objDir)
 
+@tracer.start_as_current_span(name="micro_benchmarks_run")
 def run(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
         framework: str,
         run_isolated: bool,
         verbose: bool,
-        *args) -> None:
-    '''Runs the benchmarks'''
+        args: Any) -> bool:
+    '''Runs the benchmarks, returns True for a zero status code and False otherwise.'''
     __log_script_header("Running .NET micro benchmarks for '{}'".format(
         framework
     ))
 
     # dotnet exec
-    run_args = __get_benchmarkdotnet_arguments(framework, *args)
-    target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(
+    run_args = __get_benchmarkdotnet_arguments(framework, args)
+    target_framework_moniker = dotnet.get_target_framework_moniker(
         framework
     )
 
+    # 1 is treated as successful in that there were still some benchmarks that ran
+    # but some of the runs may have failed.
+    success_exit_codes=[0, 1]
     if run_isolated:
         runDir = BENCHMARKS_CSPROJ.bin_path
         asm_path=dotnet.get_main_assembly_path(runDir, BENCHMARKS_CSPROJ.project_name)
-        dotnet.exec(asm_path, verbose, *run_args)
+        status = dotnet.exec(asm_path, success_exit_codes, verbose, *run_args)
     else:
         # This is needed for `dotnet run`, but not for `dotnet exec`
         run_args = ['--'] + run_args
-        BENCHMARKS_CSPROJ.run(
+        status = BENCHMARKS_CSPROJ.run(
             configuration,
             target_framework_moniker,
+            success_exit_codes,
             verbose,
             *run_args
         )
+    
+    return status == 0
 
 def __log_script_header(message: str):
     getLogger().info('-' * len(message))
     getLogger().info(message)
     getLogger().info('-' * len(message))
 
-
-def __main(args: list) -> int:
+@tracer.start_as_current_span("micro_benchmarks_main")
+def __main(argv: list[str]) -> int:
     try:
         validate_supported_runtime()
-        args = __process_arguments(args)
+        args = __process_arguments(argv)
 
         configuration = args.configuration
         frameworks = args.frameworks
         incremental = args.incremental
         verbose = args.verbose
-        target_framework_monikers = dotnet.FrameworkAction. \
-            get_target_framework_monikers(frameworks)
+        target_framework_monikers = dotnet.get_target_framework_monikers(frameworks)
 
         setup_loggers(verbose=verbose)
 
         # dotnet --info
         dotnet.info(verbose)
 
-        bin_dir_to_use=micro_benchmarks.get_bin_dir_to_use(args.csprojfile, args.bin_directory, args.run_isolated)
+        bin_dir_to_use=get_bin_dir_to_use(args.csprojfile, args.bin_directory, args.run_isolated)
         BENCHMARKS_CSPROJ = dotnet.CSharpProject(
             project=args.csprojfile,
             bin_directory=bin_dir_to_use
@@ -390,7 +424,8 @@ def __main(args: list) -> int:
             target_framework_monikers,
             incremental,
             args.run_isolated,
-            verbose
+            for_wasm=args.wasm,
+            verbose=verbose
         )
 
         for framework in frameworks:

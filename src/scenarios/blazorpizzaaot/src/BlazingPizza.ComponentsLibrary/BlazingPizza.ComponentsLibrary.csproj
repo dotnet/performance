@@ -6,6 +6,8 @@
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net5.0;net6.0</TargetFrameworks>
   </PropertyGroup>
 
+  <Import Project="$(BuildCommonPath)\Blazor.PackageVersions.props" />
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="$(AspNetCoreVersion)" />

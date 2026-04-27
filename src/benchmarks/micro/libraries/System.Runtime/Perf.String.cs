@@ -1,8 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -49,6 +50,7 @@ namespace System.Tests
         private static readonly IEnumerable<char> s_longCharEnumerable = Enumerable.Range(0, 1000).Select(i => (char)('a' + i % 26));
 
         [Benchmark]
+        [MemoryRandomization]
         public string Concat_CharEnumerable() =>
             string.Concat(s_longCharEnumerable);
 
@@ -63,6 +65,7 @@ namespace System.Tests
         public string Join_List() => string.Join(", ", s_stringList);
 
         [Benchmark]
+        [MemoryRandomization]
         public string Join_Enumerable() => string.Join(", ", s_stringEnumerable);
 
         [Benchmark]
@@ -81,6 +84,7 @@ namespace System.Tests
         [Arguments("dzsdzsDDZSDZSDZSddsz", 0)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 7)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 10)]
+        [MemoryRandomization]
         public string Remove_Int(string s, int i)
             => s.Remove(i);
 
@@ -88,6 +92,7 @@ namespace System.Tests
         [Arguments("dzsdzsDDZSDZSDZSddsz", 0, 8)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 7, 4)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 10, 1)]
+        [MemoryRandomization]
         public string Remove_IntInt(string s, int i1, int i2)
             => s.Remove(i1, i2);
 
@@ -102,6 +107,7 @@ namespace System.Tests
         [Arguments("dzsdzsDDZSDZSDZSddsz", 0, 8)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 7, 4)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 10, 1)]
+        [MemoryRandomization]
         public string Substring_IntInt(string s, int i1, int i2)
             => s.Substring(i1, i2);
         
@@ -110,6 +116,7 @@ namespace System.Tests
         [Arguments("A B C D E F G H I J K L M N O P Q R S T U V W X Y Z", new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)]
         [Arguments("ABCDEFGHIJKLMNOPQRSTUVWXYZ", new char[]{' '}, StringSplitOptions.None)]
         [Arguments("ABCDEFGHIJKLMNOPQRSTUVWXYZ", new char[]{' '}, StringSplitOptions.RemoveEmptyEntries)]
+        [MemoryRandomization]
         public string[] Split(string s, char[] arr, StringSplitOptions options)
             => s.Split(arr, options);
 
@@ -118,12 +125,14 @@ namespace System.Tests
         [Arguments(" Test")]
         [Arguments("Test ")]
         [Arguments(" Te st  ")]
+        [MemoryRandomization]
         public string Trim(string s)
             => s.Trim();
 
         [Benchmark]
         [Arguments("Test")]
         [Arguments(" Test")]
+        [MemoryRandomization]
         public string TrimStart(string s)
             => s.TrimStart();
 
@@ -138,23 +147,27 @@ namespace System.Tests
         [Arguments(" Test", new [] {' ', (char) 8197})]
         [Arguments("Test ", new [] {' ', (char) 8197})]
         [Arguments(" Te st  ", new [] {' ', (char) 8197})]
+        [MemoryRandomization]
         public string Trim_CharArr(string s, char[] c)
             => s.Trim(c);
 
         [Benchmark]
         [Arguments("Test", new [] {' ', (char) 8197})]
         [Arguments(" Test", new [] {' ', (char) 8197})]
+        [MemoryRandomization]
         public string TrimStart_CharArr(string s, char[] c)
             => s.TrimStart(c);
 
         [Benchmark]
         [Arguments("Test", new [] {' ', (char) 8197})]
         [Arguments("Test ", new [] {' ', (char) 8197})]
+        [MemoryRandomization]
         public string TrimEnd_CharArr(string s, char[] c)
             => s.TrimEnd(c);
 
         [Benchmark]
         [ArgumentsSource(nameof(ReplaceArguments))]
+        [MemoryRandomization]
         public string Replace_Char(string text, char oldChar, char newChar)
             => text.Replace(oldChar, newChar);
 
@@ -173,6 +186,7 @@ namespace System.Tests
         [Arguments("This is a very nice sentence", "nice", "bad")] // there are is one "nice" word in the string
         [Arguments("This is a very nice sentence. This is another very nice sentence.", "a", "b")] // both strings are single characters
         [Arguments("This is a very nice sentence. This is another very nice sentence.", "a", "")] // old string is a single character
+        [MemoryRandomization]
         public string Replace_String(string text, string oldValue, string newValue)
             => text.Replace(oldValue, newValue);
 
@@ -203,6 +217,7 @@ namespace System.Tests
         [Arguments("TEST")]
         [Arguments("test")]
         [Arguments("This is a much longer piece of text that might benefit more from vectorization.")]
+        [MemoryRandomization]
         public string ToUpper(string s)
             => s.ToUpper();
 
@@ -227,6 +242,7 @@ namespace System.Tests
         [Arguments("TEST")]
         [Arguments("test")]
         [Arguments("This is a much longer piece of text that might benefit more from vectorization.")]
+        [MemoryRandomization]
         public string ToLowerInvariant(string s)
             => s.ToLowerInvariant();
 
@@ -275,6 +291,48 @@ namespace System.Tests
             }
 
             return counter;
+        }
+
+        // Retrieved from https://data.cms.gov/sites/default/files/2024-05/b492c960-aea2-4f4e-a5f6-258c726b1a58/TMEDTREND_PUBLIC_240528.csv on Jan 22, 2025
+        private static readonly Lazy<string[]> s_csvShortText = new Lazy<string[]>(() => ReadInputFile("TMEDTREND_PUBLIC_240528.csv"));
+        // Retrieved from https://data.transportation.gov/api/views/kbvr-tyu5/rows.csv on Jan 22, 2025
+        private static readonly Lazy<string[]> s_csvShortMixed = new Lazy<string[]>(() => ReadInputFile("motor_fuel_sales.csv"));
+        // Retrieved from https://www.census.gov/econ/bfs/csv/date_table.csv on Jan 22, 2025
+        private static readonly Lazy<string[]> s_csvShortDates = new Lazy<string[]>(() => ReadInputFile("date_table.csv"));
+        // Retrieved from https://www.usda.gov/sites/default/files/documents/ai_inventory.csv on Jan 22, 2025
+        private static readonly Lazy<string[]> s_csvLongText = new Lazy<string[]>(() => ReadInputFile("ai_inventory.csv"));
+        // Retrieved from https://www.epa.gov/sites/production/files/2014-05/tri_2012_nd.csv on Jan 22, 2025
+        private static readonly Lazy<string[]> s_csvLongMixed = new Lazy<string[]>(() => ReadInputFile("tri_2012_nd.csv"));
+        // Retrieved from https://data.cdc.gov/api/views/dxpw-cm5u/rows.csv on Jan 22, 2025
+        private static readonly Lazy<string[]> s_csvLongNumbers = new Lazy<string[]>(() => ReadInputFile("500_cities.csv"));
+        private static volatile int s_splitCsvFieldCount;
+
+        public static IEnumerable<object[]> CsvCorpus()
+        {
+            yield return new object[] { "Short Text", s_csvShortText.Value };
+            yield return new object[] { "Short Mixed", s_csvShortMixed.Value };
+            yield return new object[] { "Short Dates", s_csvShortDates.Value };
+            yield return new object[] { "Long Text", s_csvLongText.Value };
+            yield return new object[] { "Long Mixed", s_csvLongMixed.Value };
+            yield return new object[] { "Long Numbers", s_csvLongNumbers.Value };
+        }
+
+        public static string[] ReadInputFile(string name)
+            => File.ReadAllLines(Path.Combine(AppContext.BaseDirectory, "libraries", "System.Runtime", "TestData", name));
+
+        [Benchmark]
+        [ArgumentsSource(nameof(CsvCorpus))]
+        public string[] Split_Csv(string testName, string[] lines)
+        {
+            string[] split = null;
+            int fieldCount = 0;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                split = lines[i].Split(',');
+                fieldCount ^= split.Length;
+            }
+            s_splitCsvFieldCount = fieldCount;
+            return split;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]

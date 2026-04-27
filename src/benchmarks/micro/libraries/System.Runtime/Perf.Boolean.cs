@@ -32,6 +32,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ValidStringValues))]
+        [MemoryRandomization]
         public bool Parse(string value) => bool.Parse(value);
 
         [Benchmark]

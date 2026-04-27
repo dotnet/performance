@@ -4,7 +4,6 @@
 
 using System;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Attributes.Filters;
 using MicroBenchmarks.Serializers.Helpers;
@@ -21,27 +20,7 @@ namespace MicroBenchmarks.Serializers
     public class Binary_FromStream<T>
     {
         private T value;
-        private BinaryFormatter binaryFormatter;
         private MemoryStream memoryStream;
-
-        [GlobalSetup(Target = nameof(BinaryFormatter_))]
-        public void SetupBinaryFormatter()
-        {
-            value = DataGenerator.Generate<T>();
-            // the stream is pre-allocated, we don't want the benchmarks to include stream allocaton cost
-            memoryStream = new MemoryStream(capacity: short.MaxValue);
-            memoryStream.Position = 0;
-            binaryFormatter = new BinaryFormatter();
-            binaryFormatter.Serialize(memoryStream, value);
-        }
-
-        [BenchmarkCategory(Categories.Libraries)]
-        [Benchmark(Description = nameof(BinaryFormatter))]
-        public T BinaryFormatter_()
-        {
-            memoryStream.Position = 0;
-            return (T)binaryFormatter.Deserialize(memoryStream);
-        }
 
         [GlobalSetup(Target = nameof(ProtoBuffNet))]
         public void SetupProtoBuffNet()
@@ -69,7 +48,7 @@ namespace MicroBenchmarks.Serializers
         public void SetupMessagePack()
         {
             value = DataGenerator.Generate<T>();
-            // the stream is pre-allocated, we don't want the benchmarks to include stream allocaton cost
+            // the stream is pre-allocated, we don't want the benchmarks to include stream allocation cost
             memoryStream = new MemoryStream(capacity: short.MaxValue);
             memoryStream.Position = 0;
             MessagePack.MessagePackSerializer.Serialize<T>(memoryStream, value);

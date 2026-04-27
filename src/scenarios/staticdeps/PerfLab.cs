@@ -3,6 +3,13 @@ using System.Diagnostics.Tracing;
 [EventSource(Guid = "9bb228bd-1033-5cf0-1a56-c2dbbe0ebc86")]
 class PerfLabGenericEventSource : EventSource
 {
-    public static PerfLabGenericEventSource Log = new PerfLabGenericEventSource();
-    public void Startup() => WriteEvent(1);
+    private const int MagicConstant = 6666;
+
+    public static PerfLabGenericEventSource Log { get; } = new PerfLabGenericEventSource();
+
+    [Event(MagicConstant + 1)]
+    public void Startup() => WriteEvent(MagicConstant + 1);
+
+    [Event(MagicConstant + 2)]
+    public void OnMain() => WriteEvent(MagicConstant + 2);
 }

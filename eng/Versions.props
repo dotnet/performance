@@ -7,15 +7,15 @@
   </PropertyGroup>
   <!--Package versions-->
   <PropertyGroup>
-    <MicrosoftDotnetSdkInternalPackageVersion>5.0.104-servicing.21213.7</MicrosoftDotnetSdkInternalPackageVersion>
-    <MicrosoftNETCoreAppRuntimewinx64PackageVersion>5.0.4</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
-    <MicrosoftNETSdkInternalPackageVersion>
-    </MicrosoftNETSdkInternalPackageVersion>
-    <MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>5.0.4</MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>
-    <MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>5.0.4</MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>
+    <MicrosoftNETILLinkTasksVersion>11.0.0-preview.4.26210.111</MicrosoftNETILLinkTasksVersion>
+    <MicrosoftNETILLinkPackageVersion>11.0.0-preview.4.26210.111</MicrosoftNETILLinkPackageVersion>
+    <SystemThreadingChannelsPackageVersion>11.0.0-preview.4.26210.111</SystemThreadingChannelsPackageVersion>
+    <MicrosoftExtensionsLoggingPackageVersion>11.0.0-preview.4.26210.111</MicrosoftExtensionsLoggingPackageVersion>
+    <BenchmarkDotNetVersion>0.16.0-nightly.20260320.467</BenchmarkDotNetVersion>
+    <MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>11.0.0-preview.4.26210.111</MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>
+    <MicrosoftDotNetXHarnessCLIVersion>11.0.0-prerelease.26204.1</MicrosoftDotNetXHarnessCLIVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
-    <MicrosoftDotnetSdkInternalPackage>Microsoft.Dotnet.Sdk.Internal</MicrosoftDotnetSdkInternalPackage>
   </PropertyGroup>
 </Project>

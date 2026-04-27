@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -146,6 +146,7 @@ namespace PerfLabTests.CastingPerf2
         public void SetupIFooObjIsIFoo() => o = foo;
 
         [Benchmark]
+        [MemoryRandomization]
         public void IFooObjIsIFoo()
         {
             for (int i = 0; i < InnerIterationCount100000; i++)

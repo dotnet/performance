@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -41,6 +41,7 @@ namespace System.Text.RegularExpressions.Tests
         [Arguments(40_000, 1_600, 15)]    // default size, to compare when cache used
         [Arguments(40_000, 1_600, 800)]    // larger size, to test cache is not O(n)
         [Arguments(40_000, 1_600, 3_200)]  // larger size, to test cache always hit
+        [MemoryRandomization]
         public bool IsMatch(int total, int unique, int cacheSize)
         {
             if (Regex.CacheSize != cacheSize)
@@ -67,6 +68,7 @@ namespace System.Text.RegularExpressions.Tests
         [Arguments(40_000, 1_600, 15)]    // default size, to compare when cache used
         [Arguments(40_000, 1_600, 800)]    // larger size, to test cache is not O(n)
         [Arguments(40_000, 1_600, 3_200)]  // larger size, to test cache always hit
+        [MemoryRandomization]
         public async Task IsMatch_Multithreading(int total, int unique, int cacheSize)
         {
             if (Regex.CacheSize != cacheSize)

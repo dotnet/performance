@@ -7,11 +7,12 @@ using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Reports;
 using Reporting;
+using System;
 using System.Linq;
 
 namespace BenchmarkDotNet.Extensions
 {
-    internal class PerfLabExporter : ExporterBase
+    public class PerfLabExporter : ExporterBase
     {
         protected override string FileExtension => "json";
         protected override string FileCaption => "perf-lab-report";
@@ -22,17 +23,37 @@ namespace BenchmarkDotNet.Extensions
 
         public override void ExportToLog(Summary summary, ILogger logger)
         {
-            var reporter = Reporter.CreateReporter();
+            var reporter = new Reporter();
 
-            DisassemblyDiagnoser disassemblyDiagnoser = summary.Reports
-                .FirstOrDefault()? // dissasembler was either enabled for all or none of them (so we use the first one)
+            // Add BDN version to build AdditionalData when running in lab
+            var bdnVersion = summary.HostEnvironmentInfo.BenchmarkDotNetVersion;
+            if (reporter.Build != null && !string.IsNullOrEmpty(bdnVersion))
+            {
+                reporter.Build.AdditionalData["BenchmarkDotNetVersion"] = bdnVersion;
+            }
+
+            var hasCriticalErrors = summary.HasCriticalValidationErrors;
+
+            DisassemblyDiagnoser? disassemblyDiagnoser = summary.Reports
+                .FirstOrDefault()? // disassembler was either enabled for all or none of them (so we use the first one)
                 .BenchmarkCase.Config.GetDiagnosers().OfType<DisassemblyDiagnoser>().FirstOrDefault();
 
             foreach (var report in summary.Reports)
             {
+                // Skip individual reports with errors
+                if (report.HasAnyErrors())
+                {
+                    continue;
+                }
+
                 var test = new Test();
                 test.Name = FullNameProvider.GetBenchmarkName(report.BenchmarkCase);
                 test.Categories = report.BenchmarkCase.Descriptor.Categories;
+                
+                if (hasCriticalErrors)
+                {
+                    test.AdditionalData["criticalErrors"] = "true";
+                }
 
                 var results = from result in report.AllMeasurements
                               where result.IterationMode == Engines.IterationMode.Workload && result.IterationStage == Engines.IterationStage.Result
@@ -70,7 +91,7 @@ namespace BenchmarkDotNet.Extensions
                     TopCounter = false,
                     DefaultCounter = false,
                     HigherIsBetter = false,
-                    MetricName = "ms",
+                    MetricName = "ns",
                     Results = (from result in results
                                select result.Nanoseconds).ToList()
                 });
@@ -109,7 +130,9 @@ namespace BenchmarkDotNet.Extensions
                 reporter.AddTest(test);
             }
 
-            logger.WriteLine(reporter.GetJson());
+            var jsonOutput = reporter.GetJson();
+            if (jsonOutput is not null)
+                logger.WriteLine(jsonOutput);
         }
     }
 }

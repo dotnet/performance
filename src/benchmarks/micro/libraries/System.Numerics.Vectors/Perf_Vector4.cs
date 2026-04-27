@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -23,6 +23,7 @@ namespace System.Numerics.Tests
         public Vector4 CreateFromScalarXYZWBenchmark() => new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector4 OneBenchmark() => Vector4.One;
 
         [Benchmark]
@@ -74,6 +75,7 @@ namespace System.Numerics.Tests
         public Vector4 AddFunctionBenchmark() => Vector4.Add(VectorTests.Vector4Value, VectorTests.Vector4Delta);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector4 ClampBenchmark() => Vector4.Clamp(VectorTests.Vector4Value, VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
 
         [Benchmark]

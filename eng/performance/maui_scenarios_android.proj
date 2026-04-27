@@ -1,0 +1,121 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <Import Project="Scenarios.Common.props" />
+
+  <PropertyGroup>
+    <IncludeXHarnessCli>true</IncludeXHarnessCli>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AfterPreparePayloadWorkItemCommand>$(Python) post.py</AfterPreparePayloadWorkItemCommand>
+    <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
+
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
+
+    <!-- Mono AOT -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono' and '$(CodegenType)' == 'AOT'">$(_MSBuildArgs);/p:RunAOTCompilation=true;/p:AndroidEnableProfiledAot=false</_MSBuildArgs>
+    <!-- CoreCLR JIT -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'JIT'">$(_MSBuildArgs);/p:PublishReadyToRun=false;/p:PublishReadyToRunComposite=false</_MSBuildArgs>
+    <!-- CoreCLR R2R -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'R2R'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=false</_MSBuildArgs>
+    <!-- CoreCLR R2R composite -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'R2RComposite'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:PublishReadyToRunComposite=true</_MSBuildArgs>
+    <!-- CoreCLR NativeAOT -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true</_MSBuildArgs>
+    
+    <!-- Debug builds use Fast Deployment by default, which excludes assemblies from the APK. -->
+    <_MSBuildArgs Condition="'$(BuildConfig)' == 'Debug'">$(_MSBuildArgs);/p:EmbedAssembliesIntoApk=true</_MSBuildArgs>
+
+    <RunConfigsString>$(RuntimeFlavor)_$(CodegenType)</RunConfigsString>
+  </PropertyGroup>
+
+  <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
+    <Message Text="Removing Dotnet Packs from Correlation Staging" Importance="high" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" />
+  </Target>
+
+  <ItemDefinitionGroup>
+    <HelixWorkItem>
+      <Timeout>00:30</Timeout>
+    </HelixWorkItem>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <MAUIAndroidScenario Include=".NET Android Default Template">
+      <ScenarioDirectoryName>netandroid</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <ApkName>com.companyname.netandroiddefault-Signed</ApkName>
+      <PackageName>com.companyname.NetAndroidDefault</PackageName>
+    </MAUIAndroidScenario>
+    <MAUIAndroidScenario Include="MAUI Android Default Template">
+      <ScenarioDirectoryName>mauiandroid</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <ApkName>com.companyname.mauiandroiddefault-Signed</ApkName>
+      <PackageName>com.companyname.mauiandroiddefault</PackageName>
+    </MAUIAndroidScenario>
+    <MAUIAndroidScenario Include="MAUI Android Sample Content Template">
+      <ScenarioDirectoryName>mauisamplecontentandroid</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <ApkName>com.companyname.mauisamplecontentandroid-Signed</ApkName>
+      <PackageName>com.companyname.mauisamplecontentandroid</PackageName>
+    </MAUIAndroidScenario>
+    <MAUIAndroidScenario Include="MAUI Blazor Android Default Template" Condition="'$(CodegenType)' != 'NativeAOT'">
+      <ScenarioDirectoryName>mauiblazorandroid</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <ApkName>com.companyname.mauiblazorandroiddefault-Signed</ApkName>
+      <PackageName>com.companyname.mauiblazorandroiddefault</PackageName>
+      <StartupAdditionalArguments>--use-fully-drawn-time</StartupAdditionalArguments>
+    </MAUIAndroidScenario>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PreparePayloadWorkItem Include="@(MAUIAndroidScenario)">
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-android -r android-arm64 --self-contained -c $(BuildConfig) --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)\%(PreparePayloadWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+  </ItemGroup>
+
+
+<!-- We only run the android tests from Windows machines (at least for now) -->
+  <ItemGroup>
+    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) APK Size')" Condition="!$(HelixTargetQueue.ToLowerInvariant().Contains('pixel'))">
+      <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) Extracted Size')" Condition="!$(HelixTargetQueue.ToLowerInvariant().Contains('pixel'))">
+      <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y; ren %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).apk %(HelixWorkItem.ApkName).zip; powershell.exe -nologo -noprofile -command "&amp; {Expand-Archive %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip -DestinationPath %HELIX_WORKITEM_ROOT%\pub\}"; del %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity)')">
+      <_ScenarioName Condition="%(HelixWorkItem.StartupAdditionalArguments) == ''">%(Identity)</_ScenarioName>
+      <_ScenarioName Condition="%(HelixWorkItem.StartupAdditionalArguments) != ''">%(Identity) [%(HelixWorkItem.StartupAdditionalArguments)]</_ScenarioName>
+      <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
+      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(_ScenarioName)&quot; %(HelixWorkItem.StartupAdditionalArguments) $(ScenarioArgs)</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity) NoAnimation')">
+      <_ScenarioName Condition="%(HelixWorkItem.StartupAdditionalArguments) == ''">%(Identity)</_ScenarioName>
+      <_ScenarioName Condition="%(HelixWorkItem.StartupAdditionalArguments) != ''">%(Identity) [%(HelixWorkItem.StartupAdditionalArguments)]</_ScenarioName>
+      <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
+      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(_ScenarioName)&quot; --disable-animations %(HelixWorkItem.StartupAdditionalArguments) $(ScenarioArgs)</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Memory Consumption - %(Identity)')" Condition="!$(HelixTargetQueue.ToLowerInvariant().Contains('galaxy'))">
+      <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
+      <Command>$(Python) test.py devicememoryconsumption --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --runtime 30 --test-iteration 2 $(ScenarioArgs)</Command>
+    </HelixWorkItem>
+    <!-- Strip non-Blazor memory consumption work items due to instability, see https://github.com/dotnet/performance/issues/4867  -->
+    <HelixWorkItem Remove="Memory Consumption - .NET Android Default Template" />
+    <HelixWorkItem Remove="Memory Consumption - MAUI Android Default Template" />
+    <HelixWorkItem Remove="Memory Consumption - MAUI Android Sample Content Template" />
+    <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Build Time - %(Identity)')" Condition="!$(HelixTargetQueue.ToLowerInvariant().Contains('galaxy'))">
+      <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y &amp;&amp; mkdir %HELIX_WORKITEM_ROOT%\traces &amp;&amp; copy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog %HELIX_WORKITEM_ROOT%\traces\</PreCommands>
+      <Command>$(Python) test.py buildtime --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs) --binlog-path .\%(HelixWorkItem.ScenarioDirectoryName).$(RunConfigsString).binlog</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <Import Project="PreparePayloadWorkItems.targets" />
+
+</Project>

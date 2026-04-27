@@ -1,0 +1,123 @@
+parameters:
+  runtimeRepoAlias: runtime
+  performanceRepoAlias: self
+  jobParameters: {}
+
+jobs:
+  - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      mono: true
+      coreclr: true
+      nativeAot: true
+
+  # run iOS scenarios - Mono FullAOT (no LLVM)
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: mono
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSMono
+        codeGenType: FullAOT
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone17'
+        iOSLlvmBuild: False
+        iOSStripSymbols: True
+        additionalJobIdentifier: iOSStripSymbols
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # run iOS scenarios - Mono FullAOT (with LLVM)
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: mono
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSMono
+        codeGenType: FullAOT
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone17'
+        iOSLlvmBuild: True
+        iOSStripSymbols: True
+        additionalJobIdentifier: iOSLlvmBuild iOSStripSymbols
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # run iOS scenarios - CoreCLR NativeAOT
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: coreclr
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSNativeAOT
+        codeGenType: NativeAOT
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone17'
+        iOSStripSymbols: True
+        additionalJobIdentifier: iOSStripSymbols
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # run iOS scenarios - CoreCLR Interpreter
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: coreclr
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSCoreCLR
+        codeGenType: Interpreter
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone17'
+        iOSStripSymbols: True
+        additionalJobIdentifier: iOSStripSymbols
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # run iOS scenarios - CoreCLR R2R
+  - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+    parameters:
+      jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+      buildConfig: release
+      runtimeFlavor: coreclr
+      platforms:
+        - osx_x64
+      jobParameters:
+        runtimeType: iOSCoreCLR
+        codeGenType: R2R
+        projectFile: $(Build.SourcesDirectory)/eng/testing/performance/ios_scenarios.proj
+        runKind: ios_scenarios
+        isScenario: true
+        logicalMachine: 'perfiphone17'
+        iOSStripSymbols: True
+        additionalJobIdentifier: iOSStripSymbols
+        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}

@@ -170,6 +170,7 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        [MemoryRandomization]
         public void OrderByDescending(LinqTestData input) => input.Collection.OrderByDescending(i => i).Consume(_consumer);
 
         [Benchmark]
@@ -391,6 +392,9 @@ namespace System.Linq.Tests
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Intersect.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // Intersect() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Intersect.cs
+        [MemoryRandomization]
         public void Intersect(LinqTestData input) => input.Collection.Intersect(input.Collection).Consume(_consumer);
 
         // Except() has no special treatment and it has a single execution path
@@ -411,6 +415,7 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(SequenceEqualArguments))]
+        [MemoryRandomization]
         public bool SequenceEqual(LinqTestData input1, LinqTestData input2) => input1.Collection.SequenceEqual(input2.Collection);
 
         // Append() has two execution paths: AppendPrependIterator (a result of another Append or Prepend) and IEnumerable, this benchmark tests both

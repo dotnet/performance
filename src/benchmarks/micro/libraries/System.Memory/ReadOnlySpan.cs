@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -44,6 +44,7 @@ namespace System.Memory
         
         [Benchmark(OperationsPerInvoke = 16)]
         [ArgumentsSource(nameof(IndexOfStringArguments))]
+        [MemoryRandomization]
         public int IndexOfString(string input, string value, StringComparison comparisonType)
         {
             ReadOnlySpan<char> inputSpan = input.AsSpan();
@@ -84,6 +85,7 @@ namespace System.Memory
 
         [Benchmark]
         [ArgumentsSource(nameof(TrimArguments))]
+        [MemoryRandomization]
         public ReadOnlySpan<char> Trim(string input) => input.AsSpan().Trim();
 
         public static IEnumerable<object> TrimArguments()

@@ -15,6 +15,10 @@ INNERLOOP = 'innerloop'
 INNERLOOPMSBUILD = "innerloopmsbuild"
 DOTNETWATCH = "dotnetwatch"
 DEVICESTARTUP = "devicestartup"
+DEVICEMEMORYCONSUMPTION = "devicememoryconsumption"
+ANDROIDINSTRUMENTATION = "androidinstrumentation"
+DEVICEPOWERCONSUMPTION = "devicepowerconsumption"
+BUILDTIME = "buildtime"
 
 SCENARIO_NAMES = {STARTUP: 'Startup',
                   SDK: 'SDK',
@@ -22,7 +26,8 @@ SCENARIO_NAMES = {STARTUP: 'Startup',
                   CROSSGEN2: 'Crossgen2',
                   INNERLOOP: 'Innerloop',
                   INNERLOOPMSBUILD: 'InnerLoopMsBuild',
-                  DOTNETWATCH: 'DotnetWatch'}
+                  DOTNETWATCH: 'DotnetWatch',
+                  BUILDTIME: 'BuildTime'}
 
 BINDIR = 'bin'
 PUBDIR = 'pub'
@@ -32,6 +37,7 @@ SRCDIR = 'src' # used for checked in source.
 TMPDIR = 'tmp'
 ARTIFACTDIR = 'artifacts'
 CROSSGENDIR = 'crossgen.out'
+PYCACHE = '__pycache__'
 
 CLEAN_BUILD = 'clean_build'
 BUILD_NO_CHANGE = 'build_no_change'
@@ -47,5 +53,9 @@ ITERATION_SETUP_FILE = os.path.join(os.path.dirname(shared.__file__), 'sdk_itera
 STARTUP_PROCESSTIME = "ProcessTime"
 STARTUP_CROSSGEN2 = "Crossgen2"
 STARTUP_DEVICETIMETOMAIN = "DeviceTimeToMain"
+
+MEMORYCONSUMPTION_ANDROID = "AndroidMemoryConsumption"
+
+POWERCONSUMPTION_ANDROID = "AndroidPowerConsumption"
 
 MINUTE = 60

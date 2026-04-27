@@ -52,10 +52,12 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Char_ChangeCase_MemberData))]
+        [MemoryRandomization]
         public char Char_ToLower(char c, CultureInfo cultureName) => char.ToLower(c, cultureName);
 
         [Benchmark]
         [ArgumentsSource(nameof(Char_ChangeCase_MemberData))]
+        [MemoryRandomization]
         public char Char_ToUpper(char c, CultureInfo cultureName)=> char.ToUpper(c, cultureName);
 
         [Benchmark]

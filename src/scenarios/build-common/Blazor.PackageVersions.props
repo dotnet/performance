@@ -1,0 +1,34 @@
+<Project>
+    <PropertyGroup Condition="$(TargetFrameworks.Contains('net11.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '11.0')))">
+        <AspNetCoreVersion>11.0.0-*</AspNetCoreVersion>
+        <BlazorVersion>11.0.0-*</BlazorVersion>
+        <SystemNetHttpJsonVersion>11.0.0-*</SystemNetHttpJsonVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition="$(TargetFrameworks.Contains('net10.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '10.0')))">
+        <AspNetCoreVersion>10.0.0-*</AspNetCoreVersion>
+        <BlazorVersion>10.0.0-*</BlazorVersion>
+        <SystemNetHttpJsonVersion>10.0.0-*</SystemNetHttpJsonVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition="$(TargetFrameworks.Contains('net9.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '9.0')))">
+        <AspNetCoreVersion>9.0.0-*</AspNetCoreVersion>
+        <BlazorVersion>9.0.0-*</BlazorVersion>
+        <SystemNetHttpJsonVersion>9.0.0-*</SystemNetHttpJsonVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition="$(TargetFrameworks.Contains('net8.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '8.0')))">
+        <AspNetCoreVersion>8.0.0-*</AspNetCoreVersion>
+        <BlazorVersion>8.0.0-*</BlazorVersion>
+        <SystemNetHttpJsonVersion>8.0.0-*</SystemNetHttpJsonVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition="$(TargetFrameworks.Contains('net7.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '7.0')))">
+        <AspNetCoreVersion>7.0.0</AspNetCoreVersion>
+        <BlazorVersion>7.0.0</BlazorVersion>
+        <SystemNetHttpJsonVersion>7.0.0</SystemNetHttpJsonVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition="$(TargetFrameworks.Contains('net5.0')) or $(TargetFrameworks.Contains('net6.0')) or
+                              ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '6.0'))) or
+                              ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '7.0')))">
+        <AspNetCoreVersion Condition="'$(AspNetCoreVersion)' == ''">5.0.0</AspNetCoreVersion>
+        <BlazorVersion Condition="'$(BlazorVersion)' == ''">6.0.0-preview*</BlazorVersion>
+        <SystemNetHttpJsonVersion Condition="'$(SystemNetHttpJsonVersion)' == ''">6.0.0-preview*</SystemNetHttpJsonVersion>
+    </PropertyGroup>
+</Project>

@@ -5,7 +5,7 @@ post cleanup script
 import zipfile
 from os import walk, environ
 from os.path import isfile, join
-from shared.postcommands import clean_directories
+from shared.postcommands import PostCommands, clean_directories
 from shared import const
 from performance.common import runninginlab
 from test import EXENAME
@@ -19,6 +19,7 @@ if runninginlab():
                 f.append(join(dirpath, name))
         for files in f:
             publish.write(files)
-        
-subprocess.run(["dotnet", "workload", "uninstall", "wasm-tools"])
+
+postcommands = PostCommands()
 clean_directories()
+postcommands.uninstall_workload('wasm-tools')

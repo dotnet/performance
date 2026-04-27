@@ -27,12 +27,14 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void WriteAsciiCharArray()
         {
             _bw.Write(_inputAsChars);
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void WriteAsciiString()
         {
             _bw.Write(_input);

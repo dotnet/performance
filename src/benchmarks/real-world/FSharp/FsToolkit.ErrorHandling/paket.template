@@ -1,0 +1,23 @@
+type project
+title
+    FsToolkit.ErrorHandling
+owners
+    demystifyfp
+authors 
+    demystifyfp
+projectUrl
+    https://github.com/demystifyfp/FsToolkit.ErrorHandling
+iconUrl
+    https://raw.githubusercontent.com/demystifyfp/FsToolkit.ErrorHandling/master/docs/files/img/logo.png
+licenseUrl
+    https://github.com/demystifyfp/FsToolkit.ErrorHandling/blob/master/License
+requireLicenseAcceptance
+    false
+copyright
+    Copyright 2018
+tags
+    fsharp error-handling
+summary
+    FsToolkit.ErrorHandling is a utility library to work with Result type in F# to do error handling. It provides computation expressions, map, bind, apply, traverse, sequence & other utility functions to work with Result, ResultOption, AsyncResult, AsyncResultOption & Validation.
+description
+    FsToolkit.ErrorHandling is a utility library to work with Result type in F# to do error handling. It provides computation expressions, map, bind, apply, traverse, sequence & other utility functions to work with Result, ResultOption, AsyncResult, AsyncResultOption & Validation.

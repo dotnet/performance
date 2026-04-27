@@ -59,6 +59,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public A Scoped() => _scopedSp.ServiceProvider.GetService<A>();
 
         [GlobalCleanup(Target = nameof(Scoped))]

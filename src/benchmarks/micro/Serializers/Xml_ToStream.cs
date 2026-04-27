@@ -25,18 +25,27 @@ namespace MicroBenchmarks.Serializers
         private T value;
         private XmlSerializer xmlSerializer;
         private DataContractSerializer dataContractSerializer;
+        private XmlDictionaryWriter xmlDictionaryWriter;
         private MemoryStream memoryStream;
 
-        [GlobalSetup]
-        public void Setup()
+        [GlobalSetup(Target = nameof(XmlSerializer_))]
+        public void SetupXmlSerializer()
         {
             value = DataGenerator.Generate<T>();
             memoryStream = new MemoryStream(capacity: short.MaxValue);
             xmlSerializer = new XmlSerializer(typeof(T));
-            dataContractSerializer = new DataContractSerializer(typeof(T));
         }
 
-        [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
+        [GlobalSetup(Targets = new[] { nameof(DataContractSerializer_), nameof(DataContractSerializer_BinaryXml_) })]
+        public void SetupDataContractSerializer()
+        {
+            value = DataGenerator.Generate<T>();
+            memoryStream = new MemoryStream(capacity: short.MaxValue);
+            dataContractSerializer = new DataContractSerializer(typeof(T));
+            xmlDictionaryWriter = XmlDictionaryWriter.CreateBinaryWriter(memoryStream, null, null, ownsStream: false);
+        }
+
+        [BenchmarkCategory(Categories.Libraries, Categories.Runtime, Categories.NoWasmCoreCLR)] // Reflection.Emit not supported on CoreCLR WASM
         [Benchmark(Description = nameof(XmlSerializer))]
         public void XmlSerializer_()
         {
@@ -52,9 +61,23 @@ namespace MicroBenchmarks.Serializers
             dataContractSerializer.WriteObject(memoryStream, value);
         }
 
+        [BenchmarkCategory(Categories.Libraries)]
+        [Benchmark(Description = nameof(XmlDictionaryWriter))]
+        public void DataContractSerializer_BinaryXml_()
+        {
+            memoryStream.Position = 0;
+            ((IXmlBinaryWriterInitializer)xmlDictionaryWriter).SetOutput(memoryStream, null, null, ownsStream: false);
+
+            dataContractSerializer.WriteObject(xmlDictionaryWriter, value);
+        }
+
         // YAXSerializer is not included in the benchmarks because it does not allow to serialize to stream (only to file and string)
 
         [GlobalCleanup]
-        public void Dispose() => memoryStream.Dispose();
+        public void Dispose()
+        {
+            xmlDictionaryWriter?.Dispose();
+            memoryStream?.Dispose();
+        }
     }
 }

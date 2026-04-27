@@ -268,6 +268,7 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ArrayCopy3D() => Array.Copy(_arr3, _destinationArray, s_DIM_3 * s_DIM_3 * s_DIM_3);
 
         [IterationSetup(Target = nameof(ArrayResize))]
@@ -289,6 +290,7 @@ namespace System.Tests
         public void SetupReverse() => _reversibleArray = Enumerable.Range(0, 256).ToArray();
 
         [Benchmark]
+        [MemoryRandomization]
         public void Reverse() => Array.Reverse(_reversibleArray);
 
         [GlobalSetup(Target = nameof(Clear))]

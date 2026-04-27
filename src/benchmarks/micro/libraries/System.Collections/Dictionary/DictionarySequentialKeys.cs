@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -107,6 +107,7 @@ namespace System.Collections.Tests
         }
 
         [Benchmark(OperationsPerInvoke = Seventeen)]
+        [MemoryRandomization]
         public int TryGetValue_17_Int_Int()
             => TryGetValue_Int_Int(_dict_17, Seventeen);
 

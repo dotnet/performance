@@ -41,18 +41,22 @@ namespace System.IO.Tests
         public string Combine() => Path.Combine(_testPath, _testPath10);
 
         [Benchmark]
+        [MemoryRandomization]
         public string GetFileName() => Path.GetFileName(_testPath);
 
         [Benchmark]
         public string GetDirectoryName() => Path.GetDirectoryName(_testPath);
 
         [Benchmark]
+        [MemoryRandomization]
         public string ChangeExtension() => Path.ChangeExtension(_testPath, ".new");
 
         [Benchmark]
+        [MemoryRandomization]
         public string GetExtension() => Path.GetExtension(_testPath);
 
         [Benchmark]
+        [MemoryRandomization]
         public string GetFileNameWithoutExtension() => Path.GetFileNameWithoutExtension(_testPath);
 
         [Benchmark]

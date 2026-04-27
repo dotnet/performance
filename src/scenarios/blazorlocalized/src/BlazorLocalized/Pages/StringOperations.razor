@@ -1,0 +1,262 @@
+@using System.Globalization
+@using System.ComponentModel
+@using BlazorLocalized.Components
+@page "/string-operations/{locale}"
+
+<h1>String operations with @Locale culture</h1>
+
+<p>This component performs locale-sensitive operations on a generated form provided by user string </p>
+
+<div class="row">
+    <div class="col-md-6 col-lg-4">
+        @if (operationsArr == null || operationsArr.Count() == 0)
+        {
+            <p><em>Error...</em></p>
+        }
+        else
+        {
+            <div class="form-group">
+                <div class="checkbox">
+                    <label for="UseGeneratorCheckbox">
+                        <input id="UseGeneratorCheckbox" type="checkbox" @bind="@UseGenerator" />
+                        Too lazy to type? Use string generator!
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group" hidden="@(!UseGenerator)">
+                <form @onsubmit="@Generate">
+                    <div class="form-group">
+                        <label for="GenerationRangeLower">Generation range from:</label>
+                        <InputNumber id="GenerationRangeLower" class="form-control" type="number" @bind-Value="_generationRangeLower" />
+                    </div>
+                    <div class="form-group">
+                        <label for="GenerationRangeUpper">Generation range to:</label>
+                        <InputNumber id="GenerationRangeUpper" class="form-control" type="number" @bind-Value="_generationRangeUpper" />
+                    </div>
+                    <div class="form-group">
+                        <label for="StringLength">String length:</label>
+                        <InputNumber id="StringLength" class="form-control" type="number" @bind-Value="_stringLength" />
+                    </div>
+                    <div class="form-group">
+                        <label for="NeedleLength">Needle length:</label>
+                        <InputNumber id="NeedleLength" class="form-control" type="number" @bind-Value="_needleLength" />
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Generate</button>
+                    </div>
+                </form>
+            </div>
+            @foreach (var operation in operationsArr)
+            {
+                <section>
+                    <form @onsubmit="@operation.RunCalculate">
+                        <div class="form-group">
+                            <h1>@operation.Title</h1>
+                        </div>
+                        <div class="form-group">
+                            <label for="InputString">Input string:</label>
+                            <InputText id="InputString" class="form-control" type="text" @bind-Value="operation.StringValue" />
+                        </div>
+                        <div class="form-group">
+
+                            <label for="NeedleString">Needle string:</label>
+                            <InputText id="NeedleString" class="form-control" type="text" @bind-Value="operation.NeedleValue" />
+                        </div>
+                        <div class="form-group">
+                            <label>Select the compare option used when looking for the index:</label>
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" @bind="@operation.selectedCompareOption">
+                                @foreach (var option in operation.OperationCompareOptions)
+                                {
+                                    <option value="@option"> @option.ToString() </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Calculate</button>
+                        </div>
+                        <div class="form-group">
+                            <label>@operation.ResultLabel: @operation.Result</label>
+                        </div>
+                    </form>
+                </section>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string? Locale { get; set; }
+
+    private OperationBase[]? operationsArr { get; set; }
+    private Creator generator = new();
+    private bool _useGenerator = false;
+    public bool UseGenerator
+    {
+        get { return _useGenerator; }
+        set
+        {
+            _useGenerator = value;
+            if (operationsArr == null)
+                return;
+            if (!_useGenerator)
+            {
+                foreach (var operation in operationsArr)
+                {
+                    operation.StringValue = "";
+                    operation.NeedleValue = "";
+                }
+            }
+        }
+    }
+    private int _generationRangeLower = 32;
+    private int _generationRangeUpper = 126;
+    private int _stringLength = 20;
+    private int _needleLength = 2;
+    private void Generate()
+    {
+        generator.SetGenerationRange(_generationRangeLower, _generationRangeUpper);
+        if (operationsArr == null)
+            return;
+
+        foreach (var operation in operationsArr)
+        {
+            operation.StringValue = generator.Generate(_stringLength);
+            operation.NeedleValue = generator.Generate(_needleLength);
+        }
+        
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CultureInfo culture = LocaleArgParser.ToCultureInfo(Locale);
+        CompareInfo compareInfo = culture.CompareInfo;
+
+        var compareOptionsIndexing = new[]
+        {
+            CompareOptionsExtension.None,
+            CompareOptionsExtension.IgnoreNonSpaceIgnoreCaseIgnoreKanaType,
+            CompareOptionsExtension.IgnoreKanaType, // throws for all but "ja"
+            CompareOptionsExtension.OrdinalIgnoreCase, // not hg
+            CompareOptionsExtension.Ordinal, // not hg
+            CompareOptionsExtension.IgnoreCaseIgnoreKanaType
+        };
+        var compareOptionsComparison = new[]
+        {
+            CompareOptionsExtension.None,
+            CompareOptionsExtension.IgnoreCase,
+            CompareOptionsExtension.IgnoreSymbols,
+            CompareOptionsExtension.IgnoreNonSpaceIgnoreKanaType,
+            CompareOptionsExtension.IgnoreNonSpaceIgnoreCaseIgnoreKanaType,
+            CompareOptionsExtension.IgnoreKanaType, // throws for all but "ja"
+            CompareOptionsExtension.OrdinalIgnoreCase, // not hg
+            CompareOptionsExtension.Ordinal, // not hg
+            CompareOptionsExtension.IgnoreCaseIgnoreKanaType
+        };
+        OperationReturningNumber indexOf = new("Index Of", "Needle found on position", compareOptionsIndexing, (strVal, needle, cmpOptions) => compareInfo.IndexOf(strVal, needle, cmpOptions));
+        OperationReturningNumber lastIndexOf = new("Last Index Of", "Needle found on position", compareOptionsIndexing, (strVal, needle, cmpOptions) => compareInfo.LastIndexOf(strVal, needle, cmpOptions));
+        OperationReturningNumber compare = new("Compare", "Comparison result", compareOptionsComparison, (strVal, needle, cmpOptions) => compareInfo.Compare(strVal, needle, cmpOptions));
+        OperationReturningBoolean isPrefix = new("Is Prefix", "Prefix found on position", compareOptionsIndexing, (strVal, needle, cmpOptions) => compareInfo.IsPrefix(strVal, needle, cmpOptions));
+        OperationReturningBoolean isSuffix = new("Is Suffix", "Suffix found on position", compareOptionsIndexing, (strVal, needle, cmpOptions) => compareInfo.IsSuffix(strVal, needle, cmpOptions));
+        operationsArr = new OperationBase[] { indexOf, lastIndexOf, compare, isPrefix, isSuffix };
+        await Task.FromResult(0);
+    }
+
+    private class OperationBase
+    {
+        public string Title = "";
+        public string ResultLabel = "";
+        public string StringValue = "";
+        public string NeedleValue = "";
+        public CompareOptionsExtension selectedCompareOption = CompareOptionsExtension.None;
+        public CompareOptionsExtension[] OperationCompareOptions;
+        public int Result;
+
+        public OperationBase(string name, string resultLabel, CompareOptionsExtension[] compareOptions)
+        {
+            Title = name;
+            ResultLabel = resultLabel;
+            OperationCompareOptions = compareOptions;
+        }
+
+        public virtual void RunCalculate() {}
+    }
+
+    private class OperationReturningNumber : OperationBase
+    {
+        private readonly Func<string, string, CompareOptions, int> _calculateInt;
+
+        public OperationReturningNumber(string name, string resultLabel, CompareOptionsExtension[] compareOptions, Func<string, string, CompareOptions, int> calculate)
+            : base(name, resultLabel, compareOptions)
+        {
+            _calculateInt = calculate;
+        }
+
+        public override void RunCalculate() =>
+            Calculate(StringValue, NeedleValue, (CompareOptions)selectedCompareOption);
+
+        private void Calculate(string strValue, string needle, CompareOptions cmpOptions)
+        {
+            Result = _calculateInt(strValue, needle, cmpOptions);
+        }
+    }
+
+    private class OperationReturningBoolean : OperationBase
+    {
+        private readonly Func<string, string, CompareOptions, bool> _calculateBool;
+
+        public OperationReturningBoolean(string name, string resultLabel, CompareOptionsExtension[] compareOptions, Func<string, string, CompareOptions, bool> calculate)
+            : base(name, resultLabel, compareOptions)
+        {
+            _calculateBool = calculate;
+        }
+
+        public override void RunCalculate() =>
+            Calculate(StringValue, NeedleValue, (CompareOptions)selectedCompareOption);
+
+        private void Calculate(string strValue, string needle, CompareOptions cmpOptions)
+        {
+            var result = _calculateBool(strValue, needle, cmpOptions);
+            Result = result ? 0 : -1;
+        }
+    }
+
+    private enum OperationReturnType
+    {
+        Boolean,
+        Index
+    }
+
+    public enum CompareOptionsExtension
+    {
+        None = 0,
+
+        IgnoreCase = 1,
+
+        IgnoreNonSpace = 2,
+
+        IgnoreSymbols = 4,
+
+        IgnoreKanaType = 8,
+
+        [Description("IgnoreCase, IgnoreKanaType")]
+        IgnoreCaseIgnoreKanaType = 9,
+
+        [Description("IgnoreNonSpace, IgnoreKanaType")]
+        IgnoreNonSpaceIgnoreKanaType = 10,
+
+        [Description("IgnoreNonSpace, IgnoreCase, IgnoreKanaType")]
+        IgnoreNonSpaceIgnoreCaseIgnoreKanaType = 11,
+
+        IgnoreWidth = 16,
+
+        OrdinalIgnoreCase = 268435456,
+
+        StringSort = 536870912,
+
+        Ordinal = 1073741824
+    }
+}

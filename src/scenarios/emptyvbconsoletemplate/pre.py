@@ -15,4 +15,5 @@ precommands.new(template='console',
                 exename=EXENAME,
                 working_directory=sys.path[0],
                 language='vb')
+precommands.add_onmain_logging("Program.vb", "    Sub Main(args As String())", language_file_extension="vb")
 precommands.execute()

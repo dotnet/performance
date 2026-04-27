@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -18,12 +18,16 @@ namespace System
         private byte[] _binaryData;
         private char[] _base64CharArray;
         private string _base64String;
+#if NET5_0_OR_GREATER
+        private string _hexString;
+#endif
         private char[] _base64Chars;
 
         [GlobalSetup(Target = nameof(GetTypeCode))]
         public void SetupGetTypeCode() => _stringValue = "Hello World!";
 
         [Benchmark]
+        [MemoryRandomization]
         public TypeCode GetTypeCode() => Convert.GetTypeCode(_stringValue);
 
         [GlobalSetup(Target = nameof(ChangeType))]
@@ -44,6 +48,7 @@ namespace System
         [Benchmark]
         [Arguments(Size, Base64FormattingOptions.InsertLineBreaks)]
         [Arguments(Size, Base64FormattingOptions.None)]
+        [MemoryRandomization]
         public int ToBase64CharArray(int binaryDataSize, Base64FormattingOptions formattingOptions)
             => Convert.ToBase64CharArray(_binaryData, 0, binaryDataSize, _base64CharArray, 0, formattingOptions);
 
@@ -53,6 +58,7 @@ namespace System
         [Benchmark]
         [Arguments(Base64FormattingOptions.InsertLineBreaks)]
         [Arguments(Base64FormattingOptions.None)]
+        [MemoryRandomization]
         public string ToBase64String(Base64FormattingOptions formattingOptions)
             => Convert.ToBase64String(_binaryData, formattingOptions);
 
@@ -85,8 +91,17 @@ namespace System
             new Random(42).NextBytes(_binaryData);
         }
 
+        [GlobalSetup(Target = nameof(FromHexString))]
+        public void SetupFromHexString()
+        {
+            _hexString = Convert.ToHexString(Encoding.ASCII.GetBytes("This is a test of Convert."));   
+        }
+
         [Benchmark]
         public string ToHexString() => Convert.ToHexString(_binaryData);
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
+        public byte[] FromHexString() => Convert.FromHexString(_hexString);
 #endif
 
         private static byte[] InitializeBinaryDataCollection(int size)

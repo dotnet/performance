@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.Shown += WinformsNetCorePerfApp1_Shown;
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
@@ -89,6 +90,11 @@
             this.tabControl1.ResumeLayout(false);
             this.ResumeLayout(false);
 
+        }
+
+        private void WinformsNetCorePerfApp1_Shown(object sender, System.EventArgs e)
+        {
+            PerfLabGenericEventSource.Log.Startup();
         }
 
         #endregion

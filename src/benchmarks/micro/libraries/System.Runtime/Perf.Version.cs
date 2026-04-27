@@ -25,21 +25,27 @@ namespace System.Tests
         public Version Ctor4() => new Version(1, 2, 3, 4);
 
         [Benchmark]
+        [MemoryRandomization]
         public Version Parse2() => Version.Parse("1.2");
 
         [Benchmark]
+        [MemoryRandomization]
         public Version Parse3() => Version.Parse("1.2.3");
 
         [Benchmark]
+        [MemoryRandomization]
         public Version Parse4() => Version.Parse("1.2.3.4");
 
         [Benchmark]
+        [MemoryRandomization]
         public bool TryParse2() => Version.TryParse("1.2", out _);
 
         [Benchmark]
+        [MemoryRandomization]
         public bool TryParse3() => Version.TryParse("1.2.3", out _);
 
         [Benchmark]
+        [MemoryRandomization]
         public bool TryParse4() => Version.TryParse("1.2.3.4", out _);
 
         [Benchmark]

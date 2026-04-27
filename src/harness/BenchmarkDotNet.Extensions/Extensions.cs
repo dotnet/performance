@@ -17,10 +17,20 @@ namespace BenchmarkDotNet.Extensions
                 return 1;
 
             // if anything has failed, it's an error
-            if (summaries.Any(summary => summary.HasCriticalValidationErrors || summary.Reports.Any(report => !report.BuildResult.IsBuildSuccess || !report.AllMeasurements.Any())))
+            if (summaries.Any(summary => summary.HasAnyErrors()))
                 return 1;
 
             return 0;
+        }
+
+        public static bool HasAnyErrors(this Summary summary)
+        {
+            return summary.HasCriticalValidationErrors || summary.Reports.Any(report => report.HasAnyErrors());
+        }
+
+        public static bool HasAnyErrors(this BenchmarkReport report)
+        {
+            return !report.BuildResult.IsBuildSuccess || !report.AllMeasurements.Any();
         }
     }
 }

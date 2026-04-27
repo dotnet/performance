@@ -1,0 +1,32 @@
+<Project>
+  <ItemGroup>
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
+      <PayloadDirectory>%(Identity)</PayloadDirectory>
+    </HelixCorrelationPayload>
+  </ItemGroup>
+
+  <ItemDefinitionGroup>
+    <HelixWorkItem>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+  </ItemDefinitionGroup>
+
+  <PropertyGroup>
+    <FrameworkVersion>$([System.Text.RegularExpressions.Regex]::Match($(PERFLAB_Framework), '(\d+\.\d+)$').Groups[1].Value)</FrameworkVersion>
+    <HelixResultsDestinationDir>$(CorrelationPayloadDirectory)performance/artifacts/helix-results</HelixResultsDestinationDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+    <ScenariosDir>$(CorrelationPayloadDirectory)performance\src\scenarios\</ScenariosDir>
+    <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
+    <RID>win-$(Architecture)</RID>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
+    <ScenariosDir>$(CorrelationPayloadDirectory)performance/src/scenarios/</ScenariosDir>
+    <HelixPreCommands Condition="$(PERFLAB_QUEUE.ToLower().Contains('azurelinux'))">$(HelixPreCommands);sudo tdnf -y update;chmod +x $HELIX_CORRELATION_PAYLOAD/startup/perfcollect</HelixPreCommands>
+    <HelixPreCommands Condition="!$(PERFLAB_QUEUE.ToLower().Contains('azurelinux'))">$(HelixPreCommands);sudo apt-get update;chmod +x $HELIX_CORRELATION_PAYLOAD/startup/perfcollect</HelixPreCommands>
+    <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
+    <RID>linux-$(Architecture)</RID>
+  </PropertyGroup>
+</Project>

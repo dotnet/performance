@@ -21,6 +21,7 @@ namespace System.Net.Security.Tests
     {
         private readonly Barrier _twoParticipantBarrier = new Barrier(2);
         private static readonly X509Certificate2 _cert = Test.Common.Configuration.Certificates.GetServerCertificate();
+        private static readonly X509Certificate2 _clientCert = Test.Common.Configuration.Certificates.GetClientCertificate();
         private static readonly X509Certificate2 _ec256Cert = Test.Common.Configuration.Certificates.GetEC256Certificate();
         private static readonly X509Certificate2 _ec512Cert = Test.Common.Configuration.Certificates.GetEC512Certificate();
         private static readonly X509Certificate2 _rsa2048Cert = Test.Common.Configuration.Certificates.GetRSA2048Certificate();
@@ -98,16 +99,27 @@ namespace System.Net.Security.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public Task DefaultHandshakeIPv4Async() => DefaultHandshake(_clientIPv4, _serverIPv4);
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public Task DefaultHandshakeIPv6Async() => DefaultHandshake(_clientIPv6, _serverIPv6);
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
+        public Task DefaultMutualHandshakeIPv4Async() => DefaultHandshake(_clientIPv4, _serverIPv4, requireClientCert: true);
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
+        public Task DefaultMutualHandshakeIPv6Async() => DefaultHandshake(_clientIPv6, _serverIPv6, requireClientCert: true);
+
+        [Benchmark]
         [OperatingSystemsFilter(allowed: true, platforms: OS.Linux)]    // Not supported on Windows at the moment.
+        [BenchmarkCategory(Categories.NoAOT)]
         public Task DefaultHandshakePipeAsync() => DefaultHandshake(_clientPipe, _serverPipe);
 
-        private async Task DefaultHandshake(Stream client, Stream server)
+        private async Task DefaultHandshake(Stream client, Stream server, bool requireClientCert = false)
         {
             SslClientAuthenticationOptions clientOptions = new SslClientAuthenticationOptions
             {
@@ -115,6 +127,7 @@ namespace System.Net.Security.Tests
                 EnabledSslProtocols = SslProtocols.None,
                 CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                 TargetHost = "loopback",
+                ClientCertificates = requireClientCert ? new X509CertificateCollection() { _clientCert } : null,
             };
 
             SslServerAuthenticationOptions serverOptions = new SslServerAuthenticationOptions
@@ -122,7 +135,8 @@ namespace System.Net.Security.Tests
                 AllowRenegotiation = false,
                 EnabledSslProtocols = SslProtocols.None,
                 CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                ServerCertificate = _cert
+                ServerCertificate = _cert,
+                ClientCertificateRequired = requireClientCert,
             };
 
             using (var sslClient = new SslStream(client, leaveInnerStreamOpen: true, delegate { return true; }))
@@ -137,9 +151,11 @@ namespace System.Net.Security.Tests
                 {
                     // In Tls1.3 part of handshake happens with data exchange.
                     await sslClient.WriteAsync(_clientBuffer, cts.Token);
+#pragma warning disable CA2022 // Avoid inexact read
                     await sslServer.ReadAsync(_serverBuffer, cts.Token);
                     await sslServer.WriteAsync(_serverBuffer, cts.Token);
                     await sslClient.ReadAsync(_clientBuffer, cts.Token);
+#pragma warning restore CA2022
                 }
             }
         }
@@ -175,17 +191,19 @@ namespace System.Net.Security.Tests
                         sslServer.AuthenticateAsServerAsync(serverOptions, cts.Token));
 
                 byte[] clientBuffer = new byte[1], serverBuffer = new byte[1];
-
                 await sslClient.WriteAsync(clientBuffer, cts.Token);
+#pragma warning disable CA2022 // Avoid inexact read
                 await sslServer.ReadAsync(serverBuffer, cts.Token);
                 await sslServer.WriteAsync(serverBuffer, cts.Token);
                 await sslClient.ReadAsync(clientBuffer, cts.Token);
+#pragma warning restore CA2022
             }
         }
 
         private const int ReadWriteIterations = 50_000;
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
+        [BenchmarkCategory(Categories.NoAOT)]
         public async Task WriteReadAsync()
         {
             Memory<byte> clientBuffer = _clientBuffer;
@@ -193,11 +211,26 @@ namespace System.Net.Security.Tests
             for (int i = 0; i < ReadWriteIterations; i++)
             {
                 await _sslClient.WriteAsync(clientBuffer, default);
+#pragma warning disable CA2022 // Avoid inexact read
                 await _sslServer.ReadAsync(serverBuffer, default);
+#pragma warning restore CA2022
             }
         }
 
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
+        public async Task LargeWriteReadAsync()
+        {
+            Memory<byte> clientBuffer = _largeClientBuffer;
+            Memory<byte> serverBuffer = _largeServerBuffer;
+            await _sslClient.WriteAsync(clientBuffer, default);
+#pragma warning disable CA2022 // Avoid inexact read
+            await _sslServer.ReadAsync(serverBuffer, default);
+#pragma warning restore CA2022
+        }
+
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
+        [BenchmarkCategory(Categories.NoAOT)]
         public async Task ReadWriteAsync()
         {
             Memory<byte> clientBuffer = _clientBuffer;
@@ -210,14 +243,27 @@ namespace System.Net.Security.Tests
             }
         }
 
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
+        public async Task LargeReadWriteAsync()
+        {
+            Memory<byte> clientBuffer = _largeClientBuffer;
+            Memory<byte> serverBuffer = _largeServerBuffer;
+            ValueTask<int> read = _sslServer.ReadAsync(serverBuffer, default);
+            await _sslClient.WriteAsync(clientBuffer, default);
+            await read;
+        }
+
         private const int ConcurrentReadWriteIterations = 50_000;
 
         [Benchmark(OperationsPerInvoke = ConcurrentReadWriteIterations)]
+        [BenchmarkCategory(Categories.NoAOT)]
         public async Task ConcurrentReadWrite()
         {
             Memory<byte> buffer1 = _clientBuffer;
             Memory<byte> buffer2 = _serverBuffer;
 
+#pragma warning disable CA2022 // Avoid inexact read
             Task other = Task.Run(async delegate
             {
                 _twoParticipantBarrier.SignalAndWait();
@@ -234,6 +280,7 @@ namespace System.Net.Security.Tests
                 await _sslClient.WriteAsync(buffer2, default);
                 await _sslServer.ReadAsync(buffer2, default);
             }
+#pragma warning restore CA2022 
 
             await other;
         }
@@ -241,6 +288,7 @@ namespace System.Net.Security.Tests
         private const int ConcurrentReadWriteLargeBufferIterations = 10_000;
 
         [Benchmark(OperationsPerInvoke = ConcurrentReadWriteLargeBufferIterations)]
+        [BenchmarkCategory(Categories.NoAOT)]
         public async Task ConcurrentReadWriteLargeBuffer()
         {
             Memory<byte> buffer1 = _largeClientBuffer;

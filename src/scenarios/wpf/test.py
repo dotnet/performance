@@ -6,7 +6,12 @@ EXENAME = 'wpf'
 
 def main():
     traits = TestTraits(exename=EXENAME,
-                        guiapp='false', 
+                        guiapp='true',
+                        startupmetric='WPF',
+                        timeout=30,
+                        measurementdelay='6',
+                        runwithoutexit='false',
+                        processwillexit="false", 
                         )
     runner = Runner(traits)
     runner.run()

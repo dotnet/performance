@@ -15,7 +15,7 @@
     <ProjectReference Include="..\ClassLib075\ClassLib075.csproj" />
     <ProjectReference Include="..\ClassLib097\ClassLib097.csproj" />
     <PackageReference Include="AspNet.Security.OAuth.Validation" Version="2.0.0-rc1-final" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="2.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="2.1.30" />
     <PackageReference Include="OpenIddict" Version="2.0.0-rc1-final" />
   </ItemGroup>
 </Project>

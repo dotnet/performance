@@ -1,25 +1,7 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
-  <ItemGroup>
-    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
-      <PayloadDirectory>%(Identity)</PayloadDirectory>
-    </HelixCorrelationPayload>
-  </ItemGroup>
-  
-  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
-    <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
-    <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
-  </PropertyGroup>
+  <Import Project="Scenarios.Common.props" />
 
-  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
-    <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
-    <HelixPreCommands>$(HelixPreCommands);sudo apt-get update;chmod +x $HELIX_CORRELATION_PAYLOAD/startup/perfcollect</HelixPreCommands>
-    <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
-  </PropertyGroup>  
-
-  <PropertyGroup>
-    <FrameworkVersion>$(_Framework.Substring($([MSBuild]::Subtract($(_Framework.Length), 3))))</FrameworkVersion>
-  </PropertyGroup>
 
   <ItemGroup>
       <Framework Include="netcoreapp2.1" FrameworkName="%(Identity)"/>
@@ -27,6 +9,11 @@
       <Framework Include="netcoreapp3.1" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.0'"/>
       <Framework Include="netcoreapp5.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.1'"/>
       <Framework Include="net6.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '5.0'"/>
+      <Framework Include="net7.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '6.0'"/>
+      <Framework Include="net8.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '7.0' and '$(PERFLAB_Framework)' != 'net9.0'"/>
+      <Framework Include="net9.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '8.0'"/>
+      <Framework Include="net10.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '9.0' and '$(PERFLAB_Framework)' != 'net11.0'"/>
+      <Framework Include="net11.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '10.0'"/>
   </ItemGroup>
 
   <ItemDefinitionGroup>
@@ -34,163 +21,181 @@
       <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </SDKWorkItem>
   </ItemDefinitionGroup>
   
   <ItemGroup>
-    <SDKWorkItem Include="@(Framework -> 'SDK Console Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0">
-      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
+    <SDKWorkItem Include="@(Framework -> 'SDK Console Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;">
+      <ScenarioDirectoryName>emptyconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
 
     <SDKWorkItem Include="SDK Console Template">
-      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
+      <ScenarioDirectoryName>emptyconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
     <SDKWorkItem Include="SDK F# Console Template">
-      <PayloadDirectory>$(ScenariosDir)emptyfsconsoletemplate</PayloadDirectory>
+      <ScenarioDirectoryName>emptyfsconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </SDKWorkItem>
+    <SDKWorkItem Include="F# Compiler Service" Condition="$(Architecture) != 'x86'"> <!-- Don't run on x86 as we are hitting OOM exceptions on Viper machines https://github.com/dotnet/performance/issues/4971 -->
+      <ScenarioDirectoryName>fsharpcompilerservice</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
     <SDKWorkItem Include="SDK ASP.Net Core Empty Template">
-      <PayloadDirectory>$(ScenariosDir)aspwebtemplate</PayloadDirectory>
-    </SDKWorkItem>
-    <SDKWorkItem Include="SDK Blazor Server App Template">
-      <PayloadDirectory>$(ScenariosDir)blazorservertemplate</PayloadDirectory>
+      <ScenarioDirectoryName>aspwebtemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
     <SDKWorkItem Include="SDK Class library Template">
-      <PayloadDirectory>$(ScenariosDir)classlibtemplate</PayloadDirectory>
+      <ScenarioDirectoryName>classlibtemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
     <SDKWorkItem Include="SDK ASP.NET Core gRPC Service Template">
-      <PayloadDirectory>$(ScenariosDir)grpctemplate</PayloadDirectory>
+      <ScenarioDirectoryName>grpctemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
     <SDKWorkItem Include="SDK ASP.NET Core Web App (Model-View-Controller) Template">
-      <PayloadDirectory>$(ScenariosDir)mvcapptemplate</PayloadDirectory>
+      <ScenarioDirectoryName>mvcapptemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
     <SDKWorkItem Include="SDK MSTest Test Project (.NET Core) Template">
-      <PayloadDirectory>$(ScenariosDir)mstesttemplate</PayloadDirectory>
+      <ScenarioDirectoryName>mstesttemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
     <SDKWorkItem Include="SDK NUnit 3 Test Project Template">
-      <PayloadDirectory>$(ScenariosDir)nunittesttemplate</PayloadDirectory>
+      <ScenarioDirectoryName>nunittesttemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
     <SDKWorkItem Include="SDK Razor Class Library Template">
-      <PayloadDirectory>$(ScenariosDir)razorclasslibtemplate</PayloadDirectory>
+      <ScenarioDirectoryName>razorclasslibtemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
     <SDKWorkItem Include="SDK ASP.NET Core Web API Template">
-      <PayloadDirectory>$(ScenariosDir)webapitemplate</PayloadDirectory>
+      <ScenarioDirectoryName>webapitemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
     <SDKWorkItem Include="SDK ASP.NET Core Web App Template">
-      <PayloadDirectory>$(ScenariosDir)webapptemplate</PayloadDirectory>
+      <ScenarioDirectoryName>webapptemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
     <SDKWorkItem Include="SDK xUnit Test Project Template">
-      <PayloadDirectory>$(ScenariosDir)xunittesttemplate</PayloadDirectory>
+      <ScenarioDirectoryName>xunittesttemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
 
     <!-- For netstandard library we test only netstandard2.0 framework -->
-    <SDKWorkItem Include="SDK .NET 2.0 Library Template">
-      <PayloadDirectory>$(ScenariosDir)netstandard2.0</PayloadDirectory>
-    </SDKWorkItem>
+    <!-- <SDKWorkItem Include="SDK .NET 2.0 Library Template">
+      <ScenarioDirectoryName>netstandard2.0</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </SDKWorkItem> -->
 
-    <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0">
-      <PayloadDirectory>$(ScenariosDir)mvcapptemplate</PayloadDirectory>
-      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
-    </SDKWorkItem>
-
-    <!-- WebLarge3.0 asset is specific to netcoreapp3.0 and netcoreapp3.1
-    <SDKWorkItem Include="@(Framework -> 'SDK Web Large 3.0 %(Identity)')" Exclude="*2.1;*5.0">
-      <PayloadDirectory>$(ScenariosDir)weblarge3.0</PayloadDirectory>
+    <!-- Failing when targeting net8.0 when running net10.0 -->
+    <!-- <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;">
+      <ScenarioDirectoryName>mvcapptemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem> -->
 
-    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
-      <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
+    <!-- WebLarge3.0 asset is specific to netcoreapp3.0 and netcoreapp3.1
+    <SDKWorkItem Include="@(Framework -> 'SDK Web Large 3.0 %(Identity)')" Exclude="*2.1;*5.0">
+      <ScenarioDirectoryName>weblarge3.0</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem> -->
+
+    <!-- We never run against Framework 3.0 or 3.1 -->
+    <!-- <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
+      <ScenarioDirectoryName>windowsformslarge</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
 
     <SDKWorkItem Include="@(Framework -> 'SDK WPF Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
-      <PayloadDirectory>$(ScenariosDir)wpflarge</PayloadDirectory>
+      <ScenarioDirectoryName>wpflarge</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
 
     <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Template %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
-      <PayloadDirectory>$(ScenariosDir)windowsforms</PayloadDirectory>
+      <ScenarioDirectoryName>windowsforms</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
 
     <SDKWorkItem Include="@(Framework -> 'SDK WPF Template %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
-      <PayloadDirectory>$(ScenariosDir)wpf</PayloadDirectory>
+      <ScenarioDirectoryName>wpf</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
-    </SDKWorkItem>
+    </SDKWorkItem> -->
   </ItemGroup>
 
   <ItemGroup>
     <HelixWorkItem Include="@(SDKWorkItem -> '%(Identity) Clean Build')">
-      <Command>%(Command) clean_build --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>%(Command) clean_build --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(SDKWorkItem -> '%(Identity) Build(No Change)')">
-      <Command>%(Command) build_no_change --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>%(Command) build_no_change --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
   </ItemGroup>
 
   <ItemGroup>
     <HelixWorkItem Include="SDK New Console">
-      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
-      <Command>$(Python) test.py sdk new_console --scenario-name &quot;%(Identity)&quot;</Command>
+      <ScenarioDirectoryName>emptyconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <Command>$(Python) test.py sdk new_console --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="Inner Loop Console">
-      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplateinnerloop</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default</PreCommands>
-      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
+      <ScenarioDirectoryName>emptyconsoletemplateinnerloop</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <PreCommands>$(Python) pre.py default -f $(PERFLAB_Framework)</PreCommands>
+      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop MVC">
-      <PayloadDirectory>$(ScenariosDir)mvcinnerloop</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default</PreCommands>
-      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
+      <ScenarioDirectoryName>mvcinnerloop</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <PreCommands>$(Python) pre.py default -f $(PERFLAB_Framework)</PreCommands>
+      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
-    </HelixWorkItem>
-    <HelixWorkItem Include="Inner Loop Blazor Server">
-      <PayloadDirectory>$(ScenariosDir)blazorserverinnerloop</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default</PreCommands>
-      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
-      <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop MsBuild Console">
-      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplateinnerloopmsbuild</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default</PreCommands>
-      <Command>$(Python) test.py innerloopmsbuild --scenario-name &quot;%(Identity)&quot;</Command>
+      <ScenarioDirectoryName>emptyconsoletemplateinnerloopmsbuild</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <PreCommands>$(Python) pre.py default -f $(PERFLAB_Framework)</PreCommands>
+      <Command>$(Python) test.py innerloopmsbuild --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
-    <HelixWorkItem Include="Inner Loop Blazor Client">
-      <PayloadDirectory>$(ScenariosDir)blazorwasminnerloop</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default</PreCommands>
-      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
+    <!-- Inner Loop Blazor Client: gated to internal (SYSTEM_TEAMPROJECT=internal) by default due to higher resource usage.
+      Override with /p:IncludeVMFlakyScenarios=true to include elsewhere. -->
+    <HelixWorkItem Include="Inner Loop Blazor Client" Condition="'$(SYSTEM_TEAMPROJECT)' == 'internal' OR '$(IncludeVMFlakyScenarios)' == 'true'">
+      <ScenarioDirectoryName>blazorwasminnerloop</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <PreCommands>$(Python) pre.py default -f $(PERFLAB_Framework)</PreCommands>
+      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
     <!--
     <HelixWorkItem Include="Hot Reload Blazor Client" Condition="'$(FrameworkVersion)' == '6.0'">
-      <PayloadDirectory>$(ScenariosDir)blazorwasmdotnetwatch</PayloadDirectory>
-      <PreCommands>$(Python) pre.py build -f net$(FrameworkVersion) -c Release</PreCommands>
-      <Command>$(Python) test.py dotnetwatch -(-fixme when uncommenting!!)scenario-name &quot;%(Identity)&quot;</Command>
+      <ScenarioDirectoryName>blazorwasmdotnetwatch</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <PreCommands>$(Python) pre.py build -f $(PERFLAB_Framework) -c Release</PreCommands>
+      <Command>$(Python) test.py dotnetwatch -(-fixme when uncommenting!!)scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
     -->
     <HelixWorkItem Include="Hot Reload MVC" Condition="'$(FrameworkVersion)' == '6.0'">
-      <PayloadDirectory>$(ScenariosDir)mvcdotnetwatch</PayloadDirectory>
-      <PreCommands>$(Python) pre.py build -f net$(FrameworkVersion) -c Release</PreCommands>
-      <Command>$(Python) test.py dotnetwatch --scenario-name &quot;%(Identity)&quot;</Command>
+      <ScenarioDirectoryName>mvcdotnetwatch</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <PreCommands>$(Python) pre.py build -f $(PERFLAB_Framework) -c Release</PreCommands>
+      <Command>$(Python) test.py dotnetwatch --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>
-</Project>
 
+  <Import Project="PreparePayloadWorkItems.targets" />
+</Project>

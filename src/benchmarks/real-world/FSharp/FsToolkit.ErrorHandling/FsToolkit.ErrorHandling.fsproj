@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <LangVersion>preview</LangVersion>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <Compile Include="Shims.fs" />
+    <Compile Include="Result.fs" />
+    <Compile Include="ResultCE.fs" />
+    <Compile Include="ResultOp.fs" />
+    <Compile Include="ResultOption.fs" />
+    <Compile Include="ResultOptionCE.fs" />
+    <Compile Include="ResultOptionOp.fs" />
+    <Compile Include="Async.fs" />
+    <Compile Include="AsyncResult.fs" />
+    <Compile Include="AsyncResultCE.fs" />
+    <Compile Include="AsyncResultOp.fs" />
+    <Compile Include="AsyncResultOption.fs" />
+    <Compile Include="AsyncResultOptionCE.fs" />
+    <Compile Include="AsyncResultOptionOp.fs" />
+    <Compile Include="Validation.fs" />
+    <Compile Include="ValidationOp.fs" />
+    <Compile Include="ValidationCE.fs" />
+    <Compile Include="Option.fs" />
+    <Compile Include="OptionCE.fs" />
+    <Compile Include="ValueOption.fs" />
+    <Compile Include="ValueOptionCE.fs" />
+    <Compile Include="AsyncOption.fs" />
+    <Compile Include="AsyncOptionCE.fs" />
+    <Compile Include="AsyncOptionOp.fs" />
+    <Compile Include="List.fs" />
+    <Compile Include="Seq.fs" />
+    <None Include="Script.fsx" />
+    <None Include="paket.references"/>
+    <Watch Include="@(None)" />
+  </ItemGroup>
+
+  <!-- Add source files to "fable" folder in Nuget package -->
+  <ItemGroup>
+    <Content Include="*.fsproj; **\*.fs" PackagePath="fable\" />
+  </ItemGroup>
+
+
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

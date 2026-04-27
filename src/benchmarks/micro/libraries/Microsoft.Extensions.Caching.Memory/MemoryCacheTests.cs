@@ -23,7 +23,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
             _memCache = new MemoryCache(new MemoryCacheOptions());
             for (var i = 0; i < 1024; i++)
             {
-                _memCache.Set(i.ToString(), i.ToString());
+                _memCache.Set(i, i.ToString());
             }
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
         [GlobalSetup(Targets = new[] { nameof(AddThenRemove_NoExpiration), nameof(AddThenRemove_AbsoluteExpiration), nameof(AddThenRemove_RelativeExpiration), nameof(AddThenRemove_SlidingExpiration), nameof(AddThenRemove_ExpirationTokens) })]
         public void Setup_AddThenRemove()
         {
-            _items = ValuesGenerator.ArrayOfUniqueValues<int>(100).Select(x => ((object)x.ToString(), (object)x.ToString())).ToArray();
+            _items = ValuesGenerator.ArrayOfUniqueValues<int>(100).Select(x => ((object)x, (object)x.ToString())).ToArray();
         }
 
         [Benchmark]

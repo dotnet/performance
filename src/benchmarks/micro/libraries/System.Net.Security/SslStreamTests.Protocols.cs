@@ -26,20 +26,24 @@ namespace System.Net.Security.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         [ArgumentsSource(nameof(TlsProtocols))]
         public Task HandshakeContosoAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._cert, protocol);
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
+        [BenchmarkCategory(Categories.NoAOT)]
         public Task HandshakeECDSA256CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._ec256Cert, protocol);
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
+        [BenchmarkCategory(Categories.NoAOT)]
         [OperatingSystemsFilter(allowed: true, platforms: OS.Linux)]    // Not supported on Windows at the moment.
         public Task HandshakeECDSA512CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._ec512Cert, protocol);
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
+        [BenchmarkCategory(Categories.NoAOT)]
         public Task HandshakeRSA2048CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._rsa2048Cert, protocol);
 
         [Benchmark]

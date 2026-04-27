@@ -1,0 +1,82 @@
+# This file adds the percentile based metrics to the Working Set Memory and the Private Memory the results from crank.
+
+results:
+
+- name: benchmarks/working-set/P99
+  description: Working Set P99 (MB)
+  format: n0
+
+- name: benchmarks/working-set/P95
+  description: Working Set P95 (MB)
+  format: n0
+
+- name: benchmarks/working-set/steady
+  description: Working Set P90 (MB)
+  format: n0
+
+- name: benchmarks/working-set/P75
+  description: Working Set P75 (MB)
+  format: n0
+
+- name: benchmarks/working-set/P50
+  description: Working Set P50 (MB)
+  format: n0
+
+- name: benchmarks/private-memory/P99
+  description: Private Memory P99 (MB)
+  format: n0
+
+- name: benchmarks/private-memory/P95
+  description: Private Memory P95 (MB)
+  format: n0
+
+- name: benchmarks/private-memory/P90
+  description: Private Memory P90 (MB)
+  format: n0
+
+- name: benchmarks/private-memory/P75
+  description: Private Memory P75 (MB)
+  format: n0
+
+- name: benchmarks/private-memory/P50
+  description: Private Memory P50 (MB)
+  format: n0
+
+onResultsCreating:
+  - |
+
+    function mapReduce(measurement, reduce) {
+      // Calculates the result of the 'reduce' operation on the 'measurement' property of the application job.
+      // example: 
+      //   const result = steadyState('benchmarks/working-set', percentile90);
+
+      let duration = benchmarks.jobs.load.variables.duration;
+      let measurements = benchmarks.jobs.application.measurements[0].filter(m => m.name == measurement);
+      
+      // Don't add any result if there are no measurements
+      if (measurements.length == 0) {
+        console.warn(`No measurements available for '${measurement}'.`);
+        return null;
+      }
+
+      let lastMeasurement = measurements[measurements.length-1];
+      let begin = new Date(lastMeasurement.timestamp) - duration * 1000;
+      let recent = measurements.filter(m => new Date(m.timestamp) >= begin);
+      let values = recent.map(m => m.value);
+      let result = reduce(values);
+      
+      return result;
+    }
+
+onResultsCreated:
+  - |
+    benchmarks.jobs.application.results["benchmarks/working-set/P99"] = mapReduce('benchmarks/working-set', percentile99);
+    benchmarks.jobs.application.results["benchmarks/working-set/P95"] = mapReduce('benchmarks/working-set', percentile95);
+    benchmarks.jobs.application.results["benchmarks/working-set/P90"] = mapReduce('benchmarks/working-set', percentile90);
+    benchmarks.jobs.application.results["benchmarks/working-set/P75"] = mapReduce('benchmarks/working-set', percentile75);
+    benchmarks.jobs.application.results["benchmarks/working-set/P50"] = mapReduce('benchmarks/working-set', percentile50);
+    benchmarks.jobs.application.results["benchmarks/private-memory/P99"] = mapReduce('benchmarks/private-memory', percentile99);
+    benchmarks.jobs.application.results["benchmarks/private-memory/P95"] = mapReduce('benchmarks/private-memory', percentile95);
+    benchmarks.jobs.application.results["benchmarks/private-memory/P90"] = mapReduce('benchmarks/private-memory', percentile90);
+    benchmarks.jobs.application.results["benchmarks/private-memory/P50"] = mapReduce('benchmarks/private-memory', percentile50);
+    benchmarks.jobs.application.results["benchmarks/private-memory/P75"] = mapReduce('benchmarks/private-memory', percentile75);

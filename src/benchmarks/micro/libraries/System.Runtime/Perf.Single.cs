@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -45,6 +45,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
+        [MemoryRandomization]
         public string ToString(float value) => value.ToString(); 
 
         public IEnumerable<object[]> ToStringWithCultureInfoArguments() 
@@ -52,6 +53,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ToStringWithCultureInfoArguments))]
+        [MemoryRandomization]
         public string ToStringWithCultureInfo(float value, CultureInfo culture)
             => value.ToString(culture);
 
@@ -60,15 +62,18 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ToStringWithFormatArguments))]
+        [MemoryRandomization]
         public string ToStringWithFormat(float value, string format)
             => value.ToString(format);
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
+        [MemoryRandomization]
         public float Parse(string value) => float.Parse(value);
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
+        [MemoryRandomization]
         public bool TryParse(string value) => float.TryParse(value, out _);
     }
 }

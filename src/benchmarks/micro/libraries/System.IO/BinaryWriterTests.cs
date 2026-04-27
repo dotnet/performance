@@ -19,6 +19,7 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public BinaryWriter DefaultCtor() => new BinaryWriter(Stream.Null);
 
         [Benchmark]
@@ -56,6 +57,14 @@ namespace System.IO.Tests
         {
             _bw.Write((ulong)0xdeadbeef_aabbccdd);
         }
+
+#if NET5_0_OR_GREATER
+        [Benchmark]
+        public void WriteHalf()
+        {
+            _bw.Write((Half)3.14);
+        }
+#endif
 
         [Benchmark]
         public void WriteSingle()

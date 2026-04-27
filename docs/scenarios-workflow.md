@@ -3,7 +3,7 @@
 
 ## Overview
 
-Our existing scenario tests are under `src\scenarios` in this repo, where each subdirectory contains a test asset that can be combined with a specific set of commands to do measurements. Currently we have scenario tests for [SDK](./sdk-scenarios.md), [Crossgen](./crossgen-scenarios.md), [Blazor](./blazor-scenarios.md) and [other scenarios](./basic-scenarios.md).
+Our existing scenario tests are under `src\scenarios` in this repo, where each subdirectory contains a test asset that can be combined with a specific set of commands to do measurements. Currently we have scenario tests for [SDK](./sdk-scenarios.md), [Crossgen](./crossgen-scenarios.md), [Blazor](./blazor-scenarios.md), [Android Startup](./android-startup-scenarios.md), and [other scenarios](./basic-scenarios.md).
 
 ## Running scenario tests
 
@@ -12,11 +12,18 @@ This is a general guideline on how the scenario tests are arranged in this repo.
 - [How to run SDK scenario tests](./sdk-scenarios.md)
 - [How to run Crossgen scenario tests](./crossgen-scenarios.md)
 - [How to run Blazor tests](./blazor-scenarios.md)
+- [How to run Android Startup tests](./android-startup-scenarios.md)
 - [How to run other Scenario tests](./basic-scenarios.md)
 
 ### Prerequisites
 
 - python3 or newer
+  - some of the scenarios require `requests` python module to be installed. To install the required module run:
+
+    ```bash
+    python3 -m pip install requests
+    ```
+
 - dotnet runtime 3.0 or newer
 - terminal/command prompt **in Admin Mode** (for collecting kernel traces)
 - clean state of the test machine (anti-virus scan is off and no other user program's running -- to minimize the influence of environment on the test)
@@ -77,10 +84,10 @@ In our **startup time of an empty console template** example, we can run
 
 ```cmd
 cd emptyconsoletemplate
-python3 pre.py publish -f net6.0 -c Release
+python3 pre.py publish -f net9.0 -c Release
 ```
 
-The above command creates a new dotnet console template in `emptyconsoletemplate\app\` folder, builds the project targeting net6.0 in Release and publishs it to `emptyconsoletemplate\pub\` folder.
+The above command creates a new dotnet console template in `emptyconsoletemplate\app\` folder, builds the project targeting net9.0 in Release and publishs it to `emptyconsoletemplate\pub\` folder.
 
 Run `python3 pre.py --help` for more command options and their meanings.
 
@@ -132,4 +139,5 @@ Some command options are only applicable for certain test assets. Refer to the c
 - [SDK Command Matrix](./sdk-scenarios.md#command-matrix)
 - [Crossgen Command Matrix](./crossgen-scenarios.md#command-matrix)
 - [Blazor Command Matrix](./blazor-scenarios.md#command-matrix)
+- [How to run Android Startup tests](./android-startup-scenarios.md)
 - [Other Scenarios Command Matrix](./basic-scenarios.md#command-matrix)

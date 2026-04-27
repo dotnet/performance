@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
@@ -24,10 +25,15 @@ namespace System.Collections
         public int Size;
 
         [GlobalSetup(Targets = new[] { nameof(List), nameof(LinkedList), nameof(HashSet), nameof(Queue), nameof(Stack), nameof(SortedSet), nameof(ConcurrentQueue), nameof(ConcurrentStack), 
-            nameof(ConcurrentBag), nameof(ImmutableArray), nameof(ImmutableHashSet), nameof(ImmutableList), nameof(ImmutableQueue), nameof(ImmutableStack), nameof(ImmutableSortedSet)})]
+            nameof(ConcurrentBag), nameof(ImmutableArray), nameof(ImmutableHashSet), nameof(ImmutableList), nameof(ImmutableQueue), nameof(ImmutableStack), nameof(ImmutableSortedSet),
+            nameof(FrozenSet)})]
         public void SetupCollection() => _collection = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
-        [GlobalSetup(Targets = new[] { nameof(Dictionary), nameof(SortedList), nameof(SortedDictionary), nameof(ConcurrentDictionary), nameof(ImmutableDictionary), nameof(ImmutableSortedDictionary) })]
+        [GlobalSetup(Targets = new[] { nameof(Dictionary), nameof(SortedList), nameof(SortedDictionary), nameof(ConcurrentDictionary), nameof(ImmutableDictionary), nameof(ImmutableSortedDictionary), nameof(FrozenDictionaryOptimized),
+#if NET9_0_OR_GREATER
+            nameof(OrderedDictionary)
+#endif
+        })]
         public void SetupDictionary() => _dictionary = ValuesGenerator.Dictionary<T, T>(Size);
 
         [GlobalSetup(Targets = new[] { nameof(SortedDictionaryDeepCopy) })]
@@ -98,5 +104,17 @@ namespace System.Collections
 
         [Benchmark]
         public ImmutableSortedSet<T> ImmutableSortedSet() => Immutable.ImmutableSortedSet.CreateRange<T>(_collection);
+
+        [Benchmark(Description = "FrozenDictionary")]
+        public FrozenDictionary<T, T> FrozenDictionaryOptimized() // we kept the old name on purpose to avoid loosing historical data
+            => _dictionary.ToFrozenDictionary();
+
+        [Benchmark]
+        public FrozenSet<T> FrozenSet() => _collection.ToFrozenSet();
+
+#if NET9_0_OR_GREATER
+        [Benchmark]
+        public OrderedDictionary<T, T> OrderedDictionary() => new OrderedDictionary<T, T>(_dictionary);
+#endif
     }
 }

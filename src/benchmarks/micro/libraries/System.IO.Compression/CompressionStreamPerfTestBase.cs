@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -10,21 +11,21 @@ namespace System.IO.Compression
 {
     public class Gzip : CompressionStreamPerfTestBase
     {
-        public override Stream CreateStream(Stream stream, CompressionMode mode) => new GZipStream(stream, mode);
-        public override Stream CreateStream(Stream stream, CompressionLevel level) => new GZipStream(stream, level);
+        public override Stream CreateStream(Stream stream, CompressionMode mode, bool leaveOpen) => new GZipStream(stream, mode, leaveOpen);
+        public override Stream CreateStream(Stream stream, CompressionLevel level, bool leaveOpen) => new GZipStream(stream, level, leaveOpen);
     }
 
     public class Deflate : CompressionStreamPerfTestBase
     {
-        public override Stream CreateStream(Stream stream, CompressionMode mode) => new DeflateStream(stream, mode);
-        public override Stream CreateStream(Stream stream, CompressionLevel level) => new DeflateStream(stream, level);
+        public override Stream CreateStream(Stream stream, CompressionMode mode, bool leaveOpen) => new DeflateStream(stream, mode, leaveOpen);
+        public override Stream CreateStream(Stream stream, CompressionLevel level, bool leaveOpen) => new DeflateStream(stream, level, leaveOpen);
     }
 
 #if NET6_0_OR_GREATER // API introduced in .NET 6
     public class ZLib : CompressionStreamPerfTestBase
     {
-        public override Stream CreateStream(Stream stream, CompressionMode mode) => new ZLibStream(stream, mode);
-        public override Stream CreateStream(Stream stream, CompressionLevel level) => new ZLibStream(stream, level);
+        public override Stream CreateStream(Stream stream, CompressionMode mode, bool leaveOpen) => new ZLibStream(stream, mode, leaveOpen);
+        public override Stream CreateStream(Stream stream, CompressionLevel level, bool leaveOpen) => new ZLibStream(stream, level, leaveOpen);
     }
 #endif
 
@@ -33,8 +34,8 @@ namespace System.IO.Compression
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public abstract class CompressionStreamPerfTestBase
     {
-        public abstract Stream CreateStream(Stream stream, CompressionMode mode);
-        public abstract Stream CreateStream(Stream stream, CompressionLevel level);
+        public abstract Stream CreateStream(Stream stream, CompressionMode mode, bool leaveOpen = true);
+        public abstract Stream CreateStream(Stream stream, CompressionLevel level, bool leaveOpen = true);
 
         [ParamsSource(nameof(UncompressedTestFileNames))]
         public string file { get; set; }
@@ -59,7 +60,7 @@ namespace System.IO.Compression
         {
             CompressedFile.CompressedDataStream.Position = 0; // all benchmarks invocation reuse the same stream, we set Postion to 0 to start at the beginning
 
-            var compressor = CreateStream(CompressedFile.CompressedDataStream, level);
+            using var compressor = CreateStream(CompressedFile.CompressedDataStream, level);
             compressor.Write(CompressedFile.UncompressedData, 0, CompressedFile.UncompressedData.Length);
         }
 
@@ -68,7 +69,7 @@ namespace System.IO.Compression
         {
             CompressedFile.CompressedDataStream.Position = 0;
 
-            var compressor = CreateStream(CompressedFile.CompressedDataStream, CompressionMode.Decompress);
+            using var compressor = CreateStream(CompressedFile.CompressedDataStream, CompressionMode.Decompress);
 
             byte[] buffer = CompressedFile.UncompressedData;
 
@@ -76,6 +77,35 @@ namespace System.IO.Compression
             while (totalRead < buffer.Length)
             {
                 int bytesRead = compressor.Read(buffer, totalRead, buffer.Length - totalRead);
+                if (bytesRead == 0) break;
+                totalRead += bytesRead;
+            }
+
+            return totalRead;
+        }
+
+        [Benchmark]
+        public async Task CompressAsync()
+        {
+            CompressedFile.CompressedDataStream.Position = 0;
+
+            using var compressor = CreateStream(CompressedFile.CompressedDataStream, level);
+            await compressor.WriteAsync(CompressedFile.UncompressedData, 0, CompressedFile.UncompressedData.Length);
+        }
+
+        [Benchmark]
+        public async Task<int> DecompressAsync()
+        {
+            CompressedFile.CompressedDataStream.Position = 0;
+
+            using var compressor = CreateStream(CompressedFile.CompressedDataStream, CompressionMode.Decompress);
+
+            byte[] buffer = CompressedFile.UncompressedData;
+
+            int totalRead = 0;
+            while (totalRead < buffer.Length)
+            {
+                int bytesRead = await compressor.ReadAsync(buffer, totalRead, buffer.Length - totalRead);
                 if (bytesRead == 0) break;
                 totalRead += bytesRead;
             }

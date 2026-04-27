@@ -1,3 +1,5 @@
+#!/bin/sh
+
 print_usage() {
     echo "***Please run this script as SOURCE. ex: . ./init.sh***"
     echo "This script sets up PYTHONPATH and determines which dotnet to use."
@@ -25,6 +27,22 @@ download_dotnet() {
     python3 $dotnetScript install --channels $1 -v
 }
 
+# Function to determine CPU architecture
+get_cpu_architecture() {
+    local arch
+    arch=$(uname -m)
+    if [[ $arch == "x86_64" ]]; then
+        echo "x64"
+    elif [[ $arch == i*86 ]]; then
+        echo "x86"
+    elif [[ $arch == "arm64" || $arch == "aarch64" ]]; then
+        echo "arm64"
+    else
+        echo "Unknown architecture: $arch"
+        exit 1
+    fi
+}
+
 # Add scripts and current directory to PYTHONPATH
 absolutePath="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 scriptPath="$absolutePath/../../scripts"
@@ -32,21 +50,21 @@ export PYTHONPATH=$PYTHONPATH:$scriptPath:$absolutePath
 echo "PYTHONPATH=$PYTHONPATH"
 
 # Parse arguments
-if [ "$1" == "-help" ] || [ "$1" == "-h" ]
+if [ "$1" = "-help" ] || [ "$1" = "-h" ]
 then
     print_usage
 elif [ "$#" -gt 2 ]
 then 
     print_usage
-elif [ "$1" == "-dotnetdir" ] && [ "$2" != "" ]
+elif [ "$1" = "-dotnetdir" ] && [ "$2" != "" ]
 then
     dotnetDirectory="$2"
     setup_env $dotnetDirectory
-elif [ "$1" == "-channel" ] && [ "$2" != "" ]
+elif [ "$1" = "-channel" ] && [ "$2" != "" ]
 then
     channel="$2"
     download_dotnet $channel
-    dotnetDirectory="$absolutePath/../../tools/dotnet/x64"
+    dotnetDirectory="$absolutePath/../../tools/dotnet/$(get_cpu_architecture)"
     setup_env $dotnetDirectory
 elif [ "$#" -gt 0 ]
 then 

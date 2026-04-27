@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -88,18 +88,23 @@ namespace System.Globalization.Tests
         public bool IsPrefix_FirstHalf() => Options.CultureInfo.CompareInfo.IsPrefix(_value, _firstHalf, Options.CompareOptions);
 
         [Benchmark] // this should return quickly
+        [MemoryRandomization]
         public bool IsPrefix_DifferentFirstChar() => Options.CultureInfo.CompareInfo.IsPrefix(_value, _diffAtFirstChar, Options.CompareOptions);
 
         [Benchmark]
+        [MemoryRandomization]
         public bool IsSuffix_SecondHalf() => Options.CultureInfo.CompareInfo.IsSuffix(_value, _secondHalf, Options.CompareOptions);
 
         [Benchmark] // this should return quickly
+        [MemoryRandomization]
         public bool IsSuffix_DifferentLastChar() => Options.CultureInfo.CompareInfo.IsSuffix(_value, _diffAtLastChar, Options.CompareOptions);
 
         [Benchmark]
+        [MemoryRandomization]
         public int IndexOf_Word_NotFound() => Options.CultureInfo.CompareInfo.IndexOf(_value, "word", Options.CompareOptions);
 
         [Benchmark]
+        [MemoryRandomization]
         public int LastIndexOf_Word_NotFound() => Options.CultureInfo.CompareInfo.LastIndexOf(_value, "word", Options.CompareOptions);
 
         private static bool ContainsSimpleCharactersOnly(char[] text) => text.All(c => c == ' ' || c == '.' || c == ',' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));

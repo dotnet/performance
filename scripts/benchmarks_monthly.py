@@ -6,8 +6,9 @@ for a .NET preview release, making it easier to contribute to our
 monthly manual performance runs.
 '''
 
+from performance.common import get_machine_architecture
 from performance.logger import setup_loggers
-from argparse import ArgumentParser, ArgumentTypeError
+from argparse import ArgumentParser
 from datetime import datetime
 from logging import getLogger
 from subprocess import CalledProcessError
@@ -19,6 +20,13 @@ import sys
 import os
 
 VERSIONS = {
+    'net7.0': { 'tfm': 'net7.0' },
+    'net7.0-rc2': { 'tfm': 'net7.0', 'build': '7.0.100-rc.2.22477.23' },
+    'net7.0-rc1': { 'tfm': 'net7.0', 'build': '7.0.100-rc.1.22425.9' },
+    'net7.0-preview7': { 'tfm': 'net7.0', 'build': '7.0.100-preview.7.22370.3' },
+    'net7.0-preview5': { 'tfm': 'net7.0', 'build': '7.0.100-preview.5.22276.3' },
+    'nativeaot7.0-preview4': { 'tfm': 'nativeaot7.0', 'build': '7.0.100-preview.4.22227.3', 'ilc': '7.0.0-preview.4.22222.4' },
+    'net7.0-preview4': { 'tfm': 'net7.0', 'build': '7.0.100-preview.4.22227.3' },
     'nativeaot7.0-preview3': { 'tfm': 'nativeaot7.0', 'build': '7.0.100-preview.3.22179.4', 'ilc': '7.0.0-preview.3.22175.4' },
     'net7.0-preview3': { 'tfm': 'net7.0', 'build': '7.0.100-preview.3.22179.4' },
     'net7.0-preview2': { 'tfm': 'net7.0', 'build': '7.0.100-preview.2.22124.4' },
@@ -27,18 +35,14 @@ VERSIONS = {
     'net6.0': { 'tfm': 'net6.0' }
 }
 
-def get_version_from_name(name: str) -> str:
-    for version in VERSIONS:
-        if version == name:
-            return VERSIONS[version]
+def get_version_from_name(name: str) -> dict[str, str]:
+    if name in VERSIONS:
+        return VERSIONS[name]
 
     raise Exception('The version specified is not supported', name)
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     # Adds new arguments to the specified ArgumentParser object.
-
-    if not isinstance(parser, ArgumentParser):
-        raise TypeError('Invalid parser.')
 
     parser.add_argument(
         'versions',
@@ -61,7 +65,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--architecture',
         dest='architecture',
         choices=['x64', 'x86', 'arm64', 'arm'],
-        default='x64',
+        default=get_machine_architecture(),
         help='Specifies the SDK processor architecture')
 
     parser.add_argument(
@@ -74,7 +78,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--no-clean',
         dest='no_clean',
         action='store_true',
-        help='Do not clean the SDK and results directories before execution')
+        help='Do not clean the SDK installations before execution')
+
+    parser.add_argument(
+        '--resume',
+        dest='resume',
+        action='store_true',
+        help='Resume a previous run from existing benchmark results')
 
     parser.add_argument(
         '--dry-run',
@@ -88,9 +98,19 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_true',
         help='Runs each benchmark only once, useful for testing')
 
+    parser.add_argument(
+        '--azure-feed-url',
+        dest='azure_feed_url',
+        help='Internal azure feed to fetch the build from')
+
+    parser.add_argument(
+        '--internal-build-key',
+        dest='internal_build_key',
+        help='Key used to fetch the build from an internal azure feed')
+
     return parser
 
-def __process_arguments(args: list):
+def __process_arguments(args: list[str]):
     parser = ArgumentParser(
         description='Tool to execute the monthly manual micro benchmark performance runs',
         allow_abbrev=False
@@ -99,12 +119,12 @@ def __process_arguments(args: list):
     add_arguments(parser)
     return parser.parse_args(args)
 
-def __main(args: list) -> int:
+def __main(argv: list[str]):
     setup_loggers(verbose=True)
 
-    args = __process_arguments(args)
+    args = __process_arguments(argv)
     rootPath = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
-    sdkPath = os.path.join(rootPath, 'tools', 'dotnet', args.architecture)
+    sdkPath = os.path.join(rootPath, 'tools', 'dotnet')
 
     logPrefix = ''
     logger = getLogger()
@@ -122,13 +142,15 @@ def __main(args: list) -> int:
         else:
             args.bdn_arguments = '--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart'
 
+    versionTarFiles: list[str] = []
+
     for versionName in args.versions:
         version = get_version_from_name(versionName)
         moniker = version['tfm'].replace('nativeaot', 'net') # results of nativeaotX.0 are stored in netX.0 folder
         resultsPath = os.path.join(rootPath, 'artifacts', 'bin', 'MicroBenchmarks', 'Release', moniker, 'BenchmarkDotNet.Artifacts', 'results')
 
         if not args.no_clean:
-            # Delete any preexisting SDK and results, which allows
+            # Delete any preexisting SDK installations, which allows
             # multiple versions to be run from a single command
             if os.path.isdir(sdkPath):
                 log('rmdir -r ' + sdkPath)
@@ -136,16 +158,19 @@ def __main(args: list) -> int:
                 if not args.dry_run:
                     shutil.rmtree(sdkPath)
 
+        benchmarkArgs: list[str] = ['--skip-logger-setup', '--filter', args.filter, '--architecture', args.architecture, '-f', version['tfm']]
+
+        if 'build' in version:
+            benchmarkArgs += ['--dotnet-versions', version['build']]
+
+        if args.resume:
+            benchmarkArgs += ['--resume']
+        else:
             if os.path.isdir(resultsPath):
                 log('rmdir -r ' + resultsPath)
 
                 if not args.dry_run:
                     shutil.rmtree(resultsPath)
-
-        benchmarkArgs = ['--skip-logger-setup', '--filter', args.filter, '--architecture', args.architecture, '-f', version['tfm']]
-
-        if 'build' in version:
-            benchmarkArgs += ['--dotnet-versions', version['build']]
 
         if args.bdn_arguments:
             if version['tfm'].startswith('nativeaot'):
@@ -154,12 +179,20 @@ def __main(args: list) -> int:
                 benchmarkArgs += ['--bdn-arguments', args.bdn_arguments]
         elif version['tfm'].startswith('nativeaot'):
             benchmarkArgs += ['--bdn-arguments', '--ilCompilerVersion ' + version['ilc']]
-
-        log('Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
+        
+        if args.azure_feed_url or args.internal_build_key:
+            if args.azure_feed_url and args.internal_build_key:
+                benchmarkArgs += ['--azure-feed-url', args.azure_feed_url]
+                benchmarkArgs += ['--internal-build-key', args.internal_build_key]
+                log('Executing: benchmarks_ci.py ')
+            else:
+                raise Exception("Must include both a --azure-feed-url and a --internal-build-key")
+        else:
+            log('Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
 
         if not args.dry_run:
             try:
-                benchmarks_ci.__main(benchmarkArgs)
+                benchmarks_ci.main(benchmarkArgs)
             except CalledProcessError:
                 log('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
                 # don't rethrow if some results were produced, as we want to create the tar file with results anyway
@@ -176,15 +209,19 @@ def __main(args: list) -> int:
         else:
             resultsName = timestamp + '-' + versionName
 
-        resultsTarPath = os.path.join(rootPath, 'artifacts', resultsName + '.tar.gz')
+        resultsName = args.architecture + '-' + resultsName
+        resultsTarPath: str = os.path.join(rootPath, 'artifacts', resultsName + '.tar.gz')
+        versionTarFiles += [resultsTarPath]
 
         if not args.dry_run:
             resultsTar = tarfile.open(resultsTarPath, 'w:gz')
             resultsTar.add(resultsPath, arcname=resultsName)
             resultsTar.close()
 
-        log('Results were collected into the following tar archive:')
-        log('  ' + resultsTarPath)
+    log('Results were collected into the following tar archive(s):')
+
+    for versionTarFile in versionTarFiles:
+        log('  ' + versionTarFile)
 
 if __name__ == '__main__':
     __main(sys.argv[1:])

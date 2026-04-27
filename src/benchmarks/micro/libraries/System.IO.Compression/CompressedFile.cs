@@ -12,8 +12,8 @@ namespace System.IO.Compression
         public byte[] UncompressedData { get; }
         public byte[] CompressedData { get; }
         public MemoryStream CompressedDataStream { get; }
-            
-        public CompressedFile(string fileName, CompressionLevel compressionLevel, Func<Stream, CompressionLevel, Stream> factory)
+
+        public CompressedFile(string fileName, CompressionLevel compressionLevel, Func<Stream, CompressionLevel, bool, Stream> factory)
         {
             Name = fileName;
             CompressionLevel = compressionLevel;
@@ -22,17 +22,18 @@ namespace System.IO.Compression
             UncompressedData = File.ReadAllBytes(filePath);
             CompressedDataStream = new MemoryStream(capacity: UncompressedData.Length);
 
-            var compressionStream = factory(CompressedDataStream, compressionLevel);
-            compressionStream.Write(UncompressedData, 0, UncompressedData.Length);
-            compressionStream.Flush();
-            
+            using (var compressionStream = factory(CompressedDataStream, compressionLevel, true))
+            {
+                compressionStream.Write(UncompressedData, 0, UncompressedData.Length);
+            }
+
             CompressedDataStream.Position = 0;
             CompressedData = CompressedDataStream.ToArray();
         }
 
         public override string ToString() => Name;
 
-        internal static string GetFilePath(string fileName) 
+        internal static string GetFilePath(string fileName)
             => Path.Combine(
                 AppContext.BaseDirectory,
                 "libraries", "System.IO.Compression", "TestData",

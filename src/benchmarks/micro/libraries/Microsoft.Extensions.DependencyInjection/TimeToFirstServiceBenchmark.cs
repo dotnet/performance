@@ -2,6 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// Define INTERNAL_DI on platforms that support emit. This will measure all of the various engines.
+// #define INTERNAL_DI
+
+using System;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -14,16 +19,16 @@ namespace Microsoft.Extensions.DependencyInjection
         private ServiceCollection _transientServices;
         private ServiceCollection _scopedServices;
         private ServiceCollection _singletonServices;
-#if INTERNAL_DI
-        private ServiceProviderMode _mode;
-#endif
+        private ServiceProviderMode _mode = ServiceProviderMode.Default;
 
-        [Params("Expressions", "Dynamic", "Runtime", "ILEmit")]
+#if INTERNAL_DI
+        [Params("Default", "Expressions", "Dynamic", "Runtime", "ILEmit")]
+#else
+        [Params("Default")]
+#endif
         public string Mode {
             set {
-#if INTERNAL_DI
                 _mode = (ServiceProviderMode)Enum.Parse(typeof(ServiceProviderMode), value);
-#endif
             }
         }
 
@@ -39,23 +44,13 @@ namespace Microsoft.Extensions.DependencyInjection
         [Benchmark]
         public void BuildProvider()
         {
-            using ServiceProvider transientSp = _transientServices.BuildServiceProvider(new ServiceProviderOptions()
-            {
-#if INTERNAL_DI
-                Mode = _mode
-#endif
-            });
+            using ServiceProvider transientSp = BuildServiceProvider(_transientServices);
         }
 
         [Benchmark]
         public void Transient()
         {
-            using ServiceProvider transientSp = _transientServices.BuildServiceProvider(new ServiceProviderOptions()
-            {
-#if INTERNAL_DI
-                Mode = _mode
-#endif
-            });
+            using ServiceProvider transientSp = BuildServiceProvider(_transientServices);
             var temp = transientSp.GetService<A>();
             temp.Foo();
         }
@@ -72,12 +67,7 @@ namespace Microsoft.Extensions.DependencyInjection
         [Benchmark]
         public void Scoped()
         {
-            using ServiceProvider provider = _scopedServices.BuildServiceProvider(new ServiceProviderOptions()
-            {
-#if INTERNAL_DI
-                Mode = _mode
-#endif
-            });
+            using ServiceProvider provider = BuildServiceProvider(_scopedServices);
             IServiceScope scopedSp = provider.CreateScope();
             var temp = scopedSp.ServiceProvider.GetService<A>();
             temp.Foo();
@@ -95,12 +85,7 @@ namespace Microsoft.Extensions.DependencyInjection
         [Benchmark]
         public void Singleton()
         {
-            using ServiceProvider singletonSp = _singletonServices.BuildServiceProvider(new ServiceProviderOptions()
-            {
-#if INTERNAL_DI
-                Mode = _mode
-#endif
-            });
+            using ServiceProvider singletonSp = BuildServiceProvider(_singletonServices);
             var temp = singletonSp.GetService<A>();
             temp.Foo();
         }
@@ -119,5 +104,84 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         private class C { }
+
+        private ServiceProvider BuildServiceProvider(IServiceCollection services)
+        {
+            if (_mode == ServiceProviderMode.Default)
+            {
+                return services.BuildServiceProvider();
+            }
+
+            Assembly asm = typeof(ServiceProvider).Assembly;
+
+            ServiceProvider provider = services.BuildServiceProvider(new ServiceProviderOptions());
+
+            return _mode switch
+            {
+                ServiceProviderMode.Dynamic => CreateInstance("Microsoft.Extensions.DependencyInjection.ServiceLookup.DynamicServiceProviderEngine"),
+                ServiceProviderMode.Runtime => CreateInstance("Microsoft.Extensions.DependencyInjection.ServiceLookup.RuntimeServiceProviderEngine"),
+                ServiceProviderMode.Expressions => CreateInstance("Microsoft.Extensions.DependencyInjection.ServiceLookup.ExpressionsServiceProviderEngine"),
+                ServiceProviderMode.ILEmit => CreateInstance("Microsoft.Extensions.DependencyInjection.ServiceLookup.ILEmitServiceProviderEngine"),
+                _ => throw new NotSupportedException()
+            };
+
+            ServiceProvider CreateInstance(string engineTypeName)
+            {
+                // Create the engine
+                Type engineType = asm.GetType(engineTypeName);
+                if (engineType == null)
+                {
+                    throw new Exception($"Unable to find {engineType} type.");
+                }
+
+                ConstructorInfo serviceProviderEngineCtor = engineType.GetConstructor(
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+                    binder: null,
+                    new Type[] { typeof(ServiceProvider) },
+                    modifiers: null);
+
+                object serviceProviderEngine;
+                if (serviceProviderEngineCtor != null)
+                {
+                    serviceProviderEngine = serviceProviderEngineCtor.Invoke(new object[] { provider });
+                }
+                else
+                {
+                    // Try parameterless ctor.
+                    serviceProviderEngineCtor = engineType.GetConstructor(
+                        BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+                        binder: null,
+                        Type.EmptyTypes,
+                        modifiers: null);
+
+                    if (serviceProviderEngineCtor == null)
+                    {
+                        throw new Exception($"Unable to find ctor for {engineTypeName}.");
+                    }
+
+                    serviceProviderEngine = serviceProviderEngineCtor.Invoke(null);
+                }
+
+                // Set the provider's engine.
+                FieldInfo fi = typeof(ServiceProvider).GetField("_engine", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (fi == null)
+                {
+                    throw new Exception($"Unable to find ServiceProvider._engine field.");
+                }
+
+                fi.SetValue(provider, serviceProviderEngine);
+
+                return provider;
+            }
+        }
+    }
+
+    internal enum ServiceProviderMode
+    {
+        Default,
+        Dynamic,
+        Runtime,
+        Expressions,
+        ILEmit
     }
 }

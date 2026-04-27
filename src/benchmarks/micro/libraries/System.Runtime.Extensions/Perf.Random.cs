@@ -25,6 +25,7 @@ namespace System.Tests
         public int Next() => _random.Next();
 
         [Benchmark]
+        [MemoryRandomization]
         public int Next_unseeded() => _randomUnseeded.Next();
 
         [Benchmark]

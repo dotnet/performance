@@ -24,6 +24,7 @@ namespace System.Globalization.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Cultures))]
+        [MemoryRandomization]
         public string ToString(CultureInfo culturestring) // the argument is called "culturestring" to keep benchmark ID, do NOT rename it
             => 104234.343.ToString(culturestring);
     }

@@ -26,11 +26,13 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
+        [MemoryRandomization]
         public string ToString(uint value) => value.ToString();
 
 #if !NETFRAMEWORK // API added in .NET Core 2.1
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
+        [MemoryRandomization]
         public bool TryFormat(uint value) => value.TryFormat(new Span<char>(_destination), out _);
 
         [Benchmark]
@@ -44,6 +46,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
+        [MemoryRandomization]
         public bool TryParse(string value) => uint.TryParse(value, out _);
 
         public static IEnumerable<object> StringHexValues

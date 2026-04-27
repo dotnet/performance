@@ -21,12 +21,13 @@ namespace System.Text.Encodings.Web.Tests
                 yield return new EncoderArguments("no <escaping /> required", size, JavaScriptEncoder.UnsafeRelaxedJsonEscaping);
                 yield return new EncoderArguments("hello \"there\"", size, JavaScriptEncoder.UnsafeRelaxedJsonEscaping);
                 yield return new EncoderArguments("&lorem ipsum=dolor sit amet", size, UrlEncoder.Default);
-                yield return new EncoderArguments("©2020", size, UrlEncoder.Default);
+                yield return new EncoderArguments("ï¿½2020", size, UrlEncoder.Default);
             }
         }
 
         [Benchmark]
         [ArgumentsSource(nameof(GetEncoderArguments))]
+        [MemoryRandomization]
         public OperationStatus EncodeUtf8(EncoderArguments arguments) => arguments.EncodeUtf8();
 
         [Benchmark]

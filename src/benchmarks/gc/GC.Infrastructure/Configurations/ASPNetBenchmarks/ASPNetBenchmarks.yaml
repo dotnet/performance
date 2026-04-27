@@ -1,0 +1,32 @@
+runs:
+  baseline:
+    corerun: C:\CoreRuns\Empty\
+    environment_variables:
+      DOTNET_gcServer: 1
+    framework_version: net6.0
+  run:
+    corerun: C:\CoreRuns\Empty\
+    environment_variables:
+      DOTNET_gcServer: 1
+environment:
+  environment_variables: {}
+  default_max_seconds: 300
+  framework_version: net8.0
+benchmark_settings:
+  benchmark_file: C:\InfraRuns\RunNew_All\Suites\ASPNETBenchmarks\ASPNetBenchmarks.csv
+  # To take a dump: --application.options.dumpType full --application.options.dumpOutput <filename>
+  # To fetch the build artifacts: --application.options.fetch true
+  additional_arguments: --chart --chart-type hex 
+  # Can optionally filter for specific benchmarks with a list of regexes.
+  # benchmark_filters:
+  # - Platform*
+output:
+  path: C:\InfraRuns\RunNew_All\ASPNetBenchmarks
+  columns: 
+  percentage_disk_remaining_to_stop_per_run: 0
+  all_columns: 
+  formats:
+  - markdown
+name: ASPNetBenchmarks
+trace_configurations:
+  type: gc

@@ -37,8 +37,8 @@ namespace System.IO.Tests
         {
             _countToAlignedMemory = new Dictionary<int, AlignedMemory[]>()
             {
-                { 4, Enumerable.Range(0, 4).Select(_ => AlignedMemory.Allocate((nuint)PageSize, (nuint)PageSize)).ToArray() },
-                { 16, Enumerable.Range(0, 16).Select(_ => AlignedMemory.Allocate((nuint)PageSize, (nuint)PageSize)).ToArray() },
+                { 4, Enumerable.Range(0, 4).Select(_ => AlignedMemory.Allocate((uint)PageSize, (uint)PageSize)).ToArray() },
+                { 16, Enumerable.Range(0, 16).Select(_ => AlignedMemory.Allocate((uint)PageSize, (uint)PageSize)).ToArray() },
             };
             _countToMemory = _countToAlignedMemory.ToDictionary(pair => pair.Key, pair => pair.Value.Select(aligned => aligned.Memory).ToArray());
             _countToReadOnlyMemory = _countToAlignedMemory.ToDictionary(pair => pair.Key, pair => pair.Value.Select(aligned => (System.ReadOnlyMemory<byte>)aligned.Memory).ToArray());
@@ -80,6 +80,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ReadWrite_MultipleBuffers_Arguments))]
+        [MemoryRandomization]
         public async Task<long> ReadScatterAsync(long fileSize, int count)
         {
             CancellationToken cancellationToken = CancellationToken.None;

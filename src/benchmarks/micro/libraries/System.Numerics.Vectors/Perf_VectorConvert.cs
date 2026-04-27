@@ -33,9 +33,11 @@ namespace System.Numerics.Tests
         public Vector<int> Convert_float_int() => Convert<float, int>(s_valuesFloat);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<uint> Convert_float_uint() => Convert<float, uint>(s_valuesFloat);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<long> Convert_double_long() => Convert<double, long>(s_valuesDouble);
 
         [Benchmark]
