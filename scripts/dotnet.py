@@ -862,6 +862,34 @@ def install(
         common_cmdline_args += ['-AzureFeed', azure_feed_url]
         common_cmdline_args += ['-FeedCredential', internal_build_key]
 
+    # Shield subsequent `dotnet` invocations (e.g. `dotnet --info` in ci_setup.py)
+    # from picking up an unrelated repo's global.json during the SDK resolver's
+    # upward walk. In particular, dotnet/runtime's global.json contains a
+    # `paths` entry that points the resolver at a `.dotnet` directory installed
+    # by arcade -- which can hold an SDK older than the one the perf scripts
+    # just installed into install_dir. By writing an empty global.json at the
+    # parent of the perf repo (which is the AzDO workspace root in CI and the
+    # cwd of subsequent `dotnet` invocations), we stop the walk-up before it
+    # reaches runtime's global.json, letting the perf-installed SDK win via
+    # standard `$host$` resolution.
+    workspace_root = path.abspath(path.join(get_repo_root_path(), '..'))
+    shield_global_json = path.join(workspace_root, 'global.json')
+    try:
+        existing = ''
+        if path.exists(shield_global_json):
+            with open(shield_global_json, 'r') as f:
+                existing = f.read()
+        if existing.strip() != '{}':
+            with open(shield_global_json, 'w') as f:
+                f.write('{}\n')
+            getLogger().info(
+                "Wrote empty global.json to %s to shield SDK resolver from "
+                "an unrelated repo's global.json (previous content length: %d)",
+                shield_global_json, len(existing))
+    except OSError as ex:
+        getLogger().warning(
+            "Could not write shield global.json to %s: %s", shield_global_json, ex)
+
     # Install Runtime/SDKs
     if versions:
         for version in versions:

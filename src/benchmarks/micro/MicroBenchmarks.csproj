@@ -101,13 +101,25 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="$(ExtensionsVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" />
     <PackageReference Include="protobuf-net" Version="3.0.73" />
     <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))" />
     <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net5.0'))" />
     <PackageReference Include="System.IO.Hashing" Version="$(SystemVersion)" />
     <PackageReference Include="System.Net.Http.WinHttpHandler" Version="$(SystemVersion)" Condition="'$(OS)' == 'Windows_NT'" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
+  </ItemGroup>
+  <!-- For .NET 10+, NuGet package pruning removes transitive Microsoft.Extensions.* abstractions
+       (Logging.Abstractions, DependencyInjection.Abstractions, Options) from the resolution graph
+       because they are in-band in Microsoft.AspNetCore.App. We need them as direct PackageReferences
+       so they remain app-local for BenchmarkDotNet's corerun toolchain (which targets a
+       Microsoft.NETCore.App CoreRoot that does not include the AspNetCore.App shared framework). -->
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="$(ExtensionsVersion)" />
   </ItemGroup>
   <!-- These package versions are only for the opt-in net472 path (for example, PERFLAB_TARGET_FRAMEWORKS=net472). -->
   <ItemGroup Condition="'$(TargetFramework)' != '' and '$(TargetFrameworkIdentifier)' == '.NETFramework'">
