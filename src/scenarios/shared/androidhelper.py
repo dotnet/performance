@@ -1,4 +1,5 @@
 import re
+import subprocess
 import time
 from performance.common import RunCommand
 from logging import getLogger
@@ -21,56 +22,63 @@ class AndroidHelper:
         self.startverifierverifyadbinstalls = None
         self.startpackageverifierenable = None
 
-    def setup_device(self, packagename: str, packagepath: str, animationsdisabled: bool, forcewaitstart: bool = True):
+    def setup_device(self, packagename: str, packagepath: str, animationsdisabled: bool, forcewaitstart: bool = True, skip_install: bool = False, skip_xharness_warmup: bool = False, skip_package_verifier: bool = False, skip_test_launch: bool = False, screen_timeout_ms: int = 2 * 60 * 1000):
+        if not skip_install and packagepath is None:
+            raise Exception("packagepath is required when skip_install is False")
+
         run_split_regex = r":\s(.+)"
         self.screenwasoff = False
         self.packagename = packagename
 
-        # Try calling xharness with stdout=None and stderr=None to hopefully bypass the hang
-        getLogger().info("Clearing xharness stdout and stderr to avoid hang")
-        cmdline = xharness_adb() + [
-            'shell',
-            'echo', 'Hello World'
-        ]
-        RunCommand(cmdline, verbose=False).run()
-        getLogger().info("Ran echo command to clear stdout and stderr")
+        if not skip_xharness_warmup:
+            # Try calling xharness with stdout=None and stderr=None to hopefully bypass the hang
+            getLogger().info("Clearing xharness stdout and stderr to avoid hang")
+            cmdline = xharness_adb() + [
+                'shell',
+                'echo', 'Hello World'
+            ]
+            RunCommand(cmdline, verbose=False).run()
+            getLogger().info("Ran echo command to clear stdout and stderr")
 
-        cmdline = xharness_adb() + [
-            'shell',
-            'wm',
-            'size'
-        ]
-        RunCommand(cmdline, verbose=True).run()
+            cmdline = xharness_adb() + [
+                'shell',
+                'wm',
+                'size'
+            ]
+            RunCommand(cmdline, verbose=True).run()
 
         # Capture and disable Android package verifier settings to avoid prompts/overhead during installs
-        try:
-            getLogger().info("Capturing current package verifier settings")
-            cmdline = xharness_adb() + [
-                'shell', 'settings', 'get', 'global', 'verifier_verify_adb_installs'
-            ]
-            get_verifier_adb_cmd = RunCommand(cmdline, verbose=True)
-            get_verifier_adb_cmd.run()
-            self.startverifierverifyadbinstalls = get_verifier_adb_cmd.stdout.strip()
+        if skip_package_verifier:
+            getLogger().info("Skipping package verifier changes")
+        else:
+            try:
+                getLogger().info("Capturing current package verifier settings")
+                cmdline = xharness_adb() + [
+                    'shell', 'settings', 'get', 'global', 'verifier_verify_adb_installs'
+                ]
+                get_verifier_adb_cmd = RunCommand(cmdline, verbose=True)
+                get_verifier_adb_cmd.run()
+                self.startverifierverifyadbinstalls = get_verifier_adb_cmd.stdout.strip()
 
-            cmdline = xharness_adb() + [
-                'shell', 'settings', 'get', 'global', 'package_verifier_enable'
-            ]
-            get_pkg_verifier_cmd = RunCommand(cmdline, verbose=True)
-            get_pkg_verifier_cmd.run()
-            self.startpackageverifierenable = get_pkg_verifier_cmd.stdout.strip()
+                cmdline = xharness_adb() + [
+                    'shell', 'settings', 'get', 'global', 'package_verifier_enable'
+                ]
+                get_pkg_verifier_cmd = RunCommand(cmdline, verbose=True)
+                get_pkg_verifier_cmd.run()
+                self.startpackageverifierenable = get_pkg_verifier_cmd.stdout.strip()
 
-            getLogger().info("Disabling package verifier settings for the run")
-            cmdline = xharness_adb() + [
-                'shell', 'settings', 'put', 'global', 'verifier_verify_adb_installs', '0'
-            ]
-            RunCommand(cmdline, verbose=True).run()
-            cmdline = xharness_adb() + [
-                'shell', 'settings', 'put', 'global', 'package_verifier_enable', '0'
-            ]
-            RunCommand(cmdline, verbose=True).run()
-        except CalledProcessError:
-            # Best-effort: don't fail setup if device doesn't support these keys; proceed with the run
-            getLogger().warning("Failed to update package verifier settings; continuing without changes", exc_info=True)
+                getLogger().info("Disabling package verifier settings for the run")
+                cmdline = xharness_adb() + [
+                    'shell', 'settings', 'put', 'global', 'verifier_verify_adb_installs', '0'
+                ]
+                RunCommand(cmdline, verbose=True).run()
+                cmdline = xharness_adb() + [
+                    'shell', 'settings', 'put', 'global', 'package_verifier_enable', '0'
+                ]
+                RunCommand(cmdline, verbose=True).run()
+            except CalledProcessError:
+                # Best-effort: don't fail setup if device doesn't support these keys; proceed with the run
+                getLogger().warning("Failed to update package verifier settings; continuing without changes", exc_info=True)
 
         # Get animation values
         getLogger().info("Getting Values we will need set specifically")
@@ -106,7 +114,7 @@ class AndroidHelper:
             animationValue = 0
         else:
             animationValue = 1
-        minimumTimeoutValue = 2 * 60 * 1000 # milliseconds
+        minimumTimeoutValue = screen_timeout_ms
         cmdline = xharness_adb() + [
             'shell', 'settings', 'put', 'global', 'window_animation_scale', str(animationValue)
         ]
@@ -157,19 +165,21 @@ class AndroidHelper:
             self.packagename
         ]
 
-        installCmd = xharnesscommand() + [
-            'android',
-            'install',
-            '--app', packagepath,
-            '--package-name',
-            self.packagename,
-            '-o',
-            const.TRACEDIR,
-            '-v'
-        ]
-        RunCommand(installCmd, verbose=True).run()
+        if not skip_install:
+            installCmd = xharnesscommand() + [
+                'android',
+                'install',
+                '--app', packagepath,
+                '--package-name',
+                self.packagename,
+                '-o',
+                const.TRACEDIR,
+                '-v'
+            ]
+            RunCommand(installCmd, verbose=True).run()
+            getLogger().info("Completed install.")
 
-        getLogger().info("Completed install, running shell.")
+        getLogger().info("Resolving launchable activity.")
         cmdline = xharness_adb() + [
             'shell',
             f'cmd package resolve-activity --brief {self.packagename} | tail -n 1'
@@ -178,77 +188,54 @@ class AndroidHelper:
         getActivity.run()
         getLogger().info(f"Target Activity {getActivity.stdout}")
 
-        # More setup stuff
-        checkScreenOnCmd = xharness_adb() + [
-            'shell',
-            'dumpsys input_method | grep mInteractive'
-        ]
-        checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
-        checkScreenOn.run()
+        self.ensure_screen_on()
 
-        keyInputCmd = xharness_adb() + [
-            'shell',
-            'input',
-            'keyevent'
-        ]
-
-        if "mInteractive=false" in checkScreenOn.stdout: 
-            # Turn on the screen to make interactive and see if it worked
-            getLogger().info("Screen was off, turning on.")
-            self.screenwasoff = True
-            RunCommand(keyInputCmd + ['26'], verbose=True).run() # Press the power key
-            RunCommand(keyInputCmd + ['82'], verbose=True).run() # Unlock the screen with menu key (only works if it is not a password lock)
-
-            checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
-            checkScreenOn.run()
-            if "mInteractive=false" in checkScreenOn.stdout:
-                getLogger().exception("Failed to make screen interactive.")
-                raise Exception("Failed to make screen interactive.")
-
-        # Actual testing some run stuff
-        getLogger().info("Test run to check if permissions are needed")
         self.activityname = getActivity.stdout.strip()
 
-        # -W in the start command waits for the app to finish initial draw.
-        self.startappcommand = xharness_adb() + [
-            'shell',
-            'am',
-            'start-activity',
-            '-W',
-            '-n',
-            self.activityname
-        ]
+        if not skip_test_launch:
+            # Test run to check if permissions are needed
+            getLogger().info("Test run to check if permissions are needed")
 
-        testRun = RunCommand(self.startappcommand, verbose=True)
-        testRun.run()
-        testRunStats = re.findall(run_split_regex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
-        getLogger().info(f"Test run activity: {testRunStats[3]}")
-        time.sleep(10) # Add delay to ensure app is fully installed and give it some time to settle
-        
-        RunCommand(self.stopappcommand, verbose=True).run()
-        if "com.google.android.permissioncontroller" in testRunStats[3]:
-            # On perm screen, use the buttons to close it. it will stay away until the app is reinstalled
-            RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
-            time.sleep(1)
-            RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
-            time.sleep(1)
-            RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close main perm screen
-            time.sleep(1)
-            RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
-            time.sleep(1)
-            RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close out of second screen
-            time.sleep(1)
+            # -W in the start command waits for the app to finish initial draw.
+            self.startappcommand = xharness_adb() + [
+                'shell',
+                'am',
+                'start-activity',
+                '-W',
+                '-n',
+                self.activityname
+            ]
 
-            # Check to make sure it worked
             testRun = RunCommand(self.startappcommand, verbose=True)
             testRun.run()
-            testRunStats = re.findall(run_split_regex, testRun.stdout) 
+            testRunStats = re.findall(run_split_regex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
             getLogger().info(f"Test run activity: {testRunStats[3]}")
-            RunCommand(self.stopappcommand, verbose=True).run() 
+            time.sleep(10) # Add delay to ensure app is fully installed and give it some time to settle
             
+            RunCommand(self.stopappcommand, verbose=True).run()
             if "com.google.android.permissioncontroller" in testRunStats[3]:
-                getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
-                raise Exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
+                # On perm screen, use the buttons to close it. it will stay away until the app is reinstalled
+                RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
+                time.sleep(1)
+                RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
+                time.sleep(1)
+                RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close main perm screen
+                time.sleep(1)
+                RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
+                time.sleep(1)
+                RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close out of second screen
+                time.sleep(1)
+
+                # Check to make sure it worked
+                testRun = RunCommand(self.startappcommand, verbose=True)
+                testRun.run()
+                testRunStats = re.findall(run_split_regex, testRun.stdout) 
+                getLogger().info(f"Test run activity: {testRunStats[3]}")
+                RunCommand(self.stopappcommand, verbose=True).run() 
+                
+                if "com.google.android.permissioncontroller" in testRunStats[3]:
+                    getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
+                    raise Exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
             
         self.startappcommand = xharness_adb() + [
             'shell',
@@ -263,24 +250,136 @@ class AndroidHelper:
             self.activityname
         ]
 
-    def close_device(self):
+    def ensure_screen_on(self) -> None:
+        """Wake the device screen and unlock it if it is off.
+
+        Must be called before any launch we want ActivityTaskManager to log a
+        'Displayed' line for — Android never emits that line when the screen is
+        off. Physical Helix CI devices start with screens off.
+
+        Sets self.screenwasoff = True the FIRST time the screen is found off so
+        close_device() can restore it. A second call when the screen is already
+        on leaves the flag unchanged.
+        """
+        checkScreenOnCmd = xharness_adb() + [
+            'shell',
+            'dumpsys input_method | grep mInteractive'
+        ]
+        checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
+        checkScreenOn.run()
+
+        keyInputCmd = xharness_adb() + [
+            'shell',
+            'input',
+            'keyevent'
+        ]
+
+        if "mInteractive=false" in checkScreenOn.stdout:
+            # Turn on the screen to make interactive and see if it worked
+            getLogger().info("Screen was off, turning on.")
+            # Guard so a second call doesn't overwrite a True we already set.
+            if not self.screenwasoff:
+                self.screenwasoff = True
+            RunCommand(keyInputCmd + ['26'], verbose=True).run()  # Press the power key
+            RunCommand(keyInputCmd + ['82'], verbose=True).run()  # Unlock with menu key (no-op on password lock)
+
+            checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
+            checkScreenOn.run()
+            if "mInteractive=false" in checkScreenOn.stdout:
+                getLogger().exception("Failed to make screen interactive.")
+                raise Exception("Failed to make screen interactive.")
+
+    def clear_logcat(self) -> None:
+        """Clear the logcat ring buffer before a measured launch.
+
+        Called before every dotnet-run invocation so stale 'Displayed' lines
+        from previous iterations don't contaminate the next measurement.
+        """
+        RunCommand(xharness_adb() + ['logcat', '-c'], verbose=True).run()
+
+    def measure_startup_from_logcat(self, packagename: str, activityname: str, timeout_s: int = 30) -> int:
+        """Measure app startup time from logcat's 'Displayed' line.
+
+        Polls 'adb shell logcat -d' for the 'Displayed <packagename>/: +NNNms'
+        line emitted by ActivityTaskManager (API 29+) / ActivityManager (API
+        23-28) after the first frame is drawn.
+
+        Prerequisites (caller's responsibility):
+          - ensure_screen_on() called before the launch — Android never logs
+            'Displayed' when the screen is off.
+          - clear_logcat() called immediately before the launch — otherwise a
+            stale line from a previous iteration is returned instantly.
+
+        activityname is accepted to preserve runner call compatibility. It is
+        not used in the grep; packagename alone uniquely identifies the app and
+        is robust to activity-name format variations.
+
+        Returns startup time in milliseconds.
+        Raises Exception with a logcat tail on timeout.
+        """
+        poll_cmd = xharness_adb() + [
+            'shell',
+            # Use packagename (not activityname) to match regardless of whether
+            # the activity is reported as '.MainActivity' or the fully-qualified
+            # 'com.company.app.MainActivity'.
+            f"logcat -d | grep -E 'ActivityTaskManager|ActivityManager' | grep 'Displayed {packagename}/'"
+        ]
+
+        deadline = time.time() + timeout_s
+        result = None
+        while time.time() < deadline:
+            # Use subprocess.run directly instead of RunCommand because grep
+            # returns exit code 1 when no lines match, which RunCommand treats
+            # as an error and raises CalledProcessError.
+            result = subprocess.run(poll_cmd, capture_output=True, text=True)
+            if result.stdout.strip():
+                break
+            time.sleep(1)
+        else:
+            # Dump recent logcat to help diagnose screen-off or timing issues
+            debug_cmd = xharness_adb() + ['shell', 'logcat -d -t 40']
+            debug_result = subprocess.run(debug_cmd, capture_output=True, text=True)
+            raise Exception(
+                "Timed out waiting for 'Displayed %s/' in logcat after %d seconds.\n"
+                "Last 40 logcat lines:\n%s" % (packagename, timeout_s, debug_result.stdout)
+            )
+
+        # Parse '+NNNms' or '+Ns NNNms' from ActivityTaskManager/ActivityManager.
+        dirty_capture = re.search(r"\+(\d*s?\d+)ms", result.stdout)
+        if dirty_capture:
+            capture_list = dirty_capture.group(1).split('s')
+            if len(capture_list) == 1:
+                startup_ms = int(capture_list[0])
+            elif len(capture_list) == 2:
+                startup_ms = int(capture_list[0]) * 1000 + int(capture_list[1].zfill(3))
+            else:
+                raise Exception("Android time capture failed! Unexpected format: %s" % dirty_capture.group(0))
+            getLogger().info("Startup time (logcat Displayed): %d ms" % startup_ms)
+            return startup_ms
+
+        raise Exception(
+            "Logcat returned output but no '+NNNms' pattern found.\nOutput: %s" % result.stdout
+        )
+
+    def close_device(self, skip_uninstall: bool = False):
         keyInputCmd = xharness_adb() + [
             'shell',
             'input',
             'keyevent'
         ]
                 
-        getLogger().info("Stopping App for uninstall")
-        RunCommand(self.stopappcommand, verbose=True).run()
-                
-        getLogger().info("Uninstalling app")
-        uninstallAppCmd = xharnesscommand() + [
-            'android',
-            'uninstall',
-            '--package-name',
-            self.packagename
-        ]
-        RunCommand(uninstallAppCmd, verbose=True).run()
+        if not skip_uninstall:
+            getLogger().info("Stopping App for uninstall")
+            RunCommand(self.stopappcommand, verbose=True).run()
+                    
+            getLogger().info("Uninstalling app")
+            uninstallAppCmd = xharnesscommand() + [
+                'android',
+                'uninstall',
+                '--package-name',
+                self.packagename
+            ]
+            RunCommand(uninstallAppCmd, verbose=True).run()
 
         
         keyInputCmd = xharness_adb() + [
