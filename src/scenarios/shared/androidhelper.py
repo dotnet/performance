@@ -310,9 +310,9 @@ class AndroidHelper:
           - clear_logcat() called immediately before the launch — otherwise a
             stale line from a previous iteration is returned instantly.
 
-        activityname is accepted for API symmetry with measure_cold_startup but
-        is not used in the grep; packagename alone uniquely identifies the app
-        and is robust to activity-name format variations.
+        activityname is accepted to preserve runner call compatibility. It is
+        not used in the grep; packagename alone uniquely identifies the app and
+        is robust to activity-name format variations.
 
         Returns startup time in milliseconds.
         Raises Exception with a logcat tail on timeout.
@@ -344,7 +344,7 @@ class AndroidHelper:
                 "Last 40 logcat lines:\n%s" % (packagename, timeout_s, debug_result.stdout)
             )
 
-        # Parse '+NNNms' or '+Ns NNNms' — same regex as measure_cold_startup's fallback
+        # Parse '+NNNms' or '+Ns NNNms' from ActivityTaskManager/ActivityManager.
         dirty_capture = re.search(r"\+(\d*s?\d+)ms", result.stdout)
         if dirty_capture:
             capture_list = dirty_capture.group(1).split('s')
@@ -360,71 +360,6 @@ class AndroidHelper:
         raise Exception(
             "Logcat returned output but no '+NNNms' pattern found.\nOutput: %s" % result.stdout
         )
-
-    def measure_cold_startup(self, packagename: str, activityname: str) -> int:
-        """Measure app cold startup time in milliseconds.
-        
-        Uses am start-activity -W -S to force-stop and cold-start the app.
-        Primary: parses TotalTime from am start stdout.
-        Fallback: parses WaitTime from am start stdout.
-        Last resort: parses 'Displayed' time from logcat.
-        
-        Returns startup time in milliseconds.
-        """
-        stop_app_cmd = xharness_adb() + ['shell', 'am', 'force-stop', packagename]
-        start_app_cmd = xharness_adb() + ['shell', 'am', 'start-activity', '-W', '-S', '-n', activityname]
-        clear_logs_cmd = xharness_adb() + ['logcat', '-c']
-        retrieve_time_cmd = xharness_adb() + [
-            'shell',
-            f"logcat -d | grep -E 'ActivityManager|ActivityTaskManager' | grep ': Displayed {activityname}'"
-        ]
-
-        RunCommand(clear_logs_cmd, verbose=True).run()
-        start_result = RunCommand(start_app_cmd, verbose=True)
-        start_result.run()
-
-        startup_ms = None
-
-        # Primary: parse TotalTime or WaitTime from am start -W output
-        total_match = re.search(r"TotalTime:\s*(\d+)", start_result.stdout)
-        wait_match = re.search(r"WaitTime:\s*(\d+)", start_result.stdout)
-        launch_state_match = re.search(r"LaunchState:\s*(\w+)", start_result.stdout)
-        if launch_state_match:
-            launch_state = launch_state_match.group(1)
-            getLogger().info("LaunchState: %s" % launch_state)
-            if launch_state != "COLD":
-                raise Exception(
-                    "Expected LaunchState: COLD but got LaunchState: %s. "
-                    "If UNKNOWN, the device screen may have turned off mid-run — "
-                    "increase --screen-timeout-ms." % launch_state
-                )
-        if total_match:
-            startup_ms = int(total_match.group(1))
-            getLogger().info("Startup time (TotalTime): %d ms" % startup_ms)
-        elif wait_match:
-            startup_ms = int(wait_match.group(1))
-            getLogger().info("Startup time (WaitTime): %d ms" % startup_ms)
-
-        # Fallback: parse 'Displayed' time from logcat
-        if startup_ms is None:
-            RunCommand(stop_app_cmd, verbose=True).run()
-            retrieve_result = RunCommand(retrieve_time_cmd, verbose=True)
-            retrieve_result.run()
-            dirty_capture = re.search(r"\+(\d*s?\d+)ms", retrieve_result.stdout)
-            if not dirty_capture:
-                raise Exception("Failed to capture startup time from am start output or logcat!")
-            capture_list = dirty_capture.group(1).split('s')
-            if len(capture_list) == 1:
-                startup_ms = int(capture_list[0])
-            elif len(capture_list) == 2:
-                startup_ms = int(capture_list[0]) * 1000 + int(capture_list[1].zfill(3))
-            else:
-                raise Exception("Android time capture failed! Unexpected format: %s" % dirty_capture.group(0))
-            getLogger().info("Startup time (logcat): %d ms" % startup_ms)
-        else:
-            RunCommand(stop_app_cmd, verbose=True).run()
-
-        return startup_ms
 
     def close_device(self, skip_uninstall: bool = False):
         keyInputCmd = xharness_adb() + [
