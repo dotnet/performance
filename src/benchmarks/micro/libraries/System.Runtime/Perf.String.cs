@@ -321,6 +321,7 @@ namespace System.Tests
             => File.ReadAllLines(Path.Combine(AppContext.BaseDirectory, "libraries", "System.Runtime", "TestData", name));
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)] // CSV files in TestData are not available in WASM filesystem
         [ArgumentsSource(nameof(CsvCorpus))]
         public string[] Split_Csv(string testName, string[] lines)
         {
