@@ -2,7 +2,7 @@
 using GC.Infrastructure.Core.Configurations.Microbenchmarks;
 using Newtonsoft.Json;
 
-namespace GC.Infrastructure.Core.Presentation.Microbenchmarks.Json
+namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 {
     public static class Json
     {

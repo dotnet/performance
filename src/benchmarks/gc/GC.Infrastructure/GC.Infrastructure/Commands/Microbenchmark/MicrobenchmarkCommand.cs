@@ -121,7 +121,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                     // Should only be one if it's a fresh run.
                     string jsonFile = jsonFiles.First();
 
-                    MicrobenchmarkResults output = JsonConvert.DeserializeObject<MicrobenchmarkResults>(File.ReadAllText(jsonFile));
+                    BdnJsonResult output = JsonConvert.DeserializeObject<BdnJsonResult>(File.ReadAllText(jsonFile));
 
                     // Assumption: A particular run, regardless of the parameters, will run ~the same vals.
                     IEnumerable<long> operationsPerNanos = output.Benchmarks.First().Measurements.Where(m => m.IterationMode == "Workload" && m.IterationStage == "Actual")

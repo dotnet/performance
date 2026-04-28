@@ -8,6 +8,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 {
     public static class Markdown
     {
+        /*
         private const string baseTableString = "| Benchmark Name | Baseline | Comparand | Baseline Mean Duration (MSec) | Comparand Mean Duration (MSec) | Δ Mean Duration (MSec) | Δ% Mean Duration |";
         private const string baseTableRows = "| --- | --- | -- | --- | --- | --- | --- | ";
 
@@ -234,5 +235,6 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                 comparison.Comparand?.CPUData?.Parent?.Analyzer?.Dispose();
             }
         }
+        */
     }
 }

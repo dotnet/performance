@@ -31,5 +31,26 @@
             double sumOfDerivationAverage = sumOfDerivation / (doubleList.Count() - 1);
             return Math.Sqrt(sumOfDerivationAverage - (average * average));
         }
+
+        public static IEnumerable<double> RemoveOutliers(IEnumerable<double> collection)
+        {
+            if (!collection.Any())
+            {
+                return Array.Empty<double>();
+            }
+            // Calculate Q1 (25th percentile) and Q3 (75th percentile)
+            double q1 = GC.Analysis.API.Statistics.Percentile(collection, 0.25);
+            double q3 = GC.Analysis.API.Statistics.Percentile(collection, 0.75);
+
+            // Calculate IQR (Interquartile Range)
+            double iqr = q3 - q1;
+
+            // Calculate bounds: [Q1 - 1.5*IQR, Q3 + 1.5*IQR]
+            double lowerBound = q1 - 1.5 * iqr;
+            double upperBound = q3 + 1.5 * iqr;
+
+            // Filter out outliers
+            return GoodLinq.Where(collection, x => x >= lowerBound && x <= upperBound);
+        }
     }
 }

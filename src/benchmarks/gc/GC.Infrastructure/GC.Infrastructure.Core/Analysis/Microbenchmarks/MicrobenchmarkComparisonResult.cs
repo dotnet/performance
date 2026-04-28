@@ -1,4 +1,4 @@
-﻿using GC.Infrastructure.Core.Presentation.GCPerfSim;
+﻿using GC.Analysis.API;
 
 namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 {
@@ -7,54 +7,94 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
     {
         public MicrobenchmarkComparisonResult() { }
 
-        public MicrobenchmarkComparisonResult(MicrobenchmarkResult baseline, MicrobenchmarkResult comparand)
+        public MicrobenchmarkComparisonResult(IEnumerable<MicrobenchmarkResult> baselines, IEnumerable<MicrobenchmarkResult> comparands)
         {
-            Baseline = baseline;
-            Comparand = comparand;
-            var result = new ResultItemComparison(baseline.ResultItem, comparand.ResultItem);
+            Baselines = baselines;
+            Comparands = comparands;
+            var baselineGCTraceMetricsCollection = GoodLinq.Select(Baselines, baseline => baseline.GCTraceMetrics);
+            var comparandGCTraceMetricsCollection = GoodLinq.Select(Comparands, comparand => comparand.GCTraceMetrics);
+
+            string[] metricNames = new string[]
+            {
+                "PctTimePausedInGC",
+                "ExecutionTimeMSec",
+                "PauseDurationMSec_MeanWhereIsEphemeral",
+                "PauseDurationMSec_MeanWhereIsBackground",
+                "PauseDurationMSec_MeanWhereIsBlockingGen2"
+            };
+
             ComparisonResults = new();
-            ComparisonResults.Add(result.GetComparison("PctTimePausedInGC"));
-            ComparisonResults.Add(result.GetComparison("ExecutionTimeMSec"));
-            ComparisonResults.Add(result.GetComparison("PauseDurationMSec_MeanWhereIsEphemeral"));
-            ComparisonResults.Add(result.GetComparison("PauseDurationMSec_MeanWhereIsBackground"));
-            ComparisonResults.Add(result.GetComparison("PauseDurationMSec_MeanWhereIsBlockingGen2"));
+            foreach (var metricName in metricNames)
+            {
+                ComparisonResults.Add(
+                    GCTraceMetricComparison.CompareGCTraceMetric(baselineGCTraceMetricsCollection, comparandGCTraceMetricsCollection, metricName));
+            }
+
+            BaselineRunName = Baselines?.FirstOrDefault()?.Parent?.Name;
+            ComparandRunName = Comparands?.FirstOrDefault()?.Parent?.Name;
+            MicrobenchmarkName = Baselines?.FirstOrDefault()?.MicrobenchmarkName;
+
+            OriginalBaselineMeanValueCollection =
+                GoodLinq.Select(Baselines, baseline => baseline.Statistics?.Mean ?? double.NaN).ToArray();
+            OriginalComparandMeanValueCollection =
+                GoodLinq.Select(Comparands, comparand => comparand.Statistics?.Mean ?? double.NaN).ToArray();
         }
 
-        public MicrobenchmarkResult Baseline { get; set; }
-        public MicrobenchmarkResult Comparand { get; set; }
-        public List<ComparisonResult> ComparisonResults { get; set; }
+        public IEnumerable<MicrobenchmarkResult> Baselines { get; set; }
+        public IEnumerable<MicrobenchmarkResult> Comparands { get; set; }
+        public List<GCTraceMetricComparisonResult> ComparisonResults { get; set; }
+        public string BaselineRunName { get; }
+        public string ComparandRunName { get; }
+        public string MicrobenchmarkName { get; }
+        public double[] OriginalBaselineMeanValueCollection { get; }
+        public double[] OriginalComparandMeanValueCollection { get; }
 
-        // TODO: Nullable double check.
-        public string BaselineRunName => Baseline?.Parent?.Name;
-        public string ComparandRunName => Comparand?.Parent?.Name;
-        public string MicrobenchmarkName => Baseline.MicrobenchmarkName;
+        public double[] OutliersFreeBaselineMeanValueCollection => 
+            GC.Analysis.API.Statistics.RemoveOutliers(OriginalBaselineMeanValueCollection).ToArray();
+        public double[] OutliersFreeComparandMeanValueCollection =>
+            GC.Analysis.API.Statistics.RemoveOutliers(OriginalComparandMeanValueCollection).ToArray();
 
-        public double MeanDiff => (Comparand.Statistics?.Mean.Value - Baseline.Statistics?.Mean.Value) ?? double.NaN;
-        public double MeanDiffPerc => (MeanDiff / Baseline.Statistics?.Mean.Value) * 100 ?? double.NaN;
+        public double MeanDiff => OutliersFreeComparandMeanValueCollection.Average() - OutliersFreeBaselineMeanValueCollection.Average();
+        public double MeanDiffPerc => (MeanDiff / (Baselines.FirstOrDefault()?.Statistics?.Mean ?? double.NaN)) * 100;
 
-        public double? GetDiffPercentFromOtherMetrics(string metric)
+        public double? GetDiffPercentFromOtherMetrics(string metricName)
         {
-            if (!Baseline.OtherMetrics.TryGetValue(metric, out var baselineMetric))
+            List<double> baselineOtherMetricCollection = new();
+            List<double> comparandOtherMetricCollection = new();
+
+            foreach (var baseline in Baselines)
+            {
+                if (baseline.OtherMetrics.TryGetValue(metricName, out var baselineMetric))
+                {
+                    if (baselineMetric.HasValue)
+                    {
+                        baselineOtherMetricCollection.Add(baselineMetric.Value);
+                    }
+                }
+            }
+
+            foreach (var comparand in Comparands)
+            {
+                if (comparand.OtherMetrics.TryGetValue(metricName, out var comparandMetric))
+                {
+                    if (comparandMetric.HasValue)
+                    {
+                        comparandOtherMetricCollection.Add(comparandMetric.Value);
+                    }
+                }
+            }
+
+            if (baselineOtherMetricCollection.Count() * comparandOtherMetricCollection.Count() == 0)
             {
                 return null;
             }
 
-            if (!baselineMetric.HasValue)
-            {
-                return null;
-            }
+            var outliersFreeBaselineOtherMetricCollection = GC.Analysis.API.Statistics.RemoveOutliers(baselineOtherMetricCollection);
+            var outliersFreeComparandOtherMetricCollection = GC.Analysis.API.Statistics.RemoveOutliers(comparandOtherMetricCollection);
 
-            if (!Comparand.OtherMetrics.TryGetValue(metric, out var comparandMetric))
-            {
-                return null;
-            }
-
-            if (!comparandMetric.HasValue)
-            {
-                return null;
-            }
-
-            return (comparandMetric.Value - baselineMetric.Value) / baselineMetric.Value;
+            var averagedOutliersFreeBaselineOtherMetric = outliersFreeBaselineOtherMetricCollection.Average();
+            var averagedOutliersFreeComparandOtherMetric = outliersFreeComparandOtherMetricCollection.Average();
+            return (averagedOutliersFreeBaselineOtherMetric - averagedOutliersFreeComparandOtherMetric) / averagedOutliersFreeBaselineOtherMetric;
         }
     }
 }

@@ -21,7 +21,6 @@ namespace GC.Infrastructure.Commands.Microbenchmark
         {
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(MicrobenchmarkAnalyzeCommand));
             MicrobenchmarkConfiguration configuration = MicrobenchmarkConfigurationParser.Parse(settings.ConfigurationPath);
-            IReadOnlyList<MicrobenchmarkComparisonResults> comparisonResults = MicrobenchmarkResultsAnalyzer.GetComparisons(configuration);
             Presentation.Present(configuration, new()); // Execution details aren't available for the analysis-only mode.
             return 0;
         }
