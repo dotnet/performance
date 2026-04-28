@@ -5,6 +5,7 @@ Contains the functionality around DotNet Cli.
 """
 
 import re
+import json
 import datetime
 from argparse import ArgumentParser, ArgumentTypeError
 from glob import iglob
@@ -863,32 +864,34 @@ def install(
         common_cmdline_args += ['-FeedCredential', internal_build_key]
 
     # Shield subsequent `dotnet` invocations (e.g. `dotnet --info` in ci_setup.py)
-    # from picking up an unrelated repo's global.json during the SDK resolver's
-    # upward walk. In particular, dotnet/runtime's global.json contains a
-    # `paths` entry that points the resolver at a `.dotnet` directory installed
-    # by arcade -- which can hold an SDK older than the one the perf scripts
-    # just installed into install_dir. By writing an empty global.json at the
-    # parent of the perf repo (which is the AzDO workspace root in CI and the
-    # cwd of subsequent `dotnet` invocations), we stop the walk-up before it
-    # reaches runtime's global.json, letting the perf-installed SDK win via
-    # standard `$host$` resolution.
+    # from picking up an unrelated repo's global.json `paths` entry during the
+    # SDK resolver's upward walk. In particular, dotnet/runtime's global.json
+    # contains a `paths` entry that points the resolver at a `.dotnet` directory
+    # installed by arcade -- which can hold an SDK older than the one the perf
+    # scripts just installed into install_dir. We rewrite the upstream
+    # global.json with the `sdk.paths` field removed, preserving all other
+    # keys (notably `tools.dotnet`, which arcade's bootstrap requires to be
+    # present), letting the perf-installed SDK win via standard `$host$`
+    # resolution while keeping unrelated tooling functional.
     workspace_root = path.abspath(path.join(get_repo_root_path(), '..'))
     shield_global_json = path.join(workspace_root, 'global.json')
     try:
-        existing = ''
         if path.exists(shield_global_json):
             with open(shield_global_json, 'r') as f:
-                existing = f.read()
-        if existing.strip() != '{}':
-            with open(shield_global_json, 'w') as f:
-                f.write('{}\n')
-            getLogger().info(
-                "Wrote empty global.json to %s to shield SDK resolver from "
-                "an unrelated repo's global.json (previous content length: %d)",
-                shield_global_json, len(existing))
-    except OSError as ex:
+                shield_data = json.load(f)
+            sdk_section = shield_data.get('sdk')
+            if isinstance(sdk_section, dict) and 'paths' in sdk_section:
+                removed_paths = sdk_section.pop('paths')
+                with open(shield_global_json, 'w') as f:
+                    json.dump(shield_data, f, indent=2)
+                    f.write('\n')
+                getLogger().info(
+                    "Stripped sdk.paths=%s from %s to shield SDK resolver "
+                    "from an unrelated repo's global.json",
+                    removed_paths, shield_global_json)
+    except (OSError, ValueError) as ex:
         getLogger().warning(
-            "Could not write shield global.json to %s: %s", shield_global_json, ex)
+            "Could not shield global.json at %s: %s", shield_global_json, ex)
 
     # Install Runtime/SDKs
     if versions:
