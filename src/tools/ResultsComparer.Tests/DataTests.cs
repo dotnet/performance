@@ -138,9 +138,10 @@ public class DataTests
         {
             foreach (var (entryName, content) in entries)
             {
+                using var dataStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
                 var tarEntry = new UstarTarEntry(TarEntryType.RegularFile, entryName)
                 {
-                    DataStream = new MemoryStream(Encoding.UTF8.GetBytes(content))
+                    DataStream = dataStream
                 };
 
                 tarWriter.WriteEntry(tarEntry);
