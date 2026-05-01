@@ -1,18 +1,19 @@
-﻿using GC.Infrastructure.Core.Analysis.Microbenchmarks;
+﻿using GC.Analysis.API;
 using GC.Infrastructure.Core.Analysis;
+using GC.Infrastructure.Core.Analysis.Microbenchmarks;
 using GC.Infrastructure.Core.CommandBuilders;
-using GC.Infrastructure.Core.Configurations.Microbenchmarks;
 using GC.Infrastructure.Core.Configurations;
+using GC.Infrastructure.Core.Configurations.Microbenchmarks;
 using GC.Infrastructure.Core.Presentation.Microbenchmarks;
 using GC.Infrastructure.Core.TraceCollection;
 using Newtonsoft.Json;
-using Spectre.Console.Cli;
 using Spectre.Console;
+using Spectre.Console.Cli;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics;
-using System.Text;
 using System.Configuration;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace GC.Infrastructure.Commands.Microbenchmark
 {
@@ -124,8 +125,8 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                     BdnJsonResult output = JsonConvert.DeserializeObject<BdnJsonResult>(File.ReadAllText(jsonFile));
 
                     // Assumption: A particular run, regardless of the parameters, will run ~the same vals.
-                    IEnumerable<long> operationsPerNanos = output.Benchmarks.First().Measurements.Where(m => m.IterationMode == "Workload" && m.IterationStage == "Actual")
-                                                                                                .Select(m => m.Operations);
+                    var operationsPerNanos = GoodLinq.Select(GoodLinq.Where(output.Benchmarks.First().Measurements, m => m.IterationMode == "Workload" && m.IterationStage == "Actual"), m => m.Operations);
+
                     // For now take the max but we will possibly be sacrificing duration for precision.
                     invocationCountFromBaseline = operationsPerNanos.Max();
                 }
@@ -199,10 +200,23 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                 }
             }
 
-            IReadOnlyList<MicrobenchmarkComparisonResults> results = Presentation.Present(configuration, executionDetails);
+            Run sampleRun = configuration.Runs.Values.FirstOrDefault();
+            string outputPathForRun = Path.Combine(configuration.Output.Path, sampleRun.Name);
+            var benchmarkFullNameJsonMap = MicrobenchmarkResultComparison.MapBenchmarkFullNameToJsonForRun(outputPathForRun);
+            List<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks = new();
+
+            foreach (string benchmarkFullName in benchmarkFullNameJsonMap.Keys)
+            {
+                List<MicrobenchmarkComparisonResult> comparisonResultsForBenchmark = MicrobenchmarkResultComparison.CompareMicrobenchmarkResultForBenchmark(configuration, benchmarkFullName);
+                comparisonResultForAllBenchmarks.AddRange(comparisonResultsForBenchmark);
+            }
+
+            var comparisonResultsGroupedName = MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResultForAllBenchmarks);
+
+            Presentation.Present(configuration, comparisonResultsGroupedName, new()); // Execution details aren't available for the analysis-only mode.
             Directory.SetCurrentDirectory(currentDirectory);
             AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Wrote Microbechmark Results to: {Markup.Escape(Path.Combine(configuration.Output.Path, "Results.md"))} [/]");
-            return new MicrobenchmarkOutputResults(executionDetails, results);
+            return new MicrobenchmarkOutputResults(executionDetails, comparisonResultsGroupedName);
         }
     }
 }

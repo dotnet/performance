@@ -1,10 +1,13 @@
-﻿using Spectre.Console.Cli;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
+﻿using GC.Analysis.API;
 using GC.Infrastructure.Core.Analysis.Microbenchmarks;
-using GC.Infrastructure.Core.Presentation.Microbenchmarks;
 using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.Microbenchmarks;
+using GC.Infrastructure.Core.Presentation.GCPerfSim;
+using GC.Infrastructure.Core.Presentation.Microbenchmarks;
+using Spectre.Console.Cli;
+using System.Collections.Concurrent;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GC.Infrastructure.Commands.Microbenchmark
 {
@@ -21,7 +24,21 @@ namespace GC.Infrastructure.Commands.Microbenchmark
         {
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(MicrobenchmarkAnalyzeCommand));
             MicrobenchmarkConfiguration configuration = MicrobenchmarkConfigurationParser.Parse(settings.ConfigurationPath);
-            Presentation.Present(configuration, new()); // Execution details aren't available for the analysis-only mode.
+
+            Run run = configuration.Runs.Values.FirstOrDefault();
+            string outputPathForRun = Path.Combine(configuration.Output.Path, run.Name);
+            var benchmarkFullNameJsonMap = MicrobenchmarkResultComparison.MapBenchmarkFullNameToJsonForRun(outputPathForRun);
+            List<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks = new();
+
+            foreach (var benchmarkFullName in benchmarkFullNameJsonMap.Keys)
+            {
+                List<MicrobenchmarkComparisonResult> comparisonResultsForBenchmark = MicrobenchmarkResultComparison.CompareMicrobenchmarkResultForBenchmark(configuration, benchmarkFullName);
+                comparisonResultForAllBenchmarks.AddRange(comparisonResultsForBenchmark);
+            }
+
+            var comparisonResultsGroupedName = MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResultForAllBenchmarks);
+
+            Presentation.Present(configuration, comparisonResultsGroupedName, new()); // Execution details aren't available for the analysis-only mode.
             return 0;
         }
     }

@@ -40,6 +40,16 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             { "System.Tests.Perf_GC<Char>.NewOperator_Array(length: 10000)", "System.Tests.Perf_GC_Char_.NewOperator_Array_length_10000_"},
         };
 
+        public static readonly Dictionary<string, Func<MicrobenchmarkComparisonResult, bool>> DiffLevelPredicatorMap = new()
+        {
+            { "Large Regressions (>=20%)", r => r.MeanDiffPerc >= 20 },
+            { "Large Improvements (<=-20%)", r => r.MeanDiffPerc <= -20 },
+            { "Regressions (5% - 20%)", r => r.MeanDiffPerc >= 5 && r.MeanDiffPerc < 20 },
+            { "Improvements (-20% - -5%)", r => r.MeanDiffPerc <= -5 && r.MeanDiffPerc > -20 },
+            { "Stale Regressions (0% - 5%)", r => r.MeanDiffPerc >= 0 && r.MeanDiffPerc < 5 },
+            { "Stale Improvements (0% - -5%)", r => r.MeanDiffPerc <= 0 && r.MeanDiffPerc > -5 },
+        };
+
         private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, List<string>>> _benchmarkFullNameToJsonForRun = new();
 
         public static ConcurrentDictionary<string, List<string>> MapBenchmarkFullNameToJsonForRun(string outputPathForRun)
@@ -50,7 +60,8 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
                 string[] jsonFiles = Directory.GetFiles(outputPathForRun, "*full.json", SearchOption.AllDirectories);
 
-                Parallel.ForEach(jsonFiles, (jsonFile) => {
+                Parallel.ForEach(jsonFiles, (jsonFile) =>
+                {
                     BdnJsonResult results = JsonConvert.DeserializeObject<BdnJsonResult>(File.ReadAllText(jsonFile));
                     string fullName = results.Benchmarks.FirstOrDefault()?.FullName;
                     benchmarkFullNameJsonMap[fullName] = benchmarkFullNameJsonMap.GetValueOrDefault(fullName, new());
@@ -69,7 +80,8 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
             string[] jsonFiles = benchmarkFullNameJsonMap.GetValueOrDefault(benchmarkFullName, new()).ToArray();
 
-            Parallel.ForEach(jsonFiles, (jsonFile) => {
+            Parallel.ForEach(jsonFiles, (jsonFile) =>
+            {
                 BdnJsonResult results = JsonConvert.DeserializeObject<BdnJsonResult>(File.ReadAllText(jsonFile));
                 string fullName = results.Benchmarks.FirstOrDefault()?.FullName;
                 if (fullName != benchmarkFullName)
@@ -86,7 +98,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
             string traceFileNameTemplate = _benchmarkNameToTraceFilePatternMap[benchmarkFullName];
 
-            string[] sortedTraceFiles = Enumerable.Where(Directory.GetFiles(outputPathForRun, "*.etlx", SearchOption.TopDirectoryOnly), traceFile =>
+            string[] sortedTraceFiles = Enumerable.Where(Directory.GetFiles(outputPathForRun, "*.etl.zip", SearchOption.TopDirectoryOnly), traceFile =>
                     Path.GetFileName(traceFile).ToLower().Contains(traceFileNameTemplate.ToLower()))
                 .OrderBy(traceFile => traceFile)
                 .ToArray();
@@ -105,7 +117,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             return jsonTraceMap;
         }
 
-        public static IReadOnlyDictionary<Run,List<MicrobenchmarkResult>> AnalyzeMicrobenchmarkResultsForSingleBenchmark(MicrobenchmarkConfiguration configuration, string benchmarkFullName, bool excludeTraces = false)
+        public static IReadOnlyDictionary<Run, List<MicrobenchmarkResult>> AnalyzeMicrobenchmarkResultsForSingleBenchmark(MicrobenchmarkConfiguration configuration, string benchmarkFullName, bool excludeTraces = false)
         {
             ConcurrentDictionary<Run, List<MicrobenchmarkResult>> runsToResults = new();
 
@@ -118,7 +130,8 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
                 runsToResults[run.Value] = runsToResults.GetValueOrDefault(run.Value, new());
 
-                Parallel.ForEach(jsonTraceMap, jsonTracePair => {
+                Parallel.ForEach(jsonTraceMap, jsonTracePair =>
+                {
                     string jsonPath = jsonTracePair.Key;
                     string tracePath = jsonTracePair.Value;
 
@@ -137,8 +150,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
                         if (!excludeTraces)
                         {
-                            Analyzer analyzer = AnalyzerManager.GetAnalyzer(tracePath);
-
+                            using var analyzer = AnalyzerManager.GetAnalyzer(tracePath);
                             List<GCProcessData> allPertinentProcesses = analyzer.GetProcessGCData("dotnet");
                             List<GCProcessData> corerunProcesses = analyzer.GetProcessGCData("corerun");
                             allPertinentProcesses.AddRange(corerunProcesses);
@@ -178,7 +190,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                         runsToResults[run.Value].Add(microbenchmarkResult);
                     }
                 });
-                
+
             });
 
             return runsToResults;
@@ -188,7 +200,6 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
         {
             IReadOnlyDictionary<Run, List<MicrobenchmarkResult>> runResults = AnalyzeMicrobenchmarkResultsForSingleBenchmark(configuration, benchmarkFullName, excludeTraces);
             List<MicrobenchmarkComparisonResult> comparisonResults = new();
-
             if (configuration.Output.run_comparisons != null)
             {
                 foreach (var comparison in configuration.Output.run_comparisons)
@@ -220,6 +231,23 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             }
 
             return comparisonResults;
+        }
+
+        public static List<MicrobenchmarkComparisonResults> GroupComparisonResultsByName(MicrobenchmarkConfiguration configuration, List<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks, bool excludeTraces = false)
+        {
+            List<MicrobenchmarkComparisonResults> allComparisonResults = new();
+
+            comparisonResultForAllBenchmarks
+                .GroupBy(r => r.ComparisonName)
+                .ToList()
+                .ForEach(group =>
+                {
+                    string baselineName = group.FirstOrDefault()?.BaselineRunName ?? "Baseline";
+                    string runName = group.FirstOrDefault()?.ComparandRunName ?? "Comparand";
+                    allComparisonResults.Add(new(baselineName, runName, group.ToList()));
+                });
+
+            return allComparisonResults;
         }
     }
 }

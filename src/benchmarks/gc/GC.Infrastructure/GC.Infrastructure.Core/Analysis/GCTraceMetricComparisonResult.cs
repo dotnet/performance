@@ -8,8 +8,8 @@ namespace GC.Infrastructure.Core.Analysis
     {
         public GCTraceMetricComparisonResult(IEnumerable<GCTraceMetrics> baselines, IEnumerable<GCTraceMetrics> comparands, string metricName)
         {
-            Baselines = baselines;
-            Comparands = comparands;
+            RunName = baselines.FirstOrDefault()?.RunName;
+            Key = $"{baselines.FirstOrDefault()?.ConfigurationName}_{RunName}";
 
             MetricName = metricName;
             PropertyInfo pInfo = typeof(GCTraceMetrics).GetProperty(metricName, BindingFlags.Instance | BindingFlags.Public);
@@ -17,8 +17,8 @@ namespace GC.Infrastructure.Core.Analysis
             // Property found on the GCTraceMetrics.
             if (pInfo != null)
             {
-                OriginalBaselineMetricCollection = GoodLinq.Select(Baselines, baseline => (double)pInfo.GetValue(baseline));
-                OriginalComparandMetricCollection = GoodLinq.Select(Comparands, comparand => (double)pInfo.GetValue(comparand));
+                OriginalBaselineMetricCollection = GoodLinq.Select(baselines, baseline => (double)pInfo.GetValue(baseline));
+                OriginalComparandMetricCollection = GoodLinq.Select(comparands, comparand => (double)pInfo.GetValue(comparand));
             }
 
             // If property isn't found on the GCTraceMetrics, look in GCStats.
@@ -43,15 +43,15 @@ namespace GC.Infrastructure.Core.Analysis
 
                     else
                     {
-                        OriginalBaselineMetricCollection = GoodLinq.Select(Baselines, baseline => (double)fieldInfo.GetValue(baseline));
-                        OriginalComparandMetricCollection = GoodLinq.Select(Comparands, comparand => (double)fieldInfo.GetValue(comparand));
+                        OriginalBaselineMetricCollection = GoodLinq.Select(baselines, baseline => (double)fieldInfo.GetValue(baseline));
+                        OriginalComparandMetricCollection = GoodLinq.Select(comparands, comparand => (double)fieldInfo.GetValue(comparand));
                     }
                 }
 
                 else
                 {
-                    OriginalBaselineMetricCollection = GoodLinq.Select(Baselines, baseline => (double)pInfo.GetValue(baseline));
-                    OriginalComparandMetricCollection = GoodLinq.Select(Comparands, comparand => (double)pInfo.GetValue(comparand));
+                    OriginalBaselineMetricCollection = GoodLinq.Select(baselines, baseline => (double)pInfo.GetValue(baseline));
+                    OriginalComparandMetricCollection = GoodLinq.Select(comparands, comparand => (double)pInfo.GetValue(comparand));
                 }
             }
 
@@ -60,15 +60,12 @@ namespace GC.Infrastructure.Core.Analysis
             OutliersFreeComparandMetricCollection = GC.Analysis.API.Statistics.RemoveOutliers(OriginalComparandMetricCollection);
 
             // Calculate averaged metrics
-            AveragedBaselineMetric = OutliersFreeBaselineMetricCollection.Any() 
-                ? OutliersFreeBaselineMetricCollection.Average() 
-                : double.NaN;
-            AveragedComparandMetric = OutliersFreeComparandMetricCollection.Any() 
-                ? OutliersFreeComparandMetricCollection.Average() 
-                : double.NaN;
+            AveragedBaselineMetric = GoodLinq.Average(OutliersFreeBaselineMetricCollection, r => r);
+            AveragedComparandMetric = GoodLinq.Average(OutliersFreeComparandMetricCollection, r => r);
         }
 
-        public string RunName => Baselines.First().RunName;
+        public string RunName { get; }
+        public string Key { get; }
         public string MetricName { get; }
         public IEnumerable<double> OriginalBaselineMetricCollection { get; }
         public IEnumerable<double> OriginalComparandMetricCollection { get; }
@@ -99,8 +96,5 @@ namespace GC.Infrastructure.Core.Analysis
                 }
             }
         }
-        public string Key => $"{Baselines.FirstOrDefault()?.ConfigurationName}_{RunName}";
-        public IEnumerable<GCTraceMetrics> Baselines { get; }
-        public IEnumerable<GCTraceMetrics> Comparands { get; }
     }
 }
