@@ -213,7 +213,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
 
             var comparisonResultsGroupedName = MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResultForAllBenchmarks);
 
-            Presentation.Present(configuration, comparisonResultsGroupedName, new()); // Execution details aren't available for the analysis-only mode.
+            Presentation.Present(configuration, comparisonResultsGroupedName, executionDetails); // Execution details aren't available for the analysis-only mode.
             Directory.SetCurrentDirectory(currentDirectory);
             AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Wrote Microbechmark Results to: {Markup.Escape(Path.Combine(configuration.Output.Path, "Results.md"))} [/]");
             return new MicrobenchmarkOutputResults(executionDetails, comparisonResultsGroupedName);

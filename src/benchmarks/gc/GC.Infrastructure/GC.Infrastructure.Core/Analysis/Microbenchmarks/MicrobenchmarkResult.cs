@@ -6,17 +6,17 @@ namespace GC.Infrastructure.Core.Analysis
 {
     public sealed class MicrobenchmarkResult
     {
-        public Statistics Statistics { get; set; }
+        public Statistics? Statistics { get; set; }
 
         [JsonIgnore]
         public GCProcessData? GCData { get; set; }
 
-        public GCTraceMetrics GCTraceMetrics { get; set; }
+        public GCTraceMetrics? GCTraceMetrics { get; set; }
 
         [JsonIgnore]
         public CPUProcessData? CPUData { get; set; }
-        public Run Parent { get; set; }
-        public string MicrobenchmarkName { get; set; }
+        public Run? Parent { get; set; }
+        public string? MicrobenchmarkName { get; set; }
         public Dictionary<string, double?> OtherMetrics { get; set; } = new();
 
         private static readonly IReadOnlyDictionary<string, Func<Statistics, double?>> _customStatisticsCalculationMap = new Dictionary<string, Func<Statistics, double?>>(StringComparer.OrdinalIgnoreCase)
