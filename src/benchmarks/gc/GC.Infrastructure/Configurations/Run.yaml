@@ -12,7 +12,7 @@ coreruns:
       environment_variables:
           DOTNET_GCName: clrgc.dll
 
-iteration:
+iterations:
   gcperfsim: 1
   microbenchmarks: 1
 
