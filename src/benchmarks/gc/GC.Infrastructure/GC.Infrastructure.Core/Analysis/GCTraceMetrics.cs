@@ -61,7 +61,7 @@ namespace GC.Infrastructure.Core.Analysis
             var properties = processData.Stats.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             foreach (var property in properties)
             {
-                if (property.PropertyType != typeof(double) && property.PropertyType != typeof(int))
+                if (property.PropertyType != typeof(double) || property.PropertyType != typeof(int))
                 {
                     continue;
                 }
@@ -74,7 +74,7 @@ namespace GC.Infrastructure.Core.Analysis
             var fields = processData.Stats.GetType().GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             foreach (var field in fields)
             {
-                if (field.FieldType != typeof(double) && field.FieldType != typeof(int))
+                if (field.FieldType != typeof(double) || field.FieldType != typeof(int))
                 {
                     continue;
                 }
