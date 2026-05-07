@@ -14,7 +14,9 @@ namespace BenchmarkDotNet.Extensions
     {
         public bool TreatsWarningsAsErrors => true;
 
-        public IEnumerable<ValidationError> Validate(ValidationParameters validationParameters)
+        // Use ToAsyncEnumerable() (not async + yield return) to avoid the AsyncIteratorMethodBuilder
+        // state machine deadlocking with BDN's BenchmarkSynchronizationContext (matches BDN's own validators).
+        public IAsyncEnumerable<ValidationError> ValidateAsync(ValidationParameters validationParameters)
             => validationParameters.Benchmarks
                 .Where(benchmark => benchmark.HasArguments || benchmark.HasParameters)
                 .GroupBy(benchmark => (benchmark.Descriptor.Type, benchmark.Descriptor.WorkloadMethod, benchmark.Job))
@@ -25,7 +27,8 @@ namespace BenchmarkDotNet.Extensions
 
                     return numberOfTestCases != numberOfUniqueTestCases;
                 })
-                .Select(duplicate => new ValidationError(true, $"Benchmark Arguments should be unique, {duplicate.Key.Type}.{duplicate.Key.WorkloadMethod} has duplicate arguments.", duplicate.First()));
+                .Select(duplicate => new ValidationError(true, $"Benchmark Arguments should be unique, {duplicate.Key.Type}.{duplicate.Key.WorkloadMethod} has duplicate arguments.", duplicate.First()))
+                .ToAsyncEnumerable();
 
         private class BenchmarkArgumentsComparer : IEqualityComparer<BenchmarkCase>
         {

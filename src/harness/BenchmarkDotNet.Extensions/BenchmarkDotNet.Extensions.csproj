@@ -1,7 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- net8.0 is the lowest TFM exercised by the perf pipelines (see scripts/channel_map.py).
+         net472 (and other netfx) consumers are no longer supported; the harness uses BDN APIs
+         (e.g. IValidator.ValidateAsync returning IAsyncEnumerable<T>) that would otherwise require
+         polyfill packages on netstandard2.0. -->
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
@@ -13,7 +17,7 @@
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(BenchmarkDotNetVersion)" />
   </ItemGroup>
   <ItemGroup Condition="'$(BenchmarkDotNetSources)' != ''">
-    <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet\BenchmarkDotNet.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet\BenchmarkDotNet.csproj" SetTargetFramework="TargetFramework=net8.0" />
     <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet.Diagnostics.Windows\BenchmarkDotNet.Diagnostics.Windows.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
   </ItemGroup>
   <ItemGroup>
