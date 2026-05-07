@@ -28,7 +28,7 @@ namespace GC.Infrastructure.Core.Analysis
             PauseDurationMSec_95PWhereIsBlockingGen2 = double.NaN;
             PauseDurationMSec_MeanWhereIsBlockingGen2 = double.NaN;
             CountIsBlockingGen2 = double.NaN;
-            PauseDurationSeconds_SumWhereIsGen1 = double.NaN;
+            PauseDurationMSec_SumWhereIsGen1 = double.NaN;
             PauseDurationMSec_MeanWhereIsEphemeral = double.NaN;
             PromotedMB_MeanWhereIsGen1 = double.NaN;
             CountIsGen1 = double.NaN;
@@ -104,7 +104,7 @@ namespace GC.Infrastructure.Core.Analysis
 
             PauseDurationMSec_MeanWhereIsEphemeral =
                 GoodLinq.Average(GoodLinq.Where(processData.GCs, (gc => gc.Generation == 1 || gc.Generation == 0)), (gc => gc.PauseDurationMSec));
-            PauseDurationSeconds_SumWhereIsGen1 =
+            PauseDurationMSec_SumWhereIsGen1 =
                 GoodLinq.Sum(GoodLinq.Where(processData.GCs, (gc => gc.Generation == 1)), (gc => gc.PauseDurationMSec));
             PauseDurationMSec_Sum = GoodLinq.Sum(processData.GCs, (gc => gc.PauseDurationMSec));
             CountIsGen1 = GoodLinq.Where(processData.GCs, gc => gc.Generation == 1).Count;
@@ -127,7 +127,7 @@ namespace GC.Infrastructure.Core.Analysis
         public double PauseDurationMSec_95PWhereIsBlockingGen2 { get; }
         public double PauseDurationMSec_MeanWhereIsBlockingGen2 { get; }
         public double CountIsBlockingGen2 { get; }
-        public double PauseDurationSeconds_SumWhereIsGen1 { get; }
+        public double PauseDurationMSec_SumWhereIsGen1 { get; }
         public double PauseDurationMSec_MeanWhereIsEphemeral { get; }
         public double PromotedMB_MeanWhereIsGen1 { get; }
         public double CountIsGen1 { get; }
