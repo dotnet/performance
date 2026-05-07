@@ -32,7 +32,7 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)CreateIndexViewModel();
             if (typeof(T) == typeof(MyEventsListerViewModel))
                 return (T)(object)CreateMyEventsListerViewModel();
-            if (typeof(T) == typeof(BinaryData))
+            if (typeof(T) == typeof(BinaryDataPayload))
                 return (T)(object)CreateBinaryData(1024);
             if (typeof(T) == typeof(CollectionsOfPrimitives))
                 return (T)(object)CreateCollectionsOfPrimitives(1024); // 1024 values was copied from CoreFX benchmarks
@@ -163,8 +163,8 @@ namespace MicroBenchmarks.Serializers
                     }, 4).ToList()
             };
 
-        private static BinaryData CreateBinaryData(int size)
-            => new BinaryData
+        private static BinaryDataPayload CreateBinaryData(int size)
+            => new BinaryDataPayload
             {
                 ByteArray = CreateByteArray(size)
             };
@@ -383,7 +383,13 @@ namespace MicroBenchmarks.Serializers
     [Serializable]
     [ProtoContract]
     [MessagePackObject]
-    public class BinaryData
+    // Renamed from BinaryData to avoid name collision with System.BinaryData
+    // (introduced in net6+ via System.Memory.Data, transitive via Azure.Core).
+    // The collision caused [GenericTypeArguments(typeof(BinaryData))] to resolve
+    // to System.BinaryData in some compile contexts (e.g. when the harness targets
+    // net8.0 instead of netstandard2.0), bypassing the data generator and producing
+    // NotImplementedException at runtime.
+    public class BinaryDataPayload
     {
         [ProtoMember(1)] [Key(0)] public byte[] ByteArray { get; set; }
     }
@@ -496,7 +502,7 @@ namespace MicroBenchmarks.Serializers
     [JsonSerializable(typeof(Location))]
     [JsonSerializable(typeof(IndexViewModel))]
     [JsonSerializable(typeof(MyEventsListerViewModel))]
-    [JsonSerializable(typeof(BinaryData))]
+    [JsonSerializable(typeof(BinaryDataPayload))]
     [JsonSerializable(typeof(CollectionsOfPrimitives))]
     [JsonSerializable(typeof(XmlElement))]
     [JsonSerializable(typeof(SimpleStructWithProperties))]
