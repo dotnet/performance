@@ -7,10 +7,10 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
     {
         public MicrobenchmarkComparisonResult() { }
 
-        public MicrobenchmarkComparisonResult(IEnumerable<MicrobenchmarkResult> baselines, IEnumerable<MicrobenchmarkResult> comparands, bool excludeTraces = false)
+        public MicrobenchmarkComparisonResult(IEnumerable<MicrobenchmarkResult> baselines, IEnumerable<MicrobenchmarkResult> comparands, bool includeTraces = true)
         {
             ComparisonResults = new();
-            if (!excludeTraces)
+            if (includeTraces)
             {
                 var baselineGCTraceMetricsCollection = GoodLinq.Select(baselines, baseline => baseline.GCTraceMetrics);
                 var comparandGCTraceMetricsCollection = GoodLinq.Select(comparands, comparand => comparand.GCTraceMetrics);

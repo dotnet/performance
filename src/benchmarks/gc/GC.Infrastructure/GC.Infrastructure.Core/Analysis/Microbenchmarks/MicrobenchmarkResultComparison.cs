@@ -85,12 +85,6 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
             Parallel.ForEach(jsonFiles, (jsonFile) =>
             {
-                BdnJsonResult? results = JsonConvert.DeserializeObject<BdnJsonResult>(File.ReadAllText(jsonFile));
-                string? fullName = results?.Benchmarks?.FirstOrDefault()?.FullName;
-                if (fullName != benchmarkFullName)
-                {
-                    return;
-                }
                 // placeholder
                 jsonTraceMap[jsonFile] = "";
             });
@@ -101,7 +95,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
             if (!_benchmarkNameToTraceFilePatternMap.Keys.Contains(benchmarkFullName))
             {
-                throw new KeyNotFoundException("No trace file pattern found for benchmark: " + benchmarkFullName); 
+                throw new KeyNotFoundException("No trace file pattern found for benchmark: " + benchmarkFullName);
             }
             string traceFileNameTemplate = _benchmarkNameToTraceFilePatternMap[benchmarkFullName];
 
@@ -133,15 +127,13 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 string outputPathForRun = Path.Combine(configuration.Output.Path, run.Key);
                 run.Value.Name ??= run.Key;
 
-                var jsonTraceMap = MapJsonToTraceForSingleBenchmarkRun(outputPathForRun, benchmarkFullName);
+                var benchmarkToJsonMapForRun = MapBenchmarkFullNameToJsonForRun(outputPathForRun);
+                var jsonFiles = benchmarkToJsonMapForRun.GetValueOrDefault(benchmarkFullName, new());
 
                 runsToResults[run.Value] = runsToResults.GetValueOrDefault(run.Value, new());
 
-                Parallel.ForEach(jsonTraceMap, jsonTracePair =>
+                Parallel.ForEach(jsonFiles, jsonPath =>
                 {
-                    string jsonPath = jsonTracePair.Key;
-                    string tracePath = jsonTracePair.Value;
-
                     BdnJsonResult? results = JsonConvert.DeserializeObject<BdnJsonResult>(File.ReadAllText(jsonPath));
 
                     List<Benchmark>? benchmarks = results?.Benchmarks;
@@ -159,12 +151,14 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                         {
                             Statistics = statistics,
                             Parent = run.Value,
-                            MicrobenchmarkName = benchmarkFullName,
-                            GCTraceMetrics = GCTraceMetrics.GetNullItem(tracePath, benchmark.FullName)
+                            MicrobenchmarkName = benchmarkFullName
                         };
 
-                        if (!excludeTraces)
+                        if ((!excludeTraces) && configuration.TraceConfigurations.Type != "none")
                         {
+                            var jsonTraceMap = MapJsonToTraceForSingleBenchmarkRun(outputPathForRun, benchmarkFullName);
+                            string tracePath = jsonTraceMap.GetValueOrDefault(jsonPath, "");
+
                             using var analyzer = AnalyzerManager.GetAnalyzer(tracePath);
                             List<GCProcessData> allPertinentProcesses = analyzer.GetProcessGCData("dotnet");
                             List<GCProcessData> corerunProcesses = analyzer.GetProcessGCData("corerun");
@@ -213,6 +207,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
         public static List<MicrobenchmarkComparisonResult> CompareMicrobenchmarkResultForBenchmark(MicrobenchmarkConfiguration configuration, string benchmarkFullName, bool excludeTraces = false)
         {
+            bool includeTraces = (!excludeTraces) && configuration.TraceConfigurations.Type != "none";
             IReadOnlyDictionary<Run, ConcurrentBag<MicrobenchmarkResult>> runResults = AnalyzeMicrobenchmarkResultsForSingleBenchmark(configuration, benchmarkFullName, excludeTraces);
             List<MicrobenchmarkComparisonResult> comparisonResults = new();
             if (configuration.Output.run_comparisons != null)
@@ -229,7 +224,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     var baselineMicrobenchmarkResults = GoodLinq.Select(baselineRuns, b => runResults[b]).SelectMany(r => r);
                     var comparandMicrobenchmarkResults = GoodLinq.Select(comparandRuns, c => runResults[c]).SelectMany(r => r);
 
-                    comparisonResults.Add(new(baselineMicrobenchmarkResults, comparandMicrobenchmarkResults));
+                    comparisonResults.Add(new(baselineMicrobenchmarkResults, comparandMicrobenchmarkResults, includeTraces));
                 }
             }
 
@@ -242,7 +237,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 var baselineMicrobenchmarkResults = GoodLinq.Select(baselineRuns, b => runResults[b]).SelectMany(r => r);
                 var comparandMicrobenchmarkResults = GoodLinq.Select(comparandRuns, c => runResults[c]).SelectMany(r => r);
 
-                comparisonResults.Add(new(baselineMicrobenchmarkResults, comparandMicrobenchmarkResults));
+                comparisonResults.Add(new(baselineMicrobenchmarkResults, comparandMicrobenchmarkResults, includeTraces));
             }
 
             return comparisonResults;
