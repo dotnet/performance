@@ -33,7 +33,11 @@ namespace GC.Infrastructure.Commands.Microbenchmark
 
         public static List<MicrobenchmarkComparisonResults> ExecuteAnalysis(MicrobenchmarkConfiguration configuration)
         {
-            Run run = configuration.Runs.Values.FirstOrDefault();
+            Run? run = configuration.Runs.Values.FirstOrDefault();
+            if (run == null)
+            {
+                throw new InvalidOperationException("No runs found in the configuration.");
+            }
             string outputPathForRun = Path.Combine(configuration.Output.Path, run.Name);
             var benchmarkFullNameJsonMap = MicrobenchmarkResultComparison.MapBenchmarkFullNameToJsonForRun(outputPathForRun);
             List<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks = new();
