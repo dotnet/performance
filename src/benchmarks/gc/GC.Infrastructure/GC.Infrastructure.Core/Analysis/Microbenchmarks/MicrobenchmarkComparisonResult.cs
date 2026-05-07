@@ -7,25 +7,28 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
     {
         public MicrobenchmarkComparisonResult() { }
 
-        public MicrobenchmarkComparisonResult(IEnumerable<MicrobenchmarkResult> baselines, IEnumerable<MicrobenchmarkResult> comparands)
+        public MicrobenchmarkComparisonResult(IEnumerable<MicrobenchmarkResult> baselines, IEnumerable<MicrobenchmarkResult> comparands, bool excludeTraces = false)
         {
-            var baselineGCTraceMetricsCollection = GoodLinq.Select(baselines, baseline => baseline.GCTraceMetrics);
-            var comparandGCTraceMetricsCollection = GoodLinq.Select(comparands, comparand => comparand.GCTraceMetrics);
-
-            string[] metricNames = new string[]
+            ComparisonResults = new();
+            if (!excludeTraces)
             {
+                var baselineGCTraceMetricsCollection = GoodLinq.Select(baselines, baseline => baseline.GCTraceMetrics);
+                var comparandGCTraceMetricsCollection = GoodLinq.Select(comparands, comparand => comparand.GCTraceMetrics);
+
+                string[] metricNames = new string[]
+                {
                 "PctTimePausedInGC",
                 "ExecutionTimeMSec",
                 "PauseDurationMSec_MeanWhereIsEphemeral",
                 "PauseDurationMSec_MeanWhereIsBackground",
                 "PauseDurationMSec_MeanWhereIsBlockingGen2"
-            };
+                };
 
-            ComparisonResults = new();
-            foreach (var metricName in metricNames)
-            {
-                ComparisonResults.Add(
-                    GCTraceMetricComparison.CompareGCTraceMetric(baselineGCTraceMetricsCollection, comparandGCTraceMetricsCollection, metricName));
+                foreach (var metricName in metricNames)
+                {
+                    ComparisonResults.Add(
+                        GCTraceMetricComparison.CompareGCTraceMetric(baselineGCTraceMetricsCollection, comparandGCTraceMetricsCollection, metricName));
+                }
             }
 
             BaselineRunName = baselines?.FirstOrDefault()?.Parent?.Name;
