@@ -33,7 +33,7 @@ namespace BenchmarkDotNet.Extensions
                 .ToAsyncEnumerable();
         }
 
-        private static bool SkipValidation(MemberInfo member)
+        private static bool SkipValidation(MemberInfo? member)
         {
             while (member != null)
             {

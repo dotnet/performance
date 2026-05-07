@@ -29,7 +29,7 @@ namespace BenchmarkDotNet.Extensions
 
         public async ValueTask ExportAsync(Summary summary, ILogger logger, CancellationToken cancellationToken)
         {
-            string jsonOutput = BuildJson(summary);
+            string? jsonOutput = BuildJson(summary);
             if (jsonOutput is null)
                 return;
 

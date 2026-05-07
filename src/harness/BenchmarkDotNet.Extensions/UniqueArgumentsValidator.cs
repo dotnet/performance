@@ -32,8 +32,11 @@ namespace BenchmarkDotNet.Extensions
 
         private class BenchmarkArgumentsComparer : IEqualityComparer<BenchmarkCase>
         {
-            public bool Equals(BenchmarkCase x, BenchmarkCase y)
+            public bool Equals(BenchmarkCase? x, BenchmarkCase? y)
             {
+                if (x is null || y is null)
+                    return ReferenceEquals(x, y);
+
                 if (FullNameProvider.GetBenchmarkName(x).Equals(FullNameProvider.GetBenchmarkName(y), System.StringComparison.Ordinal))
                     return true;
 
