@@ -200,18 +200,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                 }
             }
 
-            Run sampleRun = configuration.Runs.Values.FirstOrDefault();
-            string outputPathForRun = Path.Combine(configuration.Output.Path, sampleRun.Name);
-            var benchmarkFullNameJsonMap = MicrobenchmarkResultComparison.MapBenchmarkFullNameToJsonForRun(outputPathForRun);
-            List<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks = new();
-
-            foreach (string benchmarkFullName in benchmarkFullNameJsonMap.Keys)
-            {
-                List<MicrobenchmarkComparisonResult> comparisonResultsForBenchmark = MicrobenchmarkResultComparison.CompareMicrobenchmarkResultForBenchmark(configuration, benchmarkFullName);
-                comparisonResultForAllBenchmarks.AddRange(comparisonResultsForBenchmark);
-            }
-
-            var comparisonResultsGroupedName = MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResultForAllBenchmarks);
+            var comparisonResultsGroupedName = MicrobenchmarkAnalyzeCommand.ExecuteAnalysis(configuration);
 
             Presentation.Present(configuration, comparisonResultsGroupedName, executionDetails); // Execution details aren't available for the analysis-only mode.
             Directory.SetCurrentDirectory(currentDirectory);

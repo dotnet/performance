@@ -25,6 +25,14 @@ namespace GC.Infrastructure.Commands.Microbenchmark
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(MicrobenchmarkAnalyzeCommand));
             MicrobenchmarkConfiguration configuration = MicrobenchmarkConfigurationParser.Parse(settings.ConfigurationPath);
 
+            var comparisonResultsGroupedName = ExecuteAnalysis(configuration);
+
+            Presentation.Present(configuration, comparisonResultsGroupedName, new()); // Execution details aren't available for the analysis-only mode.
+            return 0;
+        }
+
+        public static List<MicrobenchmarkComparisonResults> ExecuteAnalysis(MicrobenchmarkConfiguration configuration)
+        {
             Run run = configuration.Runs.Values.FirstOrDefault();
             string outputPathForRun = Path.Combine(configuration.Output.Path, run.Name);
             var benchmarkFullNameJsonMap = MicrobenchmarkResultComparison.MapBenchmarkFullNameToJsonForRun(outputPathForRun);
@@ -36,10 +44,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                 comparisonResultForAllBenchmarks.AddRange(comparisonResultsForBenchmark);
             }
 
-            var comparisonResultsGroupedName = MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResultForAllBenchmarks);
-
-            Presentation.Present(configuration, comparisonResultsGroupedName, new()); // Execution details aren't available for the analysis-only mode.
-            return 0;
+            return MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResultForAllBenchmarks);
         }
     }
 }
