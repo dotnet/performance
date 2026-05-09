@@ -106,6 +106,8 @@ namespace GC.Infrastructure.Core.Analysis
                 GoodLinq.Average(GoodLinq.Where(processData.GCs, (gc => gc.Generation == 1 || gc.Generation == 0)), (gc => gc.PauseDurationMSec));
             PauseDurationMSec_SumWhereIsGen1 =
                 GoodLinq.Sum(GoodLinq.Where(processData.GCs, (gc => gc.Generation == 1)), (gc => gc.PauseDurationMSec));
+            PromotedMB_MeanWhereIsGen1 =
+                GoodLinq.Average(GoodLinq.Where(processData.GCs, (gc => gc.Generation == 1)), (gc => gc.PromotedMB));
             PauseDurationMSec_Sum = GoodLinq.Sum(processData.GCs, (gc => gc.PauseDurationMSec));
             CountIsGen1 = GoodLinq.Where(processData.GCs, gc => gc.Generation == 1).Count;
             CountIsGen0 = GoodLinq.Where(processData.GCs, gc => gc.Generation == 0).Count;
