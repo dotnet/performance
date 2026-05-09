@@ -1,6 +1,7 @@
 ﻿using GC.Analysis.API;
 using Microsoft.Diagnostics.Tracing.Analysis.GC;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters;
 
 namespace GC.Infrastructure.Core.Analysis
 {
@@ -43,15 +44,15 @@ namespace GC.Infrastructure.Core.Analysis
 
                     else
                     {
-                        OriginalBaselineMetricCollection = GoodLinq.Select(baselines, baseline => (double)fieldInfo.GetValue(baseline));
-                        OriginalComparandMetricCollection = GoodLinq.Select(comparands, comparand => (double)fieldInfo.GetValue(comparand));
+                        OriginalBaselineMetricCollection = GoodLinq.Select(baselines, baseline => baseline.StatsData[fieldInfo.Name]);
+                        OriginalComparandMetricCollection = GoodLinq.Select(comparands, comparand => comparand.StatsData[fieldInfo.Name]);
                     }
                 }
 
                 else
                 {
-                    OriginalBaselineMetricCollection = GoodLinq.Select(baselines, baseline => (double)pInfo.GetValue(baseline));
-                    OriginalComparandMetricCollection = GoodLinq.Select(comparands, comparand => (double)pInfo.GetValue(comparand));
+                    OriginalBaselineMetricCollection = GoodLinq.Select(baselines, baseline => baseline.StatsData[pInfo.Name]);
+                    OriginalComparandMetricCollection = GoodLinq.Select(comparands, comparand => comparand.StatsData[pInfo.Name]);
                 }
             }
 
