@@ -12,7 +12,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
             {
                 if (format == "markdown")
                 {
-                    //Markdown.GenerateTable(configuration, comparisonResultsGroupedByName, executionDetails, Path.Combine(configuration.Output.Path, "Results.md"));
+                    Markdown.GenerateTable(configuration, comparisonResultsGroupedByName, executionDetails, Path.Combine(configuration.Output.Path, "Results.md"));
                     continue;
                 }
 
