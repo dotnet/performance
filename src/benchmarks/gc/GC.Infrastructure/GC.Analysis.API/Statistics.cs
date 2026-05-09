@@ -38,9 +38,12 @@
             {
                 return Array.Empty<double>();
             }
+            double[] validCollection = collection
+                .Where(x => !double.IsNaN(x) && !double.IsInfinity(x))
+                .ToArray();
             // Calculate Q1 (25th percentile) and Q3 (75th percentile)
-            double q1 = GC.Analysis.API.Statistics.Percentile(collection, 0.25);
-            double q3 = GC.Analysis.API.Statistics.Percentile(collection, 0.75);
+            double q1 = GC.Analysis.API.Statistics.Percentile(validCollection, 0.25);
+            double q3 = GC.Analysis.API.Statistics.Percentile(validCollection, 0.75);
 
             // Calculate IQR (Interquartile Range)
             double iqr = q3 - q1;
