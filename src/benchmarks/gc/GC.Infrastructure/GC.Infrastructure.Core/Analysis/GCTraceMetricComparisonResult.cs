@@ -1,7 +1,6 @@
-﻿using GC.Analysis.API;
+﻿using API = GC.Analysis.API;
 using Microsoft.Diagnostics.Tracing.Analysis.GC;
 using System.Reflection;
-using System.Runtime.Serialization.Formatters;
 
 namespace GC.Infrastructure.Core.Analysis
 {
@@ -18,8 +17,8 @@ namespace GC.Infrastructure.Core.Analysis
             // Property found on the GCTraceMetrics.
             if (pInfo != null)
             {
-                OriginalBaselineMetricCollection = GoodLinq.Select(baselines, baseline => (double)pInfo.GetValue(baseline));
-                OriginalComparandMetricCollection = GoodLinq.Select(comparands, comparand => (double)pInfo.GetValue(comparand));
+                OriginalBaselineMetricCollection = baselines.Select(baseline => (double)pInfo.GetValue(baseline));
+                OriginalComparandMetricCollection = comparands.Select(comparand => (double)pInfo.GetValue(comparand));
             }
 
             // If property isn't found on the GCTraceMetrics, look in GCStats.
@@ -44,15 +43,15 @@ namespace GC.Infrastructure.Core.Analysis
 
                     else
                     {
-                        OriginalBaselineMetricCollection = GoodLinq.Select(baselines, baseline => baseline.StatsData[fieldInfo.Name]);
-                        OriginalComparandMetricCollection = GoodLinq.Select(comparands, comparand => comparand.StatsData[fieldInfo.Name]);
+                        OriginalBaselineMetricCollection = baselines.Select(baseline => baseline.StatsData[fieldInfo.Name]);
+                        OriginalComparandMetricCollection = comparands.Select(comparand => comparand.StatsData[fieldInfo.Name]);
                     }
                 }
 
                 else
                 {
-                    OriginalBaselineMetricCollection = GoodLinq.Select(baselines, baseline => baseline.StatsData[pInfo.Name]);
-                    OriginalComparandMetricCollection = GoodLinq.Select(comparands, comparand => comparand.StatsData[pInfo.Name]);
+                    OriginalBaselineMetricCollection = baselines.Select(baseline => baseline.StatsData[pInfo.Name]);
+                    OriginalComparandMetricCollection = comparands.Select(comparand => comparand.StatsData[pInfo.Name]);
                 }
             }
 
@@ -61,8 +60,8 @@ namespace GC.Infrastructure.Core.Analysis
             OutliersFreeComparandMetricCollection = GC.Analysis.API.Statistics.RemoveOutliers(OriginalComparandMetricCollection);
 
             // Calculate averaged metrics
-            AveragedBaselineMetric = GoodLinq.Average(OutliersFreeBaselineMetricCollection, r => r);
-            AveragedComparandMetric = GoodLinq.Average(OutliersFreeComparandMetricCollection, r => r);
+            AveragedBaselineMetric = API.GoodLinq.Average(OutliersFreeBaselineMetricCollection, r => r);
+            AveragedComparandMetric = API.GoodLinq.Average(OutliersFreeComparandMetricCollection, r => r);
         }
 
         public string RunName { get; }

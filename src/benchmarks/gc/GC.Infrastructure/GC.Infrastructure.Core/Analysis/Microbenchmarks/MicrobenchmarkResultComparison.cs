@@ -66,8 +66,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     string? fullName = results?.Benchmarks?.FirstOrDefault()?.FullName;
                     if (fullName != null)
                     {
-                        benchmarkFullNameJsonMap[fullName] = benchmarkFullNameJsonMap.GetValueOrDefault(fullName, new());
-                        benchmarkFullNameJsonMap[fullName].Add(jsonFile);
+                        benchmarkFullNameJsonMap.GetOrAdd(fullName, _ => new ConcurrentBag<string>()).Add(jsonFile);
                     }
                 });
 
