@@ -1,7 +1,9 @@
-﻿using GC.Infrastructure.Core.Analysis.Microbenchmarks;
+﻿using GC.Infrastructure.Core.Analysis;
+using GC.Infrastructure.Core.Analysis.Microbenchmarks;
 using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.Microbenchmarks;
 using GC.Infrastructure.Core.Presentation.Microbenchmarks;
+using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -41,6 +43,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
 
             foreach (var benchmarkFullName in benchmarkFullNameJsonMap.Keys)
             {
+                AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Analyzing Microbenchmarks: {benchmarkFullName} [/]\n");
                 List<MicrobenchmarkComparisonResult> comparisonResultsForBenchmark = MicrobenchmarkResultComparison.CompareMicrobenchmarkResultForBenchmark(configuration, benchmarkFullName);
                 comparisonResultForAllBenchmarks.AddRange(comparisonResultsForBenchmark);
             }
