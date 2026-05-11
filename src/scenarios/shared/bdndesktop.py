@@ -18,10 +18,16 @@ import sys
 import glob
 import json
 import shutil
-import subprocess
 import xml.etree.ElementTree as ET
 from logging import getLogger
-from performance.common import runninginlab
+from subprocess import CalledProcessError
+from performance.common import (
+    RunCommand,
+    get_repo_root_path,
+    helixpayload,
+    helixuploadroot,
+    runninginlab,
+)
 
 
 # Default BDN run arguments.  Tuned to match RecommendedConfig: short
@@ -144,16 +150,17 @@ class BDNDesktopHelper(object):
 
     def _find_bdn_extensions(self) -> str:
         '''Return the absolute path to BenchmarkDotNet.Extensions.csproj.'''
-        correlation = os.environ.get('HELIX_CORRELATION_PAYLOAD', '')
+        correlation = helixpayload()
         if correlation:
             candidate = os.path.join(
                 correlation, 'performance', 'src', 'harness',
                 'BenchmarkDotNet.Extensions', 'BenchmarkDotNet.Extensions.csproj')
         else:
-            scenario_dir = os.path.dirname(os.path.abspath(__file__))
-            candidate = os.path.normpath(os.path.join(
-                scenario_dir, '..', '..', 'harness',
-                'BenchmarkDotNet.Extensions', 'BenchmarkDotNet.Extensions.csproj'))
+            # Resolve against the performance repo root via the shared
+            # helper so this works no matter where bdndesktop.py lives.
+            candidate = os.path.join(
+                get_repo_root_path(), 'src', 'harness',
+                'BenchmarkDotNet.Extensions', 'BenchmarkDotNet.Extensions.csproj')
 
         if not os.path.exists(candidate):
             raise FileNotFoundError(
@@ -323,16 +330,15 @@ class BDNDesktopHelper(object):
                 continue
 
             log.info(f'Building benchmark: {name}')
-            result = subprocess.run([
-                'dotnet', 'build',
-                csproj_rel,
-                '-c', 'Release',
-            ], cwd=self.repo_dir)
-
-            if result.returncode == 0:
+            try:
+                RunCommand([
+                    'dotnet', 'build',
+                    csproj_rel,
+                    '-c', 'Release',
+                ], verbose=True).run(self.repo_dir)
                 built.add(name)
-            else:
-                log.warning(f'Build failed for {name} (exit code {result.returncode}) — skipping this suite')
+            except CalledProcessError as e:
+                log.warning(f'Build failed for {name} (exit code {e.returncode}) — skipping this suite')
 
         if built:
             log.info(f'Successfully built: {", ".join(sorted(built))}')
@@ -369,9 +375,10 @@ class BDNDesktopHelper(object):
             '--',
         ] + list(self.bdn_run_params) + extra_bdn_args
 
-        result = subprocess.run(cmd, cwd=self.repo_dir)
-        if result.returncode != 0:
-            log.error(f'Benchmark suite {name} failed with exit code {result.returncode}')
+        try:
+            RunCommand(cmd, verbose=True).run(self.repo_dir)
+        except CalledProcessError as e:
+            log.error(f'Benchmark suite {name} failed with exit code {e.returncode}')
             return False
 
         log.info(f'Benchmark suite {name} completed successfully.')
@@ -382,7 +389,7 @@ class BDNDesktopHelper(object):
     def _collect_results(self, upload_to_perflab_container: bool):
         '''Collect perf-lab-report.json files from BDN artifacts.'''
         log = getLogger()
-        upload_root = os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT', '')
+        upload_root = helixuploadroot() or ''
 
         report_pattern = os.path.join(self.repo_dir, '**', '*perf-lab-report.json')
         report_files = glob.glob(report_pattern, recursive=True)

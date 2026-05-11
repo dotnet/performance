@@ -10,15 +10,13 @@ Usage: test.py --framework net11.0 --suite all
 import os
 import re
 import shutil
-import subprocess
-import sys
 import urllib.parse
 import urllib.request
 import zipfile
 from argparse import ArgumentParser
 from logging import getLogger
 from typing import Optional
-from performance.common import remove_directory
+from performance.common import RunCommand, iswin, remove_directory
 from performance.logger import setup_loggers
 from shared.bdndesktop import BDNDesktopHelper
 
@@ -88,7 +86,7 @@ def _find_git() -> Optional[str]:
     if git:
         return git
 
-    if sys.platform == 'win32':
+    if iswin():
         for candidate in [
             os.path.join(os.environ.get('ProgramFiles', r'C:\Program Files'), 'Git', 'cmd', 'git.exe'),
             os.path.join(os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)'), 'Git', 'cmd', 'git.exe'),
@@ -102,10 +100,9 @@ def _find_git() -> Optional[str]:
 
 def _git_sparse_clone(git: str, branch: str, repo_dir: str):
     '''Clone using git sparse checkout (preferred — smaller download).'''
-    log = getLogger()
-    log.info(f'Using git at: {git}')
+    getLogger().info(f'Using git at: {git}')
 
-    subprocess.run([
+    RunCommand([
         git, 'clone',
         '-c', 'core.longpaths=true',
         '--depth', '1',
@@ -113,12 +110,12 @@ def _git_sparse_clone(git: str, branch: str, repo_dir: str):
         '--sparse',
         '--branch', branch,
         MAUI_REPO_URL,
-        repo_dir
-    ], check=True)
+        repo_dir,
+    ], verbose=True).run()
 
-    subprocess.run(
+    RunCommand(
         [git, 'sparse-checkout', 'set'] + MAUI_SPARSE_CHECKOUT_DIRS,
-        cwd=repo_dir, check=True)
+        verbose=True).run(repo_dir)
 
 
 def _zip_download(branch: str, repo_dir: str):
@@ -145,7 +142,8 @@ def _zip_download(branch: str, repo_dir: str):
     # Windows certificate store, avoiding Python SSL cert issues on Helix.
     curl = shutil.which('curl') or shutil.which('curl.exe')
     if curl:
-        subprocess.run([curl, '-L', '-o', zip_path, '--fail', '-s', '-S', archive_url], check=True)
+        RunCommand([curl, '-L', '-o', zip_path, '--fail', '-s', '-S', archive_url],
+                   verbose=True).run()
     else:
         # Last resort: try urllib with default certs
         urllib.request.urlretrieve(archive_url, zip_path)
@@ -231,7 +229,7 @@ def build_maui_dependencies(repo_dir: str = MAUI_REPO_DIR):
     '''Restore dotnet tools and build MAUI's BuildTasks solution filter.'''
     log = getLogger()
     log.info('Restoring dotnet tools...')
-    subprocess.run(['dotnet', 'tool', 'restore'], cwd=repo_dir, check=True)
+    RunCommand(['dotnet', 'tool', 'restore'], verbose=True).run(repo_dir)
 
     slnf_path = os.path.join(repo_dir, MAUI_BUILD_SOLUTION_FILTER)
     if not os.path.exists(slnf_path):
@@ -241,11 +239,11 @@ def build_maui_dependencies(repo_dir: str = MAUI_REPO_DIR):
             f'MAUI_BUILD_SOLUTION_FILTER or MAUI_SPARSE_CHECKOUT_DIRS.')
 
     log.info(f'Building {MAUI_BUILD_SOLUTION_FILTER} (desktop TFMs only)...')
-    subprocess.run([
+    RunCommand([
         'dotnet', 'build',
         MAUI_BUILD_SOLUTION_FILTER,
         '-c', 'Release',
-    ], cwd=repo_dir, check=True)
+    ], verbose=True).run(repo_dir)
 
     log.info('MAUI dependencies built successfully.')
 
