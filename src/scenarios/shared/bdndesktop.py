@@ -387,12 +387,18 @@ class BDNDesktopHelper(object):
     # ── Result collection ───────────────────────────────────────────────────
 
     def _collect_results(self, upload_to_perflab_container: bool):
-        '''Collect perf-lab-report.json files from BDN artifacts.'''
-        log = getLogger()
-        upload_root = helixuploadroot() or ''
+        '''Collect perf-lab-report.json files from BDN artifacts.
 
-        report_pattern = os.path.join(self.repo_dir, '**', '*perf-lab-report.json')
-        report_files = glob.glob(report_pattern, recursive=True)
+        Mirrors the canonical pattern in scripts/benchmarks_ci.py: copy each
+        per-suite report to HELIX_WORKITEM_UPLOAD_ROOT under its basename
+        (BDN already namespaces reports by project name) and write a
+        combined-perf-lab-report.json directly into the upload root.
+        '''
+        log = getLogger()
+        upload_root = helixuploadroot()
+
+        reports_globpath = os.path.join(self.repo_dir, '**', '*perf-lab-report.json')
+        report_files = glob.glob(reports_globpath, recursive=True)
 
         if not report_files:
             log.warning('No *perf-lab-report.json files found. '
@@ -401,42 +407,38 @@ class BDNDesktopHelper(object):
 
         log.info(f'Found {len(report_files)} perf-lab-report.json file(s)')
 
-        # Combine all reports into a single file
-        combined = []
-        for report_file in report_files:
-            log.info(f'  Collecting: {report_file}')
-            try:
-                with open(report_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    if isinstance(data, list):
-                        combined.extend(data)
-                    else:
-                        combined.append(data)
-            except (json.JSONDecodeError, IOError) as e:
-                log.warning(f'  Failed to read {report_file}: {e}')
+        if upload_root is not None:
+            # Copy individual reports.  BDN names each artifact after the
+            # project + benchmark type, so basenames are unique across our
+            # suites in practice; warn if that ever stops being true.
+            seen = set()
+            for report_file in report_files:
+                basename = os.path.basename(report_file)
+                if basename in seen:
+                    log.warning(f'  Basename collision in upload root, overwriting: {basename}')
+                seen.add(basename)
+                shutil.copy(report_file, os.path.join(upload_root, basename))
+                log.info(f'  Copied {basename} to upload root')
 
-        if combined:
-            combined_path = 'combined-perf-lab-report.json'
-            with open(combined_path, 'w', encoding='utf-8') as f:
-                json.dump(combined, f, indent=2)
-            log.info(f'Combined report: {combined_path} ({len(combined)} result(s))')
-
-            if upload_root:
-                dest = os.path.join(upload_root, combined_path)
-                shutil.copy2(combined_path, dest)
-                log.info(f'Copied combined report to {dest}')
-
-                # Copy each per-suite report preserving the path under
-                # repo_dir to avoid filename collisions when multiple
-                # suites emit reports with the same basename.
+            # Write the combined report directly to the upload root (no
+            # local intermediate file to clean up afterwards).
+            combined_path = os.path.join(upload_root, 'combined-perf-lab-report.json')
+            with open(combined_path, 'w', encoding='utf-8') as out:
+                combined = []
                 for report_file in report_files:
-                    rel = os.path.relpath(report_file, self.repo_dir)
-                    # Flatten path separators so the upload is one level
-                    # deep but still uniquely named per source location.
-                    flat = rel.replace(os.sep, '_').replace('/', '_')
-                    dest = os.path.join(upload_root, flat)
-                    shutil.copy2(report_file, dest)
-                    log.info(f'  Copied {rel} -> {flat}')
+                    try:
+                        with open(report_file, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                            if isinstance(data, list):
+                                combined.extend(data)
+                            else:
+                                combined.append(data)
+                    except (json.JSONDecodeError, IOError) as e:
+                        log.warning(f'  Failed to read {report_file}: {e}')
+                json.dump(combined, out)
+            log.info(f'Combined report: {combined_path} ({len(combined)} result(s))')
+        else:
+            log.info('HELIX_WORKITEM_UPLOAD_ROOT not set — skipping upload-root copy.')
 
         # Also upload via perflab container if requested
         if upload_to_perflab_container and runninginlab():
