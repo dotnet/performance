@@ -1,5 +1,4 @@
-﻿using GC.Infrastructure.Core.Analysis;
-using GC.Infrastructure.Core.Analysis.Microbenchmarks;
+﻿using GC.Infrastructure.Core.Analysis.Microbenchmarks;
 using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.Microbenchmarks;
 using GC.Infrastructure.Core.Presentation.Microbenchmarks;
@@ -41,12 +40,22 @@ namespace GC.Infrastructure.Commands.Microbenchmark
             var benchmarkFullNameJsonMap = MicrobenchmarkResultComparison.MapBenchmarkFullNameToJsonForRun(outputPathForRun);
             List<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks = new();
 
-            foreach (var benchmarkFullName in benchmarkFullNameJsonMap.Keys)
+            ParallelOptions options = new ParallelOptions
             {
-                AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Analyzing Microbenchmarks: {benchmarkFullName} [/]\n");
+                MaxDegreeOfParallelism = System.Environment.ProcessorCount
+            };
+
+            object _lock = new();
+
+            Parallel.ForEach(benchmarkFullNameJsonMap.Keys, options, benchmarkFullName =>
+            {
                 List<MicrobenchmarkComparisonResult> comparisonResultsForBenchmark = MicrobenchmarkResultComparison.CompareMicrobenchmarkResultForBenchmark(configuration, benchmarkFullName);
-                comparisonResultForAllBenchmarks.AddRange(comparisonResultsForBenchmark);
-            }
+                AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Analysis For Microbenchmarks: {benchmarkFullName} completed. [/]\n");
+                lock (_lock)
+                {
+                    comparisonResultForAllBenchmarks.AddRange(comparisonResultsForBenchmark);
+                }
+            });
 
             return MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResultForAllBenchmarks);
         }

@@ -40,16 +40,6 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             { "System.Tests.Perf_GC<Char>.NewOperator_Array(length: 10000)", "System.Tests.Perf_GC_Char_.NewOperator_Array_length_10000_"},
         };
 
-        public static readonly Dictionary<string, Func<MicrobenchmarkComparisonResult, bool>> DiffLevelPredicatorMap = new()
-        {
-            { "Large Regressions (>=20%)", r => r.MeanDiffPerc >= 20 },
-            { "Large Improvements (<=-20%)", r => r.MeanDiffPerc <= -20 },
-            { "Regressions (5% - 20%)", r => r.MeanDiffPerc >= 5 && r.MeanDiffPerc < 20 },
-            { "Improvements (-20% - -5%)", r => r.MeanDiffPerc <= -5 && r.MeanDiffPerc > -20 },
-            { "Stale Regressions (0% - 5%)", r => r.MeanDiffPerc >= 0 && r.MeanDiffPerc < 5 },
-            { "Stale Improvements (0% - -5%)", r => r.MeanDiffPerc <= 0 && r.MeanDiffPerc > -5 },
-        };
-
         private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, ConcurrentBag<string>>> _benchmarkFullNameToJsonForRun = new();
 
         public static ConcurrentDictionary<string, ConcurrentBag<string>> MapBenchmarkFullNameToJsonForRun(string outputPathForRun)
@@ -146,56 +136,68 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     {
                         Statistics statistics = benchmark.Statistics;
 
-                        MicrobenchmarkResult microbenchmarkResult = new()
-                        {
-                            Statistics = statistics,
-                            Parent = run.Value,
-                            MicrobenchmarkName = benchmarkFullName
-                        };
-
+                        MicrobenchmarkResult? microbenchmarkResult = null;
                         if ((!excludeTraces) && configuration.TraceConfigurations.Type != "none")
                         {
                             var jsonTraceMap = MapJsonToTraceForSingleBenchmarkRun(outputPathForRun, benchmarkFullName);
                             string tracePath = jsonTraceMap.GetValueOrDefault(jsonPath, "");
 
-                            using var analyzer = AnalyzerManager.GetAnalyzer(tracePath);
-                            List<GCProcessData> allPertinentProcesses = analyzer.GetProcessGCData("dotnet");
-                            List<GCProcessData> corerunProcesses = analyzer.GetProcessGCData("corerun");
-                            allPertinentProcesses.AddRange(corerunProcesses);
-
-                            GCProcessData? benchmarkGCData = null;
-                            foreach (var process in allPertinentProcesses)
+                            using (var analyzer = AnalyzerManager.GetAnalyzer(tracePath))
                             {
-                                string commandLine = process.CommandLine.Replace("\"", "").Replace("\\", "");
-                                string runCleaned = benchmark.FullName.Replace("\"", "").Replace("\\", "");
-                                if (commandLine.Contains(runCleaned) && commandLine.Contains("--benchmarkName"))
+                                List<GCProcessData> allPertinentProcesses = analyzer.GetProcessGCData("dotnet");
+                                List<GCProcessData> corerunProcesses = analyzer.GetProcessGCData("corerun");
+                                allPertinentProcesses.AddRange(corerunProcesses);
+
+                                GCProcessData? benchmarkGCData = null;
+                                foreach (var process in allPertinentProcesses)
                                 {
-                                    benchmarkGCData = process;
-                                    break;
+                                    string commandLine = process.CommandLine.Replace("\"", "").Replace("\\", "");
+                                    string runCleaned = benchmark.FullName.Replace("\"", "").Replace("\\", "");
+                                    if (commandLine.Contains(runCleaned) && commandLine.Contains("--benchmarkName"))
+                                    {
+                                        benchmarkGCData = process;
+                                        break;
+                                    }
+                                }
+                                if (benchmarkGCData != null)
+                                {
+                                    int processID = benchmarkGCData.ProcessID;
+
+                                    /*
+                                    TODO: THIS NEEDS TO BE ADDED BACK.
+                                    if (configuration.Output.cpu_columns != null && configuration.Output.cpu_columns.Count > 0)
+                                    {
+                                        // TODO: Add parameterize.
+                                        benchmark.Value.GCData.Parent.AddCPUAnalysis(yamlPath: @"C:\Users\musharm\source\repos\GC.Analysis.API\GC.Analysis.API\CPUAnalysis\DefaultMethods.yaml",
+                                            symbolLogFile: Path.Combine(configuration.Output.Path, run.Key, Guid.NewGuid() + ".txt"),
+                                            symbolPath: Path.Combine(configuration.Output.Path, run.Key));
+                                        var d1 = benchmark.Value.GCData.Parent.CPUAnalyzer.GetCPUDataForProcessName("dotnet");
+                                        d1.AddRange(benchmark.Value.GCData.Parent.CPUAnalyzer.GetCPUDataForProcessName("corerun"));
+                                        benchmark.Value.CPUData = d1.FirstOrDefault(p => p.ProcessID == processID);
+                                    }
+                                    */
+                                    microbenchmarkResult = new(benchmarkFullName,
+                                                               run.Value,
+                                                               benchmark,
+                                                               gcData: benchmarkGCData,
+                                                               gcTraceMetrics: new GCTraceMetrics(benchmarkGCData, tracePath, benchmark.FullName),
+                                                               additionalReportMetrics: configuration.Output.additional_report_metrics,
+                                                               cpuColumns: configuration.Output.cpu_columns,
+                                                               columns: configuration.Output.Columns);
                                 }
                             }
-
-                            if (benchmarkGCData != null)
-                            {
-                                int processID = benchmarkGCData.ProcessID;
-                                microbenchmarkResult.GCData = benchmarkGCData;
-                                microbenchmarkResult.GCTraceMetrics = new GCTraceMetrics(benchmarkGCData, tracePath, benchmark.FullName);
-                                /*
-                                TODO: THIS NEEDS TO BE ADDED BACK.
-                                if (configuration.Output.cpu_columns != null && configuration.Output.cpu_columns.Count > 0)
-                                {
-                                    // TODO: Add parameterize.
-                                    benchmark.Value.GCData.Parent.AddCPUAnalysis(yamlPath: @"C:\Users\musharm\source\repos\GC.Analysis.API\GC.Analysis.API\CPUAnalysis\DefaultMethods.yaml",
-                                        symbolLogFile: Path.Combine(configuration.Output.Path, run.Key, Guid.NewGuid() + ".txt"),
-                                        symbolPath: Path.Combine(configuration.Output.Path, run.Key));
-                                    var d1 = benchmark.Value.GCData.Parent.CPUAnalyzer.GetCPUDataForProcessName("dotnet");
-                                    d1.AddRange(benchmark.Value.GCData.Parent.CPUAnalyzer.GetCPUDataForProcessName("corerun"));
-                                    benchmark.Value.CPUData = d1.FirstOrDefault(p => p.ProcessID == processID);
-                                }
-                                */
-                            }
+                            System.GC.Collect(2);
                         }
-                        runsToResults[run.Value].Add(microbenchmarkResult);
+                        else
+                        {
+                            microbenchmarkResult = new(benchmarkFullName,
+                                                       run.Value,
+                                                       benchmark,
+                                                       additionalReportMetrics: configuration.Output.additional_report_metrics,
+                                                       cpuColumns: configuration.Output.cpu_columns,
+                                                       columns: configuration.Output.Columns);
+                        }
+                        runsToResults[run.Value].Add(microbenchmarkResult!);
                     }
                 });
 
