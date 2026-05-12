@@ -20,7 +20,7 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(Location))]
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
-    [GenericTypeArguments(typeof(BinaryData))]
+    [GenericTypeArguments(typeof(BinaryDataPayload))]
     [GenericTypeArguments(typeof(Dictionary<string, string>))]
     [GenericTypeArguments(typeof(ImmutableDictionary<string, string>))]
     [GenericTypeArguments(typeof(ImmutableSortedDictionary<string, string>))]

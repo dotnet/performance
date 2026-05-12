@@ -3,7 +3,9 @@ using ScenarioMeasurement;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Principal;
 using System.Threading;
+using System.Runtime.Versioning;
 using Xunit;
 
 
@@ -131,10 +133,27 @@ public class StartupTests
     {
         public WindowsOnly()
         {
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            if (!OperatingSystem.IsWindows())
             {
                 Skip = "Skip on non-windows platform";
             }
+            else if (!IsRunningAsAdministrator())
+            {
+                Skip = "Requires administrator privileges to start ETW sessions";
+            }
+        }
+
+        [SupportedOSPlatform("windows")]
+        private static bool IsRunningAsAdministrator()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                return false;
+            }
+
+            using WindowsIdentity identity = WindowsIdentity.GetCurrent();
+            WindowsPrincipal principal = new(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
     }
 
@@ -142,7 +161,7 @@ public class StartupTests
     {
         public LinuxOnly()
         {
-            if(Environment.OSVersion.Platform != PlatformID.Unix)
+            if (!OperatingSystem.IsLinux())
             {
                 Skip = "Skip on non-linux platform";
             }
