@@ -9,13 +9,11 @@ class ChannelMap():
         },
         '10.0': {
             'tfm': 'net10.0',
-            'branch': '10.0',
-            'quality': 'daily'
+            'branch': '10.0'
         },
         'release/10.0': {
             'tfm': 'net10.0',
-            'branch': '10.0',
-            'quality': 'daily'
+            'branch': '10.0'
         },
         'nativeaot10.0': {
             'tfm': 'nativeaot10.0',
