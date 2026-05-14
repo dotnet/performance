@@ -43,15 +43,24 @@ namespace GC.Infrastructure.Core.Analysis
 
                     else
                     {
-                        OriginalBaselineMetricCollection = baselines.Select(baseline => baseline.StatsData[fieldInfo.Name]);
-                        OriginalComparandMetricCollection = comparands.Select(comparand => comparand.StatsData[fieldInfo.Name]);
+                        OriginalBaselineMetricCollection = baselines
+                            .Where(baseline => baseline.StatsData.ContainsKey(fieldInfo.Name))
+                            .Select(baseline => baseline.StatsData[fieldInfo.Name]);
+
+                        OriginalComparandMetricCollection = comparands
+                            .Where(comparand => comparand.StatsData.ContainsKey(fieldInfo.Name))
+                            .Select(comparand => comparand.StatsData[fieldInfo.Name]);
                     }
                 }
 
                 else
                 {
-                    OriginalBaselineMetricCollection = baselines.Select(baseline => baseline.StatsData[pInfo.Name]);
-                    OriginalComparandMetricCollection = comparands.Select(comparand => comparand.StatsData[pInfo.Name]);
+                    OriginalBaselineMetricCollection = baselines
+                        .Where(baseline => baseline.StatsData.ContainsKey(pInfo.Name))
+                        .Select(baseline => baseline.StatsData[pInfo.Name]);
+                    OriginalComparandMetricCollection = comparands
+                        .Where(comparand => comparand.StatsData.ContainsKey(pInfo.Name))
+                        .Select(comparand => comparand.StatsData[pInfo.Name]);
                 }
             }
 

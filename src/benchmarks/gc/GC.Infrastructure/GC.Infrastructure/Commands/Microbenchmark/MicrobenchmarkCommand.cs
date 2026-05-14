@@ -4,13 +4,11 @@ using GC.Infrastructure.Core.Analysis.Microbenchmarks;
 using GC.Infrastructure.Core.CommandBuilders;
 using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.Microbenchmarks;
-using GC.Infrastructure.Core.Presentation.Microbenchmarks;
 using GC.Infrastructure.Core.TraceCollection;
 using Newtonsoft.Json;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
-using System.Configuration;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -202,9 +200,9 @@ namespace GC.Infrastructure.Commands.Microbenchmark
 
             var comparisonResultsGroupedName = MicrobenchmarkAnalyzeCommand.ExecuteAnalysis(configuration);
 
-            Presentation.Present(configuration, comparisonResultsGroupedName, executionDetails); // Execution details aren't available for the analysis-only mode.
+            MicrobenchmarkAnalyzeCommand.Present(configuration, comparisonResultsGroupedName, executionDetails); // Execution details aren't available for the analysis-only mode.
             Directory.SetCurrentDirectory(currentDirectory);
-            AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Wrote Microbechmark Results to: {Markup.Escape(Path.Combine(configuration.Output.Path, "Results.md"))} [/]");
+            AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Wrote Microbenchmark Results to: {Markup.Escape(Path.Combine(configuration.Output.Path, "Results.md"))} [/]");
             return new MicrobenchmarkOutputResults(executionDetails, comparisonResultsGroupedName);
         }
     }

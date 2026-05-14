@@ -61,27 +61,29 @@ namespace GC.Infrastructure.Core.Analysis
             var properties = processData.Stats.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             foreach (var property in properties)
             {
-                if (property.PropertyType != typeof(double) || property.PropertyType != typeof(int))
+                if (property.PropertyType != typeof(double) && property.PropertyType != typeof(int))
                 {
                     continue;
                 }
 
                 string propertyName = property.Name;
-                double propertyValue = (double)(property.GetValue(processData.Stats) ?? double.NaN);
+                object? value = property.GetValue(processData.Stats);
+                double propertyValue = value != null ? Convert.ToDouble(value) : double.NaN;
                 StatsData[propertyName] = propertyValue;
             }
 
             var fields = processData.Stats.GetType().GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             foreach (var field in fields)
             {
-                if (field.FieldType != typeof(double) || field.FieldType != typeof(int))
+                if (field.FieldType != typeof(double) && field.FieldType != typeof(int))
                 {
                     continue;
                 }
 
                 string name = field.Name;
-                double value = (double)(field.GetValue(processData.Stats) ?? double.NaN);
-                StatsData[name] = value;
+                object? value = field.GetValue(processData.Stats);
+                double doubleValue = value != null ? Convert.ToDouble(value) : double.NaN;
+                StatsData[name] = doubleValue;
             }
 
             // 95P

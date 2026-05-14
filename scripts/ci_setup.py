@@ -424,6 +424,11 @@ def main(args: CiSetupArgs):
     if args.experiment_name == "jitoptrepeat":
         experiment_config = variable_format % ('DOTNET_JitOptRepeat', '*')
 
+    if args.experiment_name == "runtimeasync":
+        # Surfaced to MSBuild as the $(EnableRuntimeAsync) property; gates the
+        # runtime-async Features flag in src/Directory.Build.targets.
+        experiment_config = variable_format % ('EnableRuntimeAsync', 'true')
+
     output = ''
 
     with push_dir(get_repo_root_path()):

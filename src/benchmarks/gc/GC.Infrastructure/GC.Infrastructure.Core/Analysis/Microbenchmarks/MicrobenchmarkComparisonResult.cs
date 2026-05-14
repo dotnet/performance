@@ -1,5 +1,4 @@
 ﻿using API = GC.Analysis.API;
-using Microsoft.Diagnostics.Tracing.Parsers.Clr;
 
 namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 {
@@ -15,8 +14,6 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             "PauseDurationMSec_MeanWhereIsBlockingGen2"
         };
 
-        public MicrobenchmarkComparisonResult() { }
-
         public MicrobenchmarkComparisonResult(IEnumerable<MicrobenchmarkResult> baselines, IEnumerable<MicrobenchmarkResult> comparands, bool includeTraces = true)
         {
             ComparisonResults = new();
@@ -24,11 +21,13 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             {
                 var baselineGCTraceMetricsCollection = baselines
                     .Where(baseline => baseline != null)
+                    .Where(baseline => baseline.GCTraceMetrics != null)
                     .Select(baseline => baseline.GCTraceMetrics)
                     .ToArray();
 
                 var comparandGCTraceMetricsCollection = comparands
                     .Where(comparand => comparand != null)
+                    .Where(comparand => comparand.GCTraceMetrics != null)
                     .Select(comparand => comparand.GCTraceMetrics)
                     .ToArray();
 
@@ -44,12 +43,27 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 }
             }
 
-            BaselineRunName = baselines?.FirstOrDefault()?.Parent?.Name;
-            ComparandRunName = comparands?.FirstOrDefault()?.Parent?.Name;
-            MicrobenchmarkName = baselines?.FirstOrDefault()?.MicrobenchmarkName;
+            var firstBaseline = baselines?.FirstOrDefault();
+            var firstComparand = comparands?.FirstOrDefault();
+
+            BaselineRunName = firstBaseline?.Parent?.Name ?? string.Empty;
+            ComparandRunName = firstComparand?.Parent?.Name ?? string.Empty;
+            MicrobenchmarkName = firstBaseline?.MicrobenchmarkName ?? string.Empty;
 
             Baselines = baselines ?? new List<MicrobenchmarkResult>();
             Comparands = comparands ?? new List<MicrobenchmarkResult>();
+
+            OriginalBaselineOtherMetrics = Baselines
+                .Select(baseline => baseline.OtherMetrics)
+                .SelectMany(kvp => kvp)
+                .GroupBy(kvp => kvp.Key)
+                .ToDictionary(g => g.Key, g => g.Select(kvp => kvp.Value).ToArray());
+
+            OriginalComparandOtherMetrics = Comparands
+                .Select(comparand => comparand.OtherMetrics)
+                .SelectMany(kvp => kvp)
+                .GroupBy(kvp => kvp.Key)
+                .ToDictionary(g => g.Key, g => g.Select(kvp => kvp.Value).ToArray());
         }
 
         public List<GCTraceMetricComparisonResult> ComparisonResults { get; set; }
@@ -95,24 +109,35 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
         public Dictionary<string, double[]> OriginalComparandOtherMetrics { get; } = new();
         public Dictionary<string, double[]> OutliersFreeBaselineOtherMetrics => OriginalBaselineOtherMetrics
             .Select(kvp => (kvp.Key, API.Statistics.RemoveOutliers(kvp.Value).ToArray()))
-            .ToDictionary();
+            .ToDictionary(x => x.Item1, x => x.Item2);
         public Dictionary<string, double[]> OutliersFreeComparandOtherMetrics => OriginalComparandOtherMetrics
             .Select(kvp => (kvp.Key, API.Statistics.RemoveOutliers(kvp.Value).ToArray()))
-            .ToDictionary();
+            .ToDictionary(x => x.Item1, x => x.Item2);
         public Dictionary<string, double> AveragedBaselineOtherMetrics => OutliersFreeBaselineOtherMetrics
             .Select(kvp => (kvp.Key, API.GoodLinq.Average(kvp.Value, v => v)))
-            .ToDictionary();
+            .ToDictionary(x => x.Item1, x => x.Item2);
         public Dictionary<string, double> AveragedComparandOtherMetrics => OutliersFreeComparandOtherMetrics
             .Select(kvp => (kvp.Key, API.GoodLinq.Average(kvp.Value, v => v)))
-            .ToDictionary();
+            .ToDictionary(x => x.Item1, x => x.Item2);
 
-        public Dictionary<string, double> OtherMetricsDiff => OutliersFreeBaselineOtherMetrics
-            .Select(kvp => (kvp.Key, AveragedComparandOtherMetrics[kvp.Key] - AveragedBaselineOtherMetrics[kvp.Key]))
-            .ToDictionary();
-
-        public Dictionary<string, double> OtherMetricsDiffPerc => OutliersFreeBaselineOtherMetrics
+        public Dictionary<string, double> OtherMetricsDiff => AveragedBaselineOtherMetrics
             .Select(kvp =>
             {
+                if (AveragedComparandOtherMetrics.ContainsKey(kvp.Key))
+                {
+                    return (kvp.Key, AveragedComparandOtherMetrics[kvp.Key] - AveragedBaselineOtherMetrics[kvp.Key]);
+                }
+                return (kvp.Key, double.NaN);
+            })
+            .ToDictionary(x => x.Item1, x => x.Item2);
+
+        public Dictionary<string, double> OtherMetricsDiffPerc => AveragedBaselineOtherMetrics
+            .Select(kvp =>
+            {
+                if (!AveragedComparandOtherMetrics.ContainsKey(kvp.Key))
+                {
+                    return (kvp.Key, double.NaN);
+                }
                 if (AveragedBaselineOtherMetrics[kvp.Key] == 0)
                 {
                     if (AveragedComparandOtherMetrics[kvp.Key] == 0)
@@ -124,8 +149,19 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                         return (kvp.Key, double.NaN);
                     }
                 }
-                return (kvp.Key, OtherMetricsDiff[kvp.Key] / AveragedBaselineOtherMetrics[kvp.Key]);
+
+                if (!OtherMetricsDiff.ContainsKey(kvp.Key))
+                {
+                    return (kvp.Key, double.NaN);
+                }
+
+                if (OtherMetricsDiff[kvp.Key] == double.NaN)
+                {
+                    return (kvp.Key, double.NaN);
+                }
+                
+                return (kvp.Key, 100 * OtherMetricsDiff[kvp.Key] / AveragedBaselineOtherMetrics[kvp.Key]);
             })
-            .ToDictionary();
+            .ToDictionary(x => x.Item1, x => x.Item2);
     }
 }

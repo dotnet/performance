@@ -130,7 +130,7 @@ namespace BenchmarkDotNet.Extensions
         /// the stored values are randomly generated. 
         /// GenerateValue is used to generate a random value in the appropriate range for both the key and value
         /// </summary>
-        public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(int count)
+        public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(int count) where TKey : notnull
         {
             if (count > 2 && typeof(TKey) == typeof(bool))
                 throw new ArgumentOutOfRangeException("count", "Cannot exceed 2 for Dictionary<bool, TValue>");

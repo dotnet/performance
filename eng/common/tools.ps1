@@ -168,6 +168,12 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
     $env:DOTNET_CLI_TELEMETRY_OPTOUT=1
   }
 
+  # Keep repo builds isolated from machine-installed SDK state and workload advertising.
+  # This avoids preview SDK builds picking up mismatched workloads on CI images.
+  $env:DOTNET_MULTILEVEL_LOOKUP = '0'
+  $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
+  $env:DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE = '1'
+
   # Find the first path on %PATH% that contains the dotnet.exe
   if ($useInstalledDotNetCli -and (-not $globalJsonHasRuntimes) -and ($env:DOTNET_INSTALL_DIR -eq $null)) {
     $dotnetExecutable = GetExecutableFileName 'dotnet'
@@ -185,7 +191,11 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   if ((-not $globalJsonHasRuntimes) -and (-not [string]::IsNullOrEmpty($env:DOTNET_INSTALL_DIR)) -and (Test-Path(Join-Path $env:DOTNET_INSTALL_DIR "sdk\$dotnetSdkVersion"))) {
     $dotnetRoot = $env:DOTNET_INSTALL_DIR
   } else {
-    $dotnetRoot = Join-Path $RepoRoot '.dotnet'
+    if (-not [string]::IsNullOrEmpty($env:DOTNET_GLOBAL_INSTALL_DIR)) {
+      $dotnetRoot = $env:DOTNET_GLOBAL_INSTALL_DIR
+    } else {
+      $dotnetRoot = Join-Path $RepoRoot '.dotnet'
+    }
 
     if (-not (Test-Path(Join-Path $dotnetRoot "sdk\$dotnetSdkVersion"))) {
       if ($install) {
@@ -226,6 +236,9 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   Write-PipelinePrependPath -Path $dotnetRoot
 
   Write-PipelineSetVariable -Name 'DOTNET_NOLOGO' -Value '1'
+  Write-PipelineSetVariable -Name 'DOTNET_MULTILEVEL_LOOKUP' -Value '0'
+  Write-PipelineSetVariable -Name 'DOTNET_SKIP_FIRST_TIME_EXPERIENCE' -Value '1'
+  Write-PipelineSetVariable -Name 'DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE' -Value '1'
 
   return $global:_DotNetInstallDir = $dotnetRoot
 }
@@ -375,12 +388,11 @@ function InstallDotNet([string] $dotnetRoot,
 #
 #   1. MSBuild from an active VS command prompt
 #   2. MSBuild from a compatible VS installation
-#   3. MSBuild from the xcopy tool package
 #
 # Returns full path to msbuild.exe.
 # Throws on failure.
 #
-function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements = $null) {
+function InitializeVisualStudioMSBuild([object]$vsRequirements = $null) {
   if (-not (IsWindowsPlatform)) {
     throw "Cannot initialize Visual Studio on non-Windows"
   }
@@ -390,13 +402,7 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
   }
 
   # Minimum VS version to require.
-  $vsMinVersionReqdStr = '17.7'
-  $vsMinVersionReqd = [Version]::new($vsMinVersionReqdStr)
-
-  # If the version of msbuild is going to be xcopied,
-  # use this version. Version matches a package here:
-  # https://dev.azure.com/dnceng/public/_artifacts/feed/dotnet-eng/NuGet/Microsoft.DotNet.Arcade.MSBuild.Xcopy/versions/18.0.0
-  $defaultXCopyMSBuildVersion = '18.0.0'
+  $vsMinVersionReqdStr = '18.0'
 
   if (!$vsRequirements) {
     if (Get-Member -InputObject $GlobalJson.tools -Name 'vs') {
@@ -426,46 +432,16 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
     }
   }
 
-  # Locate Visual Studio installation or download x-copy msbuild.
+  # Locate Visual Studio installation.
   $vsInfo = LocateVisualStudio $vsRequirements
-  if ($vsInfo -ne $null -and $env:ForceUseXCopyMSBuild -eq $null) {
+  if ($vsInfo -ne $null) {
     # Ensure vsInstallDir has a trailing slash
     $vsInstallDir = Join-Path $vsInfo.installationPath "\"
     $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
 
     InitializeVisualStudioEnvironmentVariables $vsInstallDir $vsMajorVersion
   } else {
-    if (Get-Member -InputObject $GlobalJson.tools -Name 'xcopy-msbuild') {
-      $xcopyMSBuildVersion = $GlobalJson.tools.'xcopy-msbuild'
-      $vsMajorVersion = $xcopyMSBuildVersion.Split('.')[0]
-    } else {
-      #if vs version provided in global.json is incompatible (too low) then use the default version for xcopy msbuild download
-      if($vsMinVersion -lt $vsMinVersionReqd){
-        Write-Host "Using xcopy-msbuild version of $defaultXCopyMSBuildVersion since VS version $vsMinVersionStr provided in global.json is not compatible"
-        $xcopyMSBuildVersion = $defaultXCopyMSBuildVersion
-        $vsMajorVersion = $xcopyMSBuildVersion.Split('.')[0]
-      }
-      else{
-        # If the VS version IS compatible, look for an xcopy msbuild package
-        # with a version matching VS.
-        # Note: If this version does not exist, then an explicit version of xcopy msbuild
-        # can be specified in global.json. This will be required for pre-release versions of msbuild.
-        $vsMajorVersion = $vsMinVersion.Major
-        $vsMinorVersion = $vsMinVersion.Minor
-        $xcopyMSBuildVersion = "$vsMajorVersion.$vsMinorVersion.0"
-      }
-    }
-
-    $vsInstallDir = $null
-    if ($xcopyMSBuildVersion.Trim() -ine "none") {
-        $vsInstallDir = InitializeXCopyMSBuild $xcopyMSBuildVersion $install
-        if ($vsInstallDir -eq $null) {
-            throw "Could not xcopy msbuild. Please check that package 'Microsoft.DotNet.Arcade.MSBuild.Xcopy @ $xcopyMSBuildVersion' exists on feed 'dotnet-eng'."
-        }
-    }
-    if ($vsInstallDir -eq $null) {
-      throw 'Unable to find Visual Studio that has required version and components installed'
-    }
+    throw 'Unable to find Visual Studio that has required version and components installed'
   }
 
   $msbuildVersionDir = if ([int]$vsMajorVersion -lt 16) { "$vsMajorVersion.0" } else { "Current" }
@@ -490,38 +466,6 @@ function InitializeVisualStudioEnvironmentVariables([string] $vsInstallDir, [str
     Set-Item "env:VSSDK$($vsMajorVersion)0Install" $vsSdkInstallDir
     $env:VSSDKInstall = $vsSdkInstallDir
   }
-}
-
-function InstallXCopyMSBuild([string]$packageVersion) {
-  return InitializeXCopyMSBuild $packageVersion -install $true
-}
-
-function InitializeXCopyMSBuild([string]$packageVersion, [bool]$install) {
-  $packageName = 'Microsoft.DotNet.Arcade.MSBuild.Xcopy'
-  $packageDir = Join-Path $ToolsDir "msbuild\$packageVersion"
-  $packagePath = Join-Path $packageDir "$packageName.$packageVersion.nupkg"
-
-  if (!(Test-Path $packageDir)) {
-    if (!$install) {
-      return $null
-    }
-
-    Create-Directory $packageDir
-
-    Write-Host "Downloading $packageName $packageVersion"
-    $ProgressPreference = 'SilentlyContinue' # Don't display the console progress UI - it's a huge perf hit
-    Retry({
-      Invoke-WebRequest "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/flat2/$packageName/$packageVersion/$packageName.$packageVersion.nupkg" -UseBasicParsing -OutFile $packagePath
-    })
-
-    if (!(Test-Path $packagePath)) {
-      Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "See https://dev.azure.com/dnceng/internal/_wiki/wikis/DNCEng%20Services%20Wiki/1074/Updating-Microsoft.DotNet.Arcade.MSBuild.Xcopy-WAS-RoslynTools.MSBuild-(xcopy-msbuild)-generation?anchor=troubleshooting for help troubleshooting issues with XCopy MSBuild"
-      throw
-    }
-    Unzip $packagePath $packageDir
-  }
-
-  return Join-Path $packageDir 'tools'
 }
 
 #
@@ -632,7 +576,7 @@ function InitializeBuildTool() {
     $buildTool = @{ Path = $dotnetPath; Command = 'msbuild'; Tool = 'dotnet'; Framework = 'net' }
   } elseif ($msbuildEngine -eq "vs") {
     try {
-      $msbuildPath = InitializeVisualStudioMSBuild -install:$restore
+      $msbuildPath = InitializeVisualStudioMSBuild
     } catch {
       Write-PipelineTelemetryError -Category 'InitializeToolset' -Message $_
       ExitWithExitCode 1
@@ -684,11 +628,7 @@ function GetSdkTaskProject([string]$taskName) {
   if (Test-Path $proj) {
     return $proj
   }
-  # TODO: Remove this fallback once all supported versions use the new layout.
-  $legacyProj = Join-Path $toolsetDir "SdkTasks\$taskName.proj"
-  if (Test-Path $legacyProj) {
-    return $legacyProj
-  }
+
   throw "Unable to find $taskName.proj in toolset at: $toolsetDir"
 }
 
@@ -745,32 +685,33 @@ function InitializeToolset() {
     ExitWithExitCode 1
   }
 
-  $downloadArgs = @("package", "download", "Microsoft.DotNet.Arcade.Sdk@$toolsetVersion", "--prerelease", "--output", "$nugetCache")
-  if ($env:NUGET_CONFIG) {
+  $downloadArgs = @("package", "download", "Microsoft.DotNet.Arcade.Sdk@$toolsetVersion", "--verbosity", "minimal", "--prerelease", "--output", "$nugetCache")
+  $nugetConfig = $env:NUGET_CONFIG
+  if (-not $nugetConfig) {
+    # Search for any variation of nuget.config in the RepoRoot
+    $configFile = Get-ChildItem -Path $RepoRoot -File | Where-Object { $_.Name -ieq "nuget.config" } | Select-Object -First 1
+
+    if ($configFile) {
+        $nugetConfig = $configFile.FullName
+    }
+  }
+
+  if ($nugetConfig) {
     $downloadArgs += "--configfile"
-    $downloadArgs += $env:NUGET_CONFIG
+    $downloadArgs += $nugetConfig
   }
   DotNet @downloadArgs
 
   $packageDir = Join-Path $nugetCache (Join-Path 'microsoft.dotnet.arcade.sdk' $toolsetVersion)
   $packageToolsetDir = Join-Path $packageDir 'toolset'
-  $packageToolsDir = Join-Path $packageDir 'tools'
 
-  # TODO: Remove the tools/ check once all supported versions have the toolset folder.
-  if (!(Test-Path $packageToolsetDir) -and !(Test-Path $packageToolsDir)) {
+  if (!(Test-Path $packageToolsetDir)) {
     Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "Arcade SDK package does not contain a toolset or tools folder: $packageDir"
     ExitWithExitCode 3
   }
 
   New-Item -ItemType Directory -Path $toolsetToolsDir -Force | Out-Null
-
-  # Copy toolset if present at the package root (new layout), otherwise fall back to tools
-  if (Test-Path $packageToolsetDir) {
-    Copy-Item -Path "$packageToolsetDir\*" -Destination $toolsetToolsDir -Recurse -Force
-  } else {
-    # TODO: Remove this fallback once all supported versions have the toolset folder.
-    Copy-Item -Path "$packageToolsDir\*" -Destination $toolsetToolsDir -Recurse -Force
-  }
+  Copy-Item -Path "$packageToolsetDir\*" -Destination $toolsetToolsDir -Recurse -Force
 
   if (Test-Path $buildProjPath) {
     $toolsetBuildProj = $buildProjPath
@@ -897,6 +838,10 @@ function MSBuild-Core() {
 
   $cmdArgs = "$($buildTool.Command) /m /nologo /clp:Summary /v:$verbosity /nr:$nodeReuse /p:ContinuousIntegrationBuild=$ci"
 
+  if ($ci -and $buildTool.Tool -eq 'dotnet') {
+    $cmdArgs += ' /p:MSBuildEnableWorkloadResolver=false'
+  }
+
   # Add -mt flag for MSBuild multithreaded mode if enabled via environment variable
   if ($env:MSBUILD_MT_ENABLED -eq "1") {
     $cmdArgs += ' -mt'
@@ -1006,6 +951,12 @@ $globalJsonHasRuntimes = if ($GlobalJson.tools.PSObject.Properties.Name -Match '
 Create-Directory $ToolsetDir
 Create-Directory $TempDir
 Create-Directory $LogDir
+
+# Direct MSBuild crash diagnostics (MSB4166 failure.txt files) to a known location
+# under artifacts/log so they are captured as build artifacts in CI.
+if (-not $env:MSBUILDDEBUGPATH) {
+  $env:MSBUILDDEBUGPATH = Join-Path $LogDir 'MsbuildDebugLogs'
+}
 
 Write-PipelineSetVariable -Name 'Artifacts' -Value $ArtifactsDir
 Write-PipelineSetVariable -Name 'Artifacts.Toolset' -Value $ToolsetDir

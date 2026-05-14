@@ -6,7 +6,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 {
     public sealed class MicrobenchmarkResult
     {
-        public static readonly IReadOnlyDictionary<string, Func<Statistics, double?>> CustomStatisticsCalculationMap = new Dictionary<string, Func<Statistics, double?>>(StringComparer.OrdinalIgnoreCase)
+        public static readonly IReadOnlyDictionary<string, Func<Statistics, double>> CustomStatisticsCalculationMap = new Dictionary<string, Func<Statistics, double>>(StringComparer.OrdinalIgnoreCase)
         {
             { "number of iterations", (Statistics stats) => stats.N },
             { "min", (Statistics stats) => stats.Min },
@@ -55,7 +55,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             {
                 OtherMetrics = benchmark.Metrics
                     .Where(metric => additionalReportMetrics.Contains(metric.Descriptor.Id))
-                    .ToDictionary(metric => metric.Descriptor.Id, metric => (double?)metric.Value);
+                    .ToDictionary(metric => metric.Descriptor.Id, metric => metric.Value);
             }
 
             if (columns != null)
@@ -63,18 +63,18 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 var customStatistics = columns
                     .Where(column => CustomStatisticsCalculationMap.Keys.Contains(column))
                     .Select(column => (column, CustomStatisticsCalculationMap[column](benchmark.Statistics)))
-                    .ToDictionary();
+                    .ToDictionary(x => x.column, x => x.Item2);
                 
-                OtherMetrics = OtherMetrics.Concat(customStatistics).ToDictionary();
+                OtherMetrics = OtherMetrics.Concat(customStatistics).ToDictionary(x => x.Key, x => x.Value);
                 
                 if (gcData != null)
                 {
                     var customGCData = columns
                         .Where(column => CustomAggregateCalculationMap.Keys.Contains(column))
-                        .Select(column => (column, (double?)CustomAggregateCalculationMap[column](gcData)))
-                        .ToDictionary();
+                        .Select(column => (column, CustomAggregateCalculationMap[column](gcData)))
+                        .ToDictionary(x => x.column, x => x.Item2);
 
-                    OtherMetrics = OtherMetrics.Concat(customGCData).ToDictionary();
+                    OtherMetrics = OtherMetrics.Concat(customGCData).ToDictionary(x => x.Key, x => x.Value);
                 }
             }
         }
@@ -82,7 +82,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
         public Run Parent { get; set; }
         public Statistics Statistics { get; set; }
         public GCTraceMetrics? GCTraceMetrics { get; set; }
-        public Dictionary<string, double?> OtherMetrics { get; set; } = new();
+        public Dictionary<string, double> OtherMetrics { get; set; } = new();
         public API.CPUProcessData? CPUData { get; set; }
     }
 }
