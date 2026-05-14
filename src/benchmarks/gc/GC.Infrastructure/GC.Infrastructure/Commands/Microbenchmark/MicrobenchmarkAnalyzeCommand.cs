@@ -24,19 +24,45 @@ namespace GC.Infrastructure.Commands.Microbenchmark
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(MicrobenchmarkAnalyzeCommand));
             MicrobenchmarkConfiguration configuration = MicrobenchmarkConfigurationParser.Parse(settings.ConfigurationPath);
 
-            var comparisonResultsGroupedName = ExecuteAnalysis(configuration);
+            var comparisonResultsGroupedByName = ExecuteAnalysis(configuration);
 
-            Presentation.Present(configuration, comparisonResultsGroupedName, new()); // Execution details aren't available for the analysis-only mode.
+            Present(configuration, comparisonResultsGroupedByName, new()); // Execution details aren't available for the analysis-only mode.
             return 0;
         }
 
         public static List<MicrobenchmarkComparisonResults> ExecuteAnalysis(MicrobenchmarkConfiguration configuration)
         {
             var bdnJsonResults = MicrobenchmarkResultComparison.LoadBdnJsonResults(configuration);
+            AnsiConsole.MarkupLine($"[bold green] ({DateTime.Now}) {bdnJsonResults.Count} BDN results loaded.[/]");
             var microbenchmarkResults = MicrobenchmarkResultComparison.AnalyzeMicrobenchmarkResults(configuration, bdnJsonResults);
+            AnsiConsole.MarkupLine($"[bold green] ({DateTime.Now}) Analysis completed.[/]");
             var comparisonResults = MicrobenchmarkResultComparison.CompareMicrobenchmarkResults(configuration, microbenchmarkResults);
             
             return MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResults);
+        }
+
+        public static void Present(MicrobenchmarkConfiguration configuration, 
+                                   List<MicrobenchmarkComparisonResults> comparisonResultsGroupedByName,
+                                   Dictionary<string, ProcessExecutionDetails> executionDetails)
+        {
+            foreach (var format in configuration.Output.Formats)
+            {
+                if (format == "markdown")
+                {
+                    string outputPath = Path.Combine(configuration.Output.Path, "Results.md");
+                    Markdown.GenerateTable(configuration, comparisonResultsGroupedByName, executionDetails, outputPath);
+                    AnsiConsole.MarkupLine($"[bold green] ({DateTime.Now}) Results written to {outputPath}.[/]");
+                    continue;
+                }
+
+                if (format == "json")
+                {
+                    string outputPath = Path.Combine(configuration.Output.Path, "Results.json");
+                    Json.Generate(configuration, comparisonResultsGroupedByName, outputPath);
+                    AnsiConsole.MarkupLine($"[bold green] ({DateTime.Now}) Results written to {outputPath}.[/]");
+                    continue;
+                }
+            }
         }
     }
 }

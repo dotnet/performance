@@ -206,7 +206,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 lock (_lock)
                 {
                     count = count + 1;
-                    Console.WriteLine($"\r{count}/{bdnJsonResults.Count} analyzed.");
+                    Console.Write($"\r{count}/{bdnJsonResults.Count} microbenchmarks results analyzed.");
                 }
             });
 
