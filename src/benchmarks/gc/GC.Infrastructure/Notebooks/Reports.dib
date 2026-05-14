@@ -751,20 +751,58 @@ public class PrefixSimplifier : NameSimplifier
     }
 }
 
+[Flags]
+public enum ColorKeys
+{
+    Run = 0x1,
+    Config = 0x2,
+    Benchmark = 0x4,
+    Iteration = 0x8,
+    Metric = 0x10,
+}
+
 // Some will be null depending on the chart type
-record SeriesInfo<TData>(Metric<TData> Metric, string Run, string Config, ConfigData ConfigData, string Benchmark, int? Iteration, IterationData IterationData);
+record SeriesInfo<TData>(Metric<TData> Metric, string Run, string Config, ConfigData ConfigData, string Benchmark, int? Iteration, IterationData IterationData)
+{
+    public string GetColorFamilyKey(ColorKeys keys) => GetColorFamilyId(~keys);
+
+    public string GetColorFamilyId(ColorKeys keys)
+    {
+        var items = new List<string>();
+
+        if ((keys & ColorKeys.Run) == ColorKeys.Run) items.Add(Benchmark);
+        if ((keys & ColorKeys.Config) == ColorKeys.Config) items.Add(Config);
+        if ((keys & ColorKeys.Benchmark) == ColorKeys.Benchmark) items.Add(Benchmark);
+        if ((keys & ColorKeys.Iteration) == ColorKeys.Iteration) items.Add(Iteration?.ToString());
+        if ((keys & ColorKeys.Metric) == ColorKeys.Metric) items.Add(Metric.Title);
+
+        return string.Join(", ", items);
+    }
+
+    public string GetSeriesTitle(bool multipleMetrics, bool includeRunName, bool multipleConfigs, bool multipleBenchmarks, Dictionary<string, string> configDisplayNames)
+    {
+        var items = new List<string>();
+
+        if (multipleBenchmarks) items.Add(Benchmark);
+        if (multipleMetrics) items.Add(Metric.Title);
+        if (includeRunName) items.Add(Run);
+        if (multipleConfigs) items.Add(configDisplayNames?.GetValueOrDefault(Config) ?? Config);
+
+        string title = string.Join(", ", items.Where(s => !string.IsNullOrEmpty(s)));
+        if (Iteration.HasValue) title += $"_{Iteration}";
+
+        return title;
+    }
+}
 
 abstract class ChartType<TData>
 {
     public abstract BaseMetric<(string, TData), XValue> DefaultXMetric { get; }
     public abstract string DefaultBenchmarkMap(string benchmark);
+    public abstract ColorKeys DefaultColorKeysToGroup { get; }
 
     public abstract IEnumerable<SeriesInfo<TData>> GetSeries(DataManager dataManager, List<Metric<TData>> metrics, Filter runFilter, Filter configFilter,
         Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, IEnumerable<string> benchmarkList);
-    public abstract string GetColorFamilyKey(SeriesInfo<TData> info, bool multipleMetrics, bool includeRunName, bool multipleConfigs,
-        Dictionary<string, string> configDisplayNames, bool multipleBenchmarks);
-    public abstract string GetColorFamilyId(SeriesInfo<TData> info, bool multipleMetrics);
-    public abstract string GetSeriesTitle(SeriesInfo<TData> info, string colorFamilyKey, bool multipleMetrics);
     public abstract string GetChartTitle();
     public abstract List<KeyValuePair<string, TData>> GetDataSource(SeriesInfo<TData> info,
         Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, Func<TData, bool> dataFilter);
@@ -774,6 +812,7 @@ class BenchmarksChartType : ChartType<BenchmarkData>
 {
     public override BaseMetric<(string, BenchmarkData), XValue> DefaultXMetric { get; } = Metrics.X.BenchmarkName;
     public override string DefaultBenchmarkMap(string benchmark) => "";
+    public override ColorKeys DefaultColorKeysToGroup => ColorKeys.Metric;
 
     public override IEnumerable<SeriesInfo<BenchmarkData>> GetSeries(DataManager dataManager, List<Metric<BenchmarkData>> metrics, Filter runFilter, Filter configFilter,
         Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, IEnumerable<string> benchmarkList)
@@ -789,18 +828,6 @@ class BenchmarksChartType : ChartType<BenchmarkData>
             }
         }
     }
-
-    public override string GetColorFamilyKey(SeriesInfo<BenchmarkData> info, bool multipleMetrics, bool includeRunName, bool multipleConfigs,
-        Dictionary<string, string> configDisplayNames, bool multipleBenchmarks)
-    {
-        string runDisplay = includeRunName ? $"{info.Run}, " : "";
-        string configDisplay = multipleConfigs ? (configDisplayNames?.GetValueOrDefault(info.Config) ?? info.Config) : "";
-        string colorFamilyKey = $"{runDisplay}{configDisplay}";
-        return colorFamilyKey;
-    }
-
-    public override string GetColorFamilyId(SeriesInfo<BenchmarkData> info, bool multipleMetrics) => multipleMetrics ? $"{info.Metric.Title} / " : "";
-    public override string GetSeriesTitle(SeriesInfo<BenchmarkData> info, string colorFamilyKey, bool multipleMetrics) => $"{GetColorFamilyId(info, multipleMetrics)}{colorFamilyKey}";
 
     public override string GetChartTitle() => "Per-benchmark behavior";
 
@@ -818,6 +845,7 @@ class IterationsChartType : ChartType<IterationData>
 {
     public override BaseMetric<(string, IterationData), XValue> DefaultXMetric { get; } = Metrics.X.IterationBenchmarkName;
     public override string DefaultBenchmarkMap(string benchmark) => "";
+    public override ColorKeys DefaultColorKeysToGroup => ColorKeys.Iteration;
 
     public override IEnumerable<SeriesInfo<IterationData>> GetSeries(DataManager dataManager, List<Metric<IterationData>> metrics, Filter runFilter, Filter configFilter,
         Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, IEnumerable<string> benchmarkList)
@@ -834,20 +862,6 @@ class IterationsChartType : ChartType<IterationData>
         }
     }
         
-    public override string GetColorFamilyKey(SeriesInfo<IterationData> info, bool multipleMetrics, bool includeRunName, bool multipleConfigs,
-        Dictionary<string, string> configDisplayNames, bool multipleBenchmarks)
-    {
-        string metricDisplay = multipleMetrics ? $"{info.Metric.Title}, " : "";
-        string runDisplay = includeRunName ? $"{info.Run}, " : "";
-        string configDisplay = multipleConfigs ? (configDisplayNames?.GetValueOrDefault(info.Config) ?? info.Config) : "";
-        string colorFamilyKey = $"{metricDisplay}{runDisplay}{configDisplay}";
-
-        return colorFamilyKey;
-    }
-
-    public override string GetColorFamilyId(SeriesInfo<IterationData> info, bool multipleMetrics) => $"_{info.Iteration}";
-    public override string GetSeriesTitle(SeriesInfo<IterationData> info, string colorFamilyKey, bool multipleMetrics) => $"{colorFamilyKey}{GetColorFamilyId(info, multipleMetrics)}";
-
     public override string GetChartTitle() => "Per-iteration behavior";
 
     public override List<KeyValuePair<string, IterationData>> GetDataSource(SeriesInfo<IterationData> info,
@@ -871,6 +885,7 @@ class TraceGCChartType : ChartType<TraceGC>
 {
     public override BaseMetric<(string, TraceGC), XValue> DefaultXMetric { get; } = Metrics.X.GCIndex;
     public override string DefaultBenchmarkMap(string benchmark) => benchmark;
+    public override ColorKeys DefaultColorKeysToGroup => ColorKeys.Iteration;
     
     public override IEnumerable<SeriesInfo<TraceGC>> GetSeries(DataManager dataManager, List<Metric<TraceGC>> metrics, Filter runFilter, Filter configFilter,
         Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, IEnumerable<string> benchmarkList)
@@ -887,21 +902,6 @@ class TraceGCChartType : ChartType<TraceGC>
             }
         }
     }
-
-    public override string GetColorFamilyKey(SeriesInfo<TraceGC> info, bool multipleMetrics, bool includeRunName, bool multipleConfigs,
-        Dictionary<string, string> configDisplayNames, bool multipleBenchmarks)
-    {
-        string benchmarkDisplay = multipleBenchmarks ? $"{info.Benchmark}, " : "";
-        string metricDisplay = multipleMetrics ? $"{info.Metric.Title}, " : "";
-        string runDisplay = includeRunName ? $"{info.Run}, " : "";
-        string configDisplay = multipleConfigs ? (configDisplayNames?.GetValueOrDefault(info.Config) ?? info.Config) : "";
-        string colorFamilyKey = $"{benchmarkDisplay}{metricDisplay}{runDisplay}{configDisplay}";
-
-        return colorFamilyKey;
-    }
-
-    public override string GetColorFamilyId(SeriesInfo<TraceGC> info, bool multipleMetrics) => $"_{info.Iteration}";
-    public override string GetSeriesTitle(SeriesInfo<TraceGC> info, string colorFamilyKey, bool multipleMetrics) => $"{colorFamilyKey}{GetColorFamilyId(info, multipleMetrics)}";
 
     public override string GetChartTitle() => "Per-run behavior";
 
@@ -1026,7 +1026,8 @@ public abstract class DataPresenter<TResult>
 {
     public bool Debug;
 
-    public abstract void Clear();
+    // Must be called to clear state before each presentation
+    public virtual void Clear() => Debug = false;
 
     // true if ok
     public abstract bool PrepareUnits(IEnumerable<string> units);
@@ -1053,7 +1054,7 @@ public abstract class TextPresenter : DataPresenter<List<List<string>>>
     private record Table(string title, string xlabel, List<Series> series);
 
     private List<List<string>> _result = new();
-    public override void Clear() => _result.Clear();
+    public override void Clear() { base.Clear(); _result.Clear(); }
 
     // true if ok
     public override bool PrepareUnits(IEnumerable<string> units) => true;
@@ -1328,16 +1329,18 @@ public class CsvPresenter : TextPresenter
 public class ChartPresenter : DataPresenter<List<PlotlyChart>>
 {
     private string _scatterMode;
+    private int? _width;
     private List<string> _uniqueUnits;
     private ColorProvider _colorProvider;
     private List<PlotlyChart> _charts = new();
 
-    public ChartPresenter(string scatterMode = null)
+    public ChartPresenter(string scatterMode = null, int? width = null)
     {
         _scatterMode = scatterMode;
+        _width = width;
     }
 
-    public override void Clear() => _charts.Clear();
+    public override void Clear() { base.Clear(); _charts.Clear(); }
 
     public override bool PrepareUnits(IEnumerable<string> units)
     {
@@ -1384,6 +1387,8 @@ public class ChartPresenter : DataPresenter<List<PlotlyChart>>
                 // margin = new Margin() { r = 123 },
             };
 
+        if (_width.HasValue) _layout.width = _width.Value;
+
         if (_uniqueUnits.Count > 1)
         {
             _layout.yaxis2 = new Yaxis { title = _uniqueUnits[1], side = "right", overlaying = "y" };
@@ -1417,7 +1422,7 @@ TResult ChartInternal<TData, TResult>(DataPresenter<TResult> presenter, ChartTyp
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<TData, bool> dataFilter = null, Func<string, string> benchmarkMap = null,
     BaseMetric<(string, TData), XValue> xMetric = null, XArrangement xArrangement = null,
-    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
 {
     runFilter = runFilter ?? Filter.All;
@@ -1429,6 +1434,7 @@ TResult ChartInternal<TData, TResult>(DataPresenter<TResult> presenter, ChartTyp
     benchmarkMap = benchmarkMap ?? chartType.DefaultBenchmarkMap;
     xMetric = xMetric ?? chartType.DefaultXMetric;
     xArrangement = xArrangement ?? XArrangements.Default;
+    ColorKeys colorKeys = colorKeysToGroup ?? chartType.DefaultColorKeysToGroup;
 
     presenter.Clear();
     presenter.Debug = debug;
@@ -1495,9 +1501,7 @@ TResult ChartInternal<TData, TResult>(DataPresenter<TResult> presenter, ChartTyp
             chartType.GetSeries(dataManager, metrics, runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter,
                 iterationFilter: iterationFilter, configIterationFilter: configIterationFilter, benchmarkList: benchmarkList))
         {
-            string colorFamilyKey = chartType.GetColorFamilyKey(info, multipleMetrics: metrics.Count > 1, includeRunName: includeRunName, multipleConfigs: configs.Count > 1,
-                configDisplayNames: configDisplayNames, multipleBenchmarks: benchmarkList.Count > 1);
-
+            string colorFamilyKey = info.GetColorFamilyKey(colorKeys);
             colorGroups[colorFamilyKey] = colorGroups.GetValueOrDefault(colorFamilyKey, 0) + 1;
         }
 
@@ -1526,9 +1530,9 @@ TResult ChartInternal<TData, TResult>(DataPresenter<TResult> presenter, ChartTyp
                 chartType.GetSeries(dataManager, metrics, runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter,
                     iterationFilter: iterationFilter, configIterationFilter: configIterationFilter, benchmarkList: benchmarkList).WithIndex())
             {
-                string colorFamilyKey = chartType.GetColorFamilyKey(info, multipleMetrics: metrics.Count > 1, includeRunName: includeRunName, multipleConfigs: configs.Count > 1,
-                    configDisplayNames: configDisplayNames, multipleBenchmarks: benchmarkList.Count > 1);
-                string seriesTitle = chartType.GetSeriesTitle(info, colorFamilyKey, metrics.Count > 1);
+                string seriesTitle = info.GetSeriesTitle(multipleMetrics: metrics.Count > 1, includeRunName: includeRunName, multipleConfigs: configs.Count > 1,
+                    multipleBenchmarks: benchmarkList.Count > 1, configDisplayNames: configDisplayNames);
+
                 if (debug) Console.Write($"series title: {seriesTitle}, ");
 
                 List<KeyValuePair<string, TData>> dataSource;
@@ -1599,7 +1603,8 @@ TResult ChartInternal<TData, TResult>(DataPresenter<TResult> presenter, ChartTyp
                     continue;
                 }
 
-                string colorFamilyId = chartType.GetColorFamilyId(info, multipleMetrics: metrics.Count > 1);
+                string colorFamilyKey = info.GetColorFamilyKey(colorKeys);
+                string colorFamilyId = info.GetColorFamilyId(colorKeys);
                 presenter.AddSeries(title: seriesTitle, unit: info.Metric.Unit, colorFamilyKey: colorFamilyKey, colorFamilyId: colorFamilyId, data: data);
             }
 
@@ -1697,84 +1702,93 @@ List<List<string>> TableGCData(DataManager dataManager, Metric<TraceGC> metric, 
         display: display, debug: debug);
 
 List<PlotlyChart> ChartBenchmarks(DataManager dataManager, List<Metric<BenchmarkData>> metrics,
+    string scatterMode = null, int? width = null,
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<BenchmarkData, bool> dataFilter = null,
     Func<string, string> benchmarkMap = null, BaseMetric<(string, BenchmarkData), XValue> xMetric = null, XArrangement xArrangement = null,
-    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
-    => ChartInternal(new ChartPresenter(scatterMode: null), new BenchmarksChartType(),
+    => ChartInternal(new ChartPresenter(scatterMode: scatterMode, width: width), new BenchmarksChartType(),
         dataManager, metrics,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
-        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        colorKeysToGroup: colorKeysToGroup, configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
         display: display, debug: debug);
 
 List<PlotlyChart> ChartBenchmarks(DataManager dataManager, Metric<BenchmarkData> metric,
+    string scatterMode = null, int? width = null,
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<BenchmarkData, bool> dataFilter = null,
     Func<string, string> benchmarkMap = null, BaseMetric<(string, BenchmarkData), XValue> xMetric = null, XArrangement xArrangement = null,
-    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
     => ChartBenchmarks(dataManager, ML(metric),
+        scatterMode: scatterMode, width: width,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
-        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        colorKeysToGroup: colorKeysToGroup, configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
         display: display, debug: debug);
 
 List<PlotlyChart> ChartIterations(DataManager dataManager, List<Metric<IterationData>> metrics,
+    string scatterMode = "markers", int? width = null,
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<IterationData, bool> dataFilter = null,
     Func<string, string> benchmarkMap = null, BaseMetric<(string, IterationData), XValue> xMetric = null, XArrangement xArrangement = null,
-    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
-    => ChartInternal(new ChartPresenter(scatterMode: "markers"), new IterationsChartType(),
+    => ChartInternal(new ChartPresenter(scatterMode: scatterMode, width: width), new IterationsChartType(),
         dataManager, metrics,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
-        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        colorKeysToGroup: colorKeysToGroup, configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
         display: display, debug: debug);
 
 List<PlotlyChart> ChartIterations(DataManager dataManager, Metric<IterationData> metric,
+    string scatterMode = "markers", int? width = null,
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<IterationData, bool> dataFilter = null,
     Func<string, string> benchmarkMap = null, BaseMetric<(string, IterationData), XValue> xMetric = null, XArrangement xArrangement = null,
-    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
     => ChartIterations(dataManager, ML(metric),
+        scatterMode: scatterMode, width: width,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
-        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        colorKeysToGroup: colorKeysToGroup, configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
         display: display, debug: debug);
 
 List<PlotlyChart> ChartGCData(DataManager dataManager, List<Metric<TraceGC>> metrics,
+    string scatterMode = null, int? width = null,
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<TraceGC, bool> dataFilter = null,
     Func<string, string> benchmarkMap = null, BaseMetric<(string, TraceGC), XValue> xMetric = null, XArrangement xArrangement = null,
-    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
-    => ChartInternal(new ChartPresenter(scatterMode: null), new TraceGCChartType(),
+    => ChartInternal(new ChartPresenter(scatterMode: scatterMode, width: width), new TraceGCChartType(),
         dataManager, metrics,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
-        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        colorKeysToGroup: colorKeysToGroup, configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
         display: display, debug: debug);
 
 List<PlotlyChart> ChartGCData(DataManager dataManager, Metric<TraceGC> metric,
+    string scatterMode = null, int? width = null,
     Filter runFilter = null, Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null,
     ConfigIterationFilter configIterationFilter = null, Func<TraceGC, bool> dataFilter = null,
     Func<string, string> benchmarkMap = null, BaseMetric<(string, TraceGC), XValue> xMetric = null, XArrangement xArrangement = null,
-    NameSimplifier configNameSimplifier = null, bool includeRunName = false,
+    ColorKeys? colorKeysToGroup = null, NameSimplifier configNameSimplifier = null, bool includeRunName = false,
     bool display = true, bool debug = false)
     => ChartGCData(dataManager, ML(metric),
+        scatterMode: scatterMode, width: width,
         runFilter: runFilter, configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter,
         configIterationFilter: configIterationFilter, dataFilter: dataFilter,
         benchmarkMap: benchmarkMap, xMetric: xMetric, xArrangement: xArrangement,
-        configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
+        colorKeysToGroup: colorKeysToGroup, configNameSimplifier: configNameSimplifier, includeRunName: includeRunName,
         display: display, debug: debug);
 
 #!csharp
