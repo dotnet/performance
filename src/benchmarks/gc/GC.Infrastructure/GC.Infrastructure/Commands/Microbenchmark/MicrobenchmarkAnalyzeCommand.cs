@@ -1,4 +1,5 @@
-﻿using GC.Infrastructure.Core.Analysis.Microbenchmarks;
+﻿using GC.Infrastructure.Core.Analysis;
+using GC.Infrastructure.Core.Analysis.Microbenchmarks;
 using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.Microbenchmarks;
 using GC.Infrastructure.Core.Presentation.Microbenchmarks;
@@ -31,33 +32,11 @@ namespace GC.Infrastructure.Commands.Microbenchmark
 
         public static List<MicrobenchmarkComparisonResults> ExecuteAnalysis(MicrobenchmarkConfiguration configuration)
         {
-            Run? run = configuration.Runs.Values.FirstOrDefault();
-            if (run == null)
-            {
-                throw new InvalidOperationException("No runs found in the configuration.");
-            }
-            string outputPathForRun = Path.Combine(configuration.Output.Path, run.Name);
-            var benchmarkFullNameJsonMap = MicrobenchmarkResultComparison.MapBenchmarkFullNameToJsonForRun(outputPathForRun);
-            List<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks = new();
-
-            ParallelOptions options = new ParallelOptions
-            {
-                MaxDegreeOfParallelism = System.Environment.ProcessorCount
-            };
-
-            object _lock = new();
-
-            Parallel.ForEach(benchmarkFullNameJsonMap.Keys, options, benchmarkFullName =>
-            {
-                List<MicrobenchmarkComparisonResult> comparisonResultsForBenchmark = MicrobenchmarkResultComparison.CompareMicrobenchmarkResultForBenchmark(configuration, benchmarkFullName);
-                AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Analysis For Microbenchmarks: {benchmarkFullName} completed. [/]\n");
-                lock (_lock)
-                {
-                    comparisonResultForAllBenchmarks.AddRange(comparisonResultsForBenchmark);
-                }
-            });
-
-            return MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResultForAllBenchmarks);
+            var bdnJsonResults = MicrobenchmarkResultComparison.LoadBdnJsonResults(configuration);
+            var microbenchmarkResults = MicrobenchmarkResultComparison.AnalyzeMicrobenchmarkResults(configuration, bdnJsonResults);
+            var comparisonResults = MicrobenchmarkResultComparison.CompareMicrobenchmarkResults(configuration, microbenchmarkResults);
+            
+            return MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResults);
         }
     }
 }

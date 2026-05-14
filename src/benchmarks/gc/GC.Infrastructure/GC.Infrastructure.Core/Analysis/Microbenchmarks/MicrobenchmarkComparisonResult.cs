@@ -50,6 +50,24 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
             Baselines = baselines ?? new List<MicrobenchmarkResult>();
             Comparands = comparands ?? new List<MicrobenchmarkResult>();
+
+            foreach (var baseline in Baselines)
+            {
+                foreach (var kvp in baseline.OtherMetrics)
+                {
+                    OriginalBaselineOtherMetrics[kvp.Key] = OriginalBaselineOtherMetrics.GetValueOrDefault(kvp.Key, Array.Empty<double>());
+                    OriginalBaselineOtherMetrics[kvp.Key] = OriginalBaselineOtherMetrics[kvp.Key].Append(kvp.Value).ToArray();
+                }
+            }
+
+            foreach (var comparand in Comparands)
+            {
+                foreach (var kvp in comparand.OtherMetrics)
+                {
+                    OriginalComparandOtherMetrics[kvp.Key] = OriginalComparandOtherMetrics.GetValueOrDefault(kvp.Key, Array.Empty<double>());
+                    OriginalComparandOtherMetrics[kvp.Key] = OriginalComparandOtherMetrics[kvp.Key].Append(kvp.Value).ToArray();
+                }
+            }
         }
 
         public List<GCTraceMetricComparisonResult> ComparisonResults { get; set; }
