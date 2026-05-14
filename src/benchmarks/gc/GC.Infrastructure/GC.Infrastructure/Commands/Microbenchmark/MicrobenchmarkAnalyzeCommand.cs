@@ -32,23 +32,11 @@ namespace GC.Infrastructure.Commands.Microbenchmark
 
         public static List<MicrobenchmarkComparisonResults> ExecuteAnalysis(MicrobenchmarkConfiguration configuration)
         {
-            Run? run = configuration.Runs.Values.FirstOrDefault();
-            if (run == null)
-            {
-                throw new InvalidOperationException("No runs found in the configuration.");
-            }
-            string outputPathForRun = Path.Combine(configuration.Output.Path, run.Name);
-            var benchmarkFullNameJsonMap = MicrobenchmarkResultComparison.MapBenchmarkFullNameToJsonForRun(outputPathForRun);
-            List<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks = new();
-
-            foreach (var benchmarkFullName in benchmarkFullNameJsonMap.Keys)
-            {
-                AnsiConsole.Markup($"[bold green] ({DateTime.Now}) Analyzing Microbenchmarks: {benchmarkFullName} [/]\n");
-                List<MicrobenchmarkComparisonResult> comparisonResultsForBenchmark = MicrobenchmarkResultComparison.CompareMicrobenchmarkResultForBenchmark(configuration, benchmarkFullName);
-                comparisonResultForAllBenchmarks.AddRange(comparisonResultsForBenchmark);
-            }
-
-            return MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResultForAllBenchmarks);
+            var bdnJsonResults = MicrobenchmarkResultComparison.LoadBdnJsonResults(configuration);
+            var microbenchmarkResults = MicrobenchmarkResultComparison.AnalyzeMicrobenchmarkResults(configuration, bdnJsonResults);
+            var comparisonResults = MicrobenchmarkResultComparison.CompareMicrobenchmarkResults(configuration, microbenchmarkResults);
+            
+            return MicrobenchmarkResultComparison.GroupComparisonResultsByName(configuration, comparisonResults);
         }
     }
 }

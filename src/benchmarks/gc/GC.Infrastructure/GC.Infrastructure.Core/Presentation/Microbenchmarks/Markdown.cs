@@ -84,50 +84,44 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
             sw.AddTableForSingleCriteria(configuration, comparisonResult.StaleImprovements);
             sw.WriteLine("\n\n");
 
-            //if (configuration.Output.additional_report_metrics != null)
-            //{
-            //    foreach (var metric in configuration.Output.additional_report_metrics)
-            //    {
-            //        sw.WriteLine($"## Comparison by {metric}");
-            //        var ordered = comparisonResult.Comparisons.OrderByDescending(c => c.GetDiffPercentFromOtherMetrics(metric));
+            if (configuration.Output.additional_report_metrics != null)
+            {
+                foreach (var metric in configuration.Output.additional_report_metrics)
+                {
+                    sw.WriteLine($"## Comparison by {metric}");
+                    var ordered = comparisonResult.Comparisons.OrderByDescending(c => c.OtherMetricsDiffPerc[metric]);
 
-            //        // Large Regressions
-            //        sw.WriteLine($"### Large Regressions (>20%): {comparisonResult.LargeRegressions.Count()} \n");
-            //        sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) > 0.2));
-            //        sw.WriteLine("\n");
+                    // Large Regressions
+                    sw.WriteLine($"### Large Regressions (>20%): {comparisonResult.LargeRegressions.Count()} \n");
+                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > 0.2));
+                    sw.WriteLine("\n");
 
-            //        // Large Improvements
-            //        sw.WriteLine($"### Large Improvements (>20%): {comparisonResult.LargeImprovements.Count()} \n");
-            //        var largeImprovements = GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) < -0.2);
-            //        largeImprovements.Reverse();
-            //        sw.AddTableForSingleCriteria(configuration, largeImprovements);
-            //        sw.WriteLine("\n");
+                    // Large Improvements
+                    sw.WriteLine($"### Large Improvements (>20%): {comparisonResult.LargeImprovements.Count()} \n");
+                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] < -0.2));
+                    sw.WriteLine("\n");
 
-            //        // Regressions
-            //        sw.WriteLine($"### Regressions (5% - 20%): {comparisonResult.Regressions.Count()} \n");
-            //        sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) > 0.05 && o.GetDiffPercentFromOtherMetrics(metric) < 0.2));
-            //        sw.WriteLine("\n");
+                    // Regressions
+                    sw.WriteLine($"### Regressions (5% - 20%): {comparisonResult.Regressions.Count()} \n");
+                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > 0.05 && o.OtherMetricsDiffPerc[metric] < 0.2));
+                    sw.WriteLine("\n");
 
-            //        // Improvements
-            //        sw.WriteLine($"### Improvements (5% - 20%): {comparisonResult.Improvements.Count()} \n");
-            //        var improvements = GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) > 0.05 && o.GetDiffPercentFromOtherMetrics(metric) < 0.2);
-            //        improvements.Reverse();
-            //        sw.AddTableForSingleCriteria(configuration, improvements);
-            //        sw.WriteLine("\n");
+                    // Improvements
+                    sw.WriteLine($"### Improvements (5% - 20%): {comparisonResult.Improvements.Count()} \n");
+                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > 0.05 && o.OtherMetricsDiffPerc[metric] < 0.2));
+                    sw.WriteLine("\n");
 
-            //        // Stale Regressions
-            //        sw.WriteLine($"### Stale Regressions (Same or percent difference within 5% margin): {comparisonResult.StaleRegressions.Count()} \n");
-            //        sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) < 0.05 && o.GetDiffPercentFromOtherMetrics(metric) >= 0.0));
-            //        sw.WriteLine("\n");
+                    // Stale Regressions
+                    sw.WriteLine($"### Stale Regressions (Same or percent difference within 5% margin): {comparisonResult.StaleRegressions.Count()} \n");
+                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] < 0.05 && o.OtherMetricsDiffPerc[metric] >= 0.0));
+                    sw.WriteLine("\n");
 
-            //        // Stale Improvements
-            //        sw.WriteLine($"### Stale Improvements (Same or percent difference within 5% margin): {comparisonResult.StaleImprovements.Count()} \n");
-            //        var staleImprovements = GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) > -0.05 && o.GetDiffPercentFromOtherMetrics(metric) < 0.0);
-            //        staleImprovements.Reverse();
-            //        sw.AddTableForSingleCriteria(configuration, staleImprovements);
-            //        sw.WriteLine("\n");
-            //    }
-            //}
+                    // Stale Improvements
+                    sw.WriteLine($"### Stale Improvements (Same or percent difference within 5% margin): {comparisonResult.StaleImprovements.Count()} \n");
+                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > -0.05 && o.OtherMetricsDiffPerc[metric] < 0.0));
+                    sw.WriteLine("\n");
+                }
+            }
         }
 
         internal static void AddTableForSingleCriteria(this StreamWriter sw, MicrobenchmarkConfiguration configuration, IEnumerable<MicrobenchmarkComparisonResult> comparisons)
@@ -168,19 +162,9 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                     {
                         foreach (var column in configuration.Output.Columns)
                         {
-                            double? baselineValue = null;
-                            double? comparandValue = null;
-                            if (MicrobenchmarkComparisonResult.CustomStatisticsCalculationMap.Keys.Contains(column))
-                            {
-                                baselineValue = lr.AveragedBaselineCustomStatistics.GetValueOrDefault(column);
-                                comparandValue = lr.AveragedComparandCustomStatistics.GetValueOrDefault(column);
-                            }
-                            if (MicrobenchmarkComparisonResult.CustomAggregateCalculationMap.Keys.Contains(column))
-                            {
-                                baselineValue = lr.AveragedBaselineCustomGCData.GetValueOrDefault(column);
-                                comparandValue = lr.AveragedComparandCustomGCData.GetValueOrDefault(column);
-                            }
-                            
+                            double? baselineValue = lr.AveragedBaselineOtherMetrics.GetValueOrDefault(column);
+                            double? comparandValue = lr.AveragedComparandOtherMetrics.GetValueOrDefault(column);
+
                             string baselineResult = baselineValue.HasValue ? Math.Round(baselineValue.Value, 4).ToString() : string.Empty;
                             string comparandResult = comparandValue.HasValue ? Math.Round(comparandValue.Value, 4).ToString() : string.Empty;
                             double? delta = baselineValue.HasValue && comparandValue.HasValue ? comparandValue.Value - baselineValue.Value : null;

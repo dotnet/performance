@@ -56,8 +56,8 @@ namespace GC.Infrastructure.Core.Analysis
             }
 
             // Filter out outliers using IQR method
-            OutliersFreeBaselineMetricCollection = GC.Analysis.API.Statistics.RemoveOutliers(OriginalBaselineMetricCollection);
-            OutliersFreeComparandMetricCollection = GC.Analysis.API.Statistics.RemoveOutliers(OriginalComparandMetricCollection);
+            OutliersFreeBaselineMetricCollection = API.Statistics.RemoveOutliers(OriginalBaselineMetricCollection);
+            OutliersFreeComparandMetricCollection = API.Statistics.RemoveOutliers(OriginalComparandMetricCollection);
 
             // Calculate averaged metrics
             AveragedBaselineMetric = API.GoodLinq.Average(OutliersFreeBaselineMetricCollection, r => r);
