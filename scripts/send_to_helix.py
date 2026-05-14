@@ -71,6 +71,7 @@ class PerfSendToHelixArgs:
     linking_type: Optional[str] = None
     python: Optional[str] = None
     affinity: Optional[str] = None
+    ios_rid: Optional[str] = None
     ios_strip_symbols: Optional[bool] = None
     ios_llvm_build: Optional[bool] = None
     scenario_arguments: Optional[list[str]] = None
@@ -111,6 +112,7 @@ class PerfSendToHelixArgs:
         set_env_var("RuntimeFlavor", self.runtime_flavor)
         set_env_var("CodegenType", self.codegen_type)
         set_env_var("LinkingType", self.linking_type)
+        set_env_var("iOSRid", self.ios_rid)
         set_env_var("iOSStripSymbols", self.ios_strip_symbols)
         set_env_var("iOSLlvmBuild", self.ios_llvm_build)
         set_env_var("TargetCsproj", self.target_csproj)
@@ -141,6 +143,12 @@ def perf_send_to_helix(args: PerfSendToHelixArgs):
 
     binlog_dest = os.path.join(args.performance_repo_dir, "artifacts", "log", args.build_config, "SendToHelix.binlog")
     send_params = [args.project_file, "/restore", "/t:Test", f"/bl:{binlog_dest}"]
+
+    # Pass iOSRid explicitly as an MSBuild property so it reaches .proj
+    # evaluation reliably. Env var inheritance through msbuild.sh/tools.sh
+    # is unreliable for this property.
+    if args.ios_rid:
+        send_params.append(f"/p:iOSRid={args.ios_rid}")
 
     run_msbuild_command(send_params, warn_as_error=False)
 

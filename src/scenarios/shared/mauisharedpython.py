@@ -386,29 +386,49 @@ class MauiNuGetConfigContext:
         
         return False  # Don't suppress exceptions
 
+_ALL_MAUI_WORKLOADS = [
+    "microsoft.net.sdk.android",
+    "microsoft.net.sdk.ios",
+    "microsoft.net.sdk.maccatalyst",
+    "microsoft.net.sdk.macos",
+    "microsoft.net.sdk.maui",
+    "microsoft.net.sdk.tvos",
+]
+
 def install_latest_maui(
-        precommands: PreCommands, 
-        feed=extract_latest_dotnet_feed_from_nuget_config(path=os.path.join(get_repo_root_path(), "NuGet.config"))
+        precommands: PreCommands,
+        feed=None,
+        workloads=None,
+        workload_id=None,
         ):
     '''
-        Install the latest maui workload using the provided feed. 
+        Install the latest maui workload using the provided feed.
         This function will create a rollback file and install the maui workload using that file.
-    '''
 
-    getLogger().info("########## Installing latest MAUI workload ##########")
+        Parameters:
+            precommands: PreCommands instance
+            feed: NuGet feed URL. If None, resolved from NuGet.config at call time.
+            workloads: List of manifest package IDs to resolve (e.g. ["microsoft.net.sdk.ios"]).
+                       Defaults to all 6 MAUI workloads.
+            workload_id: CLI workload ID for 'dotnet workload install' (e.g. "maui-ios").
+                         Defaults to "maui".
+    '''
+    if feed is None:
+        feed = extract_latest_dotnet_feed_from_nuget_config(
+            path=os.path.join(get_repo_root_path(), "NuGet.config")
+        )
+    if workloads is None:
+        workloads = _ALL_MAUI_WORKLOADS
+    if workload_id is None:
+        workload_id = 'maui'
+
+    getLogger().info("########## Installing latest MAUI workload (%s) ##########", workload_id)
 
     if precommands.has_workload:
         getLogger().info("Skipping maui installation due to --has-workload=true")
         return
 
-    maui_rollback_dict: dict[str, str] = {
-        "microsoft.net.sdk.android" : "",
-        "microsoft.net.sdk.ios" : "",
-        "microsoft.net.sdk.maccatalyst" : "",
-        "microsoft.net.sdk.macos" : "",
-        "microsoft.net.sdk.maui" : "",
-        "microsoft.net.sdk.tvos" : ""
-    }
+    maui_rollback_dict: dict[str, str] = {w: "" for w in workloads}
 
     getLogger().info(f"Installing the latest maui workload from feed {feed}")
 
@@ -514,6 +534,6 @@ def install_latest_maui(
     getLogger().info("Created rollback_maui.json file")
 
     # Install the workload using the rollback file
-    getLogger().info("Installing maui workload with rollback file")
-    precommands.install_workload('maui', ['--from-rollback-file', 'rollback_maui.json'])
-    getLogger().info("########## Finished installing latest MAUI workload ##########")
+    getLogger().info("Installing %s workload with rollback file", workload_id)
+    precommands.install_workload(workload_id, ['--from-rollback-file', 'rollback_maui.json'])
+    getLogger().info("########## Finished installing latest MAUI workload (%s) ##########", workload_id)

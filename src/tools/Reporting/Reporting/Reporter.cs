@@ -110,6 +110,9 @@ public class Reporter
 
     private static Build ParseBuildInfo(IEnvironment environment)
     {
+        var buildTimestampStr = environment.GetEnvironmentVariable("PERFLAB_BUILDTIMESTAMP");
+        var buildTimestamp = !string.IsNullOrEmpty(buildTimestampStr) ? DateTime.Parse(buildTimestampStr, CultureInfo.InvariantCulture) : DateTime.Now;
+
         var build = new Build()
         {
             Repo = environment.GetEnvironmentVariable("PERFLAB_REPO"),
@@ -118,7 +121,7 @@ public class Reporter
             Locale = environment.GetEnvironmentVariable("PERFLAB_LOCALE"),
             GitHash = environment.GetEnvironmentVariable("PERFLAB_HASH"),
             BuildName = environment.GetEnvironmentVariable("PERFLAB_BUILDNUM"),
-            TimeStamp = DateTime.Parse(environment.GetEnvironmentVariable("PERFLAB_BUILDTIMESTAMP")),
+            TimeStamp = buildTimestamp,
         };
 
 

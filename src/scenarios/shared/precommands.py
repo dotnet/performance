@@ -312,7 +312,14 @@ class PreCommands:
         getLogger().debug(f"Raw packages response for {sdk_name}: {result.stdout}")
         
         try:
-            parsed_response = json.loads(result.stdout)
+            # Newer SDK versions (e.g., preview.4) may emit warnings or progress text
+            # before/after the JSON object in stdout. Extract only the JSON portion.
+            stdout_text = result.stdout
+            json_start = stdout_text.find('{')
+            json_end = stdout_text.rfind('}')
+            if json_start != -1 and json_end != -1 and json_end > json_start:
+                stdout_text = stdout_text[json_start:json_end + 1]
+            parsed_response = json.loads(stdout_text)
             getLogger().debug(f"Parsed JSON response for {sdk_name}: {parsed_response}")
             
             if not parsed_response.get("searchResult") or len(parsed_response["searchResult"]) == 0:
