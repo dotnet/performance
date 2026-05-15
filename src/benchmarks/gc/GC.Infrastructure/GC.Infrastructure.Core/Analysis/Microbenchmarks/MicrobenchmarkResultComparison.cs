@@ -116,7 +116,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             }
             
             ParallelOptions options = new() 
-            { 
+            {
                 MaxDegreeOfParallelism = _CPUCount
             };
 
@@ -136,22 +136,23 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     return;
                 }
 
-                foreach (var benchmark in benchmarks)
+                if ((!excludeTraces) && configuration.TraceConfigurations.Type != "none")
                 {
-                    Statistics statistics = benchmark.Statistics;
-                    var benchmarkFullName = benchmark.FullName;
-                    MicrobenchmarkResult? microbenchmarkResult = null;
-                    if ((!excludeTraces) && configuration.TraceConfigurations.Type != "none")
+                    string outputPathForRun = Path.Combine(configuration.Output.Path, run.Name!);
+                    string tracePath = jsonToTraceMap.GetValueOrDefault(jsonPath, "");
+
+                    using (var analyzer = AnalyzerManager.GetAnalyzer(tracePath))
                     {
-                        string outputPathForRun = Path.Combine(configuration.Output.Path, run.Name!);
-                        string tracePath = jsonToTraceMap.GetValueOrDefault(jsonPath, "");
+                        List<GCProcessData> allPertinentProcesses = analyzer.GetProcessGCData("dotnet");
+                        List<GCProcessData> corerunProcesses = analyzer.GetProcessGCData("corerun");
+                        allPertinentProcesses.AddRange(corerunProcesses);
 
-                        using (var analyzer = AnalyzerManager.GetAnalyzer(tracePath))
+                        foreach (var benchmark in benchmarks)
                         {
-                            List<GCProcessData> allPertinentProcesses = analyzer.GetProcessGCData("dotnet");
-                            List<GCProcessData> corerunProcesses = analyzer.GetProcessGCData("corerun");
-                            allPertinentProcesses.AddRange(corerunProcesses);
+                            Statistics statistics = benchmark.Statistics;
+                            var benchmarkFullName = benchmark.FullName;
 
+                            MicrobenchmarkResult? microbenchmarkResult = null;
                             GCProcessData? benchmarkGCData = null;
                             foreach (var process in allPertinentProcesses)
                             {
@@ -181,32 +182,40 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                                 }
                                 */
                                 microbenchmarkResult = new(benchmarkFullName,
-                                                           run,
-                                                           benchmark,
-                                                           gcData: benchmarkGCData,
-                                                           gcTraceMetrics: new GCTraceMetrics(benchmarkGCData, tracePath, benchmark.FullName),
-                                                           additionalReportMetrics: configuration.Output.additional_report_metrics,
-                                                           cpuColumns: configuration.Output.cpu_columns,
-                                                           columns: configuration.Output.Columns);
+                                                            run,
+                                                            benchmark,
+                                                            gcData: benchmarkGCData,
+                                                            gcTraceMetrics: new GCTraceMetrics(benchmarkGCData, tracePath, benchmark.FullName),
+                                                            additionalReportMetrics: configuration.Output.additional_report_metrics,
+                                                            cpuColumns: configuration.Output.cpu_columns,
+                                                            columns: configuration.Output.Columns);
+                                microbenchmarkResults.Add(microbenchmarkResult!);
                             }
-                        }
-                        System.GC.Collect(2);
+                        } 
                     }
-                    else
-                    {
-                        microbenchmarkResult = new(benchmarkFullName,
-                                                   run,
-                                                   benchmark,
-                                                   additionalReportMetrics: configuration.Output.additional_report_metrics,
-                                                   cpuColumns: configuration.Output.cpu_columns,
-                                                   columns: configuration.Output.Columns);
-                    }
-                    microbenchmarkResults.Add(microbenchmarkResult!);
                 }
+                else
+                {
+                    foreach (var benchmark in benchmarks)
+                    {
+                        Statistics statistics = benchmark.Statistics;
+                        var benchmarkFullName = benchmark.FullName;
+
+                        MicrobenchmarkResult? microbenchmarkResult = null;
+                        microbenchmarkResult = new(benchmarkFullName,
+                                                run,
+                                                benchmark,
+                                                additionalReportMetrics: configuration.Output.additional_report_metrics,
+                                                cpuColumns: configuration.Output.cpu_columns,
+                                                columns: configuration.Output.Columns);
+                        microbenchmarkResults.Add(microbenchmarkResult!);
+                    }
+                }
+
                 lock (_lock)
                 {
                     count = count + 1;
-                    Console.Write($"\r{count}/{bdnJsonResults.Count} microbenchmarks results analyzed.");
+                    Console.Write($"\r{count}/{bdnJsonResults.Count} BDN results analyzed.");
                 }
             });
 
