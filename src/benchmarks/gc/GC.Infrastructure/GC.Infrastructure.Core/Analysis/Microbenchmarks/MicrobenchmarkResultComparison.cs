@@ -79,6 +79,10 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                         .OrderBy(jsonFile => Path.GetFileName(Path.GetDirectoryName(jsonFile)))
                         .ToArray();
 
+                    if (!_benchmarkNameToTraceFilePatternMap.ContainsKey(benchmarkName))
+                    {
+                        throw new InvalidOperationException($"Benchmark name {benchmarkName} does not have a corresponding trace file pattern in the map.");
+                    }
                     var traceFileNameTemplate = _benchmarkNameToTraceFilePatternMap[benchmarkName];
                     string outputPathForRun = Path.Combine(outputPath, run.Name);
                     var sortedTraceFiles = Directory.GetFiles(outputPathForRun, $"{traceFileNameTemplate}*.etl.zip", SearchOption.TopDirectoryOnly)
@@ -97,7 +101,6 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     }
                 }
             }
-            
 
             return jsonToTrace;
         }
@@ -117,7 +120,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             
             ParallelOptions options = new() 
             {
-                MaxDegreeOfParallelism = _CPUCount
+                MaxDegreeOfParallelism = _CPUCount * 2
             };
 
             int count = 0;
@@ -219,6 +222,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 }
             });
 
+            Console.WriteLine();
             return microbenchmarkResults;
         }
 
