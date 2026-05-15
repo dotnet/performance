@@ -24,11 +24,13 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             {
                 var baselineGCTraceMetricsCollection = baselines
                     .Where(baseline => baseline != null)
+                    .Where(baseline => baseline.GCTraceMetrics != null)
                     .Select(baseline => baseline.GCTraceMetrics)
                     .ToArray();
 
                 var comparandGCTraceMetricsCollection = comparands
                     .Where(comparand => comparand != null)
+                    .Where(comparand => comparand.GCTraceMetrics != null)
                     .Select(comparand => comparand.GCTraceMetrics)
                     .ToArray();
 
