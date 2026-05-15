@@ -93,22 +93,22 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 
                     // Large Regressions
                     sw.WriteLine($"### Large Regressions (>20%): {comparisonResult.LargeRegressions.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > 0.2));
+                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] >= 0.2));
                     sw.WriteLine("\n");
 
                     // Large Improvements
                     sw.WriteLine($"### Large Improvements (>20%): {comparisonResult.LargeImprovements.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] < -0.2));
+                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -0.2));
                     sw.WriteLine("\n");
 
                     // Regressions
                     sw.WriteLine($"### Regressions (5% - 20%): {comparisonResult.Regressions.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > 0.05 && o.OtherMetricsDiffPerc[metric] < 0.2));
+                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] >= 0.05 && o.OtherMetricsDiffPerc[metric] < 0.2));
                     sw.WriteLine("\n");
 
                     // Improvements
                     sw.WriteLine($"### Improvements (5% - 20%): {comparisonResult.Improvements.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > 0.05 && o.OtherMetricsDiffPerc[metric] < 0.2));
+                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -0.05 && o.OtherMetricsDiffPerc[metric] > -0.2));
                     sw.WriteLine("\n");
 
                     // Stale Regressions
@@ -118,7 +118,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 
                     // Stale Improvements
                     sw.WriteLine($"### Stale Improvements (Same or percent difference within 5% margin): {comparisonResult.StaleImprovements.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > -0.05 && o.OtherMetricsDiffPerc[metric] < 0.0));
+                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > -0.05 && o.OtherMetricsDiffPerc[metric] <= 0.0));
                     sw.WriteLine("\n");
                 }
             }
@@ -139,14 +139,15 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                 }
             }
 
-            if (configuration.Output.cpu_columns != null)
-            {
-                foreach (var column in configuration.Output.cpu_columns)
-                {
-                    tableHeader0 += $"Baseline {column}  | Comparand {column} |  Δ {column} |  Δ% {column} |";
-                    tableHeader1 += "--- | --- | --- | --- |";
-                }
-            }
+            // TODO: Add CPU columns if needed in the future.
+            //if (configuration.Output.cpu_columns != null)
+            //{
+            //    foreach (var column in configuration.Output.cpu_columns)
+            //    {
+            //        tableHeader0 += $"Baseline {column}  | Comparand {column} |  Δ {column} |  Δ% {column} |";
+            //        tableHeader1 += "--- | --- | --- | --- |";
+            //    }
+            //}
 
             sw.WriteLine(tableHeader0);
             sw.WriteLine(tableHeader1);
@@ -177,6 +178,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                         }
                     }
 
+                    // TODO: Add CPU columns if needed in the future.
                     //if (configuration.Output.cpu_columns != null)
                     //{
                     //    foreach (var column in configuration.Output.cpu_columns)
