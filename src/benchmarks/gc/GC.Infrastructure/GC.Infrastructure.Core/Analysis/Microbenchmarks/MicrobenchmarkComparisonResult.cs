@@ -53,23 +53,17 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             Baselines = baselines ?? new List<MicrobenchmarkResult>();
             Comparands = comparands ?? new List<MicrobenchmarkResult>();
 
-            foreach (var baseline in Baselines)
-            {
-                foreach (var kvp in baseline.OtherMetrics)
-                {
-                    OriginalBaselineOtherMetrics[kvp.Key] = OriginalBaselineOtherMetrics.GetValueOrDefault(kvp.Key, Array.Empty<double>());
-                    OriginalBaselineOtherMetrics[kvp.Key] = OriginalBaselineOtherMetrics[kvp.Key].Append(kvp.Value).ToArray();
-                }
-            }
+            OriginalBaselineOtherMetrics = Baselines
+                .Select(baseline => baseline.OtherMetrics)
+                .SelectMany(kvp => kvp)
+                .GroupBy(kvp => kvp.Key)
+                .ToDictionary(g => g.Key, g => g.Select(kvp => kvp.Value).ToArray());
 
-            foreach (var comparand in Comparands)
-            {
-                foreach (var kvp in comparand.OtherMetrics)
-                {
-                    OriginalComparandOtherMetrics[kvp.Key] = OriginalComparandOtherMetrics.GetValueOrDefault(kvp.Key, Array.Empty<double>());
-                    OriginalComparandOtherMetrics[kvp.Key] = OriginalComparandOtherMetrics[kvp.Key].Append(kvp.Value).ToArray();
-                }
-            }
+            OriginalComparandOtherMetrics = Comparands
+                .Select(comparand => comparand.OtherMetrics)
+                .SelectMany(kvp => kvp)
+                .GroupBy(kvp => kvp.Key)
+                .ToDictionary(g => g.Key, g => g.Select(kvp => kvp.Value).ToArray());
         }
 
         public List<GCTraceMetricComparisonResult> ComparisonResults { get; set; }
