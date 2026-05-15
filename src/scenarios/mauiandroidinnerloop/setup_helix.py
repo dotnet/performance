@@ -4,7 +4,6 @@
 import os
 import platform
 import re
-import stat
 import subprocess
 import sys
 import time
@@ -50,135 +49,6 @@ def run_cmd(args, check=True, **kwargs):
     if check and result.returncode != 0:
         raise subprocess.CalledProcessError(result.returncode, args, result.stdout)
     return result
-
-
-def _chmod_exec(path):
-    if not IS_WINDOWS and os.path.isfile(path):
-        os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
-
-
-# Workaround for https://github.com/dotnet/android/issues/11319:
-# InstallAndroidDependencies sometimes silently skips a required SDK package
-# while exiting 0. Parse the warning text and install missing packages
-# explicitly via sdkmanager; unconditionally re-install platform-tools if
-# adb is missing.
-_MISSING_DEP_RE = re.compile(
-    r"Dependency `([^`]+)` should have been installed but could not be resolved"
-)
-_PKG_NAME_RE = re.compile(r"^[A-Za-z0-9_.;-]+$")
-_VERSION_DIR_RE = re.compile(r"^(\d+)(?:\.(\d+))?(?:\.(\d+))?$")
-
-
-def _natural_version_key(name):
-    m = _VERSION_DIR_RE.match(name)
-    if not m:
-        return (-1, -1, -1, name)
-    return (int(m.group(1)), int(m.group(2) or 0), int(m.group(3) or 0), name)
-
-
-def _find_sdkmanager(android_home):
-    """Locate sdkmanager binary; cmdline-tools may live under 'latest' or a versioned dir."""
-    ct_root = os.path.join(android_home, "cmdline-tools")
-    if not os.path.isdir(ct_root):
-        return None
-    entries = os.listdir(ct_root)
-    versioned = [e for e in entries if e != "latest"]
-    versioned.sort(key=_natural_version_key, reverse=True)
-    candidates = (["latest"] if "latest" in entries else []) + versioned
-    suffix = ".bat" if IS_WINDOWS else ""
-    for cand in candidates:
-        path = os.path.join(ct_root, cand, "bin", f"sdkmanager{suffix}")
-        if os.path.isfile(path):
-            return path
-    return None
-
-
-def _sdkmanager_env(workitem_root):
-    """Return a copy of os.environ with JAVA_HOME set iff <workitem_root>/jdk has bin/java."""
-    env = dict(os.environ)
-    java_home = os.path.join(workitem_root, "jdk")
-    java_exe = os.path.join(java_home, "bin", "java" + EXE)
-    if os.path.isfile(java_exe):
-        env["JAVA_HOME"] = java_home
-    return env
-
-
-def _run_sdkmanager_install(sdkmanager, android_home, package, env):
-    log(f"Installing {package!r} via sdkmanager", tee=True)
-    try:
-        r = subprocess.run(
-            [sdkmanager, f"--sdk_root={android_home}", "--install", package],
-            input="y\n" * 50, text=True,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env,
-            timeout=600,
-        )
-    except subprocess.TimeoutExpired as e:
-        log(f"sdkmanager --install {package} TIMED OUT after 600s", tee=True)
-        if e.stdout:
-            for line in (e.stdout if isinstance(e.stdout, str)
-                         else e.stdout.decode("utf-8", "replace")).splitlines():
-                log_raw(line)
-        return False
-    for line in (r.stdout or "").splitlines():
-        log_raw(line)
-    if r.returncode != 0:
-        log(f"sdkmanager --install {package} FAILED (exit {r.returncode})", tee=True)
-        return False
-    return True
-
-
-def _repair_android_dependencies(ctx, install_stdout):
-    """Install any packages that InstallAndroidDependencies silently skipped.
-
-    1. Parse the warning text to discover explicitly-named missing packages.
-    2. Always ensure 'platform-tools' is installed (postcondition: adb must exist).
-    3. Verify adb is present and runnable; abort the script on failure.
-    """
-    android_home = ctx["android_home"]
-    parsed = _MISSING_DEP_RE.findall(install_stdout or "")
-    missing = sorted({p for p in parsed if _PKG_NAME_RE.match(p)})
-    if missing:
-        log(f"InstallAndroidDependencies silently skipped: {missing}", tee=True)
-
-    adb_path = os.path.join(android_home, "platform-tools", "adb" + EXE)
-    needs_platform_tools = not os.path.isfile(adb_path)
-    if needs_platform_tools and "platform-tools" not in missing:
-        log("platform-tools missing post-install; will install regardless of warnings",
-            tee=True)
-        missing.append("platform-tools")
-
-    if not missing:
-        return
-
-    sdkmanager = _find_sdkmanager(android_home)
-    if not sdkmanager:
-        log(f"ERROR: cannot locate sdkmanager under {android_home}/cmdline-tools",
-            tee=True)
-        _dump_log(); sys.exit(1)
-    log(f"Using sdkmanager: {sdkmanager}", tee=True)
-
-    env = _sdkmanager_env(ctx["workitem_root"])
-    log(f"sdkmanager env JAVA_HOME={env.get('JAVA_HOME', '<unset>')}")
-
-    for pkg in missing:
-        if not _run_sdkmanager_install(sdkmanager, android_home, pkg, env):
-            _dump_log(); sys.exit(1)
-    log("Repair complete: all silently-skipped dependencies installed", tee=True)
-
-
-def _verify_adb(android_home):
-    adb_path = os.path.join(android_home, "platform-tools", "adb" + EXE)
-    if not os.path.isfile(adb_path):
-        log(f"ERROR: adb not found at {adb_path} after install/repair", tee=True)
-        _dump_log(); sys.exit(1)
-    _chmod_exec(adb_path)
-    r = subprocess.run([adb_path, "version"], capture_output=True, text=True)
-    for line in (r.stdout or "").splitlines():
-        log_raw(line)
-    if r.returncode != 0:
-        log(f"ERROR: '{adb_path} version' failed (exit {r.returncode}): {r.stderr}",
-            tee=True)
-        _dump_log(); sys.exit(1)
 
 
 # --- ADB device setup ---
@@ -330,14 +200,12 @@ def install_android_dependencies(ctx):
         log("WARNING: restore failed — "
             "InstallAndroidDependencies may not work")
 
-    # TODO: Drop AndroidManifestType=GoogleV2 once https://github.com/dotnet/android/issues/11319 is fixed.
     result = run_cmd(
         [ctx["dotnet_exe"], "msbuild", csproj,
          "-t:InstallAndroidDependencies",
          f"/p:AndroidSdkDirectory={android_home}",
          f"/p:JavaSdkDirectory={java_home}",
          "/p:AcceptAndroidSdkLicenses=True",
-         "/p:AndroidManifestType=GoogleV2",
          f"/p:TargetFramework={ctx['framework']}"],
         check=False,
     )
@@ -351,9 +219,6 @@ def install_android_dependencies(ctx):
     log(f"JAVA_HOME={java_home}")
 
     ctx["android_home"] = android_home
-
-    _repair_android_dependencies(ctx, result.stdout or "")
-    _verify_adb(android_home)
 
 
 def setup_android_sdk(ctx):
