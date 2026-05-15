@@ -51,7 +51,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                 {
                     string outputPath = Path.Combine(configuration.Output.Path, "Results.md");
                     Markdown.GenerateTable(configuration, comparisonResultsGroupedByName, executionDetails, outputPath);
-                    AnsiConsole.MarkupLine($"[bold green] ({DateTime.Now}) Results written to {outputPath}.[/]");
+                    AnsiConsole.MarkupLine($"[bold green] ({DateTime.Now}) Results written to {Markup.Escape(outputPath)}.[/]");
                     continue;
                 }
 
