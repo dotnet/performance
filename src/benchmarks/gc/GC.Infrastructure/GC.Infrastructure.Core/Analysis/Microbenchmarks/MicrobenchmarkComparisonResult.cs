@@ -46,9 +46,12 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 }
             }
 
-            BaselineRunName = baselines?.FirstOrDefault()?.Parent?.Name;
-            ComparandRunName = comparands?.FirstOrDefault()?.Parent?.Name;
-            MicrobenchmarkName = baselines?.FirstOrDefault()?.MicrobenchmarkName;
+            var firstBaseline = baselines?.FirstOrDefault();
+            var firstComparand = comparands?.FirstOrDefault();
+
+            BaselineRunName = firstBaseline?.Parent?.Name ?? string.Empty;
+            ComparandRunName = firstComparand?.Parent?.Name ?? string.Empty;
+            MicrobenchmarkName = firstBaseline?.MicrobenchmarkName ?? string.Empty;
 
             Baselines = baselines ?? new List<MicrobenchmarkResult>();
             Comparands = comparands ?? new List<MicrobenchmarkResult>();
