@@ -109,20 +109,20 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
         public Dictionary<string, double[]> OriginalComparandOtherMetrics { get; } = new();
         public Dictionary<string, double[]> OutliersFreeBaselineOtherMetrics => OriginalBaselineOtherMetrics
             .Select(kvp => (kvp.Key, API.Statistics.RemoveOutliers(kvp.Value).ToArray()))
-            .ToDictionary();
+            .ToDictionary(x => x.Item1, x => x.Item2);
         public Dictionary<string, double[]> OutliersFreeComparandOtherMetrics => OriginalComparandOtherMetrics
             .Select(kvp => (kvp.Key, API.Statistics.RemoveOutliers(kvp.Value).ToArray()))
-            .ToDictionary();
+            .ToDictionary(x => x.Item1, x => x.Item2);
         public Dictionary<string, double> AveragedBaselineOtherMetrics => OutliersFreeBaselineOtherMetrics
             .Select(kvp => (kvp.Key, API.GoodLinq.Average(kvp.Value, v => v)))
-            .ToDictionary();
+            .ToDictionary(x => x.Item1, x => x.Item2);
         public Dictionary<string, double> AveragedComparandOtherMetrics => OutliersFreeComparandOtherMetrics
             .Select(kvp => (kvp.Key, API.GoodLinq.Average(kvp.Value, v => v)))
-            .ToDictionary();
+            .ToDictionary(x => x.Item1, x => x.Item2);
 
         public Dictionary<string, double> OtherMetricsDiff => OutliersFreeBaselineOtherMetrics
             .Select(kvp => (kvp.Key, AveragedComparandOtherMetrics[kvp.Key] - AveragedBaselineOtherMetrics[kvp.Key]))
-            .ToDictionary();
+            .ToDictionary(x => x.Item1, x => x.Item2);
 
         public Dictionary<string, double> OtherMetricsDiffPerc => OutliersFreeBaselineOtherMetrics
             .Select(kvp =>
@@ -140,6 +140,6 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 }
                 return (kvp.Key, OtherMetricsDiff[kvp.Key] / AveragedBaselineOtherMetrics[kvp.Key]);
             })
-            .ToDictionary();
+            .ToDictionary(x => x.Item1, x => x.Item2);
     }
 }
