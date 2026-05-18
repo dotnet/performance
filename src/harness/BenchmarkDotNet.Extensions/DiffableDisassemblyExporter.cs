@@ -61,26 +61,26 @@ namespace BenchmarkDotNet.Extensions
 
         private static Func<object, T> GetElementGetter<T>(string name)
         {
-            var type = typeof(DisassemblyDiagnoser).Assembly.GetType("BenchmarkDotNet.Disassemblers.Exporters.DisassemblyPrettifier");
+            var type = typeof(DisassemblyDiagnoser).Assembly.GetType("BenchmarkDotNet.Disassemblers.Exporters.DisassemblyPrettifier")!;
 
-            type = type.GetNestedType("Element", BindingFlags.Instance | BindingFlags.NonPublic);
+            type = type.GetNestedType("Element", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-            var property = type.GetProperty(name, BindingFlags.Instance | BindingFlags.NonPublic);
+            var property = type.GetProperty(name, BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-            var method = property.GetGetMethod(nonPublic: true);
+            var method = property.GetGetMethod(nonPublic: true)!;
 
             var generic = typeof(Func<,>).MakeGenericType(type, typeof(T));
 
             var @delegate = method.CreateDelegate(generic);
 
-            return (obj) => (T)@delegate.DynamicInvoke(obj); // cast to (Func<object, T>) throws
+            return (obj) => (T)@delegate.DynamicInvoke(obj)!; // cast to (Func<object, T>) throws
         }
 
         private static Func<DisassembledMethod, DisassemblyResult, DisassemblyDiagnoserConfig, string, IReadOnlyList<object>> GetPrettifyMethod()
         {
-            var type = typeof(DisassemblyDiagnoser).Assembly.GetType("BenchmarkDotNet.Disassemblers.Exporters.DisassemblyPrettifier");
+            var type = typeof(DisassemblyDiagnoser).Assembly.GetType("BenchmarkDotNet.Disassemblers.Exporters.DisassemblyPrettifier")!;
 
-            var method = type.GetMethod("Prettify", BindingFlags.Static | BindingFlags.NonPublic);
+            var method = type.GetMethod("Prettify", BindingFlags.Static | BindingFlags.NonPublic)!;
 
             var @delegate = method.CreateDelegate(typeof(Func<DisassembledMethod, DisassemblyResult, DisassemblyDiagnoserConfig, string, IReadOnlyList<object>>));
 
