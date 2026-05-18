@@ -63,18 +63,18 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 var customStatistics = columns
                     .Where(column => CustomStatisticsCalculationMap.Keys.Contains(column))
                     .Select(column => (column, CustomStatisticsCalculationMap[column](benchmark.Statistics)))
-                    .ToDictionary();
+                    .ToDictionary(x => x.column, x => x.Item2);
                 
-                OtherMetrics = OtherMetrics.Concat(customStatistics).ToDictionary();
+                OtherMetrics = OtherMetrics.Concat(customStatistics).ToDictionary(x => x.Key, x => x.Value);
                 
                 if (gcData != null)
                 {
                     var customGCData = columns
                         .Where(column => CustomAggregateCalculationMap.Keys.Contains(column))
                         .Select(column => (column, CustomAggregateCalculationMap[column](gcData)))
-                        .ToDictionary();
+                        .ToDictionary(x => x.column, x => x.Item2);
 
-                    OtherMetrics = OtherMetrics.Concat(customGCData).ToDictionary();
+                    OtherMetrics = OtherMetrics.Concat(customGCData).ToDictionary(x => x.Key, x => x.Value);
                 }
             }
         }
