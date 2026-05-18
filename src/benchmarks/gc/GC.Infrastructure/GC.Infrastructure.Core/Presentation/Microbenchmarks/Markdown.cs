@@ -1,7 +1,6 @@
 ﻿using API = GC.Analysis.API;
 using GC.Infrastructure.Core.Analysis;
 using GC.Infrastructure.Core.Analysis.Microbenchmarks;
-using GC.Analysis.API;
 using GC.Infrastructure.Core.Configurations.Microbenchmarks;
 
 namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
@@ -18,15 +17,15 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                 // Create summary.
                 sw.WriteLine("# Summary");
 
-                string header = $"| Criteria | {string.Join("|", GoodLinq.Select(comparisonResultsCollection, s => $"[{s.BaselineName} {s.RunName}]({s.MarkdownIdentifier})"))}|";
+                string header = $"| Criteria | {string.Join("|", API.GoodLinq.Select(comparisonResultsCollection, s => $"[{s.BaselineName} {s.RunName}]({s.MarkdownIdentifier})"))}|";
                 sw.WriteLine(header);
                 sw.WriteLine($"| ----- | {string.Join("|", Enumerable.Repeat(" ----- ", comparisonResultsCollection.Count))} |");
-                sw.WriteLine($"| Large Regressions (>20%) | {GoodLinq.Sum(comparisonResultsCollection, s => s.LargeRegressions.Count())}|");
-                sw.WriteLine($"| Regressions (5% - 20%) | {GoodLinq.Sum(comparisonResultsCollection, s => s.Regressions.Count())}|");
-                sw.WriteLine($"| Stale Regressions (0% - 5%) | {GoodLinq.Sum(comparisonResultsCollection, s => s.StaleRegressions.Count())}|");
-                sw.WriteLine($"| Stale Improvements (0% - 5%) | {GoodLinq.Sum(comparisonResultsCollection, s => s.StaleImprovements.Count())}|");
-                sw.WriteLine($"| Improvements (5% - 20%) | {GoodLinq.Sum(comparisonResultsCollection, s => s.Improvements.Count())}|");
-                sw.WriteLine($"| Large Improvements (>20%) | {GoodLinq.Sum(comparisonResultsCollection, s => s.LargeImprovements.Count())}|");
+                sw.WriteLine($"| Large Regressions (>20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.LargeRegressions.Count())}|");
+                sw.WriteLine($"| Regressions (5% - 20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.Regressions.Count())}|");
+                sw.WriteLine($"| Stale Regressions (0% - 5%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.StaleRegressions.Count())}|");
+                sw.WriteLine($"| Stale Improvements (0% - 5%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.StaleImprovements.Count())}|");
+                sw.WriteLine($"| Improvements (5% - 20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.Improvements.Count())}|");
+                sw.WriteLine($"| Large Improvements (>20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.LargeImprovements.Count())}|");
                 sw.WriteLine($"| Total | {comparisonResultsCollection.Count} |");
                 sw.WriteLine("\n");
 
@@ -89,40 +88,42 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                 foreach (var metric in configuration.Output.additional_report_metrics)
                 {
                     sw.WriteLine($"## Comparison by {metric}");
-                    var ordered = comparisonResult.Comparisons.OrderByDescending(c => c.OtherMetricsDiffPerc[metric]);
+                    var ordered = comparisonResult.Comparisons
+                        .Where(c => c.OtherMetricsDiffPerc.ContainsKey(metric))
+                        .OrderByDescending(c => c.OtherMetricsDiffPerc[metric]);
 
                     // Large Regressions
                     sw.WriteLine($"### Large Regressions (>20%): {comparisonResult.LargeRegressions.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] >= 0.2));
+                    sw.AddTableForSingleCriteria(configuration, API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] >= 0.2));
                     sw.WriteLine("\n");
 
                     // Large Improvements
                     sw.WriteLine($"### Large Improvements (>20%): {comparisonResult.LargeImprovements.Count()} \n");
-                    var largeImprovements = GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -0.2);
+                    var largeImprovements = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -0.2);
                     largeImprovements.Reverse();
                     sw.AddTableForSingleCriteria(configuration, largeImprovements);
                     sw.WriteLine("\n");
 
                     // Regressions
                     sw.WriteLine($"### Regressions (5% - 20%): {comparisonResult.Regressions.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] >= 0.05 && o.OtherMetricsDiffPerc[metric] < 0.2));
+                    sw.AddTableForSingleCriteria(configuration, API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] >= 0.05 && o.OtherMetricsDiffPerc[metric] < 0.2));
                     sw.WriteLine("\n");
 
                     // Improvements
                     sw.WriteLine($"### Improvements (5% - 20%): {comparisonResult.Improvements.Count()} \n");
-                    var improvements = GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -0.05 && o.OtherMetricsDiffPerc[metric] > -0.2);
+                    var improvements = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -0.05 && o.OtherMetricsDiffPerc[metric] > -0.2);
                     improvements.Reverse();
                     sw.AddTableForSingleCriteria(configuration, improvements);
                     sw.WriteLine("\n");
 
                     // Stale Regressions
                     sw.WriteLine($"### Stale Regressions (Same or percent difference within 5% margin): {comparisonResult.StaleRegressions.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] < 0.05 && o.OtherMetricsDiffPerc[metric] >= 0.0));
+                    sw.AddTableForSingleCriteria(configuration, API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] < 0.05 && o.OtherMetricsDiffPerc[metric] >= 0.0));
                     sw.WriteLine("\n");
 
                     // Stale Improvements
                     sw.WriteLine($"### Stale Improvements (Same or percent difference within 5% margin): {comparisonResult.StaleImprovements.Count()} \n");
-                    var staleImprovements = GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > -0.05 && o.OtherMetricsDiffPerc[metric] <= 0.0);
+                    var staleImprovements = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > -0.05 && o.OtherMetricsDiffPerc[metric] <= 0.0);
                     staleImprovements.Reverse();
                     sw.AddTableForSingleCriteria(configuration, staleImprovements);
                     sw.WriteLine("\n");
