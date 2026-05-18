@@ -195,7 +195,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                                                             run,
                                                             benchmark,
                                                             gcData: benchmarkGCData,
-                                                            gcTraceMetrics: new GCTraceMetrics(benchmarkGCData, tracePath, benchmark.FullName),
+                                                            gcTraceMetrics: new GCTraceMetrics(benchmarkGCData, run.Name!, benchmark.FullName),
                                                             additionalReportMetrics: configuration.Output.additional_report_metrics,
                                                             cpuColumns: configuration.Output.cpu_columns,
                                                             columns: configuration.Output.Columns);
