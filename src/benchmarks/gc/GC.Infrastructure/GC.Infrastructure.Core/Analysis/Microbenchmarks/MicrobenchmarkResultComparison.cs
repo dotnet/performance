@@ -87,7 +87,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                         throw new InvalidOperationException($"Benchmark name {benchmarkName} does not have a corresponding trace file pattern in the map.");
                     }
                     var traceFileNameTemplate = _benchmarkNameToTraceFilePatternMap[benchmarkName];
-                    string outputPathForRun = Path.Combine(outputPath, run.Name);
+                    string outputPathForRun = Path.Combine(outputPath, run.Name!);
                     var sortedTraceFiles = Directory.GetFiles(outputPathForRun, $"{traceFileNameTemplate}*.etl.zip", SearchOption.TopDirectoryOnly)
                         .OrderBy(traceFile =>
                         {
@@ -146,11 +146,14 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     return;
                 }
 
-                if ((!excludeTraces) && configuration.TraceConfigurations.Type != "none")
+                if ((!excludeTraces) && configuration.TraceConfigurations?.Type != "none")
                 {
                     string outputPathForRun = Path.Combine(configuration.Output.Path, run.Name!);
-                    string tracePath = jsonToTraceMap.GetValueOrDefault(jsonPath, "");
 
+                    if (!jsonToTraceMap.TryGetValue(jsonPath, out string? tracePath) || string.IsNullOrWhiteSpace(tracePath))
+                    {
+                        throw new InvalidOperationException($"Trace collection is enabled, but no trace path mapping was found for benchmark result '{jsonPath}'.");
+                    }
                     using (var analyzer = AnalyzerManager.GetAnalyzer(tracePath))
                     {
                         List<GCProcessData> allPertinentProcesses = analyzer.GetProcessGCData("dotnet");
