@@ -123,8 +123,15 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             .Select(kvp => (kvp.Key, API.GoodLinq.Average(kvp.Value, v => v)))
             .ToDictionary(x => x.Item1, x => x.Item2);
 
-        public Dictionary<string, double> OtherMetricsDiff => OutliersFreeBaselineOtherMetrics
-            .Select(kvp => (kvp.Key, AveragedComparandOtherMetrics[kvp.Key] - AveragedBaselineOtherMetrics[kvp.Key]))
+        public Dictionary<string, double> OtherMetricsDiff => AveragedBaselineOtherMetrics
+            .Select(kvp =>
+            {
+                if (AveragedComparandOtherMetrics.ContainsKey(kvp.Key))
+                {
+                    return (kvp.Key, AveragedComparandOtherMetrics[kvp.Key] - AveragedBaselineOtherMetrics[kvp.Key]);
+                }
+                return (kvp.Key, double.NaN);
+            })
             .ToDictionary(x => x.Item1, x => x.Item2);
 
         public Dictionary<string, double> OtherMetricsDiffPerc => OutliersFreeBaselineOtherMetrics
@@ -141,6 +148,12 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                         return (kvp.Key, double.NaN);
                     }
                 }
+
+                if (OtherMetricsDiff[kvp.Key] == double.NaN)
+                {
+                    return (kvp.Key, double.NaN);
+                }
+                
                 return (kvp.Key, OtherMetricsDiff[kvp.Key] / AveragedBaselineOtherMetrics[kvp.Key]);
             })
             .ToDictionary(x => x.Item1, x => x.Item2);
