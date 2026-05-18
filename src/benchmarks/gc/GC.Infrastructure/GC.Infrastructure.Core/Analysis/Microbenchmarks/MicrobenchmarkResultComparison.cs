@@ -281,6 +281,15 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     var baselineMicrobenchmarkResults = GoodLinq.Where(microbenchmarkResultsGroup, r => r.Parent.is_baseline);
                     var comparandMicrobenchmarkResults = GoodLinq.Where(microbenchmarkResultsGroup, r => !r.Parent.is_baseline);
 
+                    if (baselineMicrobenchmarkResults == null || comparandMicrobenchmarkResults == null)
+                    {
+                        return;
+                    }
+
+                    if (baselineMicrobenchmarkResults.Count == 0 || comparandMicrobenchmarkResults.Count == 0)
+                    {
+                        return;
+                    }
                     lock (_lock)
                     {
                         comparisonResults.Add(new(baselineMicrobenchmarkResults, comparandMicrobenchmarkResults, includeTraces));
