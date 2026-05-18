@@ -198,13 +198,13 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                                 if (benchmarkGCData.GCs.Count > 0)
                                 {
                                     microbenchmarkResult = new(benchmarkFullName,
-                                                                run,
-                                                                benchmark,
-                                                                gcData: benchmarkGCData,
-                                                                gcTraceMetrics: new GCTraceMetrics(benchmarkGCData, run.Name!, benchmark.FullName),
-                                                                additionalReportMetrics: configuration.Output.additional_report_metrics,
-                                                                cpuColumns: configuration.Output.cpu_columns,
-                                                                columns: configuration.Output.Columns);
+                                                               run,
+                                                               benchmark,
+                                                               gcData: benchmarkGCData,
+                                                               gcTraceMetrics: new GCTraceMetrics(benchmarkGCData, run.Name!, benchmark.FullName),
+                                                               additionalReportMetrics: configuration.Output.additional_report_metrics,
+                                                               cpuColumns: configuration.Output.cpu_columns,
+                                                               columns: configuration.Output.Columns);
                                     microbenchmarkResults.Add(microbenchmarkResult!);
                                 }
                             }
@@ -220,11 +220,11 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
                         MicrobenchmarkResult? microbenchmarkResult = null;
                         microbenchmarkResult = new(benchmarkFullName,
-                                                run,
-                                                benchmark,
-                                                additionalReportMetrics: configuration.Output.additional_report_metrics,
-                                                cpuColumns: configuration.Output.cpu_columns,
-                                                columns: configuration.Output.Columns);
+                                                   run,
+                                                   benchmark,
+                                                   additionalReportMetrics: configuration.Output.additional_report_metrics,
+                                                   cpuColumns: configuration.Output.cpu_columns,
+                                                   columns: configuration.Output.Columns);
                         microbenchmarkResults.Add(microbenchmarkResult!);
                     }
                 }
