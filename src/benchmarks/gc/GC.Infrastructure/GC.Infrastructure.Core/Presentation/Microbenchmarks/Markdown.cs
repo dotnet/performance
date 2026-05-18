@@ -98,7 +98,9 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 
                     // Large Improvements
                     sw.WriteLine($"### Large Improvements (>20%): {comparisonResult.LargeImprovements.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -0.2));
+                    var largeImprovements = GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -0.2);
+                    largeImprovements.Reverse();
+                    sw.AddTableForSingleCriteria(configuration, largeImprovements);
                     sw.WriteLine("\n");
 
                     // Regressions
@@ -108,7 +110,9 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 
                     // Improvements
                     sw.WriteLine($"### Improvements (5% - 20%): {comparisonResult.Improvements.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -0.05 && o.OtherMetricsDiffPerc[metric] > -0.2));
+                    var improvements = GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -0.05 && o.OtherMetricsDiffPerc[metric] > -0.2);
+                    improvements.Reverse();
+                    sw.AddTableForSingleCriteria(configuration, improvements);
                     sw.WriteLine("\n");
 
                     // Stale Regressions
@@ -118,7 +122,9 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 
                     // Stale Improvements
                     sw.WriteLine($"### Stale Improvements (Same or percent difference within 5% margin): {comparisonResult.StaleImprovements.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > -0.05 && o.OtherMetricsDiffPerc[metric] <= 0.0));
+                    var staleImprovements = GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > -0.05 && o.OtherMetricsDiffPerc[metric] <= 0.0);
+                    staleImprovements.Reverse();
+                    sw.AddTableForSingleCriteria(configuration, staleImprovements);
                     sw.WriteLine("\n");
                 }
             }
