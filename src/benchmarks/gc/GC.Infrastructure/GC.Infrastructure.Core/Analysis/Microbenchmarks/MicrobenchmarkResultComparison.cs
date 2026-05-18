@@ -3,6 +3,7 @@ using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.Microbenchmarks;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 {
@@ -62,6 +63,8 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             return bdnJsonResults;
         }
 
+        // TODO: We should specify relationship between json files and trace files before running benchmarks instead of relying on file name patterns.
+        // This will make the mapping more robust and less prone to errors due to file naming.
         public static Dictionary<string, string> MapJsonToTrace(string outputPath, ConcurrentBag<Tuple<Run, BdnJsonResult, string>> bdnJsonResults)
         {
             Dictionary<string, string> jsonToTrace = new();
@@ -86,7 +89,11 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     var traceFileNameTemplate = _benchmarkNameToTraceFilePatternMap[benchmarkName];
                     string outputPathForRun = Path.Combine(outputPath, run.Name);
                     var sortedTraceFiles = Directory.GetFiles(outputPathForRun, $"{traceFileNameTemplate}*.etl.zip", SearchOption.TopDirectoryOnly)
-                        .OrderBy(traceFile => traceFile)
+                        .OrderBy(traceFile =>
+                        {
+                            var match = Regex.Match(Path.GetFileName(traceFile), @"_(\d+)\.etl\.zip$");
+                            return match.Success ? int.Parse(match.Groups[1].Value) : 0;
+                        })
                         .ToArray();
 
                     if (sortedJsonFiles.Length != sortedTraceFiles.Length)
