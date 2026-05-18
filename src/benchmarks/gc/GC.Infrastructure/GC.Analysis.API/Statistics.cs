@@ -34,13 +34,22 @@
 
         public static IEnumerable<double> RemoveOutliers(IEnumerable<double> collection)
         {
+            List<double> validCollection = new();
             if (!collection.Any())
             {
                 return Array.Empty<double>();
             }
-            double[] validCollection = collection
-                .Where(x => !double.IsNaN(x) && !double.IsInfinity(x))
-                .ToArray();
+            foreach (double value in collection)
+            {
+                if (!double.IsNaN(value) && !double.IsInfinity(value))
+                {
+                    validCollection.Add(value);
+                }
+            }
+            if (validCollection.Count == 0)
+            {
+                return Array.Empty<double>();
+            }
             // Calculate Q1 (25th percentile) and Q3 (75th percentile)
             double q1 = GC.Analysis.API.Statistics.Percentile(validCollection, 0.25);
             double q3 = GC.Analysis.API.Statistics.Percentile(validCollection, 0.75);
