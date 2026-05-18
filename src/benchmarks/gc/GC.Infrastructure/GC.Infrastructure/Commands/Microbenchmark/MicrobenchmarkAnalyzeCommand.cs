@@ -59,7 +59,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                 {
                     string outputPath = Path.Combine(configuration.Output.Path, "Results.json");
                     Json.Generate(configuration, comparisonResultsGroupedByName, outputPath);
-                    AnsiConsole.MarkupLine($"[bold green] ({DateTime.Now}) Results written to {outputPath}.[/]");
+                    AnsiConsole.MarkupLine($"[bold green] ({DateTime.Now}) Results written to {Markup.Escape(outputPath)}.[/]");
                     continue;
                 }
             }
