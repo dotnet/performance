@@ -62,7 +62,7 @@
             double upperBound = q3 + 1.5 * iqr;
 
             // Filter out outliers
-            return GoodLinq.Where(collection, x => x >= lowerBound && x <= upperBound);
+            return GoodLinq.Where(validCollection, x => x >= lowerBound && x <= upperBound);
         }
     }
 }
