@@ -194,15 +194,19 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                                     benchmark.Value.CPUData = d1.FirstOrDefault(p => p.ProcessID == processID);
                                 }
                                 */
-                                microbenchmarkResult = new(benchmarkFullName,
-                                                            run,
-                                                            benchmark,
-                                                            gcData: benchmarkGCData,
-                                                            gcTraceMetrics: new GCTraceMetrics(benchmarkGCData, run.Name!, benchmark.FullName),
-                                                            additionalReportMetrics: configuration.Output.additional_report_metrics,
-                                                            cpuColumns: configuration.Output.cpu_columns,
-                                                            columns: configuration.Output.Columns);
-                                microbenchmarkResults.Add(microbenchmarkResult!);
+
+                                if (benchmarkGCData.GCs.Count > 0)
+                                {
+                                    microbenchmarkResult = new(benchmarkFullName,
+                                                                run,
+                                                                benchmark,
+                                                                gcData: benchmarkGCData,
+                                                                gcTraceMetrics: new GCTraceMetrics(benchmarkGCData, run.Name!, benchmark.FullName),
+                                                                additionalReportMetrics: configuration.Output.additional_report_metrics,
+                                                                cpuColumns: configuration.Output.cpu_columns,
+                                                                columns: configuration.Output.Columns);
+                                    microbenchmarkResults.Add(microbenchmarkResult!);
+                                }
                             }
                         } 
                     }
