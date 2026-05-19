@@ -205,9 +205,28 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                                                                additionalReportMetrics: configuration.Output.additional_report_metrics,
                                                                cpuColumns: configuration.Output.cpu_columns,
                                                                columns: configuration.Output.Columns);
-                                    microbenchmarkResults.Add(microbenchmarkResult!);
+                                }
+                                else
+                                {
+                                    microbenchmarkResult = new(benchmarkFullName,
+                                                               run,
+                                                               benchmark,
+                                                               additionalReportMetrics: configuration.Output.additional_report_metrics,
+                                                               cpuColumns: configuration.Output.cpu_columns,
+                                                               columns: configuration.Output.Columns);
                                 }
                             }
+                            else
+                            {
+                                microbenchmarkResult = new(benchmarkFullName,
+                                                           run,
+                                                           benchmark,
+                                                           additionalReportMetrics: configuration.Output.additional_report_metrics,
+                                                           cpuColumns: configuration.Output.cpu_columns,
+                                                           columns: configuration.Output.Columns);
+                            }
+
+                            microbenchmarkResults.Add(microbenchmarkResult!);
                         } 
                     }
                 }
