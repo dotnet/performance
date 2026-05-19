@@ -120,7 +120,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             ConcurrentBag<MicrobenchmarkResult> microbenchmarkResults = new();
 
             Dictionary<string, string> jsonToTraceMap = new();
-            if ((!excludeTraces) && configuration.TraceConfigurations?.Type != "none")
+            if ((!excludeTraces) && (configuration.TraceConfigurations?.Type ?? "none") != "none")
             {
                 jsonToTraceMap = MapJsonToTrace(configuration.Output.Path, bdnJsonResults);
             }
