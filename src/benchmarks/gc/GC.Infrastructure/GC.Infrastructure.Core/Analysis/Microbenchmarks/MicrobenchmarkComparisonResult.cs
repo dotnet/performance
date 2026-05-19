@@ -134,9 +134,13 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             })
             .ToDictionary(x => x.Item1, x => x.Item2);
 
-        public Dictionary<string, double> OtherMetricsDiffPerc => OutliersFreeBaselineOtherMetrics
+        public Dictionary<string, double> OtherMetricsDiffPerc => AveragedBaselineOtherMetrics
             .Select(kvp =>
             {
+                if (!AveragedComparandOtherMetrics.ContainsKey(kvp.Key))
+                {
+                    return (kvp.Key, double.NaN);
+                }
                 if (AveragedBaselineOtherMetrics[kvp.Key] == 0)
                 {
                     if (AveragedComparandOtherMetrics[kvp.Key] == 0)
@@ -147,6 +151,11 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     {
                         return (kvp.Key, double.NaN);
                     }
+                }
+
+                if (!OtherMetricsDiff.ContainsKey(kvp.Key))
+                {
+                    return (kvp.Key, double.NaN);
                 }
 
                 if (OtherMetricsDiff[kvp.Key] == double.NaN)
