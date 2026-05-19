@@ -163,7 +163,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     return (kvp.Key, double.NaN);
                 }
                 
-                return (kvp.Key, OtherMetricsDiff[kvp.Key] / AveragedBaselineOtherMetrics[kvp.Key]);
+                return (kvp.Key, 100 * OtherMetricsDiff[kvp.Key] / AveragedBaselineOtherMetrics[kvp.Key]);
             })
             .ToDictionary(x => x.Item1, x => x.Item2);
     }
