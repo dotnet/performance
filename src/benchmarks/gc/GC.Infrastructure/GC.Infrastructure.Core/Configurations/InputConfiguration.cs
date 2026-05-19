@@ -13,6 +13,8 @@
         // public Dictionary<string, string>? clrgcs   { get; set; }
         // public string? debug_parameters             { get; set; }
 
+        public Dictionary<string, uint>? iterations { get; set; }
+
         public Dictionary<string, string>? symbol_path { get; set; }
         public Dictionary<string, string>? source_path { get; set; }
     }

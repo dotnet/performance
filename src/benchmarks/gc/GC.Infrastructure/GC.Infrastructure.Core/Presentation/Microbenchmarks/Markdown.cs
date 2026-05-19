@@ -1,33 +1,30 @@
-﻿using API = GC.Analysis.API;
-using GC.Infrastructure.Core.Analysis;
+﻿using GC.Infrastructure.Core.Analysis;
 using GC.Infrastructure.Core.Analysis.Microbenchmarks;
-using GC.Analysis.API;
 using GC.Infrastructure.Core.Configurations.Microbenchmarks;
+using System.Configuration;
+using API = GC.Analysis.API;
 
 namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 {
     public static class Markdown
     {
-        private const string baseTableString = "| Benchmark Name | Baseline | Comparand | Baseline Mean Duration (MSec) | Comparand Mean Duration (MSec) | Δ Mean Duration (MSec) | Δ% Mean Duration |";
-        private const string baseTableRows = "| --- | --- | -- | --- | --- | --- | --- | ";
-
-        public static void GenerateTable(MicrobenchmarkConfiguration configuration, IReadOnlyList<MicrobenchmarkComparisonResults> comparisonResults, Dictionary<string, ProcessExecutionDetails> executionDetails, string path)
+        public static void GenerateTable(MicrobenchmarkConfiguration configuration, IReadOnlyList<MicrobenchmarkComparisonResults> comparisonResultsCollection, Dictionary<string, ProcessExecutionDetails> executionDetails, string path)
         {
             using (StreamWriter sw = new StreamWriter(path))
             {
                 // Create summary.
                 sw.WriteLine("# Summary");
 
-                string header = $"| Criteria | {string.Join("|", GoodLinq.Select(comparisonResults, s => $"[{s.BaselineName} {s.RunName}]({s.MarkdownIdentifier})"))}|";
+                string header = $"| Criteria | {string.Join("|", API.GoodLinq.Select(comparisonResultsCollection, s => $"[{s.BaselineName} {s.RunName}]({s.MarkdownIdentifier})"))}|";
                 sw.WriteLine(header);
-                sw.WriteLine($"| ----- | {string.Join("|", Enumerable.Repeat(" ----- ", comparisonResults.Count))} |");
-                sw.WriteLine($"| Large Regressions (>20%) | {GoodLinq.Sum(comparisonResults, s => s.LargeRegressions.Count())}|");
-                sw.WriteLine($"| Regressions (5% - 20%) | {GoodLinq.Sum(comparisonResults, s => s.Regressions.Count())}|");
-                sw.WriteLine($"| Stale Regressions (0% - 5%) | {GoodLinq.Sum(comparisonResults, s => s.StaleRegressions.Count())}|");
-                sw.WriteLine($"| Stale Improvements (0% - 5%) | {GoodLinq.Sum(comparisonResults, s => s.StaleImprovements.Count())}|");
-                sw.WriteLine($"| Improvements (5% - 20%) | {GoodLinq.Sum(comparisonResults, s => s.Improvements.Count())}|");
-                sw.WriteLine($"| Large Improvements (>20%) | {GoodLinq.Sum(comparisonResults, s => s.LargeImprovements.Count())}|");
-                sw.WriteLine($"| Total | {comparisonResults.Count} |");
+                sw.WriteLine($"| ----- | {string.Join("|", Enumerable.Repeat(" ----- ", comparisonResultsCollection.Count))} |");
+                sw.WriteLine($"| Large Regressions (>20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.LargeRegressions.Count())}|");
+                sw.WriteLine($"| Regressions (5% - 20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.Regressions.Count())}|");
+                sw.WriteLine($"| Stale Regressions (0% - 5%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.StaleRegressions.Count())}|");
+                sw.WriteLine($"| Stale Improvements (0% - 5%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.StaleImprovements.Count())}|");
+                sw.WriteLine($"| Improvements (5% - 20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.Improvements.Count())}|");
+                sw.WriteLine($"| Large Improvements (>20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.LargeImprovements.Count())}|");
+                sw.WriteLine($"| Total | {comparisonResultsCollection.Count} |");
                 sw.WriteLine("\n");
 
                 // Incomplete Tests.
@@ -41,9 +38,9 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                 sw.WriteLine("## Individual Results");
 
                 // Add details of Each Comparison.
-                foreach (var comparisonResult in comparisonResults)
+                foreach (var comparisonResults in comparisonResultsCollection)
                 {
-                    AddDetailsOfSingleComparison(sw, configuration, comparisonResult);
+                    AddDetailsOfSingleComparison(sw, configuration, comparisonResults);
                     sw.WriteLine("\n");
                 }
             }
@@ -89,52 +86,65 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                 foreach (var metric in configuration.Output.additional_report_metrics)
                 {
                     sw.WriteLine($"## Comparison by {metric}");
-                    var ordered = comparisonResult.Comparisons.OrderByDescending(c => c.GetDiffPercentFromOtherMetrics(metric));
+                    var ordered = comparisonResult.Comparisons
+                        .Where(c => c.OtherMetricsDiffPerc.ContainsKey(metric))
+                        .OrderByDescending(c => c.OtherMetricsDiffPerc[metric]);
 
                     // Large Regressions
-                    sw.WriteLine($"### Large Regressions (>20%): {comparisonResult.LargeRegressions.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) > 0.2));
+                    var largeRegression = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] >= 20);
+                    sw.WriteLine($"### Large Regressions (>20%): {largeRegression.Count()} \n");
+                    sw.AddTableForSingleCriteria(configuration, largeRegression, metric);
                     sw.WriteLine("\n");
 
                     // Large Improvements
-                    sw.WriteLine($"### Large Improvements (>20%): {comparisonResult.LargeImprovements.Count()} \n");
-                    var largeImprovements = GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) < -0.2);
+                    var largeImprovements = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -20);
                     largeImprovements.Reverse();
-                    sw.AddTableForSingleCriteria(configuration, largeImprovements);
+                    sw.WriteLine($"### Large Improvements (>20%): {largeImprovements.Count()} \n");
+                    sw.AddTableForSingleCriteria(configuration, largeImprovements, metric);
                     sw.WriteLine("\n");
 
                     // Regressions
-                    sw.WriteLine($"### Regressions (5% - 20%): {comparisonResult.Regressions.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) > 0.05 && o.GetDiffPercentFromOtherMetrics(metric) < 0.2));
+                    var regressions = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] >= 5 && o.OtherMetricsDiffPerc[metric] < 20);
+                    sw.WriteLine($"### Regressions (5% - 20%): {regressions.Count()} \n");
+                    sw.AddTableForSingleCriteria(configuration, regressions, metric);
                     sw.WriteLine("\n");
 
                     // Improvements
-                    sw.WriteLine($"### Improvements (5% - 20%): {comparisonResult.Improvements.Count()} \n");
-                    var improvements = GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) > 0.05 && o.GetDiffPercentFromOtherMetrics(metric) < 0.2);
+                    var improvements = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -5 && o.OtherMetricsDiffPerc[metric] > -20);
                     improvements.Reverse();
-                    sw.AddTableForSingleCriteria(configuration, improvements);
+                    sw.WriteLine($"### Improvements (5% - 20%): {improvements.Count()} \n");
+                    sw.AddTableForSingleCriteria(configuration, improvements, metric);
                     sw.WriteLine("\n");
 
                     // Stale Regressions
-                    sw.WriteLine($"### Stale Regressions (Same or percent difference within 5% margin): {comparisonResult.StaleRegressions.Count()} \n");
-                    sw.AddTableForSingleCriteria(configuration, GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) < 0.05 && o.GetDiffPercentFromOtherMetrics(metric) >= 0.0));
+                    var staleRegressions = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] >= 0.0 && o.OtherMetricsDiffPerc[metric] < 5);
+                    sw.WriteLine($"### Stale Regressions (Same or percent difference within 5% margin): {staleRegressions.Count()} \n");
+                    sw.AddTableForSingleCriteria(configuration, staleRegressions, metric);
                     sw.WriteLine("\n");
 
                     // Stale Improvements
-                    sw.WriteLine($"### Stale Improvements (Same or percent difference within 5% margin): {comparisonResult.StaleImprovements.Count()} \n");
-                    var staleImprovements = GoodLinq.Where(ordered, o => o.GetDiffPercentFromOtherMetrics(metric) > -0.05 && o.GetDiffPercentFromOtherMetrics(metric) < 0.0);
+                    var staleImprovements = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > -5 && o.OtherMetricsDiffPerc[metric] <= 0.0);
                     staleImprovements.Reverse();
-                    sw.AddTableForSingleCriteria(configuration, staleImprovements);
+                    sw.WriteLine($"### Stale Improvements (Same or percent difference within 5% margin): {staleImprovements.Count()} \n");
+                    sw.AddTableForSingleCriteria(configuration, staleImprovements, metric);
                     sw.WriteLine("\n");
                 }
             }
         }
 
-        internal static void AddTableForSingleCriteria(this StreamWriter sw, MicrobenchmarkConfiguration configuration, IEnumerable<MicrobenchmarkComparisonResult> comparisons)
+        internal static void AddTableForSingleCriteria(this StreamWriter sw, MicrobenchmarkConfiguration configuration, IEnumerable<MicrobenchmarkComparisonResult> comparisons, string? metricName = null)
         {
             // Check if all comparisons have traces.
-            string tableHeader0 = baseTableString;
-            string tableHeader1 = baseTableRows;
+            string tableHeader0 = "";
+            if (!string.IsNullOrEmpty(metricName))
+            {
+                tableHeader0 = $"| Benchmark Name | Baseline | Comparand | Baseline {metricName} | Comparand {metricName} | Δ {metricName} | Δ% {metricName} |";
+            }
+            else
+            {
+                tableHeader0 = "| Benchmark Name | Baseline | Comparand | Baseline Mean Duration (MSec) | Comparand Mean Duration (MSec) | Δ Mean Duration (MSec) | Δ% Mean Duration |";
+            }
+            string tableHeader1 = "| --- | --- | -- | --- | --- | --- | --- | ";
 
             if (configuration.Output.Columns != null)
             {
@@ -145,14 +155,15 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                 }
             }
 
-            if (configuration.Output.cpu_columns != null)
-            {
-                foreach (var column in configuration.Output.cpu_columns)
-                {
-                    tableHeader0 += $"Baseline {column}  | Comparand {column} |  Δ {column} |  Δ% {column} |";
-                    tableHeader1 += "--- | --- | --- | --- |";
-                }
-            }
+            // TODO: Add CPU columns if needed in the future.
+            //if (configuration.Output.cpu_columns != null)
+            //{
+            //    foreach (var column in configuration.Output.cpu_columns)
+            //    {
+            //        tableHeader0 += $"Baseline {column}  | Comparand {column} |  Δ {column} |  Δ% {column} |";
+            //        tableHeader1 += "--- | --- | --- | --- |";
+            //    }
+            //}
 
             sw.WriteLine(tableHeader0);
             sw.WriteLine(tableHeader1);
@@ -161,24 +172,27 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
             {
                 try
                 {
-                    var baseRow = $"| {lr.MicrobenchmarkName} | {lr.BaselineRunName} | {lr.ComparandRunName} | {Math.Round(lr.Baseline.Statistics.Mean.Value, 2)} | {Math.Round(lr.Comparand.Statistics.Mean.Value, 2)} | {Math.Round(lr.MeanDiff, 2)}| {Math.Round(lr.MeanDiffPerc, 2)}|";
+                    string benchmarkName = lr.MicrobenchmarkName.Replace("<", "\\<").Replace(">", "\\>");
+                    string baseRow = "";
+
+                    if (!String.IsNullOrEmpty(metricName))
+                    {
+                        baseRow = $"| {benchmarkName} | {lr.BaselineRunName} | {lr.ComparandRunName} | {Math.Round(lr.AveragedBaselineOtherMetrics[metricName], 2)} | {Math.Round(lr.AveragedComparandOtherMetrics[metricName], 2)} | {Math.Round(lr.OtherMetricsDiff[metricName], 2)}| {Math.Round(lr.OtherMetricsDiffPerc[metricName], 2)}|";
+                    }
+                    else
+                    {
+                        baseRow = $"| {benchmarkName} | {lr.BaselineRunName} | {lr.ComparandRunName} | {Math.Round(lr.AveragedBaselineMeanValue, 2)} | {Math.Round(lr.AveragedComparandMeanValue, 2)} | {Math.Round(lr.MeanDiff, 2)}| {Math.Round(lr.MeanDiffPerc, 2)}|";
+                    }
 
                     if (configuration.Output.Columns != null)
                     {
                         foreach (var column in configuration.Output.Columns)
                         {
-                            if (!lr.Baseline.OtherMetrics.TryGetValue(column, out double? baselineValue))
-                            {
-                                lr.Baseline.OtherMetrics[column] = baselineValue = API.GCProcessData.LookupAggregateCalculation(column, lr.Baseline.GCData) ?? MicrobenchmarkResult.LookupStatisticsCalculation(column, lr.Baseline);
-                            }
+                            double? baselineValue = lr.AveragedBaselineOtherMetrics.GetValueOrDefault(column);
+                            double? comparandValue = lr.AveragedComparandOtherMetrics.GetValueOrDefault(column);
+
                             string baselineResult = baselineValue.HasValue ? Math.Round(baselineValue.Value, 4).ToString() : string.Empty;
-
-                            if (!lr.Comparand.OtherMetrics.TryGetValue(column, out double? comparandValue))
-                            {
-                                lr.Comparand.OtherMetrics[column] = comparandValue = API.GCProcessData.LookupAggregateCalculation(column, lr.Comparand.GCData) ?? MicrobenchmarkResult.LookupStatisticsCalculation(column, lr.Comparand);
-                            }
                             string comparandResult = comparandValue.HasValue ? Math.Round(comparandValue.Value, 4).ToString() : string.Empty;
-
                             double? delta = baselineValue.HasValue && comparandValue.HasValue ? comparandValue.Value - baselineValue.Value : null;
                             string deltaResult = delta.HasValue ? Math.Round(delta.Value, 4).ToString() : string.Empty;
 
@@ -189,31 +203,32 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                         }
                     }
 
-                    if (configuration.Output.cpu_columns != null)
-                    {
-                        foreach (var column in configuration.Output.cpu_columns)
-                        {
-                            if (!lr.Baseline.OtherMetrics.TryGetValue(column, out double? baselineValue))
-                            {
-                                lr.Baseline.OtherMetrics[column] = baselineValue = lr.Baseline.CPUData?.GetIncCountForGCMethod(column) ?? null;
-                            }
-                            string baselineResult = baselineValue.HasValue ? Math.Round(baselineValue.Value, 2).ToString() : string.Empty;
+                    // TODO: Add CPU columns if needed in the future.
+                    //if (configuration.Output.cpu_columns != null)
+                    //{
+                    //    foreach (var column in configuration.Output.cpu_columns)
+                    //    {
+                    //        if (!lr.Baseline.OtherMetrics.TryGetValue(column, out double? baselineValue))
+                    //        {
+                    //            lr.Baseline.OtherMetrics[column] = baselineValue = lr.Baseline.CPUData?.GetIncCountForGCMethod(column) ?? null;
+                    //        }
+                    //        string baselineResult = baselineValue.HasValue ? Math.Round(baselineValue.Value, 2).ToString() : string.Empty;
 
-                            if (!lr.Comparand.OtherMetrics.TryGetValue(column, out double? comparandValue))
-                            {
-                                lr.Comparand.OtherMetrics[column] = comparandValue = lr.Comparand.CPUData?.GetIncCountForGCMethod(column) ?? null;
-                            }
-                            string comparandResult = comparandValue.HasValue ? Math.Round(comparandValue.Value, 2).ToString() : string.Empty;
+                    //        if (!lr.Comparand.OtherMetrics.TryGetValue(column, out double? comparandValue))
+                    //        {
+                    //            lr.Comparand.OtherMetrics[column] = comparandValue = lr.Comparand.CPUData?.GetIncCountForGCMethod(column) ?? null;
+                    //        }
+                    //        string comparandResult = comparandValue.HasValue ? Math.Round(comparandValue.Value, 2).ToString() : string.Empty;
 
-                            double? delta = baselineValue.HasValue && comparandValue.HasValue ? comparandValue.Value - baselineValue.Value : null;
-                            string deltaResult = delta.HasValue ? Math.Round(delta.Value, 2).ToString() : string.Empty;
+                    //        double? delta = baselineValue.HasValue && comparandValue.HasValue ? comparandValue.Value - baselineValue.Value : null;
+                    //        string deltaResult = delta.HasValue ? Math.Round(delta.Value, 2).ToString() : string.Empty;
 
-                            double? deltaPercent = delta.HasValue ? (delta / baselineValue.Value) * 100 : null;
-                            string deltaPercentResult = deltaPercent.HasValue ? Math.Round(deltaPercent.Value, 2).ToString() : string.Empty;
+                    //        double? deltaPercent = delta.HasValue ? (delta / baselineValue.Value) * 100 : null;
+                    //        string deltaPercentResult = deltaPercent.HasValue ? Math.Round(deltaPercent.Value, 2).ToString() : string.Empty;
 
-                            baseRow += $"{baselineResult} | {comparandResult} | {deltaResult} | {deltaPercentResult} |";
-                        }
-                    }
+                    //        baseRow += $"{baselineResult} | {comparandResult} | {deltaResult} | {deltaPercentResult} |";
+                    //    }
+                    //}
 
                     sw.WriteLine(baseRow);
                 }
@@ -223,15 +238,6 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                     Console.WriteLine($"Exception while processing: {lr.MicrobenchmarkName} for {lr.BaselineRunName} x {lr.ComparandRunName}");
                     Console.WriteLine(e.StackTrace);
                 }
-            }
-
-            // Dispose all the Analyzers now that we are persisting the values.
-            foreach (var comparison in comparisons)
-            {
-                comparison.Baseline?.GCData?.Parent?.Dispose();
-                comparison.Baseline?.CPUData?.Parent?.Analyzer?.Dispose();
-                comparison.Comparand?.GCData?.Parent?.Dispose();
-                comparison.Comparand?.CPUData?.Parent?.Analyzer?.Dispose();
             }
         }
     }
