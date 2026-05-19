@@ -122,14 +122,6 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(ExtensionsVersion)" />
   </ItemGroup>
-  <!-- These package versions are only for the opt-in net472 path (for example, PERFLAB_TARGET_FRAMEWORKS=net472). -->
-  <ItemGroup Condition="'$(TargetFramework)' != '' and '$(TargetFrameworkIdentifier)' == '.NETFramework'">
-    <PackageReference Include="System.Memory" Version="4.6.3" />
-    <PackageReference Include="System.Numerics.Vectors" Version="4.6.1" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
-    <PackageReference Include="System.IO.Pipelines" Version="10.0.3" />
-    <PackageReference Include="System.Threading.Channels" Version="$(SystemVersion)" />
-  </ItemGroup>
   <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0')) and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
     <!-- Newer System.Numerics.Tensors packages require net10+, so keep net8.0/net9.0 on the last compatible package line. -->
     <PackageReference Include="System.Numerics.Tensors" Version="10.0.*-*" />

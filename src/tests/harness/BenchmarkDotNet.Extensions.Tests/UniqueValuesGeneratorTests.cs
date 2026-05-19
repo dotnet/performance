@@ -151,14 +151,14 @@ namespace Tests
             Assert.NotEqual(default, value);
         }
 
-        private static void SupportsDictionary<TKey, TValue>(int count)
+        private static void SupportsDictionary<TKey, TValue>(int count) where TKey : notnull
         {
             var dictionary = ValuesGenerator.Dictionary<TKey, TValue>(count);
             Assert.NotNull(dictionary);
             Assert.Equal(count, dictionary.Count);
         }
 
-        private static void Supports<T>(int count = 10)
+        private static void Supports<T>(int count = 10) where T : notnull
         {
             SupportsArray<T>(count);
             SupportsNonDefaultValue<T>();
