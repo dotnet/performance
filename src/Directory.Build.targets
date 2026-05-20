@@ -1,0 +1,11 @@
+<Project>
+    <Import Project="../Directory.Build.targets" />
+
+    <PropertyGroup>
+      <!-- Runtime-async is gated behind the 'runtimeasync' experiment so it only runs
+           in the dedicated experiment lane. ci_setup.py sets EnableRuntimeAsync=true as
+           an env var (which MSBuild surfaces as a property) when the experiment name
+           is 'runtimeasync'. -->
+      <Features Condition="'$(EnableRuntimeAsync)' == 'true' and $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))">$(Features);runtime-async=on</Features>
+    </PropertyGroup>
+</Project>
