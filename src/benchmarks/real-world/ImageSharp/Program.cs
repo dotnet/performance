@@ -19,14 +19,15 @@ namespace SixLabors.ImageSharp.Benchmarks
         /// </param>
         // Use RunAsync (not Run) so BDN does not install its single-threaded
         // BenchmarkDotNetSynchronizationContext on the entrypoint thread.
-        public static async Task Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
-            await BenchmarkSwitcher
+            var summaries = await BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
                 .RunAsync(args, RecommendedConfig.Create(
                         artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "BenchmarkDotNet.Artifacts")),
                         mandatoryCategories: ImmutableHashSet.Create(Categories.ImageSharp)))
                 .ConfigureAwait(false);
+            return summaries.ToExitCode();
         }
     }
 }
