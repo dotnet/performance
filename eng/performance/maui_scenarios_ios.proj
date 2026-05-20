@@ -15,9 +15,6 @@
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
 
-    <!-- We have to set the following two variables until https://github.com/dotnet/runtime/pull/124604 flows to us -->
-    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">$(_MSBuildArgs);/p:PublishReadyToRunStripDebugInfo=false;/p:PublishReadyToRunStripInliningInfo=false</_MSBuildArgs>
-
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'Interpreter'">$(_MSBuildArgs);/p:PublishReadyToRun=false</_MSBuildArgs>
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true;/p:PublishAotUsingRuntimePack=true</_MSBuildArgs>
   </PropertyGroup>

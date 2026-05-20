@@ -623,8 +623,9 @@ class iOSHelper:
                        '--start', start_ts, '--output', logarchive]
         RunCommand(collect_cmd, verbose=True).run()
 
-        # Parse SpringBoard watchdog events for this bundle ID
-        show_cmd = ['log', 'show',
+        # Parse SpringBoard watchdog events for this bundle ID.
+        # sudo because the logarchive is root-owned (see comment above).
+        show_cmd = ['sudo', 'log', 'show',
                     '--predicate', '(process == "SpringBoard") && (category == "Watchdog")',
                     '--info', '--style', 'ndjson', logarchive]
         show = RunCommand(show_cmd, verbose=True)
@@ -702,7 +703,7 @@ class iOSHelper:
         Searches for: bin/<config>/net*/<rid>/<app>.app
         Returns the absolute path. Raises FileNotFoundError if not found.
         """
-        rid_patterns = ['ios-arm64'] if is_physical else ['iossimulator-*', 'ios-arm64']
+        rid_patterns = ['ios-arm64'] if is_physical else ['iossimulator-*']
         for rid_pattern in rid_patterns:
             pattern = os.path.join(build_output_dir, 'bin', configuration, 'net*', rid_pattern, f'{app_name}.app')
             matches = glob.glob(pattern)
@@ -714,7 +715,7 @@ class iOSHelper:
                 return app_path
 
         raise FileNotFoundError(
-            f"No .app bundle in {build_output_dir}/bin/{configuration}/net*/(iossimulator-*|ios-arm64)/{app_name}.app"
+            f"No .app bundle in {build_output_dir}/bin/{configuration}/net*/{rid_patterns[0]}/{app_name}.app"
         )
 
     # ── Helpers ───────────────────────────────────────────────────────

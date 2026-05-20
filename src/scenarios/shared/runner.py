@@ -1141,7 +1141,7 @@ ex: C:\repos\performance;C:\repos\runtime
             if self.framework:
                 base_cmd.extend(['-f', self.framework])
             if self.msbuildargs:
-                base_cmd.extend(shlex.split(self.msbuildargs.replace(';', ' ')))
+                base_cmd.extend([arg for arg in self.msbuildargs.split(';') if arg])
 
             project_dir = os.path.dirname(os.path.abspath(self.csprojpath))
             exename = self.traits.exename
@@ -1173,6 +1173,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
             # --- Device setup + first deploy ---
             iosHelper = iOSHelper()
+            edit_pairs = []
             try:
                 app_bundle = iosHelper.find_app_bundle(project_dir, exename, self.configuration, is_physical=is_physical)
                 first_app_size = _measure_app_size(app_bundle)
@@ -1206,7 +1207,6 @@ ex: C:\repos\performance;C:\repos\runtime
                 if len(self.editsrcs) != len(self.editdests):
                     raise Exception("--edit-src and --edit-dest must have the same number of semicolon-separated paths")
 
-                edit_pairs = []
                 for src, dest in zip(self.editsrcs, self.editdests):
                     with open(dest, 'r') as f:
                         original = f.read()
@@ -1334,4 +1334,10 @@ ex: C:\repos\performance;C:\repos\runtime
                                 sys.exit(upload_code)
 
             finally:
+                for dest, original, _modified in edit_pairs:
+                    try:
+                        with open(dest, 'w') as f:
+                            f.write(original)
+                    except Exception as e:
+                        getLogger().warning("Failed to restore %s: %s", dest, e)
                 iosHelper.cleanup(skip_uninstall=True)
