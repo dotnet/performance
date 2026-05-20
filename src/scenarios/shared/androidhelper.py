@@ -334,7 +334,12 @@ class AndroidHelper:
             # Use subprocess.run directly instead of RunCommand because grep
             # returns exit code 1 when no lines match, which RunCommand treats
             # as an error and raises CalledProcessError.
-            result = subprocess.run(poll_cmd, capture_output=True, text=True)
+            try:
+                result = subprocess.run(poll_cmd, capture_output=True, text=True, timeout=10)
+            except subprocess.TimeoutExpired:
+                # adb shell hung; treat as no-match and retry next tick.
+                time.sleep(1)
+                continue
             if result.stdout.strip():
                 break
             time.sleep(1)

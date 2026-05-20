@@ -4,6 +4,7 @@ import shutil
 import xml.etree.ElementTree as ET
 import re
 import urllib.request
+from typing import List, Optional
 from performance.common import get_repo_root_path
 from shared.precommands import PreCommands
 from logging import getLogger
@@ -205,7 +206,7 @@ def _get_repo_nuget_config_url(repo: str, target_framework: str) -> str:
     
     return f'https://raw.githubusercontent.com/{repo}/{branch}/NuGet.config'
 
-def download_repo_nuget_config(repo: str, target_framework: str, output_filename: str) -> str | None:
+def download_repo_nuget_config(repo: str, target_framework: str, output_filename: str) -> Optional[str]:
     '''
     Download a repo's NuGet.config from GitHub. Returns the absolute path on success, None on failure.
     '''
@@ -388,8 +389,8 @@ class MauiNuGetConfigContext:
 
 def install_latest_maui(
         precommands: PreCommands, 
-        feed: str | None = None,
-        workloads: list[str] | None = None,
+        feed: Optional[str] = None,
+        workloads: Optional[List[str]] = None,
         workload_name: str = 'maui'
         ):
     '''

@@ -1128,6 +1128,7 @@ ex: C:\repos\performance;C:\repos\runtime
             # Normalize device state BEFORE the first build so the first sample is measured under the same conditions as incrementals.
             # Activity resolution is deferred until after install (requires the APK to be on the device).
             androidHelper = AndroidHelper()
+            edit_pairs = []
             try:
                 first_cmd = base_cmd + [f'-bl:{first_binlog}']
                 getLogger().info("First build+deploy: %s" % ' '.join(first_cmd))
@@ -1216,7 +1217,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 # Build list of (dest, original_content, modified_content) tuples for toggling
                 if len(self.editsrcs) != len(self.editdests):
                     raise Exception("--edit-src and --edit-dest must have the same number of semicolon-separated paths")
-                edit_pairs = []
+                edit_pairs.clear()
                 for src, dest in zip(self.editsrcs, self.editdests):
                     original = None
                     modified = None
@@ -1318,4 +1319,10 @@ ex: C:\repos\performance;C:\repos\runtime
                                 sys.exit(upload_code)
 
             finally:
+                for dest, original, _modified in edit_pairs:
+                    try:
+                        with open(dest, 'w') as f:
+                            f.write(original)
+                    except Exception as e:
+                        getLogger().warning("Failed to restore %s: %s", dest, e)
                 androidHelper.close_device(skip_uninstall=True)
