@@ -103,10 +103,12 @@ namespace GC.Infrastructure.Core.Presentation
         {
             sw.WriteLine("## Repro Steps");
 
-            foreach (var p in executionDetails)
+            var distinctCommandlineArgs = executionDetails
+                .DistinctBy(kvp => kvp.Value.CommandlineArgs);
+            foreach (var kvp in distinctCommandlineArgs)
             {
-                sw.WriteLine($"### {p.Key}");
-                sw.WriteLine($"```{p.Value.CommandlineArgs}```\n");
+                sw.WriteLine($"### {kvp.Key}");
+                sw.WriteLine($"```{kvp.Value.CommandlineArgs}```\n");
             }
 
             sw.WriteLine();

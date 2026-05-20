@@ -1,7 +1,6 @@
 ﻿using GC.Infrastructure.Core.Analysis;
 using GC.Infrastructure.Core.Analysis.Microbenchmarks;
 using GC.Infrastructure.Core.Configurations.Microbenchmarks;
-using System.Configuration;
 using API = GC.Analysis.API;
 
 namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
