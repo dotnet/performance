@@ -1222,7 +1222,6 @@ ex: C:\repos\performance;C:\repos\runtime
                 incremental_app_size_results = []
                 aggregated_counters = {}
                 report_template = None
-                intermediate_binlogs = []
 
                 for iteration in range(1, num_iterations + 1):
                     getLogger().info("=== Incremental iteration %d/%d ===", iteration, num_iterations)
@@ -1259,7 +1258,6 @@ ex: C:\repos\performance;C:\repos\runtime
                     incremental_install_results.append(install_ms)
                     incremental_startup_results.append(startup_ms)
                     incremental_app_size_results.append(iter_app_size)
-                    intermediate_binlogs.append(iter_binlog)
 
                     # Parse iteration binlog → temp report
                     iter_report = os.path.join(const.TRACEDIR, 'incremental-build-report-%d.json' % iteration)

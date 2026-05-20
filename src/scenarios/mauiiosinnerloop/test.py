@@ -1,5 +1,5 @@
 '''
-MAUI iOS Inner Loop (Debug End-2-End) Time Measurement
+MAUI iOS Inner Loop (Debug End-to-End) Time Measurement
 Orchestrates first build-deploy-startup → file edit → incremental build-deploy-startup → parse binlogs and startup times.
 '''
 from shared.runner import TestTraits, Runner
