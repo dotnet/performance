@@ -20,11 +20,14 @@ if (!Directory.Exists(sourceDir))
 // to communicate information is pass by environment variable
 Environment.SetEnvironmentVariable(Helpers.TestProjectEnvVarName, sourceDir);
 
-return BenchmarkSwitcher
+// Use RunAsync (not Run) so BDN does not install its single-threaded
+// BenchmarkDotNetSynchronizationContext on the entrypoint thread.
+var summaries = await BenchmarkSwitcher
     .FromAssembly(typeof(Helpers).Assembly)
-    .Run(args, RecommendedConfig.Create(
+    .RunAsync(args, RecommendedConfig.Create(
                    artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Helpers).Assembly.Location),
                                                                  "BenchmarkDotNet.Artifacts")),
                    mandatoryCategories: ImmutableHashSet.Create("Roslyn"),
                    job: Job.Default.WithMaxRelativeError(0.01)))
-    .ToExitCode();
+    .ConfigureAwait(false);
+return summaries.ToExitCode();
