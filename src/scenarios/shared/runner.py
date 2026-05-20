@@ -1299,8 +1299,9 @@ ex: C:\repos\performance;C:\repos\runtime
                         getLogger().info("Removed intermediate: %s" % f_path)
 
                 # Wipe helix upload traces dir so copytree repopulates it cleanly
-                if runninginlab():
-                    traces_upload = os.path.join(helixuploaddir() or '', 'traces')
+                helix_upload_dir = helixuploaddir()
+                if runninginlab() and helix_upload_dir is not None:
+                    traces_upload = os.path.join(helix_upload_dir, 'traces')
                     if os.path.exists(traces_upload):
                         rmtree(traces_upload)
 
