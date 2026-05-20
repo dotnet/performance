@@ -86,14 +86,24 @@ class iOSHelper:
 
         dotnet_root = os.environ.get('DOTNET_ROOT', os.path.expanduser('~/.dotnet'))
         pattern = os.path.join(dotnet_root, 'packs', 'Microsoft.iOS.Sdk.*', '*', 'tools', 'bin', 'mlaunch')
-        matches = sorted(glob.glob(pattern))
+        matches = glob.glob(pattern)
         if not matches:
             raise FileNotFoundError(
                 f"mlaunch not found. Searched: {pattern}\n"
                 f"Ensure the iOS SDK workload is installed (dotnet workload install ios)."
             )
-        # Use the last match (highest version when sorted lexicographically)
-        mlaunch = matches[-1]
+
+        def _version_key(p: str):
+            m = re.search(r'Microsoft\.iOS\.Sdk\.([^/\\]+)', p)
+            if not m:
+                return ()
+            parts = re.split(r'[.\-+]', m.group(1))
+            key = []
+            for part in parts:
+                key.append((0, int(part)) if part.isdigit() else (1, part))
+            return tuple(key)
+
+        mlaunch = max(matches, key=_version_key)
         getLogger().info("Resolved mlaunch: %s", mlaunch)
         iOSHelper._mlaunch_path = mlaunch
         return mlaunch

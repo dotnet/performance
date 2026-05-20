@@ -27,7 +27,7 @@ enum MetricType
     WinUIBlazor,
     TimeToMain2,
     BuildTime,
-    iOSInnerLoop,
+    IOSInnerLoop,
 }
 
 public class InnerLoopMarkerEventSource : EventSource
@@ -292,7 +292,7 @@ public class Startup
             MetricType.WinUIBlazor => new WinUIBlazorParser(),
             MetricType.TimeToMain2 => new TimeToMain2Parser(AddTestProcessEnvironmentVariable),
             MetricType.BuildTime => new BuildTimeParser(),
-            MetricType.iOSInnerLoop => new iOSInnerLoopParser(),
+            MetricType.IOSInnerLoop => new IOSInnerLoopParser(),
             _ => throw new ArgumentOutOfRangeException(),
         };
 

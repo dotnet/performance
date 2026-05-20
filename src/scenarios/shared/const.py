@@ -29,7 +29,7 @@ SCENARIO_NAMES = {STARTUP: 'Startup',
                   INNERLOOPMSBUILD: 'InnerLoopMsBuild',
                   DOTNETWATCH: 'DotnetWatch',
                   BUILDTIME: 'BuildTime',
-                  IOSINNERLOOP: 'iOSInnerLoop'}
+                  IOSINNERLOOP: 'IOSInnerLoop'}
 
 BINDIR = 'bin'
 PUBDIR = 'pub'

@@ -1075,7 +1075,6 @@ ex: C:\repos\performance;C:\repos\runtime
             startup.parsetraces(self.traits)
 
         elif self.testtype == const.IOSINNERLOOP:
-            import hashlib
             from shutil import copy2, copytree
             from performance.common import runninginlab
             from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_QUEUE

@@ -12,7 +12,7 @@ namespace ScenarioMeasurement;
 /// <summary>
 /// Parses iOS inner loop (build+deploy) target and task durations from a binary log file.
 /// </summary>
-public class iOSInnerLoopParser : IParser
+public class IOSInnerLoopParser : IParser
 {
     public void EnableKernelProvider(ITraceSession kernel) { throw new NotImplementedException(); }
     public void EnableUserProviders(ITraceSession user) { throw new NotImplementedException(); }
