@@ -325,7 +325,7 @@ class AndroidHelper:
             # Use packagename (not activityname) to match regardless of whether
             # the activity is reported as '.MainActivity' or the fully-qualified
             # 'com.company.app.MainActivity'.
-            f"logcat -d | grep -E 'ActivityTaskManager|ActivityManager' | grep 'Displayed {packagename}/'"
+            f"logcat -d | grep -E 'ActivityTaskManager|ActivityManager' | grep -F 'Displayed {packagename}/'"
         ]
 
         deadline = time.time() + timeout_s
