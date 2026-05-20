@@ -1,5 +1,4 @@
 ﻿using API = GC.Analysis.API;
-using Microsoft.Diagnostics.Tracing.Parsers.Clr;
 
 namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 {
@@ -14,8 +13,6 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             "PauseDurationMSec_MeanWhereIsBackground",
             "PauseDurationMSec_MeanWhereIsBlockingGen2"
         };
-
-        public MicrobenchmarkComparisonResult() { }
 
         public MicrobenchmarkComparisonResult(IEnumerable<MicrobenchmarkResult> baselines, IEnumerable<MicrobenchmarkResult> comparands, bool includeTraces = true)
         {

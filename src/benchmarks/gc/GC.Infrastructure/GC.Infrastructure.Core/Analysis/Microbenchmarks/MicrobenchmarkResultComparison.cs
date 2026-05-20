@@ -1,5 +1,4 @@
 ﻿using GC.Analysis.API;
-using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.Microbenchmarks;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
