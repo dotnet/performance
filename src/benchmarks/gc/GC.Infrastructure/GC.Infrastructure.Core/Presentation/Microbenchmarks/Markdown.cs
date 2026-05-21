@@ -51,12 +51,12 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
             sw.WriteLine("\n");
 
             // Large Regressions
-            sw.WriteLine($"### Large Regressions (>20%): {comparisonResult.LargeRegressions.Count()} \n");
+            sw.WriteLine($"### Large Regressions (>=20%): {comparisonResult.LargeRegressions.Count()} \n");
             sw.AddTableForSingleCriteria(configuration, comparisonResult.LargeRegressions);
             sw.WriteLine("\n");
 
             // Large Improvements
-            sw.WriteLine($"### Large Improvements (>20%): {comparisonResult.LargeImprovements.Count()} \n");
+            sw.WriteLine($"### Large Improvements (>=20%): {comparisonResult.LargeImprovements.Count()} \n");
             sw.AddTableForSingleCriteria(configuration, comparisonResult.LargeImprovements);
             sw.WriteLine("\n");
 
@@ -71,7 +71,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
             sw.WriteLine("\n");
 
             // Stale Regressions
-            sw.WriteLine($"### Stale Regressions (Same or percent difference within 5% margin): {comparisonResult.StaleRegressions.Count()} \n");
+            sw.WriteLine($"### Stale Regressions (Percent difference within 5% margin): {comparisonResult.StaleRegressions.Count()} \n");
             sw.AddTableForSingleCriteria(configuration, comparisonResult.StaleRegressions);
             sw.WriteLine("\n");
 
@@ -116,8 +116,8 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                     sw.WriteLine("\n");
 
                     // Stale Regressions
-                    var staleRegressions = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] >= 0.0 && o.OtherMetricsDiffPerc[metric] < 5);
-                    sw.WriteLine($"### Stale Regressions (Same or percent difference within 5% margin): {staleRegressions.Count()} \n");
+                    var staleRegressions = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > 0.0 && o.OtherMetricsDiffPerc[metric] < 5);
+                    sw.WriteLine($"### Stale Regressions (Percent difference within 5% margin): {staleRegressions.Count()} \n");
                     sw.AddTableForSingleCriteria(configuration, staleRegressions, metric);
                     sw.WriteLine("\n");
 

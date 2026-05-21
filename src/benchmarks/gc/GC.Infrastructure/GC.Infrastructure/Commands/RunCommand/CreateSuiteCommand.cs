@@ -91,7 +91,7 @@ namespace GC.Infrastructure.Commands.RunCommand
             configurationMap["GCPerfSim"] = gcPerfSimBase;
 
             string microbenchmarkBase = CreateMicrobenchmarkSuite(configuration, suitePath);
-            configurationMap["Microbenchmark"] = microbenchmarkBase;
+            configurationMap["Microbenchmarks"] = microbenchmarkBase;
 
             string aspnetBenchmarkBase = CreateASPNetBenchmarkSuite(configuration, suitePath);
             configurationMap["ASPNetBenchmarks"] = aspnetBenchmarkBase;
@@ -158,7 +158,7 @@ namespace GC.Infrastructure.Commands.RunCommand
 
         internal static string CreateMicrobenchmarkSuite(InputConfiguration inputConfiguration, string suitePath)
         {
-            string microbenchmarkSuitePath = Path.Combine(suitePath, "Microbenchmark");
+            string microbenchmarkSuitePath = Path.Combine(suitePath, "Microbenchmarks");
 
             Core.Utilities.TryCreateDirectory(microbenchmarkSuitePath);
 

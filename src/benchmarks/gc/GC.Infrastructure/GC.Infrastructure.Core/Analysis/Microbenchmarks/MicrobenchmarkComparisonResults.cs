@@ -17,11 +17,11 @@
 
         public IEnumerable<MicrobenchmarkComparisonResult> Comparisons { get; }
         public IEnumerable<MicrobenchmarkComparisonResult> Ordered => Comparisons.Where(o => !double.IsNaN(o.MeanDiff)).OrderByDescending(m => m.MeanDiffPerc);
-        public IEnumerable<MicrobenchmarkComparisonResult> LargeRegressions => Ordered.Where(o => o.MeanDiffPerc > 20);
-        public IEnumerable<MicrobenchmarkComparisonResult> LargeImprovements => Ordered.Where(o => o.MeanDiffPerc < -20).OrderBy(g => g.MeanDiffPerc);
-        public IEnumerable<MicrobenchmarkComparisonResult> Regressions => Ordered.Where(o => o.MeanDiffPerc < 20 && o.MeanDiffPerc > 5);
-        public IEnumerable<MicrobenchmarkComparisonResult> Improvements => Ordered.Where(o => o.MeanDiffPerc > -20 && o.MeanDiffPerc < -5).OrderBy(g => g.MeanDiffPerc);
+        public IEnumerable<MicrobenchmarkComparisonResult> LargeRegressions => Ordered.Where(o => o.MeanDiffPerc >= 20);
+        public IEnumerable<MicrobenchmarkComparisonResult> LargeImprovements => Ordered.Where(o => o.MeanDiffPerc <= -20).OrderBy(g => g.MeanDiffPerc);
+        public IEnumerable<MicrobenchmarkComparisonResult> Regressions => Ordered.Where(o => o.MeanDiffPerc < 20 && o.MeanDiffPerc >= 5);
+        public IEnumerable<MicrobenchmarkComparisonResult> Improvements => Ordered.Where(o => o.MeanDiffPerc > -20 && o.MeanDiffPerc <= -5).OrderBy(g => g.MeanDiffPerc);
         public IEnumerable<MicrobenchmarkComparisonResult> StaleRegressions => Ordered.Where((o => o.MeanDiffPerc > 0 && o.MeanDiffPerc < 5));
-        public IEnumerable<MicrobenchmarkComparisonResult> StaleImprovements => Ordered.Where((o => o.MeanDiffPerc < 0 && o.MeanDiffPerc > -5)).OrderBy(g => g.MeanDiffPerc);
+        public IEnumerable<MicrobenchmarkComparisonResult> StaleImprovements => Ordered.Where((o => o.MeanDiffPerc <= 0 && o.MeanDiffPerc > -5)).OrderBy(g => g.MeanDiffPerc);
     }
 }
