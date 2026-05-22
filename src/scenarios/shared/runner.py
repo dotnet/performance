@@ -1141,7 +1141,10 @@ ex: C:\repos\performance;C:\repos\runtime
             if self.framework:
                 base_cmd.extend(['-f', self.framework])
             if self.msbuildargs:
-                base_cmd.extend([arg for arg in self.msbuildargs.split(';') if arg])
+                # _MSBuildArgs in the proj uses both ';' and ' ' as separators.
+                for arg in re.split(r'[;\s]+', self.msbuildargs):
+                    if arg.strip():
+                        base_cmd.append(arg.strip())
 
             project_dir = os.path.dirname(os.path.abspath(self.csprojpath))
             exename = self.traits.exename

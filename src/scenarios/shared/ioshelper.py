@@ -76,10 +76,10 @@ class iOSHelper:
 
     @staticmethod
     def _resolve_mlaunch():
-        """Resolve the mlaunch binary from the iOS SDK pack.
+        """Resolve the mlaunch binary from the newest installed Microsoft.iOS.Sdk pack.
 
-        Searches $DOTNET_ROOT/packs/Microsoft.iOS.Sdk.*/tools/bin/mlaunch,
-        falling back to ~/.dotnet if DOTNET_ROOT is unset. Caches the result.
+        Sorts candidates by the pack *version* directory (parent of `tools/`),
+        not by the pack name, so e.g. 26.10 ranks above 26.2.
         """
         if iOSHelper._mlaunch_path is not None:
             return iOSHelper._mlaunch_path
@@ -94,10 +94,9 @@ class iOSHelper:
             )
 
         def _version_key(p: str):
-            m = re.search(r'Microsoft\.iOS\.Sdk\.([^/\\]+)', p)
-            if not m:
-                return ()
-            parts = re.split(r'[.\-+]', m.group(1))
+            # Path is .../packs/<pack>/<version>/tools/bin/mlaunch — sort on <version>.
+            version_dir = os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(p))))
+            parts = re.split(r'[.\-+]', version_dir)
             key = []
             for part in parts:
                 key.append((0, int(part)) if part.isdigit() else (1, part))
