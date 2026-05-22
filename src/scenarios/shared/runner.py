@@ -1117,16 +1117,11 @@ ex: C:\repos\performance;C:\repos\runtime
             # Build the base MSBuild command.
             base_cmd = ['dotnet', 'run', '--project', self.csprojpath, '-p:WaitForExit=false', '--no-restore', '-c', self.configuration, '-f', self.framework]
             if self.msbuildargs:
-                # Split on semicolons and whitespace. NOTE: MSBuild args with
-                # embedded spaces (e.g. /p:Foo="a b") will be shredded; all
-                # current callers pass only /p:Key=Value forms without spaces.
+                # Split on semicolons and whitespace. /p:Key=Value with spaces will be shredded.
                 for arg in re.split(r'[;\s]+', self.msbuildargs):
                     if arg.strip():
                         base_cmd.append(arg.strip())
 
-            # --- First build + deploy ---
-            # Normalize device state BEFORE the first build so the first sample is measured under the same conditions as incrementals.
-            # Activity resolution is deferred until after install (requires the APK to be on the device).
             androidHelper = AndroidHelper()
             edit_pairs = []
             try:
@@ -1138,11 +1133,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 subprocess.run(first_cmd, check=True)
                 remove_dotnet_run_binlog(first_binlog)
 
-                # Capture SDK versions from the just-built output. Other Android
-                # scenarios do this in pre.py on the build machine, but our first
-                # build runs on Helix and IS the measured build, so we have to
-                # do it here. Discover the RID folder the build actually produced
-                # (android-arm64 on physical devices, android-x64 on emulator).
+                # Capture SDK versions from the first build (pre.py runs on Helix here, not on AzDO).
                 try:
                     framework_obj_root = os.path.join(os.path.dirname(self.csprojpath), 'obj', self.configuration, self.framework)
                     abi_by_rid = {'android-arm': 'armeabi-v7a', 'android-arm64': 'arm64-v8a', 'android-x86': 'x86', 'android-x64': 'x86_64'}
@@ -1169,14 +1160,12 @@ ex: C:\repos\performance;C:\repos\runtime
                     os.makedirs(const.TRACEDIR, exist_ok=True)
                     versions_path = os.path.join(const.TRACEDIR, 'versions.json')
                     versions_write_json(version_dict, versions_path)
-                    # Surface PERFLAB_DATA_* env vars so the Startup tool's Reporter
-                    # picks them up into build.AdditionalData.
+                    # Surface PERFLAB_DATA_* env vars so Reporter picks them up into build.AdditionalData.
                     versions_read_json_file_save_env(versions_path)
                 except Exception as ex:
                     # Never let version capture regress the measurement pipeline.
                     getLogger().warning("Version capture failed, continuing without versions.json: %s" % ex)
 
-                # --- Resolve activity (requires app installed by first_cmd) ---
                 getLogger().info("Resolving launchable activity after first install.")
                 resolve_cmd = xharness_adb() + [
                     'shell',
@@ -1188,14 +1177,9 @@ ex: C:\repos\performance;C:\repos\runtime
                 androidHelper.activityname = activityname
                 getLogger().info("Using resolved activity: %s" % activityname)
 
-                # --- First startup measurement (logcat-based) ---
-                # `dotnet run -p:WaitForExit=false` issued `am start -S` (no -W).
-                # Poll logcat for ActivityTaskManager's 'Displayed <pkg>/: +NNNms' line.
-                # Screen was guaranteed on by ensure_screen_on() above.
                 first_startup_ms = androidHelper.measure_startup_from_logcat(self.packagename, activityname)
                 getLogger().info("First deploy startup: %d ms" % first_startup_ms)
 
-                # --- Parse first build report ---
                 startup = StartupWrapper()
                 first_build_report = os.path.join(const.TRACEDIR, 'first-build-and-deploy-perf-lab-report.json')
                 startup.reportjson = first_build_report
@@ -1206,15 +1190,12 @@ ex: C:\repos\performance;C:\repos\runtime
                                        upload_to_perflab_container=False)
                 startup.parsetraces(self.traits, copy_traces=False)
 
-                # Merge first build metrics + startup → first e2e report
                 first_e2e_report = os.path.join(const.TRACEDIR, 'first-debug-e2e-perf-lab-report.json')
                 merge_build_and_startup(first_build_report, [first_startup_ms], first_e2e_report)
 
-                # --- Incremental loop ---
                 num_iterations = self.innerloopiterations
                 getLogger().info("Starting incremental loop: %d iterations" % num_iterations)
 
-                # Build list of (dest, original_content, modified_content) tuples for toggling
                 if len(self.editsrcs) != len(self.editdests):
                     raise Exception("--edit-src and --edit-dest must have the same number of semicolon-separated paths")
                 edit_pairs.clear()
@@ -1229,9 +1210,9 @@ ex: C:\repos\performance;C:\repos\runtime
                     getLogger().info("Edit pair: %s <-> %s" % (src, dest))
 
                 incremental_startup_results = []
-                aggregated_counters = {}  # counter_name -> aggregated counter dict
-                report_template = None   # test metadata from first parsed report
-                intermediate_files = []  # files to clean up
+                aggregated_counters = {}
+                report_template = None
+                intermediate_files = []
 
                 def pre_iteration():
                     androidHelper.ensure_screen_on()
@@ -1248,7 +1229,6 @@ ex: C:\repos\performance;C:\repos\runtime
                     incremental_startup_results.append(ms)
                     intermediate_files.append(iter_binlog)
 
-                    # Save test metadata from the first iteration
                     if report_template is None:
                         report_template = test_metadata
 
@@ -1265,7 +1245,6 @@ ex: C:\repos\performance;C:\repos\runtime
                             }
                         aggregated_counters[name]["results"].extend(counter.get("results", []))
 
-                # --- Aggregate incremental results ---
                 incremental_e2e_report = os.path.join(const.TRACEDIR, 'incremental-debug-e2e-perf-lab-report.json')
                 final_counters = list(aggregated_counters.values())
                 final_counters.append({
@@ -1283,14 +1262,12 @@ ex: C:\repos\performance;C:\repos\runtime
                         "tests": [report_template["test"]],
                     }
                 else:
-                    # Fallback: should not happen if at least 1 iteration ran
+                    # Fallback: should not happen if at least 1 iteration ran.
                     final_report_data = {"tests": [{"counters": final_counters}]}
                 with open(incremental_e2e_report, 'w') as f:
                     json.dump(final_report_data, f, indent=2)
                 getLogger().info("Final incremental E2E report written to: %s" % incremental_e2e_report)
 
-                # --- Cleanup and upload ---
-                # Clean up intermediates from TRACEDIR
                 for f_path in intermediate_files + [first_build_report]:
                     if f_path.endswith('.binlog'):
                         getLogger().info("Keeping binlog for upload: %s" % f_path)
@@ -1299,14 +1276,13 @@ ex: C:\repos\performance;C:\repos\runtime
                         os.remove(f_path)
                         getLogger().info("Removed intermediate: %s" % f_path)
 
-                # Wipe helix upload traces dir so copytree repopulates it cleanly
+                # Wipe helix upload traces dir so copytree below repopulates it cleanly.
                 helix_upload_dir = helixuploaddir()
                 if runninginlab() and helix_upload_dir is not None:
                     traces_upload = os.path.join(helix_upload_dir, 'traces')
                     if os.path.exists(traces_upload):
                         rmtree(traces_upload)
 
-                # Final upload
                 self.traits.add_traits(overwrite=True, upload_to_perflab_container=saved_upload)
                 helix_upload_dir = helixuploaddir()
                 if runninginlab() and helix_upload_dir is not None:

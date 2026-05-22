@@ -57,14 +57,11 @@ def _chmod_exec(path):
         os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
 
 
-# --- Workaround for https://github.com/dotnet/android/issues/11319 ---
+# Workaround for https://github.com/dotnet/android/issues/11319:
 # InstallAndroidDependencies sometimes silently skips a required SDK package
-# while exiting 0. The skipped package varies by manifest version (e.g. the
-# default manifest dropped platforms;android-37.0; GoogleV2 dropped
-# platform-tools). Parse the warning and install the missing packages
-# explicitly via sdkmanager. Also unconditionally re-install platform-tools
-# if adb is missing (postcondition-driven repair, in case the warning text
-# changes upstream).
+# while exiting 0. Parse the warning text and install missing packages
+# explicitly via sdkmanager; unconditionally re-install platform-tools if
+# adb is missing.
 _MISSING_DEP_RE = re.compile(
     r"Dependency `([^`]+)` should have been installed but could not be resolved"
 )
@@ -273,20 +270,12 @@ def setup_dotnet(correlation_payload):
 
 
 def install_workload(ctx):
-    """Step 1: Install workloads via restore (dependencies) then install (pinned).
-
-    First, ``workload restore`` installs whatever workloads the project
-    needs (including iOS/MacCatalyst if MAUI requires them) at whatever
-    version is available in the feeds.  This satisfies dependency packages
-    that may not exist at the pinned version.
-
-    Then, ``workload install maui-android --from-rollback-file`` pins the
-    android workload to the exact version from the rollback file we want
-    to test against.
+    """Install workloads: ``workload restore`` first to satisfy dependencies
+    at any available version, then ``workload install maui-android
+    --from-rollback-file`` to pin maui-android to the version under test.
     """
     log_raw("=== STEP 1: Workload Install ===", tee=True)
 
-    # 1a. Workload restore — satisfy all project dependencies first.
     log("Step 1a: workload restore (satisfy project dependencies)", tee=True)
     result = run_cmd(
         [ctx["dotnet_exe"], "workload", "restore", ctx["csproj"],
@@ -300,7 +289,6 @@ def install_workload(ctx):
     else:
         log("Workload restore succeeded")
 
-    # 1b. Workload install — pin maui-android to the rollback version.
     rollback_file = os.path.join(ctx["workitem_root"], "rollback_maui.json")
     log(f"Step 1b: workload install maui-android "
         f"(pinned via {rollback_file})", tee=True)
@@ -321,12 +309,7 @@ def install_workload(ctx):
 
 
 def install_android_dependencies(ctx):
-    """Restore the real MAUI csproj and run InstallAndroidDependencies.
-
-    Uses the real project at ``ctx["csproj"]`` directly.
-    ``AllowMissingPrunePackageData=true`` bypasses NETSDK1226 on preview
-    SDKs that lack prune package data.
-    """
+    """Restore the MAUI csproj and run InstallAndroidDependencies."""
     log_raw("=== Installing Android SDK & Java Dependencies ===", tee=True)
 
     android_home = os.path.join(ctx["workitem_root"], "android-sdk")
@@ -337,7 +320,6 @@ def install_android_dependencies(ctx):
     csproj = ctx["csproj"]
     log(f"Using project: {csproj}")
 
-    # Restore the project. Override TargetFrameworks to android-only.
     result = run_cmd(
         [ctx["dotnet_exe"], "restore", csproj,
          "--configfile", ctx["nuget_config"],
@@ -348,10 +330,7 @@ def install_android_dependencies(ctx):
         log("WARNING: restore failed — "
             "InstallAndroidDependencies may not work")
 
-    # Use dotnet msbuild (not dotnet build) to run only this target
-    # without the full build pipeline.
-    # TODO: Remove -p:AndroidManifestType=GoogleV2 once
-    # https://github.com/dotnet/android/issues/11319 gets resolved.
+    # TODO: Drop AndroidManifestType=GoogleV2 once https://github.com/dotnet/android/issues/11319 is fixed.
     result = run_cmd(
         [ctx["dotnet_exe"], "msbuild", csproj,
          "-t:InstallAndroidDependencies",
@@ -373,8 +352,6 @@ def install_android_dependencies(ctx):
 
     ctx["android_home"] = android_home
 
-    # Workaround for https://github.com/dotnet/android/issues/11319: the
-    # target above can exit 0 while skipping required packages.
     _repair_android_dependencies(ctx, result.stdout or "")
     _verify_adb(android_home)
 
