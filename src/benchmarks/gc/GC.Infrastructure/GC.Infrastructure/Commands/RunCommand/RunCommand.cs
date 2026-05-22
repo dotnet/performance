@@ -138,7 +138,7 @@ namespace GC.Infrastructure.Commands.RunCommand
             AnsiConsole.WriteLine();
             AnsiConsole.Write(new Rule("Running Microbenchmarks"));
             AnsiConsole.WriteLine();
-            string microbenchmarkBase = configurationMap["Microbenchmark"];
+            string microbenchmarkBase = configurationMap["Microbenchmarks"];
             string[] microbenchmarkConfigurations = Directory.GetFiles(microbenchmarkBase, "*.yaml");
             HashSet<string> uniqueMicrobenchmarks = new();
 
