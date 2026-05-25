@@ -187,16 +187,20 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                     {
                         foreach (var column in configuration.Output.Columns)
                         {
-                            double? baselineValue = lr.AveragedBaselineOtherMetrics.GetValueOrDefault(column);
-                            double? comparandValue = lr.AveragedComparandOtherMetrics.GetValueOrDefault(column);
+                            if (!lr.AveragedBaselineOtherMetrics.ContainsKey(column) || !lr.AveragedComparandOtherMetrics.ContainsKey(column))
+                            {
+                                continue;
+                            }
+                            double baselineValue = lr.AveragedBaselineOtherMetrics[column];
+                            double comparandValue = lr.AveragedComparandOtherMetrics[column];
 
-                            string baselineResult = baselineValue.HasValue ? Math.Round(baselineValue.Value, 4).ToString() : string.Empty;
-                            string comparandResult = comparandValue.HasValue ? Math.Round(comparandValue.Value, 4).ToString() : string.Empty;
-                            double? delta = baselineValue.HasValue && comparandValue.HasValue ? comparandValue.Value - baselineValue.Value : null;
-                            string deltaResult = delta.HasValue ? Math.Round(delta.Value, 4).ToString() : string.Empty;
+                            string baselineResult = Math.Round(baselineValue, 4).ToString();
+                            string comparandResult = Math.Round(comparandValue, 4).ToString();
+                            double delta = comparandValue - baselineValue;
+                            string deltaResult = Math.Round(delta, 4).ToString();
 
-                            double? deltaPercent = delta.HasValue ? (delta / baselineValue.Value) * 100 : null;
-                            string deltaPercentResult = deltaPercent.HasValue ? Math.Round(deltaPercent.Value, 4).ToString() : string.Empty;
+                            double deltaPercent = (delta / baselineValue) * 100;
+                            string deltaPercentResult = Math.Round(deltaPercent, 4).ToString();
 
                             baseRow += $"{baselineResult} | {comparandResult} | {deltaResult} | {deltaPercentResult} |";
                         }

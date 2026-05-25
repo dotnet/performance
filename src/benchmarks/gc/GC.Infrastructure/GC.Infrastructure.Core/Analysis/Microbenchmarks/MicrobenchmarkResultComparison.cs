@@ -9,7 +9,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
     public static class MicrobenchmarkResultComparison
     {
         private static readonly int _CPUCount = System.Environment.ProcessorCount;
-        private static readonly Dictionary<string, string> _benchmarkNameToTraceFilePatternMap = new()
+        private static readonly Dictionary<string, string> _benchmarkNameToTraceFilePatternMap = new(StringComparer.OrdinalIgnoreCase)
         {
             { "ByteMark.BenchBitOps", "ByteMark.BenchBitOps"},
             { "System.Collections.CtorGivenSize<String>.Array(Size: 512)", "System.Collections.CtorGivenSize_String_.Array_size_512_"},
@@ -145,7 +145,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     return;
                 }
 
-                if ((!excludeTraces) && configuration.TraceConfigurations?.Type != "none")
+                if ((!excludeTraces) && (configuration.TraceConfigurations?.Type ?? "none") != "none")
                 {
                     string outputPathForRun = Path.Combine(configuration.Output.Path, run.Name!);
 
@@ -260,7 +260,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
         public static List<MicrobenchmarkComparisonResult> CompareMicrobenchmarkResults(MicrobenchmarkConfiguration configuration, IEnumerable<MicrobenchmarkResult> microbenchmarkResults, bool excludeTraces = false)
         {
-            bool includeTraces = (!excludeTraces) && (configuration.TraceConfigurations.Type != "none");
+            bool includeTraces = (!excludeTraces) && (configuration.TraceConfigurations?.Type ?? "none") != "none";
             var microbenchmarkResultsGroupedByBenchmarkName = microbenchmarkResults
                 .GroupBy(microbenchmarkResult => microbenchmarkResult.MicrobenchmarkName);
 

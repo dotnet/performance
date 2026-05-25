@@ -53,28 +53,29 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
             if (additionalReportMetrics != null)
             {
-                OtherMetrics = benchmark.Metrics
-                    .Where(metric => additionalReportMetrics.Contains(metric.Descriptor.Id))
-                    .ToDictionary(metric => metric.Descriptor.Id, metric => metric.Value);
+                foreach (var metric in benchmark.Metrics)
+                {
+                    if (!additionalReportMetrics.Contains(metric.Descriptor.Id))
+                    {
+                        continue;
+                    }
+                    OtherMetrics[metric.Descriptor.Id] = metric.Value;
+                }
             }
 
             if (columns != null)
             {
-                var customStatistics = columns
-                    .Where(column => CustomStatisticsCalculationMap.Keys.Contains(column))
-                    .Select(column => (column, CustomStatisticsCalculationMap[column](benchmark.Statistics)))
-                    .ToDictionary(x => x.column, x => x.Item2);
-                
-                OtherMetrics = OtherMetrics.Concat(customStatistics).ToDictionary(x => x.Key, x => x.Value);
-                
-                if (gcData != null)
+                foreach (var column in columns)
                 {
-                    var customGCData = columns
-                        .Where(column => CustomAggregateCalculationMap.Keys.Contains(column))
-                        .Select(column => (column, CustomAggregateCalculationMap[column](gcData)))
-                        .ToDictionary(x => x.column, x => x.Item2);
+                    if (CustomStatisticsCalculationMap.Keys.Contains(column))
+                    {
+                        OtherMetrics[column] = CustomStatisticsCalculationMap[column](benchmark.Statistics);
+                    }
 
-                    OtherMetrics = OtherMetrics.Concat(customGCData).ToDictionary(x => x.Key, x => x.Value);
+                    if (CustomAggregateCalculationMap.Keys.Contains(column) && gcData != null)
+                    {
+                        OtherMetrics[column] = CustomAggregateCalculationMap[column](gcData);
+                    }
                 }
             }
         }

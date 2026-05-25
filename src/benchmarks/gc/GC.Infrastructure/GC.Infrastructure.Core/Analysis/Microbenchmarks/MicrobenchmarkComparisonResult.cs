@@ -155,7 +155,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     return (kvp.Key, double.NaN);
                 }
 
-                if (OtherMetricsDiff[kvp.Key] == double.NaN)
+                if (double.IsNaN(OtherMetricsDiff[kvp.Key]))
                 {
                     return (kvp.Key, double.NaN);
                 }

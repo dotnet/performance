@@ -24,7 +24,7 @@ namespace GC.Infrastructure.Commands.RunCommand
         {
             if (string.IsNullOrEmpty(settings.SuiteBasePath) || !Directory.Exists(settings.SuiteBasePath))
             {
-                throw new ArgumentNullException($"{nameof(RunSuiteCommandSettings)}: {nameof(settings.SuiteBasePath)} was either null or the directory doesn't exists.");
+                throw new ArgumentNullException($"{nameof(RunSuiteCommandSettings)}: {nameof(settings.SuiteBasePath)} was either null or the directory doesn't exist.");
             }
 
             Dictionary<string, string> configuration = new();
@@ -50,7 +50,7 @@ namespace GC.Infrastructure.Commands.RunCommand
 
                 catch (Exception e)
                 {
-                    AnsiConsole.MarkupLine($"[red] GCPerfSim Configuration: {c} failed with {e.Message} [/]");
+                    AnsiConsole.MarkupLine($"[red] GCPerfSim Configuration: {Markup.Escape(c)} failed with {Markup.Escape(e.Message)} [/]");
                 }
             }
 
@@ -66,7 +66,7 @@ namespace GC.Infrastructure.Commands.RunCommand
 
                 catch (Exception e)
                 {
-                    AnsiConsole.MarkupLine($"[red] Microbenchmark Configuration: {c} failed with {e.Message} [/]");
+                    AnsiConsole.MarkupLine($"[red] Microbenchmark Configuration: {Markup.Escape(c)} failed with {Markup.Escape(e.Message)} [/]");
                 }
             }
 
@@ -83,7 +83,7 @@ namespace GC.Infrastructure.Commands.RunCommand
 
                 catch (Exception e)
                 {
-                    AnsiConsole.MarkupLine($"[red] ASPNet Configuration: {c} failed with {e.Message} [/]");
+                    AnsiConsole.MarkupLine($"[red] ASPNet Configuration: {Markup.Escape(c)}  failed with  {Markup.Escape(e.Message)} [/]");
                 }
             }
         }
