@@ -196,10 +196,10 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 
                             string baselineResult = Math.Round(baselineValue, 4).ToString();
                             string comparandResult = Math.Round(comparandValue, 4).ToString();
-                            double delta = comparandValue - baselineValue;
+                            double delta = lr.OtherMetricsDiff[column];
                             string deltaResult = Math.Round(delta, 4).ToString();
 
-                            double deltaPercent = (delta / baselineValue) * 100;
+                            double deltaPercent = lr.OtherMetricsDiffPerc[column];
                             string deltaPercentResult = Math.Round(deltaPercent, 4).ToString();
 
                             baseRow += $"{baselineResult} | {comparandResult} | {deltaResult} | {deltaPercentResult} |";

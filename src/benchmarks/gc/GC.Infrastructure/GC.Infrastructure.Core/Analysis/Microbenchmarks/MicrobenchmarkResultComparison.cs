@@ -130,6 +130,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             };
 
             int count = 0;
+            int totalBdnJsonResultsCount = bdnJsonResults.Count;
             object _lock = new();
 
             Parallel.ForEach(bdnJsonResults, options, t =>
@@ -250,7 +251,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 lock (_lock)
                 {
                     count = count + 1;
-                    Console.Write($"\r{count}/{bdnJsonResults.Count} BDN results analyzed.");
+                    Console.Write($"\r{count}/{totalBdnJsonResultsCount} BDN results analyzed.");
                 }
             });
 

@@ -53,9 +53,10 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
             if (additionalReportMetrics != null)
             {
+                var additionalReportMetricsHashSet = new HashSet<string>(additionalReportMetrics, StringComparer.OrdinalIgnoreCase);
                 foreach (var metric in benchmark.Metrics)
                 {
-                    if (!additionalReportMetrics.Contains(metric.Descriptor.Id))
+                    if (!additionalReportMetricsHashSet.Contains(metric.Descriptor.Id))
                     {
                         continue;
                     }
