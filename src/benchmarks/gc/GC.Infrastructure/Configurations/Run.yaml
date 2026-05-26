@@ -12,6 +12,9 @@ coreruns:
       environment_variables:
           DOTNET_GCName: clrgc.dll
 
+iterations:
+  microbenchmarks: 1
+
 trace_configuration_type: gc # Choose between: none, gc, verbose, cpu, cpu_managed, threadtime, join.
 
 # Optional fields: the contents of both the symbol_path and the source_path will be copied over to the output path.
