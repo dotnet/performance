@@ -8,17 +8,23 @@ namespace GC.Infrastructure.Core.Analysis
     {
         public GCTraceMetricComparisonResult(IEnumerable<GCTraceMetrics> baselines, IEnumerable<GCTraceMetrics> comparands, string metricName)
         {
-            RunName = baselines.FirstOrDefault()?.RunName;
+            RunName = baselines.FirstOrDefault()?.RunName ?? string.Empty;
             Key = $"{baselines.FirstOrDefault()?.ConfigurationName}_{RunName}";
 
             MetricName = metricName;
-            PropertyInfo pInfo = typeof(GCTraceMetrics).GetProperty(metricName, BindingFlags.Instance | BindingFlags.Public);
+            PropertyInfo? pInfo = typeof(GCTraceMetrics).GetProperty(metricName, BindingFlags.Instance | BindingFlags.Public);
 
             // Property found on the GCTraceMetrics.
             if (pInfo != null)
             {
-                OriginalBaselineMetricCollection = baselines.Select(baseline => (double)pInfo.GetValue(baseline));
-                OriginalComparandMetricCollection = comparands.Select(comparand => (double)pInfo.GetValue(comparand));
+                OriginalBaselineMetricCollection = baselines
+                    .Select(baseline => pInfo.GetValue(baseline))
+                    .Where(obj => obj != null)
+                    .Select(obj => (double)obj!);
+                OriginalComparandMetricCollection = comparands
+                    .Select(comparand => pInfo.GetValue(comparand))
+                    .Where(obj => obj != null)
+                    .Select(obj => (double)obj!);
             }
 
             // If property isn't found on the GCTraceMetrics, look in GCStats.
@@ -28,7 +34,7 @@ namespace GC.Infrastructure.Core.Analysis
                 pInfo = typeof(GCStats).GetProperty(metricName, BindingFlags.Instance | BindingFlags.Public);
                 if (pInfo == null)
                 {
-                    FieldInfo fieldInfo = typeof(GCStats).GetField(metricName, BindingFlags.Instance | BindingFlags.Public);
+                    FieldInfo? fieldInfo = typeof(GCStats).GetField(metricName, BindingFlags.Instance | BindingFlags.Public);
                     if (fieldInfo == null)
                     {
                         // Out of luck!

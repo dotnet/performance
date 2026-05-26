@@ -24,7 +24,7 @@ namespace GC.Infrastructure.Commands.RunCommand
         {
             if (string.IsNullOrEmpty(settings.SuiteBasePath))
             {
-                throw new ArgumentNullException($"{nameof(RunSuiteCommandSettings)}: {nameof(settings.SuiteBasePath)} was null.");
+                throw new ArgumentException($"{nameof(RunSuiteCommandSettings)}: Suite base path was null.");
             }
 
             if (!Directory.Exists(settings.SuiteBasePath))
