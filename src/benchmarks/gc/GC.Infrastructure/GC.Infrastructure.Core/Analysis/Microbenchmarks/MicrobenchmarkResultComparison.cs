@@ -83,7 +83,8 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
                     if (!_benchmarkNameToTraceFilePatternMap.ContainsKey(benchmarkName))
                     {
-                        throw new InvalidOperationException($"Benchmark name {benchmarkName} does not have a corresponding trace file pattern in the map.");
+                        Console.WriteLine($"Benchmark name {benchmarkName} does not have a corresponding trace file pattern in the map.");
+                        continue;
                     }
                     var traceFileNameTemplate = _benchmarkNameToTraceFilePatternMap[benchmarkName];
                     string outputPathForRun = Path.Combine(outputPath, run.Name!);
@@ -97,8 +98,9 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
                     if (sortedJsonFiles.Length != sortedTraceFiles.Length)
                     {
-                        throw new InvalidOperationException(
+                        Console.WriteLine(
                             $"The number of JSON files ({sortedJsonFiles.Length}) does not match the number of trace files ({sortedTraceFiles.Length}) for benchmark: {benchmarkName}");
+                        continue;
                     }
 
                     for (int i = 0; i < sortedJsonFiles.Length; i++)
@@ -146,14 +148,13 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     return;
                 }
 
-                if ((!excludeTraces) && (configuration.TraceConfigurations?.Type ?? "none") != "none")
+                if ((!excludeTraces) 
+                    && (configuration.TraceConfigurations?.Type ?? "none") != "none" 
+                    && jsonToTraceMap.TryGetValue(jsonPath, out string? tracePath)
+                    && !string.IsNullOrWhiteSpace(tracePath))
                 {
                     string outputPathForRun = Path.Combine(configuration.Output.Path, run.Name!);
 
-                    if (!jsonToTraceMap.TryGetValue(jsonPath, out string? tracePath) || string.IsNullOrWhiteSpace(tracePath))
-                    {
-                        throw new InvalidOperationException($"Trace collection is enabled, but no trace path mapping was found for benchmark result '{jsonPath}'.");
-                    }
                     using (var analyzer = AnalyzerManager.GetAnalyzer(tracePath))
                     {
                         List<GCProcessData> allPertinentProcesses = analyzer.GetProcessGCData("dotnet");
