@@ -17,12 +17,12 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                 string header = $"| Criteria | {string.Join("|", API.GoodLinq.Select(comparisonResultsCollection, s => $"[{s.BaselineName} {s.RunName}]({s.MarkdownIdentifier})"))}|";
                 sw.WriteLine(header);
                 sw.WriteLine($"| ----- | {string.Join("|", Enumerable.Repeat(" ----- ", comparisonResultsCollection.Count))} |");
-                sw.WriteLine($"| Large Regressions (>20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.LargeRegressions.Count())}|");
-                sw.WriteLine($"| Regressions (5% - 20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.Regressions.Count())}|");
-                sw.WriteLine($"| Stale Regressions (0% - 5%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.StaleRegressions.Count())}|");
-                sw.WriteLine($"| Stale Improvements (0% - 5%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.StaleImprovements.Count())}|");
-                sw.WriteLine($"| Improvements (5% - 20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.Improvements.Count())}|");
-                sw.WriteLine($"| Large Improvements (>20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.LargeImprovements.Count())}|");
+                sw.WriteLine($"| Large Regressions (>= 20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.LargeRegressions.Count())}|");
+                sw.WriteLine($"| Regressions (>= 5% and < 20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.Regressions.Count())}|");
+                sw.WriteLine($"| Stale Regressions (> 0% and < 5%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.StaleRegressions.Count())}|");
+                sw.WriteLine($"| Stale Improvements (> -5% and <= 0%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.StaleImprovements.Count())}|");
+                sw.WriteLine($"| Improvements (> -20% and <= -5%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.Improvements.Count())}|");
+                sw.WriteLine($"| Large Improvements (<= -20%) | {API.GoodLinq.Sum(comparisonResultsCollection, s => s.LargeImprovements.Count())}|");
                 sw.WriteLine($"| Total | {comparisonResultsCollection.Count} |");
                 sw.WriteLine("\n");
 
@@ -51,32 +51,32 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
             sw.WriteLine("\n");
 
             // Large Regressions
-            sw.WriteLine($"### Large Regressions (>=20%): {comparisonResult.LargeRegressions.Count()} \n");
+            sw.WriteLine($"### Large Regressions (>= 20%): {comparisonResult.LargeRegressions.Count()} \n");
             sw.AddTableForSingleCriteria(configuration, comparisonResult.LargeRegressions);
             sw.WriteLine("\n");
 
             // Large Improvements
-            sw.WriteLine($"### Large Improvements (>=20%): {comparisonResult.LargeImprovements.Count()} \n");
+            sw.WriteLine($"### Large Improvements (<= -20%): {comparisonResult.LargeImprovements.Count()} \n");
             sw.AddTableForSingleCriteria(configuration, comparisonResult.LargeImprovements);
             sw.WriteLine("\n");
 
             // Regressions
-            sw.WriteLine($"### Regressions (5% - 20%): {comparisonResult.Regressions.Count()} \n");
+            sw.WriteLine($"### Regressions (>= 5% and < 20%): {comparisonResult.Regressions.Count()} \n");
             sw.AddTableForSingleCriteria(configuration, comparisonResult.Regressions);
             sw.WriteLine("\n");
 
             // Improvements
-            sw.WriteLine($"### Improvements (5% - 20%): {comparisonResult.Improvements.Count()} \n");
+            sw.WriteLine($"### Improvements (> -20% and <= -5%): {comparisonResult.Improvements.Count()} \n");
             sw.AddTableForSingleCriteria(configuration, comparisonResult.Improvements);
             sw.WriteLine("\n");
 
             // Stale Regressions
-            sw.WriteLine($"### Stale Regressions (Percent difference within 5% margin): {comparisonResult.StaleRegressions.Count()} \n");
+            sw.WriteLine($"### Stale Regressions (> 0% and < 5%): {comparisonResult.StaleRegressions.Count()} \n");
             sw.AddTableForSingleCriteria(configuration, comparisonResult.StaleRegressions);
             sw.WriteLine("\n");
 
             // Stale Improvements
-            sw.WriteLine($"### Stale Improvements (Same or percent difference within 5% margin): {comparisonResult.StaleImprovements.Count()} \n");
+            sw.WriteLine($"### Stale Improvements (> -5% and <= 0%): {comparisonResult.StaleImprovements.Count()} \n");
             sw.AddTableForSingleCriteria(configuration, comparisonResult.StaleImprovements);
             sw.WriteLine("\n\n");
 
@@ -91,40 +91,40 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 
                     // Large Regressions
                     var largeRegression = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] >= 20);
-                    sw.WriteLine($"### Large Regressions (>20%): {largeRegression.Count()} \n");
+                    sw.WriteLine($"### Large Regressions (>= 20%): {largeRegression.Count()} \n");
                     sw.AddTableForSingleCriteria(configuration, largeRegression, metric);
                     sw.WriteLine("\n");
 
                     // Large Improvements
                     var largeImprovements = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -20);
                     largeImprovements.Reverse();
-                    sw.WriteLine($"### Large Improvements (>20%): {largeImprovements.Count()} \n");
+                    sw.WriteLine($"### Large Improvements (<= -20%): {largeImprovements.Count()} \n");
                     sw.AddTableForSingleCriteria(configuration, largeImprovements, metric);
                     sw.WriteLine("\n");
 
                     // Regressions
                     var regressions = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] >= 5 && o.OtherMetricsDiffPerc[metric] < 20);
-                    sw.WriteLine($"### Regressions (5% - 20%): {regressions.Count()} \n");
+                    sw.WriteLine($"### Regressions (>= 5% and < 20%): {regressions.Count()} \n");
                     sw.AddTableForSingleCriteria(configuration, regressions, metric);
                     sw.WriteLine("\n");
 
                     // Improvements
                     var improvements = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] <= -5 && o.OtherMetricsDiffPerc[metric] > -20);
                     improvements.Reverse();
-                    sw.WriteLine($"### Improvements (5% - 20%): {improvements.Count()} \n");
+                    sw.WriteLine($"### Improvements (> -20% and <= -5%): {improvements.Count()} \n");
                     sw.AddTableForSingleCriteria(configuration, improvements, metric);
                     sw.WriteLine("\n");
 
                     // Stale Regressions
                     var staleRegressions = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > 0.0 && o.OtherMetricsDiffPerc[metric] < 5);
-                    sw.WriteLine($"### Stale Regressions (Percent difference within 5% margin): {staleRegressions.Count()} \n");
+                    sw.WriteLine($"### Stale Regressions (> 0% and < 5%): {staleRegressions.Count()} \n");
                     sw.AddTableForSingleCriteria(configuration, staleRegressions, metric);
                     sw.WriteLine("\n");
 
                     // Stale Improvements
                     var staleImprovements = API.GoodLinq.Where(ordered, o => o.OtherMetricsDiffPerc[metric] > -5 && o.OtherMetricsDiffPerc[metric] <= 0.0);
                     staleImprovements.Reverse();
-                    sw.WriteLine($"### Stale Improvements (Same or percent difference within 5% margin): {staleImprovements.Count()} \n");
+                    sw.WriteLine($"### Stale Improvements (> -5% and <= 0%): {staleImprovements.Count()} \n");
                     sw.AddTableForSingleCriteria(configuration, staleImprovements, metric);
                     sw.WriteLine("\n");
                 }

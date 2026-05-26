@@ -13,7 +13,6 @@ coreruns:
           DOTNET_GCName: clrgc.dll
 
 iterations:
-  gcperfsim: 1
   microbenchmarks: 1
 
 trace_configuration_type: gc # Choose between: none, gc, verbose, cpu, cpu_managed, threadtime, join.
