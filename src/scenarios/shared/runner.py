@@ -517,6 +517,19 @@ ex: C:\repos\performance;C:\repos\runtime
             memoryconsumption.parsetraces(self.traits)
 
         elif self.testtype == const.DEVICESTARTUP and self.devicetype == 'android':
+            def dump_logcat_on_failure(iteration: int):
+                upload_root = helixworkitemroot()
+                if not upload_root:
+                    getLogger().warning("HELIX_WORKITEM_UPLOAD_ROOT not set; skipping logcat dump.")
+                    return
+                logcat_cmd = xharness_adb() + ['logcat', '-d']
+                logcat_result = RunCommand(logcat_cmd, verbose=False)
+                logcat_result.run()
+                dump_path = os.path.join(upload_root, f"logcat_failure_iter{iteration}.txt")
+                with open(dump_path, "w") as f:
+                    f.write(logcat_result.stdout)
+                getLogger().info(f"Logcat dump written to {dump_path}")
+
             # ADB Key Event corresponding numbers: https://gist.github.com/arjunv/2bbcca9a1a1c127749f8dcb6d36fb0bc
             # Regex used to split the response from starting the activity and saving each value
             #Example:
@@ -566,6 +579,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     # Make sure we cold started (TODO Add other starts)
                     if "LaunchState: COLD" not in startStats.stdout:
                         getLogger().error("App Start not COLD!")
+                        dump_logcat_on_failure(i)
                         
                     # Save the results and get them from the log
                     if self.usefullydrawntime: time.sleep(self.fullyDrawnDelaySecMax) # Start command doesn't wait for fully drawn report, force a wait for it. -W in the start command waits for the app to finish initial draw.
@@ -577,6 +591,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     retrieveTimeCmd.run()
                     dirtyCapture = re.search(r"\+(\d*s?\d+)ms", retrieveTimeCmd.stdout)
                     if not dirtyCapture:
+                        dump_logcat_on_failure(i)
                         raise Exception("Failed to capture the reported start time!")
                     captureList = dirtyCapture.group(1).split('s')
                     if len(captureList) == 1: # Only have the ms, everything should be good
