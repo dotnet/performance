@@ -526,7 +526,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 logcat_result = RunCommand(logcat_cmd, verbose=True)
                 logcat_result.run()
                 dump_path = os.path.join(upload_root, f"logcat_failure_iter{iteration}.txt")
-                with open(dump_path, "w") as f:
+                with open(dump_path, "w", encoding="utf-8", errors="replace") as f:
                     f.write(logcat_result.stdout)
                 getLogger().info(f"Logcat dump written to {dump_path}")
 
