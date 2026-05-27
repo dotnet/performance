@@ -25,7 +25,7 @@ from shared.memoryconsumption import MemoryConsumptionWrapper
 from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, xharness_adb, publisheddll
 from shared.sod import SODWrapper
 from shared import const
-from performance.common import RunCommand, iswin, extension, helixworkitemroot
+from performance.common import RunCommand, iswin, extension, helixworkitemroot, helixuploadroot
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
 from subprocess import CalledProcessError
@@ -518,7 +518,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
         elif self.testtype == const.DEVICESTARTUP and self.devicetype == 'android':
             def dump_logcat_on_failure(iteration: int):
-                upload_root = helixworkitemroot()
+                upload_root = helixuploadroot()
                 if not upload_root:
                     getLogger().warning("HELIX_WORKITEM_UPLOAD_ROOT not set; skipping logcat dump.")
                     return
