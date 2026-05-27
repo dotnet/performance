@@ -1160,7 +1160,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
             os.environ["RuntimeFlavor"] = args.runtime_flavor or ''
             os.environ["CodegenType"] = args.codegen_type or ''
             os.environ["BuildConfig"] = args.build_config or DEFAULT_BUILD_CONFIG
-            os.environ["RunKind"] = args.run_kind or ''
 
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
             if args.os_group == "windows" or args.os_group == "osx":

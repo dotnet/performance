@@ -245,8 +245,6 @@ jobs:
         parameters:
           osGroup: ${{ parameters.osGroup }}
           projectFile: $(_projectFile)
-          environment:
-            RunKind: ${{ parameters.runKind }}
       - ${{ if eq(parameters.osGroup, 'windows') }}:
         - task: PowerShell@2
           displayName: Redact Logs
