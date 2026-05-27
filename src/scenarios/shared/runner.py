@@ -523,7 +523,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     getLogger().warning("HELIX_WORKITEM_UPLOAD_ROOT not set; skipping logcat dump.")
                     return
                 logcat_cmd = xharness_adb() + ['logcat', '-d']
-                logcat_result = RunCommand(logcat_cmd, verbose=False)
+                logcat_result = RunCommand(logcat_cmd, verbose=True)
                 logcat_result.run()
                 dump_path = os.path.join(upload_root, f"logcat_failure_iter{iteration}.txt")
                 with open(dump_path, "w") as f:
