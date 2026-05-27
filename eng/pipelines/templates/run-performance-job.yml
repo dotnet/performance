@@ -190,7 +190,7 @@ jobs:
               - '--is-scenario'
             - ${{ if ne(length(parameters.runEnvVars), 0) }}:
               - "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
-            - ${{ if and(in(parameters.runKind, 'maui_scenarios_ios', 'maui_scenarios_android'), ne(parameters.runtimeFlavor, '')) }}:
+            - ${{ if and(in(parameters.runKind, 'maui_scenarios_ios', 'maui_scenarios_android', 'maui_scenarios_android_innerloop'), ne(parameters.runtimeFlavor, '')) }}:
               - '--runtime-flavor ${{ parameters.runtimeFlavor }}'
             - ${{ if ne(parameters.osVersion, '') }}:
               - '--os-version ${{ parameters.osVersion }}'

@@ -4,6 +4,7 @@ import shutil
 import xml.etree.ElementTree as ET
 import re
 import urllib.request
+from typing import List, Optional
 from performance.common import get_repo_root_path
 from shared.precommands import PreCommands
 from logging import getLogger
@@ -205,7 +206,7 @@ def _get_repo_nuget_config_url(repo: str, target_framework: str) -> str:
     
     return f'https://raw.githubusercontent.com/{repo}/{branch}/NuGet.config'
 
-def download_repo_nuget_config(repo: str, target_framework: str, output_filename: str) -> str | None:
+def download_repo_nuget_config(repo: str, target_framework: str, output_filename: str) -> Optional[str]:
     '''
     Download a repo's NuGet.config from GitHub. Returns the absolute path on success, None on failure.
     '''
@@ -388,29 +389,49 @@ class MauiNuGetConfigContext:
 
 def install_latest_maui(
         precommands: PreCommands, 
-        feed=extract_latest_dotnet_feed_from_nuget_config(path=os.path.join(get_repo_root_path(), "NuGet.config"))
+        feed: Optional[str] = None,
+        workloads: Optional[List[str]] = None,
+        workload_name: str = 'maui'
         ):
     '''
-        Install the latest maui workload using the provided feed. 
-        This function will create a rollback file and install the maui workload using that file.
+    Install the latest MAUI workload using the provided feed.
+    Creates a rollback file and installs the workload using that file.
+
+    Args:
+        precommands: PreCommands instance for running dotnet commands.
+        feed: NuGet feed URL to resolve workload packages from.
+              If None, resolves from NuGet.config at call time.
+        workloads: NuGet SDK package names to resolve (e.g.,
+                   ["microsoft.net.sdk.android"]).
+                   If None, defaults to the full set of 6 MAUI workloads.
+        workload_name: The dotnet CLI workload name to install
+                       (e.g., 'maui', 'maui-android').
     '''
 
-    getLogger().info("########## Installing latest MAUI workload ##########")
+    getLogger().info(f"########## Installing latest {workload_name} workload ##########")
 
     if precommands.has_workload:
-        getLogger().info("Skipping maui installation due to --has-workload=true")
+        getLogger().info(f"Skipping {workload_name} installation due to --has-workload=true")
         return
 
-    maui_rollback_dict: dict[str, str] = {
-        "microsoft.net.sdk.android" : "",
-        "microsoft.net.sdk.ios" : "",
-        "microsoft.net.sdk.maccatalyst" : "",
-        "microsoft.net.sdk.macos" : "",
-        "microsoft.net.sdk.maui" : "",
-        "microsoft.net.sdk.tvos" : ""
-    }
+    if feed is None:
+        feed = extract_latest_dotnet_feed_from_nuget_config(
+            path=os.path.join(get_repo_root_path(), "NuGet.config")
+        )
 
-    getLogger().info(f"Installing the latest maui workload from feed {feed}")
+    if workloads is None:
+        workloads = [
+            "microsoft.net.sdk.android",
+            "microsoft.net.sdk.ios",
+            "microsoft.net.sdk.maccatalyst",
+            "microsoft.net.sdk.macos",
+            "microsoft.net.sdk.maui",
+            "microsoft.net.sdk.tvos",
+        ]
+
+    maui_rollback_dict = {name: "" for name in workloads}
+
+    getLogger().info(f"Installing the latest {workload_name} workload from feed {feed}")
 
     # Get the latest published version of the maui workloads
     for workload in maui_rollback_dict.keys():
@@ -453,10 +474,10 @@ def install_latest_maui(
                     getLogger().debug(f"Extracted .NET version '{dotnet_version}' from SDK version '{sdk_version}'")
                 else:
                     getLogger().error(f"Unable to find .NET version in SDK version '{sdk_version}' for package {package['id']}")
-                    raise Exception("Unable to find .NET version in SDK version")
+                    raise Exception(f"Unable to find .NET version in SDK version '{sdk_version}' for package {package['id']}")
             else:
                 getLogger().error(f"Unable to find .NET SDK version in package ID: {package['id']}")
-                raise Exception("Unable to find .NET SDK version in package ID")
+                raise Exception(f"Unable to find .NET SDK version in package ID: {package['id']}")
             
         # Filter out packages that have lower 'dotnet_version' than the rest of the packages
         # Sometimes feed can contain packages from previous release versions, so we need to filter them out
@@ -514,6 +535,6 @@ def install_latest_maui(
     getLogger().info("Created rollback_maui.json file")
 
     # Install the workload using the rollback file
-    getLogger().info("Installing maui workload with rollback file")
-    precommands.install_workload('maui', ['--from-rollback-file', 'rollback_maui.json'])
-    getLogger().info("########## Finished installing latest MAUI workload ##########")
+    getLogger().info(f"Installing {workload_name} workload with rollback file")
+    precommands.install_workload(workload_name, ['--from-rollback-file', 'rollback_maui.json'])
+    getLogger().info(f"########## Finished installing latest {workload_name} workload ##########")
