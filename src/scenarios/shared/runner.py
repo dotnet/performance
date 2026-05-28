@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from logging import getLogger
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
-from shutil import rmtree
+from shutil import make_archive, rmtree
 from typing import Optional
 from shared.androidhelper import AndroidHelper
 from shared.androidinstrumentation import AndroidInstrumentationHelper
@@ -843,7 +843,41 @@ ex: C:\repos\performance;C:\repos\runtime
                     '--devname', deviceUDID
                 ]
                 killCmdCommand = RunCommand(killCmd, verbose=True)
-                killCmdCommand.run()
+                try:
+                    killCmdCommand.run()
+                except CalledProcessError as ex:
+                    # The kill is cleanup-only; the measurement data is already in the .logarchive above.
+                    # devicectl returns non-zero when the app process is already gone (e.g. iOS terminated
+                    # it, the app crashed, or it self-exited). Upload the .logarchive AND any device-side
+                    # crash reports for this bundle to the Helix results container so we can diagnose
+                    # why the app was already gone before re-raising.
+                    getLogger().warning(f"App kill failed (app may have already exited): {ex}")
+                    upload_root = os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT')
+                    if upload_root:
+                        if os.path.exists(logarchive_filename):
+                            archive_base = os.path.join(upload_root, f'iteration{i}.logarchive')
+                            try:
+                                getLogger().info(f"Saving {logarchive_filename} to {archive_base}.zip for diagnosis.")
+                                make_archive(archive_base, 'zip', root_dir=logarchive_filename)
+                            except Exception as upload_ex:
+                                getLogger().warning(f"Failed to save logarchive for diagnosis: {upload_ex}")
+                        # Pull any iOS crash reports (.ips) for our bundle from the device into the upload root.
+                        # The systemCrashLogs domain on devicectl exposes /var/mobile/Library/Logs/CrashReporter/.
+                        crash_dest = os.path.join(upload_root, f'iteration{i}_crashlogs')
+                        os.makedirs(crash_dest, exist_ok=True)
+                        crashCopyCmd = [
+                            'xcrun', 'devicectl', 'device', 'copy', 'from',
+                            '--device', deviceUDID,
+                            '--domain-type', 'systemCrashLogs',
+                            '--source', '/',
+                            '--destination', crash_dest,
+                        ]
+                        try:
+                            getLogger().info(f"Copying device crash logs to {crash_dest} for diagnosis.")
+                            RunCommand(crashCopyCmd, verbose=True).run()
+                        except Exception as crash_ex:
+                            getLogger().warning(f"Failed to copy device crash logs for diagnosis: {crash_ex}")
+                    raise
 
                 # Process Data
 
