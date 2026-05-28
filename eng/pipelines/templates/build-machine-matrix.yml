@@ -159,7 +159,7 @@ jobs:
       machinePool: AndroidEmulator
       ${{ insert }}: ${{ parameters.jobParameters }}
 
-- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 17 only used in private builds currently
+- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 13 (Mac.iPhone.17.Perf has unhealthy macOS hosts as of 2026-05; both 13/17 queues are EOL 2026-06-01)
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osGroup: osx
@@ -167,8 +167,8 @@ jobs:
       osVersion: 26
       pool:
         vmImage: 'macos-26'
-      queue: Mac.iPhone.17.Perf
-      machinePool: iPhone17
+      queue: Mac.iPhone.13.Perf
+      machinePool: iPhone13
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64-innerloop'), not(eq(parameters.isPublic, true))) }}: # iOS Inner Loop scenarios run on iPhone 13 to match the existing perf measurement queue
