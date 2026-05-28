@@ -522,13 +522,16 @@ ex: C:\repos\performance;C:\repos\runtime
                 if not upload_root:
                     getLogger().warning("HELIX_WORKITEM_UPLOAD_ROOT not set; skipping logcat dump.")
                     return
-                logcat_cmd = xharness_adb() + ['logcat', '-d']
-                logcat_result = RunCommand(logcat_cmd, verbose=True)
-                logcat_result.run()
                 dump_path = os.path.join(upload_root, f"logcat_failure_iter{iteration}.txt")
-                with open(dump_path, "w", encoding="utf-8", errors="replace") as f:
-                    f.write(logcat_result.stdout)
-                getLogger().info(f"Logcat dump written to {dump_path}")
+                try:
+                    logcat_cmd = xharness_adb() + ['logcat', '-d']
+                    logcat_result = RunCommand(logcat_cmd, verbose=True, echo=False)
+                    logcat_result.run()
+                    with open(dump_path, "w", encoding="utf-8", errors="replace") as f:
+                        f.write(logcat_result.stdout)
+                    getLogger().info(f"Logcat dump written to {dump_path}")
+                except Exception as ex:
+                    getLogger().warning(f"Failed to dump logcat to {dump_path}: {ex}")
 
             # ADB Key Event corresponding numbers: https://gist.github.com/arjunv/2bbcca9a1a1c127749f8dcb6d36fb0bc
             # Regex used to split the response from starting the activity and saving each value
