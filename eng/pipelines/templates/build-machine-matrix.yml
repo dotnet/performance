@@ -146,16 +146,41 @@ jobs:
       machinePool: GalaxyA16
       ${{ insert }}: ${{ parameters.jobParameters }}
 
+- ${{ if and(containsValue(parameters.buildMachines, 'ubuntu-x64-android-emulator'), not(eq(parameters.isPublic, true))) }}: # Ubuntu x64 Android emulator only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: ubuntu
+      archType: x64
+      osVersion: 2204
+      pool:
+        vmImage: ubuntu-latest
+      container: ubuntu_x64_build_container
+      queue: Ubuntu.2204.Amd64.Android.36
+      machinePool: AndroidEmulator
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
 - ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 17 only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osGroup: osx
       archType: x64
-      osVersion: 15
+      osVersion: 26
       pool:
-        vmImage: 'macos-15'
+        vmImage: 'macos-26'
       queue: Mac.iPhone.17.Perf
       machinePool: iPhone17
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64-innerloop'), not(eq(parameters.isPublic, true))) }}: # iOS Inner Loop scenarios run on iPhone 13 to match the existing perf measurement queue
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: osx
+      archType: x64
+      osVersion: 26
+      pool:
+        vmImage: 'macos-26'
+      queue: Mac.iPhone.13.Perf
+      machinePool: iPhone13
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x64-viper'), not(eq(parameters.isPublic, true))) }}: # Windows x64 Viper only used in private builds

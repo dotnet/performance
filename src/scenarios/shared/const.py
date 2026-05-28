@@ -20,6 +20,7 @@ ANDROIDINSTRUMENTATION = "androidinstrumentation"
 DEVICEPOWERCONSUMPTION = "devicepowerconsumption"
 BUILDTIME = "buildtime"
 IOSINNERLOOP = "iosinnerloop"
+ANDROIDINNERLOOP = "androidinnerloop"
 
 SCENARIO_NAMES = {STARTUP: 'Startup',
                   SDK: 'SDK',
@@ -29,7 +30,8 @@ SCENARIO_NAMES = {STARTUP: 'Startup',
                   INNERLOOPMSBUILD: 'InnerLoopMsBuild',
                   DOTNETWATCH: 'DotnetWatch',
                   BUILDTIME: 'BuildTime',
-                  IOSINNERLOOP: 'IOSInnerLoop'}
+                  IOSINNERLOOP: 'IOSInnerLoop',
+                  ANDROIDINNERLOOP: 'AndroidInnerLoop'}
 
 BINDIR = 'bin'
 PUBDIR = 'pub'

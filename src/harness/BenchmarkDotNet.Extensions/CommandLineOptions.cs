@@ -35,7 +35,7 @@ namespace BenchmarkDotNet.Extensions
             int parameterIndex = argsList.IndexOf(parameter);
             parameterValue = new List<string>();
 
-            if (parameterIndex + 1 < argsList.Count)
+            if (parameterIndex != -1 && parameterIndex + 1 < argsList.Count)
             {
                 while (parameterIndex + 1 < argsList.Count && !argsList[parameterIndex + 1].StartsWith("-"))
                 {

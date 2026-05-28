@@ -141,13 +141,15 @@ namespace ResultsComparer
                 var baseValues = info.baseResult.Statistics.OriginalValues;
                 var diffValues = info.diffResult.Statistics.OriginalValues;
 
-                var userTresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, args.StatisticalTestThreshold);
+                var userThresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, args.StatisticalTestThreshold);
                 var noiseResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, args.NoiseThreshold);
+                var userConclusion = userThresholdResult.Conclusion == EquivalenceTestConclusion.Base ? EquivalenceTestConclusion.Same : userThresholdResult.Conclusion;
+                var noiseConclusion = noiseResult.Conclusion == EquivalenceTestConclusion.Base ? EquivalenceTestConclusion.Same : noiseResult.Conclusion;
 
                 // filter noise (0.20 ns vs 0.25ns is 25% difference)
-                var conclusion = userTresholdResult.Conclusion != EquivalenceTestConclusion.Same && noiseResult.Conclusion == EquivalenceTestConclusion.Same
+                var conclusion = userConclusion != EquivalenceTestConclusion.Same && noiseConclusion == EquivalenceTestConclusion.Same
                     ? Stats.Noise
-                    : userTresholdResult.Conclusion == EquivalenceTestConclusion.Base ? EquivalenceTestConclusion.Same : userTresholdResult.Conclusion;
+                    : userConclusion;
 
                 stats.Record(conclusion, info.baseEnv, info.baseResult);
 

@@ -44,7 +44,7 @@ def install_maui_ios_workload(precommands: PreCommands):
         install_latest_maui(
             precommands,
             workloads=["microsoft.net.sdk.ios"],
-            workload_id='maui-ios',
+            workload_name='maui-ios',
         )
         logger.info("########## Finished installing maui-ios workload ##########")
         return

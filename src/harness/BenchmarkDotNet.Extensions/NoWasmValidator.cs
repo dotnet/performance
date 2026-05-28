@@ -23,7 +23,7 @@ namespace BenchmarkDotNet.Extensions
 
         public NoWasmValidator(string noWasmCategory) => _noWasmCategory = noWasmCategory;
 
-        public IEnumerable<ValidationError> Validate(ValidationParameters validationParameters)
+        public IAsyncEnumerable<ValidationError> ValidateAsync(ValidationParameters validationParameters)
             => validationParameters.Benchmarks
                 .Where(benchmark => IsAsyncMethod(benchmark.Descriptor.WorkloadMethod) && !benchmark.Descriptor.Categories.Any(category => category.Equals(_noWasmCategory, StringComparison.Ordinal)))
                 .Select(benchmark => benchmark.Descriptor.GetFilterName())
@@ -32,7 +32,8 @@ namespace BenchmarkDotNet.Extensions
                     new ValidationError(
                         isCritical: TreatsWarningsAsErrors,
                         $"{benchmarkId} returns an awaitable object and has no: {_noWasmCategory} category applied. Use [BenchmarkCategory(Categories.NoWASM)]")
-                );
+                )
+                .ToAsyncEnumerable();
 
         private bool IsAsyncMethod(MethodInfo workloadMethod)
         {

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
 using BenchmarkDotNet.Running;
@@ -26,7 +27,7 @@ namespace Tests
             var benchmarksForType = BenchmarkConverter.TypeToBenchmarks(typeWithBenchmarks);
             var validationParameters = new ValidationParameters(benchmarksForType.BenchmarksCases, benchmarksForType.Config);
 
-            var validationErrors = new UniqueArgumentsValidator().Validate(validationParameters);
+            var validationErrors = new UniqueArgumentsValidator().ValidateAsync(validationParameters).ToBlockingEnumerable();
 
             if (shouldReportError)
                 Assert.NotEmpty(validationErrors);

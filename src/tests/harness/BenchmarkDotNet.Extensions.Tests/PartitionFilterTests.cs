@@ -63,8 +63,9 @@ namespace BenchmarkDotNet.Extensions.Tests
             IConfig recommendedConfig = RecommendedConfig.Create(
                 artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(PartitionFilterTests).Assembly.Location)!, "BenchmarkDotNet.Artifacts")),
                 mandatoryCategories: ImmutableHashSet.Create(Categories.Libraries, Categories.Runtime, Categories.ThirdParty));
-            (bool isSuccess, IConfig parsedConfig, var _) = ConfigParser.Parse(new string[] { "--filter", "*" }, nullLogger, recommendedConfig);
+            (bool isSuccess, IConfig? parsedConfig, var _) = ConfigParser.Parse(new string[] { "--filter", "*" }, nullLogger, recommendedConfig);
             Assert.True(isSuccess);
+            Assert.NotNull(parsedConfig);
 
             Assembly microbenchmarksAssembly = typeof(Categories).Assembly;
             (bool allTypesValid, IReadOnlyList<Type> runnable) = Running.TypeFilter.GetTypesWithRunnableBenchmarks(
@@ -73,7 +74,7 @@ namespace BenchmarkDotNet.Extensions.Tests
                 nullLogger);
             Assert.True(allTypesValid);
 
-            BenchmarkRunInfo[] allBenchmarks = GetAllBenchmarks(parsedConfig, runnable);
+            BenchmarkRunInfo[] allBenchmarks = GetAllBenchmarks(parsedConfig!, runnable);
             Dictionary<string, int> idToPartitionIndex = new ();
 
             for (int i = 0; i < 10; i++)
@@ -86,7 +87,7 @@ namespace BenchmarkDotNet.Extensions.Tests
                 {
                     PartitionFilter filter = new(PartitionCount, partitionIndex);
 
-                    foreach (BenchmarkCase benchmark in GetAllBenchmarks(parsedConfig, runnable).SelectMany(benchmark => benchmark.BenchmarksCases))
+                    foreach (BenchmarkCase benchmark in GetAllBenchmarks(parsedConfig!, runnable).SelectMany(benchmark => benchmark.BenchmarksCases))
                     {
                         if (filter.Predicate(benchmark))
                         {

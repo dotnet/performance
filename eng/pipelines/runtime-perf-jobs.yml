@@ -19,13 +19,19 @@ parameters:
         - linux_x64
         - windows_x64
         - windows_x86
-  - name: viperMicroNoR2R
+  - name: viperMicroRuntimeAsync
     type: object
     default:
       enabled: true
       configs:
         - linux_x64
         - windows_x64
+  - name: cobaltMicroRuntimeAsync
+    type: object
+    default:
+      enabled: true
+      configs:
+        - linux_arm64
   - name: monoMicro
     type: object
     default:
@@ -270,23 +276,24 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-  # CoreCLR Viper microbenchmarks NoR2R — controlled by viperMicroNoR2R toggle (separate from R2R runs).
-  # Platform selection is driven by viperMicroNoR2R.configs (default: linux_x64, windows_x64).
-  - ${{ if eq(parameters.viperMicroNoR2R.enabled, true) }}:
+  # CoreCLR Viper microbenchmarks runtime-async experiment — controlled by viperMicroRuntimeAsync toggle.
+  # Enables the runtime-async feature via the 'runtimeasync' experiment.
+  # Platform selection is driven by viperMicroRuntimeAsync.configs (default: linux_x64, windows_x64).
+  - ${{ if eq(parameters.viperMicroRuntimeAsync.enabled, true) }}:
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
         buildConfig: release
         runtimeFlavor: coreclr
-        platforms: ${{ parameters.viperMicroNoR2R.configs }}
+        platforms: ${{ parameters.viperMicroRuntimeAsync.configs }}
         jobParameters:
           liveLibrariesBuildConfig: Release
           runKind: micro
           logicalMachine: 'perfviper'
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          r2rRunType: nor2r
-          additionalJobIdentifier: 'NoR2R'
+          experimentName: runtimeasync
+          additionalJobIdentifier: 'RuntimeAsync'
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -306,6 +313,28 @@ jobs:
           osDistro: 'azurelinux'
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
+  # CoreCLR Cobalt microbenchmarks runtime-async experiment — controlled by cobaltMicroRuntimeAsync toggle.
+  # Enables the runtime-async feature via the 'runtimeasync' experiment.
+  # Excluded on release branches — the arm64 coreclr build doesn't exist in older runtime branches.
+  - ${{ if and(eq(parameters.cobaltMicroRuntimeAsync.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: coreclr
+        platforms: ${{ parameters.cobaltMicroRuntimeAsync.configs }}
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runKind: micro
+          logicalMachine: 'perfcobalt'
+          osDistro: 'azurelinux'
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          experimentName: runtimeasync
+          additionalJobIdentifier: 'RuntimeAsync'
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 

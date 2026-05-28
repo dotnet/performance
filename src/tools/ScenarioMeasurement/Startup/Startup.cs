@@ -28,6 +28,7 @@ enum MetricType
     TimeToMain2,
     BuildTime,
     IOSInnerLoop,
+    AndroidInnerLoop,
 }
 
 public class InnerLoopMarkerEventSource : EventSource
@@ -293,6 +294,7 @@ public class Startup
             MetricType.TimeToMain2 => new TimeToMain2Parser(AddTestProcessEnvironmentVariable),
             MetricType.BuildTime => new BuildTimeParser(),
             MetricType.IOSInnerLoop => new IOSInnerLoopParser(),
+            MetricType.AndroidInnerLoop => new AndroidInnerLoopParser(),
             _ => throw new ArgumentOutOfRangeException(),
         };
 

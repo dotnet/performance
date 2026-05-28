@@ -22,9 +22,14 @@ namespace GC.Infrastructure.Commands.RunCommand
 
         public override int Execute([NotNull] CommandContext context, [NotNull] RunSuiteCommandSettings settings)
         {
-            if (!string.IsNullOrEmpty(settings.SuiteBasePath) || !Directory.Exists(settings.SuiteBasePath))
+            if (string.IsNullOrEmpty(settings.SuiteBasePath))
             {
-                throw new ArgumentNullException($"{nameof(RunSuiteCommandSettings)}: {nameof(settings.SuiteBasePath)} was either null or the directory doesn't exists.");
+                throw new ArgumentException($"{nameof(RunSuiteCommandSettings)}: Suite base path was null.");
+            }
+
+            if (!Directory.Exists(settings.SuiteBasePath))
+            {
+                throw new DirectoryNotFoundException($"{nameof(RunSuiteCommandSettings)}: Suite base path {settings.SuiteBasePath} does not exist.");
             }
 
             Dictionary<string, string> configuration = new();
@@ -50,7 +55,7 @@ namespace GC.Infrastructure.Commands.RunCommand
 
                 catch (Exception e)
                 {
-                    AnsiConsole.Write($"[red] GCPerfSim Configuration: {c} failed with {e.Message} [/]");
+                    AnsiConsole.MarkupLine($"[red] GCPerfSim Configuration: {Markup.Escape(c)} failed with {Markup.Escape(e.Message)} [/]");
                 }
             }
 
@@ -66,7 +71,7 @@ namespace GC.Infrastructure.Commands.RunCommand
 
                 catch (Exception e)
                 {
-                    AnsiConsole.Write($"[red] Microbenchmark Configuration: {c} failed with {e.Message} [/]");
+                    AnsiConsole.MarkupLine($"[red] Microbenchmark Configuration: {Markup.Escape(c)} failed with {Markup.Escape(e.Message)} [/]");
                 }
             }
 
@@ -83,7 +88,7 @@ namespace GC.Infrastructure.Commands.RunCommand
 
                 catch (Exception e)
                 {
-                    AnsiConsole.Write($"[red] ASPNet Configuration: {c} failed with {e.Message} [/]");
+                    AnsiConsole.MarkupLine($"[red] ASPNet Configuration: {Markup.Escape(c)} failed with {Markup.Escape(e.Message)} [/]");
                 }
             }
         }
