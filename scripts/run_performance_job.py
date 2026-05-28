@@ -1179,6 +1179,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 for key, value in args.run_env_vars.items():
                     os.environ[key] = value
 
+            # Propagate RunKind so the PreparePayloadWorkItems msbuild call
+            # below evaluates _IsInnerLoop correctly and selects the inner-loop
+            # PreparePayloadWorkItem items (which run `pre.py default` and
+            # create rollback_maui.json in the payload dir). Without this,
+            # inner loop scenarios silently fall through to regular `pre.py
+            # publish` items and ship an incomplete payload to Helix.
+            if args.run_kind:
+                os.environ["RunKind"] = args.run_kind
+
             # TODO: See if these commands are needed for linux as they were being called before but were failing.
             if args.os_group == "windows" or args.os_group == "osx":
                 break_system_packages = ["--break-system-packages"] if args.os_group == "osx" else []
