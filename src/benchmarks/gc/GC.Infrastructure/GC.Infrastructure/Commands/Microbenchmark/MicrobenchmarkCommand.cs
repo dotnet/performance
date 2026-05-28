@@ -81,8 +81,8 @@ namespace GC.Infrastructure.Commands.Microbenchmark
             string collectType = configuration.TraceConfigurations?.Type ?? "none";
 
             HashSet<string> alreadyRunBenchmarks = new();
-            KeyValuePair<string, Run> baselineKVP = configuration.Runs.FirstOrDefault(r => r.Value.is_baseline);
-            Run baseline = baselineKVP.Value;
+            KeyValuePair<string, CoreRunInfo> baselineKVP = configuration.Runs.FirstOrDefault(r => r.Value.is_baseline);
+            CoreRunInfo baseline = baselineKVP.Value;
             if (baseline == null)
             {
                 baselineKVP = configuration.Runs.First();

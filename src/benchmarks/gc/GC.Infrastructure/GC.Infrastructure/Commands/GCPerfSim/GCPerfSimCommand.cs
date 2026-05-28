@@ -112,7 +112,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 string outputPath = Path.Combine(configuration.Output!.Path, runInfo.CorerunDetails.Key);
                 Core.Utilities.TryCreateDirectory(outputPath);
 
-                for (int iterationIdx = 0; iterationIdx < configuration.Environment.Iterations; iterationIdx++)
+                for (int iterationIdx = 0; iterationIdx < configuration.Environment.iterations; iterationIdx++)
                 {
                     // Format: (Name of Run).(corerun / name of corerun).(IterationIdx)
                     string key = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
@@ -244,7 +244,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 string outputPath = Path.Combine(configuration.Output!.Path, run.CorerunDetails.Key);
                 Core.Utilities.TryCreateDirectory(outputPath);
 
-                for (int iterationIdx = 0; iterationIdx < configuration.Environment.Iterations; iterationIdx++)
+                for (int iterationIdx = 0; iterationIdx < configuration.Environment.iterations; iterationIdx++)
                 {
                     OS os = serverName.Contains("lin") ? OS.Linux : OS.Windows;
                     (string, string) processAndParameters = GCPerfSimCommandBuilder.BuildForServer(configuration, run.RunDetails, iterationIdx, run.CorerunDetails, serverName, os);

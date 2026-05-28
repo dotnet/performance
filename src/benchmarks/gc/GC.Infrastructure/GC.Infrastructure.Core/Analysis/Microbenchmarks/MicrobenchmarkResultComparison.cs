@@ -42,9 +42,9 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             { "System.Tests.Perf_GC<Char>.NewOperator_Array(length: 10000)", "System.Tests.Perf_GC_Char_.NewOperator_Array_length_10000_"},
         };
 
-        public static ConcurrentBag<Tuple<Run, BdnJsonResult, string>> LoadBdnJsonResults(MicrobenchmarkConfiguration configuration)
+        public static ConcurrentBag<Tuple<CoreRunInfo, BdnJsonResult, string>> LoadBdnJsonResults(MicrobenchmarkConfiguration configuration)
         {
-            ConcurrentBag<Tuple<Run, BdnJsonResult, string>> bdnJsonResults = new();
+            ConcurrentBag<Tuple<CoreRunInfo, BdnJsonResult, string>> bdnJsonResults = new();
             Parallel.ForEach(configuration.Runs, (run) =>
             {
                 string outputPathForRun = Path.Combine(configuration.Output.Path, run.Key);
@@ -64,7 +64,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
         // TODO: We should specify relationship between json files and trace files before running benchmarks instead of relying on file name patterns.
         // This will make the mapping more robust and less prone to errors due to file naming.
-        public static Dictionary<string, string> MapJsonToTrace(string outputPath, ConcurrentBag<Tuple<Run, BdnJsonResult, string>> bdnJsonResults)
+        public static Dictionary<string, string> MapJsonToTrace(string outputPath, ConcurrentBag<Tuple<CoreRunInfo, BdnJsonResult, string>> bdnJsonResults)
         {
             Dictionary<string, string> jsonToTrace = new();
             foreach (var groupForRun in bdnJsonResults.GroupBy(t => t.Item1))
@@ -115,7 +115,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
         public static ConcurrentBag<MicrobenchmarkResult> 
             AnalyzeMicrobenchmarkResults(MicrobenchmarkConfiguration configuration,
-                                         ConcurrentBag<Tuple<Run, BdnJsonResult, string>> bdnJsonResults,
+                                         ConcurrentBag<Tuple<CoreRunInfo, BdnJsonResult, string>> bdnJsonResults,
                                          bool excludeTraces = false)
         {
             ConcurrentBag<MicrobenchmarkResult> microbenchmarkResults = new();

@@ -6,12 +6,17 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
 {
     public sealed class GCPerfSimConfiguration : ConfigurationBase
     {
-        public Dictionary<string, Run>? Runs { get; set; }
-        public GCPerfSimConfigurations? gcperfsim_configurations { get; set; }
+        public required Dictionary<string, Run> Runs { get; set; }
+        public required GCPerfSimConfigurations gcperfsim_configurations { get; set; }
         public Environment Environment { get; set; } = new();
-        public Dictionary<string, CoreRunInfo>? coreruns { get; set; }
+        public required Dictionary<string, CoreRunInfo> coreruns { get; set; } = new();
         public Dictionary<string, CoreRunInfo>? linux_coreruns { get; set; }
-        public Output? Output { get; set; }
+        public required Output Output { get; set; }
+    }
+
+    public sealed class CoreRunInfo : CoreRunInfoBase 
+    { 
+        public string? Name { get; set; }
     }
 
     public sealed class Run : RunBase
@@ -24,7 +29,7 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
     public class GCPerfSimConfigurations
     {
         public Dictionary<string, string> Parameters { get; set; } = new();
-        public string? gcperfsim_path { get; set; }
+        public required string gcperfsim_path { get; set; }
     }
 
     public class ClrGcRunInfo
@@ -37,8 +42,9 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
     {
         public Dictionary<string, string> environment_variables { get; set; } = new();
         public uint default_max_seconds { get; set; } = 300;
-        public uint Iterations { get; set; } = 1;
+        public uint iterations { get; set; } = 1;
     }
+
     public static class GCPerfSimConfigurationParser
     {
         private static readonly IDeserializer _deserializer =

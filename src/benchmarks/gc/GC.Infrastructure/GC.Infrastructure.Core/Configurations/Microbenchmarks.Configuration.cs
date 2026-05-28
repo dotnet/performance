@@ -6,19 +6,25 @@ namespace GC.Infrastructure.Core.Configurations.Microbenchmarks
     public sealed class MicrobenchmarkConfiguration : ConfigurationBase
     {
         public string microbenchmarks_path { get; set; }
-        public Dictionary<string, Run> Runs { get; set; }
+        public Dictionary<string, CoreRunInfo> Runs { get; set; }
         public MicrobenchmarkConfigurations MicrobenchmarkConfigurations { get; set; }
         public Environment Environment { get; set; }
         public Output Output { get; set; }
         public string? Path { get; set; }
     }
 
-    public sealed class Run : RunBase
+    //public sealed class Run : RunBase
+    //{
+    //    public string? DotnetInstaller { get; set; }
+    //    public string? Name { get; set; }
+    //    public string? corerun { get; set; }
+    //    public bool is_baseline { get; set; }
+    //}
+
+    public sealed class CoreRunInfo : CoreRunInfoBase
     {
         public string? DotnetInstaller { get; set; }
         public string? Name { get; set; }
-        public string? corerun { get; set; }
-        public bool is_baseline { get; set; }
     }
 
     public class Environment
