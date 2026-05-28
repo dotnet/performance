@@ -611,19 +611,22 @@ class iOSHelper:
                 launch_proc.wait()
 
         # Collect device logs covering the launch window.
-        # Both rm -rf calls use sudo because `sudo log collect` writes the
-        # logarchive owned by root; an unprivileged rm cannot recurse into it
-        # and `log collect` refuses to overwrite an existing --output path
-        # (exit 74), so a stale archive from iteration N would block iteration
-        # N+1 from collecting any logs.
-        logarchive = os.path.join(tempfile.gettempdir(), 'ioshelper_startup.logarchive')
-        self._run_quiet(['sudo', 'rm', '-rf', logarchive])
+        # Use a unique per-call logarchive path so we don't need to delete a
+        # prior root-owned archive (the upstream code uses `sudo rm -rf` to
+        # purge a stale shared path; that requires interactive sudo when
+        # NOPASSWD is scoped only to `log collect`, which hangs background
+        # campaigns). Per-call uniqueness eliminates the need for cleanup
+        # entirely; macOS's tmp cleaner reaps leaked archives.
+        import time as _time
+        logarchive = os.path.join(
+            tempfile.gettempdir(),
+            f'ioshelper_startup_{os.getpid()}_{int(_time.time() * 1000)}.logarchive')
         collect_cmd = ['sudo', 'log', 'collect', '--device',
                        '--start', start_ts, '--output', logarchive]
         RunCommand(collect_cmd, verbose=True).run()
 
         # Parse SpringBoard watchdog events for this bundle ID.
-        # sudo because the logarchive is root-owned (see comment above).
+        # sudo because the logarchive is root-owned (created by sudo log collect).
         show_cmd = ['sudo', 'log', 'show',
                     '--predicate', '(process == "SpringBoard") && (category == "Watchdog")',
                     '--info', '--style', 'ndjson', logarchive]
@@ -673,8 +676,10 @@ class iOSHelper:
         getLogger().info("Cold startup: %d ms (Time to Main: %d ms, Time to First Draw: %d ms)",
                          total_ms, time_to_main_ms, time_to_draw_ms)
 
-        # Clean up logarchive (sudo: log collect ran as root, so the tree is root-owned)
-        self._run_quiet(['sudo', 'rm', '-rf', logarchive])
+        # Skip post-iter cleanup: the logarchive uses a unique per-call name so
+        # accumulation isn't a correctness problem. macOS reaps /tmp on a
+        # schedule. Leaving it avoids needing sudo (which hangs background
+        # campaigns when NOPASSWD is scoped only to `log collect`).
 
         return total_ms
 
