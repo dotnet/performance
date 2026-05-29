@@ -861,20 +861,39 @@ ex: C:\repos\performance;C:\repos\runtime
                                 make_archive(archive_base, 'zip', root_dir=logarchive_filename)
                             except Exception as upload_ex:
                                 getLogger().warning(f"Failed to save logarchive for diagnosis: {upload_ex}")
-                        # Pull any iOS crash reports (.ips) for our bundle from the device into the upload root.
-                        # The systemCrashLogs domain on devicectl exposes /var/mobile/Library/Logs/CrashReporter/.
-                        crash_dest = os.path.join(upload_root, f'iteration{i}_crashlogs')
-                        os.makedirs(crash_dest, exist_ok=True)
-                        crashCopyCmd = [
-                            'xcrun', 'devicectl', 'device', 'copy', 'from',
-                            '--device', deviceUDID,
-                            '--domain-type', 'systemCrashLogs',
-                            '--source', '/',
-                            '--destination', crash_dest,
-                        ]
+                        # Pull iOS crash reports (.ips) from the device into the upload root, then prune
+                        # to entries relevant to this iteration (matching bundle name OR generated since
+                        # the iteration started). The systemCrashLogs domain exposes /var/mobile/Library/
+                        # Logs/CrashReporter/, which on shared devices accumulates unrelated reports.
                         try:
+                            crash_dest = os.path.join(upload_root, f'iteration{i}_crashlogs')
+                            os.makedirs(crash_dest, exist_ok=True)
+                            crashCopyCmd = [
+                                'xcrun', 'devicectl', 'device', 'copy', 'from',
+                                '--device', deviceUDID,
+                                '--domain-type', 'systemCrashLogs',
+                                '--source', '/',
+                                '--destination', crash_dest,
+                            ]
                             getLogger().info(f"Copying device crash logs to {crash_dest} for diagnosis.")
                             RunCommand(crashCopyCmd, verbose=True).run()
+                            bundle_name = os.path.splitext(os.path.basename(os.path.normpath(self.packagepath)))[0]
+                            iteration_start_ts = runCmdTimestamp.timestamp()
+                            kept = removed = 0
+                            for root, _, files in os.walk(crash_dest):
+                                for fname in files:
+                                    fpath = os.path.join(root, fname)
+                                    try:
+                                        is_bundle_match = bool(bundle_name) and bundle_name in fname
+                                        is_recent = os.path.getmtime(fpath) >= iteration_start_ts
+                                        if is_bundle_match or is_recent:
+                                            kept += 1
+                                        else:
+                                            os.remove(fpath)
+                                            removed += 1
+                                    except OSError:
+                                        pass
+                            getLogger().info(f"Kept {kept} crash log(s) relevant to {bundle_name!r} or this iteration; pruned {removed}.")
                         except Exception as crash_ex:
                             getLogger().warning(f"Failed to copy device crash logs for diagnosis: {crash_ex}")
                     raise
