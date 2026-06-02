@@ -51,7 +51,10 @@ def get_credential():
     if os.environ.get("PERFLAB_UPLOAD_USE_AZURE_CLI", "").lower() in ("1", "true"):
         from azure.identity import AzureCliCredential
         getLogger().info("Attempting auth with Azure CLI credential (service connection).")
-        credential = AzureCliCredential()
+        # The default AzureCliCredential subprocess timeout is 10s; on a loaded
+        # hosted agent cold-starting `az account get-access-token` can exceed
+        # that, so allow more time.
+        credential = AzureCliCredential(process_timeout=300)
         credential.get_token("https://storage.azure.com/.default")
         return credential
 
