@@ -36,6 +36,7 @@ parameters:
   targetCsproj: ''                  # optional -- Path to the csproj file to run benchmarks on
   runCategories: ''                 # optional -- Categories to run benchmarks on
   isScenario: false                 # optional -- Whether the job is a scenario job
+  runOnAgent: false                 # optional -- Run the scenario directly on the macOS agent instead of dispatching to a Helix Mac queue (iOS simulator inner loop)
   runEnvVars: []                    # optional -- Environment variables to set for the benchmark
   runtimeFlavor: ''                 # optional -- Runtime flavor used for scenarios
   osVersion: ''                     # optional -- OS version to run on
@@ -241,10 +242,27 @@ jobs:
               - '--cross-build'
             - ${{ if ne(parameters.additionalSetupParameters, '') }}:
               - '${{ parameters.additionalSetupParameters }}'
-      - template: /eng/pipelines/templates/send-to-helix-step.yml
-        parameters:
-          osGroup: ${{ parameters.osGroup }}
-          projectFile: $(_projectFile)
+      - ${{ if ne(parameters.runOnAgent, true) }}:
+        - template: /eng/pipelines/templates/send-to-helix-step.yml
+          parameters:
+            osGroup: ${{ parameters.osGroup }}
+            projectFile: $(_projectFile)
+      # iOS simulator inner loop: the Helix Mac perf queues are EOL, so run the
+      # scenario (setup_helix.py -> test.py -> post.py) directly on the macos-26
+      # hosted agent. AzureCLI@2 + the '.NET Performance' service connection give
+      # upload.py's DefaultAzureCredential/UAMI path access to pvscmdupload.
+      - ${{ if eq(parameters.runOnAgent, true) }}:
+        - task: AzureCLI@2
+          displayName: 'Run iOS inner loop on agent (simulator)'
+          inputs:
+            azureSubscription: '.NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)'
+            scriptType: bash
+            scriptLocation: scriptPath
+            scriptPath: $(performanceRepoDir)/eng/pipelines/templates/run-ios-innerloop-on-agent.sh
+            arguments: >-
+              --payload-dir "$(performanceRepoDir)/CorrelationStaging/payload"
+              --runtime-flavor ${{ parameters.runtimeFlavor }}
+              --framework "$(PERFLAB_Framework)"
       - ${{ if eq(parameters.osGroup, 'windows') }}:
         - task: PowerShell@2
           displayName: Redact Logs
