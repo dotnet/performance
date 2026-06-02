@@ -110,6 +110,24 @@ export NUGET_PACKAGES="$HELIX_WORKITEM_ROOT/.packages"
 export PATH="$DOTNET_ROOT:$PATH"
 export IOS_RID="$ios_rid"
 
+# Install the Python packages the scenario needs at runtime (azure SDK for
+# upload.py, cryptography, etc.). On Helix these are installed via the work
+# item's helix_pre_commands; on the agent we must do it ourselves. runner.py
+# imports `upload` unconditionally, so this is required even when not uploading.
+# --break-system-packages matches the existing osx pip handling in
+# scripts/run_performance_job.py.
+requirements_file="$HELIX_CORRELATION_PAYLOAD/performance/requirements.txt"
+if [[ -f "$requirements_file" ]]; then
+  echo "Installing Python requirements from $requirements_file"
+  python3 -m pip install --break-system-packages --user --disable-pip-version-check -q -r "$requirements_file" || {
+    echo "pip install of requirements failed" >&2
+    exit 1
+  }
+else
+  echo "requirements.txt not found at $requirements_file" >&2
+  exit 1
+fi
+
 # _MSBuildArgs from maui_scenarios_ios.proj (simulator path: iOSRid != ios-arm64).
 if [[ "$runtime_flavor" == "mono" ]]; then
   msbuild_args="/p:UseMonoRuntime=true"
