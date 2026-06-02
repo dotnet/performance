@@ -140,11 +140,14 @@ fi
 msbuild_args="$msbuild_args /p:RuntimeIdentifier=$ios_rid /p:MtouchLink=None"
 
 # Only upload to PerfLab from internal, non-PR runs (mirrors the gating in
-# run-performance-job.yml). DefaultAzureCredential/UAMI in upload.py picks up the
-# AzureCLI@2 service-connection login that wraps this script.
+# run-performance-job.yml). On the agent, upload.py authenticates via the
+# AzureCLI@2 service-connection login (AzureCliCredential) that wraps this
+# script; PERFLAB_UPLOAD_USE_AZURE_CLI selects that path over the Helix
+# UAMI/cert flow.
 scenario_args=""
 if [[ "${SYSTEM_TEAMPROJECT:-}" != "public" && "${BUILD_REASON:-}" != "PullRequest" ]]; then
   scenario_args="--upload-to-perflab-container"
+  export PERFLAB_UPLOAD_USE_AZURE_CLI=1
 fi
 
 echo "===== iOS inner loop (simulator) on-agent run ====="
