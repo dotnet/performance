@@ -15,14 +15,14 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 {
     public sealed class GCPerfSimResults
     {
-        public GCPerfSimResults(IReadOnlyDictionary<string, ProcessExecutionDetails> executionDetails, IReadOnlyList<ComparisonResult> analysisResults)
+        public GCPerfSimResults(IReadOnlyDictionary<string, ProcessExecutionDetails> executionDetails, IEnumerable<GCTraceMetricComparisonResults> analysisResults)
         {
             ExecutionDetails = executionDetails;
             AnalysisResults = analysisResults;
         }
 
         public IReadOnlyDictionary<string, ProcessExecutionDetails> ExecutionDetails { get; }
-        public IReadOnlyList<ComparisonResult> AnalysisResults { get; }
+        public IEnumerable<GCTraceMetricComparisonResults> AnalysisResults { get; }
     }
 
     public sealed class GCPerfSimCommand : Command<GCPerfSimCommand.GCPerfSimSettings>
@@ -95,7 +95,10 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 executionDetails = ExecuteLocally(configuration, runInfos);
             }
 
-            return new GCPerfSimResults(executionDetails, GCPerfSimAnalyzeCommand.ExecuteAnalysis(configuration, executionDetails));
+            var analysisResults = GCPerfSimAnalyzeCommand.ExecuteAnalysis(configuration);
+            GCPerfSimAnalyzeCommand.Present(configuration, analysisResults, executionDetails);
+
+            return new GCPerfSimResults(executionDetails, analysisResults);
         }
 
         internal static Dictionary<string, ProcessExecutionDetails> ExecuteLocally(GCPerfSimConfiguration configuration, IReadOnlyList<RunInfo> runInfos)

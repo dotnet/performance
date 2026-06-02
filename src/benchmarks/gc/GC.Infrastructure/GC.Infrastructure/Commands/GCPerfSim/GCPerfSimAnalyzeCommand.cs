@@ -29,22 +29,42 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             Core.Utilities.TryCreateDirectory(configuration.Output!.Path);
 
             // TODO: Fill in at least the repro steps if you are simply analyzing the results.
-            ExecuteAnalysis(configuration, new Dictionary<string, ProcessExecutionDetails>());
+            var comparisonResultGroupedByRunName = ExecuteAnalysis(configuration);
+            Present(configuration, comparisonResultGroupedByRunName, new());
             return 0;
         }
 
-        public static IReadOnlyList<ComparisonResult> ExecuteAnalysis(GCPerfSimConfiguration configuration, Dictionary<string, ProcessExecutionDetails> executionDetails)
+        public static IReadOnlyCollection<GCTraceMetricComparisonResults> ExecuteAnalysis(GCPerfSimConfiguration configuration)
         {
-            string outputPath = Path.Combine(configuration.Output!.Path, "Results.md");
-            IReadOnlyList<ComparisonResult> results = Markdown.GenerateTable(configuration, executionDetails, outputPath);
-            AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to {outputPath} [/]");
-            if (configuration.Output.Formats.Contains("json"))
+            var allTraceFiles = GCTraceMetricComparison.GetAllTraceFiles(configuration);
+            var allGCTraceMetrics = GCTraceMetricComparison.AnalyzeGCPerfsimResults(configuration, allTraceFiles);
+            var allComparisonResults = GCTraceMetricComparison.CompareGCTraceMetrics(configuration, allGCTraceMetrics);
+            var comparisonResultGroupedByRunName = GCTraceMetricComparison.GroupComparisonResultsByRunName(allComparisonResults);
+            return comparisonResultGroupedByRunName;
+        }
+
+        public static void Present(GCPerfSimConfiguration configuration,
+                                   IEnumerable<GCTraceMetricComparisonResults> comparisonResultGroupedByRunName,
+                                   Dictionary<string, ProcessExecutionDetails> executionDetails)
+        {
+            foreach (var format in configuration.Output.Formats)
             {
-                outputPath = Path.Combine(configuration.Output!.Path, "Results.json");
-                Json.GenerateDictionary(configuration, executionDetails, outputPath);
-                AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to {outputPath} [/]");
+                if (format == "markdown")
+                {
+                    string outputPath = Path.Combine(configuration.Output.Path, "Results.md");
+                    Markdown.GenerateForAnalyzeCommand(configuration, comparisonResultGroupedByRunName, executionDetails, outputPath);
+                    AnsiConsole.MarkupLine($"[bold green] ({DateTime.Now}) Results written to {Markup.Escape(outputPath)}.[/]");
+                    continue;
+                }
+
+                if (format == "json")
+                {
+                    string outputPath = Path.Combine(configuration.Output.Path, "Results.json");
+                    Json.GenerateForAnalyzeCommand(comparisonResultGroupedByRunName, outputPath);
+                    AnsiConsole.MarkupLine($"[bold green] ({DateTime.Now}) Results written to {Markup.Escape(outputPath)}.[/]");
+                    continue;
+                }
             }
-            return results;
         }
     }
 }

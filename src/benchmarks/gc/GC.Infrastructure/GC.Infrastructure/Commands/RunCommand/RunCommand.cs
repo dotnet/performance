@@ -104,16 +104,18 @@ namespace GC.Infrastructure.Commands.RunCommand
                     gcperfsimTestCount += config.Runs.Select(r => r.Key).Distinct().Count();
                     GCPerfSimResults comparisonResult = GCPerfSimCommand.RunGCPerfSim(config, null);
 
-                    foreach (var ar in comparisonResult.AnalysisResults)
-                    {
-                        uniqueGCPerfSimTests.Add(ar.Key);
-                    }
+                    var allComparisonResultsForConfig = comparisonResult.AnalysisResults
+                        .SelectMany(r => r.ComparisonResults)
+                        .ToList();
+
+                    allComparisonResultsForConfig
+                        .ForEach(ar => uniqueGCPerfSimTests.Add(ar.Key));
 
                     string path = Path.GetFileNameWithoutExtension(c);
 
                     allComparisonResults[path] = comparisonResult;
 
-                    foreach (var metric in comparisonResult.AnalysisResults)
+                    foreach (var metric in allComparisonResultsForConfig)
                     {
                         string metricKey = path + "_" + metric.RunName;
                         if (gcTopLevelResults.Contains(metric.MetricName))
@@ -126,6 +128,7 @@ namespace GC.Infrastructure.Commands.RunCommand
                             val[metric.MetricName] = metric.PercentageDelta;
                         }
                     }
+                    
                 }
 
                 catch (Exception e)
@@ -284,7 +287,8 @@ namespace GC.Infrastructure.Commands.RunCommand
                     string restOfMetrics = "";
                     foreach (var l in gcTopLevelResults)
                     {
-                        restOfMetrics += $" {Math.Round(r.Value[l], 2)}% |";
+                        double metric = r.Value[l];
+                        restOfMetrics += $" {(double.IsNaN(metric) ? "NaN" : $"{Math.Round(metric, 2)}%")} |";
                     }
 
                     swReport.WriteLine($"| {r.Key} | {restOfMetrics}");
@@ -303,10 +307,10 @@ namespace GC.Infrastructure.Commands.RunCommand
                         foreach (var l in gcTopLevelResults)
                         {
                             double metric = r.ComparisonResults.FirstOrDefault(f => f.MetricName == l)?.PercentageDelta ?? double.NaN;
-                            restOfMetrics += $" {Math.Round(metric, 2)}% |";
+                            restOfMetrics += $" {(double.IsNaN(metric) ? "NaN" : $"{Math.Round(metric, 2)}%")} |";
                         }
 
-                        swReport.WriteLine($"| {m.Key} {r.MicrobenchmarkName} | {Math.Round(r.MeanDiffPerc, 2)}% | {restOfMetrics}");
+                        swReport.WriteLine($"| {m.Key} {r.MicrobenchmarkName} | {(double.IsNaN(r.MeanDiffPerc) ? "NaN" : $"{Math.Round(r.MeanDiffPerc, 2)}%")} | {restOfMetrics}");
                     }
                 }
 
@@ -322,7 +326,7 @@ namespace GC.Infrastructure.Commands.RunCommand
 
             AnsiConsole.MarkupLine($"[bold green] Report generated at: {overallReportPath} [/]");
             AnsiConsole.WriteLine($"Took: {sw.ElapsedMilliseconds / 1000} seconds.");
-
+            
             return 0;
         }
     }
