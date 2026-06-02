@@ -57,11 +57,29 @@ fi
 
 # Load PERFLAB_* / DOTNET_VERSION / PERFLAB_TARGET_FRAMEWORKS, etc. This is the
 # same file the Helix work item sources via helix_pre_commands.
+# Emulate the HELIX_* environment the scenario scripts (and the generated
+# machine-setup.sh, which references $HELIX_CORRELATION_PAYLOAD) expect. These
+# MUST be exported before sourcing machine-setup.sh. On Helix the correlation
+# payload and the work item payload (the scenario dir) are unpacked separately;
+# here we collapse the work item root onto the prepared scenario dir inside the
+# payload, which is fine for a single local work item.
+export HELIX_CORRELATION_PAYLOAD="$payload_dir"
+export HELIX_WORKITEM_ROOT="$scenario_dir"
+export HELIX_WORKITEM_UPLOAD_ROOT="$payload_dir/../uploadroot"
+mkdir -p "$HELIX_WORKITEM_UPLOAD_ROOT"
+HELIX_WORKITEM_UPLOAD_ROOT="$(cd "$HELIX_WORKITEM_UPLOAD_ROOT" && pwd)"
+export HELIX_WORKITEM_UPLOAD_ROOT
+export HELIX_WORKITEM_ID="MAUIiOSInnerLoop_Simulator_${runtime_flavor}_${BUILD_BUILDID:-local}"
+
 machine_setup="$payload_dir/root/machine-setup.sh"
 if [[ -f "$machine_setup" ]]; then
   echo "Sourcing $machine_setup"
+  # machine-setup.sh is generated for the Helix environment and may reference
+  # variables we don't set; relax nounset just for the source.
+  set +u
   # shellcheck disable=SC1090
   source "$machine_setup"
+  set -u
 else
   echo "machine-setup.sh not found at $machine_setup" >&2
   exit 1
@@ -79,23 +97,12 @@ if [[ -z "$framework" ]]; then
   exit 1
 fi
 
-# Emulate the HELIX_* environment the scenario scripts expect. On Helix the
-# correlation payload and the work item payload (the scenario dir) are unpacked
-# separately; here we collapse the work item root onto the prepared scenario dir
-# inside the payload, which is fine for a single local work item.
-export HELIX_CORRELATION_PAYLOAD="$payload_dir"
-export HELIX_WORKITEM_ROOT="$scenario_dir"
-export HELIX_WORKITEM_UPLOAD_ROOT="$payload_dir/../uploadroot"
-mkdir -p "$HELIX_WORKITEM_UPLOAD_ROOT"
-HELIX_WORKITEM_UPLOAD_ROOT="$(cd "$HELIX_WORKITEM_UPLOAD_ROOT" && pwd)"
-export HELIX_WORKITEM_UPLOAD_ROOT
-export HELIX_WORKITEM_ID="MAUIiOSInnerLoop_Simulator_${runtime_flavor}_${BUILD_BUILDID:-local}"
-
 # Global Helix pre-commands (from Scenarios.Common.props) so `import shared.*`
 # and `import performance.*` resolve.
 export PYTHONPATH="$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD"
 
-# _MacEnvVars from maui_scenarios_ios.proj.
+# _MacEnvVars from maui_scenarios_ios.proj (machine-setup.sh already sets
+# DOTNET_ROOT/PATH to the same values; re-export for parity with the proj).
 export DOTNET_ROOT="$HELIX_CORRELATION_PAYLOAD/dotnet"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_MULTILEVEL_LOOKUP=0
