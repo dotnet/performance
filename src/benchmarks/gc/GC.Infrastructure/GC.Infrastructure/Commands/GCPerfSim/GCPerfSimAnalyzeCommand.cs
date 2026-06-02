@@ -49,7 +49,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         {
             foreach (var format in configuration.Output.Formats)
             {
-                if (format == "markdown")
+                if (string.Equals(format, "markdown", StringComparison.OrdinalIgnoreCase))
                 {
                     string outputPath = Path.Combine(configuration.Output.Path, "Results.md");
                     Markdown.GenerateForAnalyzeCommand(configuration, comparisonResultGroupedByRunName, executionDetails, outputPath);
@@ -57,7 +57,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                     continue;
                 }
 
-                if (format == "json")
+                if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
                 {
                     string outputPath = Path.Combine(configuration.Output.Path, "Results.json");
                     Json.GenerateForAnalyzeCommand(comparisonResultGroupedByRunName, outputPath);

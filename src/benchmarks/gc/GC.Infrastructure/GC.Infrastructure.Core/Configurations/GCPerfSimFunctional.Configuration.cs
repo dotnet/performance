@@ -6,7 +6,7 @@ namespace GC.Infrastructure.Core.Configurations
     {
         public required string output_path { get; set; }
         public required string gcperfsim_path { get; set; }
-        public required Dictionary<string, CoreRunInfo> coreruns { get; set; } = new();
+        public required Dictionary<string, CoreRunInfo> coreruns { get; set; }
         public Environment Environment { get; set; } = new();
         public string trace_configuration_type { get; set; } = "gc";
     }

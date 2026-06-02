@@ -9,7 +9,7 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
         public required Dictionary<string, Run> Runs { get; set; }
         public required GCPerfSimConfigurations gcperfsim_configurations { get; set; }
         public Environment Environment { get; set; } = new();
-        public required Dictionary<string, CoreRunInfo> coreruns { get; set; } = new();
+        public required Dictionary<string, CoreRunInfo> coreruns { get; set; }
         public Dictionary<string, CoreRunInfo>? linux_coreruns { get; set; }
         public required Output Output { get; set; }
     }
@@ -62,6 +62,15 @@ namespace GC.Infrastructure.Core.Configurations.GCPerfSim
             try
             {
                 configuration = _deserializer.Deserialize<GCPerfSimConfiguration>(serializedConfiguration);
+
+                if (!isIncompleteConfiguration)
+                {
+                    foreach (var corerunKVP in configuration.coreruns)
+                    {
+                        CoreRunInfo corerunInfo = corerunKVP.Value;
+                        corerunInfo.Name = corerunInfo.Name ?? corerunKVP.Key;
+                    }
+                }
             }
 
             catch (Exception ex)

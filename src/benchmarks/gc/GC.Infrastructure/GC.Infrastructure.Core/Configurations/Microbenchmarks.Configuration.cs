@@ -13,14 +13,6 @@ namespace GC.Infrastructure.Core.Configurations.Microbenchmarks
         public string? Path { get; set; }
     }
 
-    //public sealed class Run : RunBase
-    //{
-    //    public string? DotnetInstaller { get; set; }
-    //    public string? Name { get; set; }
-    //    public string? corerun { get; set; }
-    //    public bool is_baseline { get; set; }
-    //}
-
     public sealed class CoreRunInfo : CoreRunInfoBase
     {
         public string? DotnetInstaller { get; set; }
@@ -69,6 +61,16 @@ namespace GC.Infrastructure.Core.Configurations.Microbenchmarks
 
             string serializedConfiguration = File.ReadAllText(path);
             MicrobenchmarkConfiguration configuration = _deserializer.Deserialize<MicrobenchmarkConfiguration>(serializedConfiguration);
+            
+            if (configuration.Runs == null)
+            {
+                // If Runs is null, we initialize it to an empty dictionary to avoid null reference exceptions later on.
+                configuration.Runs = new();
+            }
+            foreach (var runKVP in configuration.Runs)
+            {
+                runKVP.Value.Name ??= runKVP.Key;
+            }
 
             // Checks if mandatory arguments are specified in the configuration.
             if (configuration == null)

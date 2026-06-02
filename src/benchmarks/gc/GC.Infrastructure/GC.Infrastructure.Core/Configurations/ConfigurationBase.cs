@@ -22,7 +22,7 @@
 
     public class CoreRunInfoBase
     {
-        public bool is_baseline { get; set; }
+        public required bool is_baseline { get; set; }
         public required string Path { get; set; }
         public required Dictionary<string, string> environment_variables { get; set; }
     }

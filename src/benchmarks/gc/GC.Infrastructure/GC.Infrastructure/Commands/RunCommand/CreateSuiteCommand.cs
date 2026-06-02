@@ -5,7 +5,6 @@ using GC.Infrastructure.Core.Configurations.Microbenchmarks;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
-using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
 using YamlDotNet.Serialization;
 
@@ -294,6 +293,7 @@ namespace GC.Infrastructure.Commands.RunCommand
                 baseConfiguration.Environment.iterations = inputConfiguration.iterations.GetValueOrDefault<string, uint>("gcperfsim", 1);
             }
 
+            baseConfiguration.coreruns = new();
             foreach (var corerunKVP in inputConfiguration.coreruns)
             {
                 baseConfiguration.coreruns.Add(corerunKVP.Key, new Core.Configurations.GCPerfSim.CoreRunInfo

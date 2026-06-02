@@ -18,7 +18,6 @@ namespace GC.Infrastructure.Core.Analysis
             {
                 var outputPath = Path.Combine(configuration.Output.Path, corerunKVP.Key);
                 CoreRunInfo corerunInfo = corerunKVP.Value;
-                corerunInfo.Name = corerunInfo.Name ?? corerunKVP.Key;
                 Parallel.ForEach(configuration.Runs, runKVP =>
                 {
                     var runName = runKVP.Key;
@@ -81,8 +80,8 @@ namespace GC.Infrastructure.Core.Analysis
             Parallel.ForEach(GCPerfsimResultsGroupedByRun, runGroup =>
             {
                 var runName = runGroup.Key;
-                var baselines = runGroup.Where(m => m.Parent!.is_baseline);
-                var comparands = runGroup.Where(m => !m.Parent!.is_baseline);
+                var baselines = runGroup.Where(m => m.Parent != null && m.Parent.is_baseline);
+                var comparands = runGroup.Where(m => m.Parent != null && !m.Parent.is_baseline);
 
                 foreach (var property in typeof(GCTraceMetrics).GetProperties())
                 {

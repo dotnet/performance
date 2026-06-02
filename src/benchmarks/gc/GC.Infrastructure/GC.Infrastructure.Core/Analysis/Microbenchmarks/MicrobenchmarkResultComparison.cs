@@ -51,7 +51,6 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                 string[] jsonFiles = Directory.GetFiles(outputPathForRun, "*full.json", SearchOption.AllDirectories);
                 Parallel.ForEach(jsonFiles, jsonPath =>
                 {
-                    run.Value.Name ??= run.Key;
                     BdnJsonResult? results = JsonConvert.DeserializeObject<BdnJsonResult>(File.ReadAllText(jsonPath));
                     if (results != null)
                     {

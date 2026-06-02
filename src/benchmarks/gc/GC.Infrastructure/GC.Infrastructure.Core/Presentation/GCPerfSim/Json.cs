@@ -133,9 +133,9 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
             }
         }
 
-        public static void GenerateForAnalyzeCommand(IEnumerable<GCTraceMetricComparisonResults> GCTraceMetricComparisonResults, string path)
+        public static void GenerateForAnalyzeCommand(IEnumerable<GCTraceMetricComparisonResults> metricComparisonResults, string path)
         {
-            string json = JsonConvert.SerializeObject(GCTraceMetricComparisonResults);
+            string json = JsonConvert.SerializeObject(metricComparisonResults);
             File.WriteAllText(path, json);
         }
     }
