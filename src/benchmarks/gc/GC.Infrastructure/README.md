@@ -233,7 +233,7 @@ benchmark_settings:
   override_arguments: --profile aspnet-gold-win
 ```
 
-As an example based on the configuration immediately above, all `--profile` values will be replaces with `--profile aspnet-gold-win`.
+As an example based on the configuration immediately above, all `--profile` values will be replaced with `--profile aspnet-gold-win`.
 
 ## All Commands
 
