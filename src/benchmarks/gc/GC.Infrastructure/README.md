@@ -230,10 +230,10 @@ You can override parameters specified in the benchmark csv file by replacing all
 benchmark_settings:
   benchmark_file: C:\InfraRuns\RunNew_All\Suites\ASPNETBenchmarks\ASPNetBenchmarks.csv
   additional_arguments: --chart --chart-type hex 
-  override_arguments: --profile aspnet-citrine-win
+  override_arguments: --profile aspnet-gold-win
 ```
 
-As an example based on the configuration immediately above, all `--profile` values will be replaces with `--profile aspnet-citrine-win`.
+As an example based on the configuration immediately above, all `--profile` values will be replaces with `--profile aspnet-gold-win`.
 
 ## All Commands
 

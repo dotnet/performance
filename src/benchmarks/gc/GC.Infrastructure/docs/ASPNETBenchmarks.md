@@ -9,7 +9,7 @@ There are four main types of errors while running ASP.NET Benchmarks using crank
 The typical error message associated with this is of the following form:
 
 ```cmd
-The specified endpoint url 'http://asp-citrine-win:5001' for 'application' is invalid or not responsive: "No such host is known. (asp-citrine-win:5001)"
+The specified endpoint url 'http://asp-gold-win:5001' for 'application' is invalid or not responsive: "No such host is known. (asp-gold-win:5001)"
 ```
 
 This is as a result of not being connected to CorpNet. To troubleshoot this issue, ensure you are connected to CorpNet by making sure your VPN is appropriately set:
