@@ -732,8 +732,10 @@ jobs:
           ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui iOS Inner Loop (Mono) - Debug - Device
-  # Device variants run on the Helix Mac device queue (Mac.iPhone.17.Perf), which has the
-  # physical iPhone + device code-signing infra (embedded.mobileprovision + sign tool).
+  # Device variants need the Helix Mac device queue's physical iPhone + code-signing infra
+  # (embedded.mobileprovision + sign tool). Those live on Mac.iPhone.17.Perf, but the queue
+  # config currently points at Mac.iPhone.13.Perf (the only queue with Xcode 26.5); device
+  # signing therefore needs provisioning on .13 (or Xcode 26.5 on .17). See build-machine-matrix.yml.
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
