@@ -48,7 +48,7 @@ gcperfsim_configurations:
     rlmb: 2
     allocType: reference
     testKind: time
-  gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
+  gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net10.0\GCPerfSim.dll
 environment:
   environment_variables:
     DOTNET_gcServer: 1
