@@ -61,7 +61,13 @@ namespace GC.Infrastructure.Core.Configurations.Microbenchmarks
 
             string serializedConfiguration = File.ReadAllText(path);
             MicrobenchmarkConfiguration configuration = _deserializer.Deserialize<MicrobenchmarkConfiguration>(serializedConfiguration);
-            
+
+            // Checks if mandatory arguments are specified in the configuration.
+            if (configuration == null)
+            {
+                throw new ArgumentNullException($"{nameof(MicrobenchmarkConfigurationParser)}: {nameof(configuration)} is null. Check the syntax of the configuration.");
+            }
+
             if (configuration.Runs == null)
             {
                 // If Runs is null, we initialize it to an empty dictionary to avoid null reference exceptions later on.
@@ -70,12 +76,6 @@ namespace GC.Infrastructure.Core.Configurations.Microbenchmarks
             foreach (var runKVP in configuration.Runs)
             {
                 runKVP.Value.Name ??= runKVP.Key;
-            }
-
-            // Checks if mandatory arguments are specified in the configuration.
-            if (configuration == null)
-            {
-                throw new ArgumentNullException($"{nameof(MicrobenchmarkConfigurationParser)}: {nameof(configuration)} is null. Check the syntax of the configuration.");
             }
 
             // Microbenchmark Configurations.

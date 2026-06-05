@@ -250,39 +250,43 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
         {
             // Large Regressions
             sw.WriteLine($"### Large Regressions (>= 20%): {comparisonResult.LargeRegressions.Count()} \n");
-            sw.AddTableForSingleCriteria(configuration, comparisonResult.LargeRegressions);
+            sw.AddTableForSingleCriteria(comparisonResult.LargeRegressions);
             sw.WriteLine("\n");
 
             // Large Improvements
             sw.WriteLine($"### Large Improvements (<= -20%): {comparisonResult.LargeImprovements.Count()} \n");
-            sw.AddTableForSingleCriteria(configuration, comparisonResult.LargeImprovements);
+            sw.AddTableForSingleCriteria(comparisonResult.LargeImprovements);
             sw.WriteLine("\n");
 
             // Regressions
             sw.WriteLine($"### Regressions (>= 5% and < 20%): {comparisonResult.Regressions.Count()} \n");
-            sw.AddTableForSingleCriteria(configuration, comparisonResult.Regressions);
+            sw.AddTableForSingleCriteria(comparisonResult.Regressions);
             sw.WriteLine("\n");
 
             // Improvements
             sw.WriteLine($"### Improvements (> -20% and <= -5%): {comparisonResult.Improvements.Count()} \n");
-            sw.AddTableForSingleCriteria(configuration, comparisonResult.Improvements);
+            sw.AddTableForSingleCriteria(comparisonResult.Improvements);
             sw.WriteLine("\n");
 
             // Stale Regressions
             sw.WriteLine($"### Stale Regressions (> 0% and < 5%): {comparisonResult.StaleRegressions.Count()} \n");
-            sw.AddTableForSingleCriteria(configuration, comparisonResult.StaleRegressions);
+            sw.AddTableForSingleCriteria(comparisonResult.StaleRegressions);
             sw.WriteLine("\n");
 
             // Stale Improvements
             sw.WriteLine($"### Stale Improvements (> -5% and <= 0%): {comparisonResult.StaleImprovements.Count()} \n");
-            sw.AddTableForSingleCriteria(configuration, comparisonResult.StaleImprovements);
+            sw.AddTableForSingleCriteria(comparisonResult.StaleImprovements);
             sw.WriteLine("\n\n");
         }
 
         internal static void AddTableForSingleCriteria(this StreamWriter sw,
-                                                       GCPerfSimConfiguration configuration,
                                                        IEnumerable<GCTraceMetricComparisonResult> comparisons)
         {
+            if (comparisons.ToList().Count == 0)
+            {
+                sw.WriteLine("No metrics in this category.\n");
+                return;
+            }
             var runName = comparisons.FirstOrDefault()?.RunName;
             sw.WriteLine($" | Metric | Base | {runName} | Δ%  |  Δ |");
             sw.WriteLine($" | -----  | ---- | ------  | ---  |  --- |");

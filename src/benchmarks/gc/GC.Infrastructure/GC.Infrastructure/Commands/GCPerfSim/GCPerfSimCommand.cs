@@ -15,7 +15,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 {
     public sealed class GCPerfSimResults
     {
-        public GCPerfSimResults(IReadOnlyDictionary<string, ProcessExecutionDetails> executionDetails, IEnumerable<GCTraceMetricComparisonResults> analysisResults)
+        public GCPerfSimResults(IReadOnlyDictionary<string, ProcessExecutionDetails> executionDetails, IReadOnlyCollection<GCTraceMetricComparisonResults> analysisResults)
         {
             ExecutionDetails = executionDetails;
             AnalysisResults = analysisResults;
