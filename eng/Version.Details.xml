@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="11.0.0-preview.6.26304.117">
+    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="11.0.0-preview.6.26304.123">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>be772ce3f571605cebc70c76a809e4c7e1c1934c</Sha>
+      <Sha>cc468399a4e9d5b6118f5dcca248e48e7c5145a8</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="11.0.0-preview.6.26304.117">
+    <Dependency Name="Microsoft.NET.ILLink" Version="11.0.0-preview.6.26304.123">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>be772ce3f571605cebc70c76a809e4c7e1c1934c</Sha>
+      <Sha>cc468399a4e9d5b6118f5dcca248e48e7c5145a8</Sha>
     </Dependency>
-    <Dependency Name="System.Threading.Channels" Version="11.0.0-preview.6.26304.117">
+    <Dependency Name="System.Threading.Channels" Version="11.0.0-preview.6.26304.123">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>be772ce3f571605cebc70c76a809e4c7e1c1934c</Sha>
+      <Sha>cc468399a4e9d5b6118f5dcca248e48e7c5145a8</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="11.0.0-preview.6.26304.117">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="11.0.0-preview.6.26304.123">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>be772ce3f571605cebc70c76a809e4c7e1c1934c</Sha>
+      <Sha>cc468399a4e9d5b6118f5dcca248e48e7c5145a8</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="11.0.0-preview.6.26304.117">
+    <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="11.0.0-preview.6.26304.123">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>be772ce3f571605cebc70c76a809e4c7e1c1934c</Sha>
+      <Sha>cc468399a4e9d5b6118f5dcca248e48e7c5145a8</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="11.0.0-preview.6.26304.117">
+    <Dependency Name="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="11.0.0-preview.6.26304.123">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>be772ce3f571605cebc70c76a809e4c7e1c1934c</Sha>
+      <Sha>cc468399a4e9d5b6118f5dcca248e48e7c5145a8</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.26304.117">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.26304.123">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>be772ce3f571605cebc70c76a809e4c7e1c1934c</Sha>
+      <Sha>cc468399a4e9d5b6118f5dcca248e48e7c5145a8</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.26304.117">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.26304.123">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>be772ce3f571605cebc70c76a809e4c7e1c1934c</Sha>
+      <Sha>cc468399a4e9d5b6118f5dcca248e48e7c5145a8</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="11.0.0-prerelease.26204.1">
       <Uri>https://github.com/dotnet/xharness</Uri>
@@ -55,12 +55,12 @@
       <Sha>6e563dcf3cbf4853316eb4724e49ec92caeabb07</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.NET.Sdk" Version="11.0.100-preview.6.26304.117">
-      <Sha>be772ce3f571605cebc70c76a809e4c7e1c1934c</Sha>
+    <Dependency Name="Microsoft.NET.Sdk" Version="11.0.100-preview.6.26304.123">
+      <Sha>cc468399a4e9d5b6118f5dcca248e48e7c5145a8</Sha>
       <Uri>https://github.com/dotnet/dotnet</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.NETCore.App.Ref" Version="11.0.0-preview.6.26304.117">
-      <Sha>be772ce3f571605cebc70c76a809e4c7e1c1934c</Sha>
+    <Dependency Name="Microsoft.NETCore.App.Ref" Version="11.0.0-preview.6.26304.123">
+      <Sha>cc468399a4e9d5b6118f5dcca248e48e7c5145a8</Sha>
       <Uri>https://github.com/dotnet/dotnet</Uri>
     </Dependency>
     <Dependency Name="Microsoft.Android.Sdk.Windows" Version="36.1.65">
