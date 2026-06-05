@@ -43,7 +43,7 @@ To run all the test suites, do the following steps:
             1. ``cd C:\performance\src\benchmarks\gc\src\exec\GCPerfSim``.
             2. ``dotnet build -c Release``.
             3. The path of GCPerfSim.dll will be available in: ``C:\performance\artifacts\bin\GCPerfSim\Release\{.NET Version}\GCPerfSim.dll``.
-                1. For example: C:\Performance\artifacts\bin\GCPerfSim\Release\net7.0\GCPerfSim.dll.
+                1. For example: C:\Performance\artifacts\bin\GCPerfSim\Release\net10.0\GCPerfSim.dll.
     3. The path to the microbenchmark folder or the root path of the Microbenchmarks projects which, will be in: ``C:\performance\src\benchmarks\micro``.
         1. Ensure that the microbenchmarks have been compiled using: ``dotnet build -c Release``.
     4. The corerun path for the baseline and the run.
