@@ -171,7 +171,7 @@ jobs:
       machinePool: iPhone13
       ${{ insert }}: ${{ parameters.jobParameters }}
 
-- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64-innerloop'), not(eq(parameters.isPublic, true))) }}: # iOS Inner Loop scenarios run on iPhone 13 to match the existing perf measurement queue
+- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64-innerloop'), not(eq(parameters.isPublic, true))) }}: # iOS Inner Loop scenarios run on iPhone 17 (Mac.iPhone.17.Perf) — the fully-provisioned queue (PerfLab upload cert + device code-signing infra)
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osGroup: osx
@@ -179,8 +179,8 @@ jobs:
       osVersion: 26
       pool:
         vmImage: 'macos-26'
-      queue: Mac.iPhone.13.Perf
-      machinePool: iPhone13
+      queue: Mac.iPhone.17.Perf
+      machinePool: iPhone17
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x64-viper'), not(eq(parameters.isPublic, true))) }}: # Windows x64 Viper only used in private builds
