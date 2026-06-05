@@ -45,7 +45,7 @@
       pohfi: 0
       allocType: reference
       testKind: time
-    gcperfsim_path: "C:\\performance\\artifacts\\bin\\GCPerfSim\\release\\net7.0\\GCPerfSim.dll"
+    gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net10.0\GCPerfSim.dll
     coreruns:
       baseline : "C:\\array_init\\windows\\before\\corerun.exe"
       andrew_fix: "C:\\array_init\\windows\\fixed\\corerun.exe"
