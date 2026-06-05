@@ -472,62 +472,63 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS scenario benchmarks (Mono Default) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: Mono
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # disabled for iOS inner-loop WIP; re-enable before merge
+    # Maui iOS scenario benchmarks (Mono Default) - Release
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - osx-x64-ios-arm64
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_ios
+          projectFileName: maui_scenarios_ios.proj
+          channels:
+            - main
+          runtimeFlavor: mono
+          codeGenType: Default
+          buildConfig: Release
+          additionalJobIdentifier: Mono
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS scenario benchmarks (CoreCLR Default) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: CoreCLR
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+    # Maui iOS scenario benchmarks (CoreCLR Default) - Release
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - osx-x64-ios-arm64
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_ios
+          projectFileName: maui_scenarios_ios.proj
+          channels:
+            - main
+          runtimeFlavor: coreclr
+          codeGenType: Default
+          buildConfig: Release
+          additionalJobIdentifier: CoreCLR
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS scenario benchmarks (CoreCLR NativeAOT) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: NativeAOT
-        buildConfig: Release
-        additionalJobIdentifier: CoreCLR
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+    # Maui iOS scenario benchmarks (CoreCLR NativeAOT) - Release
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - osx-x64-ios-arm64
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_ios
+          projectFileName: maui_scenarios_ios.proj
+          channels:
+            - main
+          runtimeFlavor: coreclr
+          codeGenType: NativeAOT
+          buildConfig: Release
+          additionalJobIdentifier: CoreCLR
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui Android scenario benchmarks (Mono - Default) - Debug
   - ${{ if false }}: # disabled: iOS-only WIP test run
@@ -653,43 +654,44 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS scenario benchmarks (Mono - Default) - Debug
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Debug
-        additionalJobIdentifier: Mono_Debug
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+  - ${{ if false }}: # disabled for iOS inner-loop WIP; re-enable before merge
+    # Maui iOS scenario benchmarks (Mono - Default) - Debug
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - osx-x64-ios-arm64
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_ios
+          projectFileName: maui_scenarios_ios.proj
+          channels:
+            - main
+          runtimeFlavor: mono
+          codeGenType: Default
+          buildConfig: Debug
+          additionalJobIdentifier: Mono_Debug
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
     
-  # Maui iOS scenario benchmarks (CoreCLR - Default) - Debug
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: Default
-        buildConfig: Debug
-        additionalJobIdentifier: CoreCLR_Debug
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
+    # Maui iOS scenario benchmarks (CoreCLR - Default) - Debug
+    - template: /eng/pipelines/templates/build-machine-matrix.yml
+      parameters:
+        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+        buildMachines:
+          - osx-x64-ios-arm64
+        isPublic: false
+        jobParameters:
+          runKind: maui_scenarios_ios
+          projectFileName: maui_scenarios_ios.proj
+          channels:
+            - main
+          runtimeFlavor: coreclr
+          codeGenType: Default
+          buildConfig: Debug
+          additionalJobIdentifier: CoreCLR_Debug
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui iOS Inner Loop (Mono) - Debug - Simulator
   - template: /eng/pipelines/templates/build-machine-matrix.yml
@@ -707,10 +709,6 @@ jobs:
         codeGenType: Default
         buildConfig: Debug
         additionalJobIdentifier: Mono_InnerLoop_Simulator
-        # Run the scenario directly on the macos-26 hosted agent instead of
-        # dispatching to the (EOL) Helix Mac device queue. The hosted image
-        # ships Xcode + simulators, so no Helix Mac infra is required.
-        runOnAgent: true
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -730,58 +728,51 @@ jobs:
         codeGenType: Default
         buildConfig: Debug
         additionalJobIdentifier: CoreCLR_InnerLoop_Simulator
-        # Run on the macos-26 hosted agent instead of the Helix Mac device queue.
-        runOnAgent: true
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS Inner Loop - Debug - Device
-  # Disabled: the physical-device variants depend on the Helix Mac device queues
-  # (Mac.iPhone.13/17.Perf), which are EOL 2026-06-01 and need Xcode 26.5 infra
-  # we can't get. Re-enable once a supported device queue (or on-agent device
-  # path) is available. The simulator variants above run fully on the AzDO agent.
-  - ${{ if false }}:
-    # Maui iOS Inner Loop (Mono) - Debug - Device
-    - template: /eng/pipelines/templates/build-machine-matrix.yml
-      parameters:
-        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-        buildMachines:
-          - osx-x64-ios-arm64-innerloop
-        isPublic: false
-        jobParameters:
-          runKind: maui_scenarios_ios_innerloop
-          projectFileName: maui_scenarios_ios.proj
-          channels:
-            - main
-          runtimeFlavor: mono
-          codeGenType: Default
-          buildConfig: Debug
-          additionalJobIdentifier: Mono_InnerLoop_Device
-          runEnvVars:
-            - iOSRid=ios-arm64
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
+  # Maui iOS Inner Loop (Mono) - Debug - Device
+  # Device variants run on the Helix Mac device queue (Mac.iPhone.13.Perf), now updated to Xcode 26.5.
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - osx-x64-ios-arm64-innerloop
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_ios_innerloop
+        projectFileName: maui_scenarios_ios.proj
+        channels:
+          - main
+        runtimeFlavor: mono
+        codeGenType: Default
+        buildConfig: Debug
+        additionalJobIdentifier: Mono_InnerLoop_Device
+        runEnvVars:
+          - iOSRid=ios-arm64
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
 
-    # Maui iOS Inner Loop (CoreCLR) - Debug - Device
-    - template: /eng/pipelines/templates/build-machine-matrix.yml
-      parameters:
-        jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-        buildMachines:
-          - osx-x64-ios-arm64-innerloop
-        isPublic: false
-        jobParameters:
-          runKind: maui_scenarios_ios_innerloop
-          projectFileName: maui_scenarios_ios.proj
-          channels:
-            - main
-          runtimeFlavor: coreclr
-          codeGenType: Default
-          buildConfig: Debug
-          additionalJobIdentifier: CoreCLR_InnerLoop_Device
-          runEnvVars:
-            - iOSRid=ios-arm64
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
+  # Maui iOS Inner Loop (CoreCLR) - Debug - Device
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - osx-x64-ios-arm64-innerloop
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_ios_innerloop
+        projectFileName: maui_scenarios_ios.proj
+        channels:
+          - main
+        runtimeFlavor: coreclr
+        codeGenType: Default
+        buildConfig: Debug
+        additionalJobIdentifier: CoreCLR_InnerLoop_Device
+        runEnvVars:
+          - iOSRid=ios-arm64
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
 
   # Maui scenario benchmarks
   - ${{ if false }}:

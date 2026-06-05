@@ -159,7 +159,7 @@ jobs:
       machinePool: AndroidEmulator
       ${{ insert }}: ${{ parameters.jobParameters }}
 
-- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 13 (Mac.iPhone.17.Perf has unhealthy macOS hosts as of 2026-05; both 13/17 queues are EOL 2026-06-01)
+- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 13 (Mac.iPhone.13.Perf, updated to Xcode 26.5)
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osGroup: osx

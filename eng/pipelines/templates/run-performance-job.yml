@@ -247,10 +247,14 @@ jobs:
           parameters:
             osGroup: ${{ parameters.osGroup }}
             projectFile: $(_projectFile)
-      # iOS simulator inner loop: the Helix Mac perf queues are EOL, so run the
-      # scenario (setup_helix.py -> test.py -> post.py) directly on the macos-26
-      # hosted agent. AzureCLI@2 + the '.NET Performance' service connection give
-      # upload.py's DefaultAzureCredential/UAMI path access to pvscmdupload.
+      # DORMANT (kept until the Helix path is confirmed working): an alternative
+      # path that runs the iOS simulator inner loop scenario (setup_helix.py ->
+      # test.py -> post.py) directly on the macos-26 hosted agent instead of
+      # dispatching to a Helix Mac queue. Activated by runOnAgent: true on a job.
+      # No job sets it today, so this step is skipped and work goes to Helix.
+      # AzureCLI@2 + the '.NET Performance' service connection give upload.py's
+      # AzureCliCredential path access to pvscmdupload (blob OK; queue needs a
+      # Storage Queue Data role grant on the SP — that gap is why we run on Helix).
       - ${{ if eq(parameters.runOnAgent, true) }}:
         - task: AzureCLI@2
           displayName: 'Run iOS inner loop on agent (simulator)'
