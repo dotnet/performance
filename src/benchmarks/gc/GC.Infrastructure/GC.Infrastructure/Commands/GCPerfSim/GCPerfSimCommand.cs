@@ -15,14 +15,14 @@ namespace GC.Infrastructure.Commands.GCPerfSim
 {
     public sealed class GCPerfSimResults
     {
-        public GCPerfSimResults(IReadOnlyDictionary<string, ProcessExecutionDetails> executionDetails, IReadOnlyList<ComparisonResult> analysisResults)
+        public GCPerfSimResults(IReadOnlyDictionary<string, ProcessExecutionDetails> executionDetails, IReadOnlyCollection<GCTraceMetricComparisonResults> analysisResults)
         {
             ExecutionDetails = executionDetails;
             AnalysisResults = analysisResults;
         }
 
         public IReadOnlyDictionary<string, ProcessExecutionDetails> ExecutionDetails { get; }
-        public IReadOnlyList<ComparisonResult> AnalysisResults { get; }
+        public IEnumerable<GCTraceMetricComparisonResults> AnalysisResults { get; }
     }
 
     public sealed class GCPerfSimCommand : Command<GCPerfSimCommand.GCPerfSimSettings>
@@ -95,7 +95,10 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 executionDetails = ExecuteLocally(configuration, runInfos);
             }
 
-            return new GCPerfSimResults(executionDetails, GCPerfSimAnalyzeCommand.ExecuteAnalysis(configuration, executionDetails));
+            var analysisResults = GCPerfSimAnalyzeCommand.ExecuteAnalysis(configuration);
+            GCPerfSimAnalyzeCommand.Present(configuration, analysisResults, executionDetails);
+
+            return new GCPerfSimResults(executionDetails, analysisResults);
         }
 
         internal static Dictionary<string, ProcessExecutionDetails> ExecuteLocally(GCPerfSimConfiguration configuration, IReadOnlyList<RunInfo> runInfos)
@@ -112,7 +115,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 string outputPath = Path.Combine(configuration.Output!.Path, runInfo.CorerunDetails.Key);
                 Core.Utilities.TryCreateDirectory(outputPath);
 
-                for (int iterationIdx = 0; iterationIdx < configuration.Environment.Iterations; iterationIdx++)
+                for (int iterationIdx = 0; iterationIdx < configuration.Environment.iterations; iterationIdx++)
                 {
                     // Format: (Name of Run).(corerun / name of corerun).(IterationIdx)
                     string key = $"{runInfo.RunDetails.Key}.{runInfo.CorerunDetails.Key}.{iterationIdx}";
@@ -244,7 +247,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 string outputPath = Path.Combine(configuration.Output!.Path, run.CorerunDetails.Key);
                 Core.Utilities.TryCreateDirectory(outputPath);
 
-                for (int iterationIdx = 0; iterationIdx < configuration.Environment.Iterations; iterationIdx++)
+                for (int iterationIdx = 0; iterationIdx < configuration.Environment.iterations; iterationIdx++)
                 {
                     OS os = serverName.Contains("lin") ? OS.Linux : OS.Windows;
                     (string, string) processAndParameters = GCPerfSimCommandBuilder.BuildForServer(configuration, run.RunDetails, iterationIdx, run.CorerunDetails, serverName, os);

@@ -132,5 +132,11 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 return ResultItem.GetNullItem(run, corerun);
             }
         }
+
+        public static void GenerateForAnalyzeCommand(IEnumerable<GCTraceMetricComparisonResults> metricComparisonResults, string path)
+        {
+            string json = JsonConvert.SerializeObject(metricComparisonResults);
+            File.WriteAllText(path, json);
+        }
     }
 }

@@ -57,10 +57,12 @@ environment:
   iterations: 1
 coreruns:
   baseline:
+    is_baseline: true
     path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     environment_variables:
       DOTNET_GCName: clrgc.dll
   run:
+    is_baseline: false
     path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     environment_variables:
       DOTNET_GCName: clrgc.dll

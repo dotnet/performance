@@ -47,7 +47,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
         {
             foreach (var format in configuration.Output.Formats)
             {
-                if (format == "markdown")
+                if (string.Equals(format, "markdown", StringComparison.OrdinalIgnoreCase))
                 {
                     string outputPath = Path.Combine(configuration.Output.Path, "Results.md");
                     Markdown.GenerateTable(configuration, comparisonResultsGroupedByName, executionDetails, outputPath);
@@ -55,7 +55,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                     continue;
                 }
 
-                if (format == "json")
+                if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
                 {
                     string outputPath = Path.Combine(configuration.Output.Path, "Results.json");
                     Json.Generate(configuration, comparisonResultsGroupedByName, outputPath);

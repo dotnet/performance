@@ -36,7 +36,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
         };
 
         public MicrobenchmarkResult(string benchmarkFullName,
-                                    Run parent,
+                                    CoreRunInfo parent,
                                     Benchmark benchmark,
                                     API.GCProcessData? gcData = null,
                                     GCTraceMetrics? gcTraceMetrics = null,
@@ -81,7 +81,7 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             }
         }
         public string MicrobenchmarkName { get; set; }
-        public Run Parent { get; set; }
+        public CoreRunInfo Parent { get; set; }
         public Statistics Statistics { get; set; }
         public GCTraceMetrics? GCTraceMetrics { get; set; }
         public Dictionary<string, double> OtherMetrics { get; set; } = new();

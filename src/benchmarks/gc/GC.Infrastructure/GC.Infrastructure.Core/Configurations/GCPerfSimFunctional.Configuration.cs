@@ -1,21 +1,16 @@
 using GC.Infrastructure.Core.Configurations.GCPerfSim;
-using GC.Infrastructure.Core.Configurations.Microbenchmarks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GC.Infrastructure.Core.Configurations
 {
     public sealed class GCPerfSimFunctionalConfiguration
     {
-        public string output_path { get; set; }
-        public string gcperfsim_path { get; set; }
-        public Dictionary<string, CoreRunInfo> coreruns { get; set; }
+        public required string output_path { get; set; }
+        public required string gcperfsim_path { get; set; }
+        public required Dictionary<string, CoreRunInfo> coreruns { get; set; }
         public Environment Environment { get; set; } = new();
         public string trace_configuration_type { get; set; } = "gc";
     }
+
     public class Environment
     {
         public Dictionary<string, string> environment_variables { get; set; } = new();
