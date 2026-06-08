@@ -48,7 +48,15 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
             ExecutionTimeMSec = processData.DurationMSec;
 
             PctTimePausedInGC = processData.Stats.GetGCPauseTimePercentage();
-            FirstToLastGCSeconds = (processData.GCs.Last().StartRelativeMSec - processData.GCs.First().StartRelativeMSec) / 1000;
+            if (processData.GCs.Count != 0)
+            {
+                FirstToLastGCSeconds = (processData.GCs.Last().StartRelativeMSec - processData.GCs.First().StartRelativeMSec) / 1000;
+            }
+            else
+            {
+                FirstToLastGCSeconds = double.NaN;
+            }
+
             HeapSizeAfter_Mean = GoodLinq.Average(processData.GCs, (gc => gc.HeapSizeAfterMB));
             HeapSizeBeforeMB_Mean = GoodLinq.Average(processData.GCs, (gc => gc.HeapSizeBeforeMB));
 

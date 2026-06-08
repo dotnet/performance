@@ -136,6 +136,7 @@ namespace GC.Infrastructure.Core.TraceCollection
 
             name = name.Replace("<", "");
             name = name.Replace(">", "");
+            name = name.Replace("*", "");
 
             if (OperatingSystem.IsWindows())
             {
