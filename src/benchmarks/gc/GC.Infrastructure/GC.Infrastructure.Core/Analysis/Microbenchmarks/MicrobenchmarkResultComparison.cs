@@ -128,7 +128,6 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     var sortedTraceFiles = Directory.GetFiles(outputPathForRun, $"{traceFileNameTemplate}*{traceFileSuffix}", SearchOption.TopDirectoryOnly)
                         .OrderBy(traceFile =>
                         {
-                            Console.WriteLine($"Extracting timestamp from trace file name: {traceFile}");
                             var match = Regex.Match(Path.GetFileName(traceFile), OperatingSystem.IsWindows() ? @"_(\d+)\.etl\.zip$" : @"_(\d+)\.nettrace$");
                             return match.Success ? int.Parse(match.Groups[1].Value) : 0;
                         })
