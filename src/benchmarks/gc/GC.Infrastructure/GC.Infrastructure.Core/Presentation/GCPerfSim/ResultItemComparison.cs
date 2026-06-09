@@ -1,4 +1,5 @@
-﻿using Microsoft.Diagnostics.Tracing.Analysis.GC;
+﻿using GC.Infrastructure.Core.Analysis;
+using Microsoft.Diagnostics.Tracing.Analysis.GC;
 using System.Reflection;
 using System.Text;
 
@@ -90,7 +91,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
         // Regression-oriented delta used for classification: positive => regression, negative => improvement,
         // regardless of whether the metric is higher-is-better (e.g. Speed_MBPerMSec) or lower-is-better.
-        public double RegressionPercentageDelta => Analysis.MetricDirection.GetRegressionDelta(MetricName, PercentageDelta);
+        public double RegressionPercentageDelta => MetricDirection.GetRegressionDelta(MetricName, PercentageDelta);
         public string Key => $"{Baseline.ConfigurationName}_{RunName}";
         public ResultItem Baseline { get; }
         public ResultItem Comparand { get; }

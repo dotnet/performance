@@ -89,12 +89,12 @@ namespace GC.Infrastructure.Core.UnitTests.GCPerfSim
 
             // Categorization is direction-aware: for a higher-is-better metric the regression-oriented
             // delta is the negation of the displayed percentage delta.
-            speed.PercentageDelta.Should().NotBe(double.NaN);
+            double.IsNaN(speed.PercentageDelta).Should().BeFalse("the run should compute a finite Speed_MBPerMSec percentage delta");
             speed.RegressionPercentageDelta.Should().BeApproximately(-speed.PercentageDelta, 1e-9);
 
             // --- A lower-is-better metric keeps the same sign for categorization ---
             ComparisonResult pause = comparison.GetComparison("PauseDurationMSec_Sum");
-            pause.PercentageDelta.Should().NotBe(double.NaN);
+            double.IsNaN(pause.PercentageDelta).Should().BeFalse("the run should compute a finite PauseDurationMSec_Sum percentage delta");
             pause.RegressionPercentageDelta.Should().BeApproximately(pause.PercentageDelta, 1e-9);
 
             // --- End-to-end categorization through the analyze pipeline ---
