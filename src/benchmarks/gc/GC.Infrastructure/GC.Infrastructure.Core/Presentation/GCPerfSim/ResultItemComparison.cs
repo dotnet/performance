@@ -87,6 +87,10 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 }
             }
         }
+
+        // Regression-oriented delta used for classification: positive => regression, negative => improvement,
+        // regardless of whether the metric is higher-is-better (e.g. Speed_MBPerMSec) or lower-is-better.
+        public double RegressionPercentageDelta => Analysis.MetricDirection.GetRegressionDelta(MetricName, PercentageDelta);
         public string Key => $"{Baseline.ConfigurationName}_{RunName}";
         public ResultItem Baseline { get; }
         public ResultItem Comparand { get; }
