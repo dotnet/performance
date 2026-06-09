@@ -9,12 +9,12 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
     public static class Json
     {
         private static readonly Dictionary<string, Func<ComparisonResult, bool>> diffLevelPredicate = new() {
-            { "LargeRegressions", c => c.PercentageDelta > 20 },
-            { "LargeImprovements", c => c.PercentageDelta < -20 },
-            { "Regressions", c => c.PercentageDelta > 5 && c.PercentageDelta < 20 },
-            { "Improvements", c => c.PercentageDelta < -5 && c.PercentageDelta > -20 },
-            { "StaleRegressions", c => c.PercentageDelta >= 0 && c.PercentageDelta < 5 },
-            { "StaleImprovements", c => c.PercentageDelta < 0 && c.PercentageDelta > -5 },
+            { "LargeRegressions", c => c.RegressionPercentageDelta > 20 },
+            { "LargeImprovements", c => c.RegressionPercentageDelta < -20 },
+            { "Regressions", c => c.RegressionPercentageDelta > 5 && c.RegressionPercentageDelta < 20 },
+            { "Improvements", c => c.RegressionPercentageDelta < -5 && c.RegressionPercentageDelta > -20 },
+            { "StaleRegressions", c => c.RegressionPercentageDelta >= 0 && c.RegressionPercentageDelta < 5 },
+            { "StaleImprovements", c => c.RegressionPercentageDelta < 0 && c.RegressionPercentageDelta > -5 },
         };
 
         public static void GenerateComparisonDictionary(ResultItem baseResultItem, ResultItem comparandResultItem, string path)

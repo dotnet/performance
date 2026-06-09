@@ -12,23 +12,23 @@ namespace GC.Infrastructure.Core.Analysis
             ComparisonResults = comparisonResults;
             Ordered = ComparisonResults
                 .Where(c => !double.IsNaN(c.PercentageDelta))
-                .OrderByDescending(c => c.PercentageDelta);
+                .OrderByDescending(c => c.RegressionPercentageDelta);
 
             LargeRegressions = Ordered
-                .Where(c => c.PercentageDelta >= 20);
+                .Where(c => c.RegressionPercentageDelta >= 20);
             LargeImprovements = Ordered
-                .Where(c => c.PercentageDelta <= -20)
-                .OrderBy(g => g.PercentageDelta);
+                .Where(c => c.RegressionPercentageDelta <= -20)
+                .OrderBy(g => g.RegressionPercentageDelta);
             Regressions = Ordered
-                .Where(c => c.PercentageDelta >= 5 && c.PercentageDelta < 20);
+                .Where(c => c.RegressionPercentageDelta >= 5 && c.RegressionPercentageDelta < 20);
             Improvements = Ordered
-                .Where(c => c.PercentageDelta <= -5 && c.PercentageDelta > -20)
-                .OrderBy(g => g.PercentageDelta);
+                .Where(c => c.RegressionPercentageDelta <= -5 && c.RegressionPercentageDelta > -20)
+                .OrderBy(g => g.RegressionPercentageDelta);
             StaleRegressions = Ordered
-                .Where(c => c.PercentageDelta > 0 && c.PercentageDelta < 5);
+                .Where(c => c.RegressionPercentageDelta > 0 && c.RegressionPercentageDelta < 5);
             StaleImprovements = Ordered
-                .Where(c => c.PercentageDelta <= 0 && c.PercentageDelta > -5)
-                .OrderBy(g => g.PercentageDelta);
+                .Where(c => c.RegressionPercentageDelta <= 0 && c.RegressionPercentageDelta > -5)
+                .OrderBy(g => g.RegressionPercentageDelta);
         }
 
         public string RunName { get; }
