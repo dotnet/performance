@@ -1,0 +1,3 @@
+Legend,Base CommandLine
+JsonMin_Linux, --config https://raw.githubusercontent.com/aspnet/Benchmarks/main/scenarios/json.benchmarks.yml --scenario mapaction --application.framework net8.0 --application.options.collectCounters true --profile aspnet-gold-lin --property os=linux --property arch=x64
+FortunesEf_Linux, --config https://raw.githubusercontent.com/aspnet/Benchmarks/main/scenarios/database.benchmarks.yml --scenario fortunes_ef --application.framework net8.0 --application.options.collectCounters true --profile aspnet-gold-lin --property os=linux --property arch=x64
