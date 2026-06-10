@@ -47,6 +47,9 @@
     <None Update="Commands\RunCommand\BaseSuite\ASPNetBenchmarks.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Commands\RunCommand\BaseSuite\ASPNetBenchmarks-Linux.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Commands\RunCommand\BaseSuite\ASPNetBenchmarks.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
