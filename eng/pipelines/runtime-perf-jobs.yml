@@ -53,11 +53,11 @@ parameters:
   - name: androidMonoJit
     type: object
     default:
-      enabled: true
+      enabled: false
   - name: androidMonoAot
     type: object
     default:
-      enabled: true
+      enabled: false
   - name: androidCoreclrJit
     type: object
     default:
