@@ -108,7 +108,9 @@ namespace GC.Infrastructure.Commands.RunCommand
 
             // Copy over the pertinent resources.
             string destinationASPNetBenchmark = Path.Combine(aspnetBenchmarks, "ASPNetBenchmarks.csv");
-            Core.Utilities.TryCopyFile(sourcePath: Path.Combine(_baseSuitePath, "ASPNetBenchmarks.csv"),
+            string sourceASPNetBenchmark = Path.Combine(_baseSuitePath, OperatingSystem.IsWindows() ? "ASPNetBenchmarks.csv" : "ASPNetBenchmarks-Linux.csv");
+
+            Core.Utilities.TryCopyFile(sourcePath: sourceASPNetBenchmark,
                                        destinationPath: destinationASPNetBenchmark);
 
             string outputPath = Path.Combine(inputConfiguration.output_path, "ASPNetBenchmarks");
