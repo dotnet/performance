@@ -42,7 +42,8 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             { "System.Tests.Perf_GC<Char>.NewOperator_Array(length: 10000)", "System.Tests.Perf_GC_Char_.NewOperator_Array_length_10000_"},
         };
 
-        public static ConcurrentBag<Tuple<CoreRunInfo, BdnJsonResult, string>> LoadBdnJsonResults(MicrobenchmarkConfiguration configuration)
+        public static IReadOnlyCollection<Tuple<CoreRunInfo, BdnJsonResult, string>> 
+            LoadBdnJsonResults(MicrobenchmarkConfiguration configuration)
         {
             ConcurrentBag<Tuple<CoreRunInfo, BdnJsonResult, string>> bdnJsonResults = new();
             Parallel.ForEach(configuration.Runs, (run) =>
@@ -63,7 +64,9 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
         // TODO: We should specify relationship between json files and trace files before running benchmarks instead of relying on file name patterns.
         // This will make the mapping more robust and less prone to errors due to file naming.
-        public static Dictionary<string, string> MapJsonToTrace(string outputPath, ConcurrentBag<Tuple<CoreRunInfo, BdnJsonResult, string>> bdnJsonResults)
+        public static Dictionary<string, string> 
+            MapJsonToTrace(string outputPath,
+                           IReadOnlyCollection<Tuple<CoreRunInfo, BdnJsonResult, string>> bdnJsonResults)
         {
             Dictionary<string, string> jsonToTrace = new();
             foreach (var groupForRun in bdnJsonResults.GroupBy(t => t.Item1))
@@ -112,9 +115,9 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             return jsonToTrace;
         }
 
-        public static ConcurrentBag<MicrobenchmarkResult> 
+        public static IReadOnlyCollection<MicrobenchmarkResult> 
             AnalyzeMicrobenchmarkResults(MicrobenchmarkConfiguration configuration,
-                                         ConcurrentBag<Tuple<CoreRunInfo, BdnJsonResult, string>> bdnJsonResults,
+                                         IReadOnlyCollection<Tuple<CoreRunInfo, BdnJsonResult, string>> bdnJsonResults,
                                          bool excludeTraces = false)
         {
             ConcurrentBag<MicrobenchmarkResult> microbenchmarkResults = new();
@@ -259,7 +262,10 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             return microbenchmarkResults;
         }
 
-        public static List<MicrobenchmarkComparisonResult> CompareMicrobenchmarkResults(MicrobenchmarkConfiguration configuration, IEnumerable<MicrobenchmarkResult> microbenchmarkResults, bool excludeTraces = false)
+        public static IReadOnlyCollection<MicrobenchmarkComparisonResult> 
+            CompareMicrobenchmarkResults(MicrobenchmarkConfiguration configuration,
+                                         IReadOnlyCollection<MicrobenchmarkResult> microbenchmarkResults,
+                                         bool excludeTraces = false)
         {
             bool includeTraces = (!excludeTraces) && (configuration.TraceConfigurations?.Type ?? "none") != "none";
             var microbenchmarkResultsGroupedByBenchmarkName = microbenchmarkResults
@@ -326,7 +332,10 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             return comparisonResults;
         }
 
-        public static List<MicrobenchmarkComparisonResults> GroupComparisonResultsByName(MicrobenchmarkConfiguration configuration, List<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks, bool excludeTraces = false)
+        public static IReadOnlyList<MicrobenchmarkComparisonResults> 
+            GroupComparisonResultsByName(MicrobenchmarkConfiguration configuration,
+                                         IReadOnlyCollection<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks,
+                                         bool excludeTraces = false)
         {
             List<MicrobenchmarkComparisonResults> allComparisonResults = new();
 

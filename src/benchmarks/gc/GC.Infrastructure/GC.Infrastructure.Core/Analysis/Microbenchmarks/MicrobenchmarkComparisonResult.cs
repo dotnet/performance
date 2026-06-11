@@ -83,7 +83,10 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     OriginalMeanDiffPerc = double.NaN;
                 }
             }
-            OriginalMeanDiffPerc = (OriginalMeanDiff / OriginalAveragedBaselineMeanValue) * 100;
+            else
+            {
+                OriginalMeanDiffPerc = (OriginalMeanDiff / OriginalAveragedBaselineMeanValue) * 100;
+            }
 
             if (AveragedBaselineMeanValue == 0)
             {
@@ -96,7 +99,10 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                     MeanDiffPerc = double.NaN;
                 }
             }
-            MeanDiffPerc = (MeanDiff / AveragedBaselineMeanValue) * 100;
+            else
+            {
+                MeanDiffPerc = (MeanDiff / AveragedBaselineMeanValue) * 100;
+            }
 
             // Other metrics comparisons
             OriginalBaselineOtherMetrics = new();

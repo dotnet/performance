@@ -7,7 +7,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 {
     public static class Markdown
     {
-        public static void GenerateTable(MicrobenchmarkConfiguration configuration, IReadOnlyList<MicrobenchmarkComparisonResults> comparisonResultsCollection, Dictionary<string, ProcessExecutionDetails> executionDetails, string path)
+        public static void GenerateTable(MicrobenchmarkConfiguration configuration, IReadOnlyCollection<MicrobenchmarkComparisonResults> comparisonResultsCollection, Dictionary<string, ProcessExecutionDetails> executionDetails, string path)
         {
             using (StreamWriter sw = new StreamWriter(path))
             {
@@ -45,7 +45,9 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
             }
         }
 
-        internal static void AddDetailsOfSingleComparison(this StreamWriter sw, MicrobenchmarkConfiguration configuration, MicrobenchmarkComparisonResults comparisonResult)
+        internal static void AddDetailsOfSingleComparison(this StreamWriter sw,
+                                                          MicrobenchmarkConfiguration configuration,
+                                                          MicrobenchmarkComparisonResults comparisonResult)
         {
             sw.WriteLine($"## {comparisonResult.BaselineName} vs {comparisonResult.RunName}");
             sw.WriteLine("\n");
@@ -131,7 +133,10 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
             }
         }
 
-        internal static void AddTablesForSingleCriteria(this StreamWriter sw, MicrobenchmarkConfiguration configuration, IEnumerable<MicrobenchmarkComparisonResult> comparisons, string? metricName = null)
+        internal static void AddTablesForSingleCriteria(this StreamWriter sw,
+                                                        MicrobenchmarkConfiguration configuration,
+                                                        IReadOnlyCollection<MicrobenchmarkComparisonResult> comparisons,
+                                                        string? metricName = null)
         {
             if (comparisons.Count() == 0)
             {
@@ -196,15 +201,15 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                     {
                         var baselineValue = comparison.OriginalBaselineOtherMetrics.GetValueOrDefault(metricName)?.ElementAtOrDefault(idx) ?? double.NaN;
                         var comparandValue = comparison.OriginalComparandOtherMetrics.GetValueOrDefault(metricName)?.ElementAtOrDefault(idx) ?? double.NaN;
-                        baselineStr = double.IsNaN(baselineValue) || (!comparison.OutliersFreeBaselineOtherMetrics.GetValueOrDefault(metricName).Contains(baselineValue)) ? $"**~~{Math.Round(baselineValue, 2)}~~**" : Math.Round(baselineValue, 2).ToString();
-                        comparandStr = double.IsNaN(comparandValue) || (!comparison.OutliersFreeComparandOtherMetrics.GetValueOrDefault(metricName).Contains(comparandValue)) ? $"**~~{Math.Round(comparandValue, 2)}~~**" : Math.Round(comparandValue, 2).ToString();
+                        baselineStr = double.IsNaN(baselineValue) || !(comparison.OutliersFreeBaselineOtherMetrics.GetValueOrDefault(metricName)?.Contains(baselineValue) ?? false) ? $"**~~{Math.Round(baselineValue, 2)}~~**" : Math.Round(baselineValue, 2).ToString();
+                        comparandStr = double.IsNaN(comparandValue) || !(comparison.OutliersFreeComparandOtherMetrics.GetValueOrDefault(metricName)?.Contains(comparandValue) ?? false) ? $"**~~{Math.Round(comparandValue, 2)}~~**" : Math.Round(comparandValue, 2).ToString();
                     }
                     else
                     {
                         var baselineValue = comparison.OriginalBaselineMeanValueCollection.ElementAtOrDefault(idx);
                         var comparandValue = comparison.OriginalComparandMeanValueCollection.ElementAtOrDefault(idx);
-                        baselineStr = double.IsNaN(baselineValue) || (!comparison.OutliersFreeBaselineMeanValueCollection.Contains(baselineValue)) ? $"**~~{Math.Round(baselineValue, 2)}~~**" : Math.Round(baselineValue, 2).ToString();
-                        comparandStr = double.IsNaN(comparandValue) || (!comparison.OutliersFreeComparandMeanValueCollection.Contains(comparandValue)) ? $"**~~{Math.Round(comparandValue, 2)}~~**" : Math.Round(comparandValue, 2).ToString();
+                        baselineStr = double.IsNaN(baselineValue) || !comparison.OutliersFreeBaselineMeanValueCollection.Contains(baselineValue) ? $"**~~{Math.Round(baselineValue, 2)}~~**" : Math.Round(baselineValue, 2).ToString();
+                        comparandStr = double.IsNaN(comparandValue) || !comparison.OutliersFreeComparandMeanValueCollection.Contains(comparandValue) ? $"**~~{Math.Round(comparandValue, 2)}~~**" : Math.Round(comparandValue, 2).ToString();
                     }
 
                     baseRow += $"| {baselineStr} | {comparandStr} | | |";
@@ -216,8 +221,8 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
                             double baselineColumnValue = comparison.OriginalBaselineOtherMetrics.GetValueOrDefault(column)?.ElementAtOrDefault(idx) ?? double.NaN;
                             double comparandColumnValue = comparison.OriginalComparandOtherMetrics.GetValueOrDefault(column)?.ElementAtOrDefault(idx) ?? double.NaN;
 
-                            string baselineResult = double.IsNaN(baselineColumnValue) ? $"**~~{Math.Round(baselineColumnValue, 2)}~~**" : Math.Round(baselineColumnValue, 2).ToString();
-                            string comparandResult = double.IsNaN(comparandColumnValue) ? $"**~~{Math.Round(comparandColumnValue, 2)}~~**" : Math.Round(comparandColumnValue, 2).ToString();
+                            string baselineResult = double.IsNaN(baselineColumnValue) || !(comparison.OutliersFreeBaselineOtherMetrics.GetValueOrDefault(column)?.Contains(baselineColumnValue) ?? false) ? $"**~~{Math.Round(baselineColumnValue, 2)}~~**" : Math.Round(baselineColumnValue, 2).ToString();
+                            string comparandResult = double.IsNaN(comparandColumnValue) || !(comparison.OutliersFreeComparandOtherMetrics.GetValueOrDefault(column)?.Contains(comparandColumnValue) ?? false) ? $"**~~{Math.Round(comparandColumnValue, 2)}~~**" : Math.Round(comparandColumnValue, 2).ToString();
 
                             baseRow += $"{baselineResult} | {comparandResult} | | |";
                         }
