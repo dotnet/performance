@@ -8,29 +8,12 @@ parameters:
   # Callers building a different repo (e.g. dotnet/aspnetcore) pass repoName explicitly
   # so that the upload lands at a tenant-specific path the indexer/crank then read.
   repoName: 'runtime'
-  # Optional pool. When poolName is omitted the upload job inherits the pipeline
-  # default (the historical runtime perf-build behavior). Callers that extend the
-  # 1ES.Official template (e.g. aspnetcore perf-build) must specify a pool because
-  # 1ES.Official requires every job to declare one; for those callers pass:
-  #   poolName: $(DncEngInternalBuildPool)
-  #   poolImage: 1es-ubuntu-2204
-  #   poolOs: linux
-  poolName: ''
-  poolImage: ''
-  poolOs: ''
 
 jobs:
 - ${{ each artifact in parameters.artifacts }}:
   - job: UploadBuildArtifact_${{ artifact.artifactName }}
     displayName: 'Upload Build Artifact ${{ artifact.artifactName }}\'
     condition: eq(stageDependencies.Build.${{ parameters.dependencyJobName }}.result, 'Succeeded')
-    ${{ if parameters.poolName }}:
-      pool:
-        name: ${{ parameters.poolName }}
-        ${{ if parameters.poolImage }}:
-          image: ${{ parameters.poolImage }}
-        ${{ if parameters.poolOs }}:
-          os: ${{ parameters.poolOs }}
     steps:
     - checkout: none
     - download: current

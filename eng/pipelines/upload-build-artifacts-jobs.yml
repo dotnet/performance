@@ -8,16 +8,6 @@ parameters:
   # back-compat with the existing dotnet/runtime perf-build pipeline; callers from
   # other tenants (e.g. dotnet/aspnetcore) pass repoName explicitly.
   repoName: 'runtime'
-  # Optional pool. When poolName is omitted the upload job inherits the pipeline
-  # default (the historical runtime callers' behavior). Callers that extend the
-  # 1ES.Official template (e.g. aspnetcore perf-build) must specify a pool because
-  # 1ES.Official requires every job to declare one; for those callers pass:
-  #   poolName: $(DncEngInternalBuildPool)
-  #   poolImage: 1es-ubuntu-2204
-  #   poolOs: linux
-  poolName: ''
-  poolImage: ''
-  poolOs: ''
 
 jobs:
   - ${{ if containsValue(parameters.buildType, 'coreclr_arm64_linux') }}:
@@ -26,9 +16,6 @@ jobs:
         buildType: 'coreclr_arm64_linux'
         dependencyJobName: build_linux_arm64_release_coreclr
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_arm64_Release_coreclr'
           files: [ 'BuildArtifacts_linux_arm64_Release_coreclr.tar.gz' ]
@@ -39,9 +26,6 @@ jobs:
         buildType: 'coreclr_arm64_windows'
         dependencyJobName: build_windows_arm64_release_coreclr
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_windows_arm64_Release_coreclr'
           files: [ 'BuildArtifacts_windows_arm64_Release_coreclr.zip' ]
@@ -52,9 +36,6 @@ jobs:
         buildType: 'coreclr_x64_linux'
         dependencyJobName: build_linux_x64_release_coreclr
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_x64_Release_coreclr'
           files: [ 'BuildArtifacts_linux_x64_Release_coreclr.tar.gz' ]
@@ -65,9 +46,6 @@ jobs:
         buildType: 'coreclr_x64_windows'
         dependencyJobName: build_windows_x64_release_coreclr
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_windows_x64_Release_coreclr'
           files: [ 'BuildArtifacts_windows_x64_Release_coreclr.zip' ]
@@ -78,9 +56,6 @@ jobs:
         buildType: 'coreclr_x86_windows'
         dependencyJobName: build_windows_x86_release_coreclr
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_windows_x86_Release_coreclr'
           files: [ 'BuildArtifacts_windows_x86_Release_coreclr.zip' ]
@@ -91,9 +66,6 @@ jobs:
         buildType: 'coreclr_arm64_android'
         dependencyJobName: build_android_arm64_release_AndroidCoreCLR
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'AndroidHelloWorldArm64CoreCLR'
           files: [ 'AndroidHelloWorldArm64CoreCLR.tar.gz' ]
@@ -104,9 +76,6 @@ jobs:
         buildType: 'wasm'
         dependencyJobName: build_browser_wasm_linux_Release_wasm
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BrowserWasm'
           files: [ 'BrowserWasm.tar.gz' ]
@@ -117,9 +86,6 @@ jobs:
         buildType: 'monoAot_arm64_linux'
         dependencyJobName: build_linux_arm64_release_AOT
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'LinuxMonoAOTarm64'
           files: [ 'LinuxMonoAOTarm64.tar.gz' ]
@@ -130,9 +96,6 @@ jobs:
         buildType: 'monoAot_x64_linux'
         dependencyJobName: build_linux_x64_release_AOT
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'LinuxMonoAOTx64'
           files: [ 'LinuxMonoAOTx64.tar.gz' ]
@@ -143,9 +106,6 @@ jobs:
         buildType: 'mono_x64_linux'
         dependencyJobName: build_linux_x64_release_mono
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_x64_Release_mono'
           files: [ 'BuildArtifacts_linux_x64_Release_mono.tar.gz' ]
@@ -156,9 +116,6 @@ jobs:
         buildType: 'mono_arm64_linux'
         dependencyJobName: build_linux_arm64_release_mono
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_arm64_Release_mono'
           files: [ 'BuildArtifacts_linux_arm64_Release_mono.tar.gz' ]
@@ -169,9 +126,6 @@ jobs:
         buildType: 'mono_arm64_android'
         dependencyJobName: build_android_arm64_release_AndroidMono
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'AndroidHelloWorldArm64Mono'
           files: [ 'AndroidHelloWorldArm64Mono.tar.gz' ]
@@ -182,9 +136,6 @@ jobs:
         buildType: 'mono_arm64_ios'
         dependencyJobName: build_ios_arm64_release_iOSMono
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'iOSSampleAppMonoFullAOTLLVMNoSymbols'
           files: [ 'iOSSampleAppMonoFullAOTLLVMNoSymbols.zip' ]
@@ -197,9 +148,6 @@ jobs:
         buildType: 'monoBDN_arm64_android'
         dependencyJobName: build_ios_arm64_release_PerfBDNApp #build_android_arm64_release_Mono_Packs
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'AndroidBDNApk'
           files: [ 'AndroidBDNApk.tar.gz' ]
@@ -210,9 +158,6 @@ jobs:
         buildType: 'nativeAot_arm64_ios'
         dependencyJobName: build_ios_arm64_release_iOSNativeAOT
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'iOSSampleAppNativeAOTNoSymbols'
           files: [ 'iOSSampleAppNativeAOTNoSymbols.zip' ]
@@ -223,9 +168,6 @@ jobs:
         buildType: 'coreclr_arm64_ios'
         dependencyJobName: build_ios_arm64_release_iOSCoreCLR
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
           files: [ 'iOSSampleAppCoreCLRInterpreterNoSymbols.zip' ]
@@ -238,9 +180,6 @@ jobs:
         buildType: 'wasm_coreclr'
         dependencyJobName: build_browser_wasm_linux_Release_wasm_coreclr
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BrowserWasmCoreCLR'
           files: [ 'BrowserWasmCoreCLR.tar.gz' ]
@@ -251,9 +190,6 @@ jobs:
         buildType: 'coreclr_r2r_interpreter'
         dependencyJobName: build_linux_x64_release_coreclr_r2r_interpreter
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_x64_Release_coreclr_r2r_interpreter'
           files: [ 'BuildArtifacts_linux_x64_Release_coreclr_r2r_interpreter.tar.gz' ]
@@ -271,9 +207,6 @@ jobs:
         buildType: 'aspnetcore_x64_linux'
         dependencyJobName: Linux_x64_build
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_x64_Release_aspnetcore'
           files: [ 'BuildArtifacts_linux_x64_Release_aspnetcore.tar.gz' ]
@@ -284,9 +217,6 @@ jobs:
         buildType: 'aspnetcore_arm64_linux'
         dependencyJobName: Linux_arm64_build
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_arm64_Release_aspnetcore'
           files: [ 'BuildArtifacts_linux_arm64_Release_aspnetcore.tar.gz' ]
@@ -297,9 +227,6 @@ jobs:
         buildType: 'aspnetcore_x64_windows'
         dependencyJobName: Windows_build
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_windows_x64_Release_aspnetcore'
           files: [ 'BuildArtifacts_windows_x64_Release_aspnetcore.zip' ]
@@ -310,9 +237,6 @@ jobs:
         buildType: 'aspnetcore_arm64_windows'
         dependencyJobName: Windows_build
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_windows_arm64_Release_aspnetcore'
           files: [ 'BuildArtifacts_windows_arm64_Release_aspnetcore.zip' ]
@@ -323,9 +247,6 @@ jobs:
         buildType: 'aspnetcore_x86_windows'
         dependencyJobName: Windows_build
         repoName: ${{ parameters.repoName }}
-        poolName: ${{ parameters.poolName }}
-        poolImage: ${{ parameters.poolImage }}
-        poolOs: ${{ parameters.poolOs }}
         artifacts:
         - artifactName: 'BuildArtifacts_windows_x86_Release_aspnetcore'
           files: [ 'BuildArtifacts_windows_x86_Release_aspnetcore.zip' ]
