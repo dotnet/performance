@@ -2,7 +2,6 @@ parameters:
   runtimeRepoAlias: runtime
   performanceRepoAlias: self
   buildType: []
-  mauiFramework: ''
 
 jobs:
   - ${{ if containsValue(parameters.buildType, 'coreclr_arm64_linux') }}:
