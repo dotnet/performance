@@ -2,19 +2,42 @@ parameters:
   buildType: ''
   dependencyJobName: ''
   artifacts: []
+  # repoName controls the {repoName} segment of the BCS blob path:
+  #   builds/{repoName}/buildArtifacts/{sha}/{buildType}/{file}
+  # Defaults to 'runtime' for back-compat with the existing runtime perf-build pipeline.
+  # Callers building a different repo (e.g. dotnet/aspnetcore) pass repoName explicitly
+  # so that the upload lands at a tenant-specific path the indexer/crank then read.
+  repoName: 'runtime'
+  # Optional pool. When poolName is omitted the upload job inherits the pipeline
+  # default (the historical runtime perf-build behavior). Callers that extend the
+  # 1ES.Official template (e.g. aspnetcore perf-build) must specify a pool because
+  # 1ES.Official requires every job to declare one; for those callers pass:
+  #   poolName: $(DncEngInternalBuildPool)
+  #   poolImage: 1es-ubuntu-2204
+  #   poolOs: linux
+  poolName: ''
+  poolImage: ''
+  poolOs: ''
 
 jobs:
 - ${{ each artifact in parameters.artifacts }}:
   - job: UploadBuildArtifact_${{ artifact.artifactName }}
     displayName: 'Upload Build Artifact ${{ artifact.artifactName }}\'
     condition: eq(stageDependencies.Build.${{ parameters.dependencyJobName }}.result, 'Succeeded')
+    ${{ if parameters.poolName }}:
+      pool:
+        name: ${{ parameters.poolName }}
+        ${{ if parameters.poolImage }}:
+          image: ${{ parameters.poolImage }}
+        ${{ if parameters.poolOs }}:
+          os: ${{ parameters.poolOs }}
     steps:
     - checkout: none
     - download: current
       displayName: Download Build Artifact ${{ artifact.artifactName }}
       artifact: ${{ artifact.artifactName }}
     - ${{ each fileName in artifact.files }}:
-      - script: echo "pvscmdupload/\$web/builds/runtime/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}"
+      - script: echo "pvscmdupload/\$web/builds/${{ parameters.repoName }}/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}"
         displayName: 'Artifact upload path'
       - task: AzureCLI@2
         displayName: 'Upload ${{ fileName }} file'
@@ -23,4 +46,19 @@ jobs:
           scriptType: 'pscore'
           scriptLocation: 'inlineScript'
           inlineScript: |
-            az storage blob upload --auth-mode login --account-name pvscmdupload --container-name '$web' --file "$(Pipeline.Workspace)/${{ artifact.artifactName }}/${{ fileName }}" --name "builds/runtime/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}" --overwrite true
+            az storage blob upload --auth-mode login --account-name pvscmdupload --container-name '$web' --file "$(Pipeline.Workspace)/${{ artifact.artifactName }}/${{ fileName }}" --name "builds/${{ parameters.repoName }}/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}" --overwrite true
+    - checkout: none
+    - download: current
+      displayName: Download Build Artifact ${{ artifact.artifactName }}
+      artifact: ${{ artifact.artifactName }}
+    - ${{ each fileName in artifact.files }}:
+      - script: echo "pvscmdupload/\$web/builds/${{ parameters.repoName }}/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}"
+        displayName: 'Artifact upload path'
+      - task: AzureCLI@2
+        displayName: 'Upload ${{ fileName }} file'
+        inputs:
+          azureSubscription: '.NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)'
+          scriptType: 'pscore'
+          scriptLocation: 'inlineScript'
+          inlineScript: |
+            az storage blob upload --auth-mode login --account-name pvscmdupload --container-name '$web' --file "$(Pipeline.Workspace)/${{ artifact.artifactName }}/${{ fileName }}" --name "builds/${{ parameters.repoName }}/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}" --overwrite true
