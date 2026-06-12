@@ -6,7 +6,7 @@ parameters:
 jobs:
 - ${{ each artifact in parameters.artifacts }}:
   - job: UploadBuildArtifact_${{ artifact.artifactName }}
-    displayName: 'Upload Build Artifact ${{ artifact.artifactName }}\'
+    displayName: 'Upload Build Artifact ${{ artifact.artifactName }}'
     condition: eq(stageDependencies.Build.${{ parameters.dependencyJobName }}.result, 'Succeeded')
     steps:
     - checkout: none
