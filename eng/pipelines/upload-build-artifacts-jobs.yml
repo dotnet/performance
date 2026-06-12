@@ -2,13 +2,12 @@ parameters:
   runtimeRepoAlias: runtime
   performanceRepoAlias: self
   buildType: []
-  mauiFramework: ''
   # repoName is forwarded into the BCS blob path (builds/{repoName}/buildArtifacts/...)
   # by each upload-build-artifacts-job.yml invocation. Defaults to 'runtime' for
   # back-compat with the existing dotnet/runtime perf-build pipeline; callers from
   # other tenants (e.g. dotnet/aspnetcore) pass repoName explicitly.
   repoName: 'runtime'
-
+  
 jobs:
   - ${{ if containsValue(parameters.buildType, 'coreclr_arm64_linux') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
