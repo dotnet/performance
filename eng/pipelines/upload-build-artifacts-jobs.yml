@@ -119,38 +119,6 @@ jobs:
         - artifactName: 'BuildArtifacts_linux_arm64_Release_mono'
           files: [ 'BuildArtifacts_linux_arm64_Release_mono.tar.gz' ]
 
-  - ${{ if containsValue(parameters.buildType, 'mono_arm64_android') }}:
-    - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
-      parameters:
-        buildType: 'mono_arm64_android'
-        dependencyJobName: build_android_arm64_release_AndroidMono
-        repoName: ${{ parameters.repoName }}
-        artifacts:
-        - artifactName: 'AndroidHelloWorldArm64Mono'
-          files: [ 'AndroidHelloWorldArm64Mono.tar.gz' ]
-
-  - ${{ if containsValue(parameters.buildType, 'mono_arm64_ios') }}:
-    - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
-      parameters:
-        buildType: 'mono_arm64_ios'
-        dependencyJobName: build_ios_arm64_release_iOSMono
-        repoName: ${{ parameters.repoName }}
-        artifacts:
-        - artifactName: 'iOSSampleAppMonoFullAOTLLVMNoSymbols'
-          files: [ 'iOSSampleAppMonoFullAOTLLVMNoSymbols.zip' ]
-        - artifactName: 'iOSSampleAppMonoFullAOTNoLLVMNoSymbols'
-          files: [ 'iOSSampleAppMonoFullAOTNoLLVMNoSymbols.zip' ]
-
-  - ${{ if containsValue(parameters.buildType, 'monoBDN_arm64_android') }}:
-    - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
-      parameters:
-        buildType: 'monoBDN_arm64_android'
-        dependencyJobName: build_ios_arm64_release_PerfBDNApp #build_android_arm64_release_Mono_Packs
-        repoName: ${{ parameters.repoName }}
-        artifacts:
-        - artifactName: 'AndroidBDNApk'
-          files: [ 'AndroidBDNApk.tar.gz' ]
-
   - ${{ if containsValue(parameters.buildType, 'nativeAot_arm64_ios') }}:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:

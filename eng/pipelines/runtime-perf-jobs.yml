@@ -50,14 +50,6 @@ parameters:
       enabled: true
       configs:
         - linux_x64
-  - name: androidMonoJit
-    type: object
-    default:
-      enabled: true
-  - name: androidMonoAot
-    type: object
-    default:
-      enabled: true
   - name: androidCoreclrJit
     type: object
     default:
@@ -91,54 +83,12 @@ jobs:
       perfBranch: ${{ parameters.perfBranch }}
 
   - ${{ if not(startswith(variables['Build.SourceBranch'], 'refs/heads/release')) }}:
-    # Build and run iOS Mono and NativeAOT scenarios
+    # Build and run iOS CoreCLR and NativeAOT scenarios
     - template: /eng/pipelines/runtime-ios-scenarios-perf-jobs.yml
       parameters:
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
         performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
         jobParameters: ${{ parameters.jobParameters }}
-
-    # Android Mono JIT — controlled by androidMonoJit toggle
-    - ${{ if eq(parameters.androidMonoJit.enabled, true) }}:
-      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-        parameters:
-          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-          buildConfig: release
-          runtimeFlavor: mono
-          platforms:
-            - windows_x64
-          jobParameters:
-            runtimeType: AndroidMono
-            codeGenType: JIT
-            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
-            runKind: android_scenarios
-            isScenario: true
-            logicalMachine: 'perfpixel4a'
-            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-            ${{ each parameter in parameters.jobParameters }}:
-              ${{ parameter.key }}: ${{ parameter.value }}
-
-    # Android Mono AOT — controlled by androidMonoAot toggle
-    - ${{ if eq(parameters.androidMonoAot.enabled, true) }}:
-      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-        parameters:
-          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-          buildConfig: release
-          runtimeFlavor: mono
-          platforms:
-            - windows_x64
-          jobParameters:
-            runtimeType: AndroidMono
-            codeGenType: AOT
-            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
-            runKind: android_scenarios
-            isScenario: true
-            logicalMachine: 'perfpixel4a'
-            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-            ${{ each parameter in parameters.jobParameters }}:
-              ${{ parameter.key }}: ${{ parameter.value }}
 
     # Android CoreCLR JIT (includes static linking variant) — controlled by androidCoreclrJit toggle
     - ${{ if eq(parameters.androidCoreclrJit.enabled, true) }}:
