@@ -407,26 +407,6 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui Android scenario benchmarks (Mono Default) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: Mono
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
   # Maui Android scenario benchmarks (CoreCLR Default) - Release
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
@@ -464,25 +444,6 @@ jobs:
         codeGenType: NativeAOT
         buildConfig: Release
         additionalJobIdentifier: CoreCLR
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # Maui iOS scenario benchmarks (Mono Default) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: Mono
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -524,26 +485,6 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui Android scenario benchmarks (Mono - Default) - Debug
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Debug
-        additionalJobIdentifier: Mono_Debug
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
   # Maui Android scenario benchmarks (CoreCLR - Default) - Debug
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
@@ -561,26 +502,6 @@ jobs:
         codeGenType: Default
         buildConfig: Debug
         additionalJobIdentifier: CoreCLR_Debug
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # Maui Android inner loop benchmarks on devices (Mono Default) - Debug
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android_innerloop
-        projectFileName: maui_scenarios_android_innerloop.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Debug
-        additionalJobIdentifier: Mono_Debug_InnerLoop
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -604,25 +525,6 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui Android inner loop benchmarks on emulator (Mono Default) - Debug
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - ubuntu-x64-android-emulator
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android_innerloop
-        projectFileName: maui_scenarios_android_innerloop.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Debug
-        additionalJobIdentifier: Mono_Debug_InnerLoop_Emulator
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
   # Maui Android inner loop benchmarks on emulator (CoreCLR Default) - Debug
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
@@ -642,25 +544,6 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui iOS scenario benchmarks (Mono - Default) - Debug
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Debug
-        additionalJobIdentifier: Mono_Debug
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-    
   # Maui iOS scenario benchmarks (CoreCLR - Default) - Debug
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
