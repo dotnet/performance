@@ -19,6 +19,7 @@ DEVICEMEMORYCONSUMPTION = "devicememoryconsumption"
 ANDROIDINSTRUMENTATION = "androidinstrumentation"
 DEVICEPOWERCONSUMPTION = "devicepowerconsumption"
 BUILDTIME = "buildtime"
+IOSINNERLOOP = "iosinnerloop"
 ANDROIDINNERLOOP = "androidinnerloop"
 
 SCENARIO_NAMES = {STARTUP: 'Startup',
@@ -29,6 +30,7 @@ SCENARIO_NAMES = {STARTUP: 'Startup',
                   INNERLOOPMSBUILD: 'InnerLoopMsBuild',
                   DOTNETWATCH: 'DotnetWatch',
                   BUILDTIME: 'BuildTime',
+                  IOSINNERLOOP: 'IOSInnerLoop',
                   ANDROIDINNERLOOP: 'AndroidInnerLoop'}
 
 BINDIR = 'bin'
