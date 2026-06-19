@@ -10,6 +10,11 @@ parameters:
   # pipeline; callers from other tenants (e.g. dotnet/aspnetcore) pass
   # repoName explicitly.
   repoName: 'runtime'
+  # sha is forwarded to each register-build-job so the buildInfo.json marker
+  # lands under builds/{repoName}/buildArtifacts/{sha}/... Defaults to the self
+  # repo commit; resource-built tenants (e.g. aspnetcore) pass the resource's
+  # commit, e.g. sha: $(resources.repositories.aspnetcore.version).
+  sha: '$(Build.SourceVersion)'
 
 jobs:
 - ${{ each type in parameters.buildType }}:
@@ -18,3 +23,4 @@ jobs:
       buildType: ${{ type }}
       buildId: $(Build.BuildId)
       repoName: ${{ parameters.repoName }}
+      sha: ${{ parameters.sha }}

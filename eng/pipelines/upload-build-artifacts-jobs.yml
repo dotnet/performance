@@ -7,6 +7,13 @@ parameters:
   # back-compat with the existing dotnet/runtime perf-build pipeline; callers from
   # other tenants (e.g. dotnet/aspnetcore) pass repoName explicitly.
   repoName: 'runtime'
+  # sha controls the {sha} segment of the BCS blob path. Defaults to the self
+  # repo commit ($(Build.SourceVersion)) for back-compat with the runtime
+  # perf-build pipeline. Resource-built tenants (e.g. aspnetcore, whose source
+  # is a repository resource rather than self) pass the resource's commit, e.g.
+  # sha: $(resources.repositories.aspnetcore.version). Runtime config branches
+  # below omit sha and inherit the leaf template's $(Build.SourceVersion) default.
+  sha: '$(Build.SourceVersion)'
   
 jobs:
   - ${{ if containsValue(parameters.buildType, 'coreclr_arm64_linux') }}:
@@ -174,6 +181,7 @@ jobs:
         buildType: 'aspnetcore_x64_linux'
         dependencyJobName: Linux_x64_build
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_x64_Release_aspnetcore'
           files: [ 'BuildArtifacts_linux_x64_Release_aspnetcore.tar.gz' ]
@@ -184,6 +192,7 @@ jobs:
         buildType: 'aspnetcore_arm64_linux'
         dependencyJobName: Linux_arm64_build
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_arm64_Release_aspnetcore'
           files: [ 'BuildArtifacts_linux_arm64_Release_aspnetcore.tar.gz' ]
@@ -194,6 +203,7 @@ jobs:
         buildType: 'aspnetcore_x64_windows'
         dependencyJobName: Windows_build
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_windows_x64_Release_aspnetcore'
           files: [ 'BuildArtifacts_windows_x64_Release_aspnetcore.zip' ]
@@ -204,6 +214,7 @@ jobs:
         buildType: 'aspnetcore_arm64_windows'
         dependencyJobName: Windows_build
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_windows_arm64_Release_aspnetcore'
           files: [ 'BuildArtifacts_windows_arm64_Release_aspnetcore.zip' ]
@@ -214,6 +225,7 @@ jobs:
         buildType: 'aspnetcore_x86_windows'
         dependencyJobName: Windows_build
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_windows_x86_Release_aspnetcore'
           files: [ 'BuildArtifacts_windows_x86_Release_aspnetcore.zip' ]

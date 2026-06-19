@@ -1,0 +1,177 @@
+#
+# aspnetcore-perf-build.yml
+#
+# Azure DevOps pipeline (hosted in dotnet/performance) that builds every commit
+# on dotnet/aspnetcore `main` from source, packs per-RID
+# Microsoft.AspNetCore.App.Runtime archives, and uploads them to the Build Cache
+# Service (BCS @ pvscmdupload) so dotnet/crank can resolve ASP.NET Core runtime
+# binaries by commit SHA for performance-regression bisection.
+#
+# WHY THIS LIVES HERE (and not in dotnet/aspnetcore): moving it into
+# dotnet/performance gives the perf team full merge control. The previous
+# aspnetcore-hosted version reused aspnetcore's `default-build.yml`, which cannot
+# be consumed cross-repo (its `@self` references resolve to the ROOT pipeline
+# repo = performance). So the build jobs are re-authored from source in
+# eng/pipelines/aspnetcore-perf-build-jobs.yml.
+#
+# HOW PER-COMMIT FIRING WORKS: the aspnetcore AzDO mirror
+# (internal/dotnet-aspnetcore) is declared as a repository resource with a CI
+# `trigger` on main. A push to aspnetcore main fires this pipeline
+# (Build.Reason == ResourceTrigger). The build jobs check out that resource at
+# the triggering commit.
+#
+# SHA INVERSION (load-bearing): because the pipeline is hosted in performance,
+# `Build.SourceVersion` is the PERFORMANCE commit, not the aspnetcore one. The
+# correct BCS {sha} is the triggering aspnetcore commit, exposed as
+# `$(resources.repositories.aspnetcore.version)`. We pass it as `sha:` to the
+# shared register/upload templates (which default `sha` to $(Build.SourceVersion)
+# for the runtime perf-build that is hosted in dotnet/runtime).
+#
+# PUBLIC FEEDS ONLY: like aspnetcore's ci-public.yml, the from-source pack build
+# uses public feeds (no internal runtime download, no dotnetbuilds-internal-read
+# connection). Only the BCS upload uses the proven `.NET Performance` connection.
+#
+# NOT 1ES: per-commit perf artifacts go to a private BCS cache (unsigned, not
+# redistributed), so we do not extend 1ES.Official -- matching dotnet/runtime's
+# perf-build.
+#
+# ATOMICITY: continueOnError:false everywhere; any failure sinks the build to
+# Failed and the MissingBuildsTrigger Function skips indexing that SHA.
+#
+# BCS output layout:
+#   builds/aspnetcore/buildArtifacts/{sha}/{configKey}/buildInfo.json
+#   builds/aspnetcore/buildArtifacts/{sha}/{configKey}/{archiveFile}
+#
+
+parameters:
+# Per-config enablement booleans (default true). Surfaced as pipeline parameters
+# so they appear in the build's templateParameters for the dotnet-performance-infra
+# MissingBuildsTrigger PerConfiguration indexer to count expected configs. In v1's
+# eager per-commit mode all five are true; they are forward-compat for a future
+# Function that queues a subset per config.
+- name: aspnetcore_x64_linux
+  displayName: 'Build aspnetcore_x64_linux'
+  type: boolean
+  default: true
+- name: aspnetcore_arm64_linux
+  displayName: 'Build aspnetcore_arm64_linux'
+  type: boolean
+  default: true
+- name: aspnetcore_x64_windows
+  displayName: 'Build aspnetcore_x64_windows'
+  type: boolean
+  default: true
+- name: aspnetcore_arm64_windows
+  displayName: 'Build aspnetcore_arm64_windows'
+  type: boolean
+  default: true
+- name: aspnetcore_x86_windows
+  displayName: 'Build aspnetcore_x86_windows'
+  type: boolean
+  default: true
+
+# Self (performance) pushes must not fire this pipeline; only the aspnetcore
+# resource trigger (below) does.
+trigger: none
+pr: none
+
+variables:
+- name: _TeamName
+  value: AspNetCore
+# Lean build args mirrored from aspnetcore ci-public.yml. Deliberately omit
+# signing / installers / helix / publishing and any internal runtime download
+# (public feeds only) -- none contribute to the per-RID runtime pack.
+- name: _BuildArgs
+  value: /p:TeamName=$(_TeamName)
+         /p:OfficialBuildId=$(Build.BuildNumber)
+         /p:SkipTestBuild=true
+- template: /eng/common/templates/variables/pool-providers.yml
+
+resources:
+  repositories:
+  # aspnetcore AzDO mirror. The CI trigger on main is what fires this pipeline
+  # per aspnetcore commit; the build jobs check it out at the triggering commit,
+  # and $(resources.repositories.aspnetcore.version) is the BCS {sha}.
+  - repository: aspnetcore
+    type: git
+    name: internal/dotnet-aspnetcore
+    ref: refs/heads/main
+    trigger:
+      batch: false
+      branches:
+        include:
+        - main
+
+stages:
+
+# ============================================================================
+# RegisterBuild -- writes a per-configKey buildInfo.json marker to BCS at
+#   $web/builds/aspnetcore/buildArtifacts/{sha}/{configKey}/buildInfo.json
+# Runs in parallel with Build (dependsOn: []). Gated to internal +
+# (ResourceTrigger | Manual): ResourceTrigger is the steady-state per-commit
+# flow, Manual covers seed/runbook queues.
+# ============================================================================
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'ResourceTrigger'), eq(variables['Build.Reason'], 'Manual'))) }}:
+  - stage: RegisterBuild
+    displayName: 'Register Build'
+    dependsOn: []
+    jobs:
+    - template: /eng/pipelines/register-build-jobs.yml
+      parameters:
+        repoName: aspnetcore
+        sha: $(resources.repositories.aspnetcore.version)
+        buildType:
+        - ${{ if eq(parameters.aspnetcore_x64_linux, true) }}:
+          - aspnetcore_x64_linux
+        - ${{ if eq(parameters.aspnetcore_arm64_linux, true) }}:
+          - aspnetcore_arm64_linux
+        - ${{ if eq(parameters.aspnetcore_x64_windows, true) }}:
+          - aspnetcore_x64_windows
+        - ${{ if eq(parameters.aspnetcore_arm64_windows, true) }}:
+          - aspnetcore_arm64_windows
+        - ${{ if eq(parameters.aspnetcore_x86_windows, true) }}:
+          - aspnetcore_x86_windows
+
+- stage: Build
+  displayName: Build
+  dependsOn: []
+  jobs:
+  - template: /eng/pipelines/aspnetcore-perf-build-jobs.yml
+    parameters:
+      aspnetcoreRepoAlias: aspnetcore
+      performanceRepoAlias: self
+      aspnetcore_x64_linux: ${{ parameters.aspnetcore_x64_linux }}
+      aspnetcore_arm64_linux: ${{ parameters.aspnetcore_arm64_linux }}
+      aspnetcore_x64_windows: ${{ parameters.aspnetcore_x64_windows }}
+      aspnetcore_arm64_windows: ${{ parameters.aspnetcore_arm64_windows }}
+      aspnetcore_x86_windows: ${{ parameters.aspnetcore_x86_windows }}
+
+# ============================================================================
+# UploadArtifacts -- downloads each Build-stage pipeline artifact and uploads it
+# to $web/builds/aspnetcore/buildArtifacts/{sha}/{configKey}/{file}. Depends on
+# Build + RegisterBuild; condition succeeded() so any failure skips indexing.
+# Same internal + (ResourceTrigger | Manual) gate as RegisterBuild.
+# ============================================================================
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'ResourceTrigger'), eq(variables['Build.Reason'], 'Manual'))) }}:
+  - stage: UploadArtifacts
+    displayName: 'Upload Artifacts to BCS'
+    dependsOn:
+    - Build
+    - RegisterBuild
+    condition: succeeded()
+    jobs:
+    - template: /eng/pipelines/upload-build-artifacts-jobs.yml
+      parameters:
+        repoName: aspnetcore
+        sha: $(resources.repositories.aspnetcore.version)
+        buildType:
+        - ${{ if eq(parameters.aspnetcore_x64_linux, true) }}:
+          - aspnetcore_x64_linux
+        - ${{ if eq(parameters.aspnetcore_arm64_linux, true) }}:
+          - aspnetcore_arm64_linux
+        - ${{ if eq(parameters.aspnetcore_x64_windows, true) }}:
+          - aspnetcore_x64_windows
+        - ${{ if eq(parameters.aspnetcore_arm64_windows, true) }}:
+          - aspnetcore_arm64_windows
+        - ${{ if eq(parameters.aspnetcore_x86_windows, true) }}:
+          - aspnetcore_x86_windows
