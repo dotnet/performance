@@ -111,36 +111,17 @@ stages:
 # (ResourceTrigger | Manual): ResourceTrigger is the steady-state per-commit
 # flow, Manual covers seed/runbook queues.
 #
-# The first job tags the build with `aspnetcore-sha:<40-char sha>`. Because the
-# pipeline is hosted in performance, the build record's sourceVersion is the
-# PERFORMANCE commit, so the dotnet-performance-infra indexer cannot correlate a
-# build to its aspnetcore commit via sourceVersion. This tag is its SOLE
-# aspnetcore-sha signal on the build record. It is additive and independent of
-# the BCS {sha} path override (which stays $(resources.repositories.aspnetcore.version)).
-# Added once, early, and unconditionally so it is present even if later stages fail.
+# The aspnetcore commit this build corresponds to is NOT tagged on the run: the
+# dotnet-performance-infra indexer reads it directly from the build's
+# `resources.repositories.aspnetcore.version` via the runs API (intrinsic to the
+# build carrying the aspnetcore repo resource). The BCS {sha} path override below
+# still uses that same value.
 # ============================================================================
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'ResourceTrigger'), eq(variables['Build.Reason'], 'Manual'))) }}:
   - stage: RegisterBuild
     displayName: 'Register Build'
     dependsOn: []
     jobs:
-    - job: TagBuild
-      displayName: 'Tag build with aspnetcore sha'
-      pool:
-        name: $(DncEngInternalBuildPool)
-        demands: ImageOverride -equals 1es-ubuntu-2204
-      steps:
-      - checkout: none
-      # $(resources.repositories.aspnetcore.version) is the AzDO runtime macro for
-      # the triggering aspnetcore commit -- the same value passed as `sha:` to the
-      # register/upload templates below. AzDO expands the macro before pwsh runs, so
-      # $resolvedSha holds the literal 40-char commit sha. The echo lets us eyeball
-      # the resolved value in the first real run.
-      - pwsh: |
-          $resolvedSha = "$(resources.repositories.aspnetcore.version)"
-          Write-Host "Resolved aspnetcore commit sha: $resolvedSha"
-          Write-Host "##vso[build.addbuildtag]aspnetcore-sha:$resolvedSha"
-        displayName: 'Add aspnetcore-sha build tag'
     - template: /eng/pipelines/register-build-jobs.yml
       parameters:
         repoName: aspnetcore
