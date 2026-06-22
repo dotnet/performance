@@ -216,7 +216,7 @@ jobs:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
         buildType: 'aspnetcore_x64_windows'
-        dependencyJobName: Windows_build
+        dependencyJobName: Windows_x64_build
         repoName: ${{ parameters.repoName }}
         sha: ${{ parameters.sha }}
         artifacts:
@@ -227,7 +227,7 @@ jobs:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
         buildType: 'aspnetcore_arm64_windows'
-        dependencyJobName: Windows_build
+        dependencyJobName: Windows_arm64_build
         repoName: ${{ parameters.repoName }}
         sha: ${{ parameters.sha }}
         artifacts:
@@ -238,7 +238,7 @@ jobs:
     - template: /eng/pipelines/templates/upload-build-artifacts-job.yml@${{ parameters.performanceRepoAlias }}
       parameters:
         buildType: 'aspnetcore_x86_windows'
-        dependencyJobName: Windows_build
+        dependencyJobName: Windows_x86_build
         repoName: ${{ parameters.repoName }}
         sha: ${{ parameters.sha }}
         artifacts:

@@ -14,7 +14,8 @@
 # moved eng/pipelines/tools/pack-bcs-archives.ps1, and publish one pipeline
 # artifact per config.
 #
-# Job names (Windows_build / Linux_x64_build / Linux_arm64_build) are load-bearing:
+# Job names (Windows_x64_build / Windows_x86_build / Windows_arm64_build /
+# Linux_x64_build / Linux_arm64_build) are load-bearing:
 # they must match the `dependencyJobName` values in
 # eng/pipelines/upload-build-artifacts-jobs.yml's aspnetcore_* branches.
 #
@@ -40,19 +41,27 @@ parameters:
 jobs:
 
 # ===========================================================================
-# Windows multi-arch build job (x64 + x86 + arm64 in one agent)
+# Windows build jobs (one self-sufficient job per arch, mirroring the Linux
+# jobs below). Each job is independently gated by its config boolean, checks out
+# the aspnetcore mirror + this repo, runs aspnetcore's eng/build.cmd standalone
+# for its arch, packs the per-RID archive, and publishes one artifact.
 #
-# Mirrors aspnetcore ci-public.yml's Windows_build pattern: build.cmd is invoked
-# x64-first WITH native (-nativeToolsOnMachine), then x86 and arm64 with
-# -noBuildNative because they cross-pack against the x64 native bits. Each
-# invocation emits its own per-RID Microsoft.AspNetCore.App.Runtime.win-{arch}.*.nupkg
-# into artifacts/packages/Release/Shipping. The x64 build always runs when any
-# Windows arch is enabled (it produces the native base the others reuse); pack +
-# publish for each arch are individually gated by that arch's boolean.
+# Unlike aspnetcore ci-public.yml -- which builds x64/x86/arm64 sequentially in
+# ONE job so x86/arm64 reuse the x64 step's managed build and on-machine native
+# toolchain -- these jobs run on separate agents, so each must be self-sufficient:
+#   * every arch carries -all (full managed build) and -nativeToolsOnMachine
+#     (set up the native toolchain the shared x64 step used to provide);
+#   * x86/arm64 keep -noBuildNative (faithful to ci-public's per-arch args; their
+#     native runtime bits restore from packages rather than cross-building on the
+#     x64 host). The first real queued run validates standalone native restore.
+#
+# Job names (Windows_x64_build / Windows_x86_build / Windows_arm64_build) are
+# load-bearing: they must match the `dependencyJobName` values in
+# eng/pipelines/upload-build-artifacts-jobs.yml's aspnetcore_*_windows branches.
 # ===========================================================================
-- ${{ if or(eq(parameters.aspnetcore_x64_windows, true), eq(parameters.aspnetcore_arm64_windows, true), eq(parameters.aspnetcore_x86_windows, true)) }}:
-  - job: Windows_build
-    displayName: 'Build: Windows x64/x86/arm64 (perf-build)'
+- ${{ if eq(parameters.aspnetcore_x64_windows, true) }}:
+  - job: Windows_x64_build
+    displayName: 'Build: Windows x64 (perf-build)'
     timeoutInMinutes: 180
     pool:
       name: $(DncEngInternalBuildPool)
@@ -75,7 +84,6 @@ jobs:
       fetchTags: false
       clean: true
 
-    # x64 -- native base build (always runs when any Windows arch is requested).
     - script: >-
         eng\build.cmd
         -ci
@@ -94,80 +102,150 @@ jobs:
       env:
         MSBUILDUSESERVER: "1"
 
-    - ${{ if eq(parameters.aspnetcore_x86_windows, true) }}:
-      - script: >-
-          eng\build.cmd
-          -ci
-          -prepareMachine
-          -Configuration Release
-          -arch x86
-          -pack
-          -all
-          -noBuildJava
-          -noBuildNative
-          /p:OnlyPackPlatformSpecificPackages=true
-          $(_BuildArgs)
-          -ExcludeCIBinaryLog
-        workingDirectory: $(_AspNetCoreRoot)
-        displayName: Build x86
-        env:
-          MSBUILDUSESERVER: "1"
-
-    - ${{ if eq(parameters.aspnetcore_arm64_windows, true) }}:
-      - script: >-
-          eng\build.cmd
-          -ci
-          -prepareMachine
-          -Configuration Release
-          -arch arm64
-          -pack
-          -noBuildJava
-          -noBuildNative
-          /p:OnlyPackPlatformSpecificPackages=true
-          $(_BuildArgs)
-          /bl:artifacts/log/Release/Build.arm64.binlog
-        workingDirectory: $(_AspNetCoreRoot)
-        displayName: Build ARM64
-        env:
-          MSBUILDUSESERVER: "1"
-
-    - ${{ if eq(parameters.aspnetcore_x64_windows, true) }}:
-      - pwsh: >-
-          & "$(_PackScript)" -Rids win-x64 -Format zip -ShippingDir "$(_ShippingDir)" -StagingRoot "$(_StagingRoot)"
-        displayName: 'Pack BCS archive (win-x64)'
-      - task: PublishPipelineArtifact@1
-        displayName: 'Publish BuildArtifacts_windows_x64_Release_aspnetcore'
-        inputs:
-          targetPath: $(_StagingRoot)\BuildArtifacts_windows_x64_Release_aspnetcore
-          artifactName: BuildArtifacts_windows_x64_Release_aspnetcore
-
-    - ${{ if eq(parameters.aspnetcore_x86_windows, true) }}:
-      - pwsh: >-
-          & "$(_PackScript)" -Rids win-x86 -Format zip -ShippingDir "$(_ShippingDir)" -StagingRoot "$(_StagingRoot)"
-        displayName: 'Pack BCS archive (win-x86)'
-      - task: PublishPipelineArtifact@1
-        displayName: 'Publish BuildArtifacts_windows_x86_Release_aspnetcore'
-        inputs:
-          targetPath: $(_StagingRoot)\BuildArtifacts_windows_x86_Release_aspnetcore
-          artifactName: BuildArtifacts_windows_x86_Release_aspnetcore
-
-    - ${{ if eq(parameters.aspnetcore_arm64_windows, true) }}:
-      - pwsh: >-
-          & "$(_PackScript)" -Rids win-arm64 -Format zip -ShippingDir "$(_ShippingDir)" -StagingRoot "$(_StagingRoot)"
-        displayName: 'Pack BCS archive (win-arm64)'
-      - task: PublishPipelineArtifact@1
-        displayName: 'Publish BuildArtifacts_windows_arm64_Release_aspnetcore'
-        inputs:
-          targetPath: $(_StagingRoot)\BuildArtifacts_windows_arm64_Release_aspnetcore
-          artifactName: BuildArtifacts_windows_arm64_Release_aspnetcore
+    - pwsh: >-
+        & "$(_PackScript)" -Rids win-x64 -Format zip -ShippingDir "$(_ShippingDir)" -StagingRoot "$(_StagingRoot)"
+      displayName: 'Pack BCS archive (win-x64)'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish BuildArtifacts_windows_x64_Release_aspnetcore'
+      inputs:
+        targetPath: $(_StagingRoot)\BuildArtifacts_windows_x64_Release_aspnetcore
+        artifactName: BuildArtifacts_windows_x64_Release_aspnetcore
 
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Windows build logs'
+      displayName: 'Publish Windows x64 build logs'
       condition: always()
       continueOnError: true
       inputs:
         targetPath: $(_AspNetCoreRoot)\artifacts\log
-        artifactName: Windows_perf_build_Logs_Attempt_$(System.JobAttempt)
+        artifactName: Windows_x64_perf_build_Logs_Attempt_$(System.JobAttempt)
+
+# ===========================================================================
+# Windows x86 build job
+# ===========================================================================
+- ${{ if eq(parameters.aspnetcore_x86_windows, true) }}:
+  - job: Windows_x86_build
+    displayName: 'Build: Windows x86 (perf-build)'
+    timeoutInMinutes: 180
+    pool:
+      name: $(DncEngInternalBuildPool)
+      demands: ImageOverride -equals windows.vs2026preview.scout.amd64
+    variables:
+      _AspNetCoreRoot: $(Agent.BuildDirectory)\s\aspnetcore
+      _PackScript: $(Agent.BuildDirectory)\s\performance\eng\pipelines\tools\pack-bcs-archives.ps1
+      _ShippingDir: $(Agent.BuildDirectory)\s\aspnetcore\artifacts\packages\Release\Shipping
+      _StagingRoot: $(Build.ArtifactStagingDirectory)\bcs
+      MSBUILDUSESERVER: "1"
+    steps:
+    - checkout: ${{ parameters.aspnetcoreRepoAlias }}
+      path: s/aspnetcore
+      fetchDepth: 1
+      fetchTags: false
+      clean: true
+    - checkout: ${{ parameters.performanceRepoAlias }}
+      path: s/performance
+      fetchDepth: 1
+      fetchTags: false
+      clean: true
+
+    - script: >-
+        eng\build.cmd
+        -ci
+        -prepareMachine
+        -nativeToolsOnMachine
+        -Configuration Release
+        -arch x86
+        -pack
+        -all
+        -noBuildJava
+        -noBuildNative
+        /p:OnlyPackPlatformSpecificPackages=true
+        $(_BuildArgs)
+        /bl:artifacts/log/Release/Build.x86.binlog
+      workingDirectory: $(_AspNetCoreRoot)
+      displayName: Build x86
+      env:
+        MSBUILDUSESERVER: "1"
+
+    - pwsh: >-
+        & "$(_PackScript)" -Rids win-x86 -Format zip -ShippingDir "$(_ShippingDir)" -StagingRoot "$(_StagingRoot)"
+      displayName: 'Pack BCS archive (win-x86)'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish BuildArtifacts_windows_x86_Release_aspnetcore'
+      inputs:
+        targetPath: $(_StagingRoot)\BuildArtifacts_windows_x86_Release_aspnetcore
+        artifactName: BuildArtifacts_windows_x86_Release_aspnetcore
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Windows x86 build logs'
+      condition: always()
+      continueOnError: true
+      inputs:
+        targetPath: $(_AspNetCoreRoot)\artifacts\log
+        artifactName: Windows_x86_perf_build_Logs_Attempt_$(System.JobAttempt)
+
+# ===========================================================================
+# Windows arm64 build job
+# ===========================================================================
+- ${{ if eq(parameters.aspnetcore_arm64_windows, true) }}:
+  - job: Windows_arm64_build
+    displayName: 'Build: Windows ARM64 (perf-build)'
+    timeoutInMinutes: 180
+    pool:
+      name: $(DncEngInternalBuildPool)
+      demands: ImageOverride -equals windows.vs2026preview.scout.amd64
+    variables:
+      _AspNetCoreRoot: $(Agent.BuildDirectory)\s\aspnetcore
+      _PackScript: $(Agent.BuildDirectory)\s\performance\eng\pipelines\tools\pack-bcs-archives.ps1
+      _ShippingDir: $(Agent.BuildDirectory)\s\aspnetcore\artifacts\packages\Release\Shipping
+      _StagingRoot: $(Build.ArtifactStagingDirectory)\bcs
+      MSBUILDUSESERVER: "1"
+    steps:
+    - checkout: ${{ parameters.aspnetcoreRepoAlias }}
+      path: s/aspnetcore
+      fetchDepth: 1
+      fetchTags: false
+      clean: true
+    - checkout: ${{ parameters.performanceRepoAlias }}
+      path: s/performance
+      fetchDepth: 1
+      fetchTags: false
+      clean: true
+
+    - script: >-
+        eng\build.cmd
+        -ci
+        -prepareMachine
+        -nativeToolsOnMachine
+        -Configuration Release
+        -arch arm64
+        -pack
+        -all
+        -noBuildJava
+        -noBuildNative
+        /p:OnlyPackPlatformSpecificPackages=true
+        $(_BuildArgs)
+        /bl:artifacts/log/Release/Build.arm64.binlog
+      workingDirectory: $(_AspNetCoreRoot)
+      displayName: Build ARM64
+      env:
+        MSBUILDUSESERVER: "1"
+
+    - pwsh: >-
+        & "$(_PackScript)" -Rids win-arm64 -Format zip -ShippingDir "$(_ShippingDir)" -StagingRoot "$(_StagingRoot)"
+      displayName: 'Pack BCS archive (win-arm64)'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish BuildArtifacts_windows_arm64_Release_aspnetcore'
+      inputs:
+        targetPath: $(_StagingRoot)\BuildArtifacts_windows_arm64_Release_aspnetcore
+        artifactName: BuildArtifacts_windows_arm64_Release_aspnetcore
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Windows arm64 build logs'
+      condition: always()
+      continueOnError: true
+      inputs:
+        targetPath: $(_AspNetCoreRoot)\artifacts\log
+        artifactName: Windows_arm64_perf_build_Logs_Attempt_$(System.JobAttempt)
 
 # ===========================================================================
 # Linux x64 build job
