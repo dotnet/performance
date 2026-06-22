@@ -22,6 +22,7 @@ jobs:
         buildType: 'coreclr_arm64_linux'
         dependencyJobName: build_linux_arm64_release_coreclr
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_arm64_Release_coreclr'
           files: [ 'BuildArtifacts_linux_arm64_Release_coreclr.tar.gz' ]
@@ -32,6 +33,7 @@ jobs:
         buildType: 'coreclr_arm64_windows'
         dependencyJobName: build_windows_arm64_release_coreclr
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_windows_arm64_Release_coreclr'
           files: [ 'BuildArtifacts_windows_arm64_Release_coreclr.zip' ]
@@ -42,6 +44,7 @@ jobs:
         buildType: 'coreclr_x64_linux'
         dependencyJobName: build_linux_x64_release_coreclr
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_x64_Release_coreclr'
           files: [ 'BuildArtifacts_linux_x64_Release_coreclr.tar.gz' ]
@@ -52,6 +55,7 @@ jobs:
         buildType: 'coreclr_x64_windows'
         dependencyJobName: build_windows_x64_release_coreclr
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_windows_x64_Release_coreclr'
           files: [ 'BuildArtifacts_windows_x64_Release_coreclr.zip' ]
@@ -62,6 +66,7 @@ jobs:
         buildType: 'coreclr_x86_windows'
         dependencyJobName: build_windows_x86_release_coreclr
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_windows_x86_Release_coreclr'
           files: [ 'BuildArtifacts_windows_x86_Release_coreclr.zip' ]
@@ -72,6 +77,7 @@ jobs:
         buildType: 'coreclr_arm64_android'
         dependencyJobName: build_android_arm64_release_AndroidCoreCLR
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'AndroidHelloWorldArm64CoreCLR'
           files: [ 'AndroidHelloWorldArm64CoreCLR.tar.gz' ]
@@ -82,6 +88,7 @@ jobs:
         buildType: 'wasm'
         dependencyJobName: build_browser_wasm_linux_Release_wasm
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BrowserWasm'
           files: [ 'BrowserWasm.tar.gz' ]
@@ -92,6 +99,7 @@ jobs:
         buildType: 'monoAot_arm64_linux'
         dependencyJobName: build_linux_arm64_release_AOT
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'LinuxMonoAOTarm64'
           files: [ 'LinuxMonoAOTarm64.tar.gz' ]
@@ -102,6 +110,7 @@ jobs:
         buildType: 'monoAot_x64_linux'
         dependencyJobName: build_linux_x64_release_AOT
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'LinuxMonoAOTx64'
           files: [ 'LinuxMonoAOTx64.tar.gz' ]
@@ -112,6 +121,7 @@ jobs:
         buildType: 'mono_x64_linux'
         dependencyJobName: build_linux_x64_release_mono
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_x64_Release_mono'
           files: [ 'BuildArtifacts_linux_x64_Release_mono.tar.gz' ]
@@ -122,6 +132,7 @@ jobs:
         buildType: 'mono_arm64_linux'
         dependencyJobName: build_linux_arm64_release_mono
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_arm64_Release_mono'
           files: [ 'BuildArtifacts_linux_arm64_Release_mono.tar.gz' ]
@@ -132,6 +143,7 @@ jobs:
         buildType: 'nativeAot_arm64_ios'
         dependencyJobName: build_ios_arm64_release_iOSNativeAOT
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'iOSSampleAppNativeAOTNoSymbols'
           files: [ 'iOSSampleAppNativeAOTNoSymbols.zip' ]
@@ -142,6 +154,7 @@ jobs:
         buildType: 'coreclr_arm64_ios'
         dependencyJobName: build_ios_arm64_release_iOSCoreCLR
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'iOSSampleAppCoreCLRInterpreterNoSymbols'
           files: [ 'iOSSampleAppCoreCLRInterpreterNoSymbols.zip' ]
@@ -154,6 +167,7 @@ jobs:
         buildType: 'wasm_coreclr'
         dependencyJobName: build_browser_wasm_linux_Release_wasm_coreclr
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BrowserWasmCoreCLR'
           files: [ 'BrowserWasmCoreCLR.tar.gz' ]
@@ -164,6 +178,7 @@ jobs:
         buildType: 'coreclr_r2r_interpreter'
         dependencyJobName: build_linux_x64_release_coreclr_r2r_interpreter
         repoName: ${{ parameters.repoName }}
+        sha: ${{ parameters.sha }}
         artifacts:
         - artifactName: 'BuildArtifacts_linux_x64_Release_coreclr_r2r_interpreter'
           files: [ 'BuildArtifacts_linux_x64_Release_coreclr_r2r_interpreter.tar.gz' ]
