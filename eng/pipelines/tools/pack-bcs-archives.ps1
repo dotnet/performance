@@ -5,10 +5,13 @@
 
 .DESCRIPTION
     This is the single, canonical "find the runtime-pack nupkg and zip it into
-    the BCS archive layout" recipe used by every job in perf-build.yml (Windows
-    x64/x86/arm64, Linux x64, Linux arm64). The build jobs invoke it from their
-    `afterBuild` hook with the RID(s) they produced and the archive format that
-    matches their platform convention (.zip on Windows, .tar.gz on Linux).
+    the BCS archive layout" recipe used by every job in
+    aspnetcore-perf-build-jobs.yml (Windows x64/x86/arm64, Linux x64, Linux
+    arm64). Each build job invokes it as an explicit `pwsh` step (pwsh, NOT
+    Windows PowerShell 5.1, whose Compress-Archive writes backslash separators
+    that corrupt the archive for crank) with the RID(s) it produced and the
+    archive format that matches its platform convention (.zip on Windows,
+    .tar.gz on Linux).
 
     For each RID it:
       1. Locates artifacts/packages/Release/Shipping/Microsoft.AspNetCore.App.Runtime.{rid}.*.nupkg
@@ -40,10 +43,15 @@
     Defaults to $(Build.ArtifactStagingDirectory)/bcs.
 
 .EXAMPLE
+    # In the pipeline (ShippingDir/StagingRoot resolved from BUILD_* env vars):
     ./pack-bcs-archives.ps1 -Rids win-x64,win-x86,win-arm64 -Format zip
 
 .EXAMPLE
-    ./pack-bcs-archives.ps1 -Rids linux-x64 -Format targz
+    # Local run -- the BUILD_* env vars are not set off-agent, so pass the
+    # directories explicitly:
+    ./pack-bcs-archives.ps1 -Rids linux-x64 -Format targz `
+        -ShippingDir ./artifacts/packages/Release/Shipping `
+        -StagingRoot ./artifacts/bcs
 #>
 [CmdletBinding()]
 param(

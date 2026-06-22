@@ -58,11 +58,11 @@ jobs:
       name: $(DncEngInternalBuildPool)
       demands: ImageOverride -equals windows.vs2026preview.scout.amd64
     variables:
-      - _AspNetCoreRoot: $(Agent.BuildDirectory)\s\aspnetcore
-      - _PackScript: $(Agent.BuildDirectory)\s\performance\eng\pipelines\tools\pack-bcs-archives.ps1
-      - _ShippingDir: $(Agent.BuildDirectory)\s\aspnetcore\artifacts\packages\Release\Shipping
-      - _StagingRoot: $(Build.ArtifactStagingDirectory)\bcs
-      - MSBUILDUSESERVER: "1"
+      _AspNetCoreRoot: $(Agent.BuildDirectory)\s\aspnetcore
+      _PackScript: $(Agent.BuildDirectory)\s\performance\eng\pipelines\tools\pack-bcs-archives.ps1
+      _ShippingDir: $(Agent.BuildDirectory)\s\aspnetcore\artifacts\packages\Release\Shipping
+      _StagingRoot: $(Build.ArtifactStagingDirectory)\bcs
+      MSBUILDUSESERVER: "1"
     steps:
     - checkout: ${{ parameters.aspnetcoreRepoAlias }}
       path: s/aspnetcore
@@ -180,10 +180,10 @@ jobs:
       name: $(DncEngInternalBuildPool)
       demands: ImageOverride -equals 1es-ubuntu-2204
     variables:
-      - _AspNetCoreRoot: $(Agent.BuildDirectory)/s/aspnetcore
-      - _PackScript: $(Agent.BuildDirectory)/s/performance/eng/pipelines/tools/pack-bcs-archives.ps1
-      - _ShippingDir: $(Agent.BuildDirectory)/s/aspnetcore/artifacts/packages/Release/Shipping
-      - _StagingRoot: $(Build.ArtifactStagingDirectory)/bcs
+      _AspNetCoreRoot: $(Agent.BuildDirectory)/s/aspnetcore
+      _PackScript: $(Agent.BuildDirectory)/s/performance/eng/pipelines/tools/pack-bcs-archives.ps1
+      _ShippingDir: $(Agent.BuildDirectory)/s/aspnetcore/artifacts/packages/Release/Shipping
+      _StagingRoot: $(Build.ArtifactStagingDirectory)/bcs
     steps:
     - checkout: ${{ parameters.aspnetcoreRepoAlias }}
       path: s/aspnetcore
@@ -238,10 +238,10 @@ jobs:
       name: $(DncEngInternalBuildPool)
       demands: ImageOverride -equals 1es-ubuntu-2204
     variables:
-      - _AspNetCoreRoot: $(Agent.BuildDirectory)/s/aspnetcore
-      - _PackScript: $(Agent.BuildDirectory)/s/performance/eng/pipelines/tools/pack-bcs-archives.ps1
-      - _ShippingDir: $(Agent.BuildDirectory)/s/aspnetcore/artifacts/packages/Release/Shipping
-      - _StagingRoot: $(Build.ArtifactStagingDirectory)/bcs
+      _AspNetCoreRoot: $(Agent.BuildDirectory)/s/aspnetcore
+      _PackScript: $(Agent.BuildDirectory)/s/performance/eng/pipelines/tools/pack-bcs-archives.ps1
+      _ShippingDir: $(Agent.BuildDirectory)/s/aspnetcore/artifacts/packages/Release/Shipping
+      _StagingRoot: $(Build.ArtifactStagingDirectory)/bcs
     steps:
     - checkout: ${{ parameters.aspnetcoreRepoAlias }}
       path: s/aspnetcore

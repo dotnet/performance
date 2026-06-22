@@ -35,8 +35,11 @@
 # redistributed), so we do not extend 1ES.Official -- matching dotnet/runtime's
 # perf-build.
 #
-# ATOMICITY: continueOnError:false everywhere; any failure sinks the build to
-# Failed and the MissingBuildsTrigger Function skips indexing that SHA.
+# ATOMICITY: the build/pack/upload steps that produce or move artifacts run
+# continueOnError:false, so any failure sinks the build to Failed and the
+# MissingBuildsTrigger Function skips indexing that SHA. The only exceptions are
+# the always()-guarded best-effort log-publishing steps (continueOnError:true),
+# which must never themselves fail an otherwise-good build.
 #
 # BCS output layout:
 #   builds/aspnetcore/buildArtifacts/{sha}/{configKey}/buildInfo.json
