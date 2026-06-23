@@ -11,7 +11,7 @@
 # triggering commit alongside this repo (for the pack script), run aspnetcore's
 # own eng/build with lean perf args (PUBLIC feeds only -- no internal runtime
 # download), pack the per-RID runtime nupkgs into the BCS archive layout via the
-# moved eng/pipelines/tools/pack-bcs-archives.ps1, and publish one pipeline
+# moved eng/pipelines/tools/pack-bcs-archives-aspnetcore.ps1, and publish one pipeline
 # artifact per config.
 #
 # Job names (Windows_x64_build / Windows_x86_build / Windows_arm64_build /
@@ -68,7 +68,7 @@ jobs:
       demands: ImageOverride -equals windows.vs2026preview.scout.amd64
     variables:
       _AspNetCoreRoot: $(Agent.BuildDirectory)\s\aspnetcore
-      _PackScript: $(Agent.BuildDirectory)\s\performance\eng\pipelines\tools\pack-bcs-archives.ps1
+      _PackScript: $(Agent.BuildDirectory)\s\performance\eng\pipelines\tools\pack-bcs-archives-aspnetcore.ps1
       _ShippingDir: $(Agent.BuildDirectory)\s\aspnetcore\artifacts\packages\Release\Shipping
       _StagingRoot: $(Build.ArtifactStagingDirectory)\bcs
       MSBUILDUSESERVER: "1"
@@ -131,7 +131,7 @@ jobs:
       demands: ImageOverride -equals windows.vs2026preview.scout.amd64
     variables:
       _AspNetCoreRoot: $(Agent.BuildDirectory)\s\aspnetcore
-      _PackScript: $(Agent.BuildDirectory)\s\performance\eng\pipelines\tools\pack-bcs-archives.ps1
+      _PackScript: $(Agent.BuildDirectory)\s\performance\eng\pipelines\tools\pack-bcs-archives-aspnetcore.ps1
       _ShippingDir: $(Agent.BuildDirectory)\s\aspnetcore\artifacts\packages\Release\Shipping
       _StagingRoot: $(Build.ArtifactStagingDirectory)\bcs
       MSBUILDUSESERVER: "1"
@@ -195,7 +195,7 @@ jobs:
       demands: ImageOverride -equals windows.vs2026preview.scout.amd64
     variables:
       _AspNetCoreRoot: $(Agent.BuildDirectory)\s\aspnetcore
-      _PackScript: $(Agent.BuildDirectory)\s\performance\eng\pipelines\tools\pack-bcs-archives.ps1
+      _PackScript: $(Agent.BuildDirectory)\s\performance\eng\pipelines\tools\pack-bcs-archives-aspnetcore.ps1
       _ShippingDir: $(Agent.BuildDirectory)\s\aspnetcore\artifacts\packages\Release\Shipping
       _StagingRoot: $(Build.ArtifactStagingDirectory)\bcs
       MSBUILDUSESERVER: "1"
@@ -259,7 +259,7 @@ jobs:
       demands: ImageOverride -equals 1es-ubuntu-2204
     variables:
       _AspNetCoreRoot: $(Agent.BuildDirectory)/s/aspnetcore
-      _PackScript: $(Agent.BuildDirectory)/s/performance/eng/pipelines/tools/pack-bcs-archives.ps1
+      _PackScript: $(Agent.BuildDirectory)/s/performance/eng/pipelines/tools/pack-bcs-archives-aspnetcore.ps1
       _ShippingDir: $(Agent.BuildDirectory)/s/aspnetcore/artifacts/packages/Release/Shipping
       _StagingRoot: $(Build.ArtifactStagingDirectory)/bcs
     steps:
@@ -317,7 +317,7 @@ jobs:
       demands: ImageOverride -equals 1es-ubuntu-2204
     variables:
       _AspNetCoreRoot: $(Agent.BuildDirectory)/s/aspnetcore
-      _PackScript: $(Agent.BuildDirectory)/s/performance/eng/pipelines/tools/pack-bcs-archives.ps1
+      _PackScript: $(Agent.BuildDirectory)/s/performance/eng/pipelines/tools/pack-bcs-archives-aspnetcore.ps1
       _ShippingDir: $(Agent.BuildDirectory)/s/aspnetcore/artifacts/packages/Release/Shipping
       _StagingRoot: $(Build.ArtifactStagingDirectory)/bcs
     steps:

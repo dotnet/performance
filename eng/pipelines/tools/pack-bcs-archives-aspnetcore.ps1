@@ -44,12 +44,12 @@
 
 .EXAMPLE
     # In the pipeline (ShippingDir/StagingRoot resolved from BUILD_* env vars):
-    ./pack-bcs-archives.ps1 -Rids win-x64,win-x86,win-arm64 -Format zip
+    ./pack-bcs-archives-aspnetcore.ps1 -Rids win-x64,win-x86,win-arm64 -Format zip
 
 .EXAMPLE
     # Local run -- the BUILD_* env vars are not set off-agent, so pass the
     # directories explicitly:
-    ./pack-bcs-archives.ps1 -Rids linux-x64 -Format targz `
+    ./pack-bcs-archives-aspnetcore.ps1 -Rids linux-x64 -Format targz `
         -ShippingDir ./artifacts/packages/Release/Shipping `
         -StagingRoot ./artifacts/bcs
 #>
