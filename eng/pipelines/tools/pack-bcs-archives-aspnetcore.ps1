@@ -113,21 +113,21 @@ foreach ($rid in $Rids) {
     Write-Host "=== Packing $configKey (rid=$rid, format=$Format) ==="
 
     $pattern = "Microsoft.AspNetCore.App.Runtime.$rid.*.nupkg"
-    $matches = @(Get-ChildItem -Path $ShippingDir -Filter $pattern -File -ErrorAction SilentlyContinue |
+    $nupkgMatches = @(Get-ChildItem -Path $ShippingDir -Filter $pattern -File -ErrorAction SilentlyContinue |
         Where-Object { $_.Name -notmatch '\.symbols\.nupkg$' } |
         Sort-Object Name)
-    if ($matches.Count -eq 0) {
+    if ($nupkgMatches.Count -eq 0) {
         throw "Could not find runtime pack nupkg matching '$pattern' under '$ShippingDir'."
     }
-    if ($matches.Count -gt 1) {
+    if ($nupkgMatches.Count -gt 1) {
         # A clean from-source build produces exactly one non-symbols runtime pack
         # per RID. More than one means a stale/duplicate version is lingering in
         # the Shipping dir; pick-first would silently pack the lexicographically
         # smallest (likely wrong) version, so fail loudly instead.
-        $names = ($matches | ForEach-Object { $_.Name }) -join ', '
-        throw "Expected exactly one runtime pack nupkg matching '$pattern' under '$ShippingDir', found $($matches.Count): $names."
+        $names = ($nupkgMatches | ForEach-Object { $_.Name }) -join ', '
+        throw "Expected exactly one runtime pack nupkg matching '$pattern' under '$ShippingDir', found $($nupkgMatches.Count): $names."
     }
-    $nupkg = $matches[0]
+    $nupkg = $nupkgMatches[0]
     Write-Host "Found nupkg: $($nupkg.FullName)"
 
     # microsoft.aspnetcore.app.runtime.{rid}/Release/  <-- archive root (lowercase!)
