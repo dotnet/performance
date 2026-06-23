@@ -141,9 +141,16 @@ stages:
         - ${{ if eq(parameters.aspnetcore_x86_windows, true) }}:
           - aspnetcore_x86_windows
 
+# Build checks out the internal-only aspnetcore resource on the internal DncEng
+# pool, so it cannot succeed outside the internal project. Gate it with the same
+# internal + (ResourceTrigger | Manual) expression as the sibling stages. This is
+# a runtime `condition:` (not the `${{ if }}` the siblings use) so the stage is
+# present-but-skipped in public/non-trigger contexts -- if all three stages were
+# `${{ if }}`-removed the pipeline would compile to zero stages, which is invalid.
 - stage: Build
   displayName: Build
   dependsOn: []
+  condition: and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'ResourceTrigger'), eq(variables['Build.Reason'], 'Manual')))
   jobs:
   - template: /eng/pipelines/aspnetcore-perf-build-jobs.yml
     parameters:

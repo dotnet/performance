@@ -62,9 +62,12 @@ param(
     [ValidateSet('zip', 'targz')]
     [string]$Format,
 
-    [string]$ShippingDir = (Join-Path $env:BUILD_SOURCESDIRECTORY 'artifacts/packages/Release/Shipping'),
+    # Default to the BUILD_* agent paths in the pipeline; fall back to the current
+    # directory off-agent (those env vars are unset locally, and Join-Path $null
+    # throws during parameter binding), keeping the documented local-override flow.
+    [string]$ShippingDir = (Join-Path ($env:BUILD_SOURCESDIRECTORY ? $env:BUILD_SOURCESDIRECTORY : (Get-Location).Path) 'artifacts/packages/Release/Shipping'),
 
-    [string]$StagingRoot = (Join-Path $env:BUILD_ARTIFACTSTAGINGDIRECTORY 'bcs')
+    [string]$StagingRoot = (Join-Path ($env:BUILD_ARTIFACTSTAGINGDIRECTORY ? $env:BUILD_ARTIFACTSTAGINGDIRECTORY : (Get-Location).Path) 'bcs')
 )
 
 $ErrorActionPreference = 'Stop'
