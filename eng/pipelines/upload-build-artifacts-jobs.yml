@@ -11,8 +11,9 @@ parameters:
   # repo commit ($(Build.SourceVersion)) for back-compat with the runtime
   # perf-build pipeline. Resource-built tenants (e.g. aspnetcore, whose source
   # is a repository resource rather than self) pass the resource's commit, e.g.
-  # sha: $(resources.repositories.aspnetcore.version). Runtime config branches
-  # below omit sha and inherit the leaf template's $(Build.SourceVersion) default.
+  # sha: $(resources.repositories.aspnetcore.version). All config branches below
+  # pass sha through explicitly; with no caller override it resolves to this
+  # $(Build.SourceVersion) default, so runtime behavior is unchanged.
   sha: '$(Build.SourceVersion)'
   
 jobs:
