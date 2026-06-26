@@ -443,6 +443,12 @@ def get_bdn_arguments(
             "--wasmProcessTimeout", "20",
         ]
 
+        # The runtime now uses the standardized exnref WASM exception-handling proposal,
+        # which V8 keeps behind --experimental-wasm-exnref. Pass it through to the engine
+        # via BDN's --wasmArgs (the escaped quotes keep it a single token on the Helix shell).
+        if javascript_engine == "v8":
+            bdn_arguments += ["\\\"--wasmArgs=--experimental-wasm-exnref\\\""]
+
         if is_aot:
             bdn_arguments += [
                 "--aotcompilermode", "wasm",
@@ -459,6 +465,12 @@ def get_bdn_arguments(
             "--buildTimeout", "1200",
             "--wasmProcessTimeout", "20"
         ]
+
+        # The runtime now uses the standardized exnref WASM exception-handling proposal,
+        # which V8 keeps behind --experimental-wasm-exnref. Pass it through to the engine
+        # via BDN's --wasmArgs (the escaped quotes keep it a single token on the Helix shell).
+        if javascript_engine == "v8":
+            bdn_arguments += ["\\\"--wasmArgs=--experimental-wasm-exnref\\\""]
 
     if runtime_type == "coreclr_r2r_interpreter":
         if os_group == "windows":
