@@ -74,7 +74,7 @@ public class RawProcessHelper : IProcessHelper
         if (!Util.IsWindows() && RootAccess)
         {
             psi.FileName = "sudo";
-            psi.Arguments = Executable + " " + Arguments;
+            psi.Arguments = "-- " + Executable + " " + Arguments;
         }
         else
         {
@@ -191,7 +191,7 @@ public class ManagedProcessHelper : IProcessHelper
         if (!Util.IsWindows() && RootAccess)
         {
             psi.FileName = "sudo";
-            psi.Arguments = Executable + " " + Arguments;
+            psi.Arguments = "-- " + Executable + " " + Arguments;
         }
         else
         {

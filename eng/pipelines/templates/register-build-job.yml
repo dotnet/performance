@@ -1,6 +1,12 @@
 parameters:
   buildType: ''
   buildId: ''
+  # repoName is forwarded into the BCS blob path
+  # (builds/{repoName}/buildArtifacts/...). Defaults to 'runtime' for
+  # back-compat with the existing dotnet/runtime perf-build pipeline;
+  # callers from other tenants (e.g. dotnet/aspnetcore) pass repoName
+  # explicitly.
+  repoName: 'runtime'
 
 jobs:
   - job: RegisterBuild_${{ parameters.buildType }}
@@ -14,4 +20,4 @@ jobs:
         scriptType: 'pscore'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          az storage blob upload --auth-mode login --account-name pvscmdupload --container-name builds --data '{"buildId":"${{ parameters.buildId }}"}' --name "buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/buildInfo.json" --overwrite true
+          az storage blob upload --auth-mode login --account-name pvscmdupload --container-name '$web' --data '{"buildId":"${{ parameters.buildId }}"}' --name "builds/${{ parameters.repoName }}/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/buildInfo.json" --overwrite true

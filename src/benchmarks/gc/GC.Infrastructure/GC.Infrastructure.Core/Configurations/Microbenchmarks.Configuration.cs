@@ -6,25 +6,29 @@ namespace GC.Infrastructure.Core.Configurations.Microbenchmarks
     public sealed class MicrobenchmarkConfiguration : ConfigurationBase
     {
         public string microbenchmarks_path { get; set; }
-        public Dictionary<string, Run> Runs { get; set; }
+        public Dictionary<string, CoreRunInfo> Runs { get; set; }
         public MicrobenchmarkConfigurations MicrobenchmarkConfigurations { get; set; }
         public Environment Environment { get; set; }
         public Output Output { get; set; }
         public string? Path { get; set; }
     }
 
-    public sealed class Run : RunBase
+    public sealed class CoreRunInfo : CoreRunInfoBase
     {
         public string? DotnetInstaller { get; set; }
         public string? Name { get; set; }
-        public string? corerun { get; set; }
-        public bool is_baseline { get; set; }
     }
 
     public class Environment
     {
         public uint default_max_seconds { get; set; } = 300;
-        public uint iteration { get; set; } = 1;
+        public uint iterations { get; set; } = 1;
+
+        [YamlMember(Alias = "iteration")]
+        public uint iteration
+        {
+            set => iterations = value;
+        }
     }
 
     public sealed class MicrobenchmarkConfigurations
@@ -62,6 +66,16 @@ namespace GC.Infrastructure.Core.Configurations.Microbenchmarks
             if (configuration == null)
             {
                 throw new ArgumentNullException($"{nameof(MicrobenchmarkConfigurationParser)}: {nameof(configuration)} is null. Check the syntax of the configuration.");
+            }
+
+            if (configuration.Runs == null)
+            {
+                // If Runs is null, we initialize it to an empty dictionary to avoid null reference exceptions later on.
+                configuration.Runs = new();
+            }
+            foreach (var runKVP in configuration.Runs)
+            {
+                runKVP.Value.Name ??= runKVP.Key;
             }
 
             // Microbenchmark Configurations.

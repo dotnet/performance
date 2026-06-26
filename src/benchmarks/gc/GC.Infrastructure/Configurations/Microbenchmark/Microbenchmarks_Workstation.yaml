@@ -3,7 +3,7 @@ runs:
   baseline:
     dotnet_installer: 
     name: baseline
-    corerun: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
+    path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     is_baseline: true
     environment_variables:
       DOTNET_GCName: clrgc.dll
@@ -11,7 +11,7 @@ runs:
   run:
     dotnet_installer: 
     name: run
-    corerun: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
+    path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     is_baseline: false
     environment_variables:
       DOTNET_GCName: clrgc.dll
@@ -23,7 +23,7 @@ microbenchmark_configurations:
   bdn_arguments: --warmupCount 1 --iterationCount 20 --allStats --outliers DontRemove --keepFiles
 environment:
   default_max_seconds: 3000
-  iteration: 1
+  iterations: 1
 output:
   cpu_columns: 
   additional_report_metrics: 

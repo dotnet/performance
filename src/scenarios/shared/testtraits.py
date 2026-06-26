@@ -10,7 +10,8 @@ testtypes = [const.STARTUP,
              const.SOD,
              const.INNERLOOP,
              const.DEVICESTARTUP,
-             const.BUILDTIME]
+             const.BUILDTIME,
+             const.ANDROIDINNERLOOP]
 
 class TestTraits:
 

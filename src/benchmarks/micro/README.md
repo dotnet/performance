@@ -12,7 +12,7 @@ To learn more about designing benchmarks, please read [Microbenchmark Design Gui
 
 ## Quick Start
 
-The first thing that you need to choose is the Target Framework. Available options are: `netcoreapp3.1|net6.0|net7.0|net8.0|net9.0|net10.0|net11.0|net472`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `net11.0` as the target framework.
+The first thing that you need to choose is the Target Framework. Available options are: `net8.0|net9.0|net10.0|net11.0`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `net11.0` as the target framework.
 
 The following commands are run from the `src/benchmarks/micro` directory.
 
@@ -52,7 +52,7 @@ If you contribute to [dotnet/runtime](https://github.com/dotnet/runtime) and wan
 
 ```cmd
 dotnet run -c Release -f net11.0 --filter $YourFilter \
-    --corerun C:\git\runtime\artifacts\bin\testhost\net10.0-windows-Release-x64\shared\Microsoft.NETCore.App\9.0.0\CoreRun.exe
+    --coreRun C:\git\runtime\artifacts\bin\testhost\net11.0-windows-Release-x64\shared\Microsoft.NETCore.App\11.0.0\CoreRun.exe
 ```
 
 To make sure that your changes don't introduce any regressions, you can provide paths to CoreRuns with and without your changes and use the Statistical Test feature to detect regressions/improvements ([read more](../../../docs/benchmarkdotnet.md#Regressions)):
@@ -62,8 +62,8 @@ dotnet run -c Release -f net11.0 \
     --filter BenchmarksGame* \
     --statisticalTest 3ms \
     --coreRun \
-        "C:\git\runtime_upstream\artifacts\bin\testhost\net10.0-windows-Release-x64\shared\Microsoft.NETCore.App\9.0.0\CoreRun.exe" \
-        "C:\git\runtime_fork\artifacts\bin\testhost\net10.0-windows-Release-x64\shared\Microsoft.NETCore.App\9.0.0\CoreRun.exe"
+        "C:\git\runtime_upstream\artifacts\bin\testhost\net11.0-windows-Release-x64\shared\Microsoft.NETCore.App\11.0.0\CoreRun.exe" \
+        "C:\git\runtime_fork\artifacts\bin\testhost\net11.0-windows-Release-x64\shared\Microsoft.NETCore.App\11.0.0\CoreRun.exe"
 ```
 
 If you **prefer to use dotnet cli** instead of CoreRun, you need to pass the path to cli via the `--cli` argument.

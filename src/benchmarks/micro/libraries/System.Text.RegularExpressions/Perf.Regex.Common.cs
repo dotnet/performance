@@ -10,7 +10,7 @@ namespace System.Text.RegularExpressions.Tests
     /// <summary>
     /// Performance tests for Regular Expressions
     /// </summary>
-    [BenchmarkCategory(Categories.Libraries, Categories.Regex)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Regex, Categories.NoAOT)]
     public class Perf_Regex_Common
     {
         private Regex _email, _date, _ip, _uri;

@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Regression Report - linux-wasm-tiger
 
 ## 1. 4020e05efd - Clean up in Number.Formatting.cs (#110955)

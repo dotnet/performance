@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Microsoft.Extensions.Configuration.Xml
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class XmlConfigurationProviderBenchmarks
     {
         private MemoryStream _memoryStream;

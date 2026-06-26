@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.MDBenchI
 {
-[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.MDBenchI)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.MDBenchI, Categories.NoWasmCoreCLR)]
 public class MDMulMatrix
 {
     public const int Iterations = 100;

@@ -48,6 +48,7 @@ namespace System.Collections
         public void Array_ComparerClass() => System.Array.Sort(_arrays[_iterationIndex++], 0, Size, _comparableComparerClass);
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWasmCoreCLR)]
         public void Array_ComparerStruct() => System.Array.Sort(_arrays[_iterationIndex++], 0, Size, new ComparableComparerStruct());
 
         [Benchmark]

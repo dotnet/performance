@@ -4,6 +4,7 @@ import shutil
 import xml.etree.ElementTree as ET
 import re
 import urllib.request
+from typing import List, Optional
 from performance.common import get_repo_root_path
 from shared.precommands import PreCommands
 from logging import getLogger
@@ -187,18 +188,60 @@ def download_maui_nuget_config(target_framework: str = "net11.0", output_filenam
         getLogger().error(f"Failed to download MAUI NuGet.config: {e}")
         raise
 
+def _get_repo_nuget_config_url(repo: str, target_framework: str) -> str:
+    '''
+    Get the raw GitHub URL for a repo's NuGet.config based on its branch naming convention.
+    
+    - dotnet/maui and dotnet/macios use net{X}.0 branches (e.g., net11.0)
+    - dotnet/android uses 'main' branch always
+    '''
+    if repo == "dotnet/android":
+        branch = "main"
+    else:
+        # dotnet/maui and dotnet/macios use net{X}.0 branches
+        if '-' in target_framework:
+            branch = target_framework.split('-')[0]
+        else:
+            branch = target_framework
+    
+    return f'https://raw.githubusercontent.com/{repo}/{branch}/NuGet.config'
+
+def download_repo_nuget_config(repo: str, target_framework: str, output_filename: str) -> Optional[str]:
+    '''
+    Download a repo's NuGet.config from GitHub. Returns the absolute path on success, None on failure.
+    '''
+    url = _get_repo_nuget_config_url(repo, target_framework)
+    getLogger().info(f"Downloading NuGet.config from {url}")
+    
+    try:
+        with urllib.request.urlopen(url) as response:
+            content = response.read()
+        with open(output_filename, "wb") as f:
+            f.write(content)
+        getLogger().info(f"Successfully downloaded {repo} NuGet.config to {output_filename}")
+        return os.path.abspath(output_filename)
+    except Exception as e:
+        getLogger().warning(f"Failed to download {repo} NuGet.config from {url}: {e}")
+        if os.path.exists(output_filename):
+            os.remove(output_filename)
+        return None
+
 class MauiNuGetConfigContext:
     '''
-    Context manager that temporarily merges MAUI's package sources into the repo's NuGet.config.
+    Context manager that temporarily merges package sources from dotnet/maui, dotnet/android,
+    and dotnet/macios into the repo's NuGet.config.
     This is necessary because dotnet new doesn't support --configfile parameter.
     Finds NuGet.config relative to current working directory to support both local and CorrelationStaging scenarios.
     '''
+    # Repos whose NuGet.configs are merged into the repo config
+    UPSTREAM_REPOS = ["dotnet/maui", "dotnet/android", "dotnet/macios"]
+
     def __init__(self, target_framework: str):
         self.target_framework = target_framework
         # Find NuGet.config by walking up from current directory
         self.repo_nuget_config = self._find_repo_nuget_config()
         self.backup_path = self.repo_nuget_config + ".maui_backup"
-        self.maui_config_path = None
+        self.downloaded_config_paths: list[str] = []
     
     def _find_repo_nuget_config(self) -> str:
         '''
@@ -221,65 +264,107 @@ class MauiNuGetConfigContext:
         fallback_path = os.path.join(get_repo_root_path(), "NuGet.config")
         getLogger().warning(f"Could not find NuGet.config by walking up, using fallback: {fallback_path}")
         return fallback_path
-        
-    def __enter__(self):
-        getLogger().info("Setting up MAUI NuGet.config merge...")
-        
-        # Download MAUI's NuGet.config to a temporary location in the same directory as repo NuGet.config
-        temp_maui_config = os.path.join(os.path.dirname(self.repo_nuget_config), "MauiNuGet.config")
-        self.maui_config_path = download_maui_nuget_config(self.target_framework, temp_maui_config)
-        
-        # Backup the repo's NuGet.config
-        shutil.copy2(self.repo_nuget_config, self.backup_path)
-        getLogger().info(f"Backed up repo NuGet.config to {self.backup_path}")
-        
-        # Parse both configs
-        repo_tree = ET.parse(self.repo_nuget_config)
-        repo_root = repo_tree.getroot()
-        maui_tree = ET.parse(self.maui_config_path)
-        maui_root = maui_tree.getroot()
-        
-        # Get package sources from both
-        repo_sources = repo_root.find(".//packageSources")
-        maui_sources = maui_root.find(".//packageSources")
-        
-        if repo_sources is None or maui_sources is None:
-            getLogger().error("Could not find packageSources in NuGet.config files")
-            raise ValueError("Invalid NuGet.config structure")
-        
-        # Get existing source keys to avoid duplicates
-        existing_keys = {add_elem.get("key") for add_elem in repo_sources.findall("add") if add_elem.get("key")}
-        
-        # Add MAUI sources that don't exist in repo config
-        # Filter out placeholder sources that MAUI uses for their build system
-        placeholder_patterns = ["PLACEHOLDER", "local", "nuget-only"]
-        added_count = 0
-        for add_elem in maui_sources.findall("add"):
+
+    @staticmethod
+    def _merge_sources_from_config(config_path: str, repo_sources: ET.Element, existing_keys: set[str], repo_name: str) -> int:
+        '''
+        Merge package sources from a downloaded NuGet.config into the repo's packageSources element.
+        Returns the number of sources added.
+        '''
+        try:
+            tree = ET.parse(config_path)
+        except ET.ParseError as e:
+            getLogger().warning(f"Failed to parse {repo_name} NuGet.config at {config_path}: {e}")
+            return 0
+
+        sources = tree.getroot().find(".//packageSources")
+        if sources is None:
+            getLogger().warning(f"No <packageSources> found in {repo_name} NuGet.config")
+            return 0
+
+        placeholder_patterns = ["PLACEHOLDER", "local", "nuget-only", "local-tests-feed"]
+        allowed_url_prefixes = ["https://pkgs.dev.azure.com"]
+        added = 0
+        for add_elem in sources.findall("add"):
             key = add_elem.get("key")
             value = add_elem.get("value")
-            
-            # Skip if key already exists in repo config
+
             if not key or key in existing_keys:
                 continue
-            
-            # Skip placeholder sources (local, nuget-only, or any with PLACEHOLDER in value)
+
             if any(pattern.lower() in key.lower() for pattern in placeholder_patterns):
-                getLogger().debug(f"Skipping placeholder source: {key}")
+                getLogger().debug(f"Skipping placeholder source from {repo_name}: {key}")
                 continue
             if value and "PLACEHOLDER" in value:
-                getLogger().debug(f"Skipping placeholder source with placeholder value: {key}")
+                getLogger().debug(f"Skipping placeholder value source from {repo_name}: {key}")
                 continue
-            
-            # Add valid source
+            if not value or not any(value.startswith(prefix) for prefix in allowed_url_prefixes):
+                getLogger().warning(f"Skipping non-allowlisted source from {repo_name}: {key} = {value}")
+                continue
+
             repo_sources.append(add_elem)
-            added_count += 1
-            getLogger().debug(f"Added package source: {key}")
+            existing_keys.add(key)
+            added += 1
+            getLogger().debug(f"Added package source from {repo_name}: {key}")
+
+        return added
+
+    def __enter__(self):
+        getLogger().info("Setting up NuGet.config merge (maui, android, macios)...")
         
-        getLogger().info(f"Added {added_count} package sources from MAUI NuGet.config")
-        
-        # Write the merged config back
-        repo_tree.write(self.repo_nuget_config, encoding="utf-8", xml_declaration=True)
-        getLogger().info("Merged MAUI package sources into repo NuGet.config")
+        config_dir = os.path.dirname(self.repo_nuget_config)
+
+        try:
+            # Download NuGet.configs from all upstream repos
+            for repo in self.UPSTREAM_REPOS:
+                safe_name = repo.replace("/", "-")
+                output_path = os.path.join(config_dir, f"{safe_name}-NuGet.config")
+                result = download_repo_nuget_config(repo, self.target_framework, output_path)
+                if result:
+                    self.downloaded_config_paths.append(result)
+
+            if not self.downloaded_config_paths:
+                raise RuntimeError("Failed to download NuGet.config from any upstream repo")
+
+            # Backup the repo's NuGet.config
+            shutil.copy2(self.repo_nuget_config, self.backup_path)
+            getLogger().info(f"Backed up repo NuGet.config to {self.backup_path}")
+            
+            # Parse repo config
+            repo_tree = ET.parse(self.repo_nuget_config)
+            repo_root = repo_tree.getroot()
+            repo_sources = repo_root.find(".//packageSources")
+            
+            if repo_sources is None:
+                raise ValueError("No <packageSources> found in repo NuGet.config")
+            
+            existing_keys = {add_elem.get("key") for add_elem in repo_sources.findall("add") if add_elem.get("key")}
+            
+            # Merge sources from each downloaded config
+            total_added = 0
+            for config_path in self.downloaded_config_paths:
+                repo_name = os.path.basename(config_path).replace("-NuGet.config", "")
+                added = self._merge_sources_from_config(config_path, repo_sources, existing_keys, repo_name)
+                getLogger().info(f"Added {added} package sources from {repo_name}")
+                total_added += added
+            
+            getLogger().info(f"Total added {total_added} package sources from upstream repos")
+            
+            # Write the merged config back
+            repo_tree.write(self.repo_nuget_config, encoding="utf-8", xml_declaration=True)
+            getLogger().info("Merged upstream package sources into repo NuGet.config")
+        except Exception:
+            # Clean up downloaded files if __enter__ fails
+            for config_path in self.downloaded_config_paths:
+                if os.path.exists(config_path):
+                    try:
+                        os.remove(config_path)
+                    except OSError:
+                        pass
+            # Restore backup if it was created
+            if os.path.exists(self.backup_path):
+                shutil.move(self.backup_path, self.repo_nuget_config)
+            raise
         
         return self
         
@@ -291,38 +376,62 @@ class MauiNuGetConfigContext:
             shutil.move(self.backup_path, self.repo_nuget_config)
             getLogger().info("Restored original NuGet.config")
         
-        # Clean up the downloaded MAUI config
-        if self.maui_config_path and os.path.exists(self.maui_config_path):
-            os.remove(self.maui_config_path)
-            getLogger().debug("Cleaned up temporary MAUI NuGet.config")
+        # Clean up all downloaded config files
+        for config_path in self.downloaded_config_paths:
+            if os.path.exists(config_path):
+                try:
+                    os.remove(config_path)
+                    getLogger().debug(f"Cleaned up temporary config: {config_path}")
+                except OSError as e:
+                    getLogger().warning(f"Failed to remove temporary config {config_path}: {e}")
         
         return False  # Don't suppress exceptions
 
 def install_latest_maui(
         precommands: PreCommands, 
-        feed=extract_latest_dotnet_feed_from_nuget_config(path=os.path.join(get_repo_root_path(), "NuGet.config"))
+        feed: Optional[str] = None,
+        workloads: Optional[List[str]] = None,
+        workload_name: str = 'maui'
         ):
     '''
-        Install the latest maui workload using the provided feed. 
-        This function will create a rollback file and install the maui workload using that file.
+    Install the latest MAUI workload using the provided feed.
+    Creates a rollback file and installs the workload using that file.
+
+    Args:
+        precommands: PreCommands instance for running dotnet commands.
+        feed: NuGet feed URL to resolve workload packages from.
+              If None, resolves from NuGet.config at call time.
+        workloads: NuGet SDK package names to resolve (e.g.,
+                   ["microsoft.net.sdk.android"]).
+                   If None, defaults to the full set of 6 MAUI workloads.
+        workload_name: The dotnet CLI workload name to install
+                       (e.g., 'maui', 'maui-android').
     '''
 
-    getLogger().info("########## Installing latest MAUI workload ##########")
+    getLogger().info(f"########## Installing latest {workload_name} workload ##########")
 
     if precommands.has_workload:
-        getLogger().info("Skipping maui installation due to --has-workload=true")
+        getLogger().info(f"Skipping {workload_name} installation due to --has-workload=true")
         return
 
-    maui_rollback_dict: dict[str, str] = {
-        "microsoft.net.sdk.android" : "",
-        "microsoft.net.sdk.ios" : "",
-        "microsoft.net.sdk.maccatalyst" : "",
-        "microsoft.net.sdk.macos" : "",
-        "microsoft.net.sdk.maui" : "",
-        "microsoft.net.sdk.tvos" : ""
-    }
+    if feed is None:
+        feed = extract_latest_dotnet_feed_from_nuget_config(
+            path=os.path.join(get_repo_root_path(), "NuGet.config")
+        )
 
-    getLogger().info(f"Installing the latest maui workload from feed {feed}")
+    if workloads is None:
+        workloads = [
+            "microsoft.net.sdk.android",
+            "microsoft.net.sdk.ios",
+            "microsoft.net.sdk.maccatalyst",
+            "microsoft.net.sdk.macos",
+            "microsoft.net.sdk.maui",
+            "microsoft.net.sdk.tvos",
+        ]
+
+    maui_rollback_dict = {name: "" for name in workloads}
+
+    getLogger().info(f"Installing the latest {workload_name} workload from feed {feed}")
 
     # Get the latest published version of the maui workloads
     for workload in maui_rollback_dict.keys():
@@ -365,10 +474,10 @@ def install_latest_maui(
                     getLogger().debug(f"Extracted .NET version '{dotnet_version}' from SDK version '{sdk_version}'")
                 else:
                     getLogger().error(f"Unable to find .NET version in SDK version '{sdk_version}' for package {package['id']}")
-                    raise Exception("Unable to find .NET version in SDK version")
+                    raise Exception(f"Unable to find .NET version in SDK version '{sdk_version}' for package {package['id']}")
             else:
                 getLogger().error(f"Unable to find .NET SDK version in package ID: {package['id']}")
-                raise Exception("Unable to find .NET SDK version in package ID")
+                raise Exception(f"Unable to find .NET SDK version in package ID: {package['id']}")
             
         # Filter out packages that have lower 'dotnet_version' than the rest of the packages
         # Sometimes feed can contain packages from previous release versions, so we need to filter them out
@@ -426,6 +535,6 @@ def install_latest_maui(
     getLogger().info("Created rollback_maui.json file")
 
     # Install the workload using the rollback file
-    getLogger().info("Installing maui workload with rollback file")
-    precommands.install_workload('maui', ['--from-rollback-file', 'rollback_maui.json'])
-    getLogger().info("########## Finished installing latest MAUI workload ##########")
+    getLogger().info(f"Installing {workload_name} workload with rollback file")
+    precommands.install_workload(workload_name, ['--from-rollback-file', 'rollback_maui.json'])
+    getLogger().info(f"########## Finished installing latest {workload_name} workload ##########")

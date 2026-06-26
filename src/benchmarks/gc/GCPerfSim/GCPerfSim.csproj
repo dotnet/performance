@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <!-- For a desktop build, you could add e.g. `net472;` here. -->
-    <TargetFrameworks>net7.0</TargetFrameworks>
+    <TargetFrameworks>net10.0</TargetFrameworks>
     <LangVersion>8.0</LangVersion>
     <RootNamespace>gcperfsim_core</RootNamespace>
   </PropertyGroup>

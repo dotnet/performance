@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Improvement Report - linux-wasmaot-viper
 
 ## >50% Improvement (101 tests)

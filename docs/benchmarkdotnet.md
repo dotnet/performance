@@ -61,7 +61,9 @@ In order to build or run the benchmarks you will need the **.NET Core command-li
 
 ### Using .NET Cli
 
-To build the benchmarks you need to have the right `dotnet cli`. This repository allows you to benchmark .NET Core 3.1, .NET 6.0, .NET 7.0, and .NET 8.0 so you need to install all of them.
+To build the benchmarks you need the appropriate `dotnet` SDKs for the target frameworks you plan to run. By default, the microbenchmarks target current supported TFMs (`net8.0`, `net9.0`, and newer TFMs when your installed SDK supports them).
+
+In practice, local runs need the SDK for the runtime you want to test **and** the SDK version required by the repo's `global.json` file (or a newer SDK that satisfies that requirement). If you want to drive the repo with a different SDK locally, an alternative is to update `global.json` to the SDK version you want to use for the test run.
 
 All you need to do is run the following command:
 
@@ -69,14 +71,14 @@ All you need to do is run the following command:
 dotnet build -c Release
 ```
 
-If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file.
+If you only want to build or run the benchmarks for selected runtime(s), set `PERFLAB_TARGET_FRAMEWORKS` to the TFM or semicolon-delimited TFM list you want to use.
 
-```diff
--<TargetFrameworks>netcoreapp3.1;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
-+<TargetFrameworks>net9.0</TargetFrameworks>
+```powershell
+$env:PERFLAB_TARGET_FRAMEWORKS = "net9.0"
+dotnet build -c Release
 ```
 
-The alternative is to set `PERFLAB_TARGET_FRAMEWORKS` environment variable to selected Target Framework Moniker.
+For the common `dotnet run -c Release -f <tfm>` flow, the selected `-f` value is picked up automatically, so you don't need to set the environment variable just to run one target framework interactively.
 
 ### Using Python script
 
@@ -287,7 +289,7 @@ M00_L00:
 
 The `--runtimes` or just `-r` allows you to run the benchmarks for **multiple Runtimes**.
 
-Available options are: Mono, wasmnet70, CoreRT, net462, net47, net471, net472, netcoreapp3.1, net6.0, net7.0, net8.0, and net9.0.
+Available options are: Mono, wasmnet70, CoreRT, netcoreapp3.1, net6.0, net7.0, net8.0, and net9.0.
 
 Example: run the benchmarks for .NET 7.0 and 8.0:
 
@@ -358,18 +360,6 @@ dotnet run -c Release -f net9.0 --cli "C:\Projects\performance\.dotnet\dotnet.ex
 ```
 
 This is very useful when you want to compare different builds of .NET.
-
-### Private CLR Build
-
-It's possible to benchmark a private build of .NET Runtime. You just need to pass the value of `COMPLUS_Version` to BenchmarkDotNet. You can do that by either using `--clrVersion $theVersion` as an argument or `Job.ShortRun.With(new ClrRuntime(version: "$theVersion"))` in the code.
-
-So if you made a change in CLR and want to measure the difference, you can run the benchmarks with:
-
-```cmd
-dotnet run -c Release -f net48 -- --clrVersion $theVersion
-```
-
-More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
 
 ### Private CoreRT Build
 

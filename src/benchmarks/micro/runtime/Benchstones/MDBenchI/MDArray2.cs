@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.MDBenchI
 {
-[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.MDBenchI)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.MDBenchI, Categories.NoWasmCoreCLR)]
 public class MDArray2
 {
     public const int Iterations = 500000;

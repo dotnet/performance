@@ -13,12 +13,6 @@ namespace GC.Infrastructure.Core.Configurations
         public static ISerializer Serializer => _serializer.Value;
     }
 
-    public class CoreRunInfo
-    {
-        public string Path { get; set; }
-        public Dictionary<string, string> environment_variables { get; set; }
-    }
-
     public static class ConfigurationChecker
     {
         public static void VerifyFile(string configurationPath, string prefix)

@@ -326,5 +326,19 @@ namespace System.Collections
             }
             return immutableQueue.Clear();
         }
+
+#if NET9_0_OR_GREATER
+        [Benchmark]
+        public OrderedDictionary<T, T> OrderedDictionary()
+        {
+            OrderedDictionary<T, T> orderedDictionary = new OrderedDictionary<T, T>();
+            foreach (T value in _uniqueValues)
+            {
+                orderedDictionary.Add(value, value);
+            }
+            orderedDictionary.Clear();
+            return orderedDictionary;
+        }
+#endif
     }
 }

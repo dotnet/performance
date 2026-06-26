@@ -2,16 +2,18 @@
 {
     public sealed class InputConfiguration
     {
-        public string output_path { get; set; }
-        public string gcperfsim_path { get; set; }
-        public string microbenchmark_path { get; set; }
-        public Dictionary<string, CoreRunInfo> coreruns { get; set; }
-        public Dictionary<string, CoreRunInfo>? linux_coreruns { get; set; }
+        public required string output_path { get; set; }
+        public required string gcperfsim_path { get; set; }
+        public required string microbenchmark_path { get; set; }
+        public required Dictionary<string, CoreRunInfoBase> coreruns { get; set; }
+        public Dictionary<string, CoreRunInfoBase>? linux_coreruns { get; set; }
         public Dictionary<string, string>? environment_variables { get; set; }
         public string trace_configuration_type { get; set; } = "gc";
         // TODO: Add this feature.
         // public Dictionary<string, string>? clrgcs   { get; set; }
         // public string? debug_parameters             { get; set; }
+
+        public Dictionary<string, uint>? iterations { get; set; }
 
         public Dictionary<string, string>? symbol_path { get; set; }
         public Dictionary<string, string>? source_path { get; set; }

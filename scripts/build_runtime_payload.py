@@ -19,7 +19,9 @@ __all__ = [
     "build_coreroot_payload_simple",
     "build_mono_payload",
     "build_monoaot_payload",
+    "build_r2r_interpreter_payload",
     "build_wasm_payload",
+    "build_wasm_coreclr_payload",
 ]
 
 
@@ -299,27 +301,15 @@ def build_monoaot_payload(
     
 def build_wasm_payload(
     browser_wasm_archive_or_dir: str,
-    payload_parent_dir: str,  # wasm creates three payload directories
-    test_main_js_path: Optional[str] = None,
-    runtime_repo_dir: Optional[str] = None,
+    payload_parent_dir: str,  # wasm creates two payload directories
 ) -> None:
-    """Create the WASM payload directories (dotnet, built-nugets, wasm-data).
+    """Create the WASM payload directories (dotnet, built-nugets).
 
     The archive/directory layout is expected to contain a `staging/` folder with
-    `dotnet-latest` and `built-nugets` subfolders. We also copy the harness
-    `test-main.js` into `wasm-data/`.
+    `dotnet-latest` and `built-nugets` subfolders.
     """
-    if test_main_js_path is None:
-        if runtime_repo_dir is None:
-            raise Exception("Please provide a path to the test-main.js or runtime repository")
-        test_main_js_path = os.path.join(runtime_repo_dir, "src", "mono", "browser", "test-main.js")
-
-    if not os.path.exists(test_main_js_path):
-        raise Exception(f"test-main.js not found in expected location: {test_main_js_path}")
-
     wasm_dotnet_dir = os.path.join(payload_parent_dir, "dotnet")
     wasm_built_nugets_dir = os.path.join(payload_parent_dir, "built-nugets")
-    wasm_data_dir = os.path.join(payload_parent_dir, "wasm-data")
 
     extract_archive_or_copy(
         browser_wasm_archive_or_dir, wasm_dotnet_dir, prefix="staging/dotnet-latest/"
@@ -329,7 +319,100 @@ def build_wasm_payload(
         browser_wasm_archive_or_dir, wasm_built_nugets_dir, prefix="staging/built-nugets/"
     )
 
-    os.makedirs(wasm_data_dir, exist_ok=True)
-    shutil.copy(test_main_js_path, os.path.join(wasm_data_dir, "test-main.js"))
+    _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir], mode=0o664) # rw-rw-r--
 
-    _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir, wasm_data_dir], mode=0o664) # rw-rw-r--
+
+def build_wasm_coreclr_payload(
+    browser_wasm_coreclr_archive_or_dir: str,
+    payload_parent_dir: str,
+) -> None:
+    """Create a WASM CoreCLR-only payload (dotnet).
+
+    This is a self-contained payload for running CoreCLR WASM benchmarks without
+    requiring Mono artifacts. The archive/directory layout is expected to contain
+    a `staging/` folder with `dotnet-none` (SDK) and
+    `microsoft.netcore.app.runtime.browser-wasm` (CoreCLR runtime pack) subfolders.
+    """
+
+    wasm_dotnet_dir = os.path.join(payload_parent_dir, "dotnet")
+    wasm_built_nugets_dir = os.path.join(payload_parent_dir, "built-nugets")
+
+    # Extract the SDK from dotnet-none
+    extract_archive_or_copy(
+        browser_wasm_coreclr_archive_or_dir, wasm_dotnet_dir, prefix="staging/dotnet-none/"
+    )
+
+    # Extract built NuGet packages (WebAssembly SDK pack, ref pack)
+    extract_archive_or_copy(
+        browser_wasm_coreclr_archive_or_dir, wasm_built_nugets_dir, prefix="staging/built-nugets/"
+    )
+
+    # Determine version from the runtime pack directory structure
+    runtime_pack_src = os.path.join(
+        browser_wasm_coreclr_archive_or_dir if os.path.isdir(browser_wasm_coreclr_archive_or_dir) else "",
+        "staging", "microsoft.netcore.app.runtime.browser-wasm", "Release"
+    )
+    if os.path.isdir(runtime_pack_src):
+        # Get version from NuGet.config or infer from directory
+        # For now, read version from the SDK's Microsoft.NETCore.App.Ref pack
+        ref_pack_parent = os.path.join(wasm_dotnet_dir, "packs", "Microsoft.NETCore.App.Ref")
+        if os.path.isdir(ref_pack_parent):
+            versions = os.listdir(ref_pack_parent)
+            if versions:
+                pack_version = versions[0]
+                coreclr_pack_dest = os.path.join(
+                    wasm_dotnet_dir, "packs", "Microsoft.NETCore.App.Runtime.browser-wasm", pack_version
+                )
+                extract_archive_or_copy(
+                    browser_wasm_coreclr_archive_or_dir,
+                    coreclr_pack_dest,
+                    prefix="staging/microsoft.netcore.app.runtime.browser-wasm/Release/",
+                )
+                getLogger().info("Installed CoreCLR browser-wasm runtime pack version %s", pack_version)
+        else:
+            getLogger().warning("Microsoft.NETCore.App.Ref pack not found – cannot determine version")
+
+    _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir], mode=0o664)
+
+
+def build_r2r_interpreter_payload(
+    artifacts_archive_or_dir: str,
+    payload_dest: str,
+    os_group: str,
+    architecture: str,
+) -> None:
+    """Build a Composite R2R with interpreter fallback payload.
+
+    Stages the runtime pack and crossgen2 tool from a runtime build produced
+    with ``-dynamiccodecompiled false``. The crossgen2 files are placed under
+    a ``tools/`` subdirectory as required by the SDK's
+    ``ResolveReadyToRunCompilers`` target.
+
+    Args:
+        artifacts_archive_or_dir: Path to the build artifacts (archive or directory).
+        payload_dest: Destination root for the payload.
+        os_group: Target OS group (e.g. "linux").
+        architecture: Target architecture (e.g. "x64").
+    """
+    runtimepack_dir = os.path.join(payload_dest, "runtimepack")
+    crossgen2_tools_dir = os.path.join(payload_dest, "crossgen2", "tools")
+    os.makedirs(runtimepack_dir, exist_ok=True)
+    os.makedirs(crossgen2_tools_dir, exist_ok=True)
+
+    extract_archive_or_copy(
+        artifacts_archive_or_dir,
+        runtimepack_dir,
+        prefix=f"microsoft.netcore.app.runtime.{os_group}-{architecture}/Release/",
+    )
+
+    extract_archive_or_copy(
+        artifacts_archive_or_dir,
+        crossgen2_tools_dir,
+        prefix=f"crossgen2_publish/{architecture}/Release/",
+    )
+
+    # Ensure crossgen2 is executable
+    if os_group != "windows":
+        crossgen2_executable = os.path.join(crossgen2_tools_dir, "crossgen2")
+        if os.path.exists(crossgen2_executable):
+            os.chmod(crossgen2_executable, 0o755)

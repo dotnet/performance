@@ -1,0 +1,34 @@
+The CSV files in this directory are sourced from public U.S. government
+data portals and are in the public domain under U.S. law (17 U.S.C. § 105).
+
+TMEDTREND_PUBLIC_240528.csv
+  Source: https://data.cms.gov/sites/default/files/2024-05/b492c960-aea2-4f4e-a5f6-258c726b1a58/TMEDTREND_PUBLIC_240528.csv
+  Retrieved: January 22, 2025
+  Provider: Centers for Medicare & Medicaid Services (CMS)
+
+motor_fuel_sales.csv
+  Source: https://data.transportation.gov/api/views/kbvr-tyu5/rows.csv
+  Original name: Monthly Motor Fuel Sales Reported by States, Selected Data from FHWA Monthly Motor Fuel Report
+  Retrieved: January 22, 2025
+  Provider: U.S. Department of Transportation
+
+date_table.csv
+  Source: https://www.census.gov/econ/bfs/csv/date_table.csv
+  Retrieved: January 22, 2025
+  Provider: U.S. Census Bureau
+
+ai_inventory.csv
+  Source: https://www.usda.gov/sites/default/files/documents/ai_inventory.csv
+  Retrieved: January 22, 2025
+  Provider: U.S. Department of Agriculture (USDA)
+
+tri_2012_nd.csv
+  Source: https://www.epa.gov/sites/production/files/2014-05/tri_2012_nd.csv
+  Retrieved: January 22, 2025
+  Provider: U.S. Environmental Protection Agency (EPA)
+
+500_cities.csv
+  Source: https://data.cdc.gov/api/views/dxpw-cm5u/rows.csv
+  Original name: 500 Cities: City-level Data (GIS Friendly Format), 2019 release
+  Retrieved: January 22, 2025
+  Provider: Centers for Disease Control and Prevention (CDC)

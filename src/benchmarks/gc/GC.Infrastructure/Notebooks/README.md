@@ -4,7 +4,7 @@ This directory contains notebooks that either provide examples or functionality 
 
 ## Prerequisites
 
-1. Install the latest version of VSCode from [here](https://code.visualstudio.com/).
+1. Install the latest version of [VSCode](https://code.visualstudio.com/).
 2. Install the [Polyglot Notebooks](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode) Extension. To learn more about installing Notebook Extensions refer to [this](https://code.visualstudio.com/learn/get-started/extensions) page.
 
 ## Examples

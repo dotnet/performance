@@ -1,5 +1,5 @@
 output_path: C:\Outputs\GCPerfsimFunctionalTest
-gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
+gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net10.0\GCPerfSim.dll
 
 coreruns:
   segments:

@@ -5,7 +5,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
 {
     public static class MicrobenchmarkCommandBuilder
     {
-        public static (string, string) Build(MicrobenchmarkConfiguration configuration, KeyValuePair<string, Run> run, string? benchmark = null, long? invocationCountFromBaseline = null, string? overrideArtifacts = null)
+        public static (string, string) Build(MicrobenchmarkConfiguration configuration, KeyValuePair<string, CoreRunInfo> run, string? benchmark = null, long? invocationCountFromBaseline = null, string? overrideArtifacts = null)
         {
             string frameworkVersion = run.Value.DotnetInstaller ?? configuration.MicrobenchmarkConfigurations.DotnetInstaller;
             string filter = benchmark ?? configuration.MicrobenchmarkConfigurations.Filter;
@@ -14,9 +14,9 @@ namespace GC.Infrastructure.Core.CommandBuilders
             string command = $"run -f {frameworkVersion} --filter \"{filter}\" -c Release --noOverwrite --no-build";
 
             // [Optional] Add corerun.
-            if (!string.IsNullOrEmpty(run.Value.corerun))
+            if (!string.IsNullOrEmpty(run.Value.Path))
             {
-                command += $" --corerun {run.Value.corerun}";
+                command += $" --corerun {run.Value.Path}";
             }
 
             if (invocationCountFromBaseline.HasValue)

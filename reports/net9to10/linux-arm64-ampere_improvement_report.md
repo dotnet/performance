@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Improvement Report - linux-arm64-ampere
 
 ## >50% Improvement (84 tests)

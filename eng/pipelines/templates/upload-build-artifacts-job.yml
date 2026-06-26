@@ -2,11 +2,17 @@ parameters:
   buildType: ''
   dependencyJobName: ''
   artifacts: []
+  # repoName controls the {repoName} segment of the BCS blob path:
+  #   builds/{repoName}/buildArtifacts/{sha}/{buildType}/{file}
+  # Defaults to 'runtime' for back-compat with the existing runtime perf-build pipeline.
+  # Callers building a different repo (e.g. dotnet/aspnetcore) pass repoName explicitly
+  # so that the upload lands at a tenant-specific path the indexer/crank then read.
+  repoName: 'runtime'
 
 jobs:
 - ${{ each artifact in parameters.artifacts }}:
   - job: UploadBuildArtifact_${{ artifact.artifactName }}
-    displayName: 'Upload Build Artifact ${{ artifact.artifactName }}\'
+    displayName: 'Upload Build Artifact ${{ artifact.artifactName }}'
     condition: eq(stageDependencies.Build.${{ parameters.dependencyJobName }}.result, 'Succeeded')
     steps:
     - checkout: none
@@ -14,7 +20,7 @@ jobs:
       displayName: Download Build Artifact ${{ artifact.artifactName }}
       artifact: ${{ artifact.artifactName }}
     - ${{ each fileName in artifact.files }}:
-      - script: echo "pvscmdupload/builds/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}"
+      - script: echo "pvscmdupload/\$web/builds/${{ parameters.repoName }}/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}"
         displayName: 'Artifact upload path'
       - task: AzureCLI@2
         displayName: 'Upload ${{ fileName }} file'
@@ -23,4 +29,4 @@ jobs:
           scriptType: 'pscore'
           scriptLocation: 'inlineScript'
           inlineScript: |
-            az storage blob upload --auth-mode login --account-name pvscmdupload --container-name builds --file "$(Pipeline.Workspace)/${{ artifact.artifactName }}/${{ fileName }}" --name "buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}" --overwrite true
+            az storage blob upload --auth-mode login --account-name pvscmdupload --container-name '$web' --file "$(Pipeline.Workspace)/${{ artifact.artifactName }}/${{ fileName }}" --name "builds/${{ parameters.repoName }}/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/${{ fileName }}" --overwrite true

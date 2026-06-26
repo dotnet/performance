@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Improvement Report - linux-mono-tiger
 
 ## >50% Improvement (24 tests)

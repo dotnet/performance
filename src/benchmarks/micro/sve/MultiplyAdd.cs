@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace SveBenchmarks
 {
-    [BenchmarkCategory(Categories.Runtime)]
+    [BenchmarkCategory(Categories.Sve)]
     [OperatingSystemsArchitectureFilter(allowed: true, System.Runtime.InteropServices.Architecture.Arm64)]
     [Config(typeof(Config))]
     public class MultiplyAdd
@@ -154,7 +154,7 @@ namespace SveBenchmarks
 
                 // Handle remaining elements using predicates.
                 lmt = Size;
-                Vector<int> pLoop = (Vector<int>)Sve.CreateWhileLessThanMask32Bit(i, lmt);
+                Vector<int> pLoop = Sve.CreateWhileLessThanMaskInt32(i, lmt);
                 while (Sve.TestAnyTrue(pTrue, pLoop))
                 {
                     Vector<int> aVec = Sve.LoadVector(pLoop, a + i);
@@ -165,7 +165,7 @@ namespace SveBenchmarks
 
                     // Increment by a vector length.
                     i += cntw;
-                    pLoop = (Vector<int>)Sve.CreateWhileLessThanMask32Bit(i, lmt);
+                    pLoop = Sve.CreateWhileLessThanMaskInt32(i, lmt);
                 }
 
                 // Sum up all elements in the 4 result vectors.

@@ -56,72 +56,56 @@ environment:
 
 output:
   columns:
-  - Count
-  - total allocated (mb)
-  - total pause time (msec)
   - PctTimePausedInGC
   - FirstToLastGCSeconds
-  - HeapSizeAfter_Mean
   - HeapSizeBeforeMB_Mean
+  - HeapSizeAfter_Mean
   - PauseDurationMSec_95PWhereIsGen0
   - PauseDurationMSec_95PWhereIsGen1
   - PauseDurationMSec_95PWhereIsBackground
-  - PauseDurationMSec_95PWhereIsBlockingGen2
-  - CountIsBlockingGen2
-  - HeapCount
-  - TotalNumberGCs
-  - TotalAllocatedMB
-  - Speed
-  - PauseDurationMSec_MeanWhereIsEphemeral
   - PauseDurationMSec_MeanWhereIsBackground
+  - PauseDurationMSec_95PWhereIsBlockingGen2
   - PauseDurationMSec_MeanWhereIsBlockingGen2
+  - CountIsBlockingGen2
   - PauseDurationSeconds_SumWhereIsGen1
-  - PauseDurationSeconds_Sum
+  - PauseDurationMSec_MeanWhereIsEphemeral
+  - PromotedMB_MeanWhereIsGen1
   - CountIsGen1
+  - CountIsGen0
+  - HeapCount
+  - PauseDurationMSec_Sum
+  - TotalAllocatedMB
+  - TotalNumberGCs
+  - Speed_MBPerMSec
   - ExecutionTimeMSec
   percentage_disk_remaining_to_stop_per_run: 0
   all_columns:
-  - Count
-  - total allocated (mb)
-  - total pause time (msec)
   - PctTimePausedInGC
   - FirstToLastGCSeconds
-  - HeapSizeAfter_Mean
   - HeapSizeBeforeMB_Mean
+  - HeapSizeAfter_Mean
+  - TotalCommittedInUse
+  - TotalBookkeepingCommitted
+  - TotalCommittedInGlobalDecommit
+  - TotalCommittedInFree
+  - TotalCommittedInGlobalFree
   - PauseDurationMSec_95PWhereIsGen0
   - PauseDurationMSec_95PWhereIsGen1
   - PauseDurationMSec_95PWhereIsBackground
-  - PauseDurationMSec_95PWhereIsBlockingGen2
-  - CountIsBlockingGen2
-  - HeapCount
-  - TotalNumberGCs
-  - TotalAllocatedMB
-  - Speed
-  - PauseDurationMSec_MeanWhereIsEphemeral
   - PauseDurationMSec_MeanWhereIsBackground
-  - PauseDurationMSec_MeanWhereIsBlockingGen2
-  - PauseDurationSeconds_SumWhereIsGen1
-  - PauseDurationSeconds_Sum
-  - CountIsGen1
-  - ExecutionTimeMSec
-  - Count
-  - PctTimePausedInGC
-  - FirstToLastGCSeconds
-  - HeapSizeAfter_Mean
-  - HeapSizeBeforeMB_Mean
-  - PauseDurationMSec_95PWhereIsGen0
-  - PauseDurationMSec_95PWhereIsGen1
-  - PauseDurationMSec_95PWhereIsBackground
   - PauseDurationMSec_95PWhereIsBlockingGen2
+  - PauseDurationMSec_MeanWhereIsBlockingGen2
   - CountIsBlockingGen2
-  - HeapCount
-  - TotalNumberGCs
-  - TotalAllocatedMB
-  - Speed
-  - PauseDurationMSec_MeanWhereIsEphemeral
   - PauseDurationSeconds_SumWhereIsGen1
-  - PauseDurationSeconds_Sum
+  - PauseDurationMSec_MeanWhereIsEphemeral
+  - PromotedMB_MeanWhereIsGen1
   - CountIsGen1
+  - CountIsGen0
+  - HeapCount
+  - PauseDurationMSec_Sum
+  - TotalAllocatedMB
+  - TotalNumberGCs
+  - Speed_MBPerMSec
   - ExecutionTimeMSec
   formats:
   - markdown

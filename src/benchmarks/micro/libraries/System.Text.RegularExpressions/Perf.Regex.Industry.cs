@@ -307,4 +307,88 @@ namespace System.Text.RegularExpressions.Tests
         [MemoryRandomization]
         public bool IsMatch() => _regex.IsMatch(_input);
     }
+
+    /// <summary>
+    /// Performance tests adapted from https://github.com/BurntSushi/rebar curated/01-literal and curated/02-literal-alternate.
+    /// Haystack: OpenSubtitles Russian (https://opus.nlpl.eu/OpenSubtitles-v2018.php).
+    /// Tests literal and alternation search on non-ASCII (Cyrillic) text, including case-insensitive variants.
+    /// </summary>
+    [BenchmarkCategory(Categories.Libraries, Categories.Regex, Categories.NoWASM)]
+    public class Perf_Regex_Industry_Rebar_Russian
+    {
+        [Params(
+            // curated/01-literal: sherlock-ru
+            "\u0428\u0435\u0440\u043B\u043E\u043A \u0425\u043E\u043B\u043C\u0441",
+            // curated/01-literal: sherlock-casei-ru
+            "(?i)\u0428\u0435\u0440\u043B\u043E\u043A \u0425\u043E\u043B\u043C\u0441",
+            // curated/02-literal-alternate: sherlock-ru
+            "\u0428\u0435\u0440\u043B\u043E\u043A \u0425\u043E\u043B\u043C\u0441|\u0414\u0436\u043E\u043D \u0423\u043E\u0442\u0441\u043E\u043D|\u0418\u0440\u0435\u043D \u0410\u0434\u043B\u0435\u0440|\u0438\u043D\u0441\u043F\u0435\u043A\u0442\u043E\u0440 \u041B\u0435\u0441\u0442\u0440\u0435\u0439\u0434|\u043F\u0440\u043E\u0444\u0435\u0441\u0441\u043E\u0440 \u041C\u043E\u0440\u0438\u0430\u0440\u0442\u0438",
+            // curated/02-literal-alternate: sherlock-casei-ru
+            "(?i)\u0428\u0435\u0440\u043B\u043E\u043A \u0425\u043E\u043B\u043C\u0441|\u0414\u0436\u043E\u043D \u0423\u043E\u0442\u0441\u043E\u043D|\u0418\u0440\u0435\u043D \u0410\u0434\u043B\u0435\u0440|\u0438\u043D\u0441\u043F\u0435\u043A\u0442\u043E\u0440 \u041B\u0435\u0441\u0442\u0440\u0435\u0439\u0434|\u043F\u0440\u043E\u0444\u0435\u0441\u0441\u043E\u0440 \u041C\u043E\u0440\u0438\u0430\u0440\u0442\u0438"
+        )]
+        public string Pattern { get; set; }
+
+        [Params(
+            RegexOptions.None,
+            RegexOptions.Compiled
+#if NET7_0_OR_GREATER
+            , RegexOptions.NonBacktracking
+#endif
+            )]
+        public RegexOptions Options { get; set; }
+
+        private Regex _regex;
+        private string _input;
+
+        [GlobalSetup(Target = nameof(Count))]
+        public void Setup()
+        {
+            _regex = new Regex(Pattern, Options);
+            _input = Perf_Regex_Industry.ReadInputFile("opensubtitles-ru.txt.gz");
+        }
+
+        [Benchmark]
+        [MemoryRandomization]
+        public int Count() => Perf_Regex_Industry.Count(_regex, _input);
+    }
+
+    /// <summary>
+    /// Performance tests adapted from https://github.com/BurntSushi/rebar curated/01-literal and curated/02-literal-alternate.
+    /// Haystack: OpenSubtitles Chinese (https://opus.nlpl.eu/OpenSubtitles-v2018.php).
+    /// Tests literal and alternation search on non-ASCII (CJK) text.
+    /// </summary>
+    [BenchmarkCategory(Categories.Libraries, Categories.Regex, Categories.NoWASM)]
+    public class Perf_Regex_Industry_Rebar_Chinese
+    {
+        [Params(
+            // curated/01-literal: sherlock-zh
+            "\u590F\u6D1B\u514B\u00B7\u798F\u5C14\u6469\u65AF",
+            // curated/02-literal-alternate: sherlock-zh
+            "\u590F\u6D1B\u514B\u00B7\u798F\u5C14\u6469\u65AF|\u7EA6\u7FF0\u534E\u751F|\u963F\u5FB7\u52D2|\u96F7\u65AF\u5782\u5FB7|\u83AB\u91CC\u4E9A\u8482\u6559\u6388"
+        )]
+        public string Pattern { get; set; }
+
+        [Params(
+            RegexOptions.None,
+            RegexOptions.Compiled
+#if NET7_0_OR_GREATER
+            , RegexOptions.NonBacktracking
+#endif
+            )]
+        public RegexOptions Options { get; set; }
+
+        private Regex _regex;
+        private string _input;
+
+        [GlobalSetup(Target = nameof(Count))]
+        public void Setup()
+        {
+            _regex = new Regex(Pattern, Options);
+            _input = Perf_Regex_Industry.ReadInputFile("opensubtitles-zh.txt.gz");
+        }
+
+        [Benchmark]
+        [MemoryRandomization]
+        public int Count() => Perf_Regex_Industry.Count(_regex, _input);
+    }
 }

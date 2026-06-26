@@ -130,6 +130,9 @@ namespace ResultsComparer
 
         private static string GetMoniker(string key)
         {
+            if (string.IsNullOrEmpty(key))
+                return null;
+
             if (key.Contains("net6")) // some files are net6.0, some are missing the dot (net60)
                 return "net6.0";
             if (key.Contains("nativeaot6"))
@@ -158,14 +161,14 @@ namespace ResultsComparer
                 return "nativeaot9.0-preview" + key[key.IndexOf("nativeaot9.0-preview") + "nativeaot9.0-preview".Length];
             if (key.Contains("net9.0"))
                 return "net9.0";
-            if (key.StartsWith("net10.0"))
+            if (key.Contains("net10.0"))
                 return "net10.0";
-            if (key.StartsWith("nativeaot10.0"))
-                return key;
-            if (key.StartsWith("net11.0"))
+            if (key.Contains("nativeaot10.0"))
+                return "nativeaot10.0";
+            if (key.Contains("net11.0"))
                 return "net11.0";
-            if (key.StartsWith("nativeaot11.0"))
-                return key;
+            if (key.Contains("nativeaot11.0"))
+                return "nativeaot11.0";
 
             return null;
         }

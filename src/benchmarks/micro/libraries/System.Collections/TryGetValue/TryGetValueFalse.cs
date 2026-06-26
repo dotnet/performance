@@ -31,6 +31,9 @@ namespace System.Collections
         private ImmutableDictionary<TKey, TValue> _immutableDictionary;
         private ImmutableSortedDictionary<TKey, TValue> _immutableSortedDictionary;
         private FrozenDictionary<TKey, TValue> _frozenDictionary;
+#if NET9_0_OR_GREATER
+        private OrderedDictionary<TKey, TValue> _orderedDictionary;
+#endif
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
@@ -49,6 +52,9 @@ namespace System.Collections
             _immutableDictionary = Immutable.ImmutableDictionary.CreateRange<TKey, TValue>(_source);
             _immutableSortedDictionary = Immutable.ImmutableSortedDictionary.CreateRange<TKey, TValue>(_source);
             _frozenDictionary = _source.ToFrozenDictionary();
+#if NET9_0_OR_GREATER
+            _orderedDictionary = new OrderedDictionary<TKey, TValue>(_source);
+#endif
         }
 
         [Benchmark]
@@ -141,5 +147,18 @@ namespace System.Collections
                 result ^= collection.TryGetValue(notFound[i], out _);
             return result;
         }
+
+#if NET9_0_OR_GREATER
+        [Benchmark]
+        public bool OrderedDictionary()
+        {
+            bool result = default;
+            OrderedDictionary<TKey, TValue> collection = _orderedDictionary;
+            TKey[] notFound = _notFound;
+            for (int i = 0; i < notFound.Length; i++)
+                result ^= collection.TryGetValue(notFound[i], out _);
+            return result;
+        }
+#endif
     }
 }

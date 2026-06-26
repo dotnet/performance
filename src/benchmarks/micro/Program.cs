@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Running;
 using System.IO;
 using BenchmarkDotNet.Extensions;
@@ -14,7 +15,7 @@ namespace MicroBenchmarks
 {
     class Program
     {
-        static int Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
             var argsList = new List<string>(args);
             int? partitionCount;
@@ -40,19 +41,26 @@ namespace MicroBenchmarks
                 return 1;
             }
 
-            return BenchmarkSwitcher
+            // Use RunAsync (not Run) so BDN does not install its single-threaded
+            // BenchmarkDotNetSynchronizationContext on the entrypoint thread. The sync
+            // entrypoint installs that context before benchmark discovery, which
+            // deadlocks any sync-over-async work performed by [ParamsSource]/[ArgumentsSource]
+            // callbacks (e.g. SslStreamTests.GetTls13Support).
+            var summaries = await BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
-                .Run(argsList.ToArray(), 
+                .RunAsync(argsList.ToArray(),
                     RecommendedConfig.Create(
                         artifactsPath: new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "BenchmarkDotNet.Artifacts")), 
-                        mandatoryCategories: ImmutableHashSet.Create([Categories.Libraries, Categories.Runtime, Categories.ThirdParty]),
+                        mandatoryCategories: ImmutableHashSet.Create([Categories.Libraries, Categories.Runtime, Categories.ThirdParty, Categories.Sve]),
                         partitionCount: partitionCount,
                         partitionIndex: partitionIndex,
                         exclusionFilterValue: exclusionFilterValue,
                         categoryExclusionFilterValue: categoryExclusionFilterValue,
                         getDiffableDisasm: getDiffableDisasm)
                     .AddValidator(new NoWasmValidator(Categories.NoWASM)))
-                .ToExitCode();
+                .ConfigureAwait(false);
+
+            return summaries.ToExitCode();
         }
     }
 }

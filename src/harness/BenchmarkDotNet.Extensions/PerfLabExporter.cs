@@ -4,26 +4,76 @@
 
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters;
+using BenchmarkDotNet.Helpers;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Reports;
 using Reporting;
 using System;
+using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BenchmarkDotNet.Extensions
 {
-    public class PerfLabExporter : ExporterBase
+    // Implements IExporter directly (not ExporterBase) because PerfLabExporter writes
+    // a file with a custom name pattern ("{type}-perf-lab-report.json") via
+    // File.WriteAllTextAsync and manages the file lifecycle itself, rather than having
+    // ExporterBase open and hand us a writer for a default-named file.
+    public class PerfLabExporter : IExporter
     {
-        protected override string FileExtension => "json";
-        protected override string FileCaption => "perf-lab-report";
+        private const string FileExtension = "json";
+        private const string FileCaption = "perf-lab-report";
 
-        public PerfLabExporter()
+        public string Name => nameof(PerfLabExporter);
+
+        public async ValueTask ExportAsync(Summary summary, ILogger logger, CancellationToken cancellationToken)
         {
+            string? jsonOutput = BuildJson(summary);
+            if (jsonOutput is null)
+                return;
+
+            string filePath = GetArtifactFullName(summary);
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    File.Delete(filePath);
+                }
+                catch (IOException)
+                {
+                    string uniqueString = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+                    string altPath = $"{Path.Combine(summary.ResultsDirectoryPath, GetFileName(summary))}-{FileCaption}-{uniqueString}.{FileExtension}";
+                    logger.WriteLineError($"Could not overwrite file {filePath}. Exporting to {altPath}");
+                    filePath = altPath;
+                }
+            }
+
+            await File.WriteAllTextAsync(filePath, jsonOutput, cancellationToken).ConfigureAwait(false);
+            logger.WriteLineInfo($"  {filePath}");
         }
 
-        public override void ExportToLog(Summary summary, ILogger logger)
+        private string GetArtifactFullName(Summary summary)
+            => $"{Path.Combine(summary.ResultsDirectoryPath, GetFileName(summary))}-{FileCaption}.{FileExtension}";
+
+        private static string GetFileName(Summary summary)
+        {
+            var targets = summary.BenchmarksCases.Select(b => b.Descriptor.Type).Distinct().ToArray();
+            if (targets.Length == 1)
+                return FolderNameHelper.ToFolderName(targets.Single());
+            return summary.Title;
+        }
+
+        private static string? BuildJson(Summary summary)
         {
             var reporter = new Reporter();
+
+            // Add BDN version to build AdditionalData when running in lab
+            var bdnVersion = summary.HostEnvironmentInfo.BenchmarkDotNetVersion;
+            if (reporter.Build != null && !string.IsNullOrEmpty(bdnVersion))
+            {
+                reporter.Build.AdditionalData["BenchmarkDotNetVersion"] = bdnVersion;
+            }
 
             var hasCriticalErrors = summary.HasCriticalValidationErrors;
 
@@ -42,7 +92,7 @@ namespace BenchmarkDotNet.Extensions
                 var test = new Test();
                 test.Name = FullNameProvider.GetBenchmarkName(report.BenchmarkCase);
                 test.Categories = report.BenchmarkCase.Descriptor.Categories;
-                
+
                 if (hasCriticalErrors)
                 {
                     test.AdditionalData["criticalErrors"] = "true";
@@ -51,7 +101,7 @@ namespace BenchmarkDotNet.Extensions
                 var results = from result in report.AllMeasurements
                               where result.IterationMode == Engines.IterationMode.Workload && result.IterationStage == Engines.IterationStage.Result
                               orderby result.LaunchIndex, result.IterationIndex
-                              select new { result.Nanoseconds, result.Operations};
+                              select new { result.Nanoseconds, result.Operations };
 
                 var overheadResults = from result in report.AllMeasurements
                                       where result.IsOverhead() && result.IterationStage != Engines.IterationStage.Jitting
@@ -97,7 +147,7 @@ namespace BenchmarkDotNet.Extensions
                     HigherIsBetter = true,
                     MetricName = "Count",
                     Results = (from result in results
-                               select  (double)result.Operations).ToList()
+                               select (double)result.Operations).ToList()
                 });
 
                 foreach (var metric in report.Metrics.Keys)
@@ -123,9 +173,7 @@ namespace BenchmarkDotNet.Extensions
                 reporter.AddTest(test);
             }
 
-            var jsonOutput = reporter.GetJson();
-            if (jsonOutput is not null)
-                logger.WriteLine(jsonOutput);
+            return reporter.GetJson();
         }
     }
 }

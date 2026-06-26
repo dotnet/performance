@@ -35,7 +35,7 @@ jobs:
       parameters:
         android_arm64: true
           
-  - ${{ if containsValue(parameters.buildType, 'wasm') }}:
+  - ${{ if or(containsValue(parameters.buildType, 'wasm'), containsValue(parameters.buildType, 'wasm_coreclr')) }}:
     - template: /eng/pipelines/performance/templates/perf-wasm-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
     
   - ${{ if containsValue(parameters.buildType, 'monoAot_arm64_linux') }}:
@@ -58,21 +58,6 @@ jobs:
       parameters:
         mono_arm64: true
         
-  - ${{ if containsValue(parameters.buildType, 'mono_arm64_android') }}:
-    - template: /eng/pipelines/performance/templates/perf-mono-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        monoAndroid: true
-       
-  - ${{ if containsValue(parameters.buildType, 'mono_arm64_ios') }}:
-    - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        mono: true
-        
-  - ${{ if containsValue(parameters.buildType, 'monoBDN_arm64_android') }}:
-    - template: /eng/pipelines/performance/templates/perf-bdn-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        mauiFramework: ${{ parameters.mauiFramework }}
-          
   - ${{ if containsValue(parameters.buildType, 'nativeAot_arm64_ios') }}:
     - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
@@ -82,3 +67,8 @@ jobs:
     - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         coreclr: true
+
+  - ${{ if containsValue(parameters.buildType, 'coreclr_r2r_interpreter') }}:
+    - template: /eng/pipelines/performance/templates/perf-coreclr-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        coreclr_r2r_interpreter: true
