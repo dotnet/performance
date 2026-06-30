@@ -129,22 +129,15 @@ def try_provision_mlnet_resources(payload_dir: str) -> bool:
     """
     Pre-download the ML.NET SSWE word-embedding model into the correlation payload.
 
-    The Microsoft.ML.Benchmarks (StochasticDualCoordinateAscentClassifierBench.TrainSentiment)
-    apply a pretrained word embedding (SSWE 'sentiment.emd', ~70 MB). ML.NET downloads this model
-    from https://aka.ms/mlnet-resources at benchmark runtime if it isn't already present on disk.
-    On the Helix machines that download regularly stalls, which hangs the entire mlnet work item
-    until it hits the work item timeout and is killed, discarding ALL mlnet results (so every mlnet
-    benchmark appears to fail).
-
-    To remove the runtime network dependency, we download the model here on the build agent (which
-    has reliable connectivity) into the correlation payload. The caller then points
-    MICROSOFTML_RESOURCE_PATH at it on the Helix machine so ML.NET loads the model from disk and
-    never makes the network call.
-
+    StochasticDualCoordinateAscentClassifierBench.TrainSentiment applies a pretrained word embedding
+    ('sentiment.emd', ~70 MB) that ML.NET otherwise downloads from https://aka.ms/mlnet-resources at
+    benchmark runtime. That download stalls on the Helix machines and hangs the whole mlnet work item
+    until it times out. Downloading it here on the build agent (reliable connectivity) and pointing
+    MICROSOFTML_RESOURCE_PATH at <payload>/mlnet-resources lets ML.NET load it from disk instead.
     ML.NET resolves the model at <MICROSOFTML_RESOURCE_PATH>/Text/Sswe/sentiment.emd.
 
-    This is best-effort: if the download fails the function returns False and the caller skips
-    setting the env var, leaving the previous (runtime-download) behavior unchanged.
+    Best-effort: returns False on failure so the caller skips the env var and the previous
+    (runtime-download) behavior is left unchanged.
     """
     resource_root = os.path.join(payload_dir, MLNET_RESOURCES_PAYLOAD_SUBDIR)
     dest = os.path.join(resource_root, "Text", "Sswe", "sentiment.emd")
@@ -157,21 +150,36 @@ def try_provision_mlnet_resources(payload_dir: str) -> bool:
         "https://aka.ms/mlnet-resources/Text/Sswe/sentiment.emd",
     ]
 
+    # The model is ~70 MB; require at least this much so a truncated/early-closed response (which may
+    # not raise) is rejected instead of leaving a corrupt file in the payload.
+    min_expected_size = 60 * 1024 * 1024
+
     last_error: Optional[Exception] = None
     for attempt in range(1, 6):
         for url in urls:
+            tmp_dest = dest + ".tmp"
             try:
                 getLogger().info(f"Downloading ML.NET SSWE model from {url} (attempt {attempt})")
-                with urllib.request.urlopen(url, timeout=300) as response, open(dest, "wb") as f:
-                    shutil.copyfileobj(response, f)
-                size = os.path.getsize(dest)
-                if size <= 0:
-                    raise Exception("downloaded file is empty")
+                with urllib.request.urlopen(url, timeout=300) as response:
+                    content_length = response.getheader("Content-Length")
+                    expected_size = int(content_length) if content_length else None
+                    with open(tmp_dest, "wb") as f:
+                        shutil.copyfileobj(response, f)
+
+                size = os.path.getsize(tmp_dest)
+                if expected_size is not None and size != expected_size:
+                    raise Exception(f"size {size} does not match Content-Length {expected_size}")
+                if size < min_expected_size:
+                    raise Exception(f"size {size} is smaller than the expected minimum {min_expected_size}")
+
+                os.replace(tmp_dest, dest)
                 getLogger().info(f"Downloaded ML.NET SSWE model ({size} bytes) to {dest}")
                 return True
             except Exception as e:
                 last_error = e
                 getLogger().warning(f"Failed to download ML.NET SSWE model from {url}: {e}")
+                if os.path.exists(tmp_dest):
+                    os.remove(tmp_dest)
         time.sleep(10)
 
     getLogger().warning(
