@@ -281,13 +281,14 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
         internal static void AddTablesForSingleCriteria(this StreamWriter sw,
                                                         IEnumerable<GCTraceMetricComparisonResult> comparisons)
         {
-            if (comparisons.ToList().Count == 0)
+            var comparisonList = comparisons.ToList();
+            if (comparisonList.Count == 0)
             {
                 sw.WriteLine("No metrics in this category.\n");
                 return;
             }
 
-            foreach (var comparison in comparisons)
+            foreach (var comparison in comparisonList)
             {
                 sw.AddTableForSingleMetric(comparison);
                 sw.WriteLine("\n");

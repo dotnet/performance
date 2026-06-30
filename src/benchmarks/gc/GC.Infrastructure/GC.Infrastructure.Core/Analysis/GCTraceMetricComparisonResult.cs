@@ -76,9 +76,9 @@ namespace GC.Infrastructure.Core.Analysis
 
             // Calculate averaged metrics
             OriginalAveragedBaselineMetric = API.GoodLinq.Average(
-                OriginalBaselineMetricCollection.Where(r => !double.IsNaN(r)), r => r);
+                OriginalBaselineMetricCollection.ToList().Where(r => !double.IsNaN(r)), r => r);
             OriginalAveragedComparandMetric = API.GoodLinq.Average(
-                OriginalComparandMetricCollection.Where(r => !double.IsNaN(r)), r => r);
+                OriginalComparandMetricCollection.ToList().Where(r => !double.IsNaN(r)), r => r);
             AveragedBaselineMetric = API.GoodLinq.Average(OutliersFreeBaselineMetricCollection, r => r);
             AveragedComparandMetric = API.GoodLinq.Average(OutliersFreeComparandMetricCollection, r => r);
         }
