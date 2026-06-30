@@ -150,7 +150,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
         }
 
         public static void GenerateForAnalyzeCommand(GCPerfSimConfiguration configuration,
-                                                     IEnumerable<GCTraceMetricComparisonResults> comparisonResultsCollection,
+                                                     IReadOnlyCollection<GCTraceMetricComparisonResults> comparisonResultsCollection,
                                                      Dictionary<string, ProcessExecutionDetails> executionDetails,
                                                      string path)
         {
@@ -239,62 +239,97 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                     sw.WriteLine();
                     sw.AddReproSection(executionDetails);
                     sw.WriteLine();
-                    sw.AddDetailsOfSingleComparison(configuration, comparisonResults);
+                    sw.AddDetailsOfSingleRun(configuration, comparisonResults);
                 }
             }
         }
 
-        internal static void AddDetailsOfSingleComparison(this StreamWriter sw,
-                                                          GCPerfSimConfiguration configuration,
-                                                          GCTraceMetricComparisonResults comparisonResult)
+        internal static void AddDetailsOfSingleRun(this StreamWriter sw,
+                                                   GCPerfSimConfiguration configuration,
+                                                   GCTraceMetricComparisonResults comparisonResult)
         {
             // Large Regressions
             sw.WriteLine($"### Large Regressions (>= 20%): {comparisonResult.LargeRegressions.Count()} \n");
-            sw.AddTableForSingleCriteria(comparisonResult.LargeRegressions);
+            sw.AddTablesForSingleCriteria(comparisonResult.LargeRegressions);
             sw.WriteLine("\n");
 
             // Large Improvements
             sw.WriteLine($"### Large Improvements (<= -20%): {comparisonResult.LargeImprovements.Count()} \n");
-            sw.AddTableForSingleCriteria(comparisonResult.LargeImprovements);
+            sw.AddTablesForSingleCriteria(comparisonResult.LargeImprovements);
             sw.WriteLine("\n");
 
             // Regressions
             sw.WriteLine($"### Regressions (>= 5% and < 20%): {comparisonResult.Regressions.Count()} \n");
-            sw.AddTableForSingleCriteria(comparisonResult.Regressions);
+            sw.AddTablesForSingleCriteria(comparisonResult.Regressions);
             sw.WriteLine("\n");
 
             // Improvements
             sw.WriteLine($"### Improvements (> -20% and <= -5%): {comparisonResult.Improvements.Count()} \n");
-            sw.AddTableForSingleCriteria(comparisonResult.Improvements);
+            sw.AddTablesForSingleCriteria(comparisonResult.Improvements);
             sw.WriteLine("\n");
 
             // Stale Regressions
             sw.WriteLine($"### Stale Regressions (> 0% and < 5%): {comparisonResult.StaleRegressions.Count()} \n");
-            sw.AddTableForSingleCriteria(comparisonResult.StaleRegressions);
+            sw.AddTablesForSingleCriteria(comparisonResult.StaleRegressions);
             sw.WriteLine("\n");
 
             // Stale Improvements
             sw.WriteLine($"### Stale Improvements (> -5% and <= 0%): {comparisonResult.StaleImprovements.Count()} \n");
-            sw.AddTableForSingleCriteria(comparisonResult.StaleImprovements);
+            sw.AddTablesForSingleCriteria(comparisonResult.StaleImprovements);
             sw.WriteLine("\n\n");
         }
-
-        internal static void AddTableForSingleCriteria(this StreamWriter sw,
-                                                       IEnumerable<GCTraceMetricComparisonResult> comparisons)
+        internal static void AddTablesForSingleCriteria(this StreamWriter sw,
+                                                        IEnumerable<GCTraceMetricComparisonResult> comparisons)
         {
             if (comparisons.ToList().Count == 0)
             {
                 sw.WriteLine("No metrics in this category.\n");
                 return;
             }
-            var runName = comparisons.FirstOrDefault()?.RunName;
-            sw.WriteLine($" | Metric | Base | {runName} | Δ%  |  Δ |");
-            sw.WriteLine($" | -----  | ---- | ------  | ---  |  --- |");
-            foreach (var r in comparisons)
+
+            foreach (var comparison in comparisons)
             {
-                sw.WriteLine($"| {r.MetricName} | {r.AveragedBaselineMetric:N2} | {r.AveragedComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
+                sw.AddTableForSingleMetric(comparison);
+                sw.WriteLine("\n");
             }
         }
+
+        internal static void AddTableForSingleMetric(this StreamWriter sw,
+                                                     GCTraceMetricComparisonResult comparison)
+        {
+            var runName = comparison.RunName;
+            var metricName = comparison.MetricName;
+            sw.WriteLine($" | {metricName} | Base | {runName} | Δ%  |  Δ |");
+            sw.WriteLine($" | -----  | ---- | ------  | ---  |  --- |");
+            int maxIterations = Math.Max(comparison.OriginalBaselineMetricCollection.Count(), comparison.OriginalComparandMetricCollection.Count());
+            for (int idx = 0; idx < maxIterations; idx++)
+            {
+                string baseRow = $"| iteration.{idx} ";
+                var baselineValue = comparison.OriginalBaselineMetricCollection?.ElementAtOrDefault(idx) ??double.NaN;
+                var comparandValue = comparison.OriginalComparandMetricCollection?.ElementAtOrDefault(idx) ?? double.NaN;
+                var baselineStr = double.IsNaN(baselineValue) || !(comparison.OutliersFreeBaselineMetricCollection?.Contains(baselineValue) ?? false) ? $"**~~{Math.Round(baselineValue, 2)}~~**" : Math.Round(baselineValue, 2).ToString();
+                var comparandStr = double.IsNaN(comparandValue) || !(comparison.OutliersFreeComparandMetricCollection?.Contains(comparandValue) ?? false) ? $"**~~{Math.Round(comparandValue, 2)}~~**" : Math.Round(comparandValue, 2).ToString();
+                baseRow += $"| {baselineStr} | {comparandStr} | | |";
+                sw.WriteLine(baseRow);
+            }
+
+            // Add Original Averaged, Diff and DiffPerc
+            var originalAveragedBaselineValue = comparison.OriginalAveragedBaselineMetric;
+            var originalAveragedComparandValue = comparison.OriginalAveragedComparandMetric;
+            var originalDiff = comparison.OriginalDelta;
+            var originalDiffPerc = comparison.OriginalRegressionPercentageDelta;
+            string originalAveragedRow = $"| Average | {Math.Round(originalAveragedBaselineValue, 2)} | {Math.Round(originalAveragedComparandValue, 2)} | {Math.Round(originalDiffPerc, 2)} | {Math.Round(originalDiff, 2)} |";
+            sw.WriteLine(originalAveragedRow);
+
+            // Add Corrective Averaged, Diff and DiffPerc
+            var averagedBaselineValue = comparison.AveragedBaselineMetric;
+            var averagedComparandValue = comparison.AveragedComparandMetric;
+            var diff = comparison.Delta;
+            var diffPerc = comparison.RegressionPercentageDelta;
+            string averagedRow = $"| Average (Corrected) | {Math.Round(averagedBaselineValue, 2)} | {Math.Round(averagedComparandValue, 2)} | {Math.Round(diffPerc, 2)} | {Math.Round(diff, 2)} |";
+            sw.WriteLine(averagedRow);
+        }
+
 
         internal static GCTraceMetricComparisonResult?
             GetGCTraceMetricComparisonResultByRunNameAndMetricName(IEnumerable<GCTraceMetricComparisonResults> comparisonResultsCollection,
