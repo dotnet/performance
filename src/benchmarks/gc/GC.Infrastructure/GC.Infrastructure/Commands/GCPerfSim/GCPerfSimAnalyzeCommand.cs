@@ -44,7 +44,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
         }
 
         public static void Present(GCPerfSimConfiguration configuration,
-                                   IEnumerable<GCTraceMetricComparisonResults> comparisonResultGroupedByRunName,
+                                   IReadOnlyCollection<GCTraceMetricComparisonResults> comparisonResultGroupedByRunName,
                                    Dictionary<string, ProcessExecutionDetails> executionDetails)
         {
             foreach (var format in configuration.Output.Formats)
