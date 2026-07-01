@@ -150,8 +150,9 @@ def try_provision_mlnet_resources(payload_dir: str) -> bool:
         "https://aka.ms/mlnet-resources/Text/Sswe/sentiment.emd",
     ]
 
-    # The model is ~70 MB; require at least this much so a truncated/early-closed response (which may
-    # not raise) is rejected instead of leaving a corrupt file in the payload.
+    # The model is ~70 MB. When the server doesn't send a Content-Length to validate against, require
+    # at least this much so a truncated/early-closed response (which may not raise) is rejected
+    # instead of leaving a corrupt file in the payload.
     min_expected_size = 60 * 1024 * 1024
 
     last_error: Optional[Exception] = None
@@ -167,9 +168,14 @@ def try_provision_mlnet_resources(payload_dir: str) -> bool:
                         shutil.copyfileobj(response, f)
 
                 size = os.path.getsize(tmp_dest)
-                if expected_size is not None and size != expected_size:
-                    raise Exception(f"size {size} does not match Content-Length {expected_size}")
-                if size < min_expected_size:
+                if expected_size is not None:
+                    # Content-Length fully validates completeness, so trust it regardless of size
+                    # (the asset could legitimately shrink without becoming invalid).
+                    if size != expected_size:
+                        raise Exception(f"size {size} does not match Content-Length {expected_size}")
+                elif size < min_expected_size:
+                    # No Content-Length to validate against; fall back to a minimum-size floor to
+                    # reject an obviously truncated/early-closed response.
                     raise Exception(f"size {size} is smaller than the expected minimum {min_expected_size}")
 
                 os.replace(tmp_dest, dest)
