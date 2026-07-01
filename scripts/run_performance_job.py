@@ -9,6 +9,7 @@ import shutil
 from subprocess import CalledProcessError
 import sys
 import tempfile
+import time
 from traceback import format_exc
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -119,6 +120,78 @@ class RunPerformanceJobArgs:
     build_config: str = DEFAULT_BUILD_CONFIG
     live_libraries_build_config: Optional[str] = None
     cross_build: bool = False
+
+# Subdirectory (inside the Helix correlation payload) that holds the pre-downloaded ML.NET resources.
+# On the Helix machine this is referenced as <HELIX_CORRELATION_PAYLOAD>/mlnet-resources.
+MLNET_RESOURCES_PAYLOAD_SUBDIR = "mlnet-resources"
+
+def try_provision_mlnet_resources(payload_dir: str) -> bool:
+    """
+    Pre-download the ML.NET SSWE word-embedding model into the correlation payload.
+
+    StochasticDualCoordinateAscentClassifierBench.TrainSentiment applies a pretrained word embedding
+    ('sentiment.emd', ~70 MB) that ML.NET otherwise downloads from https://aka.ms/mlnet-resources at
+    benchmark runtime. That download stalls on the Helix machines and hangs the whole mlnet work item
+    until it times out. Downloading it here on the build agent (reliable connectivity) and pointing
+    MICROSOFTML_RESOURCE_PATH at <payload>/mlnet-resources lets ML.NET load it from disk instead.
+    ML.NET resolves the model at <MICROSOFTML_RESOURCE_PATH>/Text/Sswe/sentiment.emd.
+
+    Best-effort: returns False on failure so the caller skips the env var and the previous
+    (runtime-download) behavior is left unchanged.
+    """
+    resource_root = os.path.join(payload_dir, MLNET_RESOURCES_PAYLOAD_SUBDIR)
+    dest = os.path.join(resource_root, "Text", "Sswe", "sentiment.emd")
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+
+    # The direct blob URL is the redirect target of the aka.ms link; prefer it to avoid the redirect,
+    # and fall back to the aka.ms link in case the blob path ever changes.
+    urls = [
+        "https://mlpublicassets.blob.core.windows.net/assets/Text/Sswe/sentiment.emd",
+        "https://aka.ms/mlnet-resources/Text/Sswe/sentiment.emd",
+    ]
+
+    # The model is ~70 MB. When the server doesn't send a Content-Length to validate against, require
+    # at least this much so a truncated/early-closed response (which may not raise) is rejected
+    # instead of leaving a corrupt file in the payload.
+    min_expected_size = 60 * 1024 * 1024
+
+    last_error: Optional[Exception] = None
+    for attempt in range(1, 6):
+        for url in urls:
+            tmp_dest = dest + ".tmp"
+            try:
+                getLogger().info(f"Downloading ML.NET SSWE model from {url} (attempt {attempt})")
+                with urllib.request.urlopen(url, timeout=300) as response:
+                    content_length = response.getheader("Content-Length")
+                    expected_size = int(content_length) if content_length else None
+                    with open(tmp_dest, "wb") as f:
+                        shutil.copyfileobj(response, f)
+
+                size = os.path.getsize(tmp_dest)
+                if expected_size is not None:
+                    # Content-Length fully validates completeness, so trust it regardless of size
+                    # (the asset could legitimately shrink without becoming invalid).
+                    if size != expected_size:
+                        raise Exception(f"size {size} does not match Content-Length {expected_size}")
+                elif size < min_expected_size:
+                    # No Content-Length to validate against; fall back to a minimum-size floor to
+                    # reject an obviously truncated/early-closed response.
+                    raise Exception(f"size {size} is smaller than the expected minimum {min_expected_size}")
+
+                os.replace(tmp_dest, dest)
+                getLogger().info(f"Downloaded ML.NET SSWE model ({size} bytes) to {dest}")
+                return True
+            except Exception as e:
+                last_error = e
+                getLogger().warning(f"Failed to download ML.NET SSWE model from {url}: {e}")
+                if os.path.exists(tmp_dest):
+                    os.remove(tmp_dest)
+        time.sleep(10)
+
+    getLogger().warning(
+        "Could not pre-provision the ML.NET SSWE model into the payload after retries "
+        f"(last error: {last_error}); ML.NET will attempt to download it at benchmark runtime.")
+    return False
 
 def get_pre_commands(
         os_group: str,
@@ -715,6 +788,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
     getLogger().info("Copying performance repository to payload directory")
     shutil.copytree(args.performance_repo_dir, performance_payload_dir, ignore=shutil.ignore_patterns("CorrelationStaging", ".git", "artifacts", ".dotnet", ".venv", ".vs"))
 
+    # For ML.NET runs, pre-download the SSWE word-embedding model into the payload so the benchmarks
+    # don't have to fetch it from the network on the (flaky) Helix machines. See
+    # try_provision_mlnet_resources for details. The matching MICROSOFTML_RESOURCE_PATH env var is
+    # set in the Helix pre-commands below when this succeeds.
+    mlnet_resources_provisioned = False
+    if args.run_kind == "mlnet":
+        mlnet_resources_provisioned = try_provision_mlnet_resources(payload_dir)
+
     if args.internal:
         creator = ""
         scenario_arguments = ["--upload-to-perflab-container"]
@@ -1036,6 +1117,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     helix_pre_commands = get_pre_commands(args.os_group, args.os_distro, args.internal, args.runtime_type, args.codegen_type, args.build_config, v8_version)
     helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
+
+    # Point ML.NET at the SSWE model that was pre-downloaded into the correlation payload above, so it
+    # loads the word embedding from disk instead of downloading it at benchmark runtime (which hangs
+    # the work item on Helix). %HELIX_CORRELATION_PAYLOAD% is expanded by the shell at run time.
+    if mlnet_resources_provisioned:
+        if args.os_group == "windows":
+            helix_pre_commands += [f"set \"MICROSOFTML_RESOURCE_PATH=%HELIX_CORRELATION_PAYLOAD%\\{MLNET_RESOURCES_PAYLOAD_SUBDIR}\""]
+        else:
+            helix_pre_commands += [f"export MICROSOFTML_RESOURCE_PATH=$HELIX_CORRELATION_PAYLOAD/{MLNET_RESOURCES_PAYLOAD_SUBDIR}"]
 
     ci_setup_arguments.local_build = args.local_build
 
