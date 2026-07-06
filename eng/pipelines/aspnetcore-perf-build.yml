@@ -81,6 +81,12 @@ pr: none
 variables:
 - name: _TeamName
   value: AspNetCore
+# The BCS {sha} is the triggering aspnetcore commit. resources.repositories.<alias>.version
+# is a RUNTIME variable, so it must be captured via a $[ ] runtime expression here and
+# consumed as the ordinary macro $(_AspNetCoreSha); a compile-time ${{ }} substitution of
+# the dotted name reaches pwsh literally and fails as CommandNotFoundException.
+- name: _AspNetCoreSha
+  value: $[ resources.repositories.aspnetcore.version ]
 # Lean build args mirrored from aspnetcore ci-public.yml. Deliberately omit
 # signing / installers / helix / publishing and any internal runtime download
 # (public feeds only) -- none contribute to the per-RID runtime pack.
@@ -105,6 +111,15 @@ resources:
         include:
         - main
 
+  containers:
+  # Cross-compilation prereq image (clang + /crossrootfs/arm64) required by the
+  # NativeAOT arm64 build leg. The plain 1es-ubuntu-2204 image has no arm64
+  # sysroot, so the aspnetcoretools NativeAOT tool fails to cross-link there.
+  # Matches aspnetcore ci-public.yml's arm64 leg. Only the arm64 build.sh step
+  # runs in this container (via step target); all other steps stay on the host.
+  - container: crossArm64
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net11.0-cross-arm64
+
 stages:
 
 # ============================================================================
@@ -128,7 +143,7 @@ stages:
     - template: /eng/pipelines/register-build-jobs.yml
       parameters:
         repoName: aspnetcore
-        sha: $(resources.repositories.aspnetcore.version)
+        sha: $(_AspNetCoreSha)
         buildType:
         - ${{ if eq(parameters.aspnetcore_x64_linux, true) }}:
           - aspnetcore_x64_linux
@@ -179,7 +194,7 @@ stages:
     - template: /eng/pipelines/upload-build-artifacts-jobs.yml
       parameters:
         repoName: aspnetcore
-        sha: $(resources.repositories.aspnetcore.version)
+        sha: $(_AspNetCoreSha)
         buildType:
         - ${{ if eq(parameters.aspnetcore_x64_linux, true) }}:
           - aspnetcore_x64_linux
