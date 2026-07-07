@@ -20,7 +20,12 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(_IsInnerLoop)' == 'true'">
-    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
+    <!-- The .NET 11 SDK blocks UseMonoRuntime for mobile TFMs with error NETSDK1242.
+         _DisableCheckForUnsupportedMonoMobileRuntime is the SDK's supported opt-out
+         (dotnet/sdk#54713; also used by dotnet/android and dotnet/runtime CI). It only
+         removes the guard, so the Mono net11 iOS runtime pack must still be resolvable
+         from the configured workload feed. -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true /p:_DisableCheckForUnsupportedMonoMobileRuntime=true</_MSBuildArgs>
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
     <iOSRid Condition="'$(iOSRid)' == ''">iossimulator-x64</iOSRid>
     <_MSBuildArgs>$(_MSBuildArgs) /p:RuntimeIdentifier=$(iOSRid)</_MSBuildArgs>
