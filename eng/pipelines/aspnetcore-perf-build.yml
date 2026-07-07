@@ -17,7 +17,8 @@
 # HOW PER-COMMIT FIRING WORKS: the aspnetcore AzDO mirror
 # (internal/dotnet-aspnetcore) is declared as a repository resource with a CI
 # `trigger` on main. A push to aspnetcore main fires this pipeline
-# (Build.Reason == ResourceTrigger). The build jobs check out that resource at
+# (Build.Reason == IndividualCI -- a repository-resource CI trigger surfaces as
+# IndividualCI, NOT ResourceTrigger). The build jobs check out that resource at
 # the triggering commit.
 #
 # SHA INVERSION (load-bearing): because the pipeline is hosted in performance,
@@ -126,7 +127,7 @@ stages:
 # RegisterBuild -- writes a per-configKey buildInfo.json marker to BCS at
 #   $web/builds/aspnetcore/buildArtifacts/{sha}/{configKey}/buildInfo.json
 # Runs in parallel with Build (dependsOn: []). Gated to internal +
-# (ResourceTrigger | Manual): ResourceTrigger is the steady-state per-commit
+# (IndividualCI | Manual): IndividualCI is the steady-state per-commit
 # flow, Manual covers seed/runbook queues.
 #
 # The aspnetcore commit this build corresponds to is NOT tagged on the run: the
@@ -135,7 +136,7 @@ stages:
 # build carrying the aspnetcore repo resource). The BCS {sha} path override below
 # still uses that same value.
 # ============================================================================
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'ResourceTrigger'), eq(variables['Build.Reason'], 'Manual'))) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual'))) }}:
   - stage: RegisterBuild
     displayName: 'Register Build'
     dependsOn: []
@@ -158,14 +159,14 @@ stages:
 
 # Build checks out the internal-only aspnetcore resource on the internal DncEng
 # pool, so it cannot succeed outside the internal project. Gate it with the same
-# internal + (ResourceTrigger | Manual) expression as the sibling stages. This is
+# internal + (IndividualCI | Manual) expression as the sibling stages. This is
 # a runtime `condition:` (not the `${{ if }}` the siblings use) so the stage is
 # present-but-skipped in public/non-trigger contexts -- if all three stages were
 # `${{ if }}`-removed the pipeline would compile to zero stages, which is invalid.
 - stage: Build
   displayName: Build
   dependsOn: []
-  condition: and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'ResourceTrigger'), eq(variables['Build.Reason'], 'Manual')))
+  condition: and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual')))
   jobs:
   - template: /eng/pipelines/aspnetcore-perf-build-jobs.yml
     parameters:
@@ -181,9 +182,9 @@ stages:
 # UploadArtifacts -- downloads each Build-stage pipeline artifact and uploads it
 # to $web/builds/aspnetcore/buildArtifacts/{sha}/{configKey}/{file}. Depends on
 # Build + RegisterBuild; condition succeeded() so any failure skips indexing.
-# Same internal + (ResourceTrigger | Manual) gate as RegisterBuild.
+# Same internal + (IndividualCI | Manual) gate as RegisterBuild.
 # ============================================================================
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'ResourceTrigger'), eq(variables['Build.Reason'], 'Manual'))) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual'))) }}:
   - stage: UploadArtifacts
     displayName: 'Upload Artifacts to BCS'
     dependsOn:
