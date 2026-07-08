@@ -156,12 +156,12 @@ def try_provision_mlnet_resources(payload_dir: str) -> bool:
     min_expected_size = 60 * 1024 * 1024
 
     last_error: Optional[Exception] = None
-    for attempt in range(1, 6):
+    for attempt in range(1, 4):
         for url in urls:
             tmp_dest = dest + ".tmp"
             try:
                 getLogger().info(f"Downloading ML.NET SSWE model from {url} (attempt {attempt})")
-                with urllib.request.urlopen(url, timeout=300) as response:
+                with urllib.request.urlopen(url, timeout=60) as response:
                     content_length = response.getheader("Content-Length")
                     expected_size = int(content_length) if content_length else None
                     with open(tmp_dest, "wb") as f:
