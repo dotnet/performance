@@ -158,7 +158,8 @@ def try_provision_mlnet_resources(payload_dir: str) -> bool:
     ]
 
     last_error: Optional[Exception] = None
-    for attempt in range(1, 4):
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
         for url in urls:
             tmp_dest = dest + ".tmp"
             try:
@@ -185,7 +186,9 @@ def try_provision_mlnet_resources(payload_dir: str) -> bool:
                 getLogger().warning(f"Failed to download ML.NET SSWE model from {url}: {e}")
                 if os.path.exists(tmp_dest):
                     os.remove(tmp_dest)
-        time.sleep(10)
+        # Only wait between attempts, not after the final one.
+        if attempt < max_attempts:
+            time.sleep(10)
 
     getLogger().warning(
         "Could not pre-provision the ML.NET SSWE model into the payload after retries "
@@ -1112,7 +1115,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.os_group == "windows":
             helix_pre_commands += [f"set \"MICROSOFTML_RESOURCE_PATH=%HELIX_CORRELATION_PAYLOAD%\\{MLNET_RESOURCES_PAYLOAD_SUBDIR}\""]
         else:
-            helix_pre_commands += [f"export MICROSOFTML_RESOURCE_PATH=$HELIX_CORRELATION_PAYLOAD/{MLNET_RESOURCES_PAYLOAD_SUBDIR}"]
+            helix_pre_commands += [f"export MICROSOFTML_RESOURCE_PATH=\"$HELIX_CORRELATION_PAYLOAD/{MLNET_RESOURCES_PAYLOAD_SUBDIR}\""]
 
     ci_setup_arguments.local_build = args.local_build
 
