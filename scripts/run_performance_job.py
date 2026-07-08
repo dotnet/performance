@@ -3,6 +3,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import timedelta
 from glob import glob
+import hashlib
 import json
 import os
 import shutil
@@ -125,6 +126,12 @@ class RunPerformanceJobArgs:
 # On the Helix machine this is referenced as <HELIX_CORRELATION_PAYLOAD>/mlnet-resources.
 MLNET_RESOURCES_PAYLOAD_SUBDIR = "mlnet-resources"
 
+# Known-good SHA256 of the SSWE word-embedding model (sentiment.emd, 73,674,434 bytes). The asset is
+# a fixed pretrained model and is not expected to change; validating the hash guarantees we shipped a
+# complete, uncorrupted file (a truncated or proxy-mangled response won't match). If the upstream
+# asset is ever intentionally updated, recompute and update this value.
+MLNET_SSWE_MODEL_SHA256 = "a8062ef5d3a1ffc079a2b3c439a5533279f4ac6d85882ca8488fb8ff239fefdd"
+
 def try_provision_mlnet_resources(payload_dir: str) -> bool:
     """
     Pre-download the ML.NET SSWE word-embedding model into the correlation payload.
@@ -150,11 +157,6 @@ def try_provision_mlnet_resources(payload_dir: str) -> bool:
         "https://aka.ms/mlnet-resources/Text/Sswe/sentiment.emd",
     ]
 
-    # The model is ~70 MB. When the server doesn't send a Content-Length to validate against, require
-    # at least this much so a truncated/early-closed response (which may not raise) is rejected
-    # instead of leaving a corrupt file in the payload.
-    min_expected_size = 60 * 1024 * 1024
-
     last_error: Optional[Exception] = None
     for attempt in range(1, 4):
         for url in urls:
@@ -162,24 +164,21 @@ def try_provision_mlnet_resources(payload_dir: str) -> bool:
             try:
                 getLogger().info(f"Downloading ML.NET SSWE model from {url} (attempt {attempt})")
                 with urllib.request.urlopen(url, timeout=60) as response:
-                    content_length = response.getheader("Content-Length")
-                    expected_size = int(content_length) if content_length else None
                     with open(tmp_dest, "wb") as f:
                         shutil.copyfileobj(response, f)
 
-                size = os.path.getsize(tmp_dest)
-                if expected_size is not None:
-                    # Content-Length fully validates completeness, so trust it regardless of size
-                    # (the asset could legitimately shrink without becoming invalid).
-                    if size != expected_size:
-                        raise Exception(f"size {size} does not match Content-Length {expected_size}")
-                elif size < min_expected_size:
-                    # No Content-Length to validate against; fall back to a minimum-size floor to
-                    # reject an obviously truncated/early-closed response.
-                    raise Exception(f"size {size} is smaller than the expected minimum {min_expected_size}")
+                # The model is a fixed asset, so verify the exact hash to reject any truncated or
+                # corrupted download before it can be shipped in the payload.
+                sha256 = hashlib.sha256()
+                with open(tmp_dest, "rb") as f:
+                    for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                        sha256.update(chunk)
+                actual_hash = sha256.hexdigest()
+                if actual_hash != MLNET_SSWE_MODEL_SHA256:
+                    raise Exception(f"sha256 {actual_hash} does not match expected {MLNET_SSWE_MODEL_SHA256}")
 
                 os.replace(tmp_dest, dest)
-                getLogger().info(f"Downloaded ML.NET SSWE model ({size} bytes) to {dest}")
+                getLogger().info(f"Downloaded and verified ML.NET SSWE model to {dest}")
                 return True
             except Exception as e:
                 last_error = e
