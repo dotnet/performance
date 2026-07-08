@@ -17,7 +17,8 @@
 # HOW PER-COMMIT FIRING WORKS: the aspnetcore AzDO mirror
 # (internal/dotnet-aspnetcore) is declared as a repository resource with a CI
 # `trigger` on main. A push to aspnetcore main fires this pipeline
-# (Build.Reason == ResourceTrigger). The build jobs check out that resource at
+# (Build.Reason == IndividualCI -- a repository-resource CI trigger surfaces as
+# IndividualCI, NOT ResourceTrigger). The build jobs check out that resource at
 # the triggering commit.
 #
 # SHA INVERSION (load-bearing): because the pipeline is hosted in performance,
@@ -81,6 +82,12 @@ pr: none
 variables:
 - name: _TeamName
   value: AspNetCore
+# The BCS {sha} is the triggering aspnetcore commit. resources.repositories.<alias>.version
+# is a RUNTIME variable, so it must be captured via a $[ ] runtime expression here and
+# consumed as the ordinary macro $(_AspNetCoreSha); a compile-time ${{ }} substitution of
+# the dotted name reaches pwsh literally and fails as CommandNotFoundException.
+- name: _AspNetCoreSha
+  value: $[ resources.repositories.aspnetcore.version ]
 # Lean build args mirrored from aspnetcore ci-public.yml. Deliberately omit
 # signing / installers / helix / publishing and any internal runtime download
 # (public feeds only) -- none contribute to the per-RID runtime pack.
@@ -105,13 +112,22 @@ resources:
         include:
         - main
 
+  containers:
+  # Cross-compilation prereq image (clang + /crossrootfs/arm64) required by the
+  # NativeAOT arm64 build leg. The plain 1es-ubuntu-2204 image has no arm64
+  # sysroot, so the aspnetcoretools NativeAOT tool fails to cross-link there.
+  # Matches aspnetcore ci-public.yml's arm64 leg. Only the arm64 build.sh step
+  # runs in this container (via step target); all other steps stay on the host.
+  - container: crossArm64
+    image: mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-net11.0-cross-arm64
+
 stages:
 
 # ============================================================================
 # RegisterBuild -- writes a per-configKey buildInfo.json marker to BCS at
 #   $web/builds/aspnetcore/buildArtifacts/{sha}/{configKey}/buildInfo.json
 # Runs in parallel with Build (dependsOn: []). Gated to internal +
-# (ResourceTrigger | Manual): ResourceTrigger is the steady-state per-commit
+# (IndividualCI | Manual): IndividualCI is the steady-state per-commit
 # flow, Manual covers seed/runbook queues.
 #
 # The aspnetcore commit this build corresponds to is NOT tagged on the run: the
@@ -120,7 +136,7 @@ stages:
 # build carrying the aspnetcore repo resource). The BCS {sha} path override below
 # still uses that same value.
 # ============================================================================
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'ResourceTrigger'), eq(variables['Build.Reason'], 'Manual'))) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual'))) }}:
   - stage: RegisterBuild
     displayName: 'Register Build'
     dependsOn: []
@@ -128,7 +144,7 @@ stages:
     - template: /eng/pipelines/register-build-jobs.yml
       parameters:
         repoName: aspnetcore
-        sha: $(resources.repositories.aspnetcore.version)
+        sha: $(_AspNetCoreSha)
         buildType:
         - ${{ if eq(parameters.aspnetcore_x64_linux, true) }}:
           - aspnetcore_x64_linux
@@ -143,14 +159,14 @@ stages:
 
 # Build checks out the internal-only aspnetcore resource on the internal DncEng
 # pool, so it cannot succeed outside the internal project. Gate it with the same
-# internal + (ResourceTrigger | Manual) expression as the sibling stages. This is
+# internal + (IndividualCI | Manual) expression as the sibling stages. This is
 # a runtime `condition:` (not the `${{ if }}` the siblings use) so the stage is
 # present-but-skipped in public/non-trigger contexts -- if all three stages were
 # `${{ if }}`-removed the pipeline would compile to zero stages, which is invalid.
 - stage: Build
   displayName: Build
   dependsOn: []
-  condition: and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'ResourceTrigger'), eq(variables['Build.Reason'], 'Manual')))
+  condition: and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual')))
   jobs:
   - template: /eng/pipelines/aspnetcore-perf-build-jobs.yml
     parameters:
@@ -166,9 +182,9 @@ stages:
 # UploadArtifacts -- downloads each Build-stage pipeline artifact and uploads it
 # to $web/builds/aspnetcore/buildArtifacts/{sha}/{configKey}/{file}. Depends on
 # Build + RegisterBuild; condition succeeded() so any failure skips indexing.
-# Same internal + (ResourceTrigger | Manual) gate as RegisterBuild.
+# Same internal + (IndividualCI | Manual) gate as RegisterBuild.
 # ============================================================================
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'ResourceTrigger'), eq(variables['Build.Reason'], 'Manual'))) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual'))) }}:
   - stage: UploadArtifacts
     displayName: 'Upload Artifacts to BCS'
     dependsOn:
@@ -179,7 +195,7 @@ stages:
     - template: /eng/pipelines/upload-build-artifacts-jobs.yml
       parameters:
         repoName: aspnetcore
-        sha: $(resources.repositories.aspnetcore.version)
+        sha: $(_AspNetCoreSha)
         buildType:
         - ${{ if eq(parameters.aspnetcore_x64_linux, true) }}:
           - aspnetcore_x64_linux
