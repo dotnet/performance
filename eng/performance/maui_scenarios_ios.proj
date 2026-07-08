@@ -31,6 +31,12 @@
     <_MSBuildArgs>$(_MSBuildArgs) /p:RuntimeIdentifier=$(iOSRid)</_MSBuildArgs>
     <_MSBuildArgs Condition="'$(iOSRid)' == 'ios-arm64'">$(_MSBuildArgs) /p:EnableCodeSigning=false</_MSBuildArgs>
     <_MSBuildArgs>$(_MSBuildArgs) /p:MtouchLink=None</_MSBuildArgs>
+    <!-- The net11 iOS SDK pack (26.5.x-net11-p7) requires Xcode 26.6, but the
+         Mac.iPhone.13.Perf queue currently has Xcode 26.5. The 26.5 and 26.6 iOS
+         SDKs are identical (dotnet/macios#25658), so skip the strict version check
+         to unblock the build. Temporary — remove once the queue's Xcode matches the
+         workload. Runtime-agnostic, so applied to both Mono and CoreCLR. -->
+    <_MSBuildArgs>$(_MSBuildArgs) /p:ValidateXcodeVersion=false</_MSBuildArgs>
     <RunConfigsString>$(RuntimeFlavor)_Default</RunConfigsString>
     <InnerLoopIterations Condition="'$(InnerLoopIterations)' == ''">3</InnerLoopIterations>
     <_MacEnvVars>export DOTNET_ROOT=$HELIX_CORRELATION_PAYLOAD/dotnet;export DOTNET_CLI_TELEMETRY_OPTOUT=1;export DOTNET_MULTILEVEL_LOOKUP=0;export NUGET_PACKAGES=$HELIX_WORKITEM_ROOT/.packages;export PATH=$HELIX_CORRELATION_PAYLOAD/dotnet:$PATH</_MacEnvVars>
