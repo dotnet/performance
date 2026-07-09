@@ -49,7 +49,9 @@ public class X509LocalCertStore : ILocalCertStore
 
     public X509LocalCertStore(IX509Store? store = null)
     {
-        _store = store ?? new TestableX509Store();
+        // Open read-write by default so rotation works. TestableX509Store opens the store in its
+        // constructor, so GetCertificates and Rotate both operate on the same already-open handle.
+        _store = store ?? new TestableX509Store(OpenFlags.ReadWrite);
     }
 
     public X509Certificate2Collection GetCertificates()
@@ -60,16 +62,8 @@ public class X509LocalCertStore : ILocalCertStore
     public void Rotate(X509Certificate2Collection certsToRemove, X509Certificate2Collection certsToAdd)
     {
         var store = _store.GetX509Store();
-        store.Open(OpenFlags.ReadWrite);
-        try
-        {
-            store.RemoveRange(certsToRemove);
-            store.AddRange(certsToAdd);
-        }
-        finally
-        {
-            store.Close();
-        }
+        store.RemoveRange(certsToRemove);
+        store.AddRange(certsToAdd);
     }
 }
 
@@ -134,6 +128,18 @@ public class FileLocalCertStore : ILocalCertStore
         {
             var path = Path.Combine(_directory, $"{cert.Thumbprint}.pfx");
             File.WriteAllBytes(path, cert.Export(X509ContentType.Pfx));
+            RestrictToOwner(path);
+        }
+    }
+
+    // Private keys are written to disk as unprotected PFX files. On macOS (the only platform that
+    // uses this file-backed store) restrict them to owner read/write so the keys are not exposed if
+    // the directory permissions or umask are permissive.
+    private static void RestrictToOwner(string path)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
         }
     }
 }
