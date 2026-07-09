@@ -62,8 +62,7 @@ namespace System.IO.Tests
     }
 
     /// <summary>
-    /// Benchmarks for BinaryWriter with a non-UTF-8 encoding, exercising the
-    /// _useFastUtf8 = false code path.
+    /// Benchmarks for BinaryWriter using a non-UTF-8 encoding (Encoding.Unicode).
     /// </summary>
     [BenchmarkCategory(Categories.Libraries)]
     public class BinaryWriterUnicodeEncodingTests
@@ -84,7 +83,7 @@ namespace System.IO.Tests
 
             _asciiInput = new string('x', StringLengthInChars);
             _asciiInputAsChars = _asciiInput.ToCharArray();
-            // '\u00E0' (à) encodes to 2 bytes in UTF-8, exercising multi-byte encoding paths
+            // Use a representative non-ASCII BMP character ('\u00E0', à).
             _nonAsciiInput = new string('\u00E0', StringLengthInChars);
             _nonAsciiInputAsChars = _nonAsciiInput.ToCharArray();
         }

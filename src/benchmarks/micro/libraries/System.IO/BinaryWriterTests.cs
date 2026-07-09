@@ -81,8 +81,8 @@ namespace System.IO.Tests
     }
 
     /// <summary>
-    /// Benchmarks for BinaryWriter with a non-UTF-8 encoding, exercising the
-    /// _useFastUtf8 = false code path for Write(char).
+    /// Benchmarks for BinaryWriter using a non-UTF-8 encoding (Encoding.Unicode),
+    /// exercising the non-UTF-8 path used by Write(char).
     /// </summary>
     [BenchmarkCategory(Categories.Libraries)]
     public class BinaryWriterUnicodeEncodingCharTests
@@ -104,7 +104,7 @@ namespace System.IO.Tests
         [Benchmark]
         public void WriteNonAsciiChar()
         {
-            // '\u00E0' (à) encodes to 2 bytes in UTF-8, exercising multi-byte encoding paths
+            // Use a representative non-ASCII BMP character ('\u00E0', à).
             _bw.Write('\u00E0');
         }
     }
