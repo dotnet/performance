@@ -12,7 +12,7 @@ public class LocalCertTests
     public void GetLocalCerts_ShouldAddCertificatesToCollection()
     {
         // Arrange
-        var mockStore = new Mock<IX509Store>();
+        var mockStore = new Mock<ILocalCertStore>();
         var ecdsa1 = ECDsa.Create(); // generate asymmetric key pair
         var req1 = new CertificateRequest("CN=dotnetperf.microsoft.com", ecdsa1, HashAlgorithmName.SHA256);
         var cert1 = req1.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
@@ -24,7 +24,7 @@ public class LocalCertTests
         var mockCert2 = cert2;
 
         var certCollection = new X509Certificate2Collection { mockCert1, mockCert2 };
-        mockStore.Setup(s => s.Certificates).Returns(certCollection);
+        mockStore.Setup(s => s.GetCertificates()).Returns(certCollection);
 
 
 
@@ -41,7 +41,7 @@ public class LocalCertTests
     public void GetLocalCerts_ShouldAddCertificatesToCollection_WhenSubjectMatches()
     {
         // Arrange
-        var mockStore = new Mock<IX509Store>();
+        var mockStore = new Mock<ILocalCertStore>();
         var ecdsa1 = ECDsa.Create(); // generate asymmetric key pair
         var req1 = new CertificateRequest("CN=dotnetperf.microsoft.com", ecdsa1, HashAlgorithmName.SHA256);
         var cert1 = req1.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
@@ -53,7 +53,7 @@ public class LocalCertTests
         var mockCert2 = cert2;
 
         var certCollection = new X509Certificate2Collection { mockCert1, mockCert2 };
-        mockStore.Setup(s => s.Certificates).Returns(certCollection);
+        mockStore.Setup(s => s.GetCertificates()).Returns(certCollection);
 
         // Act
         var localCert = new LocalCert(mockStore.Object);
@@ -68,12 +68,12 @@ public class LocalCertTests
     public void GetLocalCerts_ShouldRequireBootstrap_WhenOneCertificateFound()
     {
         // Arrange
-        var mockStore = new Mock<IX509Store>();
+        var mockStore = new Mock<ILocalCertStore>();
         var ecdsa1 = ECDsa.Create(); // generate asymmetric key pair
         var req1 = new CertificateRequest("CN=dotnetperf.microsoft.com", ecdsa1, HashAlgorithmName.SHA256);
         var cert1 = req1.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
         var certCollection = new X509Certificate2Collection { cert1 };
-        mockStore.Setup(s => s.Certificates).Returns(certCollection);
+        mockStore.Setup(s => s.GetCertificates()).Returns(certCollection);
 
         // Act
         var localCert = new LocalCert(mockStore.Object);
@@ -86,7 +86,7 @@ public class LocalCertTests
     public void GetLocalCerts_ShouldRequireBootstrap_WhenCertificatesHaveWrongSubject()
     {
         // Arrange
-        var mockStore = new Mock<IX509Store>();
+        var mockStore = new Mock<ILocalCertStore>();
         var ecdsa1 = ECDsa.Create(); // generate asymmetric key pair
         var req1 = new CertificateRequest("CN=dotnetperf.microsoft.co", ecdsa1, HashAlgorithmName.SHA256);
         var cert1 = req1.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
@@ -95,7 +95,7 @@ public class LocalCertTests
         var cert2 = req1.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
 
         var certCollection = new X509Certificate2Collection { cert1, cert2 };
-        mockStore.Setup(s => s.Certificates).Returns(certCollection);
+        mockStore.Setup(s => s.GetCertificates()).Returns(certCollection);
 
         // Act
         var localCert = new LocalCert(mockStore.Object);
@@ -108,9 +108,9 @@ public class LocalCertTests
     public void GetLocalCerts_ShouldRequireBootstrap_WhenCertificatesNotFound()
     {
         // Arrange
-        var mockStore = new Mock<IX509Store>();
+        var mockStore = new Mock<ILocalCertStore>();
         var certCollection = new X509Certificate2Collection();
-        mockStore.Setup(s => s.Certificates).Returns(certCollection);
+        mockStore.Setup(s => s.GetCertificates()).Returns(certCollection);
 
         // Act
         var localCert = new LocalCert(mockStore.Object);
@@ -123,7 +123,7 @@ public class LocalCertTests
     public void GetLocalCerts_ShouldNotRequireBootstrap_WhenCertificatesFound()
     {
         // Arrange
-        var mockStore = new Mock<IX509Store>();
+        var mockStore = new Mock<ILocalCertStore>();
         var ecdsa1 = ECDsa.Create();
         var req1 = new CertificateRequest("CN=dotnetperf.microsoft.com", ecdsa1, HashAlgorithmName.SHA256);
         var cert1 = req1.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
@@ -132,7 +132,7 @@ public class LocalCertTests
         var cert2 = req2.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
 
         var certCollection = new X509Certificate2Collection { cert1, cert2 };
-        mockStore.Setup(s => s.Certificates).Returns(certCollection);
+        mockStore.Setup(s => s.GetCertificates()).Returns(certCollection);
 
         // Act
         var localCert = new LocalCert(mockStore.Object);
