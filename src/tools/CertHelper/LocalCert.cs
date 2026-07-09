@@ -13,11 +13,11 @@ public class LocalCert : ILocalCert
 {
     public X509Certificate2Collection Certificates { get; set; }
     public bool RequiresBootstrap { get; private set; }
-    internal IX509Store LocalMachineCerts { get; set; }
+    internal ILocalCertStore LocalCertStore { get; set; }
 
-    public LocalCert(IX509Store? store = null)
+    public LocalCert(ILocalCertStore? store = null)
     {
-        LocalMachineCerts = store ?? new TestableX509Store();
+        LocalCertStore = store ?? LocalCertStoreFactory.Create();
         Certificates = new X509Certificate2Collection();
         RequiresBootstrap = false;
         GetLocalCerts();
@@ -25,7 +25,7 @@ public class LocalCert : ILocalCert
 
     private void GetLocalCerts()
     {
-        foreach (var cert in LocalMachineCerts.Certificates.Find(X509FindType.FindBySubjectName, "dotnetperf.microsoft.com", false))
+        foreach (var cert in LocalCertStore.GetCertificates().Find(X509FindType.FindBySubjectName, "dotnetperf.microsoft.com", false))
         {
             if (cert.Subject == "CN=dotnetperf.microsoft.com")
             {

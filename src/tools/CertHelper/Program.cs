@@ -15,19 +15,18 @@ internal class Program
 
     static async Task<int> Main(string[] args)
     {
+        var certStore = LocalCertStoreFactory.Create();
+        X509Certificate2Collection? certsToExport = null;
         try
         {
-            var kvc = new KeyVaultCert();
+            var localCerts = new LocalCert(certStore);
+            var kvc = new KeyVaultCert(localCerts: localCerts);
             await kvc.LoadKeyVaultCertsAsync();
             if (kvc.ShouldRotateCerts())
             {
-                using (var localMachineCerts = new X509Store(StoreName.My, StoreLocation.CurrentUser))
-                {
-                    localMachineCerts.Open(OpenFlags.ReadWrite);
-                    localMachineCerts.RemoveRange(kvc.LocalCerts.Certificates);
-                    localMachineCerts.AddRange(kvc.KeyVaultCertificates);
-                }
+                certStore.Rotate(kvc.LocalCerts.Certificates, kvc.KeyVaultCertificates);
             }
+            certsToExport = kvc.KeyVaultCertificates;
             var bcc = new BlobContainerClient(new Uri("https://pvscmdupload.blob.core.windows.net/certstatus"),
                 new ClientCertificateCredential(TENANT_ID, CERT_CLIENT_ID, kvc.KeyVaultCertificates.First(), new() {SendCertificateChain = true}));
             var currentKeyValutCertThumbprints = "";
@@ -55,12 +54,14 @@ internal class Program
             Console.Error.WriteLine(ex.StackTrace);
         }
 
-        using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser, OpenFlags.ReadOnly))
+        // Export the current certificates to stdout. Prefer the in-memory Key Vault certificates
+        // (loaded as exportable) so we never round-trip through the OS store, which cannot export
+        // private keys on macOS. If Key Vault auth failed above, fall back to whatever is currently
+        // persisted locally so callers can still attempt to use existing certificates.
+        var exportSource = certsToExport ?? certStore.GetCertificates();
+        foreach (var cert in exportSource.Find(X509FindType.FindBySubjectName, "dotnetperf.microsoft.com", false))
         {
-            foreach(var cert in store.Certificates.Find(X509FindType.FindBySubjectName, "dotnetperf.microsoft.com", false))
-            {
-                Console.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Pfx)));
-            }
+            Console.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Pfx)));
         }
         return 0;
     }
