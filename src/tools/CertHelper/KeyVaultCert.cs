@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -149,10 +150,18 @@ public class KeyVaultCert
             throw new Exception("Certificate secret not found in Key Vault");
         }
         var certBytes = Convert.FromBase64String(secret.Value.Value);
+
+        // On macOS, PersistKeySet imports the private key into the login Keychain, which then cannot
+        // export the private key back out (the same limitation the file-backed store works around).
+        // That produces public-only PFX exports (roughly half the expected size). Load the key as
+        // Exportable only so it stays in memory and can be exported to the file-backed store.
+        var storageFlags = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+            ? X509KeyStorageFlags.Exportable
+            : X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet;
 #if NET9_0_OR_GREATER        
-        var cert = X509CertificateLoader.LoadPkcs12(certBytes, "", X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
+        var cert = X509CertificateLoader.LoadPkcs12(certBytes, "", storageFlags);
 #else
-        var cert = new X509Certificate2(certBytes, "", X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
+        var cert = new X509Certificate2(certBytes, "", storageFlags);
 #endif
         return cert;
     }
