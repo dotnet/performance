@@ -1,5 +1,4 @@
 ﻿using GC.Infrastructure.Core.Configurations.GCPerfSim;
-using GC.Infrastructure.Core.Presentation.GCPerfSim;
 using System.Collections.Concurrent;
 using API = GC.Analysis.API;
 
@@ -67,6 +66,50 @@ namespace GC.Infrastructure.Core.Analysis
 
         public static GCTraceMetricComparisonResult CompareGCTraceMetric(IEnumerable<GCTraceMetrics> baselines, IEnumerable<GCTraceMetrics> comparands, string nameOfMetric)
             => new GCTraceMetricComparisonResult(baselines, comparands, nameOfMetric);
+
+        public static IReadOnlyCollection<GCTraceMetricComparisonResult>
+            CompareGCPerfsimResults(string baselinePath, string comparandPath)
+        {
+            using (API.Analyzer baselineAnalyzer = API.AnalyzerManager.GetAnalyzer(baselinePath),
+                comparandAnalyzer = API.AnalyzerManager.GetAnalyzer(comparandPath))
+            {
+                var baselines = new List<GCTraceMetrics>();
+                var baselineProcessData = AnalyzeTrace.GetGCProcessDataForGCPerfSim(baselineAnalyzer);
+                var baselineRunName = baselinePath.Split(".")[0];
+                var baselineConfigurationName = Path.GetFileNameWithoutExtension(baselinePath);
+                if (baselineProcessData != null)
+                {
+                    baselines.Add(
+                        new GCTraceMetrics(baselineProcessData, baselineRunName, baselineConfigurationName));
+                }
+
+                var comparands = new List<GCTraceMetrics>();
+                var comparandProcessData = AnalyzeTrace.GetGCProcessDataForGCPerfSim(comparandAnalyzer);
+                var comparandRunName = comparandPath.Split(".")[0];
+                var comparandConfigurationName = Path.GetFileNameWithoutExtension(comparandPath);
+                if (comparandProcessData != null)
+                {
+                    comparands.Add(
+                        new GCTraceMetrics(comparandProcessData, comparandRunName, comparandConfigurationName));
+                }
+
+                List<GCTraceMetricComparisonResult> allComparisonResults = new();
+                foreach (var property in typeof(GCTraceMetrics).GetProperties())
+                {
+                    if (property.PropertyType != typeof(double))
+                    {
+                        continue;
+                    }
+
+                    string propertyNameToCheck = property.Name.ToLowerInvariant();
+
+                    var comparisonResult = CompareGCTraceMetric(baselines, comparands, property.Name);
+                    allComparisonResults.Add(comparisonResult);
+                }
+
+                return allComparisonResults;
+            }
+        }
 
         public static IReadOnlyCollection<GCTraceMetricComparisonResult>
             CompareGCTraceMetrics(GCPerfSimConfiguration configuration, IEnumerable<GCTraceMetrics> allGCPerfsimResults)

@@ -1,5 +1,4 @@
-﻿using GC.Analysis.API;
-using GC.Infrastructure.Core.Analysis;
+﻿using GC.Infrastructure.Core.Analysis;
 using GC.Infrastructure.Core.Configurations.GCPerfSim;
 using System.Text;
 
@@ -7,7 +6,8 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 {
     public static class Markdown
     {
-        public static void GenerateComparisonTable(ResultItem baseResultItem, ResultItem comparandResultItem, string path)
+        public static void GenerateForCompareCommand(GCTraceMetricComparisonResults comparisonResult,
+                                                     string path)
         {
             using (StreamWriter sw = new StreamWriter(path))
             {
@@ -17,15 +17,19 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
                 sw.WriteLine("| *ExecutionTime (MSec)* - base | comparand | Δ% | *% GC Pause Time* - base | comparand | Δ% |");
                 sw.WriteLine("|  ---------------------------  | --------- | ---| ------------------------------- | --------- | ---|");
-                // Go through all the runs, get the baseline and the comparand values.
 
-                double metric1_Base = baseResultItem.ExecutionTimeMSec;
-                double metric2_Base = baseResultItem.PctTimePausedInGC;
+                var executionTimeMSecMetric = GetGCTraceMetricComparisonResultByMetricName(comparisonResult, "ExecutionTimeMSec");
+                var pctTimePausedInGCMetric = GetGCTraceMetricComparisonResultByMetricName(comparisonResult, "PctTimePausedInGC");
+                double metric1_Base = executionTimeMSecMetric?.AveragedBaselineMetric ?? double.NaN;
+                double metric2_Base = pctTimePausedInGCMetric?.AveragedBaselineMetric ?? double.NaN;
 
-                double metric1_Comparand = comparandResultItem.ExecutionTimeMSec;
-                double metric2_Comparand = comparandResultItem.PctTimePausedInGC;
+                double metric1_Comparand = executionTimeMSecMetric?.AveragedComparandMetric ?? double.NaN;
+                double metric2_Comparand = pctTimePausedInGCMetric?.AveragedComparandMetric ?? double.NaN;
 
-                sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {((metric1_Comparand - metric1_Base) / metric1_Base) * 100:N2} | {metric2_Base:N2} |  {metric2_Comparand:N2} | {((metric2_Comparand - metric2_Base) / metric2_Base * 100):N2}| ");
+                double metric1_PercentageDelta = executionTimeMSecMetric?.PercentageDelta ?? double.NaN;
+                double metric2_PercentageDelta = pctTimePausedInGCMetric?.PercentageDelta ?? double.NaN;
+
+                sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {metric1_PercentageDelta:N2} | {metric2_Base:N2} |  {metric2_Comparand:N2} | {metric2_PercentageDelta:N2}| ");
 
                 sw.WriteLine();
 
@@ -33,21 +37,24 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 sw.WriteLine("| *Mean Heap Size Before (MB)* - base | comparand | Δ% |");
                 sw.WriteLine("|  ---------------------------  | --------- | ---|");
 
-                metric1_Base = baseResultItem.HeapSizeBeforeMB_Mean;
-                metric1_Comparand = comparandResultItem.HeapSizeBeforeMB_Mean;
+                var heapSizeBeforeMBMetric = GetGCTraceMetricComparisonResultByMetricName(comparisonResult, "HeapSizeBeforeMB_Mean");
+                metric1_Base = heapSizeBeforeMBMetric?.AveragedBaselineMetric ?? double.NaN;
+                metric1_Comparand = heapSizeBeforeMBMetric?.AveragedComparandMetric ?? double.NaN;
+                metric1_PercentageDelta = heapSizeBeforeMBMetric?.PercentageDelta ?? double.NaN;
 
-                sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {((metric1_Comparand - metric1_Base) / metric1_Base) * 100:N2} |");
+                sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {metric1_PercentageDelta:N2} |");
                 sw.WriteLine();
 
                 // Pauses.
                 sw.WriteLine("| *Mean Ephemeral Pause (MSec)* - base | comparand | Δ% |");
                 sw.WriteLine("| ---------------------------  | --------- | ---|");
 
-                // Go through all the runs, get the baseline and the comparand values.
-                metric1_Base = baseResultItem.PauseDurationMSec_MeanWhereIsEphemeral;
-                metric1_Comparand = comparandResultItem.PauseDurationMSec_MeanWhereIsEphemeral;
+                var ephemeralPauseMetric = GetGCTraceMetricComparisonResultByMetricName(comparisonResult, "PauseDurationMSec_MeanWhereIsEphemeral");
+                metric1_Base = ephemeralPauseMetric?.AveragedBaselineMetric ?? double.NaN;
+                metric1_Comparand = ephemeralPauseMetric?.AveragedComparandMetric ?? double.NaN ;
+                metric1_PercentageDelta = ephemeralPauseMetric?.PercentageDelta ?? double.NaN;
 
-                sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {((metric1_Comparand - metric1_Base) / metric1_Base) * 100:N2} |");
+                sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {metric1_PercentageDelta:N2} |");
 
                 sw.WriteLine();
 
@@ -55,41 +62,28 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 sw.WriteLine("| ---------------------------  | --------- | ---| ------------------------------- | --------- | ---|");
 
                 // Go through all the runs, get the baseline and the comparand values.
-                metric1_Base = baseResultItem.PauseDurationMSec_MeanWhereIsBackground;
-                metric2_Base = baseResultItem.PauseDurationMSec_MeanWhereIsBlockingGen2;
+                var meanBGCMetric = GetGCTraceMetricComparisonResultByMetricName(comparisonResult, "PauseDurationMSec_MeanWhereIsBackground");
+                var meanFullBlockingGCMetric = GetGCTraceMetricComparisonResultByMetricName(comparisonResult, "PauseDurationMSec_MeanWhereIsBlocking");
+                metric1_Base = meanBGCMetric?.AveragedBaselineMetric ?? double.NaN;
+                metric2_Base = meanFullBlockingGCMetric?.AveragedBaselineMetric ?? double.NaN;
 
-                metric1_Comparand = comparandResultItem.PauseDurationMSec_95PWhereIsBackground;
-                metric2_Comparand = comparandResultItem.PauseDurationMSec_95PWhereIsBlockingGen2;
+                metric1_Comparand = meanBGCMetric?.AveragedComparandMetric ?? double.NaN;
+                metric2_Comparand = meanFullBlockingGCMetric?.AveragedComparandMetric ?? double.NaN;
 
-                sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {((metric1_Comparand - metric1_Comparand) / metric1_Base) * 100:N2} | {metric2_Base:N2} |  {metric2_Comparand:N2} | {((metric2_Comparand - metric2_Base) / metric2_Base * 100):N2}| ");
+                metric1_PercentageDelta = meanBGCMetric?.PercentageDelta ?? double.NaN;
+                metric2_PercentageDelta = meanFullBlockingGCMetric?.PercentageDelta ?? double.NaN;
+
+                sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {metric1_PercentageDelta:N2} | {metric2_Base:N2} |  {metric2_Comparand:N2} | {metric2_PercentageDelta:N2}| ");
                 sb.AppendLine();
 
-                sb.AppendLine("# Individual Results");
-
-                List<ComparisonResult> comparisonResults = new();
-
-                var resultItemComparison = new ResultItemComparison(baseResultItem, comparandResultItem);
-                foreach (var property in typeof(ResultItem).GetProperties())
-                {
-                    if (property.PropertyType != typeof(double))
-                    {
-                        continue;
-                    }
-
-                    string propertyNameToCheck = property.Name.ToLowerInvariant();
-
-                    ComparisonResult result = resultItemComparison.GetComparison(property.Name);
-                    comparisonResults.Add(result);
-                }
-
-                sb.AppendLine("#### Large Regressions (>20%)");
+                sb.AppendLine("# Individual Results"); sb.AppendLine("#### Large Regressions (>20%)");
                 sb.AppendLine();
 
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
                 sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.RegressionPercentageDelta > 20)))
+                foreach (var r in comparisonResult.LargeRegressions)
                 {
-                    sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
+                    sb.AppendLine($"| {r.MetricName} | {r.AveragedBaselineMetric:N2} | {r.AveragedComparandMetric:N2} | {r.RegressionPercentageDelta:N2} | {r.Delta:N2} |");
                 }
                 sb.AppendLine();
 
@@ -98,9 +92,9 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
                 sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.RegressionPercentageDelta < -20)))
+                foreach (var r in comparisonResult.LargeImprovements)
                 {
-                    sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
+                    sb.AppendLine($"| {r.MetricName} | {r.AveragedBaselineMetric:N2} | {r.AveragedComparandMetric:N2} | {r.RegressionPercentageDelta:N2} | {r.Delta:N2} |");
                 }
                 sb.AppendLine();
 
@@ -108,9 +102,9 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 sb.AppendLine();
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
                 sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.RegressionPercentageDelta > 5 && c.RegressionPercentageDelta < 20)))
+                foreach (var r in comparisonResult.Regressions)
                 {
-                    sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
+                    sb.AppendLine($"| {r.MetricName} | {r.AveragedBaselineMetric:N2} | {r.AveragedComparandMetric:N2} | {r.RegressionPercentageDelta:N2} | {r.Delta:N2} |");
                 }
                 sb.AppendLine();
 
@@ -118,9 +112,9 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 sb.AppendLine();
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
                 sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.RegressionPercentageDelta < -5 && c.RegressionPercentageDelta > -20)))
+                foreach (var r in comparisonResult.Improvements)
                 {
-                    sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
+                    sb.AppendLine($"| {r.MetricName} | {r.AveragedBaselineMetric:N2} | {r.AveragedComparandMetric:N2} | {r.RegressionPercentageDelta:N2} | {r.Delta:N2} |");
                 }
                 sb.AppendLine();
 
@@ -128,9 +122,9 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 sb.AppendLine();
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
                 sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.RegressionPercentageDelta >= 0 && c.RegressionPercentageDelta < 5)))
+                foreach (var r in comparisonResult.StaleRegressions)
                 {
-                    sb.AppendLine($"| {r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
+                    sb.AppendLine($"| {r.MetricName} | {r.AveragedBaselineMetric:N2} | {r.AveragedComparandMetric:N2} | {r.RegressionPercentageDelta:N2} | {r.Delta:N2} |");
                 }
                 sb.AppendLine();
 
@@ -138,9 +132,9 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 sb.AppendLine();
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
                 sb.AppendLine($" | -----  | ---- | ------  | ---  |  --- |");
-                foreach (var r in GoodLinq.Where(comparisonResults, (c => c.RegressionPercentageDelta < 0 && c.RegressionPercentageDelta > -5)))
+                foreach (var r in comparisonResult.StaleImprovements)
                 {
-                    sb.AppendLine($"|{r.MetricName} | {r.BaselineMetric:N2} | {r.ComparandMetric:N2} | {r.PercentageDelta:N2} | {r.Delta:N2} |");
+                    sb.AppendLine($"| {r.MetricName} | {r.AveragedBaselineMetric:N2} | {r.AveragedComparandMetric:N2} | {r.RegressionPercentageDelta:N2} | {r.Delta:N2} |");
                 }
 
                 sb.AppendLine();
@@ -239,13 +233,12 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                     sw.WriteLine();
                     sw.AddReproSection(executionDetails);
                     sw.WriteLine();
-                    sw.AddDetailsOfSingleRun(configuration, comparisonResults);
+                    sw.AddDetailsOfSingleRun(comparisonResults);
                 }
             }
         }
 
         internal static void AddDetailsOfSingleRun(this StreamWriter sw,
-                                                   GCPerfSimConfiguration configuration,
                                                    GCTraceMetricComparisonResults comparisonResult)
         {
             // Large Regressions
@@ -331,6 +324,12 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
             sw.WriteLine(averagedRow);
         }
 
+        internal static GCTraceMetricComparisonResult?
+            GetGCTraceMetricComparisonResultByMetricName(GCTraceMetricComparisonResults comparisonResults, string metricName)
+        {
+            return comparisonResults.ComparisonResults
+                .FirstOrDefault(c => c?.MetricName == metricName, null);
+        }
 
         internal static GCTraceMetricComparisonResult?
             GetGCTraceMetricComparisonResultByRunNameAndMetricName(IEnumerable<GCTraceMetricComparisonResults> comparisonResultsCollection,
@@ -339,7 +338,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
         {
             return comparisonResultsCollection
                 .SelectMany(c => c.ComparisonResults)
-                .FirstOrDefault(c => c.RunName == runName && c.MetricName == metricName, null);
+                .FirstOrDefault(c => c?.RunName == runName && c?.MetricName == metricName, null);
         }
     }
 }
