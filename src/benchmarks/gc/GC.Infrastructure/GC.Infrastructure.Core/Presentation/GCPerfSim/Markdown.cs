@@ -26,8 +26,8 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 double metric1_Comparand = executionTimeMSecMetric?.AveragedComparandMetric ?? double.NaN;
                 double metric2_Comparand = pctTimePausedInGCMetric?.AveragedComparandMetric ?? double.NaN;
 
-                double metric1_PercentageDelta = executionTimeMSecMetric?.PercentageDelta ?? double.NaN;
-                double metric2_PercentageDelta = pctTimePausedInGCMetric?.PercentageDelta ?? double.NaN;
+                double metric1_PercentageDelta = executionTimeMSecMetric?.RegressionPercentageDelta ?? double.NaN;
+                double metric2_PercentageDelta = pctTimePausedInGCMetric?.RegressionPercentageDelta ?? double.NaN;
 
                 sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {metric1_PercentageDelta:N2} | {metric2_Base:N2} |  {metric2_Comparand:N2} | {metric2_PercentageDelta:N2}| ");
 
@@ -40,7 +40,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 var heapSizeBeforeMBMetric = GetGCTraceMetricComparisonResultByMetricName(comparisonResult, "HeapSizeBeforeMB_Mean");
                 metric1_Base = heapSizeBeforeMBMetric?.AveragedBaselineMetric ?? double.NaN;
                 metric1_Comparand = heapSizeBeforeMBMetric?.AveragedComparandMetric ?? double.NaN;
-                metric1_PercentageDelta = heapSizeBeforeMBMetric?.PercentageDelta ?? double.NaN;
+                metric1_PercentageDelta = heapSizeBeforeMBMetric?.RegressionPercentageDelta ?? double.NaN;
 
                 sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {metric1_PercentageDelta:N2} |");
                 sw.WriteLine();
@@ -52,7 +52,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 var ephemeralPauseMetric = GetGCTraceMetricComparisonResultByMetricName(comparisonResult, "PauseDurationMSec_MeanWhereIsEphemeral");
                 metric1_Base = ephemeralPauseMetric?.AveragedBaselineMetric ?? double.NaN;
                 metric1_Comparand = ephemeralPauseMetric?.AveragedComparandMetric ?? double.NaN ;
-                metric1_PercentageDelta = ephemeralPauseMetric?.PercentageDelta ?? double.NaN;
+                metric1_PercentageDelta = ephemeralPauseMetric?.RegressionPercentageDelta ?? double.NaN;
 
                 sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {metric1_PercentageDelta:N2} |");
 
@@ -70,8 +70,8 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 metric1_Comparand = meanBGCMetric?.AveragedComparandMetric ?? double.NaN;
                 metric2_Comparand = meanFullBlockingGCMetric?.AveragedComparandMetric ?? double.NaN;
 
-                metric1_PercentageDelta = meanBGCMetric?.PercentageDelta ?? double.NaN;
-                metric2_PercentageDelta = meanFullBlockingGCMetric?.PercentageDelta ?? double.NaN;
+                metric1_PercentageDelta = meanBGCMetric?.RegressionPercentageDelta ?? double.NaN;
+                metric2_PercentageDelta = meanFullBlockingGCMetric?.RegressionPercentageDelta ?? double.NaN;
 
                 sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {metric1_PercentageDelta:N2} | {metric2_Base:N2} |  {metric2_Comparand:N2} | {metric2_PercentageDelta:N2}| ");
                 sb.AppendLine();
@@ -163,13 +163,13 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                         comparisonResultsCollection, runName, "ExecutionTimeMSec");
                     var execTimeBaseline = executionTimeComparisonResult?.AveragedBaselineMetric ?? double.NaN;
                     var execTimeComparand = executionTimeComparisonResult?.AveragedComparandMetric ?? double.NaN;
-                    var execTimeDeltaPercentage = executionTimeComparisonResult?.PercentageDelta ?? double.NaN;
+                    var execTimeDeltaPercentage = executionTimeComparisonResult?.RegressionPercentageDelta ?? double.NaN;
 
                     var gcPauseTimeComparisonResult = GetGCTraceMetricComparisonResultByRunNameAndMetricName(
                         comparisonResultsCollection, runName, "PctTimePausedInGC");
                     var gcPauseTimeBaseline = gcPauseTimeComparisonResult?.AveragedBaselineMetric ?? double.NaN;
                     var gcPauseTimeComparand = gcPauseTimeComparisonResult?.AveragedComparandMetric ?? double.NaN;
-                    var gcPauseTimeDeltaPercentage = gcPauseTimeComparisonResult?.PercentageDelta ?? double.NaN;
+                    var gcPauseTimeDeltaPercentage = gcPauseTimeComparisonResult?.RegressionPercentageDelta ?? double.NaN;
 
                     sw.WriteLine($"| {runName} | {execTimeBaseline:N2} | {execTimeComparand:N2} | {(double.IsNaN(execTimeDeltaPercentage) ? "NaN" : $"{execTimeDeltaPercentage:N2} %")} | {gcPauseTimeBaseline:N2} | {gcPauseTimeComparand:N2} | {(double.IsNaN(gcPauseTimeDeltaPercentage) ? "NaN" : $"{gcPauseTimeDeltaPercentage:N2} %")} |");
                 }
@@ -184,7 +184,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                         comparisonResultsCollection, runName, "HeapSizeBeforeMB_Mean");
                     var heapSizeBeforeBaseline = heapSizeBeforeComparisonResult?.AveragedBaselineMetric ?? double.NaN;
                     var heapSizeBeforeComparand = heapSizeBeforeComparisonResult?.AveragedComparandMetric ?? double.NaN;
-                    var heapSizeBeforeDeltaPercentage = heapSizeBeforeComparisonResult?.PercentageDelta ?? double.NaN;
+                    var heapSizeBeforeDeltaPercentage = heapSizeBeforeComparisonResult?.RegressionPercentageDelta ?? double.NaN;
                     sw.WriteLine($"| {runName} | {heapSizeBeforeBaseline:N2} | {heapSizeBeforeComparand:N2} | {(double.IsNaN(heapSizeBeforeDeltaPercentage) ? "NaN" : $"{heapSizeBeforeDeltaPercentage:N2} %")} |");
                 }
                 sw.WriteLine();
@@ -198,7 +198,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                         comparisonResultsCollection, runName, "PauseDurationMSec_MeanWhereIsEphemeral");
                     var meanEphemeralPauseBaseline = meanEphemeralPauseComparisonResult?.AveragedBaselineMetric ?? double.NaN;
                     var meanEphemeralPauseComparand = meanEphemeralPauseComparisonResult?.AveragedComparandMetric ?? double.NaN;
-                    var meanEphemeralPauseDeltaPercentage = meanEphemeralPauseComparisonResult?.PercentageDelta ?? double.NaN;
+                    var meanEphemeralPauseDeltaPercentage = meanEphemeralPauseComparisonResult?.RegressionPercentageDelta ?? double.NaN;
                     sw.WriteLine($"| {runName} | {meanEphemeralPauseBaseline:N2} | {meanEphemeralPauseComparand:N2} | {(double.IsNaN(meanEphemeralPauseDeltaPercentage) ? "NaN" : $"{meanEphemeralPauseDeltaPercentage:N2} %")} |");
                 }
                 sw.WriteLine();
@@ -212,13 +212,13 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                         comparisonResultsCollection, runName, "PauseDurationMSec_MeanWhereIsBackground");
                     var meanBGCPauseBaseline = meanBGCPauseComparisonResult?.AveragedBaselineMetric ?? double.NaN;
                     var meanBGCPauseComparand = meanBGCPauseComparisonResult?.AveragedComparandMetric ?? double.NaN;
-                    var meanBGCPauseDeltaPercentage = meanBGCPauseComparisonResult?.PercentageDelta ?? double.NaN;
+                    var meanBGCPauseDeltaPercentage = meanBGCPauseComparisonResult?.RegressionPercentageDelta ?? double.NaN;
 
                     var meanFullBlockingGCPauseComparisonResult = GetGCTraceMetricComparisonResultByRunNameAndMetricName(
                         comparisonResultsCollection, runName, "PauseDurationMSec_MeanWhereIsBlockingGen2");
                     var meanFullBlockingGCPauseBaseline = meanFullBlockingGCPauseComparisonResult?.AveragedBaselineMetric ?? double.NaN;
                     var meanFullBlockingGCPauseComparand = meanFullBlockingGCPauseComparisonResult?.AveragedComparandMetric ?? double.NaN;
-                    var meanFullBlockingGCPauseDeltaPercentage = meanFullBlockingGCPauseComparisonResult?.PercentageDelta ?? double.NaN;
+                    var meanFullBlockingGCPauseDeltaPercentage = meanFullBlockingGCPauseComparisonResult?.RegressionPercentageDelta ?? double.NaN;
                     sw.WriteLine($"| {runName} | {meanBGCPauseBaseline:N2} | {meanBGCPauseComparand:N2} | {(double.IsNaN(meanBGCPauseDeltaPercentage) ? "NaN" : $"{meanBGCPauseDeltaPercentage:N2} %")} | {meanFullBlockingGCPauseBaseline:N2} | {meanFullBlockingGCPauseComparand:N2} | {(double.IsNaN(meanFullBlockingGCPauseDeltaPercentage) ? "NaN" : $"{meanFullBlockingGCPauseDeltaPercentage:N2} %")} |");
                 }
                 sw.WriteLine();
