@@ -56,6 +56,7 @@
         <PropertyGroup>
             <LangVersion>12.0</LangVersion>
             <ExtensionsVersion>8.0.0</ExtensionsVersion>
+            <PrimitivesVersion>10.0.3</PrimitivesVersion>
             <SystemVersion>8.0.0</SystemVersion>
         </PropertyGroup>
     </When>
@@ -63,13 +64,14 @@
         <PropertyGroup>
             <LangVersion>13</LangVersion>
             <ExtensionsVersion>9.0.0</ExtensionsVersion>
+            <PrimitivesVersion>10.0.3</PrimitivesVersion>
             <SystemVersion>9.0.0</SystemVersion>
         </PropertyGroup>
     </When>
     <When Condition="'$(TargetFramework)' == 'net10.0'">
         <PropertyGroup>
             <LangVersion>14</LangVersion>
-            <ExtensionsVersion>10.0.0</ExtensionsVersion>
+            <ExtensionsVersion>10.0.3</ExtensionsVersion>
             <SystemVersion>10.0.0</SystemVersion>
         </PropertyGroup>
     </When>
@@ -88,6 +90,13 @@
         </PropertyGroup>
     </Otherwise>
   </Choose>
+  <!-- BenchmarkDotNet -> Microsoft.Diagnostics.Runtime -> Azure.Identity -> Azure.Core (1.53.0) requires
+       Microsoft.Extensions.Primitives >= 10.0.3. Because Primitives is a direct reference, NuGet flags the
+       net8.0/net9.0 pins (8.0.0/9.0.0) as a downgrade (NU1605). Float only Primitives to the transitive floor
+       on those TFMs (set above); the implementation packages stay on their native TFM versions. -->
+  <PropertyGroup>
+    <PrimitivesVersion Condition="'$(PrimitivesVersion)' == ''">$(ExtensionsVersion)</PrimitivesVersion>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Jil" Version="3.0.0-alpha2" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
@@ -101,7 +110,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="$(ExtensionsVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(PrimitivesVersion)" />
     <PackageReference Include="protobuf-net" Version="3.0.73" />
     <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))" />
     <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net5.0'))" />
