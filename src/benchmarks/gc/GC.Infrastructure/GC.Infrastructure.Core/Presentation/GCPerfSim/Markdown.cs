@@ -63,7 +63,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
                 // Go through all the runs, get the baseline and the comparand values.
                 var meanBGCMetric = GetGCTraceMetricComparisonResultByMetricName(comparisonResult, "PauseDurationMSec_MeanWhereIsBackground");
-                var meanFullBlockingGCMetric = GetGCTraceMetricComparisonResultByMetricName(comparisonResult, "PauseDurationMSec_MeanWhereIsBlocking");
+                var meanFullBlockingGCMetric = GetGCTraceMetricComparisonResultByMetricName(comparisonResult, "PauseDurationMSec_MeanWhereIsBlockingGen2");
                 metric1_Base = meanBGCMetric?.AveragedBaselineMetric ?? double.NaN;
                 metric2_Base = meanFullBlockingGCMetric?.AveragedBaselineMetric ?? double.NaN;
 

@@ -75,7 +75,7 @@ namespace GC.Infrastructure.Core.Analysis
             {
                 var baselines = new List<GCTraceMetrics>();
                 var baselineProcessData = AnalyzeTrace.GetGCProcessDataForGCPerfSim(baselineAnalyzer);
-                var baselineRunName = baselinePath.Split(".")[0];
+                var baselineRunName = Path.GetFileNameWithoutExtension(baselinePath).Split(".")[0];
                 var baselineConfigurationName = Path.GetFileNameWithoutExtension(baselinePath);
                 if (baselineProcessData != null)
                 {
@@ -85,7 +85,7 @@ namespace GC.Infrastructure.Core.Analysis
 
                 var comparands = new List<GCTraceMetrics>();
                 var comparandProcessData = AnalyzeTrace.GetGCProcessDataForGCPerfSim(comparandAnalyzer);
-                var comparandRunName = comparandPath.Split(".")[0];
+                var comparandRunName = Path.GetFileNameWithoutExtension(comparandPath).Split(".")[0];
                 var comparandConfigurationName = Path.GetFileNameWithoutExtension(comparandPath);
                 if (comparandProcessData != null)
                 {
@@ -100,8 +100,6 @@ namespace GC.Infrastructure.Core.Analysis
                     {
                         continue;
                     }
-
-                    string propertyNameToCheck = property.Name.ToLowerInvariant();
 
                     var comparisonResult = CompareGCTraceMetric(baselines, comparands, property.Name);
                     allComparisonResults.Add(comparisonResult);
