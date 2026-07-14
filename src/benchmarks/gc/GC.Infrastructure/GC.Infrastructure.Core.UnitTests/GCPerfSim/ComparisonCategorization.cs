@@ -2,6 +2,7 @@ using FluentAssertions;
 using GC.Analysis.API;
 using GC.Infrastructure.Core.Analysis;
 using GC.Infrastructure.Core.Presentation.GCPerfSim;
+using System.Web;
 
 namespace GC.Infrastructure.Core.UnitTests.GCPerfSim
 {
@@ -15,6 +16,37 @@ namespace GC.Infrastructure.Core.UnitTests.GCPerfSim
     {
         // The recorded traces capture a managed process named "Benchmarks" with real GC data.
         private const string ProcessName = "Benchmarks";
+
+        private readonly string[] MetricList = new[]
+        {
+            "PctTimePausedInGC",
+            "FirstToLastGCSeconds",
+            "HeapSizeBeforeMB_Mean",
+            "HeapSizeAfter_Mean",
+            "TotalCommittedInUse",
+            "TotalBookkeepingCommitted",
+            "TotalCommittedInGlobalDecommit",
+            "TotalCommittedInFree",
+            "TotalCommittedInGlobalFree",
+            "PauseDurationMSec_95PWhereIsGen0",
+            "PauseDurationMSec_95PWhereIsGen1",
+            "PauseDurationMSec_95PWhereIsBackground",
+            "PauseDurationMSec_MeanWhereIsBackground",
+            "PauseDurationMSec_95PWhereIsBlockingGen2",
+            "PauseDurationMSec_MeanWhereIsBlockingGen2",
+            "CountIsBlockingGen2",
+            "PauseDurationMSec_SumWhereIsGen1",
+            "PauseDurationMSec_MeanWhereIsEphemeral",
+            "PromotedMB_MeanWhereIsGen1",
+            "CountIsGen1",
+            "CountIsGen0",
+            "HeapCount",
+            "PauseDurationMSec_Sum",
+            "TotalAllocatedMB",
+            "TotalNumberGCs",
+            "Speed_MBPerMSec",
+            "ExecutionTimeMSec"
+        };
 
         private static string? FindTracesDirectory()
         {
@@ -122,6 +154,34 @@ namespace GC.Infrastructure.Core.UnitTests.GCPerfSim
                 improvementBuckets.Should().NotContain(speedComparison, "a slower Speed_MBPerMSec is a regression, not an improvement");
                 regressionBuckets.Should().Contain(speedComparison);
             }
+        }
+
+        [TestMethod]
+        public void GCPerfSimRun_Comparison_CompareGCPerfsimResultsShouldContainExpectedMetrics()
+        {
+            string? tracesDirectory = FindTracesDirectory();
+            if (tracesDirectory == null)
+            {
+                Assert.Inconclusive("Could not locate the example GC traces required for this test.");
+                return;
+            }
+
+            string baselinePath = Path.Combine(tracesDirectory, "CPU_Baseline.etl.zip");
+            string comparandPath = Path.Combine(tracesDirectory, "CPU_Comparand.etl.zip");
+
+            baselinePath.Should().NotBeNullOrEmpty("the repository should contain example traces for regression coverage");
+            comparandPath.Should().NotBeNullOrEmpty("the repository should contain example traces for regression coverage");
+
+            IReadOnlyCollection<GCTraceMetricComparisonResult> comparison = GCTraceMetricComparison.CompareGCPerfsimResults(baselinePath, comparandPath);
+
+            comparison.Should().NotBeEmpty("the compare command path should produce metric comparison results");
+            List<string> gcTraceMetricsProperties = new();
+            foreach (var property in typeof(GCTraceMetrics).GetProperties())
+            {
+                gcTraceMetricsProperties.Add(property.Name);
+            }
+            
+            Enumerable.Select(comparison, r => r.MetricName).Should().Contain(MetricList);
         }
     }
 }

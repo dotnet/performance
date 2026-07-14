@@ -51,7 +51,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 
                 var ephemeralPauseMetric = GetGCTraceMetricComparisonResultByMetricName(comparisonResult, "PauseDurationMSec_MeanWhereIsEphemeral");
                 metric1_Base = ephemeralPauseMetric?.AveragedBaselineMetric ?? double.NaN;
-                metric1_Comparand = ephemeralPauseMetric?.AveragedComparandMetric ?? double.NaN ;
+                metric1_Comparand = ephemeralPauseMetric?.AveragedComparandMetric ?? double.NaN;
                 metric1_PercentageDelta = ephemeralPauseMetric?.RegressionPercentageDelta ?? double.NaN;
 
                 sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {metric1_PercentageDelta:N2} |");
@@ -76,7 +76,8 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                 sw.WriteLine($"| {metric1_Base:N2} | {metric1_Comparand:N2} | {metric1_PercentageDelta:N2} | {metric2_Base:N2} |  {metric2_Comparand:N2} | {metric2_PercentageDelta:N2}| ");
                 sb.AppendLine();
 
-                sb.AppendLine("# Individual Results"); sb.AppendLine("#### Large Regressions (>20%)");
+                sb.AppendLine("# Individual Results"); 
+                sb.AppendLine("#### Large Regressions (>20%)");
                 sb.AppendLine();
 
                 sb.AppendLine($" | Metric | Base | Comparand | Δ%  |  Δ |");
@@ -328,7 +329,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
             GetGCTraceMetricComparisonResultByMetricName(GCTraceMetricComparisonResults comparisonResults, string metricName)
         {
             return comparisonResults.ComparisonResults
-                .FirstOrDefault(c => c?.MetricName == metricName, null);
+                .FirstOrDefault(c => c.MetricName == metricName);
         }
 
         internal static GCTraceMetricComparisonResult?
@@ -338,7 +339,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
         {
             return comparisonResultsCollection
                 .SelectMany(c => c.ComparisonResults)
-                .FirstOrDefault(c => c?.RunName == runName && c?.MetricName == metricName, null);
+                .FirstOrDefault(c => c?.RunName == runName && c?.MetricName == metricName);
         }
     }
 }

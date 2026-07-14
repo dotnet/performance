@@ -38,7 +38,11 @@ namespace GC.Infrastructure.Commands.GCPerfSim
             }
 
             var comparison = GCTraceMetricComparison.CompareGCPerfsimResults(settings.BaselinePath, settings.ComparandPath);
-            var comparisonResults = new GCTraceMetricComparisonResults("", comparison);
+            
+            var runName = comparison.FirstOrDefault()?.RunName ??
+                Path.GetFileNameWithoutExtension(settings.BaselinePath).Split(".")[0];
+
+            var comparisonResults = new GCTraceMetricComparisonResults(runName, comparison);
 
             if (Path.GetExtension(settings.OutputPath) == ".json")
             {
