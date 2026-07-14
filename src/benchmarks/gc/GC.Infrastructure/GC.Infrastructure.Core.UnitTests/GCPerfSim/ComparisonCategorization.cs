@@ -2,7 +2,6 @@ using FluentAssertions;
 using GC.Analysis.API;
 using GC.Infrastructure.Core.Analysis;
 using GC.Infrastructure.Core.Presentation.GCPerfSim;
-using System.Web;
 
 namespace GC.Infrastructure.Core.UnitTests.GCPerfSim
 {
@@ -169,18 +168,13 @@ namespace GC.Infrastructure.Core.UnitTests.GCPerfSim
             string baselinePath = Path.Combine(tracesDirectory, "CPU_Baseline.etl.zip");
             string comparandPath = Path.Combine(tracesDirectory, "CPU_Comparand.etl.zip");
 
-            baselinePath.Should().NotBeNullOrEmpty("the repository should contain example traces for regression coverage");
-            comparandPath.Should().NotBeNullOrEmpty("the repository should contain example traces for regression coverage");
+            File.Exists(baselinePath).Should().BeTrue("the repository should contain example traces for regression coverage");
+            File.Exists(comparandPath).Should().BeTrue("the repository should contain example traces for regression coverage");
 
             IReadOnlyCollection<GCTraceMetricComparisonResult> comparison = GCTraceMetricComparison.CompareGCPerfsimResults(baselinePath, comparandPath);
 
             comparison.Should().NotBeEmpty("the compare command path should produce metric comparison results");
-            List<string> gcTraceMetricsProperties = new();
-            foreach (var property in typeof(GCTraceMetrics).GetProperties())
-            {
-                gcTraceMetricsProperties.Add(property.Name);
-            }
-            
+
             Enumerable.Select(comparison, r => r.MetricName).Should().Contain(MetricList);
         }
     }

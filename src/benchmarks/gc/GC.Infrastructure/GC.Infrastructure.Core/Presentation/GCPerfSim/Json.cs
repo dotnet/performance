@@ -1,8 +1,5 @@
-﻿using GC.Analysis.API;
-using GC.Infrastructure.Core.Analysis;
-using GC.Infrastructure.Core.Configurations.GCPerfSim;
+﻿using GC.Infrastructure.Core.Analysis;
 using Newtonsoft.Json;
-using System.Collections.Concurrent;
 
 namespace GC.Infrastructure.Core.Presentation.GCPerfSim
 {
