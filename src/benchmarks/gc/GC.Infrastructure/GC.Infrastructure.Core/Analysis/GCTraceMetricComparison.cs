@@ -74,24 +74,18 @@ namespace GC.Infrastructure.Core.Analysis
                 comparandAnalyzer = API.AnalyzerManager.GetAnalyzer(comparandPath))
             {
                 var baselines = new List<GCTraceMetrics>();
-                var baselineProcessData = AnalyzeTrace.GetGCProcessDataForGCPerfSim(baselineAnalyzer);
+                var baselineProcessData = AnalyzeTrace.GetGCProcessDataForGCPerfSim(baselineAnalyzer)
+                    ?? throw new InvalidOperationException($"No GC process data found in baseline trace '{baselinePath}'.");
                 var baselineRunName = Path.GetFileNameWithoutExtension(baselinePath).Split(".")[0];
                 var baselineConfigurationName = Path.GetFileNameWithoutExtension(baselinePath);
-                if (baselineProcessData != null)
-                {
-                    baselines.Add(
-                        new GCTraceMetrics(baselineProcessData, baselineRunName, baselineConfigurationName));
-                }
-
+                baselines.Add(new GCTraceMetrics(baselineProcessData, baselineRunName, baselineConfigurationName));
+                
                 var comparands = new List<GCTraceMetrics>();
-                var comparandProcessData = AnalyzeTrace.GetGCProcessDataForGCPerfSim(comparandAnalyzer);
+                var comparandProcessData = AnalyzeTrace.GetGCProcessDataForGCPerfSim(comparandAnalyzer)
+                    ?? throw new InvalidOperationException($"No GC process data found in comparand trace '{comparandPath}'.");
                 var comparandRunName = Path.GetFileNameWithoutExtension(comparandPath).Split(".")[0];
                 var comparandConfigurationName = Path.GetFileNameWithoutExtension(comparandPath);
-                if (comparandProcessData != null)
-                {
-                    comparands.Add(
-                        new GCTraceMetrics(comparandProcessData, comparandRunName, comparandConfigurationName));
-                }
+                comparands.Add(new GCTraceMetrics(comparandProcessData, comparandRunName, comparandConfigurationName));
 
                 List<GCTraceMetricComparisonResult> allComparisonResults = new();
                 foreach (var property in typeof(GCTraceMetrics).GetProperties())
