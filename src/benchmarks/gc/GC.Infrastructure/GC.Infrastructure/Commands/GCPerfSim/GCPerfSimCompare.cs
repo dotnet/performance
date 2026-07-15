@@ -53,7 +53,7 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 Markdown.GenerateForCompareCommand(comparisonResults, settings.OutputPath);
             }
 
-            AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to {settings.OutputPath} [/]");
+            AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to {Markup.Escape(settings.OutputPath)} [/]");
             return 0;
         }
     }
