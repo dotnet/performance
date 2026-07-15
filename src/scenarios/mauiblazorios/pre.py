@@ -17,7 +17,7 @@ precommands = PreCommands()
 
 # Use context manager to temporarily merge MAUI's NuGet feeds into repo config
 # This ensures dotnet package search, dotnet new, and dotnet build/publish have access to MAUI packages
-with MauiNuGetConfigContext(precommands.framework):
+with MauiNuGetConfigContext(precommands):
     install_latest_maui(precommands)
     precommands.print_dotnet_info()
     # Setup the Maui folder - will use merged NuGet.config with MAUI feeds

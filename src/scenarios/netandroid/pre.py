@@ -17,7 +17,7 @@ logger.info("Starting pre-command for .NET Android template app (dotnet new andr
 
 precommands = PreCommands()
 
-with MauiNuGetConfigContext(precommands.framework):
+with MauiNuGetConfigContext(precommands):
     install_latest_maui(precommands)
     precommands.print_dotnet_info()
 
