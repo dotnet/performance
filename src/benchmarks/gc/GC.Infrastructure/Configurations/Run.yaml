@@ -1,18 +1,21 @@
 output_path: C:\InfraRuns\RunNew
-gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
+gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net10.0\GCPerfSim.dll
 microbenchmark_path: C:\performance\src\benchmarks\micro
 
 coreruns:
     baseline: 
+      is_baseline: true
       path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
       environment_variables:
           DOTNET_GCName: clrgc.dll
     run:
+      is_baseline: false
       path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
       environment_variables:
           DOTNET_GCName: clrgc.dll
 
 iterations:
+  gcperfsim: 1
   microbenchmarks: 1
 
 trace_configuration_type: gc # Choose between: none, gc, verbose, cpu, cpu_managed, threadtime, join.

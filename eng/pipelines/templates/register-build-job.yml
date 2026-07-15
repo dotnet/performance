@@ -1,6 +1,22 @@
 parameters:
   buildType: ''
   buildId: ''
+  # repoName is forwarded into the BCS blob path
+  # (builds/{repoName}/buildArtifacts/...). Defaults to 'runtime' for
+  # back-compat with the existing dotnet/runtime perf-build pipeline;
+  # callers from other tenants (e.g. dotnet/aspnetcore) pass repoName
+  # explicitly.
+  repoName: 'runtime'
+  # sha controls the {sha} segment of the BCS blob path
+  # (builds/{repoName}/buildArtifacts/{sha}/...). Defaults to the self repo's
+  # triggering commit ($(Build.SourceVersion)) for back-compat with the runtime
+  # perf-build pipeline (which is hosted in dotnet/runtime, so self == the repo
+  # being built). Callers where the built repo is a *resource* rather than self
+  # (e.g. the dotnet/aspnetcore perf-build hosted in dotnet/performance) must
+  # pass the resource's commit explicitly, e.g.
+  # sha: $(resources.repositories.aspnetcore.version), because Build.SourceVersion
+  # would otherwise resolve to the performance pipeline commit.
+  sha: '$(Build.SourceVersion)'
 
 jobs:
   - job: RegisterBuild_${{ parameters.buildType }}
@@ -14,4 +30,4 @@ jobs:
         scriptType: 'pscore'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          az storage blob upload --auth-mode login --account-name pvscmdupload --container-name '$web' --data '{"buildId":"${{ parameters.buildId }}"}' --name "builds/runtime/buildArtifacts/${{ variables['Build.SourceVersion'] }}/${{ parameters.buildType }}/buildInfo.json" --overwrite true
+          az storage blob upload --auth-mode login --account-name pvscmdupload --container-name '$web' --data '{"buildId":"${{ parameters.buildId }}"}' --name "builds/${{ parameters.repoName }}/buildArtifacts/${{ parameters.sha }}/${{ parameters.buildType }}/buildInfo.json" --overwrite true

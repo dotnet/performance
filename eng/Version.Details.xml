@@ -35,9 +35,9 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>547c640d5626b2976499cb3433abc741a63d67c5</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="11.0.0-prerelease.26204.1">
+    <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="11.0.0-prerelease.26330.1">
       <Uri>https://github.com/dotnet/xharness</Uri>
-      <Sha>0668c80ec27851f3c7f1b3e4536110a1d39af587</Sha>
+      <Sha>5d58a231a8a5e322bdd27da674a7059e4d2e7220</Sha>
     </Dependency>
     <!--
       Maui Rollback Version mappings, default means generated from sdk version. Allows for manual override of version similar to https://github.com/dotnet/maui/blob/df8cfcf635a590955a8cc3d6cf7ae6280449dd3f/eng/Versions.props#L138-L146, where the logic comes from:
@@ -51,8 +51,8 @@
       Mapping_Microsoft.tvOS.Sdk:default
     -->
     <!-- Dependencies for .NET MAUI workload -->
-    <Dependency Name="Microsoft.Maui.Controls" Version="10.0.60-ci.inflight.26207.6">
-      <Sha>6e563dcf3cbf4853316eb4724e49ec92caeabb07</Sha>
+    <Dependency Name="Microsoft.Maui.Controls" Version="10.0.90-ci.main.26329.7">
+      <Sha>6e107357d924afdb14469eba486c54b2521c006b</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
     <Dependency Name="Microsoft.NET.Sdk" Version="11.0.100-preview.5.26261.101">
@@ -63,9 +63,9 @@
       <Sha>547c640d5626b2976499cb3433abc741a63d67c5</Sha>
       <Uri>https://github.com/dotnet/dotnet</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="36.1.65">
+    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="36.1.88">
       <Uri>https://github.com/dotnet/android</Uri>
-      <Sha>6b255ec42cef9f9f757400f6edec7af239cacd58</Sha>
+      <Sha>85c3ad51787f198d97de44a489349492b3ca7600</Sha>
     </Dependency>
     <Dependency Name="Microsoft.NET.Workload.Emscripten.Current.Manifest-9.0.100" Version="9.0.1">
       <Sha>4c9d1b112c16716c2479e054e9ad4db8b5b8c70c</Sha>

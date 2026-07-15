@@ -75,6 +75,10 @@ namespace GC.Infrastructure.Core.Analysis
             OutliersFreeComparandMetricCollection = API.Statistics.RemoveOutliers(OriginalComparandMetricCollection);
 
             // Calculate averaged metrics
+            OriginalAveragedBaselineMetric = API.GoodLinq.Average(
+                OriginalBaselineMetricCollection.ToList().Where(r => !double.IsNaN(r)), r => r);
+            OriginalAveragedComparandMetric = API.GoodLinq.Average(
+                OriginalComparandMetricCollection.ToList().Where(r => !double.IsNaN(r)), r => r);
             AveragedBaselineMetric = API.GoodLinq.Average(OutliersFreeBaselineMetricCollection, r => r);
             AveragedComparandMetric = API.GoodLinq.Average(OutliersFreeComparandMetricCollection, r => r);
         }
@@ -87,9 +91,30 @@ namespace GC.Infrastructure.Core.Analysis
         public IEnumerable<double> OutliersFreeBaselineMetricCollection { get; }
         public IEnumerable<double> OutliersFreeComparandMetricCollection { get; }
 
+        public double OriginalAveragedBaselineMetric { get; }
+        public double OriginalAveragedComparandMetric { get; }
         public double AveragedBaselineMetric { get; }
         public double AveragedComparandMetric { get; }
+        public double OriginalDelta => OriginalAveragedComparandMetric - OriginalAveragedBaselineMetric;
         public double Delta => AveragedComparandMetric - AveragedBaselineMetric;
+        public double OriginalPercentageDelta
+        {
+            get
+            {
+                if (OriginalAveragedBaselineMetric == 0)
+                {
+                    if (OriginalAveragedComparandMetric == 0)
+                    {
+                        return 0;
+                    }
+                    else
+                    {
+                        return double.NaN;
+                    }
+                }
+                return (OriginalDelta / OriginalAveragedBaselineMetric) * 100.0;
+            }
+        }
         public double PercentageDelta
         {
             get
@@ -111,5 +136,10 @@ namespace GC.Infrastructure.Core.Analysis
                 }
             }
         }
+
+        // Regression-oriented delta used for classification: positive => regression, negative => improvement,
+        // regardless of whether the metric is higher-is-better (e.g. Speed_MBPerMSec) or lower-is-better.
+        public double OriginalRegressionPercentageDelta => MetricDirection.GetRegressionDelta(MetricName, OriginalPercentageDelta);
+        public double RegressionPercentageDelta => MetricDirection.GetRegressionDelta(MetricName, PercentageDelta);
     }
 }

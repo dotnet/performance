@@ -3,6 +3,18 @@ parameters:
   performanceRepoAlias: self
   buildType: []
   mauiFramework: ''
+  # repoName is forwarded into each register-build-job invocation so the
+  # buildInfo.json marker lands under builds/{repoName}/buildArtifacts/...,
+  # matching the layout written by upload-build-artifacts-job.yml. Defaults
+  # to 'runtime' for back-compat with the existing dotnet/runtime perf-build
+  # pipeline; callers from other tenants (e.g. dotnet/aspnetcore) pass
+  # repoName explicitly.
+  repoName: 'runtime'
+  # sha is forwarded to each register-build-job so the buildInfo.json marker
+  # lands under builds/{repoName}/buildArtifacts/{sha}/... Defaults to the self
+  # repo commit; resource-built tenants (e.g. aspnetcore) pass the resource's
+  # commit, e.g. sha: $(resources.repositories.aspnetcore.version).
+  sha: '$(Build.SourceVersion)'
 
 jobs:
 - ${{ each type in parameters.buildType }}:
@@ -10,3 +22,5 @@ jobs:
     parameters:
       buildType: ${{ type }}
       buildId: $(Build.BuildId)
+      repoName: ${{ parameters.repoName }}
+      sha: ${{ parameters.sha }}

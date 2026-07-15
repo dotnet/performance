@@ -1,7 +1,7 @@
 runs:
 
 microbenchmark_configurations:
-  bdn_arguments: "--warmupCount 1 --iterationCount 20 --allStats --outliers DontRemove --noOverheadEvaluation"
+  bdn_arguments: "--warmupCount 1 --iterationCount 20 --allStats --outliers DontRemove --evaluateOverhead false"
   dotnet_installer : net8.0
 
 environment:

@@ -1,4 +1,5 @@
 ﻿using GC.Analysis.API;
+using GC.Infrastructure.Core.Configurations.GCPerfSim;
 using Microsoft.Diagnostics.Tracing.Parsers.Clr;
 
 namespace GC.Infrastructure.Core.Analysis
@@ -41,10 +42,11 @@ namespace GC.Infrastructure.Core.Analysis
             ExecutionTimeMSec = double.NaN;
         }
 
-        public GCTraceMetrics(GCProcessData processData, string runName, string configurationName)
+        public GCTraceMetrics(GCProcessData processData, string runName, string configurationName, CoreRunInfo? parent = null)
         {
             RunName = runName;
             ConfigurationName = configurationName;
+            Parent = parent;
             ExecutionTimeMSec = processData.DurationMSec;
 
             PctTimePausedInGC = processData.Stats.GetGCPauseTimePercentage();
@@ -143,6 +145,8 @@ namespace GC.Infrastructure.Core.Analysis
         public double Speed_MBPerMSec { get; }
         public string RunName { get; }
         public string ConfigurationName { get; }
+
+        public CoreRunInfo? Parent { get; }
         public double ExecutionTimeMSec { get; }
         public Dictionary<string, double> StatsData { get; } = new();
     }

@@ -9,7 +9,43 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
     public static class MicrobenchmarkResultComparison
     {
         private static readonly int _CPUCount = System.Environment.ProcessorCount;
-        private static readonly Dictionary<string, string> _benchmarkNameToTraceFilePatternMap = new(StringComparer.OrdinalIgnoreCase)
+
+        private static readonly Dictionary<string, string> _benchmarkNameToTraceFilePatternMap = OperatingSystem.IsLinux() ? 
+        // Linux
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "ByteMark.BenchBitOps", "ByteMark.BenchBitOps"},
+            { "System.Collections.CtorGivenSize<String>.Array(Size: 512)", "System.Collections.CtorGivenSizeString.Array_size:512_"},
+            { "System.Collections.Tests.Perf_BitArray.BitArrayByteArrayCtor(Size: 512)", "System.Collections.Tests.Perf_BitArray.BitArrayByteArrayCtor_size:512_"},
+            { "System.IO.Tests.Perf_File.ReadAllBytes(size: 104857600)", "System.IO.Tests.Perf_File.ReadAllBytes_size:104857600_"},
+            { "System.IO.Tests.Perf_File.ReadAllBytesAsync(size: 104857600)", "System.IO.Tests.Perf_File.ReadAllBytesAsync_size:104857600_"},
+            { "System.Linq.Tests.Perf_Enumerable.ToArray(input: ICollection)", "System.Linq.Tests.Perf_Enumerable.ToArray_"},
+            { "System.Linq.Tests.Perf_Enumerable.ToArray(input: IEnumerable)", "System.Linq.Tests.Perf_Enumerable.ToArray_"},
+            { "System.Numerics.Tests.Perf_BigInteger.Add(arguments: 65536,65536 bits)", "System.Numerics.Tests.Perf_BigInteger.Add_arguments:65536_"},
+            { "System.Numerics.Tests.Perf_BigInteger.Subtract(arguments: 65536,65536 bits)", "System.Numerics.Tests.Perf_BigInteger.Subtract_arguments:65536_"},
+            { "System.Tests.Perf_GC<Byte>.AllocateArray(length: 1000, pinned: False)", "System.Tests.Perf_GCByte.AllocateArray_length:1000,_"},
+            { "System.Tests.Perf_GC<Byte>.AllocateArray(length: 1000, pinned: True)", "System.Tests.Perf_GCByte.AllocateArray_length:1000,_"},
+            { "System.Tests.Perf_GC<Byte>.AllocateArray(length: 10000, pinned: False)", "System.Tests.Perf_GCByte.AllocateArray_length:10000,_"},
+            { "System.Tests.Perf_GC<Byte>.AllocateArray(length: 10000, pinned: True)", "System.Tests.Perf_GCByte.AllocateArray_length:10000,_"},
+            { "System.Tests.Perf_GC<Byte>.AllocateUninitializedArray(length: 1000, pinned: False)", "System.Tests.Perf_GCByte.AllocateUninitializedArray_length:1000,_"},
+            { "System.Tests.Perf_GC<Byte>.AllocateUninitializedArray(length: 1000, pinned: True)", "System.Tests.Perf_GCByte.AllocateUninitializedArray_length:1000,_"},
+            { "System.Tests.Perf_GC<Byte>.AllocateUninitializedArray(length: 10000, pinned: False)", "System.Tests.Perf_GCByte.AllocateUninitializedArray_length:10000,_"},
+            { "System.Tests.Perf_GC<Byte>.AllocateUninitializedArray(length: 10000, pinned: True)", "System.Tests.Perf_GCByte.AllocateUninitializedArray_length:10000,_"},
+            { "System.Tests.Perf_GC<Byte>.NewOperator_Array(length: 1000)", "System.Tests.Perf_GCByte.NewOperator_Array_length:1000_"},
+            { "System.Tests.Perf_GC<Byte>.NewOperator_Array(length: 10000)", "System.Tests.Perf_GCByte.NewOperator_Array_length:10000_"},
+            { "System.Tests.Perf_GC<Char>.AllocateArray(length: 1000, pinned: False)", "System.Tests.Perf_GCChar.AllocateArray_length:1000,_"},
+            { "System.Tests.Perf_GC<Char>.AllocateArray(length: 1000, pinned: True)", "System.Tests.Perf_GCChar.AllocateArray_length:1000,_"},
+            { "System.Tests.Perf_GC<Char>.AllocateArray(length: 10000, pinned: False)", "System.Tests.Perf_GCChar.AllocateArray_length:10000,_"},
+            { "System.Tests.Perf_GC<Char>.AllocateArray(length: 10000, pinned: True)", "System.Tests.Perf_GCChar.AllocateArray_length:10000,_"},
+            { "System.Tests.Perf_GC<Char>.AllocateUninitializedArray(length: 1000, pinned: False)", "System.Tests.Perf_GCChar.AllocateUninitializedArray_length:1000,_"},
+            { "System.Tests.Perf_GC<Char>.AllocateUninitializedArray(length: 1000, pinned: True)", "System.Tests.Perf_GCChar.AllocateUninitializedArray_length:1000,_"},
+            { "System.Tests.Perf_GC<Char>.AllocateUninitializedArray(length: 10000, pinned: False)", "System.Tests.Perf_GCChar.AllocateUninitializedArray_length:10000,_"},
+            { "System.Tests.Perf_GC<Char>.AllocateUninitializedArray(length: 10000, pinned: True)", "System.Tests.Perf_GCChar.AllocateUninitializedArray_length:10000,_"},
+            { "System.Tests.Perf_GC<Char>.NewOperator_Array(length: 1000)", "System.Tests.Perf_GCChar.NewOperator_Array_length:1000_"},
+            { "System.Tests.Perf_GC<Char>.NewOperator_Array(length: 10000)", "System.Tests.Perf_GCChar.NewOperator_Array_length:10000_"},
+        }
+        : // Windows
+        new(StringComparer.OrdinalIgnoreCase)
         {
             { "ByteMark.BenchBitOps", "ByteMark.BenchBitOps"},
             { "System.Collections.CtorGivenSize<String>.Array(Size: 512)", "System.Collections.CtorGivenSize_String_.Array_size_512_"},
@@ -42,16 +78,16 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             { "System.Tests.Perf_GC<Char>.NewOperator_Array(length: 10000)", "System.Tests.Perf_GC_Char_.NewOperator_Array_length_10000_"},
         };
 
-        public static ConcurrentBag<Tuple<Run, BdnJsonResult, string>> LoadBdnJsonResults(MicrobenchmarkConfiguration configuration)
+        public static IReadOnlyCollection<Tuple<CoreRunInfo, BdnJsonResult, string>> 
+            LoadBdnJsonResults(MicrobenchmarkConfiguration configuration)
         {
-            ConcurrentBag<Tuple<Run, BdnJsonResult, string>> bdnJsonResults = new();
+            ConcurrentBag<Tuple<CoreRunInfo, BdnJsonResult, string>> bdnJsonResults = new();
             Parallel.ForEach(configuration.Runs, (run) =>
             {
                 string outputPathForRun = Path.Combine(configuration.Output.Path, run.Key);
                 string[] jsonFiles = Directory.GetFiles(outputPathForRun, "*full.json", SearchOption.AllDirectories);
                 Parallel.ForEach(jsonFiles, jsonPath =>
                 {
-                    run.Value.Name ??= run.Key;
                     BdnJsonResult? results = JsonConvert.DeserializeObject<BdnJsonResult>(File.ReadAllText(jsonPath));
                     if (results != null)
                     {
@@ -64,7 +100,9 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
         // TODO: We should specify relationship between json files and trace files before running benchmarks instead of relying on file name patterns.
         // This will make the mapping more robust and less prone to errors due to file naming.
-        public static Dictionary<string, string> MapJsonToTrace(string outputPath, ConcurrentBag<Tuple<Run, BdnJsonResult, string>> bdnJsonResults)
+        public static Dictionary<string, string> 
+            MapJsonToTrace(string outputPath,
+                           IReadOnlyCollection<Tuple<CoreRunInfo, BdnJsonResult, string>> bdnJsonResults)
         {
             Dictionary<string, string> jsonToTrace = new();
             foreach (var groupForRun in bdnJsonResults.GroupBy(t => t.Item1))
@@ -87,11 +125,13 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
                         continue;
                     }
                     var traceFileNameTemplate = _benchmarkNameToTraceFilePatternMap[benchmarkName];
+
                     string outputPathForRun = Path.Combine(outputPath, run.Name!);
-                    var sortedTraceFiles = Directory.GetFiles(outputPathForRun, $"{traceFileNameTemplate}*.etl.zip", SearchOption.TopDirectoryOnly)
+                    string traceFileSuffix = OperatingSystem.IsWindows() ? ".etl.zip" : ".nettrace";
+                    var sortedTraceFiles = Directory.GetFiles(outputPathForRun, $"{traceFileNameTemplate}*{traceFileSuffix}", SearchOption.TopDirectoryOnly)
                         .OrderBy(traceFile =>
                         {
-                            var match = Regex.Match(Path.GetFileName(traceFile), @"_(\d+)\.etl\.zip$");
+                            var match = Regex.Match(Path.GetFileName(traceFile), OperatingSystem.IsWindows() ? @"_(\d+)\.etl\.zip$" : @"_(\d+)\.nettrace$");
                             return match.Success ? int.Parse(match.Groups[1].Value) : 0;
                         })
                         .ToArray();
@@ -113,9 +153,9 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             return jsonToTrace;
         }
 
-        public static ConcurrentBag<MicrobenchmarkResult> 
+        public static IReadOnlyCollection<MicrobenchmarkResult> 
             AnalyzeMicrobenchmarkResults(MicrobenchmarkConfiguration configuration,
-                                         ConcurrentBag<Tuple<Run, BdnJsonResult, string>> bdnJsonResults,
+                                         IReadOnlyCollection<Tuple<CoreRunInfo, BdnJsonResult, string>> bdnJsonResults,
                                          bool excludeTraces = false)
         {
             ConcurrentBag<MicrobenchmarkResult> microbenchmarkResults = new();
@@ -168,14 +208,22 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
 
                             MicrobenchmarkResult? microbenchmarkResult = null;
                             GCProcessData? benchmarkGCData = null;
-                            foreach (var process in allPertinentProcesses)
+
+                            if (OperatingSystem.IsLinux() && allPertinentProcesses.Count == 1)
                             {
-                                string commandLine = process.CommandLine.Replace("\"", "").Replace("\\", "");
-                                string runCleaned = benchmark.FullName.Replace("\"", "").Replace("\\", "");
-                                if (commandLine.Contains(runCleaned) && commandLine.Contains("--benchmarkName"))
+                                benchmarkGCData = allPertinentProcesses.First();
+                            }
+                            else
+                            {
+                                foreach (var process in allPertinentProcesses)
                                 {
-                                    benchmarkGCData = process;
-                                    break;
+                                    string commandLine = process.CommandLine.Replace("\"", "").Replace("\\", "");
+                                    string runCleaned = benchmark.FullName.Replace("\"", "").Replace("\\", "");
+                                    if (commandLine.Contains(runCleaned) && commandLine.Contains("--benchmarkName"))
+                                    {
+                                        benchmarkGCData = process;
+                                        break;
+                                    }
                                 }
                             }
                             if (benchmarkGCData != null)
@@ -260,7 +308,10 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             return microbenchmarkResults;
         }
 
-        public static List<MicrobenchmarkComparisonResult> CompareMicrobenchmarkResults(MicrobenchmarkConfiguration configuration, IEnumerable<MicrobenchmarkResult> microbenchmarkResults, bool excludeTraces = false)
+        public static IReadOnlyCollection<MicrobenchmarkComparisonResult> 
+            CompareMicrobenchmarkResults(MicrobenchmarkConfiguration configuration,
+                                         IReadOnlyCollection<MicrobenchmarkResult> microbenchmarkResults,
+                                         bool excludeTraces = false)
         {
             bool includeTraces = (!excludeTraces) && (configuration.TraceConfigurations?.Type ?? "none") != "none";
             var microbenchmarkResultsGroupedByBenchmarkName = microbenchmarkResults
@@ -327,7 +378,10 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             return comparisonResults;
         }
 
-        public static List<MicrobenchmarkComparisonResults> GroupComparisonResultsByName(MicrobenchmarkConfiguration configuration, List<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks, bool excludeTraces = false)
+        public static IReadOnlyList<MicrobenchmarkComparisonResults> 
+            GroupComparisonResultsByName(MicrobenchmarkConfiguration configuration,
+                                         IReadOnlyCollection<MicrobenchmarkComparisonResult> comparisonResultForAllBenchmarks,
+                                         bool excludeTraces = false)
         {
             List<MicrobenchmarkComparisonResults> allComparisonResults = new();
 

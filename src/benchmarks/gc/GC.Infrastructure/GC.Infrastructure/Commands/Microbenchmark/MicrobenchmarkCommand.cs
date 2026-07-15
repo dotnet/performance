@@ -81,8 +81,8 @@ namespace GC.Infrastructure.Commands.Microbenchmark
             string collectType = configuration.TraceConfigurations?.Type ?? "none";
 
             HashSet<string> alreadyRunBenchmarks = new();
-            KeyValuePair<string, Run> baselineKVP = configuration.Runs.FirstOrDefault(r => r.Value.is_baseline);
-            Run baseline = baselineKVP.Value;
+            KeyValuePair<string, CoreRunInfo> baselineKVP = configuration.Runs.FirstOrDefault(r => r.Value.is_baseline);
+            CoreRunInfo baseline = baselineKVP.Value;
             if (baseline == null)
             {
                 baselineKVP = configuration.Runs.First();
@@ -176,9 +176,18 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                             };
 
                             string traceName = $"{benchmarkCleanedName}_{index}";
-                            using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath))
+                            int? processId = null;
+                            if (!OperatingSystem.IsWindows())
                             {
                                 bdnProcess.Start();
+                                processId = bdnProcess.Id;
+                            }
+                            using (TraceCollector traceCollector = new TraceCollector(traceName, collectType, runPath, processId))
+                            {
+                                if (OperatingSystem.IsWindows())
+                                {
+                                    bdnProcess.Start();
+                                }
                                 bdnProcess.BeginOutputReadLine();
                                 bdnProcess.BeginErrorReadLine();
                                 bdnProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);

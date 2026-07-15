@@ -30,7 +30,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
             return 0;
         }
 
-        public static List<MicrobenchmarkComparisonResults> ExecuteAnalysis(MicrobenchmarkConfiguration configuration)
+        public static IReadOnlyList<MicrobenchmarkComparisonResults> ExecuteAnalysis(MicrobenchmarkConfiguration configuration)
         {
             var bdnJsonResults = MicrobenchmarkResultComparison.LoadBdnJsonResults(configuration);
             AnsiConsole.MarkupLine($"[bold green] ({DateTime.Now}) {bdnJsonResults.Count} BDN results loaded.[/]");
@@ -42,12 +42,12 @@ namespace GC.Infrastructure.Commands.Microbenchmark
         }
 
         public static void Present(MicrobenchmarkConfiguration configuration, 
-                                   List<MicrobenchmarkComparisonResults> comparisonResultsGroupedByName,
+                                   IReadOnlyList<MicrobenchmarkComparisonResults> comparisonResultsGroupedByName,
                                    Dictionary<string, ProcessExecutionDetails> executionDetails)
         {
             foreach (var format in configuration.Output.Formats)
             {
-                if (format == "markdown")
+                if (string.Equals(format, "markdown", StringComparison.OrdinalIgnoreCase))
                 {
                     string outputPath = Path.Combine(configuration.Output.Path, "Results.md");
                     Markdown.GenerateTable(configuration, comparisonResultsGroupedByName, executionDetails, outputPath);
@@ -55,7 +55,7 @@ namespace GC.Infrastructure.Commands.Microbenchmark
                     continue;
                 }
 
-                if (format == "json")
+                if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
                 {
                     string outputPath = Path.Combine(configuration.Output.Path, "Results.json");
                     Json.Generate(configuration, comparisonResultsGroupedByName, outputPath);

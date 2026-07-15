@@ -3,12 +3,14 @@ import re
 from dataclasses import dataclass, field
 from datetime import timedelta
 from glob import glob
+import hashlib
 import json
 import os
 import shutil
 from subprocess import CalledProcessError
 import sys
 import tempfile
+import time
 from traceback import format_exc
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -119,6 +121,79 @@ class RunPerformanceJobArgs:
     build_config: str = DEFAULT_BUILD_CONFIG
     live_libraries_build_config: Optional[str] = None
     cross_build: bool = False
+
+# Subdirectory (inside the Helix correlation payload) that holds the pre-downloaded ML.NET resources.
+# On the Helix machine this is referenced as <HELIX_CORRELATION_PAYLOAD>/mlnet-resources.
+MLNET_RESOURCES_PAYLOAD_SUBDIR = "mlnet-resources"
+
+# Known-good SHA256 of the SSWE word-embedding model (sentiment.emd, 73,674,434 bytes). The asset is
+# a fixed pretrained model and is not expected to change; validating the hash guarantees we shipped a
+# complete, uncorrupted file (a truncated or proxy-mangled response won't match). If the upstream
+# asset is ever intentionally updated, recompute and update this value.
+MLNET_SSWE_MODEL_SHA256 = "a8062ef5d3a1ffc079a2b3c439a5533279f4ac6d85882ca8488fb8ff239fefdd"
+
+def try_provision_mlnet_resources(payload_dir: str) -> bool:
+    """
+    Pre-download the ML.NET SSWE word-embedding model into the correlation payload.
+
+    StochasticDualCoordinateAscentClassifierBench.TrainSentiment applies a pretrained word embedding
+    ('sentiment.emd', ~70 MB) that ML.NET otherwise downloads from https://aka.ms/mlnet-resources at
+    benchmark runtime. That download stalls on the Helix machines and hangs the whole mlnet work item
+    until it times out. Downloading it here on the build agent (reliable connectivity) and pointing
+    MICROSOFTML_RESOURCE_PATH at <payload>/mlnet-resources lets ML.NET load it from disk instead.
+    ML.NET resolves the model at <MICROSOFTML_RESOURCE_PATH>/Text/Sswe/sentiment.emd.
+
+    Best-effort: returns False on failure so the caller skips the env var and the previous
+    (runtime-download) behavior is left unchanged.
+    """
+    resource_root = os.path.join(payload_dir, MLNET_RESOURCES_PAYLOAD_SUBDIR)
+    dest = os.path.join(resource_root, "Text", "Sswe", "sentiment.emd")
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+
+    # The direct blob URL is the redirect target of the aka.ms link; prefer it to avoid the redirect,
+    # and fall back to the aka.ms link in case the blob path ever changes.
+    urls = [
+        "https://mlpublicassets.blob.core.windows.net/assets/Text/Sswe/sentiment.emd",
+        "https://aka.ms/mlnet-resources/Text/Sswe/sentiment.emd",
+    ]
+
+    last_error: Optional[Exception] = None
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        for url in urls:
+            tmp_dest = dest + ".tmp"
+            try:
+                getLogger().info(f"Downloading ML.NET SSWE model from {url} (attempt {attempt})")
+                with urllib.request.urlopen(url, timeout=60) as response:
+                    with open(tmp_dest, "wb") as f:
+                        shutil.copyfileobj(response, f)
+
+                # The model is a fixed asset, so verify the exact hash to reject any truncated or
+                # corrupted download before it can be shipped in the payload.
+                sha256 = hashlib.sha256()
+                with open(tmp_dest, "rb") as f:
+                    for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                        sha256.update(chunk)
+                actual_hash = sha256.hexdigest()
+                if actual_hash != MLNET_SSWE_MODEL_SHA256:
+                    raise Exception(f"sha256 {actual_hash} does not match expected {MLNET_SSWE_MODEL_SHA256}")
+
+                os.replace(tmp_dest, dest)
+                getLogger().info(f"Downloaded and verified ML.NET SSWE model to {dest}")
+                return True
+            except Exception as e:
+                last_error = e
+                getLogger().warning(f"Failed to download ML.NET SSWE model from {url}: {e}")
+                if os.path.exists(tmp_dest):
+                    os.remove(tmp_dest)
+        # Only wait between attempts, not after the final one.
+        if attempt < max_attempts:
+            time.sleep(10)
+
+    getLogger().warning(
+        "Could not pre-provision the ML.NET SSWE model into the payload after retries "
+        f"(last error: {last_error}); ML.NET will attempt to download it at benchmark runtime.")
+    return False
 
 def get_pre_commands(
         os_group: str,
@@ -443,6 +518,12 @@ def get_bdn_arguments(
             "--wasmProcessTimeout", "20",
         ]
 
+        # The runtime now uses the standardized exnref WASM exception-handling proposal,
+        # which V8 keeps behind --experimental-wasm-exnref. Pass it through to the engine
+        # via BDN's --wasmArgs (the escaped quotes keep it a single token on the Helix shell).
+        if javascript_engine == "v8":
+            bdn_arguments += ["\\\"--wasmArgs=--experimental-wasm-exnref\\\""]
+
         if is_aot:
             bdn_arguments += [
                 "--aotcompilermode", "wasm",
@@ -459,6 +540,12 @@ def get_bdn_arguments(
             "--buildTimeout", "1200",
             "--wasmProcessTimeout", "20"
         ]
+
+        # The runtime now uses the standardized exnref WASM exception-handling proposal,
+        # which V8 keeps behind --experimental-wasm-exnref. Pass it through to the engine
+        # via BDN's --wasmArgs (the escaped quotes keep it a single token on the Helix shell).
+        if javascript_engine == "v8":
+            bdn_arguments += ["\\\"--wasmArgs=--experimental-wasm-exnref\\\""]
 
     if runtime_type == "coreclr_r2r_interpreter":
         if os_group == "windows":
@@ -711,6 +798,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
     performance_payload_dir = os.path.join(payload_dir, "performance")
     getLogger().info("Copying performance repository to payload directory")
     shutil.copytree(args.performance_repo_dir, performance_payload_dir, ignore=shutil.ignore_patterns("CorrelationStaging", ".git", "artifacts", ".dotnet", ".venv", ".vs"))
+
+    # For ML.NET runs, pre-download the SSWE word-embedding model into the payload so the benchmarks
+    # don't have to fetch it from the network on the (flaky) Helix machines. See
+    # try_provision_mlnet_resources for details. The matching MICROSOFTML_RESOURCE_PATH env var is
+    # set in the Helix pre-commands below when this succeeds.
+    mlnet_resources_provisioned = False
+    if args.run_kind == "mlnet":
+        mlnet_resources_provisioned = try_provision_mlnet_resources(payload_dir)
 
     if args.internal:
         creator = ""
@@ -1033,6 +1128,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     helix_pre_commands = get_pre_commands(args.os_group, args.os_distro, args.internal, args.runtime_type, args.codegen_type, args.build_config, v8_version)
     helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
+
+    # Point ML.NET at the SSWE model that was pre-downloaded into the correlation payload above, so it
+    # loads the word embedding from disk instead of downloading it at benchmark runtime (which hangs
+    # the work item on Helix). %HELIX_CORRELATION_PAYLOAD% is expanded by the shell at run time.
+    if mlnet_resources_provisioned:
+        if args.os_group == "windows":
+            helix_pre_commands += [f"set \"MICROSOFTML_RESOURCE_PATH=%HELIX_CORRELATION_PAYLOAD%\\{MLNET_RESOURCES_PAYLOAD_SUBDIR}\""]
+        else:
+            helix_pre_commands += [f"export MICROSOFTML_RESOURCE_PATH=\"$HELIX_CORRELATION_PAYLOAD/{MLNET_RESOURCES_PAYLOAD_SUBDIR}\""]
 
     ci_setup_arguments.local_build = args.local_build
 

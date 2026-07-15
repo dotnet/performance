@@ -6,7 +6,7 @@ namespace GC.Infrastructure.Core.Presentation.Microbenchmarks
 {
     public static class Json
     {
-        public static void Generate(MicrobenchmarkConfiguration configuration, List<MicrobenchmarkComparisonResults> comparisonResultsGroupedByName, string path)
+        public static void Generate(MicrobenchmarkConfiguration configuration, IReadOnlyList<MicrobenchmarkComparisonResults> comparisonResultsGroupedByName, string path)
         {
             string json = JsonConvert.SerializeObject(comparisonResultsGroupedByName);
             File.WriteAllText(path, json);

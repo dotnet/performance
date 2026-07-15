@@ -8,7 +8,7 @@
 #   --application.environmentVariables DOTNET_GCName=clrgc.dll 
 
 # crank --config C:\Users\musharm\source\repos\GC.Analysis.API\ExampleConfigurations\GCPerfSim\SampleCrank.yaml --scenario gcperfsim --profile aspnet-perf-win --application.variables.threadCount 2 --application.options.displayOutput true --application.framework net7.0 --profile pgo --application.cpuSet 1 --application.options.collectCounters true --chart --json Result_1.json --property cpu=2
-# crank --config C:\Users\musharm\source\repos\GC.Analysis.API\ExampleConfigurations\GCPerfSim\SampleCrank.yaml --scenario gcperfsim --application.variables.tc 2 --application.options.displayOutput true --application.framework net7.0 --profile aspnet-citrine-win --application.collect true --application.collectArguments GCCollectOnly --application.cpuSet 0-1 --application.options.collectCounters true --chart --application.options.downloadOutput true  --application.options.downloadOutputOutput ".\gc.etl.zip"  --application.options.traceOutput "./gc.etl.zip"
+# crank --config C:\Users\musharm\source\repos\GC.Analysis.API\ExampleConfigurations\GCPerfSim\SampleCrank.yaml --scenario gcperfsim --application.variables.tc 2 --application.options.displayOutput true --application.framework net7.0 --profile aspnet-gold-win --application.collect true --application.collectArguments GCCollectOnly --application.cpuSet 0-1 --application.options.collectCounters true --chart --application.options.downloadOutput true  --application.options.downloadOutputOutput ".\gc.etl.zip"  --application.options.traceOutput "./gc.etl.zip"
 
 # Outputs:
 # - How to get tracing started.
@@ -21,16 +21,11 @@
 
 # Machines:
 # - List: 
-#   - aspnet-citrine-lin
-#   - aspnet-citrine-win
-#   - aspnet-citrine-arm
+#   - aspnet-gold-lin
+#   - aspnet-gold-win
 #   - aspnet-citrine-ampere
 #   - aspnet-citrine-arm-lin
 #   - aspnet-citrine-arm-win
-#   - aspnet-citrine-amd2 - 1 numa node 
-#   - aspnet-citrine-amd - 4 numa node
-#   - aspnet-perf-lin
-#   - aspnet-perf-win 
 
 # Relay - public relay into internal machines.
 
