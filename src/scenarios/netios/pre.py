@@ -14,7 +14,7 @@ setup_loggers(True)
 
 precommands = PreCommands()
 
-with MauiNuGetConfigContext(precommands.framework):
+with MauiNuGetConfigContext(precommands):
     install_latest_maui(precommands)
     precommands.print_dotnet_info()
 

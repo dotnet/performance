@@ -160,6 +160,180 @@ def extract_latest_dotnet_feed_from_nuget_config(path: str, offset: int = 0) -> 
 
     return target_feed
 
+def _find_latest_manifest_package(packages: list[dict], workload_name: str) -> dict:
+    '''
+    Apply the same filtering logic as install_latest_maui to find the latest manifest package.
+    This ensures _discover_repo_commits picks the same package that will actually be installed.
+    '''
+    pattern = r'Microsoft\.NET\.Sdk\..*\.Manifest\-\d+\.\d+\.\d+(\-(preview|rc|alpha)\.\d+)?$'
+    packages = [pkg for pkg in packages if re.match(pattern, pkg['id'])]
+    if not packages:
+        raise Exception(f"No manifest packages found for {workload_name} after pattern filtering")
+
+    for package in packages:
+        match = re.search(r'Manifest-(.+)$', package["id"])
+        if match:
+            sdk_version = match.group(1)
+            package['sdk_version'] = sdk_version
+            match = re.search(r'^\d+\.\d+', sdk_version)
+            if match:
+                package['dotnet_version'] = match.group(0)
+            else:
+                raise Exception(f"Unable to find .NET version in SDK version '{sdk_version}' for package {package['id']}")
+        else:
+            raise Exception(f"Unable to find .NET SDK version in package ID: {package['id']}")
+
+    highest_dotnet_version = max(float(pkg['dotnet_version']) for pkg in packages)
+    packages = [pkg for pkg in packages if float(pkg['dotnet_version']) == highest_dotnet_version]
+
+    preview_pattern = r'\-(preview|rc|alpha)\.\d+$'
+    non_preview_packages = [pkg for pkg in packages if not re.search(preview_pattern, pkg['id'])]
+    if non_preview_packages:
+        packages = non_preview_packages
+
+    packages.sort(key=lambda x: x['sdk_version'], reverse=True)
+    if not packages:
+        raise Exception(f"No packages available for {workload_name} after filtering")
+
+    return packages[0]
+
+def _get_nuget_flat_container_base(feed_url: str) -> Optional[str]:
+    '''
+    Download the NuGet V3 service index and return the PackageBaseAddress (flat container) base URL.
+    Returns None if the service index cannot be fetched or doesn't contain the expected resource.
+    '''
+    try:
+        with urllib.request.urlopen(feed_url) as response:
+            data = json.loads(response.read())
+        
+        for resource in data.get('resources', []):
+            if resource.get('@type') == 'PackageBaseAddress/3.0.0':
+                return resource['@id']
+        
+        getLogger().warning(f"No PackageBaseAddress/3.0.0 resource found in service index at {feed_url}")
+        return None
+    except Exception as e:
+        getLogger().warning(f"Failed to fetch NuGet service index from {feed_url}: {e}")
+        return None
+
+def _get_commit_sha_from_nuspec(flat_base: str, package_id: str, version: str) -> Optional[tuple[str, str]]:
+    '''
+    Download a package's .nuspec from the NuGet flat container and extract the repository commit SHA.
+    
+    Returns:
+        Tuple of (repository_url, commit_sha) or None if not available.
+    '''
+    nuspec_url = f"{flat_base.rstrip('/')}/{package_id.lower()}/{version.lower()}/{package_id.lower()}.nuspec"
+    getLogger().debug(f"Downloading .nuspec from {nuspec_url}")
+    
+    try:
+        with urllib.request.urlopen(nuspec_url) as response:
+            content = response.read().decode('utf-8')
+        
+        root = ET.fromstring(content)
+        
+        # Find <repository> element regardless of XML namespace
+        repo_elem = None
+        for elem in root.iter():
+            if elem.tag == 'repository' or elem.tag.endswith('}repository'):
+                repo_elem = elem
+                break
+        
+        if repo_elem is not None:
+            url = repo_elem.get('url', '')
+            commit = repo_elem.get('commit', '')
+            if url and commit:
+                getLogger().debug(f"Found repository info: url={url}, commit={commit}")
+                return (url, commit)
+        
+        getLogger().warning(f"No repository commit info found in .nuspec for {package_id} v{version}")
+        return None
+    except Exception as e:
+        getLogger().warning(f"Failed to get commit SHA from .nuspec for {package_id} v{version}: {e}")
+        return None
+
+def _normalize_repo_url(url: str) -> str:
+    '''Normalize a GitHub repo URL to "owner/repo" format.'''
+    # Handle URLs like "https://github.com/dotnet/android.git" or "https://github.com/dotnet/android"
+    url = url.rstrip('/')
+    if url.endswith('.git'):
+        url = url[:-4]
+    parts = url.split('/')
+    if len(parts) >= 2:
+        return f"{parts[-2]}/{parts[-1]}"
+    return url
+
+def _discover_repo_commits(precommands: PreCommands, feed_url: str) -> dict[str, str]:
+    '''
+    Discover the commit SHAs for upstream repos by querying the NuGet feed for manifest packages
+    and extracting repository info from their .nuspec metadata.
+    
+    Also caches resolved manifest packages on precommands._cached_manifest_packages
+    so install_latest_maui can reuse them without re-querying the feed.
+    
+    Args:
+        precommands: PreCommands instance for running dotnet commands
+        feed_url: The NuGet feed URL to query
+    
+    Returns:
+        Dict mapping repo names (e.g., "dotnet/android") to commit SHAs.
+        Only contains entries for repos where the commit SHA was successfully resolved.
+    '''
+    REPO_TO_PROBE_WORKLOAD = {
+        "dotnet/android": "microsoft.net.sdk.android",
+        "dotnet/macios": "microsoft.net.sdk.ios",
+        "dotnet/maui": "microsoft.net.sdk.maui",
+    }
+    
+    repo_commits: dict[str, str] = {}
+    cached_packages: dict[str, dict] = getattr(precommands, '_cached_manifest_packages', {})
+    
+    flat_base = _get_nuget_flat_container_base(feed_url)
+    if flat_base is None:
+        getLogger().warning("Cannot discover repo commits: failed to get flat container base URL")
+        return repo_commits
+    
+    for repo, workload_name in REPO_TO_PROBE_WORKLOAD.items():
+        try:
+            getLogger().info(f"Discovering commit SHA for {repo} via {workload_name} package...")
+            
+            packages = precommands.get_packages_for_sdk_from_feed(workload_name, feed_url)
+            manifest_pkg = _find_latest_manifest_package(packages, workload_name)
+            
+            # Cache the resolved package so install_latest_maui can reuse it
+            cached_packages[workload_name] = manifest_pkg
+            
+            result = _get_commit_sha_from_nuspec(flat_base, manifest_pkg['id'], manifest_pkg['latestVersion'])
+            if result is None:
+                getLogger().warning(f"Could not extract commit SHA for {repo} from {manifest_pkg['id']}")
+                continue
+            
+            repo_url, commit_sha = result
+            normalized_repo = _normalize_repo_url(repo_url)
+            
+            if not re.fullmatch(r'[0-9a-fA-F]{40}', commit_sha):
+                getLogger().warning(f"Invalid commit SHA format for {repo}: '{commit_sha}', skipping")
+                continue
+            
+            if normalized_repo.lower() == repo.lower():
+                repo_commits[repo] = commit_sha
+                getLogger().info(f"Discovered commit SHA for {repo}: {commit_sha}")
+            else:
+                getLogger().warning(f"Package {manifest_pkg['id']} comes from {normalized_repo} (expected {repo}), skipping")
+                
+        except Exception as e:
+            getLogger().warning(f"Failed to discover commit SHA for {repo}: {e}")
+            continue
+    
+    getLogger().info(f"Discovered commit SHAs for {len(repo_commits)} repos: {repo_commits}")
+    
+    # Store cache on precommands so install_latest_maui can reuse resolved packages
+    if cached_packages:
+        precommands._cached_manifest_packages = cached_packages
+        getLogger().info(f"Cached {len(cached_packages)} resolved manifest packages for reuse")
+    
+    return repo_commits
+
 def download_maui_nuget_config(target_framework: str = "net11.0", output_filename: str = "MauiNuGet.config") -> str:
     '''
         Download MAUI's NuGet.config from the appropriate branch.
@@ -188,29 +362,35 @@ def download_maui_nuget_config(target_framework: str = "net11.0", output_filenam
         getLogger().error(f"Failed to download MAUI NuGet.config: {e}")
         raise
 
-def _get_repo_nuget_config_url(repo: str, target_framework: str) -> str:
+def _get_repo_nuget_config_url(repo: str, target_framework: str, commit_sha: Optional[str] = None) -> str:
     '''
-    Get the raw GitHub URL for a repo's NuGet.config based on its branch naming convention.
+    Get the raw GitHub URL for a repo's NuGet.config.
     
+    If commit_sha is provided, downloads from that exact commit.
+    Otherwise falls back to branch naming convention:
     - dotnet/maui and dotnet/macios use net{X}.0 branches (e.g., net11.0)
     - dotnet/android uses 'main' branch always
     '''
-    if repo == "dotnet/android":
-        branch = "main"
+    if commit_sha:
+        ref = commit_sha
+    elif repo == "dotnet/android":
+        ref = "main"
     else:
         # dotnet/maui and dotnet/macios use net{X}.0 branches
         if '-' in target_framework:
-            branch = target_framework.split('-')[0]
+            ref = target_framework.split('-')[0]
         else:
-            branch = target_framework
+            ref = target_framework
     
-    return f'https://raw.githubusercontent.com/{repo}/{branch}/NuGet.config'
+    return f'https://raw.githubusercontent.com/{repo}/{ref}/NuGet.config'
 
-def download_repo_nuget_config(repo: str, target_framework: str, output_filename: str) -> Optional[str]:
+def download_repo_nuget_config(repo: str, target_framework: str, output_filename: str, commit_sha: Optional[str] = None) -> Optional[str]:
     '''
     Download a repo's NuGet.config from GitHub. Returns the absolute path on success, None on failure.
+    
+    If commit_sha is provided, downloads from that exact commit instead of the branch HEAD.
     '''
-    url = _get_repo_nuget_config_url(repo, target_framework)
+    url = _get_repo_nuget_config_url(repo, target_framework, commit_sha=commit_sha)
     getLogger().info(f"Downloading NuGet.config from {url}")
     
     try:
@@ -236,8 +416,9 @@ class MauiNuGetConfigContext:
     # Repos whose NuGet.configs are merged into the repo config
     UPSTREAM_REPOS = ["dotnet/maui", "dotnet/android", "dotnet/macios"]
 
-    def __init__(self, target_framework: str):
-        self.target_framework = target_framework
+    def __init__(self, precommands: PreCommands):
+        self.precommands = precommands
+        self.target_framework = precommands.framework
         # Find NuGet.config by walking up from current directory
         self.repo_nuget_config = self._find_repo_nuget_config()
         self.backup_path = self.repo_nuget_config + ".maui_backup"
@@ -315,11 +496,22 @@ class MauiNuGetConfigContext:
         config_dir = os.path.dirname(self.repo_nuget_config)
 
         try:
-            # Download NuGet.configs from all upstream repos
+            # Discover commit SHAs for upstream repos from NuGet package metadata
+            repo_commits: dict[str, str] = {}
+            try:
+                feed_url = extract_latest_dotnet_feed_from_nuget_config(
+                    path=self.repo_nuget_config
+                )
+                repo_commits = _discover_repo_commits(self.precommands, feed_url)
+            except Exception as e:
+                getLogger().warning(f"Failed to discover repo commits, will use branch HEAD: {e}")
+
+            # Download NuGet.configs from all upstream repos (using commit SHAs when available)
             for repo in self.UPSTREAM_REPOS:
                 safe_name = repo.replace("/", "-")
                 output_path = os.path.join(config_dir, f"{safe_name}-NuGet.config")
-                result = download_repo_nuget_config(repo, self.target_framework, output_path)
+                commit_sha = repo_commits.get(repo)
+                result = download_repo_nuget_config(repo, self.target_framework, output_path, commit_sha=commit_sha)
                 if result:
                     self.downloaded_config_paths.append(result)
 
@@ -434,93 +626,29 @@ def install_latest_maui(
     getLogger().info(f"Installing the latest {workload_name} workload from feed {feed}")
 
     # Get the latest published version of the maui workloads
+    cached_packages = getattr(precommands, '_cached_manifest_packages', {})
     for workload in maui_rollback_dict.keys():
         getLogger().info(f"Processing workload: {workload}")
-        try:
-            packages = precommands.get_packages_for_sdk_from_feed(workload, feed)
-        except Exception as e:
-            getLogger().warning(f"Failed to get packages for {workload} from latest feed: {e}")
-            getLogger().info("Trying second latest feed as fallback")
-            fallback_feed = extract_latest_dotnet_feed_from_nuget_config(
-                path=os.path.join(get_repo_root_path(), "NuGet.config"), 
-                offset=1
-            )
-            getLogger().info(f"Using fallback feed: {fallback_feed}")
-            packages = precommands.get_packages_for_sdk_from_feed(workload, fallback_feed)
-
-        # Log all package IDs before filtering
-        getLogger().debug(f"All package IDs for {workload}: {[pkg['id'] for pkg in packages]}")
-
-        # Filter out packages that have ID that matches the pattern 'Microsoft.NET.Sdk.<workload>.Manifest-<version>'
-        pattern = r'Microsoft\.NET\.Sdk\..*\.Manifest\-\d+\.\d+\.\d+(\-(preview|rc|alpha)\.\d+)?$'
-        packages = [pkg for pkg in packages if re.match(pattern, pkg['id'])]
-        getLogger().info(f"After manifest pattern filtering, found {len(packages)} packages for {workload}")
-        getLogger().debug(f"Filtered package IDs for {workload}: {[pkg['id'] for pkg in packages]}")
-
-        # Extract the .NET version from the package ID (Manifest-<version>($|-<preview|rc|alpha>.*))
-        for package in packages:
-            getLogger().debug(f"Processing package ID: {package['id']}")
-            match = re.search(r'Manifest-(.+)$', package["id"])
-            if match:
-                sdk_version = match.group(1)
-                package['sdk_version'] = sdk_version
-                getLogger().debug(f"Extracted SDK version '{sdk_version}' from package {package['id']}")
-
-                # Extract the .NET version from sdk_version (first integer)
-                match = re.search(r'^\d+\.\d+', sdk_version)
-                if match:
-                    dotnet_version = match.group(0)
-                    package['dotnet_version'] = dotnet_version
-                    getLogger().debug(f"Extracted .NET version '{dotnet_version}' from SDK version '{sdk_version}'")
-                else:
-                    getLogger().error(f"Unable to find .NET version in SDK version '{sdk_version}' for package {package['id']}")
-                    raise Exception(f"Unable to find .NET version in SDK version '{sdk_version}' for package {package['id']}")
-            else:
-                getLogger().error(f"Unable to find .NET SDK version in package ID: {package['id']}")
-                raise Exception(f"Unable to find .NET SDK version in package ID: {package['id']}")
-            
-        # Filter out packages that have lower 'dotnet_version' than the rest of the packages
-        # Sometimes feed can contain packages from previous release versions, so we need to filter them out
-        dotnet_versions = [float(pkg['dotnet_version']) for pkg in packages]
-        getLogger().debug(f"Found .NET versions for {workload}: {dotnet_versions}")
-        highest_dotnet_version = max(dotnet_versions)
-        getLogger().info(f"Highest .NET version for {workload}: {highest_dotnet_version}")
-        packages_before_version_filter = len(packages)
-        packages = [pkg for pkg in packages if float(pkg['dotnet_version']) == highest_dotnet_version]
-        getLogger().info(f"After .NET version filtering for {workload}: {len(packages)} packages (was {packages_before_version_filter})")
         
-        pkg_details = [f"{pkg['id']} (v{pkg['dotnet_version']})" for pkg in packages]
-        getLogger().debug(f"Packages after .NET version filter: {pkg_details}")
-
-        # Check if we have non-preview packages available and use them
-        preview_pattern = r'\-(preview|rc|alpha)\.\d+$'
-        non_preview_packages = [pkg for pkg in packages if not re.search(preview_pattern, pkg['id'])]
-        getLogger().info(f"Found {len(non_preview_packages)} non-preview packages for {workload} out of {len(packages)} total")
-        
-        preview_packages = [pkg['id'] for pkg in packages if re.search(preview_pattern, pkg['id'])]
-        getLogger().debug(f"Preview packages: {preview_packages}")
-        getLogger().debug(f"Non-preview packages: {[pkg['id'] for pkg in non_preview_packages]}")
-        
-        if non_preview_packages:
-            getLogger().info(f"Using non-preview packages for {workload}")
-            packages = non_preview_packages
+        # Check if this workload was already resolved by _discover_repo_commits
+        if workload in cached_packages:
+            latest_package = cached_packages[workload]
+            getLogger().info(f"Using cached manifest package for {workload}: {latest_package['id']} v{latest_package['latestVersion']}")
         else:
-            getLogger().info(f"No non-preview packages available for {workload}, using all packages")
+            try:
+                packages = precommands.get_packages_for_sdk_from_feed(workload, feed)
+            except Exception as e:
+                getLogger().warning(f"Failed to get packages for {workload} from latest feed: {e}")
+                getLogger().info("Trying second latest feed as fallback")
+                fallback_feed = extract_latest_dotnet_feed_from_nuget_config(
+                    path=os.path.join(get_repo_root_path(), "NuGet.config"), 
+                    offset=1
+                )
+                getLogger().info(f"Using fallback feed: {fallback_feed}")
+                packages = precommands.get_packages_for_sdk_from_feed(workload, fallback_feed)
 
-        # Sort the packages by 'sdk_version'
-        before_sort = [f"{pkg['id']} (sdk_v{pkg['sdk_version']})" for pkg in packages]
-        newline = '\n'
-        getLogger().debug(f"Packages before sorting for {workload}: {newline.join(before_sort)}")
-        packages.sort(key=lambda x: x['sdk_version'], reverse=True)
-        after_sort = [f"{pkg['id']} (sdk_v{pkg['sdk_version']})" for pkg in packages]
-        getLogger().debug(f"Packages after sorting for {workload}: {newline.join(after_sort)}")
-
-        # Get the latest package
-        if not packages:
-            getLogger().error(f"No packages available for {workload} after filtering")
-            raise Exception(f"No packages available for {workload} after filtering")
-            
-        latest_package = packages[0]
+            getLogger().debug(f"All package IDs for {workload}: {[pkg['id'] for pkg in packages]}")
+            latest_package = _find_latest_manifest_package(packages, workload)
 
         getLogger().info(f"Latest package details for {workload}: ID={latest_package['id']}, Version={latest_package['latestVersion']}, SDK_Version={latest_package['sdk_version']}, .NET_Version={latest_package['dotnet_version']}")
         

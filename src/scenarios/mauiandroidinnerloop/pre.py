@@ -18,7 +18,7 @@ logger.info("Starting pre-command for MAUI Android deploy measurement")
 
 precommands = PreCommands()
 
-with MauiNuGetConfigContext(precommands.framework):
+with MauiNuGetConfigContext(precommands):
     install_latest_maui(
         precommands,
         workloads=["microsoft.net.sdk.android"],
