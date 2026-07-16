@@ -46,8 +46,10 @@ import json
 import os
 import platform
 import re
+import shutil
 import subprocess
 import sys
+import time
 from datetime import datetime
 
 # --- Logging ---
@@ -1071,6 +1073,17 @@ _SIGNING_SEARCH_ROOTS = [
     "/usr/local/share",
 ]
 
+# Subtrees pruned from the signing-artifact search. These are huge and never
+# hold the provisioning profile / sign tool; without pruning, the walk of
+# /Users/helix-runner (dominated by the CoreSimulator device store) blows past
+# the timeout and aborts mid-scan, yielding a false "not found" even when the
+# artifacts ARE present. Mirrors the CoreSimulator prune used for chown cleanup.
+_SIGNING_PRUNE_DIRS = [
+    "CoreSimulator", "Caches", "Logs", "DerivedData",
+    "iOS DeviceSupport", ".Trash", ".git", ".nuget", ".dotnet", "node_modules",
+]
+_SIGNING_SEARCH_TIMEOUT = 90
+
 
 def find_and_stage_signing_artifacts(workitem_root):
     """Locate embedded.mobileprovision and the 'sign' tool on the Helix machine.
@@ -1088,40 +1101,65 @@ def find_and_stage_signing_artifacts(workitem_root):
 
     provision_path = None
     sign_path = None
+
+    # Fast path: the 'sign' tool is often already on PATH (staged by machine
+    # prep), so check that before the slower filesystem walk.
+    which_sign = shutil.which("sign")
+    if which_sign and os.access(which_sign, os.X_OK):
+        sign_path = which_sign
+        log(f"Found 'sign' tool on PATH at: {sign_path}", tee=True)
+
+    def _consume(output):
+        nonlocal provision_path, sign_path
+        for line in (output or "").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            base = os.path.basename(line)
+            if base == "embedded.mobileprovision" and provision_path is None:
+                provision_path = line
+            elif base == "sign" and sign_path is None:
+                if os.path.isfile(line) and os.access(line, os.X_OK):
+                    sign_path = line
+
+    # Prune clause skips the known-huge subtrees so the walk finishes within the
+    # timeout instead of aborting mid-scan (which would mask present artifacts).
+    prune = []
+    for i, name in enumerate(_SIGNING_PRUNE_DIRS):
+        prune += (["-o"] if i else []) + ["-name", name]
+
     for root in _SIGNING_SEARCH_ROOTS:
-        if not os.path.isdir(root):
-            continue
-        try:
-            result = subprocess.run(
-                [
-                    "find", root, "-maxdepth", "6",
-                    "(", "-name", "embedded.mobileprovision",
-                    "-o", "-name", "sign", ")",
-                    "-not", "-path", "*/.Trash/*",
-                ],
-                capture_output=True, text=True, timeout=30,
-            )
-            for line in (result.stdout or "").splitlines():
-                line = line.strip()
-                if not line:
-                    continue
-                base = os.path.basename(line)
-                if base == "embedded.mobileprovision" and provision_path is None:
-                    provision_path = line
-                elif base == "sign" and sign_path is None:
-                    if os.path.isfile(line) and os.access(line, os.X_OK):
-                        sign_path = line
-                if provision_path and sign_path:
-                    break
-        except Exception as e:
-            log(f"Search in {root} failed: {e}")
         if provision_path and sign_path:
             break
+        if not os.path.isdir(root):
+            continue
+        find_args = (
+            ["find", root, "-maxdepth", "6",
+             "(", "-type", "d", "("] + prune + [")", ")", "-prune",
+             "-o",
+             "(", "-name", "embedded.mobileprovision", "-o", "-name", "sign", ")",
+             "-not", "-path", "*/.Trash/*", "-print"]
+        )
+        start = time.time()
+        try:
+            result = subprocess.run(
+                find_args, capture_output=True, text=True,
+                timeout=_SIGNING_SEARCH_TIMEOUT,
+            )
+            _consume(result.stdout)
+            log(f"Searched {root} in {time.time() - start:.1f}s")
+        except subprocess.TimeoutExpired as e:
+            # Use whatever was found before the timeout rather than discarding it.
+            partial = e.stdout.decode() if isinstance(e.stdout, (bytes, bytearray)) else e.stdout
+            _consume(partial)
+            log(f"WARNING: search in {root} timed out after "
+                f"{_SIGNING_SEARCH_TIMEOUT}s — used partial results", tee=True)
+        except Exception as e:
+            log(f"Search in {root} failed: {e}")
 
     if provision_path:
         log(f"Found embedded.mobileprovision at: {provision_path}", tee=True)
         try:
-            import shutil
             dest = os.path.join(workitem_root, "embedded.mobileprovision")
             shutil.copy2(provision_path, dest)
             log(f"Copied embedded.mobileprovision to: {dest}", tee=True)
