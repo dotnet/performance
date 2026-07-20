@@ -24,32 +24,32 @@ Device path & infrastructure prerequisites
 ------------------------------------------
 For the physical-device variant (IOS_RID=ios-arm64) the build runs with
 ``EnableCodeSigning=false`` to keep MSBuild deterministic on Helix; the
-post-build ``ioshelper.sign_app_for_device`` re-signs the .app using:
+post-build ``ioshelper.sign_app_for_device`` codesigns the .app using:
 
-  - ``embedded.mobileprovision`` — staged into HELIX_WORKITEM_ROOT (CWD)
-  - ``sign`` tool — symlinked into the venv ``bin/`` so it's on PATH
+  - a raw provisioning profile from the standard Xcode path
+    (``~/Library/MobileDevice/Provisioning Profiles`` / Xcode 16+ equivalent)
+  - the Apple Development codesigning identity from the Helix signing keychain
 
-Both must be present somewhere on the Helix machine (see
-``_SIGNING_SEARCH_ROOTS``). The Mac.iPhone.17.Perf queue had Helix machine
-prep install them; newer queues like Mac.iPhone.13.Perf currently do NOT,
-which is a tracked machine-image gap. When the artifacts are missing,
-``find_and_stage_signing_artifacts`` returns False and the work item
-FAILS LOUDLY with sys.exit(1) and a ``WORK ITEM FAILED — DEVICE INFRA
-UNAVAILABLE`` banner in the console log. We deliberately do NOT mask
-the failure as a "skip" / pass: a green build must mean the scenario
-actually ran, not that we silently sidestepped a queue gap. The fix is
-to provision the queue (Engineering Services ticket), not to flip a
-flag in this script.
+``verify_signing_prerequisites`` checks BOTH exist before the (slow) build so
+a genuinely missing prerequisite fails the work item early with a
+``WORK ITEM FAILED — DEVICE INFRA UNAVAILABLE`` banner, rather than after a
+full build. We deliberately do NOT mask the failure as a "skip" / pass: a
+green build must mean the scenario actually ran, not that we silently
+sidestepped a queue gap. NOTE: earlier versions searched the machine for a
+file literally named ``embedded.mobileprovision`` and a ``sign`` tool — both
+were WRONG (embedded.mobileprovision only exists inside already-signed
+bundles; no ``sign`` tool exists on the perf Macs), which produced a false
+"DEVICE INFRA UNAVAILABLE". The fix, when a prerequisite is truly missing, is
+to provision the queue (Engineering Services ticket), not to flip a flag here.
 """
 
+import glob
 import json
 import os
 import platform
 import re
-import shutil
 import subprocess
 import sys
-import time
 from datetime import datetime
 
 # --- Logging ---
@@ -1058,139 +1058,67 @@ def detect_physical_device():
 
 # --- Main ---
 
-# --- Device signing artifact discovery ---
+# --- Device signing prerequisite check ---
 
-# On Mac.iPhone.*.Perf machines, Helix machine prep installs the developer
-# provisioning profile (embedded.mobileprovision) and the 'sign' tool at
-# known paths. XHarness work items get them in CWD automatically; HelixWorkItem
-# (us) has to find and stage them ourselves.
-_SIGNING_SEARCH_ROOTS = [
-    "/etc/helix-prep",
-    "/Users/helix-runner",
-    "/Users/Shared/Helix",
-    "/var/helix",
-    "/usr/local/bin",
-    "/usr/local/share",
+# Raw provisioning profiles live at these fixed Xcode paths (older Xcode first,
+# Xcode 16+ second). ioshelper.sign_app_for_device signs the built bundle with
+# codesign; here we only VERIFY the prerequisites so a missing one fails fast
+# before the slow build. We deliberately do NOT search for embedded.mobileprovision
+# or a 'sign' tool: embedded.mobileprovision only exists INSIDE an already-signed
+# bundle, and there is no 'sign' tool on the perf Macs — both were wrong
+# assumptions that produced a false "DEVICE INFRA UNAVAILABLE".
+_PROVISIONING_PROFILE_DIRS = [
+    os.path.expanduser("~/Library/MobileDevice/Provisioning Profiles"),
+    os.path.expanduser("~/Library/Developer/Xcode/UserData/Provisioning Profiles"),
 ]
-
-# Subtrees pruned from the signing-artifact search. These are huge and never
-# hold the provisioning profile / sign tool; without pruning, the walk of
-# /Users/helix-runner (dominated by the CoreSimulator device store) blows past
-# the timeout and aborts mid-scan, yielding a false "not found" even when the
-# artifacts ARE present. Mirrors the CoreSimulator prune used for chown cleanup.
-_SIGNING_PRUNE_DIRS = [
-    "CoreSimulator", "Caches", "Logs", "DerivedData",
-    "iOS DeviceSupport", ".Trash", ".git", ".nuget", ".dotnet", "node_modules",
-]
-_SIGNING_SEARCH_TIMEOUT = 90
+_DEFAULT_SIGNING_IDENTITY = "NET_Apple_Development"
 
 
-def find_and_stage_signing_artifacts(workitem_root):
-    """Locate embedded.mobileprovision and the 'sign' tool on the Helix machine.
+def verify_signing_prerequisites():
+    """Verify a provisioning profile and a codesigning identity are available.
 
-    Searches several well-known root directories. If found, stages
-    embedded.mobileprovision into ``workitem_root`` (so ioshelper.py picks
-    it up via its CWD-based lookup) and symlinks ``sign`` into the work
-    item's venv ``bin/`` directory (already on PATH per the .proj
-    PreCommands), so ioshelper.py finds it via ``shutil.which('sign')``.
-
-    Returns True if BOTH artifacts were found and staged, False otherwise.
-    Does not raise; the caller decides what to do with the result.
+    A fast pre-build gate (a directory listing + one `security find-identity`).
+    Returns True iff BOTH a raw provisioning profile (at the standard Xcode
+    path) and at least one valid codesigning identity are present. The actual
+    signing happens later in ioshelper.sign_app_for_device. Does not raise.
     """
-    log_raw("=== DEVICE SIGNING ARTIFACT DISCOVERY ===", tee=True)
+    log_raw("=== DEVICE SIGNING PREREQUISITE CHECK ===", tee=True)
 
-    provision_path = None
-    sign_path = None
-
-    # Fast path: the 'sign' tool is often already on PATH (staged by machine
-    # prep), so check that before the slower filesystem walk.
-    which_sign = shutil.which("sign")
-    if which_sign and os.access(which_sign, os.X_OK):
-        sign_path = which_sign
-        log(f"Found 'sign' tool on PATH at: {sign_path}", tee=True)
-
-    def _consume(output):
-        nonlocal provision_path, sign_path
-        for line in (output or "").splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            base = os.path.basename(line)
-            if base == "embedded.mobileprovision" and provision_path is None:
-                provision_path = line
-            elif base == "sign" and sign_path is None:
-                if os.path.isfile(line) and os.access(line, os.X_OK):
-                    sign_path = line
-
-    # Prune clause skips the known-huge subtrees so the walk finishes within the
-    # timeout instead of aborting mid-scan (which would mask present artifacts).
-    prune = []
-    for i, name in enumerate(_SIGNING_PRUNE_DIRS):
-        prune += (["-o"] if i else []) + ["-name", name]
-
-    for root in _SIGNING_SEARCH_ROOTS:
-        if provision_path and sign_path:
-            break
-        if not os.path.isdir(root):
-            continue
-        find_args = (
-            ["find", root, "-maxdepth", "6",
-             "(", "-type", "d", "("] + prune + [")", ")", "-prune",
-             "-o",
-             "(", "-name", "embedded.mobileprovision", "-o", "-name", "sign", ")",
-             "-not", "-path", "*/.Trash/*", "-print"]
-        )
-        start = time.time()
-        try:
-            result = subprocess.run(
-                find_args, capture_output=True, text=True,
-                timeout=_SIGNING_SEARCH_TIMEOUT,
-            )
-            _consume(result.stdout)
-            log(f"Searched {root} in {time.time() - start:.1f}s")
-        except subprocess.TimeoutExpired as e:
-            # Use whatever was found before the timeout rather than discarding it.
-            partial = e.stdout.decode() if isinstance(e.stdout, (bytes, bytearray)) else e.stdout
-            _consume(partial)
-            log(f"WARNING: search in {root} timed out after "
-                f"{_SIGNING_SEARCH_TIMEOUT}s — used partial results", tee=True)
-        except Exception as e:
-            log(f"Search in {root} failed: {e}")
-
-    if provision_path:
-        log(f"Found embedded.mobileprovision at: {provision_path}", tee=True)
-        try:
-            dest = os.path.join(workitem_root, "embedded.mobileprovision")
-            shutil.copy2(provision_path, dest)
-            log(f"Copied embedded.mobileprovision to: {dest}", tee=True)
-        except Exception as e:
-            log(f"WARNING: failed to copy embedded.mobileprovision: {e}", tee=True)
-            provision_path = None
+    profile = None
+    for directory in _PROVISIONING_PROFILE_DIRS:
+        if os.path.isdir(directory):
+            profiles = sorted(
+                glob.glob(os.path.join(directory, "*.mobileprovision"))
+                + glob.glob(os.path.join(directory, "*.provisionprofile")),
+                key=os.path.getmtime, reverse=True)
+            if profiles:
+                profile = profiles[0]
+                break
+    if profile:
+        log(f"Found provisioning profile: {profile}", tee=True)
     else:
-        log("WARNING: embedded.mobileprovision not found in any known location. "
-            "Device install will likely fail with 'No code signature found'.",
-            tee=True)
+        log("WARNING: no provisioning profile in "
+            + " or ".join(_PROVISIONING_PROFILE_DIRS), tee=True)
 
-    if sign_path:
-        log(f"Found 'sign' tool at: {sign_path}", tee=True)
-        # Symlink into the workitem venv bin (already on PATH per .proj PreCommands)
-        venv_bin = os.path.join(workitem_root, ".venv", "bin")
-        try:
-            os.makedirs(venv_bin, exist_ok=True)
-            link_target = os.path.join(venv_bin, "sign")
-            if os.path.lexists(link_target):
-                os.remove(link_target)
-            os.symlink(sign_path, link_target)
-            log(f"Symlinked sign tool to: {link_target}", tee=True)
-        except Exception as e:
-            log(f"WARNING: failed to symlink sign tool: {e}", tee=True)
-            sign_path = None
-    else:
-        log("WARNING: 'sign' tool not found in any known location. "
-            "Device install will likely fail. Searched: "
-            f"{', '.join(_SIGNING_SEARCH_ROOTS)}", tee=True)
+    identity = os.environ.get("IOS_SIGNING_IDENTITY", _DEFAULT_SIGNING_IDENTITY)
+    identity_present = False
+    try:
+        result = subprocess.run(
+            ["security", "find-identity", "-p", "codesigning", "-v"],
+            capture_output=True, text=True, timeout=30)
+        out = result.stdout or ""
+        log(f"security find-identity -p codesigning -v:\n{out.strip()}")
+        identity_present = bool(re.search(r"\b[1-9]\d* valid identities found", out))
+        if identity in out:
+            log(f"Found expected signing identity '{identity}'", tee=True)
+        elif identity_present:
+            log(f"Expected identity '{identity}' not matched by name, but valid "
+                "codesigning identities are present (codesign will error clearly "
+                "if the name is wrong).", tee=True)
+    except Exception as e:
+        log(f"WARNING: `security find-identity` failed: {e}", tee=True)
 
-    return bool(provision_path and sign_path)
+    return bool(profile and identity_present)
 
 
 def main():
@@ -1309,30 +1237,26 @@ def main():
         os.environ["IOS_DEVICE_UDID"] = device_udid
         log(f"IOS_DEVICE_UDID detected: {device_udid}", tee=True)
 
-        # Search for embedded.mobileprovision and 'sign' tool on the
-        # Helix machine and stage them so ioshelper.py's signing flow
-        # can find them.
-        signing_ready = find_and_stage_signing_artifacts(workitem_root)
+        # Verify code-signing prerequisites (provisioning profile at the
+        # standard Xcode path + a codesigning identity in the keychain).
+        # ioshelper.sign_app_for_device does the actual codesign after build.
+        signing_ready = verify_signing_prerequisites()
 
-        # Without code-signing infrastructure (cert in keychain +
-        # provisioning profile + 'sign' tool), iOS device install
-        # cannot succeed — devicectl will fail with
-        # "No code signature found" regardless of which install tool
-        # we use. Fail loudly so missing queue provisioning shows up
-        # as a red build, not a green-with-hidden-skip. Provisioning
-        # the queue (Apple Developer cert + provisioning profile +
-        # 'sign' tool, same as Mac.iPhone.17.Perf) is an Engineering
-        # Services ticket, not a code change here.
+        # Without a provisioning profile + codesigning identity, the post-build
+        # codesign (and therefore `xcrun devicectl device install app`) cannot
+        # succeed — devicectl rejects an unsigned bundle with "No code signature
+        # found". Fail loudly so a genuinely missing prerequisite shows up as a
+        # red build, not a green-with-hidden-skip.
         if not signing_ready:
             reason = (
-                "Device code-signing infrastructure not available on this "
-                "Helix machine (embedded.mobileprovision and/or 'sign' tool "
-                "missing). Cannot install signed app on physical device. "
-                "This is a queue provisioning gap, not a scenario bug. "
-                "Fix: provision the queue with the Apple Developer cert + "
-                "provisioning profile + 'sign' tool (same as "
-                "Mac.iPhone.17.Perf). Search roots checked: "
-                + ", ".join(_SIGNING_SEARCH_ROOTS)
+                "Device code-signing prerequisites not available on this Helix "
+                "machine: need a provisioning profile at "
+                + " or ".join(_PROVISIONING_PROFILE_DIRS)
+                + " AND a valid codesigning identity (`security find-identity "
+                "-p codesigning -v`). This is a queue provisioning gap, not a "
+                "scenario bug. Fix: ensure the macos-signing-certs artifact "
+                "installed the Apple Development identity and a matching "
+                "provisioning profile (same as Mac.iPhone.17.Perf)."
             )
             log_raw("=" * 70, tee=True)
             log_raw("WORK ITEM FAILED — DEVICE INFRA UNAVAILABLE", tee=True)

@@ -6,10 +6,10 @@ measurement on iOS. Two device kinds, two slightly different toolchains:
   ┌──────────┬──────────────────────────┬──────────────────────────────┐
   │          │ install                  │ cold-startup measurement     │
   ├──────────┼──────────────────────────┼──────────────────────────────┤
-  │ device   │ mlaunch --installdev     │ mlaunch --launchdev          │
-  │          │ (handles devicectl tunnel│ (returns PID immediately,    │
-  │          │  + devicectl signing     │  watchdog log captures the   │
-  │          │  metadata)               │  startup phases)             │
+  │ device   │ xcrun devicectl device   │ mlaunch --launchdev          │
+  │          │ install app (bundle is   │ (returns PID immediately,    │
+  │          │ codesigned first by      │  watchdog log captures the   │
+  │          │ sign_app_for_device)     │  startup phases)             │
   ├──────────┼──────────────────────────┼──────────────────────────────┤
   │ simulator│ mlaunch --installsim     │ xcrun simctl launch          │
   │          │ (matches what the IDE    │ (NOT mlaunch --launchsim,    │
@@ -32,21 +32,25 @@ Note 1 — why simctl for simulator launch instead of mlaunch --launchsim:
    stabilization check that confirms the launched PID survives.
 
 Note 2 — physical-device install requires code signing:
-   ``mlaunch --installdev`` ultimately calls ``xcrun devicectl device
-   install app``, which refuses to install an unsigned bundle (errors with
-   MIInstallerErrorDomain code 13, "No code signature found"). The .proj
-   builds with ``EnableCodeSigning=false`` to keep the build deterministic
-   on Helix, then ``sign_app_for_device`` re-signs the bundle using the
-   ``embedded.mobileprovision`` and ``sign`` tool that Helix machine prep
-   is expected to provide. If those artifacts are missing the install
-   will fail; the orchestrator (setup_helix.py) is responsible for
-   detecting that case.
+   ``xcrun devicectl device install app`` refuses to install an unsigned
+   bundle (MIInstallerErrorDomain code 13, "No code signature found"). The
+   .proj builds with ``EnableCodeSigning=false`` to keep the build
+   deterministic on Helix, then ``sign_app_for_device`` signs the bundle
+   with ``/usr/bin/codesign`` using the Apple Development identity from the
+   Helix signing keychain and the entitlements extracted from the raw
+   provisioning profile at ``~/Library/MobileDevice/Provisioning Profiles``.
+   (There is no ``sign`` tool on the perf Macs, and ``embedded.mobileprovision``
+   only exists *inside* an already-signed bundle — earlier assumptions to the
+   contrary were wrong.) setup_helix.py verifies the profile + identity are
+   present before the build so a missing prerequisite fails fast.
 """
 
 import glob
 import json
 import os
+import plistlib
 import re
+import shutil
 import subprocess
 import tempfile
 import time
@@ -54,6 +58,20 @@ from datetime import datetime
 from logging import getLogger
 
 from performance.common import RunCommand
+
+
+# Standard macOS locations for the raw provisioning profiles that Xcode / Helix
+# machine prep installs. These hold ``<uuid>.mobileprovision`` files we sign
+# WITH. Note: ``embedded.mobileprovision`` is NOT here — that name only exists
+# INSIDE an already-signed ``.app`` bundle (Xcode embeds the profile at sign
+# time); ``sign_app_for_device`` copies the raw profile in under that name.
+_PROVISIONING_PROFILE_DIRS = [
+    os.path.expanduser("~/Library/MobileDevice/Provisioning Profiles"),
+    os.path.expanduser("~/Library/Developer/Xcode/UserData/Provisioning Profiles"),
+]
+# Apple Development identity installed in the Helix signing keychain by the
+# macos-signing-certs artifact. Override via IOS_SIGNING_IDENTITY if needed.
+_DEFAULT_SIGNING_IDENTITY = "NET_Apple_Development"
 
 
 class iOSHelper:
@@ -299,18 +317,21 @@ class iOSHelper:
     # ── Device Code Signing ──────────────────────────────────────────
 
     def sign_app_for_device(self, app_bundle_path):
-        """Sign the .app bundle for physical device deployment.
+        """Codesign the built .app bundle for physical-device deployment.
 
-        Mirrors the signing flow from maui_scenarios_ios.proj device startup:
-          1. Copy embedded.mobileprovision into the .app bundle
-          2. Run the Helix-provided 'sign' tool
+        The build runs with ``EnableCodeSigning=false`` so the bundle is
+        unsigned. We sign it manually here (the perf Macs have no ``sign``
+        tool — that was a wrong assumption):
 
-        Both 'embedded.mobileprovision' and 'sign' are pre-installed on the
-        Mac.iPhone.17.Perf Helix machines. The build must use
-        EnableCodeSigning=false so MSBuild skips automatic signing.
+          1. Locate the raw provisioning profile at the standard Xcode path.
+          2. Extract its ``Entitlements`` (``security cms -D`` → plist).
+          3. Copy the raw profile into the bundle as ``embedded.mobileprovision``
+             (Xcode's own convention for the in-bundle copy).
+          4. ``codesign --force --deep --sign <identity> --entitlements <ent>``
+             using the Apple Development identity from the Helix signing keychain.
 
-        No-op for simulator builds or local runs where MSBuild handles signing
-        automatically (EnableCodeSigning is not disabled).
+        No-op for simulator builds or local runs (MSBuild signs those).
+        Raises on failure — a device job must fail loudly, never silently skip.
         """
         if not self.is_physical_device:
             return
@@ -320,91 +341,119 @@ class iOSHelper:
             getLogger().info("Skipping post-build signing (local run — MSBuild handles signing)")
             return
 
-        import shutil
-        provision_src = 'embedded.mobileprovision'
-        provision_dst = os.path.join(app_bundle_path, 'embedded.mobileprovision')
+        profile = self._find_provisioning_profile()
+        if not profile:
+            raise RuntimeError(
+                "No provisioning profile found in "
+                + " or ".join(_PROVISIONING_PROFILE_DIRS)
+                + ". Cannot codesign for device deployment.")
+        getLogger().info("Using provisioning profile: %s", profile)
 
-        if not os.path.exists(provision_src):
-            getLogger().warning(
-                "embedded.mobileprovision not found in working directory. "
-                "Device signing may fail if the Helix machine doesn't have it.")
-        else:
-            shutil.copy2(provision_src, provision_dst)
-            getLogger().info("Copied provisioning profile into %s", app_bundle_path)
+        # Xcode's convention: the profile is embedded in the bundle under this name.
+        shutil.copy2(profile, os.path.join(app_bundle_path, "embedded.mobileprovision"))
 
-        app_name = os.path.basename(app_bundle_path)
-        app_dir = os.path.dirname(os.path.abspath(app_bundle_path))
-        getLogger().info("Signing %s for device deployment", app_name)
+        entitlements_path = self._extract_entitlements(profile)
 
-        # Find the sign tool — it's pre-installed on Helix Mac machines
-        # but may not be on PATH in HelixWorkItem (vs XHarness) runners.
-        # Fast path: try direct resolution first, then fall back to running
-        # through a login shell (which is how Device Startup's XHarness
-        # CustomCommands find it — the login shell has the full PATH).
-        sign_cmd = shutil.which('sign')
-        if sign_cmd:
-            getLogger().info("Found sign tool on PATH: %s", sign_cmd)
-            RunCommand([sign_cmd, app_name], verbose=True).run(working_directory=app_dir)
-            return
+        identity = os.environ.get("IOS_SIGNING_IDENTITY", _DEFAULT_SIGNING_IDENTITY)
+        sign_cmd = [
+            "/usr/bin/codesign", "--force", "--deep",
+            "--sign", identity,
+            "--entitlements", entitlements_path,
+            "--timestamp=none",
+            app_bundle_path,
+        ]
+        getLogger().info("$ %s", " ".join(sign_cmd))
+        result = subprocess.run(sign_cmd, capture_output=True, text=True)
+        if result.stdout:
+            getLogger().info("codesign stdout:\n%s", result.stdout)
+        if result.stderr:
+            getLogger().info("codesign stderr:\n%s", result.stderr)
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"codesign failed (exit {result.returncode}) with identity "
+                f"'{identity}'. Available identities can be listed with "
+                f"`security find-identity -p codesigning -v`. "
+                f"stderr: {(result.stderr or '').strip()}")
 
-        # Check known Helix machine locations
-        for candidate in ['/usr/local/bin/sign',
-                          os.path.join(os.environ.get('HELIX_SCRIPT_ROOT', ''), 'sign')]:
-            if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
-                getLogger().info("Found sign tool at known path: %s", candidate)
-                RunCommand([candidate, app_name], verbose=True).run(working_directory=app_dir)
-                return
+        # Verify the signature so an install-time CoreSign rejection surfaces here
+        # (with a clear message) instead of as an opaque devicectl error later.
+        verify = subprocess.run(
+            ["/usr/bin/codesign", "--verify", "--deep", "--strict",
+             "--verbose=2", app_bundle_path],
+            capture_output=True, text=True)
+        getLogger().info(
+            "codesign --verify exit %d\n%s", verify.returncode,
+            (verify.stderr or verify.stdout or "").strip())
+        if verify.returncode != 0:
+            raise RuntimeError(
+                f"codesign verification failed (exit {verify.returncode}): "
+                f"{(verify.stderr or '').strip()}")
+        getLogger().info(
+            "Signed %s for device with identity '%s'",
+            os.path.basename(app_bundle_path), identity)
 
-        # Last resort: run through a login shell to get the full PATH.
-        # This mirrors how Device Startup's XHarness CustomCommands execute
-        # 'sign' — the XHarness runner's shell has the right PATH.
-        getLogger().info("sign tool not found on PATH or known locations; "
-                         "trying login shell (bash -lc)")
-        shell_result = subprocess.run(
-            ['bash', '-lc', f'cd "{app_dir}" && sign "{app_name}"'],
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-        )
-        if shell_result.stdout:
-            getLogger().info("sign output:\n%s", shell_result.stdout)
-        if shell_result.returncode != 0:
-            # The 'sign' tool only exists on Helix CI machines. For local
-            # device runs, MSBuild/Xcode already sign the app with the
-            # developer's identity during 'dotnet build', so re-signing is
-            # unnecessary.  Warn instead of crashing so local measurement
-            # scripts (which set PERFLAB_INLAB=1 for reporting) can proceed.
-            getLogger().warning(
-                "'sign' tool not found — skipping re-signing. "
-                "App should already be signed by MSBuild for local device deployment. "
-                "(Tried: shutil.which('sign'), /usr/local/bin/sign, "
-                "HELIX_SCRIPT_ROOT/sign, bash -lc 'sign'. "
-                "Login shell exit code: %d)",
-                shell_result.returncode,
-            )
-            return
-        getLogger().info("Signed %s via login shell successfully", app_name)
+    @staticmethod
+    def _find_provisioning_profile():
+        """Return the newest raw provisioning profile from the standard Xcode
+        directories, or None. Fast (a single directory listing) — replaces the
+        old broad ``find`` of /Users/helix-runner that timed out and searched
+        for the semantically wrong ``embedded.mobileprovision`` filename."""
+        candidates = []
+        for directory in _PROVISIONING_PROFILE_DIRS:
+            if os.path.isdir(directory):
+                candidates.extend(glob.glob(os.path.join(directory, "*.mobileprovision")))
+                candidates.extend(glob.glob(os.path.join(directory, "*.provisionprofile")))
+        if not candidates:
+            return None
+        # Newest by mtime — matches `ls -t | head -1`.
+        return max(candidates, key=os.path.getmtime)
+
+    @staticmethod
+    def _extract_entitlements(profile_path):
+        """Decode a provisioning profile and write its Entitlements to a temp
+        plist that ``codesign --entitlements`` consumes.
+
+        ``security cms -D -i <profile>`` outputs the profile as an XML plist;
+        its ``Entitlements`` dict is what codesign needs.
+        """
+        decoded = subprocess.run(
+            ["security", "cms", "-D", "-i", profile_path],
+            capture_output=True)
+        if decoded.returncode != 0:
+            raise RuntimeError(
+                f"Failed to decode provisioning profile {profile_path}: "
+                f"{decoded.stderr.decode(errors='replace').strip()}")
+        try:
+            profile_plist = plistlib.loads(decoded.stdout)
+            entitlements = profile_plist["Entitlements"]
+        except Exception as e:
+            raise RuntimeError(
+                f"Could not extract Entitlements from {profile_path}: {e}")
+        fd, ent_path = tempfile.mkstemp(suffix=".plist", prefix="entitlements_")
+        with os.fdopen(fd, "wb") as f:
+            plistlib.dump(entitlements, f)
+        getLogger().info(
+            "Extracted %d entitlement key(s) to %s", len(entitlements), ent_path)
+        return ent_path
 
     # ── Unified Operations ───────────────────────────────────────────
 
     def install_app(self, app_bundle_path):
         """Install the app bundle and return wall-clock install time in ms.
 
-        Per .NET iOS team guidance (Rolf), mlaunch is the canonical way to
-        deploy on both simulator and physical devices — it matches what the
-        IDEs do during F5, handles ad-hoc signing for personal-team device
-        deploys, and avoids `xcrun devicectl`'s strict CoreSign requirement
-        which fails for unsigned/ad-hoc Debug builds (MIInstallerErrorDomain
-        error 13 / "No code signature found").
-
-        Device:    mlaunch --installdev <app> --devname <UDID>
+        Device:    xcrun devicectl device install app --device <UDID> <app>
+                   (the bundle is codesigned by sign_app_for_device first, so
+                   devicectl's CoreSign requirement is satisfied).
         Simulator: mlaunch --installsim <app> --device :v2:udid=<UDID>
+                   (matches what the IDE does during F5).
         """
         start = time.time()
-        mlaunch = self._resolve_mlaunch()
 
         if self.is_physical_device:
-            cmd = [mlaunch, '--installdev', app_bundle_path,
-                   '--devname', self.device_id]
+            cmd = ['xcrun', 'devicectl', 'device', 'install', 'app',
+                   '--device', self.device_id, app_bundle_path]
         else:
+            mlaunch = self._resolve_mlaunch()
             cmd = [mlaunch, '--installsim', app_bundle_path,
                    '--device', f':v2:udid={self.device_id}']
         RunCommand(cmd, verbose=True).run()
