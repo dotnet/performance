@@ -1070,7 +1070,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         android_binlog_dir = os.path.join(root_payload_dir, "androidHelloWorldBinlog")
         shutil.copytree(os.path.join(args.built_app_dir, "androidHelloWorldBinlog"), android_binlog_dir)
 
-        binlog_files = glob(os.path.join(android_binlog_dir, "**", "*.binlog"))
+        binlog_files = glob(os.path.join(android_binlog_dir, "**", "*.binlog"), recursive=True)
         if binlog_files:
             dest = os.path.join(android_binlog_dir, "msbuild.binlog")
             getLogger().info(f"Moving {binlog_files[0]} to {dest}")
@@ -1093,7 +1093,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldZip"), ios_hello_world_zip_dir)
 
         # Find the zip file in the directory and move it to iOSSampleApp.zip
-        zip_files = glob(os.path.join(ios_hello_world_zip_dir, "**", "*.zip"))
+        zip_files = glob(os.path.join(ios_hello_world_zip_dir, "**", "*.zip"), recursive=True)
         if zip_files:
             dest = os.path.join(ios_hello_world_zip_dir, "iOSSampleApp.zip")
             getLogger().info(f"Moving {zip_files[0]} to {dest}")
@@ -1102,7 +1102,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         ios_hello_world_binlog_dir = os.path.join(payload_dir, "iosHelloWorldBinlog")
         shutil.copytree(os.path.join(args.built_app_dir, "iosHelloWorldBinlog"), ios_hello_world_binlog_dir)
 
-        binlog_files = glob(os.path.join(ios_hello_world_binlog_dir, "**", "*.binlog"))
+        binlog_files = glob(os.path.join(ios_hello_world_binlog_dir, "**", "*.binlog"), recursive=True)
         if binlog_files:
             dest = os.path.join(ios_hello_world_binlog_dir, "msbuild.binlog")
             getLogger().info(f"Moving {binlog_files[0]} to {dest}")

@@ -180,12 +180,11 @@ jobs:
             
             displayName: 'Android Sample App'
 
-        - task: DownloadBuildArtifacts@0
+        - task: DownloadPipelineArtifact@2
           displayName: 'Download binlog files'
           inputs:
             buildType: current
-            downloadType: single
-            downloadPath: '$(builtAppDir)/androidHelloWorldBinlog'
+            targetPath: '$(builtAppDir)/androidHelloWorldBinlog'
             # AndroidMono
             ${{ if eq(parameters.runtimeType, 'AndroidMono')}}:
               ${{ if eq(parameters.codeGenType, 'JIT') }}:
@@ -199,7 +198,6 @@ jobs:
                 artifactName: 'AndroidCoreCLRArm64BuildLog'
               ${{ if eq(parameters.codeGenType, 'R2R') }}:
                 artifactName: 'AndroidCoreCLRR2RArm64BuildLog'
-            checkDownloadedFiles: true
 
         # Disabled due to not working and needing consistent normal android results. https://github.com/dotnet/performance/issues/4729
         # - template: /eng/pipelines/templates/download-artifact-step.yml 
@@ -233,12 +231,11 @@ jobs:
               artifactFileName: 'iOSSampleAppNativeAOTNoSymbols.zip'
             displayName: 'iOS Sample App'
         # same artifact as above but don't extract .zip
-        - task: DownloadBuildArtifacts@0
+        - task: DownloadPipelineArtifact@2
           displayName: 'Download iOS Sample App'
           inputs:
             buildType: current
-            downloadType: single
-            downloadPath: '$(builtAppDir)/iosHelloWorldZip'
+            targetPath: '$(builtAppDir)/iosHelloWorldZip'
             ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.codeGenType, 'FullAOT'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppMonoFullAOTNoLLVMNoSymbols'
             ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.codeGenType, 'FullAOT'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
@@ -249,13 +246,11 @@ jobs:
               artifactName: 'iOSSampleAppCoreCLRR2RNoSymbols'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppNativeAOTNoSymbols'
-            checkDownloadedFiles: true
-        - task: DownloadBuildArtifacts@0
+        - task: DownloadPipelineArtifact@2
           displayName: 'Download binlog files'
           inputs:
             buildType: current
-            downloadType: single
-            downloadPath: '$(builtAppDir)/iosHelloWorldBinlog'
+            targetPath: '$(builtAppDir)/iosHelloWorldBinlog'
             ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.codeGenType, 'FullAOT'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSMonoFullAOTArm64NoLLVMStripSymbolsBuildLog'
             ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.codeGenType, 'FullAOT'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
@@ -266,4 +261,3 @@ jobs:
               artifactName: 'iOSCoreCLRR2RArm64StripSymbolsBuildLog'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSNativeAOTArm64StripSymbolsBuildLog'
-            checkDownloadedFiles: true
