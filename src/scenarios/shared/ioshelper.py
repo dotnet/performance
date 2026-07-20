@@ -68,9 +68,12 @@ from performance.common import RunCommand
 _PROVISIONING_PROFILE_DIRS = [
     os.path.expanduser("~/Library/MobileDevice/Provisioning Profiles"),
     os.path.expanduser("~/Library/Developer/Xcode/UserData/Provisioning Profiles"),
+    "/Library/MobileDevice/Provisioning Profiles",  # system-wide install
 ]
-# Apple Development identity installed in the Helix signing keychain by the
-# macos-signing-certs artifact. Override via IOS_SIGNING_IDENTITY if needed.
+# Fallback signing identity name if auto-detection from the keychain fails.
+# Override with IOS_SIGNING_IDENTITY. The real identity is auto-detected by
+# _resolve_signing_identity (its display name varies per machine, e.g.
+# "Apple Development: <person> (<team>)").
 _DEFAULT_SIGNING_IDENTITY = "NET_Apple_Development"
 
 
@@ -354,7 +357,7 @@ class iOSHelper:
 
         entitlements_path = self._extract_entitlements(profile)
 
-        identity = os.environ.get("IOS_SIGNING_IDENTITY", _DEFAULT_SIGNING_IDENTITY)
+        identity = self._resolve_signing_identity()
         sign_cmd = [
             "/usr/bin/codesign", "--force", "--deep",
             "--sign", identity,
@@ -407,6 +410,36 @@ class iOSHelper:
             return None
         # Newest by mtime — matches `ls -t | head -1`.
         return max(candidates, key=os.path.getmtime)
+
+    @staticmethod
+    def _resolve_signing_identity():
+        """Return the codesign identity to pass to ``--sign``.
+
+        Prefers the SHA-1 of the sole codesigning identity in the keychain
+        (unambiguous), which avoids hardcoding a display name that varies per
+        machine (e.g. ``Apple Development: <person> (<TEAMID>)``). Honors an
+        explicit ``IOS_SIGNING_IDENTITY`` override; falls back to the default
+        name if the keychain can't be parsed.
+        """
+        override = os.environ.get("IOS_SIGNING_IDENTITY")
+        if override:
+            return override
+        try:
+            out = subprocess.run(
+                ["security", "find-identity", "-p", "codesigning", "-v"],
+                capture_output=True, text=True, timeout=30).stdout or ""
+            # e.g.  1) C8315F51...E8A235B "Apple Development: Name (TEAMID)"
+            hashes = re.findall(r'\)\s+([0-9A-Fa-f]{40})\s+"', out)
+            if hashes:
+                getLogger().info(
+                    "Auto-detected signing identity SHA-1: %s", hashes[0])
+                return hashes[0]
+            getLogger().warning(
+                "No codesigning identity SHA parsed from `security "
+                "find-identity`; falling back to '%s'", _DEFAULT_SIGNING_IDENTITY)
+        except Exception as e:
+            getLogger().warning("Could not auto-detect signing identity: %s", e)
+        return _DEFAULT_SIGNING_IDENTITY
 
     @staticmethod
     def _extract_entitlements(profile_path):

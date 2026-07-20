@@ -1070,6 +1070,7 @@ def detect_physical_device():
 _PROVISIONING_PROFILE_DIRS = [
     os.path.expanduser("~/Library/MobileDevice/Provisioning Profiles"),
     os.path.expanduser("~/Library/Developer/Xcode/UserData/Provisioning Profiles"),
+    "/Library/MobileDevice/Provisioning Profiles",  # system-wide install
 ]
 _DEFAULT_SIGNING_IDENTITY = "NET_Apple_Development"
 
