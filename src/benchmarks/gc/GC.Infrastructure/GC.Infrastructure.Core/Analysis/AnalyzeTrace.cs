@@ -27,7 +27,9 @@ namespace GC.Infrastructure.Core.Analysis
                     p = analyzer.GetProcessGCData("GCPerfSim").FirstOrDefault();
                     if (p == null)
                     {
-                        return p;
+                        p = analyzer.AllGCProcessData.Count == 1
+                            ? analyzer.AllGCProcessData.First().Value.FirstOrDefault()
+                            : null;
                     }
                 }
             }

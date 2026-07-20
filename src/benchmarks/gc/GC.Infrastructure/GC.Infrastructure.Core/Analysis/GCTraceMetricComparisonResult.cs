@@ -8,7 +8,13 @@ namespace GC.Infrastructure.Core.Analysis
     {
         public GCTraceMetricComparisonResult(IEnumerable<GCTraceMetrics> baselines, IEnumerable<GCTraceMetrics> comparands, string metricName)
         {
-            RunName = baselines.FirstOrDefault()?.RunName ?? string.Empty;
+            var baselineRunName = baselines.FirstOrDefault()?.RunName;
+            var comparandRunName = comparands.FirstOrDefault()?.RunName;
+            if (baselineRunName == null || comparandRunName == null)
+            {
+                throw new ArgumentException("Baselines and comparands must contain at least one GCTraceMetrics object.");
+            }
+            RunName = baselineRunName == comparandRunName ? baselineRunName : $"{baselineRunName}_{comparandRunName}";
             Key = $"{baselines.FirstOrDefault()?.ConfigurationName}_{RunName}";
 
             MetricName = metricName;

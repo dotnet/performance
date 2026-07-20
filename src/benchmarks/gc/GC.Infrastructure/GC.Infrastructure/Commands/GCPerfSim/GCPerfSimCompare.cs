@@ -37,21 +37,23 @@ namespace GC.Infrastructure.Commands.GCPerfSim
                 throw new ArgumentException($"{nameof(GCPerfSimCompareCommand)}: Comparand Path to the trace hasn't been provided or doesn't exist.");
             }
 
-            var comparisons = AnalyzeTrace.GetComparisons(settings.BaselinePath, settings.ComparandPath);
+            var comparison = GCTraceMetricComparison.CompareGCPerfsimResults(settings.BaselinePath, settings.ComparandPath);
+            
+            var runName = comparison.FirstOrDefault()?.RunName ??
+                Path.GetFileNameWithoutExtension(settings.BaselinePath).Split(".")[0];
 
-            // The first ones here will have the values.
-            ResultItem baseline = comparisons.First().Value.Baseline;
-            ResultItem run = comparisons.First().Value.Comparand;
+            var comparisonResults = new GCTraceMetricComparisonResults(runName, comparison);
 
             if (Path.GetExtension(settings.OutputPath) == ".json")
             {
-                Json.GenerateComparisonDictionary(baseline, run, settings.OutputPath);
+                Json.GenerateForCompareCommand(comparisonResults, settings.OutputPath);
             }
             else
             {
-                Markdown.GenerateComparisonTable(baseline, run, settings.OutputPath);
+                Markdown.GenerateForCompareCommand(comparisonResults, settings.OutputPath);
             }
-            AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to {settings.OutputPath} [/]");
+
+            AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Results written to {Markup.Escape(settings.OutputPath)} [/]");
             return 0;
         }
     }
