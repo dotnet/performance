@@ -231,12 +231,11 @@ jobs:
               artifactFileName: 'iOSSampleAppNativeAOTNoSymbols.zip'
             displayName: 'iOS Sample App'
         # same artifact as above but don't extract .zip
-        - task: DownloadBuildArtifacts@0
+        - task: DownloadPipelineArtifact@2
           displayName: 'Download iOS Sample App'
           inputs:
             buildType: current
-            downloadType: single
-            downloadPath: '$(builtAppDir)/iosHelloWorldZip'
+            targetPath: '$(builtAppDir)/iosHelloWorldZip'
             ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.codeGenType, 'FullAOT'), eq(parameters.iOSLlvmBuild, 'False'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppMonoFullAOTNoLLVMNoSymbols'
             ${{ if and(eq(parameters.runtimeType, 'iOSMono'), eq(parameters.codeGenType, 'FullAOT'), eq(parameters.iOSLlvmBuild, 'True'), eq(parameters.iOSStripSymbols, 'True')) }}:
@@ -247,7 +246,6 @@ jobs:
               artifactName: 'iOSSampleAppCoreCLRR2RNoSymbols'
             ${{ if and(eq(parameters.runtimeType, 'iOSNativeAOT'), eq(parameters.iOSStripSymbols, 'True')) }}:
               artifactName: 'iOSSampleAppNativeAOTNoSymbols'
-            checkDownloadedFiles: true
         - task: DownloadPipelineArtifact@2
           displayName: 'Download binlog files'
           inputs:
