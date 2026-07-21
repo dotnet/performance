@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Engines;
 
 namespace ILLinkBenchmarks;
 
@@ -16,9 +15,8 @@ public partial class BasicBenchmark
     string[] _linkerOutArgs => new string[] { "-out", Path.Combine(_publishOutputFolder, "linked") };
     string[] _extraArgs = new string[] {
         "--singlewarn",
-        "--trim-mode", "copy",
-        "--action", "copy",
-        "--singlewarn-", "link6",
+        "--trim-mode", "link",
+        "--action", "link",
         "--nowarn", "1701;1702;IL2121;1701;1702",
         "--warn", "5",
         "--warnaserror-", "--warnaserror", ";NU1605",
@@ -29,8 +27,9 @@ public partial class BasicBenchmark
         "--feature", "System.Runtime.InteropServices.EnableConsumingManagedCodeFromNativeHosting", "false",
         "--feature", "System.Runtime.InteropServices.EnableCppCLIHostActivation", "false",
         "--feature", "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization", "false",
-        "--feature", "System.StartupHookProvider.IsSupported false",
+        "--feature", "System.StartupHookProvider.IsSupported", "false",
         "--feature", "System.Threading.Thread.EnableAutoreleasePool", "false",
+        "--feature", "System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault", "false",
         "--feature", "System.Text.Encoding.EnableUnsafeUTF7Encoding", "false",
         "-b",
         "--skip-unresolved", "true" };
@@ -40,15 +39,16 @@ public partial class BasicBenchmark
     {
         // Publish the hello world app to link
         string projectFilePath = Environment.GetEnvironmentVariable("ILLINK_SAMPLE_PROJECT");
+        string projectName = Path.GetFileNameWithoutExtension(projectFilePath);
         _publishOutputFolder = Utilities.PublishSampleProject(projectFilePath);
         // Gather arguments
-        string rootAssembly = Path.Combine(_publishOutputFolder, "HelloWorld.dll");
+        string rootAssembly = Path.Combine(_publishOutputFolder, projectName + ".dll");
         var frameworkFiles = Directory.EnumerateFiles(_publishOutputFolder, "*.dll").Where(a =>
             // Filter references - some .dll's can't be loaded by linker
             FrameworkAssemblies.Contains(Path.GetFileName(a))
         );
         var frameworkArgs = frameworkFiles.SelectMany(fileName => new string[] { "-reference", fileName });
-        var assemblyArgs = new string[] { "-a", rootAssembly };
+        var assemblyArgs = new string[] { "-a", rootAssembly, "--singlewarn-", projectName };
         _args = assemblyArgs.Concat(frameworkArgs).Concat(_extraArgs).Concat(_linkerOutArgs).ToArray();
         // Use reflection to get the Driver.Main method to run the linker
         Mono.Linker.WarnVersion warnVersion = Mono.Linker.WarnVersion.Latest;
