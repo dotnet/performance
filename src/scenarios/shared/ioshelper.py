@@ -35,13 +35,15 @@ Note 2 — physical-device install requires code signing:
    ``xcrun devicectl device install app`` refuses to install an unsigned
    bundle (MIInstallerErrorDomain code 13, "No code signature found"). The
    .proj builds with ``EnableCodeSigning=false`` to keep the build
-   deterministic on Helix, then ``sign_app_for_device`` signs the bundle
-   with ``/usr/bin/codesign`` using the Apple Development identity from the
-   Helix signing keychain and the entitlements extracted from the raw
-   provisioning profile at ``~/Library/MobileDevice/Provisioning Profiles``.
-   (There is no ``sign`` tool on the perf Macs, and ``embedded.mobileprovision``
-   only exists *inside* an already-signed bundle — earlier assumptions to the
-   contrary were wrong.) setup_helix.py verifies the profile + identity are
+   deterministic on Helix, then ``sign_app_for_device`` signs the bundle by
+   replicating the Helix XHarness apple recipe: download the provisioning
+   profile from a blob, unlock ``signing-certs.keychain-db`` (password in
+   ``~/.config/keychain``), and deep-sign with ``/usr/bin/codesign --sign
+   "Apple Development" --keychain signing-certs.keychain-db`` using entitlements
+   extracted from the profile. (There is no ``sign`` tool on the perf Macs, and
+   ``embedded.mobileprovision`` is served from a blob / lives inside signed
+   bundles, not installed on disk — earlier assumptions to the contrary were
+   wrong.) setup_helix.py verifies the keychain + password + identity are
    present before the build so a missing prerequisite fails fast.
 """
 
@@ -50,7 +52,6 @@ import json
 import os
 import plistlib
 import re
-import shutil
 import subprocess
 import tempfile
 import time
@@ -60,21 +61,24 @@ from logging import getLogger
 from performance.common import RunCommand
 
 
-# Standard macOS locations for the raw provisioning profiles that Xcode / Helix
-# machine prep installs. These hold ``<uuid>.mobileprovision`` files we sign
-# WITH. Note: ``embedded.mobileprovision`` is NOT here — that name only exists
-# INSIDE an already-signed ``.app`` bundle (Xcode embeds the profile at sign
-# time); ``sign_app_for_device`` copies the raw profile in under that name.
-_PROVISIONING_PROFILE_DIRS = [
-    os.path.expanduser("~/Library/MobileDevice/Provisioning Profiles"),
-    os.path.expanduser("~/Library/Developer/Xcode/UserData/Provisioning Profiles"),
-    "/Library/MobileDevice/Provisioning Profiles",  # system-wide install
-]
-# Fallback signing identity name if auto-detection from the keychain fails.
-# Override with IOS_SIGNING_IDENTITY. The real identity is auto-detected by
-# _resolve_signing_identity (its display name varies per machine, e.g.
-# "Apple Development: <person> (<team>)").
-_DEFAULT_SIGNING_IDENTITY = "NET_Apple_Development"
+# Device code-signing constants — these mirror the Helix XHarness apple signing
+# recipe (.packages/microsoft.dotnet.helix.sdk/*/tools/xharness-runner/
+# {XHarnessRunner.props, xharness-runner.apple.sh}), which is the proven path on
+# these queues. The provisioning profile is DOWNLOADED (not installed on disk):
+# "NET_Apple_Development" is the profile *filename*, and {PLATFORM}=iOS for device.
+_PROVISIONING_PROFILE_URL = (
+    "https://netcorenativeassets.blob.core.windows.net/resource-packages/"
+    "external/macos/signing/NET_Apple_Development_iOS.mobileprovision"
+)
+# The certificate lives in this dedicated keychain (installed by Helix's
+# macos-signing-certs), unlocked with the password in ~/.config/keychain. We
+# select it explicitly so codesign uses the profile-matching identity, not an
+# unrelated one from the default keychain search list.
+_SIGNING_KEYCHAIN = "signing-certs.keychain-db"
+_SIGNING_KEYCHAIN_PASSWORD_FILE = os.path.expanduser("~/.config/keychain")
+# Partial identity name (matches "Apple Development: <person> (<TEAMID>)"), same
+# as xharness-runner.apple.sh. Override with IOS_SIGNING_IDENTITY if needed.
+_SIGNING_IDENTITY_NAME = os.environ.get("IOS_SIGNING_IDENTITY", "Apple Development")
 
 
 class iOSHelper:
@@ -322,16 +326,23 @@ class iOSHelper:
     def sign_app_for_device(self, app_bundle_path):
         """Codesign the built .app bundle for physical-device deployment.
 
-        The build runs with ``EnableCodeSigning=false`` so the bundle is
-        unsigned. We sign it manually here (the perf Macs have no ``sign``
-        tool — that was a wrong assumption):
+        Replicates the Helix XHarness apple signing recipe (the proven path on
+        these queues; see .packages/microsoft.dotnet.helix.sdk/*/tools/
+        xharness-runner/xharness-runner.apple.sh). The build runs with
+        ``EnableCodeSigning=false`` so the bundle is unsigned, then here we:
 
-          1. Locate the raw provisioning profile at the standard Xcode path.
-          2. Extract its ``Entitlements`` (``security cms -D`` → plist).
-          3. Copy the raw profile into the bundle as ``embedded.mobileprovision``
-             (Xcode's own convention for the in-bundle copy).
-          4. ``codesign --force --deep --sign <identity> --entitlements <ent>``
-             using the Apple Development identity from the Helix signing keychain.
+          1. Download the provisioning profile into the bundle as
+             ``embedded.mobileprovision`` (it is served from a blob, NOT
+             installed on disk — that earlier assumption was wrong).
+          2. Unlock the ``signing-certs.keychain-db`` keychain.
+          3. Extract the profile's ``Entitlements`` (``security cms -D``).
+          4. Deep-sign every Mach-O / .app / .framework with
+             ``/usr/bin/codesign --sign "Apple Development" --keychain
+             signing-certs.keychain-db`` (deepest first; the top .app gets the
+             entitlements, nested code preserves metadata).
+
+        The app's bundle id must fall under the profile's wildcard
+        (``net.dot.*``) for the install to be accepted on device.
 
         No-op for simulator builds or local runs (MSBuild signs those).
         Raises on failure — a device job must fail loudly, never silently skip.
@@ -344,42 +355,26 @@ class iOSHelper:
             getLogger().info("Skipping post-build signing (local run — MSBuild handles signing)")
             return
 
-        profile = self._find_provisioning_profile()
-        if not profile:
+        # 1. Download the provisioning profile into the bundle.
+        profile_in_bundle = os.path.join(app_bundle_path, "embedded.mobileprovision")
+        getLogger().info("Downloading provisioning profile: %s", _PROVISIONING_PROFILE_URL)
+        RunCommand(["curl", "-sSL", "--fail", "--retry", "3", "-o",
+                    profile_in_bundle, _PROVISIONING_PROFILE_URL], verbose=True).run()
+        if not os.path.isfile(profile_in_bundle) or os.path.getsize(profile_in_bundle) == 0:
             raise RuntimeError(
-                "No provisioning profile found in "
-                + " or ".join(_PROVISIONING_PROFILE_DIRS)
-                + ". Cannot codesign for device deployment.")
-        getLogger().info("Using provisioning profile: %s", profile)
+                f"Failed to download provisioning profile from {_PROVISIONING_PROFILE_URL}")
 
-        # Xcode's convention: the profile is embedded in the bundle under this name.
-        shutil.copy2(profile, os.path.join(app_bundle_path, "embedded.mobileprovision"))
+        # 2. Unlock the signing keychain.
+        self._unlock_signing_keychain()
 
-        entitlements_path = self._extract_entitlements(profile)
+        # 3. Extract entitlements from the profile.
+        entitlements_path = self._extract_entitlements(profile_in_bundle)
 
-        identity = self._resolve_signing_identity()
-        sign_cmd = [
-            "/usr/bin/codesign", "--force", "--deep",
-            "--sign", identity,
-            "--entitlements", entitlements_path,
-            "--timestamp=none",
-            app_bundle_path,
-        ]
-        getLogger().info("$ %s", " ".join(sign_cmd))
-        result = subprocess.run(sign_cmd, capture_output=True, text=True)
-        if result.stdout:
-            getLogger().info("codesign stdout:\n%s", result.stdout)
-        if result.stderr:
-            getLogger().info("codesign stderr:\n%s", result.stderr)
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"codesign failed (exit {result.returncode}) with identity "
-                f"'{identity}'. Available identities can be listed with "
-                f"`security find-identity -p codesigning -v`. "
-                f"stderr: {(result.stderr or '').strip()}")
+        # 4. Deep-sign the bundle.
+        self._codesign_bundle_deep(app_bundle_path, entitlements_path)
 
-        # Verify the signature so an install-time CoreSign rejection surfaces here
-        # (with a clear message) instead of as an opaque devicectl error later.
+        # Verify so an install-time CoreSign rejection surfaces here with a clear
+        # message instead of an opaque devicectl error later.
         verify = subprocess.run(
             ["/usr/bin/codesign", "--verify", "--deep", "--strict",
              "--verbose=2", app_bundle_path],
@@ -393,53 +388,83 @@ class iOSHelper:
                 f"{(verify.stderr or '').strip()}")
         getLogger().info(
             "Signed %s for device with identity '%s'",
-            os.path.basename(app_bundle_path), identity)
+            os.path.basename(app_bundle_path), _SIGNING_IDENTITY_NAME)
 
     @staticmethod
-    def _find_provisioning_profile():
-        """Return the newest raw provisioning profile from the standard Xcode
-        directories, or None. Fast (a single directory listing) — replaces the
-        old broad ``find`` of /Users/helix-runner that timed out and searched
-        for the semantically wrong ``embedded.mobileprovision`` filename."""
-        candidates = []
-        for directory in _PROVISIONING_PROFILE_DIRS:
-            if os.path.isdir(directory):
-                candidates.extend(glob.glob(os.path.join(directory, "*.mobileprovision")))
-                candidates.extend(glob.glob(os.path.join(directory, "*.provisionprofile")))
-        if not candidates:
-            return None
-        # Newest by mtime — matches `ls -t | head -1`.
-        return max(candidates, key=os.path.getmtime)
+    def _unlock_signing_keychain():
+        """Unlock the dedicated signing keychain (matches xharness-runner.apple.sh).
 
-    @staticmethod
-    def _resolve_signing_identity():
-        """Return the codesign identity to pass to ``--sign``.
-
-        Prefers the SHA-1 of the sole codesigning identity in the keychain
-        (unambiguous), which avoids hardcoding a display name that varies per
-        machine (e.g. ``Apple Development: <person> (<TEAMID>)``). Honors an
-        explicit ``IOS_SIGNING_IDENTITY`` override; falls back to the default
-        name if the keychain can't be parsed.
+        The password lives in ~/.config/keychain. It is a secret, so it is NEVER
+        logged nor passed through a command line we echo.
         """
-        override = os.environ.get("IOS_SIGNING_IDENTITY")
-        if override:
-            return override
+        if not os.path.isfile(_SIGNING_KEYCHAIN_PASSWORD_FILE):
+            raise RuntimeError(
+                f"Keychain password file {_SIGNING_KEYCHAIN_PASSWORD_FILE} not "
+                f"found — cannot unlock {_SIGNING_KEYCHAIN}.")
+        listing = subprocess.run(
+            ["security", "list-keychains"], capture_output=True, text=True).stdout or ""
+        if _SIGNING_KEYCHAIN not in listing:
+            raise RuntimeError(
+                f"Keychain {_SIGNING_KEYCHAIN} not found in `security "
+                f"list-keychains`. Present: {listing.strip()}")
+        with open(_SIGNING_KEYCHAIN_PASSWORD_FILE) as f:
+            password = f.read().strip()
+        # Run directly (no RunCommand/verbose) so the password is not logged.
+        result = subprocess.run(
+            ["security", "unlock-keychain", "-p", password, _SIGNING_KEYCHAIN],
+            capture_output=True, text=True)
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"Failed to unlock {_SIGNING_KEYCHAIN} (exit {result.returncode}): "
+                f"{(result.stderr or '').strip()}")
+        getLogger().info("Unlocked signing keychain %s", _SIGNING_KEYCHAIN)
+
+    @classmethod
+    def _codesign_bundle_deep(cls, app_bundle_path, entitlements_path):
+        """Deep-sign a bundle like xharness-runner.apple.sh: sign every Mach-O /
+        .app / .framework deepest-first (nested code before its container). The
+        top-level .app gets the entitlements; nested code preserves metadata."""
+        # All bundle entries, deepest path first — equivalent to `find <app> -d`.
+        entries = [app_bundle_path]
+        for root, dirs, files in os.walk(app_bundle_path):
+            for name in files + dirs:
+                entries.append(os.path.join(root, name))
+        entries.sort(key=lambda p: p.count(os.sep), reverse=True)
+
+        signed = 0
+        for path in entries:
+            ext = os.path.splitext(path)[1]
+            is_bundle = ext in (".app", ".framework") and os.path.isdir(path)
+            if not (is_bundle or cls._is_macho(path)):
+                continue
+            base = ["/usr/bin/codesign", "-v", "--force",
+                    "--sign", _SIGNING_IDENTITY_NAME,
+                    "--keychain", _SIGNING_KEYCHAIN]
+            if path == app_bundle_path:
+                cmd = base + ["--entitlements", entitlements_path, path]
+            else:
+                cmd = base + ["--preserve-metadata=identifier,entitlements,flags", path]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"codesign failed for {path} (exit {result.returncode}) with "
+                    f"identity '{_SIGNING_IDENTITY_NAME}' in keychain "
+                    f"{_SIGNING_KEYCHAIN}: {(result.stderr or '').strip()}")
+            signed += 1
+        getLogger().info("Deep-signed %d bundle component(s) in %s",
+                         signed, os.path.basename(app_bundle_path))
+
+    @staticmethod
+    def _is_macho(path):
+        """True if ``path`` is a Mach-O binary (per ``file -b``)."""
+        if not os.path.isfile(path):
+            return False
         try:
             out = subprocess.run(
-                ["security", "find-identity", "-p", "codesigning", "-v"],
-                capture_output=True, text=True, timeout=30).stdout or ""
-            # e.g.  1) C8315F51...E8A235B "Apple Development: Name (TEAMID)"
-            hashes = re.findall(r'\)\s+([0-9A-Fa-f]{40})\s+"', out)
-            if hashes:
-                getLogger().info(
-                    "Auto-detected signing identity SHA-1: %s", hashes[0])
-                return hashes[0]
-            getLogger().warning(
-                "No codesigning identity SHA parsed from `security "
-                "find-identity`; falling back to '%s'", _DEFAULT_SIGNING_IDENTITY)
-        except Exception as e:
-            getLogger().warning("Could not auto-detect signing identity: %s", e)
-        return _DEFAULT_SIGNING_IDENTITY
+                ["file", "-b", path], capture_output=True, text=True).stdout or ""
+            return "Mach-O" in out
+        except Exception:
+            return False
 
     @staticmethod
     def _extract_entitlements(profile_path):

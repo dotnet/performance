@@ -388,6 +388,28 @@ def inject_csproj_properties(csproj_path: str, properties: dict):
         f.write(content)
     logger.info(f"Injected properties into {csproj_path}: {list(properties.keys())}")
 
+def set_application_id(csproj_path: str, application_id: str):
+    '''Override the app's ApplicationId (bundle id).
+
+    The MAUI template defaults to com.companyname.<name>, but device signing
+    uses the shared "NET Apple Development" provisioning profile whose wildcard
+    app-id is net.dot.* — the bundle id must fall under that prefix or the
+    device install is rejected. Simulator doesn't care, so we set it uniformly.
+    '''
+    with open(csproj_path, 'r') as f:
+        content = f.read()
+    content, n = re.subn(r'<ApplicationId>[^<]*</ApplicationId>',
+                         f'<ApplicationId>{application_id}</ApplicationId>',
+                         content)
+    if n == 0:
+        content = content.replace(
+            '</PropertyGroup>',
+            f'    <ApplicationId>{application_id}</ApplicationId>\n  </PropertyGroup>',
+            1)
+    with open(csproj_path, 'w') as f:
+        f.write(content)
+    logger.info(f"Set ApplicationId to {application_id} in {csproj_path}")
+
 setup_loggers(True)
 logger = getLogger(__name__)
 logger.info("Starting pre-command for MAUI iOS deploy measurement")
@@ -428,6 +450,8 @@ with MauiNuGetConfigContext(precommands.framework):
         # for BenchmarkDotNet) to match real developer inner loop.
         'UseSharedCompilation': 'true',
     })
+    # Bundle id must fall under the device provisioning profile's net.dot.* wildcard.
+    set_application_id(csproj_path, 'net.dot.mauiiosinnerloop')
 
     # Create modified source files in src/ for the incremental deploy simulation.
     # The runner toggles between original and modified versions each iteration,

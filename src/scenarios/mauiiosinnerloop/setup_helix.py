@@ -24,26 +24,26 @@ Device path & infrastructure prerequisites
 ------------------------------------------
 For the physical-device variant (IOS_RID=ios-arm64) the build runs with
 ``EnableCodeSigning=false`` to keep MSBuild deterministic on Helix; the
-post-build ``ioshelper.sign_app_for_device`` codesigns the .app using:
+post-build ``ioshelper.sign_app_for_device`` codesigns the .app by replicating
+the Helix XHarness apple recipe:
 
-  - a raw provisioning profile from the standard Xcode path
-    (``~/Library/MobileDevice/Provisioning Profiles`` / Xcode 16+ equivalent)
-  - the Apple Development codesigning identity from the Helix signing keychain
+  - download the provisioning profile from a blob (it is NOT installed on disk)
+  - unlock the ``signing-certs.keychain-db`` keychain (password in
+    ``~/.config/keychain``) and codesign with its Apple Development identity
 
-``verify_signing_prerequisites`` checks BOTH exist before the (slow) build so
-a genuinely missing prerequisite fails the work item early with a
-``WORK ITEM FAILED — DEVICE INFRA UNAVAILABLE`` banner, rather than after a
-full build. We deliberately do NOT mask the failure as a "skip" / pass: a
-green build must mean the scenario actually ran, not that we silently
-sidestepped a queue gap. NOTE: earlier versions searched the machine for a
-file literally named ``embedded.mobileprovision`` and a ``sign`` tool — both
-were WRONG (embedded.mobileprovision only exists inside already-signed
-bundles; no ``sign`` tool exists on the perf Macs), which produced a false
-"DEVICE INFRA UNAVAILABLE". The fix, when a prerequisite is truly missing, is
-to provision the queue (Engineering Services ticket), not to flip a flag here.
+``verify_signing_prerequisites`` checks the keychain + password + a codesigning
+identity before the (slow) build so a genuinely missing prerequisite fails the
+work item early with a ``WORK ITEM FAILED — DEVICE INFRA UNAVAILABLE`` banner,
+rather than after a full build. We deliberately do NOT mask the failure as a
+"skip" / pass: a green build must mean the scenario actually ran. NOTE: earlier
+versions searched the machine for a file literally named
+``embedded.mobileprovision``, a ``sign`` tool, or a profile under
+``~/Library/MobileDevice/Provisioning Profiles`` — all WRONG
+(embedded.mobileprovision only exists inside already-signed bundles, no ``sign``
+tool exists on the perf Macs, and the profile is downloaded, not disk-installed),
+which produced a false "DEVICE INFRA UNAVAILABLE".
 """
 
-import glob
 import json
 import os
 import platform
@@ -1060,66 +1060,68 @@ def detect_physical_device():
 
 # --- Device signing prerequisite check ---
 
-# Raw provisioning profiles live at these fixed Xcode paths (older Xcode first,
-# Xcode 16+ second). ioshelper.sign_app_for_device signs the built bundle with
-# codesign; here we only VERIFY the prerequisites so a missing one fails fast
-# before the slow build. We deliberately do NOT search for embedded.mobileprovision
-# or a 'sign' tool: embedded.mobileprovision only exists INSIDE an already-signed
-# bundle, and there is no 'sign' tool on the perf Macs — both were wrong
-# assumptions that produced a false "DEVICE INFRA UNAVAILABLE".
-_PROVISIONING_PROFILE_DIRS = [
-    os.path.expanduser("~/Library/MobileDevice/Provisioning Profiles"),
-    os.path.expanduser("~/Library/Developer/Xcode/UserData/Provisioning Profiles"),
-    "/Library/MobileDevice/Provisioning Profiles",  # system-wide install
-]
-_DEFAULT_SIGNING_IDENTITY = "NET_Apple_Development"
+# Device signing replicates the Helix XHarness apple recipe: the provisioning
+# profile is DOWNLOADED at sign time (ioshelper.sign_app_for_device), and the
+# cert lives in this dedicated keychain, unlocked with the password file below.
+# So the pre-build gate checks the keychain + password + a codesigning identity —
+# NOT a profile on disk (it isn't installed there) and NOT a 'sign' tool (none
+# exists on the perf Macs). Earlier disk/sign-tool searches were wrong and
+# produced a false "DEVICE INFRA UNAVAILABLE".
+_SIGNING_KEYCHAIN = "signing-certs.keychain-db"
+_SIGNING_KEYCHAIN_PASSWORD_FILE = os.path.expanduser("~/.config/keychain")
 
 
 def verify_signing_prerequisites():
-    """Verify a provisioning profile and a codesigning identity are available.
+    """Verify the device code-signing prerequisites are present.
 
-    A fast pre-build gate (a directory listing + one `security find-identity`).
-    Returns True iff BOTH a raw provisioning profile (at the standard Xcode
-    path) and at least one valid codesigning identity are present. The actual
-    signing happens later in ioshelper.sign_app_for_device. Does not raise.
+    Checks the signing keychain (signing-certs.keychain-db), its password file
+    (~/.config/keychain), and that the keychain holds a valid codesigning
+    identity. The provisioning profile is downloaded at sign time, so it is not
+    checked here. A fast pre-build gate. Returns True iff all are present.
+    Does not raise.
     """
     log_raw("=== DEVICE SIGNING PREREQUISITE CHECK ===", tee=True)
+    ok = True
 
-    profile = None
-    for directory in _PROVISIONING_PROFILE_DIRS:
-        if os.path.isdir(directory):
-            profiles = sorted(
-                glob.glob(os.path.join(directory, "*.mobileprovision"))
-                + glob.glob(os.path.join(directory, "*.provisionprofile")),
-                key=os.path.getmtime, reverse=True)
-            if profiles:
-                profile = profiles[0]
-                break
-    if profile:
-        log(f"Found provisioning profile: {profile}", tee=True)
-    else:
-        log("WARNING: no provisioning profile in "
-            + " or ".join(_PROVISIONING_PROFILE_DIRS), tee=True)
-
-    identity = os.environ.get("IOS_SIGNING_IDENTITY", _DEFAULT_SIGNING_IDENTITY)
-    identity_present = False
+    # Signing keychain present in the search list?
     try:
-        result = subprocess.run(
-            ["security", "find-identity", "-p", "codesigning", "-v"],
-            capture_output=True, text=True, timeout=30)
-        out = result.stdout or ""
-        log(f"security find-identity -p codesigning -v:\n{out.strip()}")
-        identity_present = bool(re.search(r"\b[1-9]\d* valid identities found", out))
-        if identity in out:
-            log(f"Found expected signing identity '{identity}'", tee=True)
-        elif identity_present:
-            log(f"Expected identity '{identity}' not matched by name, but valid "
-                "codesigning identities are present (codesign will error clearly "
-                "if the name is wrong).", tee=True)
+        listing = subprocess.run(
+            ["security", "list-keychains"], capture_output=True, text=True,
+            timeout=30).stdout or ""
+    except Exception as e:
+        listing = ""
+        log(f"WARNING: `security list-keychains` failed: {e}", tee=True)
+    if _SIGNING_KEYCHAIN in listing:
+        log(f"Found signing keychain: {_SIGNING_KEYCHAIN}", tee=True)
+    else:
+        log(f"WARNING: keychain '{_SIGNING_KEYCHAIN}' not in `security "
+            f"list-keychains`. Present: {listing.strip()}", tee=True)
+        ok = False
+
+    # Keychain password file present?
+    if os.path.isfile(_SIGNING_KEYCHAIN_PASSWORD_FILE):
+        log(f"Found keychain password file: {_SIGNING_KEYCHAIN_PASSWORD_FILE}", tee=True)
+    else:
+        log(f"WARNING: keychain password file {_SIGNING_KEYCHAIN_PASSWORD_FILE} "
+            "not found", tee=True)
+        ok = False
+
+    # A valid codesigning identity in that keychain?
+    try:
+        idout = subprocess.run(
+            ["security", "find-identity", "-vp", "codesigning", _SIGNING_KEYCHAIN],
+            capture_output=True, text=True, timeout=30).stdout or ""
+        log(f"security find-identity -vp codesigning {_SIGNING_KEYCHAIN}:\n{idout.strip()}")
+        if re.search(r"\b[1-9]\d* valid identities found", idout):
+            log("Found a valid codesigning identity in the signing keychain", tee=True)
+        else:
+            log("WARNING: no valid codesigning identity in the signing keychain", tee=True)
+            ok = False
     except Exception as e:
         log(f"WARNING: `security find-identity` failed: {e}", tee=True)
+        ok = False
 
-    return bool(profile and identity_present)
+    return ok
 
 
 def main():
@@ -1238,26 +1240,25 @@ def main():
         os.environ["IOS_DEVICE_UDID"] = device_udid
         log(f"IOS_DEVICE_UDID detected: {device_udid}", tee=True)
 
-        # Verify code-signing prerequisites (provisioning profile at the
-        # standard Xcode path + a codesigning identity in the keychain).
-        # ioshelper.sign_app_for_device does the actual codesign after build.
+        # Verify code-signing prerequisites (signing keychain + password +
+        # a codesigning identity). ioshelper.sign_app_for_device downloads the
+        # provisioning profile and does the actual codesign after the build.
         signing_ready = verify_signing_prerequisites()
 
-        # Without a provisioning profile + codesigning identity, the post-build
-        # codesign (and therefore `xcrun devicectl device install app`) cannot
-        # succeed — devicectl rejects an unsigned bundle with "No code signature
-        # found". Fail loudly so a genuinely missing prerequisite shows up as a
-        # red build, not a green-with-hidden-skip.
+        # Without the signing keychain + identity, the post-build codesign (and
+        # therefore `xcrun devicectl device install app`) cannot succeed —
+        # devicectl rejects an unsigned bundle with "No code signature found".
+        # Fail loudly so a genuinely missing prerequisite shows up as a red
+        # build, not a green-with-hidden-skip.
         if not signing_ready:
             reason = (
                 "Device code-signing prerequisites not available on this Helix "
-                "machine: need a provisioning profile at "
-                + " or ".join(_PROVISIONING_PROFILE_DIRS)
-                + " AND a valid codesigning identity (`security find-identity "
-                "-p codesigning -v`). This is a queue provisioning gap, not a "
-                "scenario bug. Fix: ensure the macos-signing-certs artifact "
-                "installed the Apple Development identity and a matching "
-                "provisioning profile (same as Mac.iPhone.17.Perf)."
+                f"machine: need the signing keychain '{_SIGNING_KEYCHAIN}', its "
+                f"password file {_SIGNING_KEYCHAIN_PASSWORD_FILE}, AND a valid "
+                "codesigning identity in that keychain. This is a queue "
+                "provisioning gap, not a scenario bug. Fix: ensure the "
+                "macos-signing-certs artifact installed the signing keychain + "
+                "Apple Development identity (same as Mac.iPhone.17.Perf)."
             )
             log_raw("=" * 70, tee=True)
             log_raw("WORK ITEM FAILED — DEVICE INFRA UNAVAILABLE", tee=True)
