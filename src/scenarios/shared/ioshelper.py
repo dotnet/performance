@@ -76,14 +76,15 @@ _PROVISIONING_PROFILE_URL = (
 # unrelated one from the default keychain search list.
 _SIGNING_KEYCHAIN = "signing-certs.keychain-db"
 _SIGNING_KEYCHAIN_PASSWORD_FILE = os.path.expanduser("~/.config/keychain")
+_LOGIN_KEYCHAIN = os.path.expanduser("~/Library/Keychains/login.keychain-db")
 # Partial identity name (matches "Apple Development: <person> (<TEAMID>)"), same
 # as xharness-runner.apple.sh. Override with IOS_SIGNING_IDENTITY if needed.
 _SIGNING_IDENTITY_NAME = os.environ.get("IOS_SIGNING_IDENTITY", "Apple Development")
-# Apple certificate-chain anchors for the "Apple Development" cert, imported into
-# the signing keychain before codesign so the chain can build even in a non-GUI
-# Helix session where the system trust anchors may not be consulted. Order:
-# WWDR G3 (the cert's direct issuer) then Apple Root CA (the self-signed root).
-# Without the full chain codesign fails "unable to build chain to self-signed root".
+# Apple certificate-chain anchors for the "Apple Development" cert. In the
+# headless Helix session codesign fails "unable to build chain to self-signed
+# root" even with the full chain present, so we import these into both the
+# signing and login keychains AND add the root as a trusted code-signing anchor.
+# Order: WWDR G3 (the cert's direct issuer) then Apple Root CA (self-signed root).
 _SIGNING_CHAIN_CERT_URLS = [
     "https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer",
     "https://www.apple.com/appleca/AppleIncRootCertificate.cer",
@@ -432,11 +433,13 @@ class iOSHelper:
 
     @staticmethod
     def _ensure_signing_chain():
-        """Import the Apple WWDR G3 intermediate + Apple Root CA into the signing
-        keychain so codesign can build the full cert chain (leaf Apple Development
-        cert -> WWDR G3 -> Apple Root) even in a non-GUI session where the system
-        trust anchors may not be consulted. Idempotent — re-importing an existing
-        cert is a harmless no-op."""
+        """Make the Apple WWDR G3 + Apple Root CA usable to codesign's trust
+        evaluation, to fix "unable to build chain to self-signed root" in the
+        headless Helix session (which persists even with the full chain in the
+        signing keychain). Import both certs into the signing AND login keychains,
+        then add the Apple Root as a trusted code-signing anchor (user domain, no
+        sudo). All best-effort + timeout-guarded so the work item never hangs."""
+        root_cert = None
         for url in _SIGNING_CHAIN_CERT_URLS:
             name = url.rsplit("/", 1)[-1]
             dest = os.path.join(tempfile.gettempdir(), name)
@@ -446,17 +449,35 @@ class iOSHelper:
             except Exception as e:
                 getLogger().warning("Failed to download %s: %s", name, e)
                 continue
-            result = subprocess.run(
-                ["security", "import", dest, "-k", _SIGNING_KEYCHAIN],
-                capture_output=True, text=True)
-            stderr = (result.stderr or "")
-            if result.returncode == 0:
-                getLogger().info("Imported %s into %s", name, _SIGNING_KEYCHAIN)
-            elif "already exists" in stderr:
-                getLogger().info("%s already present in %s", name, _SIGNING_KEYCHAIN)
-            else:
-                getLogger().warning("Import %s into %s returned %d: %s",
-                                    name, _SIGNING_KEYCHAIN, result.returncode, stderr.strip())
+            if "Root" in name:
+                root_cert = dest
+            for keychain in (_SIGNING_KEYCHAIN, _LOGIN_KEYCHAIN):
+                result = subprocess.run(["security", "import", dest, "-k", keychain],
+                                        capture_output=True, text=True)
+                stderr = (result.stderr or "")
+                if result.returncode == 0:
+                    getLogger().info("Imported %s into %s", name, keychain)
+                elif "already exists" in stderr:
+                    getLogger().info("%s already present in %s", name, keychain)
+                else:
+                    getLogger().info("Import %s into %s -> %d: %s",
+                                     name, keychain, result.returncode, stderr.strip())
+
+        # Explicitly trust the Apple Root as a code-signing anchor in the user
+        # trust domain (no sudo). This directly addresses "self-signed root" not
+        # being treated as a trusted anchor in this session.
+        if root_cert:
+            try:
+                r = subprocess.run(
+                    ["security", "add-trusted-cert", "-r", "trustRoot",
+                     "-p", "codeSign", root_cert],
+                    capture_output=True, text=True, timeout=60)
+                getLogger().info("add-trusted-cert (Apple Root, codeSign) -> %d: %s",
+                                 r.returncode, (r.stderr or r.stdout or "").strip()[:300])
+            except subprocess.TimeoutExpired:
+                getLogger().warning("add-trusted-cert timed out (prompted?) — continuing")
+            except Exception as e:
+                getLogger().warning("add-trusted-cert failed: %s", e)
 
     @staticmethod
     def _log_signing_diagnostics():
