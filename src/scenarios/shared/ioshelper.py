@@ -79,11 +79,15 @@ _SIGNING_KEYCHAIN_PASSWORD_FILE = os.path.expanduser("~/.config/keychain")
 # Partial identity name (matches "Apple Development: <person> (<TEAMID>)"), same
 # as xharness-runner.apple.sh. Override with IOS_SIGNING_IDENTITY if needed.
 _SIGNING_IDENTITY_NAME = os.environ.get("IOS_SIGNING_IDENTITY", "Apple Development")
-# Apple WWDR G3 intermediate — the issuer of the "Apple Development" cert. It is
-# imported into the signing keychain before codesign so the chain can build
-# (leaf -> WWDR G3 -> Apple Root); without it codesign fails "unable to build
-# chain to self-signed root".
-_APPLE_WWDR_INTERMEDIATE_URL = "https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer"
+# Apple certificate-chain anchors for the "Apple Development" cert, imported into
+# the signing keychain before codesign so the chain can build even in a non-GUI
+# Helix session where the system trust anchors may not be consulted. Order:
+# WWDR G3 (the cert's direct issuer) then Apple Root CA (the self-signed root).
+# Without the full chain codesign fails "unable to build chain to self-signed root".
+_SIGNING_CHAIN_CERT_URLS = [
+    "https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer",
+    "https://www.apple.com/appleca/AppleIncRootCertificate.cer",
+]
 
 
 class iOSHelper:
@@ -369,9 +373,10 @@ class iOSHelper:
             raise RuntimeError(
                 f"Failed to download provisioning profile from {_PROVISIONING_PROFILE_URL}")
 
-        # 2. Unlock the signing keychain and ensure the issuer intermediate is present.
+        # 2. Unlock the signing keychain and ensure the full issuer chain is present.
         self._unlock_signing_keychain()
-        self._ensure_wwdr_intermediate()
+        self._ensure_signing_chain()
+        self._log_signing_diagnostics()
 
         # 3. Extract entitlements from the profile.
         entitlements_path = self._extract_entitlements(profile_in_bundle)
@@ -426,31 +431,53 @@ class iOSHelper:
         getLogger().info("Unlocked signing keychain %s", _SIGNING_KEYCHAIN)
 
     @staticmethod
-    def _ensure_wwdr_intermediate():
-        """Import the Apple WWDR G3 intermediate into the signing keychain so
-        codesign can build the cert chain (leaf Apple Development cert -> WWDR
-        G3 -> Apple Root). Without it codesign fails "unable to build chain to
-        self-signed root". Idempotent — a re-import of an existing cert is a
-        harmless no-op."""
-        dest = os.path.join(tempfile.gettempdir(), "AppleWWDRCAG3.cer")
-        try:
-            RunCommand(["curl", "-sSL", "--fail", "--retry", "3", "-o", dest,
-                        _APPLE_WWDR_INTERMEDIATE_URL], verbose=True).run()
-        except Exception as e:
-            getLogger().warning("Failed to download WWDR intermediate: %s", e)
-            return
-        result = subprocess.run(
-            ["security", "import", dest, "-k", _SIGNING_KEYCHAIN],
-            capture_output=True, text=True)
-        stderr = (result.stderr or "")
-        if result.returncode == 0:
-            getLogger().info("Imported Apple WWDR G3 intermediate into %s", _SIGNING_KEYCHAIN)
-        elif "already exists" in stderr:
-            getLogger().info("Apple WWDR G3 intermediate already present in %s", _SIGNING_KEYCHAIN)
-        else:
-            getLogger().warning(
-                "WWDR intermediate import into %s returned %d: %s",
-                _SIGNING_KEYCHAIN, result.returncode, stderr.strip())
+    def _ensure_signing_chain():
+        """Import the Apple WWDR G3 intermediate + Apple Root CA into the signing
+        keychain so codesign can build the full cert chain (leaf Apple Development
+        cert -> WWDR G3 -> Apple Root) even in a non-GUI session where the system
+        trust anchors may not be consulted. Idempotent — re-importing an existing
+        cert is a harmless no-op."""
+        for url in _SIGNING_CHAIN_CERT_URLS:
+            name = url.rsplit("/", 1)[-1]
+            dest = os.path.join(tempfile.gettempdir(), name)
+            try:
+                RunCommand(["curl", "-sSL", "--fail", "--retry", "3", "-o", dest, url],
+                           verbose=True).run()
+            except Exception as e:
+                getLogger().warning("Failed to download %s: %s", name, e)
+                continue
+            result = subprocess.run(
+                ["security", "import", dest, "-k", _SIGNING_KEYCHAIN],
+                capture_output=True, text=True)
+            stderr = (result.stderr or "")
+            if result.returncode == 0:
+                getLogger().info("Imported %s into %s", name, _SIGNING_KEYCHAIN)
+            elif "already exists" in stderr:
+                getLogger().info("%s already present in %s", name, _SIGNING_KEYCHAIN)
+            else:
+                getLogger().warning("Import %s into %s returned %d: %s",
+                                    name, _SIGNING_KEYCHAIN, result.returncode, stderr.strip())
+
+    @staticmethod
+    def _log_signing_diagnostics():
+        """Log the keychain search list + WWDR/Root cert presence to diagnose a
+        codesign 'unable to build chain to self-signed root' trust failure."""
+        for cmd in (
+            ["security", "list-keychains"],
+            ["security", "find-certificate", "-a", "-Z",
+             "-c", "Apple Worldwide Developer Relations Certification Authority",
+             _SIGNING_KEYCHAIN],
+            ["security", "find-certificate", "-a", "-Z", "-c", "Apple Root CA",
+             _SIGNING_KEYCHAIN],
+        ):
+            try:
+                r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                out = (r.stdout or r.stderr or "").strip()
+                lines = [ln for ln in out.splitlines()
+                         if "SHA-1" in ln or ".keychain" in ln]
+                getLogger().info("$ %s\n%s", " ".join(cmd), "\n".join(lines) or out[:400])
+            except Exception as e:
+                getLogger().warning("diagnostic `%s` failed: %s", " ".join(cmd), e)
 
     @classmethod
     def _codesign_bundle_deep(cls, app_bundle_path, entitlements_path):
