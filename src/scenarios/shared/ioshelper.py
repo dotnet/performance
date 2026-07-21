@@ -52,7 +52,6 @@ import json
 import os
 import plistlib
 import re
-import shlex
 import subprocess
 import tempfile
 import time
@@ -483,77 +482,40 @@ class iOSHelper:
 
     @classmethod
     def _codesign_bundle_deep(cls, app_bundle_path, entitlements_path):
-        """Deep-sign the bundle inside a real user session via ``launchctl asuser``.
+        """Deep-sign like xharness-runner.apple.sh: sign every Mach-O / .app /
+        .framework deepest-first with ``codesign --keychain signing-certs.keychain-db``
+        (the top .app gets the entitlements; nested code preserves metadata).
 
-        The device work item runs in a non-interactive session where codesign's
-        trust evaluation to a self-signed root is denied ("no user interaction
-        was possible"). XHarness avoids this by running under ``launchctl asuser``;
-        we do the same: generate a script that unlocks the signing keychain AND
-        deep-signs every Mach-O / .app / .framework (deepest-first; the .app gets
-        the entitlements, nested code preserves metadata), then run the whole
-        script in one ``sudo -n launchctl asuser <uid>`` invocation so the keychain
-        unlock and codesign share that user session."""
+        NOTE: on Mac.iPhone.13.Perf this currently fails "unable to build chain to
+        self-signed root" even with the full chain present in the keychains and
+        even inside a ``launchctl asuser`` user session — a machine code-signing
+        trust-store/anchor provisioning gap, not a scenario-code issue. See the
+        module docstring."""
         entries = [app_bundle_path]
         for root, dirs, files in os.walk(app_bundle_path):
             for name in files + dirs:
                 entries.append(os.path.join(root, name))
         entries.sort(key=lambda p: p.count(os.sep), reverse=True)
-        targets = [p for p in entries
-                   if (os.path.splitext(p)[1] in (".app", ".framework") and os.path.isdir(p))
-                   or cls._is_macho(p)]
 
-        ident = shlex.quote(_SIGNING_IDENTITY_NAME)
-        keychain = shlex.quote(_SIGNING_KEYCHAIN)
-        ent = shlex.quote(entitlements_path)
-        # The script reads the keychain password from its file at runtime (never
-        # embedded here) and unlocks the keychain in THIS (asuser) session before
-        # signing, so codesign doesn't block on a locked keychain.
-        script_lines = [
-            "#!/bin/bash",
-            "set -euo pipefail",
-            "pw=$(cat %s)" % shlex.quote(_SIGNING_KEYCHAIN_PASSWORD_FILE),
-            'security unlock-keychain -p "$pw" %s' % keychain,
-        ]
-        for p in targets:
-            qp = shlex.quote(p)
-            if p == app_bundle_path:
-                script_lines.append(
-                    "/usr/bin/codesign -v --force --sign %s --keychain %s "
-                    "--entitlements %s %s" % (ident, keychain, ent, qp))
-            else:
-                script_lines.append(
-                    "/usr/bin/codesign -v --force --sign %s --keychain %s "
-                    "--preserve-metadata=identifier,entitlements,flags %s"
-                    % (ident, keychain, qp))
-
-        fd, script_path = tempfile.mkstemp(suffix=".sh", prefix="ios_sign_")
-        with os.fdopen(fd, "w") as f:
-            f.write("\n".join(script_lines) + "\n")
-        os.chmod(script_path, 0o700)
-
-        cmd = ["sudo", "-n", "launchctl", "asuser", str(os.getuid()),
-               "/bin/bash", script_path]
-        getLogger().info("Deep-signing %d component(s) under launchctl asuser session",
-                         len(targets))
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
-        except subprocess.TimeoutExpired:
-            raise RuntimeError("codesign via launchctl asuser timed out (600s)")
-        finally:
-            try:
-                os.remove(script_path)
-            except OSError:
-                pass
-        if result.stdout:
-            getLogger().info("asuser sign stdout:\n%s", result.stdout[-3000:])
-        if result.stderr:
-            getLogger().info("asuser sign stderr:\n%s", result.stderr[-3000:])
-        if result.returncode != 0:
-            raise RuntimeError(
-                "codesign via launchctl asuser failed (exit %d; needs `sudo -n "
-                "launchctl asuser` permitted). stderr tail: %s"
-                % (result.returncode, (result.stderr or "")[-500:]))
-        getLogger().info("Deep-signed %d component(s) via asuser session", len(targets))
+        signed = 0
+        for path in entries:
+            ext = os.path.splitext(path)[1]
+            if not ((ext in (".app", ".framework") and os.path.isdir(path))
+                    or cls._is_macho(path)):
+                continue
+            cmd = ["/usr/bin/codesign", "-v", "--force",
+                   "--sign", _SIGNING_IDENTITY_NAME, "--keychain", _SIGNING_KEYCHAIN]
+            cmd += (["--entitlements", entitlements_path] if path == app_bundle_path
+                    else ["--preserve-metadata=identifier,entitlements,flags"])
+            cmd.append(path)
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"codesign failed for {path} (exit {result.returncode}) with "
+                    f"identity '{_SIGNING_IDENTITY_NAME}': {(result.stderr or '').strip()}")
+            signed += 1
+        getLogger().info("Deep-signed %d bundle component(s) in %s",
+                         signed, os.path.basename(app_bundle_path))
 
     @staticmethod
     def _is_macho(path):
