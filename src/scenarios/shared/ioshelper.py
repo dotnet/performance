@@ -497,22 +497,39 @@ class iOSHelper:
             is_bundle = ext in (".app", ".framework") and os.path.isdir(path)
             if not (is_bundle or cls._is_macho(path)):
                 continue
-            base = ["/usr/bin/codesign", "-v", "--force",
-                    "--sign", _SIGNING_IDENTITY_NAME,
-                    "--keychain", _SIGNING_KEYCHAIN]
-            if path == app_bundle_path:
-                cmd = base + ["--entitlements", entitlements_path, path]
-            else:
-                cmd = base + ["--preserve-metadata=identifier,entitlements,flags", path]
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            if result.returncode != 0:
-                raise RuntimeError(
-                    f"codesign failed for {path} (exit {result.returncode}) with "
-                    f"identity '{_SIGNING_IDENTITY_NAME}' in keychain "
-                    f"{_SIGNING_KEYCHAIN}: {(result.stderr or '').strip()}")
+            extra = (["--entitlements", entitlements_path]
+                     if path == app_bundle_path
+                     else ["--preserve-metadata=identifier,entitlements,flags"])
+            cls._codesign_one(path, extra)
             signed += 1
         getLogger().info("Deep-signed %d bundle component(s) in %s",
                          signed, os.path.basename(app_bundle_path))
+
+    @staticmethod
+    def _codesign_one(path, extra_args):
+        """Codesign one file. Attempt 1 omits --keychain so codesign's trust
+        evaluation can reach the System keychain's Apple Root anchor (a built-in
+        trusted root); with --keychain, codesign builds trust only within
+        signing-certs.keychain-db, where Apple Root is present but not a trusted
+        anchor -> "unable to build chain to self-signed root". Attempt 2 is the
+        keychain-scoped XHarness form, kept as a fallback."""
+        base = ["/usr/bin/codesign", "-v", "--force", "--sign", _SIGNING_IDENTITY_NAME]
+        variants = [
+            ("default-trust", base + extra_args + [path]),
+            ("keychain-scoped", base + ["--keychain", _SIGNING_KEYCHAIN] + extra_args + [path]),
+        ]
+        last = None
+        for label, cmd in variants:
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode == 0:
+                if label != "default-trust":
+                    getLogger().info("codesign succeeded via %s for %s",
+                                     label, os.path.basename(path))
+                return
+            last = result
+        raise RuntimeError(
+            f"codesign failed for {path} (exit {last.returncode}) with identity "
+            f"'{_SIGNING_IDENTITY_NAME}': {(last.stderr or '').strip()}")
 
     @staticmethod
     def _is_macho(path):
