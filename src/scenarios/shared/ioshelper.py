@@ -79,6 +79,11 @@ _SIGNING_KEYCHAIN_PASSWORD_FILE = os.path.expanduser("~/.config/keychain")
 # Partial identity name (matches "Apple Development: <person> (<TEAMID>)"), same
 # as xharness-runner.apple.sh. Override with IOS_SIGNING_IDENTITY if needed.
 _SIGNING_IDENTITY_NAME = os.environ.get("IOS_SIGNING_IDENTITY", "Apple Development")
+# Apple WWDR G3 intermediate — the issuer of the "Apple Development" cert. It is
+# imported into the signing keychain before codesign so the chain can build
+# (leaf -> WWDR G3 -> Apple Root); without it codesign fails "unable to build
+# chain to self-signed root".
+_APPLE_WWDR_INTERMEDIATE_URL = "https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer"
 
 
 class iOSHelper:
@@ -364,8 +369,9 @@ class iOSHelper:
             raise RuntimeError(
                 f"Failed to download provisioning profile from {_PROVISIONING_PROFILE_URL}")
 
-        # 2. Unlock the signing keychain.
+        # 2. Unlock the signing keychain and ensure the issuer intermediate is present.
         self._unlock_signing_keychain()
+        self._ensure_wwdr_intermediate()
 
         # 3. Extract entitlements from the profile.
         entitlements_path = self._extract_entitlements(profile_in_bundle)
@@ -418,6 +424,33 @@ class iOSHelper:
                 f"Failed to unlock {_SIGNING_KEYCHAIN} (exit {result.returncode}): "
                 f"{(result.stderr or '').strip()}")
         getLogger().info("Unlocked signing keychain %s", _SIGNING_KEYCHAIN)
+
+    @staticmethod
+    def _ensure_wwdr_intermediate():
+        """Import the Apple WWDR G3 intermediate into the signing keychain so
+        codesign can build the cert chain (leaf Apple Development cert -> WWDR
+        G3 -> Apple Root). Without it codesign fails "unable to build chain to
+        self-signed root". Idempotent — a re-import of an existing cert is a
+        harmless no-op."""
+        dest = os.path.join(tempfile.gettempdir(), "AppleWWDRCAG3.cer")
+        try:
+            RunCommand(["curl", "-sSL", "--fail", "--retry", "3", "-o", dest,
+                        _APPLE_WWDR_INTERMEDIATE_URL], verbose=True).run()
+        except Exception as e:
+            getLogger().warning("Failed to download WWDR intermediate: %s", e)
+            return
+        result = subprocess.run(
+            ["security", "import", dest, "-k", _SIGNING_KEYCHAIN],
+            capture_output=True, text=True)
+        stderr = (result.stderr or "")
+        if result.returncode == 0:
+            getLogger().info("Imported Apple WWDR G3 intermediate into %s", _SIGNING_KEYCHAIN)
+        elif "already exists" in stderr:
+            getLogger().info("Apple WWDR G3 intermediate already present in %s", _SIGNING_KEYCHAIN)
+        else:
+            getLogger().warning(
+                "WWDR intermediate import into %s returned %d: %s",
+                _SIGNING_KEYCHAIN, result.returncode, stderr.strip())
 
     @classmethod
     def _codesign_bundle_deep(cls, app_bundle_path, entitlements_path):
