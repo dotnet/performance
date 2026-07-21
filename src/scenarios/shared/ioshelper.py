@@ -433,13 +433,11 @@ class iOSHelper:
 
     @staticmethod
     def _ensure_signing_chain():
-        """Make the Apple WWDR G3 + Apple Root CA usable to codesign's trust
-        evaluation, to fix "unable to build chain to self-signed root" in the
-        headless Helix session (which persists even with the full chain in the
-        signing keychain). Import both certs into the signing AND login keychains,
-        then add the Apple Root as a trusted code-signing anchor (user domain, no
-        sudo). All best-effort + timeout-guarded so the work item never hangs."""
-        root_cert = None
+        """Import the Apple WWDR G3 intermediate + Apple Root CA into the signing
+        and login keychains so the full cert chain is available to codesign
+        (leaf Apple Development cert -> WWDR G3 -> Apple Root). Idempotent and
+        best-effort. NOTE: on these queues the remaining codesign trust failure
+        is a session-context issue, not a missing cert — see the module docstring."""
         for url in _SIGNING_CHAIN_CERT_URLS:
             name = url.rsplit("/", 1)[-1]
             dest = os.path.join(tempfile.gettempdir(), name)
@@ -449,8 +447,6 @@ class iOSHelper:
             except Exception as e:
                 getLogger().warning("Failed to download %s: %s", name, e)
                 continue
-            if "Root" in name:
-                root_cert = dest
             for keychain in (_SIGNING_KEYCHAIN, _LOGIN_KEYCHAIN):
                 result = subprocess.run(["security", "import", dest, "-k", keychain],
                                         capture_output=True, text=True)
@@ -462,22 +458,6 @@ class iOSHelper:
                 else:
                     getLogger().info("Import %s into %s -> %d: %s",
                                      name, keychain, result.returncode, stderr.strip())
-
-        # Explicitly trust the Apple Root as a code-signing anchor in the user
-        # trust domain (no sudo). This directly addresses "self-signed root" not
-        # being treated as a trusted anchor in this session.
-        if root_cert:
-            try:
-                r = subprocess.run(
-                    ["security", "add-trusted-cert", "-r", "trustRoot",
-                     "-p", "codeSign", root_cert],
-                    capture_output=True, text=True, timeout=60)
-                getLogger().info("add-trusted-cert (Apple Root, codeSign) -> %d: %s",
-                                 r.returncode, (r.stderr or r.stdout or "").strip()[:300])
-            except subprocess.TimeoutExpired:
-                getLogger().warning("add-trusted-cert timed out (prompted?) — continuing")
-            except Exception as e:
-                getLogger().warning("add-trusted-cert failed: %s", e)
 
     @staticmethod
     def _log_signing_diagnostics():
@@ -528,34 +508,26 @@ class iOSHelper:
 
     @staticmethod
     def _codesign_one(path, extra_args):
-        """Codesign one file, trying progressively.
+        """Codesign one file (deep-sign helper). Tries without --keychain first
+        so trust evaluation can use the System keychain's Apple Root anchor, then
+        the keychain-scoped XHarness form as a fallback.
 
-        The device work item runs in a non-interactive session where Security
-        trust operations are denied ("no user interaction was possible"), so a
-        plain codesign fails "unable to build chain to self-signed root". XHarness
-        avoids this by running under ``launchctl asuser`` (a real user session);
-        attempt 1 replicates that (needs privilege, so via ``sudo -n`` — fails
-        fast, never hangs, if not permitted). Attempts 2-3 are the plain forms
-        (with/without --keychain) as fallbacks."""
+        NOTE: on these queues the device work item runs in a non-interactive
+        session where codesign's trust evaluation to a self-signed root is denied
+        ("no user interaction was possible"); the real fix is to run under
+        ``launchctl asuser`` like XHarness. See the module docstring."""
         base = ["/usr/bin/codesign", "-v", "--force", "--sign", _SIGNING_IDENTITY_NAME]
-        default_cmd = base + extra_args + [path]
-        keychain_cmd = base + ["--keychain", _SIGNING_KEYCHAIN] + extra_args + [path]
-        asuser_cmd = ["sudo", "-n", "launchctl", "asuser", str(os.getuid())] + default_cmd
         variants = [
-            ("launchctl-asuser", asuser_cmd),
-            ("default-trust", default_cmd),
-            ("keychain-scoped", keychain_cmd),
+            ("default-trust", base + extra_args + [path]),
+            ("keychain-scoped", base + ["--keychain", _SIGNING_KEYCHAIN] + extra_args + [path]),
         ]
         last = None
         for label, cmd in variants:
-            try:
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-            except subprocess.TimeoutExpired:
-                getLogger().warning("codesign via %s timed out", label)
-                continue
+            result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode == 0:
-                getLogger().info("codesign succeeded via %s for %s",
-                                 label, os.path.basename(path))
+                if label != "default-trust":
+                    getLogger().info("codesign succeeded via %s for %s",
+                                     label, os.path.basename(path))
                 return
             last = result
         raise RuntimeError(
