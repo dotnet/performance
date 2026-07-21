@@ -6,6 +6,7 @@ import sys
 import os
 import glob
 import re
+import tempfile
 import time
 import json
 
@@ -14,7 +15,7 @@ from datetime import datetime, timedelta
 from logging import getLogger
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
-from shutil import rmtree
+from shutil import make_archive, rmtree
 from typing import Optional
 from shared.androidhelper import AndroidHelper
 from shared.androidinstrumentation import AndroidInstrumentationHelper
@@ -785,6 +786,43 @@ ex: C:\repos\performance;C:\repos\runtime
             RunCommand(installCmd, verbose=True).run()
             getLogger().info("Completed install.")
 
+            # The Mac.iPhone.17.Perf devices in the Helix pool are shared across many test
+            # runs over days, and iOS retains crash reports in /var/mobile/Library/Logs/
+            # CrashReporter/ until rotated out. To avoid re-uploading that historical
+            # backlog on a kill failure, snapshot the device's current crash report set
+            # now and below upload only reports that appeared since this snapshot.
+            # This mirrors XHarness's CrashSnapshotReporter pattern (it's a copy, not a
+            # move — device state is unchanged).
+            def listDeviceCrashReports():
+                """Return the set of crash report identifiers currently on the device,
+                or None if listing failed."""
+                listFilePath = None
+                try:
+                    with tempfile.NamedTemporaryFile(mode='w', suffix='.list', delete=False) as listFile:
+                        listFilePath = listFile.name
+                    listCmd = xharnesscommand() + [
+                        'apple', 'mlaunch', '--',
+                        f'--list-crash-reports={listFilePath}',
+                        '--devname', deviceUDID,
+                    ]
+                    RunCommand(listCmd, verbose=True).run()
+                    with open(listFilePath) as f:
+                        return {line.strip() for line in f if line.strip()}
+                except Exception as listEx:
+                    getLogger().warning(f"Failed to list device crash reports: {listEx}")
+                    return None
+                finally:
+                    if listFilePath and os.path.exists(listFilePath):
+                        try:
+                            os.remove(listFilePath)
+                        except OSError:
+                            pass
+
+            getLogger().info("Snapshotting existing crash reports on device.")
+            initial_device_crashes = listDeviceCrashReports()
+            if initial_device_crashes is not None:
+                getLogger().info(f"Found {len(initial_device_crashes)} pre-existing crash report(s).")
+
             allResults = []
             timeToFirstDrawEventEndDateTime = datetime.now() + timedelta(minutes=-10) # This is used to keep track of the latest time to draw end event, we use this to calculate time to draw and also as a reference point for the next iteration log time.
             for i in range(self.startupiterations + 1): # adding one iteration to account for the warmup iteration
@@ -861,7 +899,62 @@ ex: C:\repos\performance;C:\repos\runtime
                     '--devname', deviceUDID
                 ]
                 killCmdCommand = RunCommand(killCmd, verbose=True)
-                killCmdCommand.run()
+                try:
+                    killCmdCommand.run()
+                except CalledProcessError as ex:
+                    # The kill is cleanup-only; the measurement data is already in the .logarchive above.
+                    # devicectl returns non-zero when the app process is already gone (e.g. iOS terminated
+                    # it, the app crashed, or it self-exited). Upload the .logarchive AND any device-side
+                    # crash reports for this bundle to the Helix results container so we can diagnose
+                    # why the app was already gone before re-raising.
+                    getLogger().warning(f"App kill failed (app may have already exited): {ex}")
+                    upload_root = os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT')
+                    if upload_root:
+                        if os.path.exists(logarchive_filename):
+                            archive_base = os.path.join(upload_root, f'iteration{i}.logarchive')
+                            try:
+                                getLogger().info(f"Saving {logarchive_filename} to {archive_base}.zip for diagnosis.")
+                                make_archive(archive_base, 'zip', root_dir=logarchive_filename)
+                            except Exception as upload_ex:
+                                getLogger().warning(f"Failed to save logarchive for diagnosis: {upload_ex}")
+                        # Take a final snapshot and download only crash reports that appeared
+                        # since the initial snapshot taken before the iteration loop. This
+                        # matches XHarness's CrashSnapshotReporter pattern and avoids uploading
+                        # the historical backlog of unrelated crashes the shared device retains.
+                        # iOS may take a few seconds to finish writing a crash report after the
+                        # process dies, so poll the snapshot for up to 60s waiting for new
+                        # entries to appear (matches CrashSnapshotReporter.EndCaptureAsync).
+                        if initial_device_crashes is None:
+                            getLogger().info("Skipping device crash log download (initial snapshot unavailable).")
+                        else:
+                            crash_wait_deadline = time.time() + 60
+                            final_device_crashes = listDeviceCrashReports()
+                            new_crashes = sorted(final_device_crashes - initial_device_crashes) if final_device_crashes is not None else []
+                            while final_device_crashes is not None and not new_crashes and time.time() < crash_wait_deadline:
+                                time.sleep(1)
+                                final_device_crashes = listDeviceCrashReports()
+                                new_crashes = sorted(final_device_crashes - initial_device_crashes) if final_device_crashes is not None else []
+                            if final_device_crashes is None:
+                                getLogger().warning("Skipping device crash log download (final snapshot failed).")
+                            elif not new_crashes:
+                                getLogger().info("No new crash reports on device for this test run.")
+                            else:
+                                crash_dest = os.path.join(upload_root, f'iteration{i}_crashlogs')
+                                os.makedirs(crash_dest, exist_ok=True)
+                                getLogger().info(f"Downloading {len(new_crashes)} new crash report(s) to {crash_dest}.")
+                                for crash_id in new_crashes:
+                                    dst = os.path.join(crash_dest, os.path.basename(crash_id))
+                                    dlCmd = xharnesscommand() + [
+                                        'apple', 'mlaunch', '--',
+                                        f'--download-crash-report={crash_id}',
+                                        f'--download-crash-report-to={dst}',
+                                        '--devname', deviceUDID,
+                                    ]
+                                    try:
+                                        RunCommand(dlCmd, verbose=True).run()
+                                    except Exception as dlEx:
+                                        getLogger().warning(f"Failed to download crash report {crash_id}: {dlEx}")
+                    raise
 
                 # Process Data
 
