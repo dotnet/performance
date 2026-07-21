@@ -528,24 +528,34 @@ class iOSHelper:
 
     @staticmethod
     def _codesign_one(path, extra_args):
-        """Codesign one file. Attempt 1 omits --keychain so codesign's trust
-        evaluation can reach the System keychain's Apple Root anchor (a built-in
-        trusted root); with --keychain, codesign builds trust only within
-        signing-certs.keychain-db, where Apple Root is present but not a trusted
-        anchor -> "unable to build chain to self-signed root". Attempt 2 is the
-        keychain-scoped XHarness form, kept as a fallback."""
+        """Codesign one file, trying progressively.
+
+        The device work item runs in a non-interactive session where Security
+        trust operations are denied ("no user interaction was possible"), so a
+        plain codesign fails "unable to build chain to self-signed root". XHarness
+        avoids this by running under ``launchctl asuser`` (a real user session);
+        attempt 1 replicates that (needs privilege, so via ``sudo -n`` — fails
+        fast, never hangs, if not permitted). Attempts 2-3 are the plain forms
+        (with/without --keychain) as fallbacks."""
         base = ["/usr/bin/codesign", "-v", "--force", "--sign", _SIGNING_IDENTITY_NAME]
+        default_cmd = base + extra_args + [path]
+        keychain_cmd = base + ["--keychain", _SIGNING_KEYCHAIN] + extra_args + [path]
+        asuser_cmd = ["sudo", "-n", "launchctl", "asuser", str(os.getuid())] + default_cmd
         variants = [
-            ("default-trust", base + extra_args + [path]),
-            ("keychain-scoped", base + ["--keychain", _SIGNING_KEYCHAIN] + extra_args + [path]),
+            ("launchctl-asuser", asuser_cmd),
+            ("default-trust", default_cmd),
+            ("keychain-scoped", keychain_cmd),
         ]
         last = None
         for label, cmd in variants:
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            except subprocess.TimeoutExpired:
+                getLogger().warning("codesign via %s timed out", label)
+                continue
             if result.returncode == 0:
-                if label != "default-trust":
-                    getLogger().info("codesign succeeded via %s for %s",
-                                     label, os.path.basename(path))
+                getLogger().info("codesign succeeded via %s for %s",
+                                 label, os.path.basename(path))
                 return
             last = result
         raise RuntimeError(
