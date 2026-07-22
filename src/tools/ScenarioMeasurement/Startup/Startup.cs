@@ -27,6 +27,7 @@ enum MetricType
     WinUIBlazor,
     TimeToMain2,
     BuildTime,
+    IOSInnerLoop,
     AndroidInnerLoop,
 }
 
@@ -292,6 +293,7 @@ public class Startup
             MetricType.WinUIBlazor => new WinUIBlazorParser(),
             MetricType.TimeToMain2 => new TimeToMain2Parser(AddTestProcessEnvironmentVariable),
             MetricType.BuildTime => new BuildTimeParser(),
+            MetricType.IOSInnerLoop => new IOSInnerLoopParser(),
             MetricType.AndroidInnerLoop => new AndroidInnerLoopParser(),
             _ => throw new ArgumentOutOfRangeException(),
         };
