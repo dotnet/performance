@@ -390,14 +390,22 @@ class iOSHelper:
         # 3. Extract entitlements from the profile.
         entitlements_path = self._extract_entitlements(profile_in_bundle)
 
-        # 4. Deep-sign the bundle.
-        self._codesign_bundle_deep(app_bundle_path, entitlements_path)
+        # 4. Deep-sign the bundle. codesign fails errSecInternalComponent in the
+        #    headless work-item session even for a trivial binary (the identity +
+        #    trust are valid — verify-cert and find-identity -v both pass), so sign
+        #    in the console user's Aqua securityd session via `launchctl asuser`,
+        #    unlocking the keychain THERE first (else codesign hangs on a prompt).
+        asuser_uid = self._prepare_asuser_signing()
+        self._codesign_bundle_deep(app_bundle_path, entitlements_path, asuser_uid)
 
         # Verify so an install-time CoreSign rejection surfaces here with a clear
-        # message instead of an opaque devicectl error later.
+        # message instead of an opaque devicectl error later. Run in the same Aqua
+        # session used for signing (verify does a trust eval too).
+        verify_prefix = (["sudo", "-n", "launchctl", "asuser", asuser_uid]
+                         if asuser_uid else [])
         verify = subprocess.run(
-            ["/usr/bin/codesign", "--verify", "--deep", "--strict",
-             "--verbose=2", app_bundle_path],
+            verify_prefix + ["/usr/bin/codesign", "--verify", "--deep", "--strict",
+                             "--verbose=2", app_bundle_path],
             capture_output=True, text=True)
         getLogger().info(
             "codesign --verify exit %d\n%s", verify.returncode,
@@ -625,84 +633,123 @@ class iOSHelper:
         except Exception as e:
             getLogger().warning("system-root anchor check failed: %s", e)
 
-        # DECISIVE probe: codesign a throwaway Mach-O with the SAME identity, both
-        # normally and under `launchctl asuser` (a real console/securityd session).
-        # verify-cert + find-identity -v pass yet the real codesign fails
-        # errSecInternalComponent — this isolates whether the failure is
-        # app-specific, identity-wide, or a headless-session limitation:
-        #   normal fails + asuser succeeds -> session issue (asuser is the fix)
-        #   both fail                      -> identity/securityd, not the app
-        #   normal succeeds                -> the app bundle is the problem
+        # Quick isolation probe: codesign a throwaway Mach-O with the same identity
+        # in-process. It fails errSecInternalComponent app-independently (verify-cert
+        # + find-identity -v pass), which is why signing routes through the console
+        # user's Aqua session (see _prepare_asuser_signing). Fast (no asuser here —
+        # that hangs until the keychain is unlocked in-session).
         try:
             probe = os.path.join(tempfile.gettempdir(), "cs_probe.bin")
             shutil.copyfile("/bin/ls", probe)
             os.chmod(probe, 0o755)
-            uid = subprocess.run(["stat", "-f%u", "/dev/console"],
-                                 capture_output=True, text=True).stdout.strip()
-            getLogger().info("console user uid = %s", uid or "(none)")
-            probes = [("normal", ["/usr/bin/codesign", "-f", "--verbose=4",
-                                  "--sign", _SIGNING_IDENTITY_NAME, probe])]
-            if uid and uid != "0":
-                probes.append(("asuser", ["sudo", "-n", "launchctl", "asuser", uid,
-                                          "/usr/bin/codesign", "-f", "--verbose=4",
-                                          "--sign", _SIGNING_IDENTITY_NAME, probe]))
-            for label, pcmd in probes:
-                shutil.copyfile("/bin/ls", probe)
-                os.chmod(probe, 0o755)
-                r = subprocess.run(pcmd, capture_output=True, text=True, timeout=60)
-                getLogger().info("codesign probe (%s) -> %d\n%s", label, r.returncode,
-                                 (r.stderr or r.stdout or "").strip()[:600])
+            r = subprocess.run(
+                ["/usr/bin/codesign", "-f", "--verbose=4",
+                 "--sign", _SIGNING_IDENTITY_NAME, probe],
+                capture_output=True, text=True, timeout=60)
+            getLogger().info("codesign probe (in-process) -> %d\n%s", r.returncode,
+                             (r.stderr or r.stdout or "").strip()[:600])
         except Exception as e:
             getLogger().warning("codesign probe failed: %s", e)
 
     @classmethod
-    def _codesign_bundle_deep(cls, app_bundle_path, entitlements_path):
-        """Deep-sign like xharness-runner.apple.sh: sign every Mach-O / .app /
-        .framework deepest-first with ``codesign --keychain signing-certs.keychain-db``
-        (the top .app gets the entitlements; nested code preserves metadata).
+    def _prepare_asuser_signing(cls):
+        """Return the console (Aqua) user's uid to run codesign under via
+        ``launchctl asuser``, after unlocking + authorizing the signing keychain
+        IN THAT SESSION. codesign fails ``errSecInternalComponent`` in the headless
+        work-item session even for a trivial binary (identity + trust are valid —
+        verify-cert and find-identity -v pass), and codesign in the Aqua session
+        hangs when the keychain is locked there. Unlocking + set-key-partition-list
+        inside the session fixes both. Returns None (sign in-process) if there is no
+        console user or the setup fails."""
+        uid = subprocess.run(["stat", "-f%u", "/dev/console"],
+                             capture_output=True, text=True).stdout.strip()
+        name = subprocess.run(["stat", "-f%Su", "/dev/console"],
+                              capture_output=True, text=True).stdout.strip()
+        if not uid or uid == "0":
+            getLogger().info("No console (Aqua) user — signing in-process")
+            return None
+        if not os.path.isfile(_SIGNING_KEYCHAIN_PASSWORD_FILE):
+            getLogger().info("No keychain password file — signing in-process")
+            return None
+        getLogger().info("Preparing Aqua session for signing: %s (uid %s)", name, uid)
+        with open(_SIGNING_KEYCHAIN_PASSWORD_FILE) as f:
+            password = f.read().strip()
+        # Password is only in the security argv (as elsewhere), never logged.
+        for label, args in (
+            ("unlock", ["security", "unlock-keychain", "-p", password,
+                        _SIGNING_KEYCHAIN]),
+            ("partition", ["security", "set-key-partition-list", "-S",
+                           "apple-tool:,apple:,codesign:", "-s", "-k", password,
+                           _SIGNING_KEYCHAIN]),
+        ):
+            try:
+                r = subprocess.run(
+                    ["sudo", "-n", "launchctl", "asuser", uid] + args,
+                    capture_output=True, text=True, timeout=60)
+                getLogger().info(
+                    "asuser %s %s -> %d%s", uid, label, r.returncode,
+                    "" if r.returncode == 0 else f": {(r.stderr or '').strip()[:150]}")
+            except subprocess.TimeoutExpired:
+                getLogger().warning("asuser %s timed out — signing in-process", label)
+                return None
+            except Exception as e:
+                getLogger().warning("asuser %s failed (%s) — signing in-process",
+                                    label, e)
+                return None
+        return uid
 
-        The fatal error seen on Mac.iPhone.13.Perf was ``errSecInternalComponent``
-        (the "unable to build chain to self-signed root" line is only a non-fatal
-        Warning — every chain cert is actually present). That is the classic
-        headless-macOS signature of the signing key lacking a codesign partition
-        list (ACL); ``_unlock_signing_keychain`` now runs ``security
-        set-key-partition-list`` to authorize codesign without a GUI prompt. On
-        the first failure we re-run codesign ``--verbose=4`` and log the full
-        trust-evaluation detail."""
+    @classmethod
+    def _codesign_bundle_deep(cls, app_bundle_path, entitlements_path,
+                              asuser_uid=None):
+        """Deep-sign like xharness-runner.apple.sh: sign every Mach-O / .app /
+        .framework deepest-first (the top .app gets the entitlements; nested code
+        preserves metadata).
+
+        codesign fails ``errSecInternalComponent`` in the headless work-item
+        session (the "unable to build chain to self-signed root" line is only a
+        Warning — every chain cert is present and verify-cert -p codeSign passes),
+        so when a console user exists we run codesign in that Aqua securityd
+        session via ``sudo launchctl asuser <uid>`` (``asuser_uid``). On the first
+        failure we re-run codesign ``--verbose=4`` and log the full detail."""
         entries = [app_bundle_path]
         for root, dirs, files in os.walk(app_bundle_path):
             for name in files + dirs:
                 entries.append(os.path.join(root, name))
         entries.sort(key=lambda p: p.count(os.sep), reverse=True)
 
+        prefix = (["sudo", "-n", "launchctl", "asuser", asuser_uid]
+                  if asuser_uid else [])
         signed = 0
         for path in entries:
             ext = os.path.splitext(path)[1]
             if not ((ext in (".app", ".framework") and os.path.isdir(path))
                     or cls._is_macho(path)):
                 continue
-            # NOTE: intentionally NOT passing `--keychain` here. `security
-            # verify-cert -p codeSign` on this leaf succeeds (chain builds + anchor
-            # trusted) when it uses the full default search list + the trusted
-            # SYSTEM Apple Root, but codesign FAILED "unable to build chain to
-            # self-signed root" when restricted with `--keychain signing-certs`
-            # (that keychain holds the Apple Root cert but not as a *trusted*
-            # anchor). Dropping --keychain lets codesign find the identity via the
-            # default search list (signing-certs is in it) AND anchor to the
-            # system-trusted Apple Root — mirroring the verify-cert that passed.
-            cmd = ["/usr/bin/codesign", "-v", "--force", "--timestamp=none",
-                   "--sign", _SIGNING_IDENTITY_NAME]
+            # NOTE: intentionally NOT passing `--keychain` — codesign finds the
+            # identity via the default search list (signing-certs is in it) and
+            # anchors to the system-trusted Apple Root, mirroring the verify-cert
+            # that passed. `prefix` runs it in the console user's Aqua session.
+            cmd = prefix + ["/usr/bin/codesign", "-v", "--force", "--timestamp=none",
+                            "--sign", _SIGNING_IDENTITY_NAME]
             cmd += (["--entitlements", entitlements_path] if path == app_bundle_path
                     else ["--preserve-metadata=identifier,entitlements,flags"])
             cmd.append(path)
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True,
+                                        timeout=120)
+            except subprocess.TimeoutExpired:
+                raise RuntimeError(
+                    f"codesign timed out for {path} "
+                    f"(asuser_uid={asuser_uid}) — keychain likely locked in that "
+                    f"session or awaiting a UI prompt.")
             if result.returncode != 0:
                 # Capture the full trust-evaluation detail once, to pinpoint the
                 # exact chain/anchor step codesign rejects.
                 diag = subprocess.run(
-                    ["/usr/bin/codesign", "--verbose=4", "--force", "--timestamp=none",
-                     "--sign", _SIGNING_IDENTITY_NAME,
-                     "--preserve-metadata=identifier,entitlements,flags", path],
+                    prefix + ["/usr/bin/codesign", "--verbose=4", "--force",
+                              "--timestamp=none", "--sign", _SIGNING_IDENTITY_NAME,
+                              "--preserve-metadata=identifier,entitlements,flags",
+                              path],
                     capture_output=True, text=True)
                 getLogger().error("codesign --verbose=4 detail:\n%s",
                                   (diag.stderr or diag.stdout or "").strip())
@@ -710,6 +757,12 @@ class iOSHelper:
                     f"codesign failed for {path} (exit {result.returncode}) with "
                     f"identity '{_SIGNING_IDENTITY_NAME}': {(result.stderr or '').strip()}")
             signed += 1
+        # codesign ran as root (via sudo/asuser) so its _CodeSignature files are
+        # root-owned; restore ownership to the work-item user so later steps and
+        # cleanup are not blocked.
+        if asuser_uid:
+            subprocess.run(["sudo", "-n", "chown", "-R", str(os.getuid()),
+                            app_bundle_path], capture_output=True, text=True)
         getLogger().info("Deep-signed %d bundle component(s) in %s",
                          signed, os.path.basename(app_bundle_path))
 
