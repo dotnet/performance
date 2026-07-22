@@ -493,6 +493,19 @@ class iOSHelper:
         # privilege, no user interaction). This is what makes codesign accept the
         # self-signed root, which importing alone does not.
         if root_cert:
+            # `add-trusted-cert -d` triggers the com.apple.trust-settings.admin
+            # authorization right, which prompts for a password even as root and
+            # so fails "no user interaction was possible" in the headless Helix
+            # session. Pre-authorize that right in the authorization DB (sudo) so
+            # the trust-settings write can proceed non-interactively. Best-effort;
+            # `sudo -n` fails fast if not permitted.
+            auth = subprocess.run(
+                ["sudo", "-n", "security", "authorizationdb", "write",
+                 "com.apple.trust-settings.admin", "allow"],
+                capture_output=True, text=True)
+            getLogger().info(
+                "authorizationdb write trust-settings.admin allow -> %d: %s",
+                auth.returncode, (auth.stderr or auth.stdout or "").strip()[:200])
             for extra in (["-p", "codeSign"], []):  # policy-scoped, then all-policy
                 try:
                     r = subprocess.run(
@@ -575,6 +588,41 @@ class iOSHelper:
                                  (out or r.stderr or "").strip()[:1500])
             except Exception as e:
                 getLogger().warning("diagnostic `%s` failed: %s", " ".join(cmd), e)
+
+        # Definitive SecTrust verdict on the signing leaf — codesign only reports a
+        # terse errSecInternalComponent. Extract the Apple Development leaf and run
+        # `security verify-cert -p codeSign`, which prints the EXACT chain/anchor
+        # result (untrusted root vs missing intermediate vs revoked...). -L stays
+        # offline (no revocation network calls that could themselves fail).
+        try:
+            leaf = subprocess.run(
+                ["security", "find-certificate", "-a", "-c", "Apple Development",
+                 "-p", _SIGNING_KEYCHAIN], capture_output=True, text=True).stdout or ""
+            first = leaf.split("-----END CERTIFICATE-----")[0]
+            if "BEGIN CERTIFICATE" in first:
+                leaf_pem = os.path.join(tempfile.gettempdir(), "leaf_dev.pem")
+                with open(leaf_pem, "w") as f:
+                    f.write(first + "-----END CERTIFICATE-----\n")
+                for vc in (
+                    ["security", "verify-cert", "-p", "codeSign", "-L", "-c", leaf_pem],
+                    ["security", "verify-cert", "-p", "codeSign", "-c", leaf_pem],
+                ):
+                    r = subprocess.run(vc, capture_output=True, text=True, timeout=60)
+                    getLogger().info("$ %s -> %d\n%s", " ".join(vc), r.returncode,
+                                     (r.stdout or r.stderr or "").strip()[:800])
+        except Exception as e:
+            getLogger().warning("verify-cert diagnostic failed: %s", e)
+        # Confirm the Apple Root CA anchor is actually present in the immutable
+        # system root store (SecTrust always consults it for anchors).
+        try:
+            r = subprocess.run(
+                ["security", "find-certificate", "-c", "Apple Root CA",
+                 "/System/Library/Keychains/SystemRootCertificates.keychain"],
+                capture_output=True, text=True, timeout=30)
+            getLogger().info("Apple Root CA in SystemRootCertificates.keychain -> %d",
+                             r.returncode)
+        except Exception as e:
+            getLogger().warning("system-root anchor check failed: %s", e)
 
     @classmethod
     def _codesign_bundle_deep(cls, app_bundle_path, entitlements_path):
