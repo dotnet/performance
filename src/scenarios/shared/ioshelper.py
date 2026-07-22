@@ -437,6 +437,21 @@ class iOSHelper:
                 f"Failed to unlock {_SIGNING_KEYCHAIN} (exit {result.returncode}): "
                 f"{(result.stderr or '').strip()}")
         getLogger().info("Unlocked signing keychain %s", _SIGNING_KEYCHAIN)
+        # Authorize codesign/apple-tool to use the signing key without a GUI
+        # prompt. Without this partition-list (ACL) entry, codesign in a headless
+        # (non-GUI) Helix session fails with `errSecInternalComponent` even when
+        # the identity is present and the keychain is unlocked — the actual fatal
+        # error behind the misleading "unable to build chain to self-signed root"
+        # warning. This is the standard headless-macOS-CI signing fix. Password is
+        # never logged; only the outcome is.
+        part = subprocess.run(
+            ["security", "set-key-partition-list", "-S",
+             "apple-tool:,apple:,codesign:", "-s", "-k", password, _SIGNING_KEYCHAIN],
+            capture_output=True, text=True)
+        getLogger().info(
+            "set-key-partition-list on %s -> %d%s", _SIGNING_KEYCHAIN,
+            part.returncode,
+            "" if part.returncode == 0 else f": {(part.stderr or '').strip()[:200]}")
 
     @staticmethod
     def _ensure_signing_chain():
@@ -567,11 +582,14 @@ class iOSHelper:
         .framework deepest-first with ``codesign --keychain signing-certs.keychain-db``
         (the top .app gets the entitlements; nested code preserves metadata).
 
-        NOTE: on Mac.iPhone.13.Perf this currently fails "unable to build chain to
-        self-signed root" even with the full chain present in the keychains and
-        even inside a ``launchctl asuser`` user session — a machine code-signing
-        trust-store/anchor provisioning gap, not a scenario-code issue. See the
-        module docstring."""
+        The fatal error seen on Mac.iPhone.13.Perf was ``errSecInternalComponent``
+        (the "unable to build chain to self-signed root" line is only a non-fatal
+        Warning — every chain cert is actually present). That is the classic
+        headless-macOS signature of the signing key lacking a codesign partition
+        list (ACL); ``_unlock_signing_keychain`` now runs ``security
+        set-key-partition-list`` to authorize codesign without a GUI prompt. On
+        the first failure we re-run codesign ``--verbose=4`` and log the full
+        trust-evaluation detail."""
         entries = [app_bundle_path]
         for root, dirs, files in os.walk(app_bundle_path):
             for name in files + dirs:
