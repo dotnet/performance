@@ -93,8 +93,10 @@ _SIGNING_CHAIN_CERT_URLS = [
 # The old Apple WWDR intermediate (no G-series), expired 2023-02-07. Its lingering
 # presence makes codesign build the chain through it (candidate matched by issuer
 # name) and fail "unable to build chain to self-signed root" even though the valid
-# WWDR G3 is installed. The documented fix is to delete it. SHA-1:
-_EXPIRED_WWDR_SHA1 = "FF677979793A3CD798DC5B2ABEF56F73EDC9F83A64"
+# WWDR G3 is installed (SecTrust/verify-cert correctly skip it by key-id, which is
+# why verify-cert passes while codesign fails). The documented fix is to delete it.
+# SHA-1 (verified against Apple's AppleWWDRCA.cer, notAfter 2023-02-07):
+_EXPIRED_WWDR_SHA1 = "FF6797793A3CD798DC5B2ABEF56F73EDC9F83A64"
 
 
 class iOSHelper:
@@ -562,6 +564,15 @@ class iOSHelper:
                                  label, r.returncode, msg or "(ok)")
                 if r.returncode != 0:
                     break
+        # Verify the expired cert is actually gone from the search list (codesign
+        # picks it by issuer name, so any remaining copy re-breaks the chain).
+        check = subprocess.run(
+            ["security", "find-certificate", "-a", "-Z",
+             "-c", "Apple Worldwide Developer Relations Certification Authority"],
+            capture_output=True, text=True)
+        still_present = _EXPIRED_WWDR_SHA1 in (check.stdout or "")
+        getLogger().info("Expired WWDR still present after delete: %s",
+                         still_present)
 
     @staticmethod
     def _log_signing_diagnostics():
