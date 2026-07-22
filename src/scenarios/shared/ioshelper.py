@@ -499,22 +499,34 @@ class iOSHelper:
 
     @staticmethod
     def _remove_expired_wwdr():
-        """Delete the expired (2023-02-07) Apple WWDR intermediate from the
-        keychains so codesign builds the chain through the valid WWDR G3 instead
-        of the expired cert (which yields "unable to build chain to self-signed
-        root"). Best-effort across login / signing / System keychains; a keychain
-        may hold more than one copy, and `security delete-certificate` removes one
-        per call, so loop until none remain."""
-        targets = [(_LOGIN_KEYCHAIN, False), (_SIGNING_KEYCHAIN, False),
-                   ("/Library/Keychains/System.keychain", True)]
-        for keychain, use_sudo in targets:
+        """Delete the expired (2023-02-07) Apple WWDR intermediate so codesign
+        builds the chain through the valid WWDR G3 rather than the expired cert
+        ("unable to build chain to self-signed root"). Locates which keychain(s)
+        hold it and deletes there (System via sudo), logging every result so a
+        failure (locked / read-only keychain) is visible. Best-effort."""
+        candidates = [
+            (_LOGIN_KEYCHAIN, False),
+            (os.path.expanduser("~/Library/Keychains/login.keychain"), False),
+            (_SIGNING_KEYCHAIN, False),
+            ("/Library/Keychains/System.keychain", True),
+            ("/System/Library/Keychains/SystemRootCertificates.keychain", True),
+        ]
+        for keychain, use_sudo in candidates:
+            chk = subprocess.run(["security", "find-certificate", "-a", "-Z", keychain],
+                                 capture_output=True, text=True)
+            if _EXPIRED_WWDR_SHA1 not in (chk.stdout or ""):
+                continue
+            getLogger().info("Expired WWDR present in %s — deleting", keychain)
             for _ in range(8):
                 cmd = (["sudo", "-n"] if use_sudo else []) + \
                     ["security", "delete-certificate", "-Z", _EXPIRED_WWDR_SHA1, keychain]
                 r = subprocess.run(cmd, capture_output=True, text=True)
-                if r.returncode != 0:
-                    break
-                getLogger().info("Deleted expired WWDR intermediate from %s", keychain)
+                if r.returncode == 0:
+                    getLogger().info("Deleted expired WWDR from %s", keychain)
+                    continue
+                getLogger().info("delete from %s -> %d: %s", keychain,
+                                 r.returncode, (r.stderr or "").strip()[:200])
+                break
 
     @staticmethod
     def _log_signing_diagnostics():
