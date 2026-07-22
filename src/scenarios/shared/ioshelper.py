@@ -89,6 +89,11 @@ _SIGNING_CHAIN_CERT_URLS = [
     "https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer",
     "https://www.apple.com/appleca/AppleIncRootCertificate.cer",
 ]
+# The old Apple WWDR intermediate (no G-series), expired 2023-02-07. Its lingering
+# presence makes codesign build the chain through it (candidate matched by issuer
+# name) and fail "unable to build chain to self-signed root" even though the valid
+# WWDR G3 is installed. The documented fix is to delete it. SHA-1:
+_EXPIRED_WWDR_SHA1 = "FF677979793A3CD798DC5B2ABEF56F73EDC9F83A64"
 
 
 class iOSHelper:
@@ -374,9 +379,11 @@ class iOSHelper:
             raise RuntimeError(
                 f"Failed to download provisioning profile from {_PROVISIONING_PROFILE_URL}")
 
-        # 2. Unlock the signing keychain and ensure the full issuer chain is present.
+        # 2. Unlock the signing keychain, ensure the valid chain is present, and
+        #    remove the expired 2023 WWDR intermediate that breaks chain-building.
         self._unlock_signing_keychain()
         self._ensure_signing_chain()
+        self._remove_expired_wwdr()
         self._log_signing_diagnostics()
 
         # 3. Extract entitlements from the profile.
@@ -489,6 +496,25 @@ class iOSHelper:
                 except Exception as e:
                     getLogger().warning("sudo add-trusted-cert failed: %s", e)
                     break
+
+    @staticmethod
+    def _remove_expired_wwdr():
+        """Delete the expired (2023-02-07) Apple WWDR intermediate from the
+        keychains so codesign builds the chain through the valid WWDR G3 instead
+        of the expired cert (which yields "unable to build chain to self-signed
+        root"). Best-effort across login / signing / System keychains; a keychain
+        may hold more than one copy, and `security delete-certificate` removes one
+        per call, so loop until none remain."""
+        targets = [(_LOGIN_KEYCHAIN, False), (_SIGNING_KEYCHAIN, False),
+                   ("/Library/Keychains/System.keychain", True)]
+        for keychain, use_sudo in targets:
+            for _ in range(8):
+                cmd = (["sudo", "-n"] if use_sudo else []) + \
+                    ["security", "delete-certificate", "-Z", _EXPIRED_WWDR_SHA1, keychain]
+                r = subprocess.run(cmd, capture_output=True, text=True)
+                if r.returncode != 0:
+                    break
+                getLogger().info("Deleted expired WWDR intermediate from %s", keychain)
 
     @staticmethod
     def _log_signing_diagnostics():
