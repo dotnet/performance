@@ -433,11 +433,17 @@ class iOSHelper:
 
     @staticmethod
     def _ensure_signing_chain():
-        """Import the Apple WWDR G3 intermediate + Apple Root CA into the signing
-        and login keychains so the full cert chain is available to codesign
-        (leaf Apple Development cert -> WWDR G3 -> Apple Root). Idempotent and
-        best-effort. NOTE: on these queues the remaining codesign trust failure
-        is a session-context issue, not a missing cert — see the module docstring."""
+        """Make the Apple Development chain trustable to codesign.
+
+        Import WWDR G3 + Apple Root CA into the signing + login keychains, then
+        (the key step, previously untried) mark the Apple Root as a TRUSTED
+        code-signing anchor in the ADMIN trust domain via ``sudo -n security
+        add-trusted-cert -d``. The user-domain form failed with "no user
+        interaction was possible"; the admin form uses root privilege and needs
+        no interaction. This directly addresses codesign's "unable to build chain
+        to self-signed root" (importing a root != trusting it as an anchor). All
+        best-effort; ``sudo -n`` fails fast (never hangs) if not permitted."""
+        root_cert = None
         for url in _SIGNING_CHAIN_CERT_URLS:
             name = url.rsplit("/", 1)[-1]
             dest = os.path.join(tempfile.gettempdir(), name)
@@ -447,6 +453,8 @@ class iOSHelper:
             except Exception as e:
                 getLogger().warning("Failed to download %s: %s", name, e)
                 continue
+            if "Root" in name:
+                root_cert = dest
             for keychain in (_SIGNING_KEYCHAIN, _LOGIN_KEYCHAIN):
                 result = subprocess.run(["security", "import", dest, "-k", keychain],
                                         capture_output=True, text=True)
@@ -459,24 +467,61 @@ class iOSHelper:
                     getLogger().info("Import %s into %s -> %d: %s",
                                      name, keychain, result.returncode, stderr.strip())
 
+        # Trust the Apple Root as a code-signing anchor in the admin domain (root
+        # privilege, no user interaction). This is what makes codesign accept the
+        # self-signed root, which importing alone does not.
+        if root_cert:
+            for extra in (["-p", "codeSign"], []):  # policy-scoped, then all-policy
+                try:
+                    r = subprocess.run(
+                        ["sudo", "-n", "security", "add-trusted-cert", "-d",
+                         "-r", "trustRoot"] + extra + [root_cert],
+                        capture_output=True, text=True, timeout=60)
+                    getLogger().info(
+                        "sudo add-trusted-cert -d %s -> %d: %s",
+                        " ".join(extra) or "(all policies)", r.returncode,
+                        (r.stderr or r.stdout or "").strip()[:300])
+                    if r.returncode == 0:
+                        break
+                except subprocess.TimeoutExpired:
+                    getLogger().warning("sudo add-trusted-cert timed out — continuing")
+                    break
+                except Exception as e:
+                    getLogger().warning("sudo add-trusted-cert failed: %s", e)
+                    break
+
     @staticmethod
     def _log_signing_diagnostics():
-        """Log the keychain search list + WWDR/Root cert presence to diagnose a
-        codesign 'unable to build chain to self-signed root' trust failure."""
+        """Log the keychain search list, WWDR/Root cert presence + validity, and
+        the admin trust settings to diagnose codesign 'unable to build chain to
+        self-signed root' trust failures (e.g. an expired intermediate, or the
+        anchor not being trusted)."""
         for cmd in (
             ["security", "list-keychains"],
-            ["security", "find-certificate", "-a", "-Z",
-             "-c", "Apple Worldwide Developer Relations Certification Authority",
-             _SIGNING_KEYCHAIN],
-            ["security", "find-certificate", "-a", "-Z", "-c", "Apple Root CA",
-             _SIGNING_KEYCHAIN],
+            # -p prints PEM so we can check notAfter (expiry) of any duplicate/stale
+            # WWDR intermediates across the whole search list, not just one keychain.
+            ["security", "find-certificate", "-a", "-p",
+             "-c", "Apple Worldwide Developer Relations Certification Authority"],
+            ["sudo", "-n", "security", "dump-trust-settings", "-d"],
         ):
             try:
                 r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-                out = (r.stdout or r.stderr or "").strip()
-                lines = [ln for ln in out.splitlines()
-                         if "SHA-1" in ln or ".keychain" in ln]
-                getLogger().info("$ %s\n%s", " ".join(cmd), "\n".join(lines) or out[:400])
+                out = (r.stdout or "")
+                if "find-certificate" in cmd and "BEGIN CERTIFICATE" in out:
+                    # Summarize each PEM cert's subject + validity instead of raw PEM.
+                    summary = []
+                    for block in out.split("-----END CERTIFICATE-----"):
+                        pem = block + "-----END CERTIFICATE-----"
+                        if "BEGIN CERTIFICATE" not in pem:
+                            continue
+                        info = subprocess.run(
+                            ["openssl", "x509", "-noout", "-subject", "-enddate",
+                             "-fingerprint", "-sha1"],
+                            input=pem, capture_output=True, text=True)
+                        summary.append((info.stdout or "").strip())
+                    out = "\n".join(summary)
+                getLogger().info("$ %s\n%s", " ".join(cmd),
+                                 (out or r.stderr or "").strip()[:1500])
             except Exception as e:
                 getLogger().warning("diagnostic `%s` failed: %s", " ".join(cmd), e)
 
