@@ -501,32 +501,30 @@ class iOSHelper:
     def _remove_expired_wwdr():
         """Delete the expired (2023-02-07) Apple WWDR intermediate so codesign
         builds the chain through the valid WWDR G3 rather than the expired cert
-        ("unable to build chain to self-signed root"). Locates which keychain(s)
-        hold it and deletes there (System via sudo), logging every result so a
-        failure (locked / read-only keychain) is visible. Best-effort."""
+        ("unable to build chain to self-signed root"). Attempts the delete on
+        every candidate keychain unconditionally and logs each result — the
+        delete's own error ("could not be found" vs read-only vs success)
+        definitively locates the cert and whether it is removable. Best-effort."""
         candidates = [
+            (None, False),  # default search list
             (_LOGIN_KEYCHAIN, False),
             (os.path.expanduser("~/Library/Keychains/login.keychain"), False),
             (_SIGNING_KEYCHAIN, False),
             ("/Library/Keychains/System.keychain", True),
-            ("/System/Library/Keychains/SystemRootCertificates.keychain", True),
         ]
         for keychain, use_sudo in candidates:
-            chk = subprocess.run(["security", "find-certificate", "-a", "-Z", keychain],
-                                 capture_output=True, text=True)
-            if _EXPIRED_WWDR_SHA1 not in (chk.stdout or ""):
-                continue
-            getLogger().info("Expired WWDR present in %s — deleting", keychain)
+            label = keychain or "(search list)"
             for _ in range(8):
                 cmd = (["sudo", "-n"] if use_sudo else []) + \
-                    ["security", "delete-certificate", "-Z", _EXPIRED_WWDR_SHA1, keychain]
+                    ["security", "delete-certificate", "-Z", _EXPIRED_WWDR_SHA1]
+                if keychain:
+                    cmd.append(keychain)
                 r = subprocess.run(cmd, capture_output=True, text=True)
-                if r.returncode == 0:
-                    getLogger().info("Deleted expired WWDR from %s", keychain)
-                    continue
-                getLogger().info("delete from %s -> %d: %s", keychain,
-                                 r.returncode, (r.stderr or "").strip()[:200])
-                break
+                msg = (r.stderr or r.stdout or "").strip()[:200]
+                getLogger().info("delete expired WWDR from %s -> %d: %s",
+                                 label, r.returncode, msg or "(ok)")
+                if r.returncode != 0:
+                    break
 
     @staticmethod
     def _log_signing_diagnostics():
@@ -593,6 +591,15 @@ class iOSHelper:
             cmd.append(path)
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
+                # Capture the full trust-evaluation detail once, to pinpoint the
+                # exact chain/anchor step codesign rejects.
+                diag = subprocess.run(
+                    ["/usr/bin/codesign", "--verbose=4", "--force",
+                     "--sign", _SIGNING_IDENTITY_NAME, "--keychain", _SIGNING_KEYCHAIN,
+                     "--preserve-metadata=identifier,entitlements,flags", path],
+                    capture_output=True, text=True)
+                getLogger().error("codesign --verbose=4 detail:\n%s",
+                                  (diag.stderr or diag.stdout or "").strip())
                 raise RuntimeError(
                     f"codesign failed for {path} (exit {result.returncode}) with "
                     f"identity '{_SIGNING_IDENTITY_NAME}': {(result.stderr or '').strip()}")
