@@ -53,6 +53,7 @@ import os
 import plistlib
 import re
 import subprocess
+import shutil
 import tempfile
 import time
 from datetime import datetime
@@ -624,6 +625,36 @@ class iOSHelper:
         except Exception as e:
             getLogger().warning("system-root anchor check failed: %s", e)
 
+        # DECISIVE probe: codesign a throwaway Mach-O with the SAME identity, both
+        # normally and under `launchctl asuser` (a real console/securityd session).
+        # verify-cert + find-identity -v pass yet the real codesign fails
+        # errSecInternalComponent — this isolates whether the failure is
+        # app-specific, identity-wide, or a headless-session limitation:
+        #   normal fails + asuser succeeds -> session issue (asuser is the fix)
+        #   both fail                      -> identity/securityd, not the app
+        #   normal succeeds                -> the app bundle is the problem
+        try:
+            probe = os.path.join(tempfile.gettempdir(), "cs_probe.bin")
+            shutil.copyfile("/bin/ls", probe)
+            os.chmod(probe, 0o755)
+            uid = subprocess.run(["stat", "-f%u", "/dev/console"],
+                                 capture_output=True, text=True).stdout.strip()
+            getLogger().info("console user uid = %s", uid or "(none)")
+            probes = [("normal", ["/usr/bin/codesign", "-f", "--verbose=4",
+                                  "--sign", _SIGNING_IDENTITY_NAME, probe])]
+            if uid and uid != "0":
+                probes.append(("asuser", ["sudo", "-n", "launchctl", "asuser", uid,
+                                          "/usr/bin/codesign", "-f", "--verbose=4",
+                                          "--sign", _SIGNING_IDENTITY_NAME, probe]))
+            for label, pcmd in probes:
+                shutil.copyfile("/bin/ls", probe)
+                os.chmod(probe, 0o755)
+                r = subprocess.run(pcmd, capture_output=True, text=True, timeout=60)
+                getLogger().info("codesign probe (%s) -> %d\n%s", label, r.returncode,
+                                 (r.stderr or r.stdout or "").strip()[:600])
+        except Exception as e:
+            getLogger().warning("codesign probe failed: %s", e)
+
     @classmethod
     def _codesign_bundle_deep(cls, app_bundle_path, entitlements_path):
         """Deep-sign like xharness-runner.apple.sh: sign every Mach-O / .app /
@@ -659,7 +690,7 @@ class iOSHelper:
             # anchor). Dropping --keychain lets codesign find the identity via the
             # default search list (signing-certs is in it) AND anchor to the
             # system-trusted Apple Root — mirroring the verify-cert that passed.
-            cmd = ["/usr/bin/codesign", "-v", "--force",
+            cmd = ["/usr/bin/codesign", "-v", "--force", "--timestamp=none",
                    "--sign", _SIGNING_IDENTITY_NAME]
             cmd += (["--entitlements", entitlements_path] if path == app_bundle_path
                     else ["--preserve-metadata=identifier,entitlements,flags"])
@@ -669,7 +700,7 @@ class iOSHelper:
                 # Capture the full trust-evaluation detail once, to pinpoint the
                 # exact chain/anchor step codesign rejects.
                 diag = subprocess.run(
-                    ["/usr/bin/codesign", "--verbose=4", "--force",
+                    ["/usr/bin/codesign", "--verbose=4", "--force", "--timestamp=none",
                      "--sign", _SIGNING_IDENTITY_NAME,
                      "--preserve-metadata=identifier,entitlements,flags", path],
                     capture_output=True, text=True)
