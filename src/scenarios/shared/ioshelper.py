@@ -650,8 +650,17 @@ class iOSHelper:
             if not ((ext in (".app", ".framework") and os.path.isdir(path))
                     or cls._is_macho(path)):
                 continue
+            # NOTE: intentionally NOT passing `--keychain` here. `security
+            # verify-cert -p codeSign` on this leaf succeeds (chain builds + anchor
+            # trusted) when it uses the full default search list + the trusted
+            # SYSTEM Apple Root, but codesign FAILED "unable to build chain to
+            # self-signed root" when restricted with `--keychain signing-certs`
+            # (that keychain holds the Apple Root cert but not as a *trusted*
+            # anchor). Dropping --keychain lets codesign find the identity via the
+            # default search list (signing-certs is in it) AND anchor to the
+            # system-trusted Apple Root — mirroring the verify-cert that passed.
             cmd = ["/usr/bin/codesign", "-v", "--force",
-                   "--sign", _SIGNING_IDENTITY_NAME, "--keychain", _SIGNING_KEYCHAIN]
+                   "--sign", _SIGNING_IDENTITY_NAME]
             cmd += (["--entitlements", entitlements_path] if path == app_bundle_path
                     else ["--preserve-metadata=identifier,entitlements,flags"])
             cmd.append(path)
@@ -661,7 +670,7 @@ class iOSHelper:
                 # exact chain/anchor step codesign rejects.
                 diag = subprocess.run(
                     ["/usr/bin/codesign", "--verbose=4", "--force",
-                     "--sign", _SIGNING_IDENTITY_NAME, "--keychain", _SIGNING_KEYCHAIN,
+                     "--sign", _SIGNING_IDENTITY_NAME,
                      "--preserve-metadata=identifier,entitlements,flags", path],
                     capture_output=True, text=True)
                 getLogger().error("codesign --verbose=4 detail:\n%s",
