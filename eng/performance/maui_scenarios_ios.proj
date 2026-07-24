@@ -76,12 +76,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- SizeOnDisk recursively measures pub, so stage only the IPA and versions.json (removed by test.py in the lab). -->
     <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) IPA Size')">
-      <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub</PreCommands>
+      <PreCommands>mkdir -p "$HELIX_WORKITEM_ROOT/pub" &amp;&amp; cp "$HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/%(HelixWorkItem.IPAName).ipa" "$HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa" &amp;&amp; cp "$HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/versions.json" "$HELIX_WORKITEM_ROOT/pub/versions.json"</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) Extracted Size')">
-      <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub; mv $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; unzip -d $HELIX_WORKITEM_ROOT/pub $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; rm $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip</PreCommands>
+      <PreCommands>mkdir -p "$HELIX_WORKITEM_ROOT/pub" &amp;&amp; cp "$HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/%(HelixWorkItem.IPAName).ipa" "$HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa" &amp;&amp; cp "$HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/versions.json" "$HELIX_WORKITEM_ROOT/pub/versions.json" &amp;&amp; mv "$HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa" "$HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip" &amp;&amp; unzip -d "$HELIX_WORKITEM_ROOT/pub" "$HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip" &amp;&amp; rm "$HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip"</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIiOSScenario -> 'Build Time - %(Identity)')">
