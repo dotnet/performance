@@ -1,0 +1,4 @@
+# Local measurement output produced by run-local.sh — never commit.
+# (run-local.sh copies traces/*.binlog and *-versions.json into results/<flavor>/
+#  for local inspection. Production results go to the perf-lab via upload.py.)
+results/

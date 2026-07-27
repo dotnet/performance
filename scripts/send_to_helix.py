@@ -71,8 +71,10 @@ class PerfSendToHelixArgs:
     linking_type: Optional[str] = None
     python: Optional[str] = None
     affinity: Optional[str] = None
+    ios_rid: Optional[str] = None
     ios_strip_symbols: Optional[bool] = None
     ios_llvm_build: Optional[bool] = None
+    run_kind: Optional[str] = None
     scenario_arguments: Optional[list[str]] = None
 
     def set_environment_variables(self, save_to_pipeline: bool = True):
@@ -111,8 +113,10 @@ class PerfSendToHelixArgs:
         set_env_var("RuntimeFlavor", self.runtime_flavor)
         set_env_var("CodegenType", self.codegen_type)
         set_env_var("LinkingType", self.linking_type)
+        set_env_var("iOSRid", self.ios_rid)
         set_env_var("iOSStripSymbols", self.ios_strip_symbols)
         set_env_var("iOSLlvmBuild", self.ios_llvm_build)
+        set_env_var("RunKind", self.run_kind)
         set_env_var("TargetCsproj", self.target_csproj)
         set_env_var("WorkItemCommand", self.work_item_command, sep=" ")
         set_env_var("BaselineWorkItemCommand", self.baseline_work_item_command, sep=" ")
@@ -141,6 +145,19 @@ def perf_send_to_helix(args: PerfSendToHelixArgs):
 
     binlog_dest = os.path.join(args.performance_repo_dir, "artifacts", "log", args.build_config, "SendToHelix.binlog")
     send_params = [args.project_file, "/restore", "/t:Test", f"/bl:{binlog_dest}"]
+
+    # Pass iOSRid explicitly as an MSBuild property so it reaches .proj
+    # evaluation reliably. Env var inheritance through msbuild.sh/tools.sh
+    # is unreliable for this property.
+    if args.ios_rid:
+        send_params.append(f"/p:iOSRid={args.ios_rid}")
+
+    # Pass RunKind explicitly as an MSBuild property so the shared
+    # maui_scenarios_ios.proj can switch between regular and inner-loop
+    # ItemGroups based on $(RunKind). Env var inheritance through
+    # msbuild.sh/tools.sh is unreliable for this property.
+    if args.run_kind:
+        send_params.append(f"/p:RunKind={args.run_kind}")
 
     run_msbuild_command(send_params, warn_as_error=False)
 

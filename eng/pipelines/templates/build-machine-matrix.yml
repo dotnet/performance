@@ -159,7 +159,7 @@ jobs:
       machinePool: AndroidEmulator
       ${{ insert }}: ${{ parameters.jobParameters }}
 
-- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 17 only used in private builds currently
+- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 13 (Mac.iPhone.13.Perf, updated to Xcode 26.5)
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osGroup: osx
@@ -167,8 +167,20 @@ jobs:
       osVersion: 26
       pool:
         vmImage: 'macos-26'
-      queue: Mac.iPhone.17.Perf
-      machinePool: iPhone17
+      queue: Mac.iPhone.13.Perf
+      machinePool: iPhone13
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64-innerloop'), not(eq(parameters.isPublic, true))) }}: # iOS Inner Loop: Mac.iPhone.13.Perf is the only queue with Xcode 26.5 (required by the net11.0_26.5 scenario). NOTE: it still lacks the PerfLab upload cert (LabCert1.pfx) and device code-signing infra (those live on Mac.iPhone.17.Perf, which only has Xcode 26.3) — pending infra provisioning so sim upload + device signing work here.
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: osx
+      archType: x64
+      osVersion: 26
+      pool:
+        vmImage: 'macos-26'
+      queue: Mac.iPhone.13.Perf
+      machinePool: iPhone13
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x64-viper'), not(eq(parameters.isPublic, true))) }}: # Windows x64 Viper only used in private builds

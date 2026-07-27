@@ -41,6 +41,23 @@ def _try_managed_identity(managed_identity_client_id: Optional[str] = None):
         return None
 
 def get_credential():
+    # 0. On an AzDO hosted agent (no Helix UAMI/cert) the run is wrapped in an
+    # AzureCLI@2 task that `az login`s as the '.NET Performance' service
+    # connection, which has write access to the pvscmdupload storage account.
+    # Use that AzureCliCredential directly for a Storage data-plane token. The
+    # Helix federated-assertion flow below does NOT work for this SP
+    # (AADSTS7002341 on api://AzureADTokenExchange). Opt-in via env var so Helix
+    # behavior is unchanged; fail closed (no cert fallback) when selected.
+    if os.environ.get("PERFLAB_UPLOAD_USE_AZURE_CLI", "").lower() in ("1", "true"):
+        from azure.identity import AzureCliCredential
+        getLogger().info("Attempting auth with Azure CLI credential (service connection).")
+        # The default AzureCliCredential subprocess timeout is 10s; on a loaded
+        # hosted agent cold-starting `az account get-access-token` can exceed
+        # that, so allow more time.
+        credential = AzureCliCredential(process_timeout=300)
+        credential.get_token("https://storage.azure.com/.default")
+        return credential
+
     # 1. Try system-assigned managed identity
     getLogger().info("Attempting auth with system-assigned managed identity.")
     credential = _try_managed_identity()
