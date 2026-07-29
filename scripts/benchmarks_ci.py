@@ -344,6 +344,13 @@ def main(argv: list[str]):
             getLogger().info("Benchmarks Upload Code: " + str(upload_code))
             if upload_code != 0:
                 sys.exit(upload_code)
+            # A successful upload proves the machine is healthy, so clear any offline semaphore that
+            # a previous corrupted-dpkg detection may have left for this machine.
+            try:
+                import machine_health
+                machine_health.clear_offline_semaphore()
+            except Exception as e:
+                getLogger().warning(f"Failed to clear offline semaphore: {e}")
         # TODO: Archive artifacts.
 
         # Still return 1 so that the build pipeline shows failures even though there were some successful results
