@@ -327,11 +327,11 @@ def get_pre_commands(
             ]
     else:
         if install_prerequisites:
-            combined_prequisites = " && ".join(install_prerequisites)
+            combined_prerequisites = " && ".join(install_prerequisites)
             helix_pre_commands += [
-                'echo "** Installing prerequistes **"',
-                f"{combined_prequisites} || export PERF_PREREQS_INSTALL_FAILED=1",
-                'test "x$PERF_PREREQS_INSTALL_FAILED" = "x1" && echo "** Error: Failed to install prerequites **"'
+                'echo "** Installing prerequisites **"',
+                f"{combined_prerequisites} || export PERF_PREREQS_INSTALL_FAILED=1",
+                'test "x$PERF_PREREQS_INSTALL_FAILED" = "x1" && echo "** Error: Failed to install prerequisites **"'
             ]
 
     # Set MONO_ENV_OPTIONS with for Mono Interpreter runs
