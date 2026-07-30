@@ -79,9 +79,8 @@ def is_dpkg_broken() -> bool:
     '''
     if not sys.platform.startswith("linux"):
         return False
-    try:
         result = subprocess.run(
-            ["sudo", "apt-get", "check"],
+            ["sudo", "-n", "apt-get", "check"],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
