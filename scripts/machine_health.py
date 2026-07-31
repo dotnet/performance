@@ -79,6 +79,7 @@ def is_dpkg_broken() -> bool:
     '''
     if not sys.platform.startswith("linux"):
         return False
+    try:
         result = subprocess.run(
             ["sudo", "-n", "apt-get", "check"],
             stdout=subprocess.PIPE,
@@ -122,7 +123,7 @@ def create_offline_sentinel(reason: str) -> bool:
 
     try:
         subprocess.run(
-            ["sudo", "tee", offline_path],
+            ["sudo", "-n", "tee", offline_path],
             input=content,
             text=True,
             stdout=subprocess.DEVNULL,

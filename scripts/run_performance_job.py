@@ -327,11 +327,11 @@ def get_pre_commands(
             ]
     else:
         if install_prerequisites:
-            combined_prequisites = " && ".join(install_prerequisites)
+            combined_prerequisites = " && ".join(install_prerequisites)
             helix_pre_commands += [
-                'echo "** Installing prerequistes **"',
-                f"{combined_prequisites} || export PERF_PREREQS_INSTALL_FAILED=1",
-                'test "x$PERF_PREREQS_INSTALL_FAILED" = "x1" && echo "** Error: Failed to install prerequites **"',
+                'echo "** Installing prerequisites **"',
+                f"{combined_prerequisites} || export PERF_PREREQS_INSTALL_FAILED=1",
+                'test "x$PERF_PREREQS_INSTALL_FAILED" = "x1" && echo "** Error: Failed to install prerequisites **"',
                 # If prereqs failed, check for a non-transient corrupted dpkg/apt state. If found,
                 # machine_health takes the machine out of Helix rotation and notifies the perf team.
                 # Runs directly from the correlation payload since the venv/PYTHONPATH are not set up
