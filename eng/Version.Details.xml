@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="11.0.0-rc.1.26381.106">
+    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="11.0.0-rc.1.26401.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>5da2de22f7c6e2ebe7ed4c16c614b00183145d3c</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="11.0.0-rc.1.26381.106">
+    <Dependency Name="Microsoft.NET.ILLink" Version="11.0.0-rc.1.26401.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>5da2de22f7c6e2ebe7ed4c16c614b00183145d3c</Sha>
     </Dependency>
-    <Dependency Name="System.Threading.Channels" Version="11.0.0-rc.1.26381.106">
+    <Dependency Name="System.Threading.Channels" Version="11.0.0-rc.1.26401.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>5da2de22f7c6e2ebe7ed4c16c614b00183145d3c</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="11.0.0-rc.1.26381.106">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="11.0.0-rc.1.26401.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>5da2de22f7c6e2ebe7ed4c16c614b00183145d3c</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="11.0.0-rc.1.26381.106">
+    <Dependency Name="Microsoft.WindowsDesktop.App.Ref" Version="11.0.0-rc.1.26401.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>5da2de22f7c6e2ebe7ed4c16c614b00183145d3c</Sha>
     </Dependency>
@@ -27,11 +27,11 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.26381.106">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.26401.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>5da2de22f7c6e2ebe7ed4c16c614b00183145d3c</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.26381.106">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.26401.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>5da2de22f7c6e2ebe7ed4c16c614b00183145d3c</Sha>
     </Dependency>
@@ -55,11 +55,11 @@
       <Sha>6e563dcf3cbf4853316eb4724e49ec92caeabb07</Sha>
       <Uri>https://github.com/dotnet/maui</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.NET.Sdk" Version="11.0.100-rc.1.26381.106">
+    <Dependency Name="Microsoft.NET.Sdk" Version="11.0.100-rc.1.26401.101">
       <Sha>5da2de22f7c6e2ebe7ed4c16c614b00183145d3c</Sha>
       <Uri>https://github.com/dotnet/dotnet</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.NETCore.App.Ref" Version="11.0.0-rc.1.26381.106">
+    <Dependency Name="Microsoft.NETCore.App.Ref" Version="11.0.0-rc.1.26401.101">
       <Sha>5da2de22f7c6e2ebe7ed4c16c614b00183145d3c</Sha>
       <Uri>https://github.com/dotnet/dotnet</Uri>
     </Dependency>
