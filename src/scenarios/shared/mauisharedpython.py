@@ -9,8 +9,10 @@ from performance.common import get_repo_root_path
 from shared.precommands import PreCommands
 from logging import getLogger
 
-def get_maui_workload_version() -> Optional[str]:
-    return os.environ.get("MAUI_WORKLOAD_VERSION") or None
+STABLE_WORKLOAD_MODE = "stable"
+
+def use_stable_maui_workload() -> bool:
+    return os.environ.get("MAUI_WORKLOAD_MODE", "").lower() == STABLE_WORKLOAD_MODE
 
 # Remove the aab files as we don't need them, this saves space in the correlation payload
 def remove_aab_files(output_dir="."):
@@ -415,7 +417,7 @@ class MauiNuGetConfigContext:
     and dotnet/macios into the repo's NuGet.config.
     This is necessary because dotnet new doesn't support --configfile parameter.
     Finds NuGet.config relative to current working directory to support both local and CorrelationStaging scenarios.
-    The context is a no-op when MAUI_WORKLOAD_VERSION selects a released workload set.
+    The context is a no-op when MAUI_WORKLOAD_MODE selects stable workloads.
     '''
     # Repos whose NuGet.configs are merged into the repo config
     UPSTREAM_REPOS = ["dotnet/maui", "dotnet/android", "dotnet/macios"]
@@ -423,7 +425,7 @@ class MauiNuGetConfigContext:
     def __init__(self, precommands: PreCommands):
         self.precommands = precommands
         self.target_framework = precommands.framework
-        self.maui_workload_version = get_maui_workload_version()
+        self.use_stable_maui_workload = use_stable_maui_workload()
         # Find NuGet.config by walking up from current directory
         self.repo_nuget_config = self._find_repo_nuget_config()
         self.backup_path = self.repo_nuget_config + ".maui_backup"
@@ -496,8 +498,8 @@ class MauiNuGetConfigContext:
         return added
 
     def __enter__(self):
-        if self.maui_workload_version:
-            getLogger().info(f"Using MAUI workload set {self.maui_workload_version}")
+        if self.use_stable_maui_workload:
+            getLogger().info("Using the latest stable MAUI workload")
             return self
 
         getLogger().info("Setting up NuGet.config merge (maui, android, macios)...")
@@ -570,7 +572,7 @@ class MauiNuGetConfigContext:
         return self
         
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.maui_workload_version:
+        if self.use_stable_maui_workload:
             return False
 
         getLogger().info("Restoring original NuGet.config...")
@@ -612,17 +614,17 @@ def install_latest_maui(
                        (e.g., 'maui', 'maui-android').
     '''
 
-    workload_version = get_maui_workload_version()
-    install_kind = f"workload set {workload_version}" if workload_version else "latest"
+    use_stable = use_stable_maui_workload()
+    install_kind = "latest stable" if use_stable else "latest"
     getLogger().info(f"########## Installing {install_kind} {workload_name} workload ##########")
 
     if precommands.has_workload:
         getLogger().info(f"Skipping {workload_name} installation due to --has-workload=true")
         return
 
-    if workload_version:
-        precommands.install_workload(workload_name, ['--version', workload_version])
-        getLogger().info(f"########## Finished installing {workload_name} workload set {workload_version} ##########")
+    if use_stable:
+        precommands.install_workload(workload_name, [])
+        getLogger().info(f"########## Finished installing latest stable {workload_name} workload ##########")
         return
 
     if feed is None:

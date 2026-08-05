@@ -444,8 +444,8 @@ jobs:
         codeGenType: Default
         buildConfig: Release
         variables:
-          - name: MAUI_WORKLOAD_VERSION
-            value: 10.0.302.1
+          - name: MAUI_WORKLOAD_MODE
+            value: stable
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -565,8 +565,8 @@ jobs:
         codeGenType: Default
         buildConfig: Release
         variables:
-          - name: MAUI_WORKLOAD_VERSION
-            value: 10.0.302.1
+          - name: MAUI_WORKLOAD_MODE
+            value: stable
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
