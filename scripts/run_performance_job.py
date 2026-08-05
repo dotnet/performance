@@ -666,7 +666,7 @@ def get_run_configurations(
 
     # .NET Android and .NET MAUI Android sample app scenarios
     if run_kind in ["maui_scenarios_android", "maui_scenarios_android_innerloop"]:
-        if not runtime_flavor in ("mono", "coreclr", "default"):
+        if not runtime_flavor in ("mono", "coreclr"):
             raise Exception(f"Runtime flavor must be specified for {run_kind}")
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)
@@ -675,7 +675,7 @@ def get_run_configurations(
 
     # .NET iOS and .NET MAUI iOS sample app scenarios
     if run_kind == "maui_scenarios_ios":
-        if not runtime_flavor in ("mono", "coreclr", "default"):
+        if not runtime_flavor in ("mono", "coreclr"):
             raise Exception("Runtime flavor must be specified for maui_scenarios_ios")
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)

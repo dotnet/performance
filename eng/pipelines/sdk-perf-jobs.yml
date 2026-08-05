@@ -440,7 +440,7 @@ jobs:
         projectFileName: maui_scenarios_android.proj
         channels:
           - 10.0
-        runtimeFlavor: default
+        runtimeFlavor: mono # Update to coreclr when the baseline moves to .NET 11.
         codeGenType: Default
         buildConfig: Release
         variables:
@@ -561,7 +561,7 @@ jobs:
         projectFileName: maui_scenarios_ios.proj
         channels:
           - 10.0
-        runtimeFlavor: default
+        runtimeFlavor: mono # Update to coreclr when the baseline moves to .NET 11.
         codeGenType: Default
         buildConfig: Release
         variables:
