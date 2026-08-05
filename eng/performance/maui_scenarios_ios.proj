@@ -24,6 +24,9 @@
     <!-- CoreCLR NativeAOT -->
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true;/p:PublishAotUsingRuntimePack=true</_MSBuildArgs>
 
+    <_XcodeVersionPattern Condition="'$(PERFLAB_Framework)' == 'net10.0'">Xcode_26.0*.app</_XcodeVersionPattern>
+    <_XcodeVersionPattern Condition="'$(_XcodeVersionPattern)' == ''">Xcode_*.app</_XcodeVersionPattern>
+
   </PropertyGroup>
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
@@ -69,8 +72,8 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <!-- Select the highest installed versioned Xcode bundle and avoid runner-image symlink aliases as they do not work with iOS SDK -->
-      <Command>XCODE_PATH=`find /Applications -maxdepth 1 -type d -name 'Xcode_*.app' | sort -t_ -k2 -V | tail -1` &amp;&amp; echo &quot;Selected Xcode: $XCODE_PATH&quot; &amp;&amp; sudo xcode-select -s &quot;$XCODE_PATH&quot; &amp;&amp; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c $(BuildConfig) -r ios-arm64 --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)/%(PreparePayloadWorkItem.ScenarioDirectoryName).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName) &amp;&amp; rm -rf app/obj app/bin &amp;&amp; cd ../ &amp;&amp; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <!-- Use Xcode 26.0 for net10; otherwise select the highest installed versioned bundle. -->
+      <Command>XCODE_PATH=`find /Applications -maxdepth 1 -type d -name '$(_XcodeVersionPattern)' | sort -t_ -k2 -V | tail -1` &amp;&amp; echo &quot;Selected Xcode: $XCODE_PATH&quot; &amp;&amp; sudo xcode-select -s &quot;$XCODE_PATH&quot; &amp;&amp; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c $(BuildConfig) -r ios-arm64 --msbuild=&quot;$(_MSBuildArgs)&quot; --binlog $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)/%(PreparePayloadWorkItem.ScenarioDirectoryName).binlog -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName) &amp;&amp; rm -rf app/obj app/bin &amp;&amp; cd ../ &amp;&amp; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
