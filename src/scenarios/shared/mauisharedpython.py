@@ -9,6 +9,11 @@ from performance.common import get_repo_root_path
 from shared.precommands import PreCommands
 from logging import getLogger
 
+SDK_DEFAULT_WORKLOAD_MODE = "sdk-default"
+
+def use_sdk_default_workloads() -> bool:
+    return os.environ.get("MAUI_WORKLOAD_MODE", "").lower() == SDK_DEFAULT_WORKLOAD_MODE
+
 # Remove the aab files as we don't need them, this saves space in the correlation payload
 def remove_aab_files(output_dir="."):
     file_list = os.listdir(output_dir)
@@ -412,6 +417,7 @@ class MauiNuGetConfigContext:
     and dotnet/macios into the repo's NuGet.config.
     This is necessary because dotnet new doesn't support --configfile parameter.
     Finds NuGet.config relative to current working directory to support both local and CorrelationStaging scenarios.
+    The context is a no-op when MAUI_WORKLOAD_MODE is set to sdk-default.
     '''
     # Repos whose NuGet.configs are merged into the repo config
     UPSTREAM_REPOS = ["dotnet/maui", "dotnet/android", "dotnet/macios"]
@@ -419,6 +425,7 @@ class MauiNuGetConfigContext:
     def __init__(self, precommands: PreCommands):
         self.precommands = precommands
         self.target_framework = precommands.framework
+        self.use_sdk_default_workloads = use_sdk_default_workloads()
         # Find NuGet.config by walking up from current directory
         self.repo_nuget_config = self._find_repo_nuget_config()
         self.backup_path = self.repo_nuget_config + ".maui_backup"
@@ -491,6 +498,10 @@ class MauiNuGetConfigContext:
         return added
 
     def __enter__(self):
+        if self.use_sdk_default_workloads:
+            getLogger().info("Using the selected SDK's default workload manifests and package sources")
+            return self
+
         getLogger().info("Setting up NuGet.config merge (maui, android, macios)...")
         
         config_dir = os.path.dirname(self.repo_nuget_config)
@@ -561,6 +572,9 @@ class MauiNuGetConfigContext:
         return self
         
     def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.use_sdk_default_workloads:
+            return False
+
         getLogger().info("Restoring original NuGet.config...")
         
         # Restore the original NuGet.config
@@ -586,8 +600,8 @@ def install_latest_maui(
         workload_name: str = 'maui'
         ):
     '''
-    Install the latest MAUI workload using the provided feed.
-    Creates a rollback file and installs the workload using that file.
+    Install a MAUI workload using either the selected SDK's default manifests or
+    the latest packages from the provided feed.
 
     Args:
         precommands: PreCommands instance for running dotnet commands.
@@ -600,10 +614,17 @@ def install_latest_maui(
                        (e.g., 'maui', 'maui-android').
     '''
 
-    getLogger().info(f"########## Installing latest {workload_name} workload ##########")
+    use_sdk_defaults = use_sdk_default_workloads()
+    install_kind = "SDK-default" if use_sdk_defaults else "latest"
+    getLogger().info(f"########## Installing {install_kind} {workload_name} workload ##########")
 
     if precommands.has_workload:
         getLogger().info(f"Skipping {workload_name} installation due to --has-workload=true")
+        return
+
+    if use_sdk_defaults:
+        precommands.install_workload(workload_name)
+        getLogger().info(f"########## Finished installing SDK-default {workload_name} workload ##########")
         return
 
     if feed is None:
