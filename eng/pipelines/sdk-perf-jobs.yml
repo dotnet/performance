@@ -440,9 +440,9 @@ jobs:
         projectFileName: maui_scenarios_android.proj
         channels:
           - 10.0
+        runtimeFlavor: default
         codeGenType: Default
         buildConfig: Release
-        additionalJobIdentifier: Baseline
         variables:
           - name: MAUI_WORKLOAD_MODE
             value: sdk-default
@@ -561,9 +561,9 @@ jobs:
         projectFileName: maui_scenarios_ios.proj
         channels:
           - 10.0
+        runtimeFlavor: default
         codeGenType: Default
         buildConfig: Release
-        additionalJobIdentifier: Baseline
         variables:
           - name: MAUI_WORKLOAD_MODE
             value: sdk-default
