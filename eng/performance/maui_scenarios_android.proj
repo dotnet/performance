@@ -18,7 +18,7 @@
     <!-- Mono AOT -->
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono' and '$(CodegenType)' == 'AOT'">$(_MSBuildArgs);/p:RunAOTCompilation=true;/p:AndroidEnableProfiledAot=false</_MSBuildArgs>
     <!-- CoreCLR full R2R -->
-    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'FullR2R'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:_MauiPublishReadyToRunPartial=false</_MSBuildArgs>
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'FullR2R'">$(_MSBuildArgs);/p:PublishReadyToRun=true;/p:MauiEnableFullReadyToRun=true</_MSBuildArgs>
     <!-- CoreCLR NativeAOT -->
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr' and '$(CodegenType)' == 'NativeAOT'">$(_MSBuildArgs);/p:PublishAot=true</_MSBuildArgs>
     
