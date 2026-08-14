@@ -145,8 +145,8 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         dest='wasm_runtime_flavor',
         required=False,
         default='Mono',
-        choices=['Mono', 'CoreCLR'],
-        help='Runtime flavor for WASM benchmarks: Mono (default) or CoreCLR'
+        choices=['Mono', 'MonoAOT', 'CoreCLR'],
+        help='Runtime flavor for WASM benchmarks: Mono interpreter (default), MonoAOT, or CoreCLR'
     )
 
     parser.add_argument(
@@ -268,22 +268,22 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:
     if framework.startswith("nativeaot"):
         run_args += ['--runtimes', framework]
     if args.wasm:
-        if framework == "net6.0":
-            run_args += ['--runtimes', 'wasm']
-        elif framework == "net7.0":
-            run_args += ['--runtimes', 'wasmnet70']
-        elif framework == "net8.0":
-            run_args += ['--runtimes', 'wasmnet80']
-        elif framework == "net9.0":
-            run_args += ['--runtimes', 'wasmnet90']
-        elif framework == "net10.0":
-            run_args += ['--runtimes', 'wasmnet10_0']
-        elif framework == "net11.0":
-            run_args += ['--runtimes', 'wasmnet11_0']
-        else:
+        wasm_moniker_prefix = {
+            'Mono': 'monowasm',
+            'MonoAOT': 'monowasmaot',
+            'CoreCLR': 'corewasm',
+        }[args.wasm_runtime_flavor]
+        wasm_version = {
+            'net6.0': '6.0',
+            'net7.0': '7.0',
+            'net8.0': '8.0',
+            'net9.0': '9.0',
+            'net10.0': '10.0',
+            'net11.0': '11.0',
+        }.get(framework)
+        if wasm_version is None:
             raise ArgumentTypeError('Framework {} is not supported for wasm'.format(framework))
-        if args.wasm_runtime_flavor != 'Mono':
-            run_args += ['--wasmRuntimeFlavor', args.wasm_runtime_flavor]
+        run_args += ['--runtimes', wasm_moniker_prefix + wasm_version]
 
     # Increase default 2 min build timeout to accommodate slow (or even very slow) hardware
     if not args.bdn_arguments or '--buildTimeout' not in args.bdn_arguments:
