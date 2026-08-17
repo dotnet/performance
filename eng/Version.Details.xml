@@ -35,9 +35,9 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>19bc97f3dd3ab67c7810e4ab179125b7c6a60641</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="11.0.0-prerelease.26417.1">
+    <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="11.0.0-prerelease.26417.4">
       <Uri>https://github.com/dotnet/xharness</Uri>
-      <Sha>04b03bb4ba7acdcd97307add1ce0e6100bc41217</Sha>
+      <Sha>1284094c4c5d98ced6938e3c825181d6d8a6e3b5</Sha>
     </Dependency>
     <!--
       Maui Rollback Version mappings, default means generated from sdk version. Allows for manual override of version similar to https://github.com/dotnet/maui/blob/df8cfcf635a590955a8cc3d6cf7ae6280449dd3f/eng/Versions.props#L138-L146, where the logic comes from:
