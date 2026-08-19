@@ -1144,8 +1144,10 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if wasm:
         args.run_env_vars["PERFLAB_EVALUATE_OVERHEAD"] = "1"
 
-    # Set device name from machine pool for mobile queues
-    if args.machine_pool and args.queue and args.queue in (
+    # Pixel 10a runtime jobs use a logical machine rather than a machine pool.
+    if args.logical_machine == "perfpixel10a" and args.queue == "Windows.11.Amd64.Pixel.10.Perf":
+        args.run_env_vars["DEVICE_NAME"] = "Pixel10a"
+    elif args.machine_pool and args.queue and args.queue in (
         "Windows.11.Amd64.Pixel.Perf",
         "Windows.11.Amd64.Pixel.10.Perf",
         "Windows.11.Amd64.Galaxy.Lowend.Perf",
