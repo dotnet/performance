@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Runtime.InteropServices;
 using Xunit;
@@ -57,6 +58,7 @@ No results in file.
                 new Counter
                 {
                     DefaultCounter = true,
+                    TopCounter = true,
                     MetricName = "ns",
                     Name = "CounterName",
                     Results = []
@@ -79,6 +81,7 @@ No results in file.
                 new Counter
                 {
                     DefaultCounter = true,
+                    TopCounter = true,
                     MetricName = "ns",
                     Name = "CounterName",
                     Results = null
@@ -169,10 +172,200 @@ No results in file.
     }
 
     [Fact]
+    public void LegacyCounterJsonRemainsCompatible()
+    {
+        var reporter = GetReporterWithSpecifiedEnvironment(new PerfLabEnvironmentProviderMock());
+        var jsonString = reporter.GetJson();
+        var jsonCounter = JObject.Parse(jsonString)["tests"][0]["counters"][0];
+
+        Assert.Equal(JTokenType.Boolean, jsonCounter["higherIsBetter"].Type);
+        Assert.False(jsonCounter["higherIsBetter"].Value<bool>());
+        Assert.Null(jsonCounter["regressionThreshold"]);
+        Assert.Null(jsonCounter["direction"]);
+
+        var deserialized = JsonConvert.DeserializeObject<Reporter>(jsonString);
+        Assert.False(deserialized.Tests[0].Counters[0].HigherIsBetter);
+        Assert.Equal(CounterDirection.LowerIsBetter, deserialized.Tests[0].Counters[0].Direction);
+        Assert.Null(deserialized.Tests[0].Counters[0].RegressionThreshold);
+    }
+
+    [Fact]
+    public void RegressionThresholdIsSerialized()
+    {
+        var reporter = GetReporterWithSpecifiedEnvironment(new PerfLabEnvironmentProviderMock());
+        reporter.Tests[0].Counters[0].RegressionThreshold = 0.02;
+
+        var jsonString = reporter.GetJson();
+        var jsonCounter = JObject.Parse(jsonString)["tests"][0]["counters"][0];
+        Assert.Equal(0.02, jsonCounter["regressionThreshold"].Value<double>());
+
+        var deserialized = JsonConvert.DeserializeObject<Reporter>(jsonString);
+        Assert.Equal(0.02, deserialized.Tests[0].Counters[0].RegressionThreshold);
+    }
+
+    [Fact]
+    public void UnknownDirectionIsSerializedForNonTopCounter()
+    {
+        var reporter = GetReporterWithSpecifiedEnvironment(new PerfLabEnvironmentProviderMock());
+        reporter.Tests[0].AddCounter(new Counter
+        {
+            Name = "Storage only",
+            Direction = CounterDirection.Unknown,
+            MetricName = "value",
+            Results = [2.0]
+        });
+
+        var jsonString = reporter.GetJson();
+        var jsonCounter = JObject.Parse(jsonString)["tests"][0]["counters"][1];
+        Assert.Equal(JTokenType.Null, jsonCounter["higherIsBetter"].Type);
+
+        var deserialized = JsonConvert.DeserializeObject<Reporter>(jsonString);
+        var counter = deserialized.Tests[0].Counters[1];
+        Assert.Equal(CounterDirection.Unknown, counter.Direction);
+        Assert.Throws<InvalidOperationException>(() => counter.HigherIsBetter);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-0.01)]
+    [InlineData(1.01)]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    public void InvalidRegressionThresholdIsRejected(double threshold)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new Counter { RegressionThreshold = threshold });
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public void UnknownDirectionIsRejectedForDefaultOrTopCounter(bool defaultCounter, bool topCounter)
+    {
+        var reporter = new Reporter(new PerfLabEnvironmentProviderMock());
+        var test = new Test
+        {
+            Counters = [
+                new Counter
+                {
+                    DefaultCounter = defaultCounter,
+                    TopCounter = topCounter,
+                    Direction = CounterDirection.Unknown
+                }
+            ]
+        };
+
+        reporter.AddTest(test);
+        Assert.Throws<InvalidOperationException>(() => reporter.GetJson());
+    }
+
+    [Fact]
+    public void SerializationRejectsTestWithoutDefaultCounter()
+    {
+        var reporter = new Reporter(new PerfLabEnvironmentProviderMock());
+        reporter.AddTest(new Test
+        {
+            Counters = [
+                new Counter
+                {
+                    Name = "Not default"
+                }
+            ]
+        });
+
+        Assert.Throws<InvalidOperationException>(() => reporter.GetJson());
+    }
+
+    [Fact]
+    public void SerializationRejectsDirectlyAssignedMultipleDefaultCounters()
+    {
+        var reporter = new Reporter(new PerfLabEnvironmentProviderMock());
+        reporter.AddTest(new Test
+        {
+            Counters = [
+                new Counter
+                {
+                    Name = "First",
+                    DefaultCounter = true,
+                    TopCounter = true
+                },
+                new Counter
+                {
+                    Name = "Second",
+                    DefaultCounter = true,
+                    TopCounter = true
+                }
+            ]
+        });
+
+        Assert.Throws<InvalidOperationException>(() => reporter.GetJson());
+    }
+
+    [Fact]
+    public void DeserializationRejectsMultipleDefaultCounters()
+    {
+        const string json =
+@"{
+  ""name"": ""Test"",
+  ""counters"": [
+    {
+      ""name"": ""First"",
+      ""topCounter"": true,
+      ""defaultCounter"": true,
+      ""higherIsBetter"": false
+    },
+    {
+      ""name"": ""Second"",
+      ""topCounter"": true,
+      ""defaultCounter"": true,
+      ""higherIsBetter"": false
+    }
+  ]
+}";
+
+        var exception = Assert.ThrowsAny<Exception>(() => JsonConvert.DeserializeObject<Test>(json));
+        Assert.IsType<InvalidOperationException>(exception.GetBaseException());
+    }
+
+    [Fact]
+    public void AddCounterRejectsDefaultCounterThatIsNotTop()
+    {
+        var test = new Test();
+
+        Assert.Throws<InvalidOperationException>(() => test.AddCounter(new Counter
+        {
+            DefaultCounter = true
+        }));
+    }
+
+    [Fact]
+    public void SerializationRejectsDirectlyAssignedDuplicateCounterNames()
+    {
+        var reporter = new Reporter(new PerfLabEnvironmentProviderMock());
+        reporter.AddTest(new Test
+        {
+            Counters = [
+                new Counter
+                {
+                    Name = "Duplicate",
+                    DefaultCounter = true,
+                    TopCounter = true
+                },
+                new Counter
+                {
+                    Name = "Duplicate"
+                }
+            ]
+        });
+
+        Assert.Throws<InvalidOperationException>(() => reporter.GetJson());
+    }
+
+    [Fact]
     public void EnforceDefaultCounterConstraint()
     {
         var t = new Test();
-        var c = new Counter { DefaultCounter = true };
+        var c = new Counter { DefaultCounter = true, TopCounter = true };
         t.AddCounter(c);
         Assert.Throws<Exception>(() => t.AddCounter(c));
     }
@@ -199,9 +392,9 @@ No results in file.
     public void AddCountersEnumerable()
     {
         var t = new Test();
-        var c1 = new Counter { Name = "Counter1", DefaultCounter = true };
+        var c1 = new Counter { Name = "Counter1", DefaultCounter = true, TopCounter = true };
         var c2 = new Counter { Name = "Counter2" };
-        t.AddCounters([c1, c2]);
+        t.AddCounters([c2, c1]);
         Assert.Equal(2, t.Counters.Count);
     }
 
@@ -216,6 +409,7 @@ No results in file.
                 new Counter
                 {
                     DefaultCounter = true,
+                    TopCounter = true,
                     HigherIsBetter = false,
                     MetricName = "ns",
                     Name = counterName ?? "CounterName",

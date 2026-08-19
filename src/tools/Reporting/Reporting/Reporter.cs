@@ -51,6 +51,7 @@ public class Reporter
         Os = os;
         Run = run;
         Tests = tests;
+        ValidateTests();
         InLab = new EnvironmentProvider().IsLabEnvironment();
     }
 
@@ -65,7 +66,15 @@ public class Reporter
     }
 
     public string? GetJson()
-        => InLab ? JsonConvert.SerializeObject(this, Formatting.Indented, _jsonSerializerSettings) : null;
+    {
+        if (!InLab)
+        {
+            return null;
+        }
+
+        ValidateTests();
+        return JsonConvert.SerializeObject(this, Formatting.Indented, _jsonSerializerSettings);
+    }
 
     public string WriteResultTable()
     {
@@ -257,5 +266,13 @@ public class Reporter
         var max = ((FormattableString)$"{counter.Results.Max():F3} {counter.MetricName}").ToString(_culture);
         var min = ((FormattableString)$"{counter.Results.Min():F3} {counter.MetricName}").ToString(_culture);
         return $"{LeftJustify(counter.Name, counterWidth)}|{LeftJustify(average, resultWidth)}|{LeftJustify(min, resultWidth)}|{LeftJustify(max, resultWidth)}";
+    }
+
+    private void ValidateTests()
+    {
+        foreach (var test in Tests)
+        {
+            test.Validate();
+        }
     }
 }
