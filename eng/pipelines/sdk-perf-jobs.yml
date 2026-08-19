@@ -413,6 +413,7 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-pixel10a
         - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
@@ -433,6 +434,7 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-pixel10a
         - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
@@ -455,6 +457,7 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-pixel10a
         - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
@@ -475,6 +478,7 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-pixel10a
         - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
@@ -496,6 +500,7 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-pixel10a
         - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
@@ -595,6 +600,7 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-pixel10a
         - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
@@ -615,6 +621,7 @@ jobs:
       jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
       buildMachines:
         - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-pixel10a
         - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:

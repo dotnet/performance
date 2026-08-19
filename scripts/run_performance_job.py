@@ -438,6 +438,7 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
                 "perftiger": "Windows.11.Amd64.Tiger.Perf",
                 "perftiger_crossgen": "Windows.11.Amd64.Tiger.Perf",
                 "perfpixel4a": "Windows.11.Amd64.Pixel.Perf",
+                "perfpixel10a": "Windows.11.Amd64.Pixel.10.Perf",
                 "perfampere": "Windows.Server.Arm64.Perf",
                 "perfviper": "Windows.11.Amd64.Viper.Perf",
                 "cloudvm": "Windows.10.Amd64"
@@ -1146,6 +1147,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     # Set device name from machine pool for mobile queues
     if args.machine_pool and args.queue and args.queue in (
         "Windows.11.Amd64.Pixel.Perf",
+        "Windows.11.Amd64.Pixel.10.Perf",
         "Windows.11.Amd64.Galaxy.Lowend.Perf",
         "Mac.iPhone.17.Perf",
     ):

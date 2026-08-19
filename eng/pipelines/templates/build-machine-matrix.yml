@@ -134,6 +134,18 @@ jobs:
       machinePool: Pixel8
       ${{ insert }}: ${{ parameters.jobParameters }}
 
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-pixel10a'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel 10a only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osGroup: windows
+      archType: x64
+      osVersion: 22H2
+      pool:
+        vmImage: 'windows-2022'
+      queue: Windows.11.Amd64.Pixel.10.Perf
+      machinePool: Pixel10a
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-galaxy'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Galaxy only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
