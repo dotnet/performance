@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using RuntimeEnvironment = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment;
 
 namespace Reporting;
@@ -90,7 +90,7 @@ public class Reporter
 
             var countersWithResults = test.Counters.Where(c => c.Results != null && c.Results.Count > 0);
             var counterWidth = Math.Max(test.Counters.Max(c => c.Name.Length) + 1, 15);
-            var resultWidth = Math.Max(countersWithResults.Max(c => c.Results.Max().ToString("F3", _culture).Length + c.MetricName.Length) + 2, 15);
+            var resultWidth = Math.Max(countersWithResults.Max(c => c.Results.Max().ToString("F3", _culture).Length + (c.MetricName?.Length ?? 0)) + 2, 15);
             ret.AppendLine(test.Name);
             ret.AppendLine($"{LeftJustify("Metric", counterWidth)}|{LeftJustify("Average", resultWidth)}|{LeftJustify("Min", resultWidth)}|{LeftJustify("Max", resultWidth)}");
             ret.AppendLine($"{new string('-', counterWidth)}|{new string('-', resultWidth)}|{new string('-', resultWidth)}|{new string('-', resultWidth)}");

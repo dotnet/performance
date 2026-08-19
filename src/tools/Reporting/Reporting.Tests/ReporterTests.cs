@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Reporting.Tests;
@@ -122,7 +122,7 @@ No results in file.
     public void WriteReportWithLongNameTableWithoutEnvironment()
     {
         PerfLabEnvironmentProviderMock environment = new NonPerfLabEnvironmentProviderMock();
-        var reporter = GetReporterWithSpecifiedEnvironment(environment, counterName:"ThisIsALongerCounterName");
+        var reporter = GetReporterWithSpecifiedEnvironment(environment, counterName: "ThisIsALongerCounterName");
         var table = reporter.WriteResultTable();
         Assert.Equal(LongCounterNameTable, table);
     }
@@ -257,6 +257,111 @@ No results in file.
 
         reporter.AddTest(test);
         Assert.Throws<InvalidOperationException>(() => reporter.GetJson());
+    }
+
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("", true)]
+    [InlineData(" ", true)]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    [InlineData(" ", false)]
+    public void AddCounterRejectsBlankMetricNameForDefaultOrTopCounter(string metricName, bool defaultCounter)
+    {
+        var test = new Test();
+
+        Assert.Throws<InvalidOperationException>(() => test.AddCounter(new Counter
+        {
+            DefaultCounter = defaultCounter,
+            TopCounter = true,
+            MetricName = metricName
+        }));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void SerializationRejectsDirectlyAssignedBlankMetricName(string metricName)
+    {
+        var reporter = new Reporter(new PerfLabEnvironmentProviderMock());
+        reporter.AddTest(new Test
+        {
+            Counters = [
+                new Counter
+                {
+                    DefaultCounter = true,
+                    TopCounter = true,
+                    MetricName = metricName
+                }
+            ]
+        });
+
+        Assert.Throws<InvalidOperationException>(() => reporter.GetJson());
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void DeserializationRejectsBlankMetricName(string metricName)
+    {
+        var json = new JObject
+        {
+            ["name"] = "Test",
+            ["counters"] = new JArray
+            {
+                new JObject
+                {
+                    ["name"] = "Default",
+                    ["topCounter"] = true,
+                    ["defaultCounter"] = true,
+                    ["higherIsBetter"] = false,
+                    ["metricName"] = metricName is null ? JValue.CreateNull() : new JValue(metricName)
+                }
+            }
+        }.ToString();
+
+        var exception = Assert.ThrowsAny<Exception>(() => JsonConvert.DeserializeObject<Test>(json));
+        Assert.IsType<InvalidOperationException>(exception.GetBaseException());
+    }
+
+    [Fact]
+    public void ValidMetricNameRoundTrips()
+    {
+        var reporter = new Reporter(new PerfLabEnvironmentProviderMock());
+        var test = new Test();
+        test.AddCounter(new Counter
+        {
+            Name = "Default",
+            DefaultCounter = true,
+            TopCounter = true,
+            MetricName = "ms"
+        });
+        reporter.AddTest(test);
+
+        var deserialized = JsonConvert.DeserializeObject<Reporter>(reporter.GetJson());
+        Assert.Equal("ms", deserialized.Tests[0].Counters[0].MetricName);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void NonTopCounterAllowsBlankMetricName(string metricName)
+    {
+        var reporter = GetReporterWithSpecifiedEnvironment(new PerfLabEnvironmentProviderMock());
+        reporter.Tests[0].AddCounter(new Counter
+        {
+            Name = "Storage only",
+            MetricName = metricName,
+            Results = [2.0]
+        });
+
+        var json = reporter.GetJson();
+        var deserialized = JsonConvert.DeserializeObject<Reporter>(json);
+        Assert.Equal(metricName, deserialized.Tests[0].Counters[1].MetricName);
+        Assert.Contains("Storage only", reporter.WriteResultTable());
     }
 
     [Fact]
