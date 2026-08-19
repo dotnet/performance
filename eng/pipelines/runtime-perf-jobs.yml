@@ -76,6 +76,13 @@ parameters:
     type: object
     default:
       enabled: true
+  - name: androidMachines
+    type: object
+    default:
+      - logicalMachine: perfpixel4a
+        machinePool: ''
+      - logicalMachine: perfpixel10a
+        machinePool: Pixel10a
 
 jobs:
   - template: /eng/pipelines/performance/templates/perf-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
@@ -92,65 +99,70 @@ jobs:
 
     # Android CoreCLR JIT (includes static linking variant) — controlled by androidCoreclrJit toggle
     - ${{ if eq(parameters.androidCoreclrJit.enabled, true) }}:
-      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-        parameters:
-          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-          buildConfig: release
-          runtimeFlavor: coreclr
-          platforms:
-            - windows_x64
-          jobParameters:
-            runtimeType: AndroidCoreCLR
-            codeGenType: JIT
-            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
-            runKind: android_scenarios
-            isScenario: true
-            logicalMachine: 'perfpixel4a'
-            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-            ${{ each parameter in parameters.jobParameters }}:
-              ${{ parameter.key }}: ${{ parameter.value }}
+      - ${{ each machine in parameters.androidMachines }}:
+        - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+          parameters:
+            jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+            buildConfig: release
+            runtimeFlavor: coreclr
+            platforms:
+              - windows_x64
+            jobParameters:
+              runtimeType: AndroidCoreCLR
+              codeGenType: JIT
+              projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
+              runKind: android_scenarios
+              isScenario: true
+              logicalMachine: ${{ machine.logicalMachine }}
+              machinePool: ${{ machine.machinePool }}
+              runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+              performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+              ${{ each parameter in parameters.jobParameters }}:
+                ${{ parameter.key }}: ${{ parameter.value }}
 
-      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-        parameters:
-          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-          buildConfig: release
-          runtimeFlavor: coreclr
-          platforms:
-            - windows_x64
-          jobParameters:
-            runtimeType: AndroidCoreCLR
-            codeGenType: JIT
-            linkingType: static
-            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
-            runKind: android_scenarios
-            isScenario: true
-            logicalMachine: 'perfpixel4a'
-            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-            ${{ each parameter in parameters.jobParameters }}:
-              ${{ parameter.key }}: ${{ parameter.value }}
+        - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+          parameters:
+            jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+            buildConfig: release
+            runtimeFlavor: coreclr
+            platforms:
+              - windows_x64
+            jobParameters:
+              runtimeType: AndroidCoreCLR
+              codeGenType: JIT
+              linkingType: static
+              projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
+              runKind: android_scenarios
+              isScenario: true
+              logicalMachine: ${{ machine.logicalMachine }}
+              machinePool: ${{ machine.machinePool }}
+              runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+              performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+              ${{ each parameter in parameters.jobParameters }}:
+                ${{ parameter.key }}: ${{ parameter.value }}
 
     # Android CoreCLR R2R — controlled by androidCoreclrR2r toggle
     - ${{ if eq(parameters.androidCoreclrR2r.enabled, true) }}:
-      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-        parameters:
-          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-          buildConfig: release
-          runtimeFlavor: coreclr
-          platforms:
-            - windows_x64
-          jobParameters:
-            runtimeType: AndroidCoreCLR
-            codeGenType: R2R
-            projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
-            runKind: android_scenarios
-            isScenario: true
-            logicalMachine: 'perfpixel4a'
-            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-            ${{ each parameter in parameters.jobParameters }}:
-              ${{ parameter.key }}: ${{ parameter.value }}
+      - ${{ each machine in parameters.androidMachines }}:
+        - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+          parameters:
+            jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+            buildConfig: release
+            runtimeFlavor: coreclr
+            platforms:
+              - windows_x64
+            jobParameters:
+              runtimeType: AndroidCoreCLR
+              codeGenType: R2R
+              projectFile: $(Build.SourcesDirectory)/eng/testing/performance/android_scenarios.proj
+              runKind: android_scenarios
+              isScenario: true
+              logicalMachine: ${{ machine.logicalMachine }}
+              machinePool: ${{ machine.machinePool }}
+              runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+              performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+              ${{ each parameter in parameters.jobParameters }}:
+                ${{ parameter.key }}: ${{ parameter.value }}
 
   # Mono microbenchmarks — controlled by monoMicro toggle
   - ${{ if eq(parameters.monoMicro.enabled, true) }}:

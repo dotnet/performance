@@ -6,6 +6,7 @@ jobs:
     variables:
       architecture: 'x64'
       queue: ''
+      machinePool: ''
       framework: 'net8.0'
       runCategories: ''
       kind: ''
@@ -31,7 +32,7 @@ jobs:
         localFolder: '{{ performanceRepoDir }}'
     dockerfile: performance/eng/performance/helix_sender.Dockerfile
     dockerImageName: helix_sender
-    dockerCommand: python ./performance/scripts/run_performance_job.py --queue {{ queue }} --framework {{ framework }} --run-kind {{ kind }} --core-root-dir /performance/coreRoot --performance-repo-dir /performance/performance --architecture {{ architecture }} --os-group {{ osGroup }} --os-sub-group {{ osSubGroup }} {% if internal %}--internal{% endif %} --run-categories "{{ runCategories }}" {% if bdnArgs != blank and bdnArgs != empty %} --extra-bdn-args "{{ bdnArgs }}" {% endif %} --partition-count {{ partitionCount }} --project-file {{ projectFile }} {% if isScenario %} --is-scenario {% endif %} {% if isLocalBuild %} --local-build {% endif %}
+    dockerCommand: python ./performance/scripts/run_performance_job.py --queue {{ queue }} --framework {{ framework }} --run-kind {{ kind }} --core-root-dir /performance/coreRoot --performance-repo-dir /performance/performance --architecture {{ architecture }} --os-group {{ osGroup }} --os-sub-group {{ osSubGroup }} {% if internal %}--internal{% endif %} --run-categories "{{ runCategories }}" {% if bdnArgs != blank and bdnArgs != empty %} --extra-bdn-args "{{ bdnArgs }}" {% endif %} --partition-count {{ partitionCount }} --project-file {{ projectFile }} {% if isScenario %} --is-scenario {% endif %} {% if isLocalBuild %} --local-build {% endif %} {% if machinePool != blank and machinePool != empty %} --machine-pool {{ machinePool }} {% endif %}
     dockerContextDirectory: .
     arguments: '--env HelixAccessToken --env SYSTEM_ACCESSTOKEN'
     environmentVariables:
@@ -98,6 +99,15 @@ profiles:
         variables:
           osGroup: windows
           queue: Windows.11.Amd64.Pixel.Perf
+          machinePool: Pixel8
+
+  win-x64-android-arm64-pixel10a:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          queue: Windows.11.Amd64.Pixel.10.Perf
+          machinePool: Pixel10a
     
   win-x64-android-arm64-galaxy:
     jobs:
