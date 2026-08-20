@@ -234,11 +234,11 @@ def get_pre_commands(
                         'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
                         'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
                         "sudo apt-get remove -y lttng-modules-dkms", # https://github.com/dotnet/runtime/pull/101142
-                        "sudo apt-get update && sudo apt-get -y install python3-pip python3-venv"
+                        "sudo apt-get -y install python3-pip"
                     ]
 
             install_prerequisites += [
-                "python3 -m venv $HELIX_WORKITEM_ROOT/.venv",
+                "(python3 -m venv $HELIX_WORKITEM_ROOT/.venv || (rm -rf $HELIX_WORKITEM_ROOT/.venv && python3 -m pip install --user virtualenv && python3 -m virtualenv $HELIX_WORKITEM_ROOT/.venv))",
                 ". $HELIX_WORKITEM_ROOT/.venv/bin/activate"
             ]
 
