@@ -32,22 +32,23 @@ namespace System.Net.Security.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
-        [BenchmarkCategory(Categories.NoAOT)]
+        [BenchmarkCategory(Categories.NoAOT, Categories.FlakyOnVM)]
         public Task HandshakeECDSA256CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._ec256Cert, protocol);
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
-        [BenchmarkCategory(Categories.NoAOT)]
+        [BenchmarkCategory(Categories.NoAOT, Categories.FlakyOnVM)]
         [OperatingSystemsFilter(allowed: true, platforms: OS.Linux)]    // Not supported on Windows at the moment.
         public Task HandshakeECDSA512CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._ec512Cert, protocol);
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
-        [BenchmarkCategory(Categories.NoAOT)]
+        [BenchmarkCategory(Categories.NoAOT, Categories.FlakyOnVM)]
         public Task HandshakeRSA2048CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._rsa2048Cert, protocol);
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
+        [BenchmarkCategory(Categories.NoAOT, Categories.FlakyOnVM)]
         public Task HandshakeRSA4096CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._rsa4096Cert, protocol);
 
         private static bool GetTls13Support()
