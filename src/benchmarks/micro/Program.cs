@@ -23,6 +23,7 @@ namespace MicroBenchmarks
             List<string> exclusionFilterValue;
             List<string> categoryExclusionFilterValue;
             bool getDiffableDisasm;
+            MonoAotLLVMToolChain monoAotToolchain = null;
 
             // Parse and remove any additional parameters that we need that aren't part of BDN
             try
@@ -32,6 +33,69 @@ namespace MicroBenchmarks
                 argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--exclusion-filter", out exclusionFilterValue);
                 argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--category-exclusion-filter", out categoryExclusionFilterValue);
                 CommandLineOptions.ParseAndRemoveBooleanParameter(argsList, "--disasm-diff", out getDiffableDisasm);
+
+                // Extract monoaotllvm args not recognized by BDN and build the toolchain.
+                argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--runtimes", out var runtimesValues);
+                if (runtimesValues.Remove("monoaotllvm"))
+                {
+                    if (runtimesValues.Count > 0)
+                    {
+                        argsList.Add("--runtimes");
+                        argsList.AddRange(runtimesValues);
+                    }
+                    argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--cli", out var cliPathValue);
+                    if (cliPathValue.Count > 0)
+                    {
+                        argsList.Add("--cli");
+                        argsList.AddRange(cliPathValue);
+                    }
+                    argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--packages", out var packagesPathValue);
+                    if (packagesPathValue.Count > 0)
+                    {
+                        argsList.Add("--packages");
+                        argsList.AddRange(packagesPathValue);
+                    }
+                    argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--aotcompilerpath", out var aotCompilerPathValue);
+                    string aotCompilerPath;
+                    if (aotCompilerPathValue.Count > 0)
+                    {
+                        aotCompilerPath = aotCompilerPathValue[0];
+                        argsList.Add("--aotcompilerpath");
+                        argsList.AddRange(aotCompilerPathValue);
+                    }
+                    else
+                    {
+                        aotCompilerPath = "";
+                    }
+                    argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--customruntimepack", out var customRuntimePackValue);
+                    string customRuntimePack;
+                    if (customRuntimePackValue.Count > 0)
+                    {
+                        customRuntimePack = customRuntimePackValue[0];
+                        argsList.Add("--customruntimepack");
+                        argsList.AddRange(customRuntimePackValue);
+
+                    }
+                    else
+                    {
+                        customRuntimePack = "";
+                    }
+                    argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--aotcompilermode", out var aotCompilerModeValue);
+                    monoAotToolchain = new MonoAotLLVMToolChain(new MonoAotLLVMRuntime(Environment.Version), new()
+                    {
+                        CliPath = cliPathValue.Count > 0 ? new(cliPathValue[0]) : null,
+                        PackagesPath = packagesPathValue.Count > 0 ? new(packagesPathValue[0]) : null,
+                        TargetFrameworkMoniker = $"net{Environment.Version.Major}.0",
+                        CustomRuntimePack = customRuntimePack,
+                        AotCompilerPath = aotCompilerPath,
+                        AotCompilerMode = aotCompilerModeValue.Count > 0 ? Enum.Parse<MonoAotCompilerMode>(aotCompilerModeValue[0], ignoreCase: true) : 0
+                    });
+                }
+                else
+                {
+                    argsList.Add("--runtimes");
+                    argsList.AddRange(runtimesValues);
+                }
 
                 CommandLineOptions.ValidatePartitionParameters(partitionCount, partitionIndex);
             }
@@ -56,7 +120,8 @@ namespace MicroBenchmarks
                         partitionIndex: partitionIndex,
                         exclusionFilterValue: exclusionFilterValue,
                         categoryExclusionFilterValue: categoryExclusionFilterValue,
-                        getDiffableDisasm: getDiffableDisasm)
+                        getDiffableDisasm: getDiffableDisasm,
+                        toolchain: monoAotToolchain)
                     .AddValidator(new NoWasmValidator(Categories.NoWASM)))
                 .ConfigureAwait(false);
 

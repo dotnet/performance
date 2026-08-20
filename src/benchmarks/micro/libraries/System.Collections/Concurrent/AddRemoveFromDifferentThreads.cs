@@ -2,29 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Attributes.Filters;
-using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Filters;
 using MicroBenchmarks;
 
 namespace System.Collections.Concurrent
 {
-    internal class AddRemoveFromDifferentThreadsDisabledConfig : ManualConfig
-    {
-        public AddRemoveFromDifferentThreadsDisabledConfig() => AddFilter(new SimpleFilter(_ => false));
-    }
-
     [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections, Categories.NoWASM)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
-    [MinWarmupCount(6, forceAutoWarmup: true)]
-    [MaxWarmupCount(10, forceAutoWarmup: true)]
     [AotFilter("It hangs. https://github.com/dotnet/runtime/issues/66987")]
-    [Config(typeof(AddRemoveFromDifferentThreadsDisabledConfig))]
     public class AddRemoveFromDifferentThreads<T>
     {
         const int NumThreads = 2;
