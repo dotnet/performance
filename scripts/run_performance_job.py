@@ -336,7 +336,7 @@ def get_pre_commands(
                 # machine_health takes the machine out of Helix rotation and notifies the perf team.
                 # Runs directly from the correlation payload since the venv/PYTHONPATH are not set up
                 # yet at this point. Never allowed to change the (already failing) exit code.
-                'if [ "x$PERF_PREREQS_INSTALL_FAILED" = "x1" ]; then python3 "$HELIX_CORRELATION_PAYLOAD/performance/scripts/machine_health.py" check || true; fi'
+                'if [ "x$PERF_PREREQS_INSTALL_FAILED" = "x1" ]; then python3 "$HELIX_CORRELATION_PAYLOAD/performance/scripts/machine_health.py" check || true; exit 1; fi'
             ]
 
     # Set MONO_ENV_OPTIONS with for Mono Interpreter runs
