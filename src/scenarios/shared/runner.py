@@ -467,6 +467,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
             androidHelper = AndroidHelper()
             try:
+                androidHelper.enable_pss_profiling()
                 androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
 
                 # Create the fullydrawn command
@@ -513,7 +514,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     regexSearchString = r"TOTAL: [0-9]{2,3}% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB over \d+)\)"
                     dirtyCapture = re.search(regexSearchString, captureProcStats.stdout)
                     if not dirtyCapture:
-                        raise Exception("Failed to capture the reported start time!")
+                        raise Exception("Failed to capture Android memory statistics from procstats!")
                     splitNumber = dirtyCapture.group(1).replace("MB", "").strip().split(" over ")
                     splitMemory = splitNumber[0].split("/")
                     pss = splitMemory[0].split("-")
