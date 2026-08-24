@@ -467,8 +467,8 @@ ex: C:\repos\performance;C:\repos\runtime
 
             androidHelper = AndroidHelper()
             try:
-                androidHelper.enable_pss_profiling()
                 androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
+                androidHelper.enable_pss_profiling()
 
                 # Create the fullydrawn command
                 clearProcStatsCmd = xharness_adb() + [
