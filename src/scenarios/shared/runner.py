@@ -487,6 +487,13 @@ ex: C:\repos\performance;C:\repos\runtime
                     'proc'
                 ]
 
+                captureMemoryStatsCmd = xharness_adb() + [
+                    'shell',
+                    'dumpsys',
+                    'meminfo',
+                    self.packagename
+                ]
+
                 clearLogsCmd = xharness_adb() + [
                     'logcat',
                     '-c'
@@ -500,6 +507,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     startStats = RunCommand(androidHelper.startappcommand, verbose=True)
                     startStats.run()
                     time.sleep(self.runtimeseconds)
+                    RunCommand(captureMemoryStatsCmd, verbose=True).run()
                     captureProcStats = RunCommand(captureProcStatsCmd, verbose=True)
                     captureProcStats.run()
 
