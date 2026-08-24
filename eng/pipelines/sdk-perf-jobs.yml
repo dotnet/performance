@@ -362,26 +362,6 @@ jobs:
 ###########################################
 
 - ${{ if parameters.runPrivateJobs }}:
-  # Temporary validation job: Android CoreCLR Release on one device.
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: CoreCLR
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-- ${{ if false }}: # Existing private jobs disabled for targeted validation.
 
   # Scenario benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
