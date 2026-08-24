@@ -120,7 +120,7 @@ def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> d
             results["PERFLAB_DATA_dotnet_commit_hash"] = commit
             try:
                 results["PERFLAB_DATA_runtime_commit_hash"] = get_runtime_commit_hash(commit)
-            except (URLError, TimeoutError, json.JSONDecodeError, UnicodeDecodeError, ValueError) as error:
+            except Exception as error:
                 getLogger().warning(f"Unable to resolve runtime commit from dotnet/dotnet commit {commit}: {error}")
         else:
             results[f"PERFLAB_DATA_{sdk}_commit_hash"] = commit
