@@ -864,7 +864,12 @@ def run_performance_job(args: RunPerformanceJobArgs):
         queue=args.queue,
         build_configs=[f"{k}={v}" for k, v in configurations.items()],
         architecture=args.architecture,
-        get_perf_hash=True)
+        get_perf_hash=True,
+        collect_sdk_repository_commits=args.run_kind in [
+            "maui_scenarios_android",
+            "maui_scenarios_android_innerloop",
+            "maui_scenarios_ios"
+        ])
 
     ci_setup_arguments.build_number = args.build_number
     ci_setup_arguments.only_sanity_check = args.only_sanity_check
