@@ -7,10 +7,6 @@ import platform
 import subprocess
 from performance.logger import getLogger
 from datetime import datetime
-from urllib.error import URLError
-from urllib.request import urlopen
-
-DOTNET_SOURCE_MANIFEST_URL = "https://raw.githubusercontent.com/dotnet/dotnet/{commit}/src/source-manifest.json"
 
 def versions_write_json(versiondict: dict[str, str], outputfile: str = 'versions.json'):
     with open(outputfile, 'w', encoding='utf-8') as file:
@@ -47,19 +43,6 @@ def get_version_from_dll(dll_path: str):
         return get_version_from_dll_powershell(dll_path)
     else:
         return get_version_from_dll_powershell_ios(dll_path)
-
-def get_runtime_commit_hash(dotnet_commit_hash: str) -> str:
-    source_manifest_url = DOTNET_SOURCE_MANIFEST_URL.format(commit=dotnet_commit_hash)
-    with urlopen(source_manifest_url, timeout=60) as response:
-        source_manifest = json.load(response)
-
-    for repository in source_manifest.get("repositories", []):
-        if repository.get("path") == "runtime":
-            runtime_commit_hash = repository.get("commitSha")
-            if runtime_commit_hash:
-                return runtime_commit_hash
-
-    raise ValueError(f"Runtime commit hash not found in {source_manifest_url}")
 
 def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> dict[str, str]:
     '''
@@ -116,13 +99,7 @@ def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> d
 
         version, commit = parse_version_output(result)
         results[f"{sdk}_version"] = version
-        if sdk == "runtime":
-            results["PERFLAB_DATA_dotnet_commit_hash"] = commit
-            try:
-                results["PERFLAB_DATA_runtime_commit_hash"] = get_runtime_commit_hash(commit)
-            except Exception as error:
-                getLogger().warning(f"Unable to resolve runtime commit from dotnet/dotnet commit {commit}: {error}")
-        else:
+        if sdk != "runtime":
             results[f"PERFLAB_DATA_{sdk}_commit_hash"] = commit
 
     # Add datetime of the SDK installation to the results
