@@ -83,8 +83,7 @@ def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> d
     mobile_sdks = {
         "net_android": "Mono.Android.dll",
         "net_ios": "Microsoft.iOS.dll",
-        "net_maui": "Microsoft.Maui.dll",
-        "runtime": "System.Runtime.dll"
+        "net_maui": "Microsoft.Maui.dll"
     }
     results = dict[str, str]()
 
@@ -99,8 +98,7 @@ def get_sdk_versions(dll_folder_path: str, windows_powershell: bool = True) -> d
 
         version, commit = parse_version_output(result)
         results[f"{sdk}_version"] = version
-        if sdk != "runtime":
-            results[f"PERFLAB_DATA_{sdk}_commit_hash"] = commit
+        results[f"PERFLAB_DATA_{sdk}_commit_hash"] = commit
 
     # Add datetime of the SDK installation to the results
     now = datetime.utcnow()
