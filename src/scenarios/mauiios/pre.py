@@ -1,6 +1,7 @@
 '''
 pre-command
 '''
+import os
 import shutil
 import sys
 import subprocess
@@ -29,7 +30,8 @@ with MauiNuGetConfigContext(precommands):
                     no_restore=False)
     
     # Build the IPA - will use merged NuGet.config
-    precommands.execute(['/p:EnableCodeSigning=true', '/p:CodesignKey=-', '/p:EnableDefaultCodesignEntitlements=false', '/p:ApplicationId=net.dot.mauitesting'])
+    empty_entitlements = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'shared', 'EmptyEntitlements.plist'))
+    precommands.execute(['/p:EnableCodeSigning=true', '/p:CodesignKey=-', f'/p:CodesignEntitlements={empty_entitlements}', '/p:ApplicationId=net.dot.mauitesting'])
     # NuGet.config is automatically restored after this block
 
 # Remove the aab files as we don't need them, this saves space
