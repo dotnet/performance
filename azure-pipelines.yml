@@ -11,9 +11,6 @@ parameters:
 - name: onlySanityCheck
   type: boolean
   default: false
-- name: runAppleMauiJobs
-  type: boolean
-  default: false
 
 resources:
   containers:
@@ -63,8 +60,6 @@ jobs:
       ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
         runPublicJobs: true
       ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        ${{ if parameters.runAppleMauiJobs }}:
-          runAppleMauiJobs: true
         ${{ if or(notin(variables['Build.Reason'], 'PullRequest', 'Manual'), parameters.runPrivateJobs) }}:
           runPrivateJobs: true
         ${{ if or(eq(variables['Build.CronSchedule.DisplayName'], 'Every 12 hours build'), parameters.runScheduledPrivateJobs) }}:

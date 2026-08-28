@@ -1,7 +1,6 @@
 '''
 pre-command
 '''
-import os
 import shutil
 import sys
 from performance.logger import setup_loggers, getLogger
@@ -45,8 +44,7 @@ with MauiNuGetConfigContext(precommands):
 ''')
     
     # Build the IPA - will use merged NuGet.config
-    empty_entitlements = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'shared', 'EmptyEntitlements.plist'))
-    precommands.execute(['/p:EnableCodeSigning=true', '/p:CodesignKey=-', f'/p:CodesignEntitlements={empty_entitlements}', '/p:ApplicationId=net.dot.mauiblazortesting'])
+    precommands.execute(['/p:EnableCodeSigning=true', '/p:CodesignKey=-', f'/p:CodesignEntitlements={const.EMPTY_ENTITLEMENTS}', '/p:ApplicationId=net.dot.mauiblazortesting'])
     # NuGet.config is automatically restored after this block
 
 output_dir = const.PUBDIR
