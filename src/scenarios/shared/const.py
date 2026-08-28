@@ -51,6 +51,7 @@ CROSSGEN2_COMPOSITE = 'Composite'
 DOTNET = 'dotnet'
 
 ITERATION_SETUP_FILE = os.path.join(os.path.dirname(shared.__file__), 'sdk_iteration_setup.py')
+EMPTY_ENTITLEMENTS = os.path.join(os.path.dirname(shared.__file__), 'EmptyEntitlements.plist')
 
 STARTUP_PROCESSTIME = "ProcessTime"
 STARTUP_CROSSGEN2 = "Crossgen2"
