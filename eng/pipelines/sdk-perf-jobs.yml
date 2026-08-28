@@ -8,6 +8,9 @@ parameters:
   - name: runScheduledPrivateJobs
     type: boolean
     default: false
+  - name: runAppleMauiJobs
+    type: boolean
+    default: false
   - name: jobParameters
     type: object
     default: {}
@@ -361,7 +364,7 @@ jobs:
 # Private Jobs
 ###########################################
 
-- ${{ if parameters.runPrivateJobs }}:
+- ${{ if and(parameters.runPrivateJobs, not(parameters.runAppleMauiJobs)) }}:
 
   # Scenario benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
@@ -704,6 +707,109 @@ jobs:
           - main
           - 9.0
           - 8.0
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+################################################
+# Apple MAUI test jobs
+################################################
+
+- ${{ if parameters.runAppleMauiJobs }}:
+
+  # Maui iOS scenario benchmarks (Mono Default) - Release
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_ios
+        projectFileName: maui_scenarios_ios.proj
+        channels:
+          - main
+        runtimeFlavor: mono
+        codeGenType: Default
+        buildConfig: Release
+        additionalJobIdentifier: Mono
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui iOS scenario benchmarks (CoreCLR Default) - Release
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_ios
+        projectFileName: maui_scenarios_ios.proj
+        channels:
+          - main
+        runtimeFlavor: coreclr
+        codeGenType: Default
+        buildConfig: Release
+        additionalJobIdentifier: CoreCLR
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui iOS scenario benchmarks (SDK Default Baseline) - Release
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_ios
+        projectFileName: maui_scenarios_ios.proj
+        channels:
+          - 10.0
+        runtimeFlavor: mono
+        codeGenType: Default
+        buildConfig: Release
+        variables:
+          - name: MAUI_WORKLOAD_MODE
+            value: stable
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui iOS scenario benchmarks (CoreCLR NativeAOT) - Release
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_ios
+        projectFileName: maui_scenarios_ios.proj
+        channels:
+          - main
+        runtimeFlavor: coreclr
+        codeGenType: NativeAOT
+        buildConfig: Release
+        additionalJobIdentifier: CoreCLR
+        ${{ each parameter in parameters.jobParameters }}:
+          ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Maui iOS scenario benchmarks (CoreCLR Default) - Debug
+  - template: /eng/pipelines/templates/build-machine-matrix.yml
+    parameters:
+      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        runKind: maui_scenarios_ios
+        projectFileName: maui_scenarios_ios.proj
+        channels:
+          - main
+        runtimeFlavor: coreclr
+        codeGenType: Default
+        buildConfig: Debug
+        additionalJobIdentifier: CoreCLR_Debug
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
