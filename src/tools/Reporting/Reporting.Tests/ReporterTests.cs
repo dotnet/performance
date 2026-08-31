@@ -11,11 +11,6 @@ namespace Reporting.Tests;
 
 public class ReporterTests
 {
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
-
     // this matches the output from the reporter made in GetReporterWithSpecifiedEnvironment
     private const string ExpectedTestTable =
 @"TestName
@@ -212,6 +207,19 @@ No results in file.
     }
 
     [Fact]
+    public void NonFiniteResultsRoundTrip()
+    {
+        var reporter = GetReporterWithSpecifiedEnvironment(new PerfLabEnvironmentProviderMock(), result: double.NaN);
+
+        var jsonString = reporter.GetJson();
+        Assert.NotNull(jsonString);
+        Assert.Contains("\"NaN\"", jsonString);
+
+        var deserialized = DeserializeReporter(jsonString);
+        Assert.True(double.IsNaN(deserialized.Tests[0].Counters[0].Results[0]));
+    }
+
+    [Fact]
     public void EnforceDefaultCounterConstraint()
     {
         var t = new Test();
@@ -249,11 +257,7 @@ No results in file.
     }
 
     private static Reporter DeserializeReporter(string json)
-    {
-        var reporter = JsonSerializer.Deserialize<Reporter>(json, s_jsonSerializerOptions);
-        Assert.NotNull(reporter);
-        return reporter;
-    }
+        => Reporter.FromJson(json);
 
     private static Reporter GetReporterWithSpecifiedEnvironment(PerfLabEnvironmentProviderMock enviroment, string counterName = null, double result = 1.1)
     {

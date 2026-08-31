@@ -21,6 +21,7 @@ public class Reporter
     private readonly static CultureInfo _culture = CultureInfo.InvariantCulture;
     private readonly static JsonSerializerOptions _jsonSerializerOptions = new()
     {
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true
     };
@@ -70,6 +71,10 @@ public class Reporter
 
         return JsonSerializer.Serialize(this, _jsonSerializerOptions);
     }
+
+    public static Reporter FromJson(string json)
+        => JsonSerializer.Deserialize<Reporter>(json, _jsonSerializerOptions)
+            ?? throw new JsonException("The JSON payload did not contain a reporter.");
 
     public string WriteResultTable()
     {
@@ -262,5 +267,4 @@ public class Reporter
         var min = ((FormattableString)$"{counter.Results.Min():F3} {counter.MetricName}").ToString(_culture);
         return $"{LeftJustify(counter.Name, counterWidth)}|{LeftJustify(average, resultWidth)}|{LeftJustify(min, resultWidth)}|{LeftJustify(max, resultWidth)}";
     }
-
 }
