@@ -10,8 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using RuntimeEnvironment = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment;
 
 namespace Reporting;
@@ -19,13 +19,10 @@ namespace Reporting;
 public class Reporter
 {
     private readonly static CultureInfo _culture = CultureInfo.InvariantCulture;
-    private readonly static JsonSerializerSettings _jsonSerializerSettings = new()
+    private readonly static JsonSerializerOptions _jsonSerializerOptions = new()
     {
-        ContractResolver = new DefaultContractResolver
-        {
-            NamingStrategy = new CamelCaseNamingStrategy() { ProcessDictionaryKeys = false }
-        },
-        Culture = _culture
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true
     };
 
     public List<Test> Tests { get; private set; } = [];
@@ -51,7 +48,6 @@ public class Reporter
         Os = os;
         Run = run;
         Tests = tests;
-        ValidateTests();
         InLab = new EnvironmentProvider().IsLabEnvironment();
     }
 
@@ -72,8 +68,7 @@ public class Reporter
             return null;
         }
 
-        ValidateTests();
-        return JsonConvert.SerializeObject(this, Formatting.Indented, _jsonSerializerSettings);
+        return JsonSerializer.Serialize(this, _jsonSerializerOptions);
     }
 
     public string WriteResultTable()
@@ -268,11 +263,4 @@ public class Reporter
         return $"{LeftJustify(counter.Name, counterWidth)}|{LeftJustify(average, resultWidth)}|{LeftJustify(min, resultWidth)}|{LeftJustify(max, resultWidth)}";
     }
 
-    private void ValidateTests()
-    {
-        foreach (var test in Tests)
-        {
-            test.Validate();
-        }
-    }
 }
