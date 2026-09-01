@@ -10,6 +10,24 @@
     <_WasmStrictVersionMatch>false</_WasmStrictVersionMatch>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' and '$(UseMonoRuntime)' == 'false'">
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishReadyToRunComposite>false</PublishReadyToRunComposite>
+    <PublishReadyToRunContainerFormat>wasm</PublishReadyToRunContainerFormat>
+    <WasmEnableWebcil>true</WasmEnableWebcil>
+  </PropertyGroup>
+
+  <Target Name="ValidateWasmReadyToRunConfiguration"
+          BeforeTargets="PrepareForWasmBuild"
+          Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'">
+    <Error Condition="'$(UseMonoRuntime)' != 'false'"
+           Text="CoreCLR WASM R2R requires UseMonoRuntime=false." />
+    <Error Condition="'$(PublishReadyToRun)' != 'true' or '$(PublishReadyToRunComposite)' != 'false' or '$(PublishReadyToRunContainerFormat)' != 'wasm' or '$(WasmEnableWebcil)' != 'true'"
+           Text="CoreCLR WASM R2R project properties were not applied." />
+    <Error Condition="'$(_PerformanceWasmRuntimePackName)' != 'Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)'"
+           Text="CoreCLR WASM R2R resolved an unexpected runtime pack '$(_PerformanceWasmRuntimePackName)'." />
+  </Target>
+
   <ItemGroup>
     <TrimmerRootDescriptor Include="$(MSBuildThisFileDirectory)ILLink.Descriptors.Serialization.xml" />
 

@@ -1,4 +1,9 @@
 <Project>
+  <PropertyGroup>
+    <_PerformanceWasmRuntimePackName Condition="'$(UseMonoRuntime)' == 'false'">Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)</_PerformanceWasmRuntimePackName>
+    <_PerformanceWasmRuntimePackName Condition="'$(_PerformanceWasmRuntimePackName)' == ''">Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)</_PerformanceWasmRuntimePackName>
+  </PropertyGroup>
+
   <!-- SDK tries to download runtime packs when RuntimeIdentifier is set, remove them from PackageDownload item. -->
   <Target Name="RemoveRuntimePackFromDownloadItem"
           AfterTargets="ProcessFrameworkReferences">
@@ -16,16 +21,16 @@
     <ItemGroup>
       <ResolvedRuntimePack
           FrameworkName="Microsoft.NETCore.App"
-          NuGetPackageId="Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)"
+          NuGetPackageId="$(_PerformanceWasmRuntimePackName)"
           NuGetPackageVersion="$(_RuntimePackInWorkloadVersionCurrent)"
           PackageDirectory="$(NetCoreTargetingPackRoot)\%(Identity)\$(_RuntimePackInWorkloadVersionCurrent)"
           RuntimeIdentifier="$(RuntimeIdentifier)" />
 
       <ResolvedFrameworkReference
           Condition="'%(Identity)' == 'Microsoft.NETCore.App'"
-          RuntimePackName="Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)"
+          RuntimePackName="$(_PerformanceWasmRuntimePackName)"
           RuntimePackVersion="$(_RuntimePackInWorkloadVersionCurrent)"
-          RuntimePackPath="$(NetCoreTargetingPackRoot)\Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)\$(_RuntimePackInWorkloadVersionCurrent)"
+          RuntimePackPath="$(NetCoreTargetingPackRoot)\$(_PerformanceWasmRuntimePackName)\$(_RuntimePackInWorkloadVersionCurrent)"
           RuntimeIdentifier="$(RuntimeIdentifier)" />
     </ItemGroup>
   </Target>

@@ -644,6 +644,8 @@ def get_run_configurations(
 
     if r2r_run_type == "nor2r":
         configurations["R2RType"] = "nor2r"
+    elif r2r_run_type == "r2r":
+        configurations["R2RType"] = "r2r"
 
     if runtime_type == "coreclr_r2r_interpreter":
         configurations["R2RType"] = "r2r_interpreter"
@@ -690,7 +692,17 @@ def get_run_configurations(
 
     return configurations
 
-def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str, wasm_coreclr: bool = False, only_sanity_check: bool = False):
+def get_work_item_command(
+        os_group: str,
+        target_csproj: str,
+        architecture: str,
+        perf_lab_framework: str,
+        internal: bool,
+        wasm: bool,
+        bdn_artifacts_dir: str,
+        wasm_coreclr: bool = False,
+        wasm_ready_to_run: bool = False,
+        only_sanity_check: bool = False):
     if os_group == "windows":
         work_item_command = [
             "python",
@@ -720,6 +732,8 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
         work_item_command += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
         if wasm_coreclr:
             work_item_command += ["--wasm-runtime-flavor", "CoreCLR"]
+            if wasm_ready_to_run:
+                work_item_command += ["--wasm-ready-to-run"]
 
     work_item_command += ["--bdn-artifacts", bdn_artifacts_dir]
 
@@ -1372,7 +1386,17 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     def get_work_item_command_for_artifact_dir(artifact_dir: str):
         assert args.target_csproj is not None
-        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir, wasm_coreclr, args.only_sanity_check)
+        return get_work_item_command(
+            args.os_group,
+            args.target_csproj,
+            args.architecture,
+            perf_lab_framework,
+            args.internal,
+            wasm,
+            artifact_dir,
+            wasm_coreclr,
+            wasm_coreclr and args.r2r_run_type == "r2r",
+            args.only_sanity_check)
     
     work_item_command = get_work_item_command_for_artifact_dir(bdn_artifacts_directory)
     baseline_work_item_command = get_work_item_command_for_artifact_dir(bdn_baseline_artifacts_dir)
