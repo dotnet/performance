@@ -30,6 +30,13 @@
            Text="CoreCLR WASM R2R resolved an unexpected runtime pack '$(_PerformanceWasmRuntimePackName)'." />
   </Target>
 
+  <Target Name="ValidateWasmReadyToRunOutputs"
+          AfterTargets="_CreateR2RImages"
+          Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'">
+    <Error Condition="'@(_ReadyToRunFilesToPublish)' == ''"
+           Text="CoreCLR WASM R2R did not produce any ReadyToRun images." />
+  </Target>
+
   <ItemGroup>
     <TrimmerRootDescriptor Include="$(MSBuildThisFileDirectory)ILLink.Descriptors.Serialization.xml" />
 

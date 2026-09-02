@@ -3,7 +3,6 @@
     <_PerformanceWasmRuntimePackName Condition="'$(UseMonoRuntime)' == 'false'">Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)</_PerformanceWasmRuntimePackName>
     <_PerformanceWasmRuntimePackName Condition="'$(_PerformanceWasmRuntimePackName)' == ''">Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)</_PerformanceWasmRuntimePackName>
     <_PerformanceWasmToolchainPackVersion Condition="'$(PERFLAB_WASM_PACKAGE_VERSION)' != ''">$(PERFLAB_WASM_PACKAGE_VERSION)</_PerformanceWasmToolchainPackVersion>
-    <_PerformanceWasmToolchainPackVersion Condition="'$(_PerformanceWasmToolchainPackVersion)' == ''">$(_RuntimePackInWorkloadVersionCurrent)</_PerformanceWasmToolchainPackVersion>
   </PropertyGroup>
 
   <!-- SDK tries to download runtime packs when RuntimeIdentifier is set, remove them from PackageDownload item. -->
@@ -65,11 +64,21 @@
     </ItemGroup>
   </Target>
 
-  <ItemGroup>
-    <KnownWebAssemblySdkPack Update="Microsoft.NET.Sdk.WebAssembly.Pack"
-      WebAssemblySdkPackVersion="$(_PerformanceWasmToolchainPackVersion)" />
-    <KnownCrossgen2Pack Update="Microsoft.NETCore.App.Crossgen2"
-      Condition="'$(UseMonoRuntime)' == 'false'"
-      Crossgen2PackVersion="$(_PerformanceWasmToolchainPackVersion)" />
-  </ItemGroup>
+  <!-- Workload manifests can update these items after project evaluation. Apply
+       the local cohort immediately before the SDK consumes them. -->
+  <Target Name="_UpdatePerformanceWasmToolchainPacks"
+          BeforeTargets="ProcessFrameworkReferences">
+    <PropertyGroup>
+      <_PerformanceWasmToolchainPackVersion Condition="'$(_PerformanceWasmToolchainPackVersion)' == ''">$(_RuntimePackInWorkloadVersionCurrent)</_PerformanceWasmToolchainPackVersion>
+    </PropertyGroup>
+    <ItemGroup>
+      <KnownWebAssemblySdkPack Update="@(KnownWebAssemblySdkPack)">
+        <WebAssemblySdkPackVersion Condition="'%(KnownWebAssemblySdkPack.TargetFramework)' == '$(TargetFramework)'">$(_PerformanceWasmToolchainPackVersion)</WebAssemblySdkPackVersion>
+      </KnownWebAssemblySdkPack>
+      <KnownCrossgen2Pack Update="@(KnownCrossgen2Pack)"
+                          Condition="'$(UseMonoRuntime)' == 'false'">
+        <Crossgen2PackVersion Condition="'%(KnownCrossgen2Pack.TargetFramework)' == '$(TargetFramework)'">$(_PerformanceWasmToolchainPackVersion)</Crossgen2PackVersion>
+      </KnownCrossgen2Pack>
+    </ItemGroup>
+  </Target>
 </Project>
