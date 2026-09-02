@@ -23,6 +23,12 @@ from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
 DEFAULT_BUILD_CONFIG = "Release"
+APT_LOCK_TIMEOUT_OPTION = "-o DPkg::Lock::Timeout=120"
+
+
+def apt_command(arguments: str, *, executable: str = "apt-get") -> str:
+    return f"sudo {executable} {APT_LOCK_TIMEOUT_OPTION} {arguments}"
+
 
 def output_counters_for_crank(reports: list[Any]):
     print("#StartJobStatistics")
@@ -231,10 +237,8 @@ def get_pre_commands(
                     ]
                 else:
                     install_prerequisites += [
-                        'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
-                        'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
-                        "sudo apt-get remove -y lttng-modules-dkms", # https://github.com/dotnet/runtime/pull/101142
-                        "sudo apt-get -y install python3-pip"
+                        apt_command("remove -y lttng-modules-dkms"),  # https://github.com/dotnet/runtime/pull/101142
+                        apt_command("-y install python3-pip")
                     ]
 
             install_prerequisites += [
@@ -272,8 +276,11 @@ def get_pre_commands(
                 ]
             else:
                 install_prerequisites += [
-                    "sudo apt-get update",
-                    "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
+                    apt_command("update"),
+                    apt_command(
+                        "-y install curl dirmngr apt-transport-https lsb-release ca-certificates",
+                        executable="apt"
+                    )
                 ]
 
     # Set up everything needed for WASM runs (both Mono and CoreCLR)
@@ -294,19 +301,17 @@ def get_pre_commands(
         else:
             install_prerequisites += [
                 "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
-                'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
-                'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
-                "sudo apt-get -y remove nodejs",
-                "sudo apt-get update",
-                "sudo apt-get install -y ca-certificates curl gnupg",
+                apt_command("-y remove nodejs"),
+                apt_command("update"),
+                apt_command("install -y ca-certificates curl gnupg"),
                 "sudo mkdir -p /etc/apt/keyrings",
                 "sudo rm -f /etc/apt/keyrings/nodesource.gpg",
                 "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor --batch -o /etc/apt/keyrings/nodesource.gpg",
                 "export NODE_MAJOR=18",
                 "echo \"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main\" | sudo tee /etc/apt/sources.list.d/nodesource.list",
-                "sudo apt-get update",
-                "sudo apt autoremove -y",
-                "sudo apt-get install nodejs -y",
+                apt_command("update"),
+                apt_command("autoremove -y", executable="apt"),
+                apt_command("install nodejs -y"),
                 f"test -n \"{v8_version}\"",
                 "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
                 f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
