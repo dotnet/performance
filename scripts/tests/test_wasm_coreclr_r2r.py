@@ -9,7 +9,8 @@ scripts_dir = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(scripts_dir))
 
 import micro_benchmarks
-from run_performance_job import get_run_configurations, get_work_item_command
+from build_runtime_payload import build_wasm_coreclr_payload
+from run_performance_job import get_pre_commands, get_run_configurations, get_work_item_command
 
 
 def test_ready_to_run_requires_coreclr_wasm():
@@ -63,3 +64,46 @@ def test_ready_to_run_has_distinct_result_configuration():
     assert configurations["CompilationMode"] == "wasm"
     assert configurations["RuntimeType"] == "coreclr"
     assert configurations["R2RType"] == "r2r"
+
+
+def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
+    artifact = tmp_path / "artifact" / "staging"
+    ref_pack = artifact / "dotnet-none" / "packs" / "Microsoft.NETCore.App.Ref" / "11.0.0-rc.1.26431.109"
+    runtime_pack = artifact / "microsoft.netcore.app.runtime.browser-wasm" / "Release"
+    built_nugets = artifact / "built-nugets"
+    ref_pack.mkdir(parents=True)
+    runtime_pack.mkdir(parents=True)
+    built_nugets.mkdir(parents=True)
+    (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.11.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.11.0.0-ci.nupkg").touch()
+
+    version = build_wasm_coreclr_payload(str(artifact.parent), str(tmp_path / "payload"))
+
+    assert version == "11.0.0-ci"
+
+
+def test_coreclr_payload_rejects_mismatched_toolchain_package_versions(tmp_path):
+    artifact = tmp_path / "artifact" / "staging"
+    (artifact / "dotnet-none").mkdir(parents=True)
+    built_nugets = artifact / "built-nugets"
+    built_nugets.mkdir(parents=True)
+    (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.11.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.11.0.1-ci.nupkg").touch()
+
+    with pytest.raises(ValueError, match="versions do not match"):
+        build_wasm_coreclr_payload(str(artifact.parent), str(tmp_path / "payload"))
+
+
+def test_coreclr_pre_commands_export_local_toolchain_package_version():
+    commands = get_pre_commands(
+        os_group="linux",
+        os_distro="ubuntu",
+        internal=False,
+        runtime_type="wasm_coreclr",
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+        wasm_local_package_version="11.0.0-ci",
+    )
+
+    assert any("PERFLAB_WASM_PACKAGE_VERSION=11.0.0-ci" in command for command in commands)

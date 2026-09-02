@@ -208,7 +208,8 @@ def get_pre_commands(
         runtime_type: str,
         codegen_type: str,
         build_config: str,
-        v8_version: str):
+        v8_version: str,
+        wasm_local_package_version: Optional[str] = None):
     helix_pre_commands: list[str] = []
 
     # Remember the previous PYTHONPATH that was set so it can be restored in the post commands
@@ -284,7 +285,14 @@ def get_pre_commands(
                 ]
 
     # Set up everything needed for WASM runs (both Mono and CoreCLR)
-    if runtime_type in ("wasm", "wasm_coreclr"):  
+    if runtime_type in ("wasm", "wasm_coreclr"):
+        if runtime_type == "wasm_coreclr":
+            if not wasm_local_package_version:
+                raise ValueError("CoreCLR WASM requires a local WebAssembly toolchain package version")
+            install_prerequisites += [
+                f"export PERFLAB_WASM_PACKAGE_VERSION={wasm_local_package_version}"
+            ]
+
         if os_distro == "azurelinux":
             # Azure Linux uses tdnf package manager
             install_prerequisites += [
@@ -954,13 +962,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
             shutil.copytree(args.mono_dotnet_dir, mono_dotnet_path, dirs_exist_ok=True)
 
     v8_version = ""
+    wasm_local_package_version = None
     if wasm_coreclr:
         if args.libraries_download_dir is None:
             raise Exception("Libraries not downloaded for wasm_coreclr runs")
         
         getLogger().info("Building wasm_coreclr payload directory")
         browser_wasm_coreclr_dir = os.path.join(args.libraries_download_dir, "BrowserWasmCoreCLR")
-        build_wasm_coreclr_payload(
+        wasm_local_package_version = build_wasm_coreclr_payload(
             browser_wasm_coreclr_dir,
             payload_dir,
         )
@@ -1147,7 +1156,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
     else:
         agent_python = "python3"
 
-    helix_pre_commands = get_pre_commands(args.os_group, args.os_distro, args.internal, args.runtime_type, args.codegen_type, args.build_config, v8_version)
+    helix_pre_commands = get_pre_commands(
+        args.os_group,
+        args.os_distro,
+        args.internal,
+        args.runtime_type,
+        args.codegen_type,
+        args.build_config,
+        v8_version,
+        wasm_local_package_version)
     helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
 
     # Point ML.NET at the SSWE model that was pre-downloaded into the correlation payload above, so it

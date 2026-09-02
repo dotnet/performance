@@ -2,6 +2,8 @@
   <PropertyGroup>
     <_PerformanceWasmRuntimePackName Condition="'$(UseMonoRuntime)' == 'false'">Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)</_PerformanceWasmRuntimePackName>
     <_PerformanceWasmRuntimePackName Condition="'$(_PerformanceWasmRuntimePackName)' == ''">Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)</_PerformanceWasmRuntimePackName>
+    <_PerformanceWasmToolchainPackVersion Condition="'$(PERFLAB_WASM_PACKAGE_VERSION)' != ''">$(PERFLAB_WASM_PACKAGE_VERSION)</_PerformanceWasmToolchainPackVersion>
+    <_PerformanceWasmToolchainPackVersion Condition="'$(_PerformanceWasmToolchainPackVersion)' == ''">$(_RuntimePackInWorkloadVersionCurrent)</_PerformanceWasmToolchainPackVersion>
   </PropertyGroup>
 
   <!-- SDK tries to download runtime packs when RuntimeIdentifier is set, remove them from PackageDownload item. -->
@@ -65,6 +67,9 @@
 
   <ItemGroup>
     <KnownWebAssemblySdkPack Update="Microsoft.NET.Sdk.WebAssembly.Pack"
-      WebAssemblySdkPackVersion="$(_RuntimePackInWorkloadVersionCurrent)" />
+      WebAssemblySdkPackVersion="$(_PerformanceWasmToolchainPackVersion)" />
+    <KnownCrossgen2Pack Update="Microsoft.NETCore.App.Crossgen2"
+      Condition="'$(UseMonoRuntime)' == 'false'"
+      Crossgen2PackVersion="$(_PerformanceWasmToolchainPackVersion)" />
   </ItemGroup>
 </Project>
