@@ -25,8 +25,6 @@
            Text="CoreCLR WASM R2R requires UseMonoRuntime=false." />
     <Error Condition="'$(PublishReadyToRun)' != 'true' or '$(PublishReadyToRunComposite)' != 'false' or '$(PublishReadyToRunContainerFormat)' != 'wasm' or '$(PublishTrimmed)' != 'true' or '$(WasmEnableWebcil)' != 'true'"
            Text="CoreCLR WASM R2R project properties were not applied." />
-    <Error Condition="'$(PERFLAB_WASM_PACKAGE_VERSION)' == ''"
-           Text="CoreCLR WASM R2R requires a local WebAssembly toolchain package version." />
     <Error Condition="'$(_PerformanceWasmRuntimePackName)' != 'Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)'"
            Text="CoreCLR WASM R2R resolved an unexpected runtime pack '$(_PerformanceWasmRuntimePackName)'." />
   </Target>
