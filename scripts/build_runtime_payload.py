@@ -403,6 +403,18 @@ def _get_wasm_local_package_version(built_nugets_dir: str) -> str:
             f"WebAssembly SDK and Crossgen2 package versions do not match: "
             f"{wasm_sdk_packages[0].name}, {crossgen2_packages[0].name}")
 
+    illink_packages = [
+        package for package in Path(built_nugets_dir).glob("Microsoft.NET.ILLink.Tasks.*.nupkg")
+        if not package.name.endswith(".symbols.nupkg")
+    ]
+    if len(illink_packages) != 1:
+        raise ValueError(
+            f"Expected one ILLink package in {built_nugets_dir}, found {len(illink_packages)}")
+    if illink_packages[0].name != f"Microsoft.NET.ILLink.Tasks.{package_version}.nupkg":
+        raise ValueError(
+            f"WebAssembly SDK and ILLink package versions do not match: "
+            f"{wasm_sdk_packages[0].name}, {illink_packages[0].name}")
+
     return package_version
 
 

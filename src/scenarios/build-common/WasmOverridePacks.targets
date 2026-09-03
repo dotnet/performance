@@ -79,6 +79,10 @@
                           Condition="'$(UseMonoRuntime)' == 'false'">
         <Crossgen2PackVersion Condition="'%(KnownCrossgen2Pack.TargetFramework)' == '$(TargetFramework)'">$(_PerformanceWasmToolchainPackVersion)</Crossgen2PackVersion>
       </KnownCrossgen2Pack>
+      <KnownILLinkPack Update="@(KnownILLinkPack)"
+                       Condition="'$(UseMonoRuntime)' == 'false'">
+        <ILLinkPackVersion Condition="'%(KnownILLinkPack.TargetFramework)' == '$(TargetFramework)'">$(_PerformanceWasmToolchainPackVersion)</ILLinkPackVersion>
+      </KnownILLinkPack>
     </ItemGroup>
   </Target>
 </Project>

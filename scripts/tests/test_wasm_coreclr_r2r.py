@@ -76,6 +76,7 @@ def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
     built_nugets.mkdir(parents=True)
     (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.11.0.0-ci.nupkg").touch()
     (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.11.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NET.ILLink.Tasks.11.0.0-ci.nupkg").touch()
 
     version = build_wasm_coreclr_payload(str(artifact.parent), str(tmp_path / "payload"))
 
@@ -89,8 +90,22 @@ def test_coreclr_payload_rejects_mismatched_toolchain_package_versions(tmp_path)
     built_nugets.mkdir(parents=True)
     (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.11.0.0-ci.nupkg").touch()
     (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.11.0.1-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NET.ILLink.Tasks.11.0.0-ci.nupkg").touch()
 
     with pytest.raises(ValueError, match="versions do not match"):
+        build_wasm_coreclr_payload(str(artifact.parent), str(tmp_path / "payload"))
+
+
+def test_coreclr_payload_requires_matching_illink_package(tmp_path):
+    artifact = tmp_path / "artifact" / "staging"
+    (artifact / "dotnet-none").mkdir(parents=True)
+    built_nugets = artifact / "built-nugets"
+    built_nugets.mkdir(parents=True)
+    (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.11.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.11.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NET.ILLink.Tasks.11.0.1-ci.nupkg").touch()
+
+    with pytest.raises(ValueError, match="ILLink package versions do not match"):
         build_wasm_coreclr_payload(str(artifact.parent), str(tmp_path / "payload"))
 
 
