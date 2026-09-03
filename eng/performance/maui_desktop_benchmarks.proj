@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <Import Project="Scenarios.Common.props" />
+
+  <PropertyGroup>
+    <MauiDesktopPayloadDirectory>$(CorrelationPayloadDirectory)scenarios_out\mauidesktopbenchmarks</MauiDesktopPayloadDirectory>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
+    <PreparePayloadWorkItem Include="MAUI Desktop Benchmark Payload">
+      <Command>$(Python) pre.py --framework $(PERFLAB_Framework) --output &quot;$(MauiDesktopPayloadDirectory)&quot;</Command>
+      <WorkingDirectory>$(ScenariosDir)mauidesktopbenchmarks</WorkingDirectory>
+    </PreparePayloadWorkItem>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
+    <MauiDesktopSuite Include="MAUI Desktop BDN - Core">
+      <Suite>core</Suite>
+    </MauiDesktopSuite>
+    <MauiDesktopSuite Include="MAUI Desktop BDN - XAML">
+      <Suite>xaml</Suite>
+    </MauiDesktopSuite>
+    <MauiDesktopSuite Include="MAUI Desktop BDN - Graphics">
+      <Suite>graphics</Suite>
+    </MauiDesktopSuite>
+  </ItemGroup>
+
+  <ItemGroup>
+    <HelixWorkItem Include="@(MauiDesktopSuite)">
+      <PayloadDirectory>$(ScenariosDir)mauidesktopbenchmarks</PayloadDirectory>
+      <Command>$(Python) test.py --framework $(PERFLAB_Framework) --suite %(HelixWorkItem.Suite) --bdn-arguments &quot;$(BenchmarkDotNetArguments)&quot; $(ScenarioArgs)</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <Import Project="PreparePayloadWorkItems.targets" />
+</Project>

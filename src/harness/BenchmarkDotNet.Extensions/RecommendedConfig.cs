@@ -6,6 +6,7 @@ using BenchmarkDotNet.Exporters.Json;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Reports;
+using BenchmarkDotNet.Toolchains;
 using Perfolizer.Horology;
 using Reporting;
 using System;
@@ -28,7 +29,8 @@ namespace BenchmarkDotNet.Extensions
             List<string>? exclusionFilterValue = null,
             List<string>? categoryExclusionFilterValue = null,
             Job? job = null,
-            bool getDiffableDisasm = false)
+            bool getDiffableDisasm = false,
+            IToolchain? toolchain = null)
         {
             if (job is null)
             {
@@ -41,6 +43,11 @@ namespace BenchmarkDotNet.Extensions
                     .WithEvaluateOverhead(Environment.GetEnvironmentVariable("PERFLAB_EVALUATE_OVERHEAD") == "1") // WASM has significant method-call overhead (1-10ns); subtract it when enabled
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
                 #pragma warning restore CS0618
+            }
+
+            if (toolchain is not null)
+            {
+                job = job.WithToolchain(toolchain);
             }
 
             var config = ManualConfig.CreateEmpty()
@@ -58,10 +65,14 @@ namespace BenchmarkDotNet.Extensions
                 .AddFilter(new CategoryExclusionFilter(categoryExclusionFilterValue))
                 .AddExporter(JsonExporter.Full) // make sure we export to Json
                 .AddColumn(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
-                .AddValidator(new MandatoryCategoryValidator(mandatoryCategories))
                 .AddValidator(TooManyTestCasesValidator.FailOnError)
                 .AddValidator(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
                 .WithSummaryStyle(SummaryStyle.Default.WithMaxParameterColumnWidth(36)); // the default is 20 and trims too aggressively some benchmark results
+
+            if (mandatoryCategories.Count > 0)
+            {
+                config = config.AddValidator(new MandatoryCategoryValidator(mandatoryCategories));
+            }
 
             if (Environment.IsLabEnvironment())
             {
