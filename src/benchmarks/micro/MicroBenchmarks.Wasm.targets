@@ -39,6 +39,10 @@
   <ItemGroup>
     <TrimmerRootDescriptor Include="$(MSBuildThisFileDirectory)ILLink.Descriptors.Serialization.xml" />
 
+    <!-- Crossgen currently emits invalid WASM for Jil's ISO8601 TimeSpan deserializer. -->
+    <PublishReadyToRunExclude Include="Jil.dll"
+                              Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'" />
+
     <_AOT_InternalForceInterpretAssemblies Include="Microsoft.CodeAnalysis.CSharp.dll" />
     <_AOT_InternalForceInterpretAssemblies Include="Microsoft.CodeAnalysis.dll" />
   </ItemGroup>
