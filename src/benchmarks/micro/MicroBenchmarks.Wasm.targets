@@ -14,6 +14,7 @@
     <PublishReadyToRun>true</PublishReadyToRun>
     <PublishReadyToRunComposite>false</PublishReadyToRunComposite>
     <PublishReadyToRunContainerFormat>wasm</PublishReadyToRunContainerFormat>
+    <PublishTrimmed>true</PublishTrimmed>
     <WasmEnableWebcil>true</WasmEnableWebcil>
   </PropertyGroup>
 
@@ -22,7 +23,7 @@
           Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'">
     <Error Condition="'$(UseMonoRuntime)' != 'false'"
            Text="CoreCLR WASM R2R requires UseMonoRuntime=false." />
-    <Error Condition="'$(PublishReadyToRun)' != 'true' or '$(PublishReadyToRunComposite)' != 'false' or '$(PublishReadyToRunContainerFormat)' != 'wasm' or '$(WasmEnableWebcil)' != 'true'"
+    <Error Condition="'$(PublishReadyToRun)' != 'true' or '$(PublishReadyToRunComposite)' != 'false' or '$(PublishReadyToRunContainerFormat)' != 'wasm' or '$(PublishTrimmed)' != 'true' or '$(WasmEnableWebcil)' != 'true'"
            Text="CoreCLR WASM R2R project properties were not applied." />
     <Error Condition="'$(PERFLAB_WASM_PACKAGE_VERSION)' == ''"
            Text="CoreCLR WASM R2R requires a local WebAssembly toolchain package version." />
