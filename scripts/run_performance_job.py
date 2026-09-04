@@ -12,6 +12,7 @@ import sys
 import tempfile
 import time
 from traceback import format_exc
+import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from typing import Any, Optional
@@ -123,6 +124,7 @@ class RunPerformanceJobArgs:
     pdn_path: Optional[str] = None
     os_version: Optional[str] = None
     dotnet_version_link: Optional[str] = None
+    wasm_workload_source: Optional[str] = None
     target_csproj: Optional[str] = None
     build_config: str = DEFAULT_BUILD_CONFIG
     live_libraries_build_config: Optional[str] = None
@@ -209,7 +211,8 @@ def get_pre_commands(
         codegen_type: str,
         build_config: str,
         v8_version: str,
-        wasm_local_package_version: Optional[str] = None):
+        wasm_local_package_version: Optional[str] = None,
+        wasm_workload_source: Optional[str] = None):
     helix_pre_commands: list[str] = []
 
     # Remember the previous PYTHONPATH that was set so it can be restored in the post commands
@@ -286,17 +289,21 @@ def get_pre_commands(
 
     # Set up everything needed for WASM runs (both Mono and CoreCLR)
     if runtime_type in ("wasm", "wasm_coreclr"):
+        use_workload_source = (
+            runtime_type == "wasm_coreclr" and bool(wasm_workload_source))
         if runtime_type == "wasm_coreclr":
-            if not wasm_local_package_version:
-                raise ValueError("CoreCLR WASM requires a local WebAssembly toolchain package version")
-            install_prerequisites += [
-                f"export PERFLAB_WASM_PACKAGE_VERSION={wasm_local_package_version}"
-            ]
+            if wasm_local_package_version:
+                install_prerequisites += [
+                    f"export PERFLAB_WASM_PACKAGE_VERSION={wasm_local_package_version}"
+                ]
+            elif not use_workload_source:
+                raise ValueError(
+                    "CoreCLR WASM requires either a private runtime payload or "
+                    "a coherent WASM workload source")
 
         if os_distro == "azurelinux":
             # Azure Linux uses tdnf package manager
             install_prerequisites += [
-                "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
                 "sudo tdnf -y update",
                 "sudo tdnf -y remove nodejs",
                 "sudo tdnf -y install ca-certificates curl gnupg nodejs npm",
@@ -308,7 +315,6 @@ def get_pre_commands(
             ]
         else:
             install_prerequisites += [
-                "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
                 apt_command("-y remove nodejs"),
                 apt_command("update"),
                 apt_command("install -y ca-certificates curl gnupg"),
@@ -326,6 +332,12 @@ def get_pre_commands(
                 f"export V8_ENGINE_PATH=~/.jsvu/bin/v8-{v8_version}",
                 "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
             ]
+
+        if not use_workload_source:
+            install_prerequisites.insert(
+                0,
+                "export RestoreAdditionalProjectSources="
+                "$HELIX_CORRELATION_PAYLOAD/built-nugets")
 
     # Add the install_prerequisites to the pre_commands
     if os_group == "windows":
@@ -710,7 +722,8 @@ def get_work_item_command(
         bdn_artifacts_dir: str,
         wasm_coreclr: bool = False,
         wasm_ready_to_run: bool = False,
-        only_sanity_check: bool = False):
+        only_sanity_check: bool = False,
+        wasm_workload_source: Optional[str] = None):
     if os_group == "windows":
         work_item_command = [
             "python",
@@ -742,6 +755,11 @@ def get_work_item_command(
             work_item_command += ["--wasm-runtime-flavor", "CoreCLR"]
             if wasm_ready_to_run:
                 work_item_command += ["--wasm-ready-to-run"]
+            if wasm_ready_to_run and wasm_workload_source:
+                work_item_command += [
+                    "--wasm-workload-source",
+                    wasm_workload_source,
+                ]
 
     work_item_command += ["--bdn-artifacts", bdn_artifacts_dir]
 
@@ -963,7 +981,28 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     v8_version = ""
     wasm_local_package_version = None
-    if wasm_coreclr:
+    wasm_sdk_cohort = (
+        wasm_coreclr
+        and args.r2r_run_type == "r2r"
+        and args.wasm_workload_source is not None)
+    helix_wasm_workload_source = (
+        args.wasm_workload_source if wasm_sdk_cohort else None)
+    if wasm_sdk_cohort and args.wasm_workload_source:
+        parsed_workload_source = urllib.parse.urlparse(args.wasm_workload_source)
+        local_workload_source = (
+            urllib.request.url2pathname(parsed_workload_source.path)
+            if parsed_workload_source.scheme == "file"
+            else os.path.abspath(args.wasm_workload_source))
+        if os.path.isdir(local_workload_source):
+            payload_workload_source = os.path.join(
+                payload_dir, "wasm-workload-source")
+            shutil.copytree(local_workload_source, payload_workload_source)
+            helix_wasm_workload_source = (
+                "%HELIX_CORRELATION_PAYLOAD%\\wasm-workload-source"
+                if args.os_group == "windows"
+                else "$HELIX_CORRELATION_PAYLOAD/wasm-workload-source")
+
+    if wasm_coreclr and not wasm_sdk_cohort:
         if args.libraries_download_dir is None:
             raise Exception("Libraries not downloaded for wasm_coreclr runs")
         
@@ -974,7 +1013,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             payload_dir,
         )
 
-    elif wasm:
+    elif wasm and not wasm_coreclr:
         if args.libraries_download_dir is None:
             raise Exception("Libraries not downloaded for wasm runs")
         
@@ -1008,7 +1047,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if args.javascript_engine_path is None:
             args.javascript_engine_path = f"/home/helixbot/.jsvu/bin/{args.javascript_engine}"
 
-        ci_setup_arguments.dotnet_path = f"{payload_dir}/dotnet"
+        if not wasm_sdk_cohort:
+            ci_setup_arguments.dotnet_path = f"{payload_dir}/dotnet"
 
     if args.dotnet_version_link is not None:
         if args.dotnet_version_link.startswith("https"): # Version link is a proper url
@@ -1164,7 +1204,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         args.codegen_type,
         args.build_config,
         v8_version,
-        wasm_local_package_version)
+        wasm_local_package_version,
+        helix_wasm_workload_source)
     helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
 
     # Point ML.NET at the SSWE model that was pre-downloaded into the correlation payload above, so it
@@ -1200,7 +1241,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     ci_setup_arguments.target_windows = args.os_group == "windows"
 
     ci_setup_arguments.output_file = os.path.join(root_payload_dir, "machine-setup")
-    if args.is_scenario:
+    if args.is_scenario or wasm_sdk_cohort:
         ci_setup_arguments.install_dir = os.path.join(payload_dir, "dotnet")
     elif wasm_coreclr:
         # For wasm_coreclr, we already have the SDK in the payload - skip downloading
@@ -1413,7 +1454,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             artifact_dir,
             wasm_coreclr,
             wasm_coreclr and args.r2r_run_type == "r2r",
-            args.only_sanity_check)
+            args.only_sanity_check,
+            helix_wasm_workload_source)
     
     work_item_command = get_work_item_command_for_artifact_dir(bdn_artifacts_directory)
     baseline_work_item_command = get_work_item_command_for_artifact_dir(bdn_baseline_artifacts_dir)
@@ -1570,6 +1612,7 @@ def main(argv: list[str]):
                 "--perf-hash": "perf_hash",
                 "--os-version": "os_version",
                 "--dotnet-version-link": "dotnet_version_link",
+                "--wasm-workload-source": "wasm_workload_source",
                 "--target-csproj": "target_csproj",
                 "--pdn-path": "pdn_path",
                 "--runtime-repo-dir": "runtime_repo_dir",

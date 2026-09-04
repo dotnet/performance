@@ -7,6 +7,10 @@ Contains the functionality around DotNet Cli.
 import re
 import json
 import datetime
+import platform as platform_module
+import shutil
+import tempfile
+import xml.etree.ElementTree as ET
 from argparse import ArgumentParser, ArgumentTypeError
 from glob import iglob
 from logging import getLogger
@@ -68,6 +72,14 @@ def __log_script_header(message: str):
 
 
 CSharpProjFile = NamedTuple('CSharpProjFile', file_name=str, working_directory=str)
+WasmPackage = NamedTuple('WasmPackage', package_id=str, version=str)
+WasmWorkloadCohort = NamedTuple(
+    'WasmWorkloadCohort',
+    sdk_version=str,
+    product_version=str,
+    host_rid=str,
+    workload_id=str,
+    packages=tuple[WasmPackage, ...])
 
 @tracer.start_as_current_span("get_target_framework_moniker")
 def get_target_framework_moniker(framework: str) -> str:
@@ -105,6 +117,294 @@ def get_target_framework_monikers(frameworks: list[str]) -> list[str]:
 
     # ['net6.0', 'nativeaot6.0'] should become ['net6.0']
     return list(set(monikers))
+
+
+def get_host_rid(
+        architecture: str,
+        system: Optional[str] = None,
+        libc: Optional[str] = None) -> str:
+    system = system or platform_module.system()
+    normalized_system = system.casefold()
+
+    if normalized_system == 'darwin':
+        os_rid = 'osx'
+    elif normalized_system == 'windows':
+        os_rid = 'win'
+    elif normalized_system == 'linux':
+        if libc is None:
+            libc_name = platform_module.libc_ver()[0]
+            is_musl = (
+                libc_name.casefold() == 'musl'
+                or path.isfile('/etc/alpine-release')
+                or any(iglob('/lib/ld-musl-*.so.1')))
+        else:
+            is_musl = libc.casefold() == 'musl'
+        os_rid = 'linux-musl' if is_musl else 'linux'
+    else:
+        raise ValueError(f'Unsupported host operating system for Crossgen2: {system}')
+
+    return f'{os_rid}-{architecture}'
+
+
+def get_wasm_workload_cohort(
+        dotnet_root: str,
+        sdk_version: str,
+        target_framework: str,
+        host_rid: str) -> WasmWorkloadCohort:
+    sdk_major_match = re.match(r'^(\d+)\.', sdk_version)
+    framework_major_match = re.match(r'^net(\d+)\.0$', target_framework)
+    if not sdk_major_match or not framework_major_match:
+        raise ValueError(
+            f'Cannot determine a coherent WASM cohort for SDK {sdk_version} and {target_framework}')
+    if sdk_major_match.group(1) != framework_major_match.group(1):
+        raise ValueError(
+            f'WASM workload acquisition requires the SDK and target framework to have the same '
+            f'major version, but got SDK {sdk_version} and {target_framework}')
+
+    bundled_versions_path = path.join(
+        dotnet_root, 'sdk', sdk_version, 'Microsoft.NETCoreSdk.BundledVersions.props')
+    if not path.isfile(bundled_versions_path):
+        raise ValueError(
+            f'Cannot find SDK bundled product versions at {bundled_versions_path}')
+
+    root = ET.parse(bundled_versions_path).getroot()
+
+    def find_item(name: str, include: str) -> ET.Element:
+        for item in root.iter(name):
+            if (item.get('Include') == include
+                    and item.get('TargetFramework') == target_framework):
+                return item
+        raise ValueError(
+            f'SDK {sdk_version} does not define {name} {include} for {target_framework}')
+
+    framework_reference = find_item('KnownFrameworkReference', 'Microsoft.NETCore.App')
+    runtime_rids = framework_reference.get('RuntimePackRuntimeIdentifiers', '').split(';')
+    if 'browser-wasm' not in runtime_rids:
+        raise ValueError(
+            f'SDK {sdk_version} does not provide a browser-wasm CoreCLR runtime pack')
+
+    crossgen = find_item('KnownCrossgen2Pack', 'Microsoft.NETCore.App.Crossgen2')
+    crossgen_rids = set(
+        crossgen.get('Crossgen2PortableRuntimeIdentifiers', '').split(';')
+        + crossgen.get('Crossgen2RuntimeIdentifiers', '').split(';'))
+    if host_rid not in crossgen_rids:
+        raise ValueError(
+            f'SDK {sdk_version} does not provide a Crossgen2 pack for host RID {host_rid}')
+
+    illink = find_item('KnownILLinkPack', 'Microsoft.NET.ILLink.Tasks')
+    webassembly = find_item(
+        'KnownWebAssemblySdkPack', 'Microsoft.NET.Sdk.WebAssembly.Pack')
+    package_versions = {
+        'Microsoft.NETCore.App.Runtime.browser-wasm':
+            framework_reference.get('DefaultRuntimeFrameworkVersion'),
+        framework_reference.get('TargetingPackName', 'Microsoft.NETCore.App.Ref'):
+            framework_reference.get('TargetingPackVersion'),
+        'Microsoft.NET.Sdk.WebAssembly.Pack':
+            webassembly.get('WebAssemblySdkPackVersion'),
+        f'Microsoft.NETCore.App.Crossgen2.{host_rid}':
+            crossgen.get('Crossgen2PackVersion'),
+        'Microsoft.NET.ILLink.Tasks':
+            illink.get('ILLinkPackVersion'),
+    }
+
+    missing_versions = [
+        package_id for package_id, version in package_versions.items() if not version
+    ]
+    if missing_versions:
+        raise ValueError(
+            f'SDK {sdk_version} has no version for required WASM packages: '
+            f'{", ".join(missing_versions)}')
+
+    versions = set(package_versions.values())
+    if len(versions) != 1:
+        formatted_versions = ', '.join(
+            f'{package_id}={version}' for package_id, version in package_versions.items())
+        raise ValueError(
+            f'SDK {sdk_version} does not define one coherent CoreCLR browser-WASM '
+            f'package version: {formatted_versions}')
+
+    product_version = next(iter(versions))
+    return WasmWorkloadCohort(
+        sdk_version=sdk_version,
+        product_version=product_version,
+        host_rid=host_rid,
+        workload_id='wasm-tools',
+        packages=tuple(
+            WasmPackage(package_id, version)
+            for package_id, version in package_versions.items()))
+
+
+def get_wasm_workload_commands(
+        dotnet_executable: str,
+        cohort: WasmWorkloadCohort,
+        config_file: str,
+        restore_project: str,
+        package_root: str) -> list[list[str]]:
+    return [
+        [
+            dotnet_executable,
+            'restore',
+            restore_project,
+            '--packages',
+            package_root,
+            '--configfile',
+            config_file,
+            '--no-http-cache',
+        ],
+        [
+            dotnet_executable,
+            'workload',
+            'install',
+            cohort.workload_id,
+            '--skip-manifest-update',
+            '--configfile',
+            config_file,
+            '--no-http-cache',
+        ],
+    ]
+
+
+def install_wasm_workload(
+        architecture: str,
+        target_framework_monikers: list[str],
+        package_source: str,
+        sdk_versions: list[str],
+        verbose: bool) -> WasmWorkloadCohort:
+    if len(target_framework_monikers) != 1:
+        raise ValueError(
+            '--wasm-workload-source requires exactly one target framework')
+    if len(sdk_versions) > 1:
+        raise ValueError(
+            '--wasm-workload-source requires exactly one SDK version')
+
+    dotnet_root = environ.get('DOTNET_ROOT')
+    if not dotnet_root:
+        raise ValueError('DOTNET_ROOT is not configured')
+    dotnet_executable = path.join(
+        dotnet_root, 'dotnet.exe' if platform == 'win32' else 'dotnet')
+
+    if sdk_versions:
+        sdk_version = sdk_versions[0]
+    else:
+        sdk_version = check_output(
+            [dotnet_executable, '--version'],
+            cwd=dotnet_root,
+            text=True).strip()
+
+    host_rid = get_host_rid(architecture)
+    cohort = get_wasm_workload_cohort(
+        dotnet_root,
+        sdk_version,
+        target_framework_monikers[0],
+        host_rid)
+
+    parsed_source = urlparse(package_source)
+    if parsed_source.scheme not in ('http', 'https', 'file'):
+        package_source = path.abspath(package_source)
+        if not path.isdir(package_source):
+            raise ValueError(
+                f'WASM workload package source does not exist: {package_source}')
+
+        available_packages = {
+            path.basename(package).casefold()
+            for package in iglob(
+                path.join(package_source, '**', '*.nupkg'),
+                recursive=True)
+        }
+        missing_packages = [
+            f'{package.package_id}.{package.version}.nupkg'
+            for package in cohort.packages
+            if f'{package.package_id}.{package.version}.nupkg'.casefold()
+            not in available_packages
+        ]
+        if missing_packages:
+            raise ValueError(
+                f'WASM workload source {package_source} is missing required coherent '
+                f'cohort packages: {", ".join(missing_packages)}')
+
+    with tempfile.TemporaryDirectory(prefix='perflab-wasm-workload-') as temp_dir:
+        config_path = path.join(temp_dir, 'NuGet.Config')
+        config_root = ET.Element('configuration')
+        package_sources = ET.SubElement(config_root, 'packageSources')
+        ET.SubElement(package_sources, 'clear')
+        ET.SubElement(
+            package_sources,
+            'add',
+            {'key': 'wasm-cohort', 'value': package_source})
+        ET.ElementTree(config_root).write(
+            config_path, encoding='utf-8', xml_declaration=True)
+
+        global_json_path = path.join(temp_dir, 'global.json')
+        with open(global_json_path, 'w', encoding='utf-8') as global_json:
+            json.dump({
+                'sdk': {
+                    'version': sdk_version,
+                    'rollForward': 'disable',
+                    'allowPrerelease': True,
+                }
+            }, global_json)
+
+        restore_project_path = path.join(temp_dir, 'WasmCohort.csproj')
+        project = ET.Element('Project', {'Sdk': 'Microsoft.NET.Sdk'})
+        properties = ET.SubElement(project, 'PropertyGroup')
+        ET.SubElement(properties, 'TargetFramework').text = target_framework_monikers[0]
+        ET.SubElement(properties, 'RestoreProjectStyle').text = 'PackageReference'
+        package_downloads = ET.SubElement(project, 'ItemGroup')
+        for package in cohort.packages:
+            ET.SubElement(
+                package_downloads,
+                'PackageDownload',
+                {
+                    'Include': package.package_id,
+                    'Version': f'[{package.version}]',
+                })
+        ET.ElementTree(project).write(
+            restore_project_path, encoding='utf-8', xml_declaration=True)
+
+        package_root = path.join(temp_dir, 'packages')
+        commands = get_wasm_workload_commands(
+            dotnet_executable,
+            cohort,
+            config_path,
+            restore_project_path,
+            package_root)
+        try:
+            for command in commands:
+                RunCommand(command, verbose=verbose).run(temp_dir)
+        except CalledProcessError as error:
+            raise ValueError(
+                f'Failed to install the exact CoreCLR browser-WASM cohort '
+                f'{cohort.product_version} from {package_source}') from error
+
+        for package in cohort.packages:
+            restored_package = path.join(
+                package_root,
+                package.package_id.casefold(),
+                package.version.casefold())
+            if not path.isdir(restored_package):
+                raise ValueError(
+                    f'NuGet did not restore {package.package_id} {package.version} '
+                    f'from {package_source}')
+            installed_package = path.join(
+                dotnet_root, 'packs', package.package_id, package.version)
+            shutil.copytree(restored_package, installed_package, dirs_exist_ok=True)
+
+    missing_installed_packs = [
+        f'{package.package_id}/{package.version}'
+        for package in cohort.packages
+        if not path.isdir(path.join(
+            dotnet_root, 'packs', package.package_id, package.version))
+    ]
+    if missing_installed_packs:
+        raise ValueError(
+            f'CoreCLR browser-WASM workload installation is incomplete: '
+            f'{", ".join(missing_installed_packs)}')
+
+    getLogger().info(
+        'Installed coherent CoreCLR browser-WASM cohort %s for %s',
+        cohort.product_version,
+        cohort.host_rid)
+    return cohort
 
 _VERSION_RE = re.compile(r'^\d+\.\d+\.\d+')
 def version_type(value: str) -> str:

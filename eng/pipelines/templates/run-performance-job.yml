@@ -57,6 +57,7 @@ parameters:
   iOSStripSymbols: true            # optional -- Whether to strip symbols from the iOS build
   machinePool: ''                   # optional -- Machine pool name (e.g. Pixel8, GalaxyA16, iPhone17)
   additionalSetupParameters: ''     # optional -- Additional arguments to pass to the script
+  wasmWorkloadSource: ''             # optional -- Exclusive coherent package source for SDK CoreCLR browser-WASM
   liveLibrariesBuildConfig: ''      # optional -- Build configuration when generating Core_Root for libraries
   crossBuild: false                 # optional -- Whether the Core_Root is being cross-compiled
 
@@ -241,6 +242,8 @@ jobs:
               - '--cross-build'
             - ${{ if ne(parameters.additionalSetupParameters, '') }}:
               - '${{ parameters.additionalSetupParameters }}'
+            - ${{ if ne(parameters.wasmWorkloadSource, '') }}:
+              - '--wasm-workload-source "${{ parameters.wasmWorkloadSource }}"'
       - template: /eng/pipelines/templates/send-to-helix-step.yml
         parameters:
           osGroup: ${{ parameters.osGroup }}

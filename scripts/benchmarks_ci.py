@@ -101,6 +101,14 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=__is_valid_dotnet_path,
         help='Path to a custom dotnet'
     )
+    parser.add_argument(
+        '--wasm-workload-source',
+        dest='wasm_workload_source',
+        required=False,
+        help=(
+            'Exclusive NuGet source containing the coherent browser-WASM workload '
+            'packages for the selected SDK. Requires CoreCLR WASM ReadyToRun.')
+    )
 
     parser.add_argument('--upload-to-perflab-container',
         dest="upload_to_perflab_container",
@@ -220,6 +228,14 @@ def main(argv: list[str]):
         raise Exception("Framework version (-f) must be specified.")
 
     target_framework_monikers = dotnet.get_target_framework_monikers(args.frameworks)
+    if args.wasm_workload_source and not (
+            args.wasm
+            and args.wasm_runtime_flavor == 'CoreCLR'
+            and args.wasm_ready_to_run):
+        raise ValueError(
+            '--wasm-workload-source requires --wasm '
+            '--wasm-runtime-flavor CoreCLR --wasm-ready-to-run')
+
     # Acquire necessary tools (dotnet)
     if not args.dotnet_path:
         init_tools(
@@ -232,6 +248,15 @@ def main(argv: list[str]):
         )
     else:
         dotnet.setup_dotnet(args.dotnet_path)
+
+    if args.wasm_workload_source:
+        os.environ.pop('PERFLAB_WASM_PACKAGE_VERSION', None)
+        dotnet.install_wasm_workload(
+            architecture=args.architecture,
+            target_framework_monikers=target_framework_monikers,
+            package_source=args.wasm_workload_source,
+            sdk_versions=args.dotnet_versions,
+            verbose=verbose)
 
     # WORKAROUND
     # The MicroBenchmarks.csproj targets .NET Core 2.1, 3.0, 3.1 and 5.0
