@@ -507,7 +507,7 @@ def get_bdn_arguments(
             bdn_arguments += [
                 "--runtimes", "monoaotllvm",
                 "--aotcompilerpath", "$HELIX_CORRELATION_PAYLOAD/monoaot/mono-aot-cross",
-                "--customruntimepack", "$HELIX_CORRELATION_PAYLOAD/monoaot/pack", 
+                "--customruntimepack", "$HELIX_CORRELATION_PAYLOAD/monoaot/pack",
                 "--aotcompilermode", "llvm",
             ]
         else:
@@ -536,10 +536,7 @@ def get_bdn_arguments(
             bdn_arguments += ["\\\"--wasmArgs=--experimental-wasm-exnref\\\""]
 
         if is_aot:
-            bdn_arguments += [
-                "--aotcompilermode", "wasm",
-                "--buildTimeout", "3600"
-            ]
+            bdn_arguments += ["--buildTimeout", "3600"]
 
     if runtime_type == "wasm_coreclr":
         category_exclusions += ["NoWASM", "NoWasmCoreCLR", "NoMono"]
@@ -561,13 +558,13 @@ def get_bdn_arguments(
     if runtime_type == "coreclr_r2r_interpreter":
         if os_group == "windows":
             bdn_arguments += [
-                "--runtimes", "r2r11_0",
+                "--runtimes", "r2r11.0",
                 "--customruntimepack", "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\runtimepack",
                 "--aotcompilerpath", "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\crossgen2",
             ]
         else:
             bdn_arguments += [
-                "--runtimes", "r2r11_0",
+                "--runtimes", "r2r11.0",
                 "--customruntimepack", "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/runtimepack",
                 "--aotcompilerpath", "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/crossgen2",
             ]
@@ -690,7 +687,7 @@ def get_run_configurations(
 
     return configurations
 
-def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str, wasm_coreclr: bool = False, only_sanity_check: bool = False):
+def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str, wasm_coreclr: bool = False, wasm_aot: bool = False, only_sanity_check: bool = False):
     if os_group == "windows":
         work_item_command = [
             "python",
@@ -720,6 +717,8 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
         work_item_command += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
         if wasm_coreclr:
             work_item_command += ["--wasm-runtime-flavor", "CoreCLR"]
+        elif wasm_aot:
+            work_item_command += ["--wasm-runtime-flavor", "MonoAOT"]
 
     work_item_command += ["--bdn-artifacts", bdn_artifacts_dir]
 
@@ -1372,7 +1371,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     def get_work_item_command_for_artifact_dir(artifact_dir: str):
         assert args.target_csproj is not None
-        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir, wasm_coreclr, args.only_sanity_check)
+        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir, wasm_coreclr, wasm_aot, args.only_sanity_check)
     
     work_item_command = get_work_item_command_for_artifact_dir(bdn_artifacts_directory)
     baseline_work_item_command = get_work_item_command_for_artifact_dir(bdn_baseline_artifacts_dir)
