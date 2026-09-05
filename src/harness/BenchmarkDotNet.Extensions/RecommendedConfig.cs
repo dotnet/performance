@@ -28,7 +28,8 @@ namespace BenchmarkDotNet.Extensions
             List<string>? exclusionFilterValue = null,
             List<string>? categoryExclusionFilterValue = null,
             Job? job = null,
-            bool getDiffableDisasm = false)
+            bool getDiffableDisasm = false,
+            IReadOnlyList<string>? msBuildArguments = null)
         {
             if (job is null)
             {
@@ -41,6 +42,11 @@ namespace BenchmarkDotNet.Extensions
                     .WithEvaluateOverhead(Environment.GetEnvironmentVariable("PERFLAB_EVALUATE_OVERHEAD") == "1") // WASM has significant method-call overhead (1-10ns); subtract it when enabled
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
                 #pragma warning restore CS0618
+            }
+
+            if (msBuildArguments is not null && msBuildArguments.Count > 0)
+            {
+                job = job.WithMsBuildArguments(msBuildArguments.ToArray());
             }
 
             var config = ManualConfig.CreateEmpty()

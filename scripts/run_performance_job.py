@@ -559,6 +559,10 @@ def get_bdn_arguments(
             bdn_arguments += ["\\\"--wasmArgs=--experimental-wasm-exnref\\\""]
 
     if runtime_type == "coreclr_r2r_interpreter":
+        bdn_arguments += [
+            "--msbuild-arguments",
+            "/p:PublishReadyToRunCrossgen2ExtraArgs=--target-allows-runtime-code-generation:false",
+        ]
         if os_group == "windows":
             bdn_arguments += [
                 "--runtimes", "r2r11_0",
