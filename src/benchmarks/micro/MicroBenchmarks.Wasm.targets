@@ -19,14 +19,23 @@
   </PropertyGroup>
 
   <Target Name="ValidateWasmReadyToRunConfiguration"
+          DependsOnTargets="UpdateTargetingAndRuntimePack"
           BeforeTargets="PrepareForWasmBuild"
           Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'">
+    <ItemGroup>
+      <_PerformanceWasmResolvedRuntimePack Include="@(ResolvedRuntimePack)"
+                                           Condition="'%(ResolvedRuntimePack.FrameworkName)' == 'Microsoft.NETCore.App'" />
+      <_PerformanceWasmResolvedFrameworkReference Include="@(ResolvedFrameworkReference)"
+                                                  Condition="'%(ResolvedFrameworkReference.Identity)' == 'Microsoft.NETCore.App'" />
+    </ItemGroup>
     <Error Condition="'$(UseMonoRuntime)' != 'false'"
            Text="CoreCLR WASM R2R requires UseMonoRuntime=false." />
     <Error Condition="'$(PublishReadyToRun)' != 'true' or '$(PublishReadyToRunComposite)' != 'false' or '$(PublishReadyToRunContainerFormat)' != 'wasm' or '$(PublishTrimmed)' != 'true' or '$(WasmEnableWebcil)' != 'true'"
            Text="CoreCLR WASM R2R project properties were not applied." />
-    <Error Condition="'$(_PerformanceWasmRuntimePackName)' != 'Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)'"
-           Text="CoreCLR WASM R2R resolved an unexpected runtime pack '$(_PerformanceWasmRuntimePackName)'." />
+    <Error Condition="'@(_PerformanceWasmResolvedRuntimePack->Count())' != '1' or '@(_PerformanceWasmResolvedRuntimePack->'%(NuGetPackageId)')' != 'Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)'"
+           Text="CoreCLR WASM R2R resolved an unexpected runtime pack '@(_PerformanceWasmResolvedRuntimePack->'%(NuGetPackageId)')'." />
+    <Error Condition="'@(_PerformanceWasmResolvedFrameworkReference->Count())' != '1' or '@(_PerformanceWasmResolvedFrameworkReference->'%(RuntimePackName)')' != 'Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)'"
+           Text="CoreCLR WASM R2R resolved an unexpected framework runtime pack '@(_PerformanceWasmResolvedFrameworkReference->'%(RuntimePackName)')'." />
   </Target>
 
   <Target Name="ValidateWasmReadyToRunOutputs"

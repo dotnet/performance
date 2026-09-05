@@ -1,5 +1,6 @@
 import os
 import sys
+import xml.etree.ElementTree as ET
 from argparse import Namespace
 from pathlib import Path
 
@@ -64,6 +65,25 @@ def test_ready_to_run_has_distinct_result_configuration():
     assert configurations["CompilationMode"] == "wasm"
     assert configurations["RuntimeType"] == "coreclr"
     assert configurations["R2RType"] == "r2r"
+
+
+def test_ready_to_run_validates_resolved_runtime_pack_items():
+    targets_path = scripts_dir.parent / "src" / "benchmarks" / "micro" / "MicroBenchmarks.Wasm.targets"
+    target = ET.parse(targets_path).find("./Target[@Name='ValidateWasmReadyToRunConfiguration']")
+
+    assert target is not None
+    assert target.attrib["DependsOnTargets"] == "UpdateTargetingAndRuntimePack"
+
+    conditions = [error.attrib["Condition"] for error in target.findall("Error")]
+    assert any(
+        "_PerformanceWasmResolvedRuntimePack->'%(NuGetPackageId)'" in condition
+        for condition in conditions
+    )
+    assert any(
+        "_PerformanceWasmResolvedFrameworkReference->'%(RuntimePackName)'" in condition
+        for condition in conditions
+    )
+    assert all("_PerformanceWasmRuntimePackName" not in condition for condition in conditions)
 
 
 def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
