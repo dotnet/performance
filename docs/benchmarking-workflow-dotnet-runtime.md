@@ -11,6 +11,7 @@
       - [Install v8 engine](#install-v8-engine)
       - [Run the benchmarks with the interpreter](#run-the-benchmarks-with-the-interpreter)
       - [Run the benchmarks with AOT](#run-the-benchmarks-with-aot)
+      - [Run CoreCLR WASM ReadyToRun with a nightly or VMR SDK](#run-coreclr-wasm-readytorun-with-a-nightly-or-vmr-sdk)
       - [Note about "file ... being used by another process" error](#note-about-file--being-used-by-another-process-error)
     - [dotnet runtime testing for MonoAOT](#dotnet-runtime-testing-for-monoaot)
       - [Prerequisites (Files either built locally (with build.(sh/cmd) or downloaded from payload above (if same system setup) (in this order))](#prerequisites-files-either-built-locally-with-buildshcmd-or-downloaded-from-payload-above-if-same-system-setup-in-this-order)
@@ -203,6 +204,35 @@ Essentially, add `--aotcompilermode wasm` to the `--bdn-arguments=".."`:
 /path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net11.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --run-isolated --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
     --bdn-arguments="--category-exclusion-filter NoInterpreter NoWASM NoMono --aotcompilermode wasm --logBuildOutput --buildTimeout 3600 --filter <filter>"
 ```
+
+#### Run CoreCLR WASM ReadyToRun with a nightly or VMR SDK
+
+Use an exact SDK version together with a NuGet source containing the matching
+browser runtime/ref, WebAssembly SDK, host-specific Crossgen2, and ILLink
+packages, plus the complete `wasm-tools` pack closure. The source can be a
+downloaded VMR package directory or a coherent feed. Workload manifest updates
+are disabled and only exact versions recorded by the selected SDK are restored
+from that source, so packages cannot float to another build cohort.
+
+```cmd
+/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py \
+    --csproj src/benchmarks/micro/MicroBenchmarks.csproj \
+    -f net11.0 \
+    --dotnet-versions <vmr-sdk-version> \
+    --wasm \
+    --wasm-runtime-flavor CoreCLR \
+    --wasm-ready-to-run \
+    --wasm-workload-source /path/to/vmr/packages \
+    --run-isolated \
+    --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts \
+    --bdn-arguments="--category-exclusion-filter NoWASM --logBuildOutput --buildTimeout 3600 --filter <filter>"
+```
+
+Omit `--dotnet-versions` to use the existing `main` daily-channel SDK
+selection. In that case the package source must contain the product version
+recorded in that SDK's `Microsoft.NETCoreSdk.BundledVersions.props`.
+`PERFLAB_WASM_PACKAGE_VERSION` should remain unset; that override is reserved
+for non-official runtime payloads.
 
 #### Note about "file ... being used by another process" error
 
