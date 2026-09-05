@@ -35,6 +35,8 @@ from performance.tracer import setup_tracing, get_tracer
 setup_tracing()
 tracer = get_tracer()
 
+DOTNET_SOURCE_MANIFEST_URL = "https://raw.githubusercontent.com/dotnet/dotnet/{commit}/src/source-manifest.json"
+
 @tracer.start_as_current_span(name="info")
 def info(verbose: bool) -> None:
     """
@@ -617,6 +619,26 @@ def get_dotnet_sdk(
 
     with open(path.join(sdk_path, sdk, '.version')) as sdk_version_file:
         return sdk_version_file.readline().strip()
+
+def get_runtime_commit_hash(dotnet_commit_hash: str) -> str:
+    source_manifest_url = DOTNET_SOURCE_MANIFEST_URL.format(commit=dotnet_commit_hash)
+    with urlopen(source_manifest_url, timeout=60) as response:
+        source_manifest = json.load(response)
+
+    if not isinstance(source_manifest, dict):
+        raise ValueError(f"Invalid source manifest in {source_manifest_url}")
+
+    repositories = source_manifest.get("repositories")
+    if not isinstance(repositories, list):
+        raise ValueError(f"Repository list not found in {source_manifest_url}")
+
+    for repository in repositories:
+        if isinstance(repository, dict) and repository.get("path") == "runtime":
+            runtime_commit_hash = repository.get("commitSha")
+            if isinstance(runtime_commit_hash, str) and runtime_commit_hash:
+                return runtime_commit_hash
+
+    raise ValueError(f"Runtime commit hash not found in {source_manifest_url}")
 
 @tracer.start_as_current_span("dotnet_get_repository")
 def get_repository(repository: str) -> tuple[str, str]:

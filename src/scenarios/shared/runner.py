@@ -468,6 +468,7 @@ ex: C:\repos\performance;C:\repos\runtime
             androidHelper = AndroidHelper()
             try:
                 androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
+                androidHelper.enable_pss_profiling()
 
                 # Create the fullydrawn command
                 clearProcStatsCmd = xharness_adb() + [
@@ -486,6 +487,13 @@ ex: C:\repos\performance;C:\repos\runtime
                     'proc'
                 ]
 
+                captureMemoryStatsCmd = xharness_adb() + [
+                    'shell',
+                    'dumpsys',
+                    'meminfo',
+                    self.packagename
+                ]
+
                 clearLogsCmd = xharness_adb() + [
                     'logcat',
                     '-c'
@@ -499,6 +507,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     startStats = RunCommand(androidHelper.startappcommand, verbose=True)
                     startStats.run()
                     time.sleep(self.runtimeseconds)
+                    RunCommand(captureMemoryStatsCmd, verbose=True).run()
                     captureProcStats = RunCommand(captureProcStatsCmd, verbose=True)
                     captureProcStats.run()
 
@@ -513,7 +522,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     regexSearchString = r"TOTAL: [0-9]{2,3}% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB over \d+)\)"
                     dirtyCapture = re.search(regexSearchString, captureProcStats.stdout)
                     if not dirtyCapture:
-                        raise Exception("Failed to capture the reported start time!")
+                        raise Exception("Failed to capture Android memory statistics from procstats!")
                     splitNumber = dirtyCapture.group(1).replace("MB", "").strip().split(" over ")
                     splitMemory = splitNumber[0].split("/")
                     pss = splitMemory[0].split("-")

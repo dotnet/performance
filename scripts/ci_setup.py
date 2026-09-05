@@ -308,7 +308,8 @@ class CiSetupArgs:
             target_windows: bool = True,
             physical_promotion_status: Optional[str] = None,
             r2r_status: Optional[str] = None,
-            experiment_name: Optional[str] = None):
+            experiment_name: Optional[str] = None,
+            collect_sdk_repository_commits: bool = False):
         self.channel = channel
         self.quiet = quiet
         self.commit_sha = commit_sha
@@ -337,6 +338,7 @@ class CiSetupArgs:
         self.physical_promotion_status = physical_promotion_status
         self.r2r_status = r2r_status
         self.experiment_name = experiment_name
+        self.collect_sdk_repository_commits = collect_sdk_repository_commits
         self.perf_repo_branch = "main"
         self.only_sanity_check = False
 
@@ -459,6 +461,13 @@ def main(args: CiSetupArgs):
 
         assert commit_sha is not None # verified at start of main
 
+        runtime_commit_hash = None
+        if args.collect_sdk_repository_commits:
+            try:
+                runtime_commit_hash = dotnet.get_runtime_commit_hash(commit_sha)
+            except (OSError, ValueError) as error:
+                getLogger().warning(f"Unable to resolve runtime commit from dotnet/dotnet commit {commit_sha}: {error}")
+
         if args.local_build:
             source_timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
         elif(args.commit_time is not None):
@@ -494,6 +503,10 @@ def main(args: CiSetupArgs):
             out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
             out_file.write(variable_format % ('PERFLAB_PERFHASH', perfHash))
             out_file.write(variable_format % ('PERFLAB_HASH', commit_sha))
+            if args.collect_sdk_repository_commits:
+                out_file.write(variable_format % ('PERFLAB_DATA_dotnet_commit_hash', commit_sha))
+            if runtime_commit_hash:
+                out_file.write(variable_format % ('PERFLAB_DATA_runtime_commit_hash', runtime_commit_hash))
             out_file.write(variable_format % ('PERFLAB_QUEUE', args.queue))
             out_file.write(variable_format % ('PERFLAB_BUILDNUM', args.build_number))
             out_file.write(variable_format % ('PERFLAB_BUILDARCH', args.architecture))
