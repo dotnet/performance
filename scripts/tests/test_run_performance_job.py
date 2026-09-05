@@ -12,6 +12,7 @@ def get_generated_apt_commands(*, internal: bool, runtime_type: str) -> list[str
         codegen_type="jit",
         build_config="Release",
         v8_version="12.0.0",
+        wasm_local_package_version="11.0.0-ci" if runtime_type == "wasm_coreclr" else None,
     )
 
     return [
