@@ -1,4 +1,4 @@
-cryptography==48.0.1
+cryptography==50.0.0
 azure.storage.blob==12.13.0
 azure.storage.queue==12.4.0
 azure.identity==1.16.1
