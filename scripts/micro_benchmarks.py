@@ -9,7 +9,7 @@ from argparse import ArgumentTypeError
 from argparse import SUPPRESS
 from io import StringIO
 from logging import getLogger
-from os import path
+from os import environ, path
 from subprocess import CalledProcessError
 from traceback import format_exc
 from typing import Any
@@ -150,6 +150,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     )
 
     parser.add_argument(
+        '--wasm-ready-to-run',
+        dest='wasm_ready_to_run',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Publish CoreCLR WASM benchmarks as ReadyToRun'
+    )
+
+    parser.add_argument(
         '--bdn-arguments',
         dest='bdn_arguments',
         required=False,
@@ -233,7 +242,28 @@ def __process_arguments(args: list[str]):
     )
 
     parser = add_arguments(parser)
-    return parser.parse_args(args)
+    parsed_args = parser.parse_args(args)
+
+    try:
+        validate_wasm_ready_to_run(parsed_args)
+    except ArgumentTypeError as error:
+        parser.error(str(error))
+
+    return parsed_args
+
+
+def validate_wasm_ready_to_run(args: Any) -> None:
+    if args.wasm_ready_to_run and (not args.wasm or args.wasm_runtime_flavor != 'CoreCLR'):
+        raise ArgumentTypeError('--wasm-ready-to-run requires --wasm --wasm-runtime-flavor CoreCLR')
+
+
+def configure_wasm_ready_to_run(args: Any) -> None:
+    validate_wasm_ready_to_run(args)
+
+    # BenchmarkDotNet builds generated projects in child processes. MSBuild
+    # imports environment variables as properties, which lets the generated
+    # WASM project opt into R2R without requiring a new BDN command-line option.
+    environ['PERFLAB_WASM_READY_TO_RUN'] = str(args.wasm_ready_to_run).lower()
 
 
 def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:
@@ -362,6 +392,8 @@ def run(
     __log_script_header("Running .NET micro benchmarks for '{}'".format(
         framework
     ))
+
+    configure_wasm_ready_to_run(args)
 
     # dotnet exec
     run_args = __get_benchmarkdotnet_arguments(framework, args)

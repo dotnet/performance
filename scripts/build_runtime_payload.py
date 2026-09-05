@@ -325,13 +325,16 @@ def build_wasm_payload(
 def build_wasm_coreclr_payload(
     browser_wasm_coreclr_archive_or_dir: str,
     payload_parent_dir: str,
-) -> None:
+) -> str:
     """Create a WASM CoreCLR-only payload (dotnet).
 
     This is a self-contained payload for running CoreCLR WASM benchmarks without
     requiring Mono artifacts. The archive/directory layout is expected to contain
     a `staging/` folder with `dotnet-none` (SDK) and
     `microsoft.netcore.app.runtime.browser-wasm` (CoreCLR runtime pack) subfolders.
+
+    Returns:
+        The shared version of the locally built WebAssembly SDK and Crossgen2 packages.
     """
 
     wasm_dotnet_dir = os.path.join(payload_parent_dir, "dotnet")
@@ -346,6 +349,7 @@ def build_wasm_coreclr_payload(
     extract_archive_or_copy(
         browser_wasm_coreclr_archive_or_dir, wasm_built_nugets_dir, prefix="staging/built-nugets/"
     )
+    local_package_version = _get_wasm_local_package_version(wasm_built_nugets_dir)
 
     # Determine version from the runtime pack directory structure
     runtime_pack_src = os.path.join(
@@ -373,6 +377,45 @@ def build_wasm_coreclr_payload(
             getLogger().warning("Microsoft.NETCore.App.Ref pack not found – cannot determine version")
 
     _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir], mode=0o664)
+    return local_package_version
+
+
+def _get_wasm_local_package_version(built_nugets_dir: str) -> str:
+    package_prefix = "Microsoft.NET.Sdk.WebAssembly.Pack."
+    wasm_sdk_packages = [
+        package for package in Path(built_nugets_dir).glob(f"{package_prefix}*.nupkg")
+        if not package.name.endswith(".symbols.nupkg")
+    ]
+    if len(wasm_sdk_packages) != 1:
+        raise ValueError(
+            f"Expected one WebAssembly SDK package in {built_nugets_dir}, found {len(wasm_sdk_packages)}")
+
+    package_version = wasm_sdk_packages[0].name[len(package_prefix):-len(".nupkg")]
+    crossgen2_packages = [
+        package for package in Path(built_nugets_dir).glob("Microsoft.NETCore.App.Crossgen2.*.nupkg")
+        if not package.name.endswith(".symbols.nupkg")
+    ]
+    if len(crossgen2_packages) != 1:
+        raise ValueError(
+            f"Expected one Crossgen2 package in {built_nugets_dir}, found {len(crossgen2_packages)}")
+    if not crossgen2_packages[0].name.endswith(f".{package_version}.nupkg"):
+        raise ValueError(
+            f"WebAssembly SDK and Crossgen2 package versions do not match: "
+            f"{wasm_sdk_packages[0].name}, {crossgen2_packages[0].name}")
+
+    illink_packages = [
+        package for package in Path(built_nugets_dir).glob("Microsoft.NET.ILLink.Tasks.*.nupkg")
+        if not package.name.endswith(".symbols.nupkg")
+    ]
+    if len(illink_packages) != 1:
+        raise ValueError(
+            f"Expected one ILLink package in {built_nugets_dir}, found {len(illink_packages)}")
+    if illink_packages[0].name != f"Microsoft.NET.ILLink.Tasks.{package_version}.nupkg":
+        raise ValueError(
+            f"WebAssembly SDK and ILLink package versions do not match: "
+            f"{wasm_sdk_packages[0].name}, {illink_packages[0].name}")
+
+    return package_version
 
 
 def build_r2r_interpreter_payload(
