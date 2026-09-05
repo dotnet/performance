@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Newtonsoft.Json;
 using System;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using Xunit;
 
 namespace Reporting.Tests;
@@ -30,7 +30,6 @@ Metric         |Average                  |Min                      |Max
 ---------------|-------------------------|-------------------------|-------------------------
 CounterName    |10000000000000000.000 ns |10000000000000000.000 ns |10000000000000000.000 ns 
 ";
-
     private const string NoResultsTable =
 @"TestName
 No results in file.
@@ -57,6 +56,7 @@ No results in file.
                 new Counter
                 {
                     DefaultCounter = true,
+                    TopCounter = true,
                     MetricName = "ns",
                     Name = "CounterName",
                     Results = []
@@ -79,6 +79,7 @@ No results in file.
                 new Counter
                 {
                     DefaultCounter = true,
+                    TopCounter = true,
                     MetricName = "ns",
                     Name = "CounterName",
                     Results = null
@@ -119,7 +120,7 @@ No results in file.
     public void WriteReportWithLongNameTableWithoutEnvironment()
     {
         PerfLabEnvironmentProviderMock environment = new NonPerfLabEnvironmentProviderMock();
-        var reporter = GetReporterWithSpecifiedEnvironment(environment, counterName:"ThisIsALongerCounterName");
+        var reporter = GetReporterWithSpecifiedEnvironment(environment, counterName: "ThisIsALongerCounterName");
         var table = reporter.WriteResultTable();
         Assert.Equal(LongCounterNameTable, table);
     }
@@ -139,8 +140,9 @@ No results in file.
         var environment = new PerfLabEnvironmentProviderMock();
         var reporter = GetReporterWithSpecifiedEnvironment(environment);
         var jsonString = reporter.GetJson();
+        Assert.NotNull(jsonString);
 
-        var jsonObj = JsonConvert.DeserializeObject<Reporter>(jsonString);
+        var jsonObj = DeserializeReporter(jsonString);
 
         Assert.Equal(environment.GetEnvironmentVariable("HELIX_CORRELATION_ID"), jsonObj.Run.CorrelationId);
         Assert.Equal(environment.GetEnvironmentVariable("HELIX_WORKITEM_FRIENDLYNAME"), jsonObj.Run.WorkItemName);
@@ -166,6 +168,55 @@ No results in file.
         Assert.Equal("CounterName", retCounter.Name);
         Assert.Equal("ns", retCounter.MetricName);
         Assert.Equal(1.1, retCounter.Results[0]);
+    }
+
+    [Fact]
+    public void LegacyCounterJsonRemainsCompatible()
+    {
+        var reporter = GetReporterWithSpecifiedEnvironment(new PerfLabEnvironmentProviderMock());
+        var jsonString = reporter.GetJson();
+        Assert.NotNull(jsonString);
+
+        using var document = JsonDocument.Parse(jsonString);
+        var jsonCounter = document.RootElement.GetProperty("tests")[0].GetProperty("counters")[0];
+
+        Assert.Equal(JsonValueKind.False, jsonCounter.GetProperty("higherIsBetter").ValueKind);
+        Assert.False(jsonCounter.TryGetProperty("regressionThreshold", out _));
+        Assert.False(jsonCounter.TryGetProperty("direction", out _));
+
+        var deserialized = DeserializeReporter(jsonString);
+        Assert.False(deserialized.Tests[0].Counters[0].HigherIsBetter);
+        Assert.Null(deserialized.Tests[0].Counters[0].RegressionThreshold);
+    }
+
+    [Fact]
+    public void RegressionThresholdIsSerialized()
+    {
+        var reporter = GetReporterWithSpecifiedEnvironment(new PerfLabEnvironmentProviderMock());
+        reporter.Tests[0].Counters[0].RegressionThreshold = 0.02;
+
+        var jsonString = reporter.GetJson();
+        Assert.NotNull(jsonString);
+
+        using var document = JsonDocument.Parse(jsonString);
+        var jsonCounter = document.RootElement.GetProperty("tests")[0].GetProperty("counters")[0];
+        Assert.Equal(0.02, jsonCounter.GetProperty("regressionThreshold").GetDouble());
+
+        var deserialized = DeserializeReporter(jsonString);
+        Assert.Equal(0.02, deserialized.Tests[0].Counters[0].RegressionThreshold);
+    }
+
+    [Fact]
+    public void NonFiniteResultsRoundTrip()
+    {
+        var reporter = GetReporterWithSpecifiedEnvironment(new PerfLabEnvironmentProviderMock(), result: double.NaN);
+
+        var jsonString = reporter.GetJson();
+        Assert.NotNull(jsonString);
+        Assert.Contains("\"NaN\"", jsonString);
+
+        var deserialized = DeserializeReporter(jsonString);
+        Assert.True(double.IsNaN(deserialized.Tests[0].Counters[0].Results[0]));
     }
 
     [Fact]
@@ -204,6 +255,9 @@ No results in file.
         t.AddCounters([c1, c2]);
         Assert.Equal(2, t.Counters.Count);
     }
+
+    private static Reporter DeserializeReporter(string json)
+        => Reporter.FromJson(json);
 
     private static Reporter GetReporterWithSpecifiedEnvironment(PerfLabEnvironmentProviderMock enviroment, string counterName = null, double result = 1.1)
     {
