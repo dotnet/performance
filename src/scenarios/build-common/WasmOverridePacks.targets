@@ -1,4 +1,10 @@
 <Project>
+  <PropertyGroup>
+    <_PerformanceWasmRuntimePackName Condition="'$(UseMonoRuntime)' == 'false'">Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)</_PerformanceWasmRuntimePackName>
+    <_PerformanceWasmRuntimePackName Condition="'$(_PerformanceWasmRuntimePackName)' == ''">Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)</_PerformanceWasmRuntimePackName>
+    <_PerformanceWasmToolchainPackVersion Condition="'$(PERFLAB_WASM_PACKAGE_VERSION)' != ''">$(PERFLAB_WASM_PACKAGE_VERSION)</_PerformanceWasmToolchainPackVersion>
+  </PropertyGroup>
+
   <!-- SDK tries to download runtime packs when RuntimeIdentifier is set, remove them from PackageDownload item. -->
   <Target Name="RemoveRuntimePackFromDownloadItem"
           AfterTargets="ProcessFrameworkReferences">
@@ -16,16 +22,16 @@
     <ItemGroup>
       <ResolvedRuntimePack
           FrameworkName="Microsoft.NETCore.App"
-          NuGetPackageId="Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)"
+          NuGetPackageId="$(_PerformanceWasmRuntimePackName)"
           NuGetPackageVersion="$(_RuntimePackInWorkloadVersionCurrent)"
           PackageDirectory="$(NetCoreTargetingPackRoot)\%(Identity)\$(_RuntimePackInWorkloadVersionCurrent)"
           RuntimeIdentifier="$(RuntimeIdentifier)" />
 
       <ResolvedFrameworkReference
           Condition="'%(Identity)' == 'Microsoft.NETCore.App'"
-          RuntimePackName="Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)"
+          RuntimePackName="$(_PerformanceWasmRuntimePackName)"
           RuntimePackVersion="$(_RuntimePackInWorkloadVersionCurrent)"
-          RuntimePackPath="$(NetCoreTargetingPackRoot)\Microsoft.NETCore.App.Runtime.Mono.$(RuntimeIdentifier)\$(_RuntimePackInWorkloadVersionCurrent)"
+          RuntimePackPath="$(NetCoreTargetingPackRoot)\$(_PerformanceWasmRuntimePackName)\$(_RuntimePackInWorkloadVersionCurrent)"
           RuntimeIdentifier="$(RuntimeIdentifier)" />
     </ItemGroup>
   </Target>
@@ -58,8 +64,25 @@
     </ItemGroup>
   </Target>
 
-  <ItemGroup>
-    <KnownWebAssemblySdkPack Update="Microsoft.NET.Sdk.WebAssembly.Pack"
-      WebAssemblySdkPackVersion="$(_RuntimePackInWorkloadVersionCurrent)" />
-  </ItemGroup>
+  <!-- Workload manifests can update these items after project evaluation. Apply
+       the local cohort immediately before the SDK consumes them. -->
+  <Target Name="_UpdatePerformanceWasmToolchainPacks"
+          BeforeTargets="ProcessFrameworkReferences">
+    <PropertyGroup>
+      <_PerformanceWasmToolchainPackVersion Condition="'$(_PerformanceWasmToolchainPackVersion)' == ''">$(_RuntimePackInWorkloadVersionCurrent)</_PerformanceWasmToolchainPackVersion>
+    </PropertyGroup>
+    <ItemGroup>
+      <KnownWebAssemblySdkPack Update="@(KnownWebAssemblySdkPack)">
+        <WebAssemblySdkPackVersion Condition="'%(KnownWebAssemblySdkPack.TargetFramework)' == '$(TargetFramework)'">$(_PerformanceWasmToolchainPackVersion)</WebAssemblySdkPackVersion>
+      </KnownWebAssemblySdkPack>
+      <KnownCrossgen2Pack Update="@(KnownCrossgen2Pack)"
+                          Condition="'$(UseMonoRuntime)' == 'false'">
+        <Crossgen2PackVersion Condition="'%(KnownCrossgen2Pack.TargetFramework)' == '$(TargetFramework)'">$(_PerformanceWasmToolchainPackVersion)</Crossgen2PackVersion>
+      </KnownCrossgen2Pack>
+      <KnownILLinkPack Update="@(KnownILLinkPack)"
+                       Condition="'$(UseMonoRuntime)' == 'false'">
+        <ILLinkPackVersion Condition="'%(KnownILLinkPack.TargetFramework)' == '$(TargetFramework)'">$(_PerformanceWasmToolchainPackVersion)</ILLinkPackVersion>
+      </KnownILLinkPack>
+    </ItemGroup>
+  </Target>
 </Project>
