@@ -31,6 +31,11 @@ def apt_command(arguments: str, *, executable: str = "apt-get") -> str:
     return f"sudo {executable} {APT_LOCK_TIMEOUT_OPTION} {arguments}"
 
 
+def normalize_wasm_workload_source(source: Optional[str]) -> Optional[str]:
+    normalized_source = source.strip() if source else ""
+    return normalized_source or None
+
+
 def output_counters_for_crank(reports: list[Any]):
     print("#StartJobStatistics")
 
@@ -981,18 +986,20 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     v8_version = ""
     wasm_local_package_version = None
+    wasm_workload_source = normalize_wasm_workload_source(
+        args.wasm_workload_source)
     wasm_sdk_cohort = (
         wasm_coreclr
         and args.r2r_run_type == "r2r"
-        and args.wasm_workload_source is not None)
+        and wasm_workload_source is not None)
     helix_wasm_workload_source = (
-        args.wasm_workload_source if wasm_sdk_cohort else None)
-    if wasm_sdk_cohort and args.wasm_workload_source:
-        parsed_workload_source = urllib.parse.urlparse(args.wasm_workload_source)
+        wasm_workload_source if wasm_sdk_cohort else None)
+    if wasm_sdk_cohort and wasm_workload_source:
+        parsed_workload_source = urllib.parse.urlparse(wasm_workload_source)
         local_workload_source = (
             urllib.request.url2pathname(parsed_workload_source.path)
             if parsed_workload_source.scheme == "file"
-            else os.path.abspath(args.wasm_workload_source))
+            else os.path.abspath(wasm_workload_source))
         if os.path.isdir(local_workload_source):
             payload_workload_source = os.path.join(
                 payload_dir, "wasm-workload-source")

@@ -275,7 +275,7 @@ def install_wasm_workload(
             '--wasm-workload-source requires exactly one target framework')
     if len(sdk_versions) > 1:
         raise ValueError(
-            '--wasm-workload-source requires exactly one SDK version')
+            '--wasm-workload-source supports at most one SDK version')
 
     dotnet_root = environ.get('DOTNET_ROOT')
     if not dotnet_root:

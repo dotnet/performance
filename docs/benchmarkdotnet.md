@@ -27,7 +27,6 @@ BenchmarkDotNet is the benchmarking tool that allows to run benchmarks for .NET,
     - [Running In Process](#running-in-process)
     - [CoreRun](#corerun)
     - [dotnet cli](#dotnet-cli)
-    - [Private Runtime Builds](#private-runtime-builds)
     - [Private CoreRT Build](#private-corert-build)
 
 ## Main Concepts

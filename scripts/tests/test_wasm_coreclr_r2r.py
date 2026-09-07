@@ -13,7 +13,12 @@ sys.path.insert(0, str(scripts_dir))
 import micro_benchmarks
 import dotnet
 from build_runtime_payload import build_wasm_coreclr_payload
-from run_performance_job import get_pre_commands, get_run_configurations, get_work_item_command
+from run_performance_job import (
+    get_pre_commands,
+    get_run_configurations,
+    get_work_item_command,
+    normalize_wasm_workload_source,
+)
 
 
 def test_ready_to_run_requires_coreclr_wasm():
@@ -213,6 +218,17 @@ def test_non_r2r_coreclr_command_ignores_shared_workload_source():
     assert "--wasm-workload-source" not in command
 
 
+@pytest.mark.parametrize("source", [None, "", "   "])
+def test_empty_workload_source_is_not_enabled(source):
+    assert normalize_wasm_workload_source(source) is None
+
+
+def test_workload_source_is_trimmed():
+    assert normalize_wasm_workload_source(
+        "  https://example.test/cohort/v3/index.json  "
+    ) == "https://example.test/cohort/v3/index.json"
+
+
 @pytest.mark.parametrize(
     ("system", "architecture", "libc", "expected"),
     [
@@ -316,6 +332,17 @@ def test_local_cohort_source_requires_all_exact_packages(tmp_path, monkeypatch):
             target_framework_monikers=["net11.0"],
             package_source=str(package_source),
             sdk_versions=[sdk_version],
+            verbose=False,
+        )
+
+
+def test_cohort_source_rejects_multiple_sdk_versions():
+    with pytest.raises(ValueError, match="at most one SDK version"):
+        dotnet.install_wasm_workload(
+            architecture="x64",
+            target_framework_monikers=["net11.0"],
+            package_source="https://example.test/cohort/v3/index.json",
+            sdk_versions=["11.0.100-preview.1", "11.0.100-preview.2"],
             verbose=False,
         )
 
