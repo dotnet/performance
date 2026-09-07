@@ -55,37 +55,15 @@ schedules:
   always: true
 
 jobs:
-  # Test branch: run one configuration per mobile platform.
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
+  - template: /eng/pipelines/sdk-perf-jobs.yml
     parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-      isPublic: false
+      ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
+        runPublicJobs: true
+      ${{ if ne(variables['System.TeamProject'], 'public') }}:
+        ${{ if or(notin(variables['Build.Reason'], 'PullRequest', 'Manual'), parameters.runPrivateJobs) }}:
+          runPrivateJobs: true
+        ${{ if or(eq(variables['Build.CronSchedule.DisplayName'], 'Every 12 hours build'), parameters.runScheduledPrivateJobs) }}:
+          runScheduledPrivateJobs: true
       jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: CoreCLR
-        onlySanityCheck: ${{ parameters.onlySanityCheck }}
-
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - main
-        runtimeFlavor: coreclr
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: CoreCLR
-        onlySanityCheck: ${{ parameters.onlySanityCheck }}
+        ${{ if parameters.onlySanityCheck }}:
+          onlySanityCheck: true
