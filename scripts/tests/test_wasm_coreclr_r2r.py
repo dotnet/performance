@@ -18,6 +18,7 @@ from run_performance_job import (
     get_run_configurations,
     get_work_item_command,
     normalize_wasm_workload_source,
+    set_shell_environment_variable,
 )
 
 
@@ -168,6 +169,38 @@ def test_coreclr_pre_commands_export_local_toolchain_package_version():
 
     assert any("PERFLAB_WASM_PACKAGE_VERSION=11.0.0-ci" in command for command in commands)
     assert any("RestoreAdditionalProjectSources" in command for command in commands)
+
+
+def test_windows_coreclr_pre_commands_set_private_package_overrides():
+    commands = get_pre_commands(
+        os_group="windows",
+        os_distro=None,
+        internal=False,
+        runtime_type="wasm_coreclr",
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+        wasm_local_package_version="11.0.0-ci",
+    )
+
+    combined_commands = "\n".join(commands)
+    assert 'set "PERFLAB_WASM_PACKAGE_VERSION=11.0.0-ci"' in combined_commands
+    assert (
+        'set "RestoreAdditionalProjectSources='
+        '%HELIX_CORRELATION_PAYLOAD%\\built-nugets"'
+    ) in combined_commands
+    assert "export RestoreAdditionalProjectSources" not in combined_commands
+
+
+@pytest.mark.parametrize(
+    ("os_group", "expected"),
+    [
+        ("windows", 'set "NAME=value"'),
+        ("linux", "export NAME=value"),
+    ],
+)
+def test_shell_environment_variable_command(os_group, expected):
+    assert set_shell_environment_variable(os_group, "NAME", "value") == expected
 
 
 def test_coreclr_sdk_pre_commands_do_not_enable_private_package_overrides():

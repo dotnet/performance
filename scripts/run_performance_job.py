@@ -36,6 +36,15 @@ def normalize_wasm_workload_source(source: Optional[str]) -> Optional[str]:
     return normalized_source or None
 
 
+def set_shell_environment_variable(
+        os_group: str,
+        name: str,
+        value: str) -> str:
+    if os_group == "windows":
+        return f'set "{name}={value}"'
+    return f"export {name}={value}"
+
+
 def output_counters_for_crank(reports: list[Any]):
     print("#StartJobStatistics")
 
@@ -299,7 +308,10 @@ def get_pre_commands(
         if runtime_type == "wasm_coreclr":
             if wasm_local_package_version:
                 install_prerequisites += [
-                    f"export PERFLAB_WASM_PACKAGE_VERSION={wasm_local_package_version}"
+                    set_shell_environment_variable(
+                        os_group,
+                        "PERFLAB_WASM_PACKAGE_VERSION",
+                        wasm_local_package_version)
                 ]
             elif not use_workload_source:
                 raise ValueError(
@@ -339,10 +351,16 @@ def get_pre_commands(
             ]
 
         if not use_workload_source:
+            correlation_payload = (
+                "%HELIX_CORRELATION_PAYLOAD%\\built-nugets"
+                if os_group == "windows"
+                else "$HELIX_CORRELATION_PAYLOAD/built-nugets")
             install_prerequisites.insert(
                 0,
-                "export RestoreAdditionalProjectSources="
-                "$HELIX_CORRELATION_PAYLOAD/built-nugets")
+                set_shell_environment_variable(
+                    os_group,
+                    "RestoreAdditionalProjectSources",
+                    correlation_payload))
 
     # Add the install_prerequisites to the pre_commands
     if os_group == "windows":
