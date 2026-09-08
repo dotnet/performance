@@ -12,12 +12,12 @@ namespace System.Net.Security.Tests
 {
     public partial class SslStreamTests
     {
-        private static readonly Task<bool> s_supportsTls13 = GetTls13SupportAsync();
+        private static readonly Lazy<Task<bool>> s_supportsTls13 = new(GetTls13SupportAsync);
 
         public static async IAsyncEnumerable<object[]> TlsProtocols()
         {
             yield return new object[] { SslProtocols.Tls12 };
-            if (await s_supportsTls13)
+            if (await s_supportsTls13.Value)
             {
                 yield return new object[] { SslProtocols.Tls13 };
             }

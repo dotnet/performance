@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -57,8 +58,8 @@ public class MonoAotLLVMGenerator : CsProjGenerator
     private static async Task<string> LoadTemplateAsync(CancellationToken cancellationToken)
     {
         var assembly = typeof(MonoAotLLVMGenerator).Assembly;
-        string resourceName = System.Array.Find(assembly.GetManifestResourceNames(), n => n.EndsWith("MonoAOTLLVMCsProj.txt"))
-            ?? throw new FileNotFoundException("Embedded resource MonoAOTLLVMCsProj.txt not found");
+        string resourceName = System.Array.Find(assembly.GetManifestResourceNames(), n => n.EndsWith("MonoAotLLVMCsProj.txt", StringComparison.OrdinalIgnoreCase))
+            ?? throw new FileNotFoundException("Embedded resource MonoAotLLVMCsProj.txt not found");
         using var stream = assembly.GetManifestResourceStream(resourceName)!;
         using var reader = new StreamReader(stream);
         return await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
