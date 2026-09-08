@@ -399,13 +399,12 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         os.environ['RestoreAdditionalProjectSources'] = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle")
 
     elif specific_run_type == RunType.WasmAOT:
-        benchmark_ci_args += ['--wasm', '--dotnet-path', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle", "dotnet")]
+        benchmark_ci_args += ['--wasm', '--wasm-runtime-flavor', 'MonoAOT', '--dotnet-path', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle", "dotnet")]
         bdn_args_unescaped += [
             '--anyCategories', 'Libraries', 'Runtime',
             '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
             '--cli', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle", "dotnet", "dotnet"),
             '--wasmEngine', parsed_args.wasm_engine_path,
-            '--aotcompilermode', 'wasm',
             '--logBuildOutput',
             '--generateBinLog'
         ]

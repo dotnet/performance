@@ -23,4 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tools\Reporting\Reporting\Reporting.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="MonoAotLLVM\MonoAotLLVMCsProj.txt" />
+  </ItemGroup>
 </Project>

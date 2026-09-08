@@ -515,7 +515,7 @@ def get_bdn_arguments(
             bdn_arguments += [
                 "--runtimes", "monoaotllvm",
                 "--aotcompilerpath", "$HELIX_CORRELATION_PAYLOAD/monoaot/mono-aot-cross",
-                "--customruntimepack", "$HELIX_CORRELATION_PAYLOAD/monoaot/pack", 
+                "--customruntimepack", "$HELIX_CORRELATION_PAYLOAD/monoaot/pack",
                 "--aotcompilermode", "llvm",
             ]
         else:
@@ -544,10 +544,7 @@ def get_bdn_arguments(
             bdn_arguments += ["\\\"--wasmArgs=--experimental-wasm-exnref\\\""]
 
         if is_aot:
-            bdn_arguments += [
-                "--aotcompilermode", "wasm",
-                "--buildTimeout", "3600"
-            ]
+            bdn_arguments += ["--buildTimeout", "3600"]
 
     if runtime_type == "wasm_coreclr":
         category_exclusions += ["NoWASM", "NoWasmCoreCLR", "NoMono"]
@@ -569,13 +566,13 @@ def get_bdn_arguments(
     if runtime_type == "coreclr_r2r_interpreter":
         if os_group == "windows":
             bdn_arguments += [
-                "--runtimes", "r2r11_0",
+                "--runtimes", "r2r11.0",
                 "--customruntimepack", "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\runtimepack",
                 "--aotcompilerpath", "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\crossgen2",
             ]
         else:
             bdn_arguments += [
-                "--runtimes", "r2r11_0",
+                "--runtimes", "r2r11.0",
                 "--customruntimepack", "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/runtimepack",
                 "--aotcompilerpath", "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/crossgen2",
             ]
@@ -710,6 +707,7 @@ def get_work_item_command(
         bdn_artifacts_dir: str,
         wasm_coreclr: bool = False,
         wasm_ready_to_run: bool = False,
+        wasm_aot: bool = False,
         only_sanity_check: bool = False):
     if os_group == "windows":
         work_item_command = [
@@ -742,6 +740,8 @@ def get_work_item_command(
             work_item_command += ["--wasm-runtime-flavor", "CoreCLR"]
             if wasm_ready_to_run:
                 work_item_command += ["--wasm-ready-to-run"]
+        elif wasm_aot:
+            work_item_command += ["--wasm-runtime-flavor", "MonoAOT"]
 
     work_item_command += ["--bdn-artifacts", bdn_artifacts_dir]
 
@@ -1413,6 +1413,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             artifact_dir,
             wasm_coreclr,
             wasm_coreclr and args.r2r_run_type == "r2r",
+            wasm_aot,
             args.only_sanity_check)
     
     work_item_command = get_work_item_command_for_artifact_dir(bdn_artifacts_directory)

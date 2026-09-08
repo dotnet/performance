@@ -197,11 +197,11 @@ Make sure you have the v8 engine installed and in the PATH. Follow the installat
 
 #### Run the benchmarks with AOT
 
-Essentially, add `--aotcompilermode wasm` to the `--bdn-arguments=".."`:
+Essentially, add `--wasm-runtime-flavor MonoAOT` alongside `--wasm`:
 
 ```cmd
-/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net11.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --run-isolated --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
-    --bdn-arguments="--category-exclusion-filter NoInterpreter NoWASM NoMono --aotcompilermode wasm --logBuildOutput --buildTimeout 3600 --filter <filter>"
+/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net11.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --wasm-runtime-flavor MonoAOT --run-isolated --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
+    --bdn-arguments="--category-exclusion-filter NoInterpreter NoWASM NoMono --logBuildOutput --buildTimeout 3600 --filter <filter>"
 ```
 
 #### Note about "file ... being used by another process" error
