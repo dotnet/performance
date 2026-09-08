@@ -16,8 +16,13 @@
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'mono'">/p:UseMonoRuntime=true</_MSBuildArgs>
     <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:UseMonoRuntime=false</_MSBuildArgs>
 
-    <!-- CoreCLR: disable ReadyToRun so inner loop measures JIT behavior -->
-    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">$(_MSBuildArgs);/p:PublishReadyToRun=false;/p:PublishReadyToRunComposite=false</_MSBuildArgs>
+    <!-- CoreCLR: disable ReadyToRun so inner loop measures JIT behavior.
+         Use spaces (not ';') to separate args: _MSBuildArgs is passed as a
+         single quoted argument in the Helix PreCommands/Command, and Helix
+         treats ';' as a command separator when generating the run script
+         (that's why the env-var 'set ...;set ...' blocks work). A ';' here
+         would split the quoted argument across separate command lines. -->
+    <_MSBuildArgs Condition="'$(RuntimeFlavor)' == 'coreclr'">$(_MSBuildArgs) /p:PublishReadyToRun=false /p:PublishReadyToRunComposite=false</_MSBuildArgs>
 
     <!-- AndroidRid: defaults based on target OS but can be overridden.
          Windows targets physical devices; Linux targets emulators. -->

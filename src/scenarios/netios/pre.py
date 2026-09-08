@@ -27,7 +27,7 @@ with MauiNuGetConfigContext(precommands):
                     no_restore=False)
 
     # Build the IPA - will use merged NuGet.config
-    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.xamarintesting'])
+    precommands.execute(['/p:EnableCodeSigning=true', '/p:CodesignKey=-', '/p:ApplicationId=net.dot.xamarintesting'])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR

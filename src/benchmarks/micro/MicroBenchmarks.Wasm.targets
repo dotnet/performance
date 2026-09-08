@@ -10,8 +10,47 @@
     <_WasmStrictVersionMatch>false</_WasmStrictVersionMatch>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' and '$(UseMonoRuntime)' == 'false'">
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishReadyToRunComposite>false</PublishReadyToRunComposite>
+    <PublishReadyToRunContainerFormat>wasm</PublishReadyToRunContainerFormat>
+    <PublishTrimmed>true</PublishTrimmed>
+    <WasmEnableWebcil>true</WasmEnableWebcil>
+  </PropertyGroup>
+
+  <Target Name="ValidateWasmReadyToRunConfiguration"
+          DependsOnTargets="UpdateTargetingAndRuntimePack"
+          BeforeTargets="PrepareForWasmBuild"
+          Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'">
+    <ItemGroup>
+      <_PerformanceWasmResolvedRuntimePack Include="@(ResolvedRuntimePack)"
+                                           Condition="'%(ResolvedRuntimePack.FrameworkName)' == 'Microsoft.NETCore.App'" />
+      <_PerformanceWasmResolvedFrameworkReference Include="@(ResolvedFrameworkReference)"
+                                                  Condition="'%(ResolvedFrameworkReference.Identity)' == 'Microsoft.NETCore.App'" />
+    </ItemGroup>
+    <Error Condition="'$(UseMonoRuntime)' != 'false'"
+           Text="CoreCLR WASM R2R requires UseMonoRuntime=false." />
+    <Error Condition="'$(PublishReadyToRun)' != 'true' or '$(PublishReadyToRunComposite)' != 'false' or '$(PublishReadyToRunContainerFormat)' != 'wasm' or '$(PublishTrimmed)' != 'true' or '$(WasmEnableWebcil)' != 'true'"
+           Text="CoreCLR WASM R2R project properties were not applied." />
+    <Error Condition="'@(_PerformanceWasmResolvedRuntimePack->Count())' != '1' or '@(_PerformanceWasmResolvedRuntimePack->'%(NuGetPackageId)')' != 'Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)'"
+           Text="CoreCLR WASM R2R resolved an unexpected runtime pack '@(_PerformanceWasmResolvedRuntimePack->'%(NuGetPackageId)')'." />
+    <Error Condition="'@(_PerformanceWasmResolvedFrameworkReference->Count())' != '1' or '@(_PerformanceWasmResolvedFrameworkReference->'%(RuntimePackName)')' != 'Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)'"
+           Text="CoreCLR WASM R2R resolved an unexpected framework runtime pack '@(_PerformanceWasmResolvedFrameworkReference->'%(RuntimePackName)')'." />
+  </Target>
+
+  <Target Name="ValidateWasmReadyToRunOutputs"
+          AfterTargets="_CreateR2RImages"
+          Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'">
+    <Error Condition="'@(_ReadyToRunFilesToPublish)' == ''"
+           Text="CoreCLR WASM R2R did not produce any ReadyToRun images." />
+  </Target>
+
   <ItemGroup>
     <TrimmerRootDescriptor Include="$(MSBuildThisFileDirectory)ILLink.Descriptors.Serialization.xml" />
+
+    <!-- Crossgen currently emits invalid WASM for Jil's ISO8601 TimeSpan deserializer. -->
+    <PublishReadyToRunExclude Include="Jil.dll"
+                              Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'" />
 
     <_AOT_InternalForceInterpretAssemblies Include="Microsoft.CodeAnalysis.CSharp.dll" />
     <_AOT_InternalForceInterpretAssemblies Include="Microsoft.CodeAnalysis.dll" />

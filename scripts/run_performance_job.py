@@ -23,6 +23,12 @@ from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
 DEFAULT_BUILD_CONFIG = "Release"
+APT_LOCK_TIMEOUT_OPTION = "-o DPkg::Lock::Timeout=120"
+
+
+def apt_command(arguments: str, *, executable: str = "apt-get") -> str:
+    return f"sudo {executable} {APT_LOCK_TIMEOUT_OPTION} {arguments}"
+
 
 def output_counters_for_crank(reports: list[Any]):
     print("#StartJobStatistics")
@@ -202,7 +208,8 @@ def get_pre_commands(
         runtime_type: str,
         codegen_type: str,
         build_config: str,
-        v8_version: str):
+        v8_version: str,
+        wasm_local_package_version: Optional[str] = None):
     helix_pre_commands: list[str] = []
 
     # Remember the previous PYTHONPATH that was set so it can be restored in the post commands
@@ -231,10 +238,8 @@ def get_pre_commands(
                     ]
                 else:
                     install_prerequisites += [
-                        'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
-                        'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
-                        "sudo apt-get remove -y lttng-modules-dkms", # https://github.com/dotnet/runtime/pull/101142
-                        "sudo apt-get -y install python3-pip"
+                        apt_command("remove -y lttng-modules-dkms"),  # https://github.com/dotnet/runtime/pull/101142
+                        apt_command("-y install python3-pip")
                     ]
 
             install_prerequisites += [
@@ -272,12 +277,22 @@ def get_pre_commands(
                 ]
             else:
                 install_prerequisites += [
-                    "sudo apt-get update",
-                    "sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates"
+                    apt_command("update"),
+                    apt_command(
+                        "-y install curl dirmngr apt-transport-https lsb-release ca-certificates",
+                        executable="apt"
+                    )
                 ]
 
     # Set up everything needed for WASM runs (both Mono and CoreCLR)
-    if runtime_type in ("wasm", "wasm_coreclr"):  
+    if runtime_type in ("wasm", "wasm_coreclr"):
+        if runtime_type == "wasm_coreclr":
+            if not wasm_local_package_version:
+                raise ValueError("CoreCLR WASM requires a local WebAssembly toolchain package version")
+            install_prerequisites += [
+                f"export PERFLAB_WASM_PACKAGE_VERSION={wasm_local_package_version}"
+            ]
+
         if os_distro == "azurelinux":
             # Azure Linux uses tdnf package manager
             install_prerequisites += [
@@ -294,19 +309,17 @@ def get_pre_commands(
         else:
             install_prerequisites += [
                 "export RestoreAdditionalProjectSources=$HELIX_CORRELATION_PAYLOAD/built-nugets",
-                'echo "** Waiting for dpkg to unlock (up to 2 minutes) **"',
-                'timeout 2m bash -c \'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do if [ -z "$printed" ]; then echo "Waiting for dpkg lock to be released... Lock is held by: $(ps -o cmd= -p $(sudo fuser /var/lib/dpkg/lock-frontend))"; printed=1; fi; echo "Waiting 5 seconds to check again"; sleep 5; done;\'',
-                "sudo apt-get -y remove nodejs",
-                "sudo apt-get update",
-                "sudo apt-get install -y ca-certificates curl gnupg",
+                apt_command("-y remove nodejs"),
+                apt_command("update"),
+                apt_command("install -y ca-certificates curl gnupg"),
                 "sudo mkdir -p /etc/apt/keyrings",
                 "sudo rm -f /etc/apt/keyrings/nodesource.gpg",
                 "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor --batch -o /etc/apt/keyrings/nodesource.gpg",
                 "export NODE_MAJOR=18",
                 "echo \"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main\" | sudo tee /etc/apt/sources.list.d/nodesource.list",
-                "sudo apt-get update",
-                "sudo apt autoremove -y",
-                "sudo apt-get install nodejs -y",
+                apt_command("update"),
+                apt_command("autoremove -y", executable="apt"),
+                apt_command("install nodejs -y"),
                 f"test -n \"{v8_version}\"",
                 "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
                 f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
@@ -438,6 +451,7 @@ def logical_machine_to_queue(logical_machine: str, internal: bool, os_group: str
                 "perftiger": "Windows.11.Amd64.Tiger.Perf",
                 "perftiger_crossgen": "Windows.11.Amd64.Tiger.Perf",
                 "perfpixel4a": "Windows.11.Amd64.Pixel.Perf",
+                "perfpixel10a": "Windows.11.Amd64.Pixel.10.Perf",
                 "perfampere": "Windows.Server.Arm64.Perf",
                 "perfviper": "Windows.11.Amd64.Viper.Perf",
                 "cloudvm": "Windows.10.Amd64"
@@ -635,6 +649,8 @@ def get_run_configurations(
 
     if r2r_run_type == "nor2r":
         configurations["R2RType"] = "nor2r"
+    elif r2r_run_type == "r2r":
+        configurations["R2RType"] = "r2r"
 
     if runtime_type == "coreclr_r2r_interpreter":
         configurations["R2RType"] = "r2r_interpreter"
@@ -681,7 +697,18 @@ def get_run_configurations(
 
     return configurations
 
-def get_work_item_command(os_group: str, target_csproj: str, architecture: str, perf_lab_framework: str, internal: bool, wasm: bool, bdn_artifacts_dir: str, wasm_coreclr: bool = False, wasm_aot: bool = False, only_sanity_check: bool = False):
+def get_work_item_command(
+        os_group: str,
+        target_csproj: str,
+        architecture: str,
+        perf_lab_framework: str,
+        internal: bool,
+        wasm: bool,
+        bdn_artifacts_dir: str,
+        wasm_coreclr: bool = False,
+        wasm_ready_to_run: bool = False,
+        wasm_aot: bool = False,
+        only_sanity_check: bool = False):
     if os_group == "windows":
         work_item_command = [
             "python",
@@ -711,6 +738,8 @@ def get_work_item_command(os_group: str, target_csproj: str, architecture: str, 
         work_item_command += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
         if wasm_coreclr:
             work_item_command += ["--wasm-runtime-flavor", "CoreCLR"]
+            if wasm_ready_to_run:
+                work_item_command += ["--wasm-ready-to-run"]
         elif wasm_aot:
             work_item_command += ["--wasm-runtime-flavor", "MonoAOT"]
 
@@ -863,7 +892,12 @@ def run_performance_job(args: RunPerformanceJobArgs):
         queue=args.queue,
         build_configs=[f"{k}={v}" for k, v in configurations.items()],
         architecture=args.architecture,
-        get_perf_hash=True)
+        get_perf_hash=True,
+        collect_sdk_repository_commits=args.run_kind in [
+            "maui_scenarios_android",
+            "maui_scenarios_android_innerloop",
+            "maui_scenarios_ios"
+        ])
 
     ci_setup_arguments.build_number = args.build_number
     ci_setup_arguments.only_sanity_check = args.only_sanity_check
@@ -928,13 +962,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
             shutil.copytree(args.mono_dotnet_dir, mono_dotnet_path, dirs_exist_ok=True)
 
     v8_version = ""
+    wasm_local_package_version = None
     if wasm_coreclr:
         if args.libraries_download_dir is None:
             raise Exception("Libraries not downloaded for wasm_coreclr runs")
         
         getLogger().info("Building wasm_coreclr payload directory")
         browser_wasm_coreclr_dir = os.path.join(args.libraries_download_dir, "BrowserWasmCoreCLR")
-        build_wasm_coreclr_payload(
+        wasm_local_package_version = build_wasm_coreclr_payload(
             browser_wasm_coreclr_dir,
             payload_dir,
         )
@@ -1121,7 +1156,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
     else:
         agent_python = "python3"
 
-    helix_pre_commands = get_pre_commands(args.os_group, args.os_distro, args.internal, args.runtime_type, args.codegen_type, args.build_config, v8_version)
+    helix_pre_commands = get_pre_commands(
+        args.os_group,
+        args.os_distro,
+        args.internal,
+        args.runtime_type,
+        args.codegen_type,
+        args.build_config,
+        v8_version,
+        wasm_local_package_version)
     helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
 
     # Point ML.NET at the SSWE model that was pre-downloaded into the correlation payload above, so it
@@ -1145,6 +1188,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     # Set device name from machine pool for mobile queues
     if args.machine_pool and args.queue and args.queue in (
         "Windows.11.Amd64.Pixel.Perf",
+        "Windows.11.Amd64.Pixel.10.Perf",
         "Windows.11.Amd64.Galaxy.Lowend.Perf",
         "Mac.iPhone.17.Perf",
     ):
@@ -1359,7 +1403,18 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     def get_work_item_command_for_artifact_dir(artifact_dir: str):
         assert args.target_csproj is not None
-        return get_work_item_command(args.os_group, args.target_csproj, args.architecture, perf_lab_framework, args.internal, wasm, artifact_dir, wasm_coreclr, wasm_aot, args.only_sanity_check)
+        return get_work_item_command(
+            args.os_group,
+            args.target_csproj,
+            args.architecture,
+            perf_lab_framework,
+            args.internal,
+            wasm,
+            artifact_dir,
+            wasm_coreclr,
+            wasm_coreclr and args.r2r_run_type == "r2r",
+            wasm_aot,
+            args.only_sanity_check)
     
     work_item_command = get_work_item_command_for_artifact_dir(bdn_artifacts_directory)
     baseline_work_item_command = get_work_item_command_for_artifact_dir(bdn_baseline_artifacts_dir)

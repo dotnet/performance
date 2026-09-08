@@ -32,7 +32,7 @@ with MauiNuGetConfigContext(precommands):
                     extra_args=['--sample-content'])
     
     # Build the IPA - will use merged NuGet.config
-    precommands.execute(['/p:EnableCodeSigning=false', '/p:ApplicationId=net.dot.mauisamplecontenttesting'])
+    precommands.execute(['/p:EnableCodeSigning=true', '/p:CodesignKey=-', f'/p:CodesignEntitlements={const.EMPTY_ENTITLEMENTS}', '/p:ApplicationId=net.dot.mauisamplecontenttesting'])
     # NuGet.config is automatically restored after this block
 
 # Remove the aab files as we don't need them, this saves space

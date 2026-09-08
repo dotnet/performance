@@ -21,6 +21,39 @@ class AndroidHelper:
         # Original values for Android package verifier settings
         self.startverifierverifyadbinstalls = None
         self.startpackageverifierenable = None
+        self.startforceenablepssprofiling = None
+
+    def enable_pss_profiling(self):
+        getLogger().info("Capturing current force_enable_pss_profiling setting")
+        cmdline = xharness_adb() + [
+            'shell', 'settings', 'get', 'global', 'force_enable_pss_profiling'
+        ]
+        get_pss_profiling_cmd = RunCommand(cmdline, verbose=True)
+        get_pss_profiling_cmd.run()
+        self.startforceenablepssprofiling = get_pss_profiling_cmd.stdout.strip()
+
+        if self.startforceenablepssprofiling != '1':
+            getLogger().info("Enabling PSS profiling for Android memory consumption")
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'global', 'force_enable_pss_profiling', '1'
+            ]
+            RunCommand(cmdline, verbose=True).run()
+
+    def restore_pss_profiling(self):
+        if self.startforceenablepssprofiling is None:
+            return
+
+        getLogger().info("Restoring force_enable_pss_profiling to its pretest value")
+        if self.startforceenablepssprofiling == '' or self.startforceenablepssprofiling.lower() == 'null':
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'delete', 'global', 'force_enable_pss_profiling'
+            ]
+        else:
+            cmdline = xharness_adb() + [
+                'shell', 'settings', 'put', 'global', 'force_enable_pss_profiling', self.startforceenablepssprofiling
+            ]
+        RunCommand(cmdline, verbose=True).run()
+        self.startforceenablepssprofiling = None
 
     def setup_device(self, packagename: str, packagepath: str, animationsdisabled: bool, forcewaitstart: bool = True, skip_install: bool = False, skip_xharness_warmup: bool = False, skip_package_verifier: bool = False, skip_test_launch: bool = False, screen_timeout_ms: int = 2 * 60 * 1000):
         if not skip_install and packagepath is None:
@@ -375,7 +408,12 @@ class AndroidHelper:
             'input',
             'keyevent'
         ]
-                
+
+        try:
+            self.restore_pss_profiling()
+        except CalledProcessError:
+            getLogger().warning("Failed to restore force_enable_pss_profiling", exc_info=True)
+
         if not skip_uninstall:
             getLogger().info("Stopping App for uninstall")
             RunCommand(self.stopappcommand, verbose=True).run()
