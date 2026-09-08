@@ -6,20 +6,18 @@ using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.Net.Security.Tests
 {
     public partial class SslStreamTests
     {
-        private static Lazy<bool> s_supportsTls13 = new Lazy<bool>(GetTls13Support);
-        public static bool SupportsTls13 => s_supportsTls13.Value;
+        private static readonly Task<bool> s_supportsTls13 = GetTls13SupportAsync();
 
-        public static IEnumerable<object[]> TlsProtocols()
+        public static async IAsyncEnumerable<object[]> TlsProtocols()
         {
             yield return new object[] { SslProtocols.Tls12 };
-            if (SupportsTls13)
+            if (await s_supportsTls13)
             {
                 yield return new object[] { SslProtocols.Tls13 };
             }
@@ -50,11 +48,11 @@ namespace System.Net.Security.Tests
         [ArgumentsSource(nameof(TlsProtocols))]
         public Task HandshakeRSA4096CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._rsa4096Cert, protocol);
 
-        private static bool GetTls13Support()
+        private static async Task<bool> GetTls13SupportAsync()
         {
             try
             {
-                SslStreamTests.HandshakeAsync(SslStreamTests._rsa2048Cert, SslProtocols.Tls13).GetAwaiter().GetResult();
+                await SslStreamTests.HandshakeAsync(SslStreamTests._rsa2048Cert, SslProtocols.Tls13);
                 return true;
             }
             catch

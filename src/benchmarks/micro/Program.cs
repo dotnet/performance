@@ -105,11 +105,6 @@ namespace MicroBenchmarks
                 return 1;
             }
 
-            // Use RunAsync (not Run) so BDN does not install its single-threaded
-            // BenchmarkDotNetSynchronizationContext on the entrypoint thread. The sync
-            // entrypoint installs that context before benchmark discovery, which
-            // deadlocks any sync-over-async work performed by [ParamsSource]/[ArgumentsSource]
-            // callbacks (e.g. SslStreamTests.GetTls13Support).
             var summaries = await BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
                 .RunAsync(argsList.ToArray(),
