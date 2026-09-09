@@ -202,6 +202,23 @@ def _find_latest_manifest_package(packages: list[dict], workload_name: str) -> d
 
     return packages[0]
 
+def _resolve_manifest_package(precommands: PreCommands, workload_name: str, feed_url: str, nuget_config_path: str) -> tuple[dict, str]:
+    '''Resolve the latest manifest package and the feed that supplies its metadata.'''
+    try:
+        packages = precommands.get_packages_for_sdk_from_feed(workload_name, feed_url)
+    except Exception as e:
+        getLogger().warning(f"Failed to get packages for {workload_name} from latest feed: {e}")
+        getLogger().info("Trying second latest feed as fallback")
+        feed_url = extract_latest_dotnet_feed_from_nuget_config(
+            path=nuget_config_path,
+            offset=1
+        )
+        getLogger().info(f"Using fallback feed: {feed_url}")
+        packages = precommands.get_packages_for_sdk_from_feed(workload_name, feed_url)
+
+    getLogger().debug(f"All package IDs for {workload_name}: {[pkg['id'] for pkg in packages]}")
+    return _find_latest_manifest_package(packages, workload_name), feed_url
+
 def _get_nuget_flat_container_base(feed_url: str) -> Optional[str]:
     '''
     Download the NuGet V3 service index and return the PackageBaseAddress (flat container) base URL.
@@ -268,7 +285,7 @@ def _normalize_repo_url(url: str) -> str:
         return f"{parts[-2]}/{parts[-1]}"
     return url
 
-def _discover_repo_commits(precommands: PreCommands, feed_url: str) -> dict[str, str]:
+def _discover_repo_commits(precommands: PreCommands, feed_url: str, nuget_config_path: str) -> dict[str, str]:
     '''
     Discover the commit SHAs for upstream repos by querying the NuGet feed for manifest packages
     and extracting repository info from their .nuspec metadata.
@@ -279,6 +296,7 @@ def _discover_repo_commits(precommands: PreCommands, feed_url: str) -> dict[str,
     Args:
         precommands: PreCommands instance for running dotnet commands
         feed_url: The NuGet feed URL to query
+        nuget_config_path: Config used to select the initial and fallback feeds
     
     Returns:
         Dict mapping repo names (e.g., "dotnet/android") to commit SHAs.
@@ -292,21 +310,23 @@ def _discover_repo_commits(precommands: PreCommands, feed_url: str) -> dict[str,
     
     repo_commits: dict[str, str] = {}
     cached_packages: dict[str, dict] = getattr(precommands, '_cached_manifest_packages', {})
-    
-    flat_base = _get_nuget_flat_container_base(feed_url)
-    if flat_base is None:
-        getLogger().warning("Cannot discover repo commits: failed to get flat container base URL")
-        return repo_commits
+    flat_bases: dict[str, Optional[str]] = {}
     
     for repo, workload_name in REPO_TO_PROBE_WORKLOAD.items():
         try:
             getLogger().info(f"Discovering commit SHA for {repo} via {workload_name} package...")
             
-            packages = precommands.get_packages_for_sdk_from_feed(workload_name, feed_url)
-            manifest_pkg = _find_latest_manifest_package(packages, workload_name)
+            manifest_pkg, manifest_feed = _resolve_manifest_package(precommands, workload_name, feed_url, nuget_config_path)
             
             # Cache the resolved package so install_latest_maui can reuse it
             cached_packages[workload_name] = manifest_pkg
+
+            if manifest_feed not in flat_bases:
+                flat_bases[manifest_feed] = _get_nuget_flat_container_base(manifest_feed)
+            flat_base = flat_bases[manifest_feed]
+            if flat_base is None:
+                getLogger().warning(f"Cannot discover commit SHA for {repo}: failed to get flat container base URL from {manifest_feed}")
+                continue
             
             result = _get_commit_sha_from_nuspec(flat_base, manifest_pkg['id'], manifest_pkg['latestVersion'])
             if result is None:
@@ -431,7 +451,8 @@ class MauiNuGetConfigContext:
         self.backup_path = self.repo_nuget_config + ".maui_backup"
         self.downloaded_config_paths: list[str] = []
     
-    def _find_repo_nuget_config(self) -> str:
+    @staticmethod
+    def _find_repo_nuget_config() -> str:
         '''
         Find the repo's NuGet.config by walking up from the current directory.
         This works for both local (c:/Users/.../performance) and pipeline (D:/a/1/s/performance/CorrelationStaging/payload/performance) scenarios.
@@ -513,7 +534,7 @@ class MauiNuGetConfigContext:
                 feed_url = extract_latest_dotnet_feed_from_nuget_config(
                     path=self.repo_nuget_config
                 )
-                repo_commits = _discover_repo_commits(self.precommands, feed_url)
+                repo_commits = _discover_repo_commits(self.precommands, feed_url, self.repo_nuget_config)
             except Exception as e:
                 getLogger().warning(f"Failed to discover repo commits, will use branch HEAD: {e}")
 
@@ -627,9 +648,10 @@ def install_latest_maui(
         getLogger().info(f"########## Finished installing latest stable {workload_name} workload ##########")
         return
 
+    nuget_config_path = MauiNuGetConfigContext._find_repo_nuget_config()
     if feed is None:
         feed = extract_latest_dotnet_feed_from_nuget_config(
-            path=os.path.join(get_repo_root_path(), "NuGet.config")
+            path=nuget_config_path
         )
 
     if workloads is None:
@@ -656,20 +678,7 @@ def install_latest_maui(
             latest_package = cached_packages[workload]
             getLogger().info(f"Using cached manifest package for {workload}: {latest_package['id']} v{latest_package['latestVersion']}")
         else:
-            try:
-                packages = precommands.get_packages_for_sdk_from_feed(workload, feed)
-            except Exception as e:
-                getLogger().warning(f"Failed to get packages for {workload} from latest feed: {e}")
-                getLogger().info("Trying second latest feed as fallback")
-                fallback_feed = extract_latest_dotnet_feed_from_nuget_config(
-                    path=os.path.join(get_repo_root_path(), "NuGet.config"), 
-                    offset=1
-                )
-                getLogger().info(f"Using fallback feed: {fallback_feed}")
-                packages = precommands.get_packages_for_sdk_from_feed(workload, fallback_feed)
-
-            getLogger().debug(f"All package IDs for {workload}: {[pkg['id'] for pkg in packages]}")
-            latest_package = _find_latest_manifest_package(packages, workload)
+            latest_package, _ = _resolve_manifest_package(precommands, workload, feed, nuget_config_path)
 
         getLogger().info(f"Latest package details for {workload}: ID={latest_package['id']}, Version={latest_package['latestVersion']}, SDK_Version={latest_package['sdk_version']}, .NET_Version={latest_package['dotnet_version']}")
         
