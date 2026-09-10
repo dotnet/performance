@@ -15,12 +15,17 @@ parameters:
 variables:
   # This entrypoint has one implicit stage. Keep asynchronous sends paired with its monitor,
   # and leave public/PR runs and manual runs without selected jobs on the synchronous default.
-  - name: EnableHelixJobMonitor
-    value: ${{ and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest'), or(ne(variables['Build.Reason'], 'Manual'), parameters.runPublicJobs, parameters.runPrivateJobs, parameters.runScheduledPrivateJobs)) }}
-  - ${{ if eq(variables.EnableHelixJobMonitor, 'true') }}:
+  # Use the inputs directly here: a variable defined in this block is not yet
+  # available to conditions within the same block during template expansion.
+  - ${{ if and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest'), or(ne(variables['Build.Reason'], 'Manual'), parameters.runPublicJobs, parameters.runPrivateJobs, parameters.runScheduledPrivateJobs)) }}:
+    - name: EnableHelixJobMonitor
+      value: true
     - template: /eng/common/templates/variables/pool-providers.yml
     # The standalone monitor does not inherit the submitter jobs' variable groups.
     - group: DotNet-HelixApi-Access
+  - ${{ else }}:
+    - name: EnableHelixJobMonitor
+      value: false
 
 resources:
   containers:
