@@ -773,7 +773,16 @@ def get_work_item_command(
             work_item_command += ["--dotnet-versions", "$DOTNET_VERSION"]
 
     if wasm:
-        work_item_command += ["--run-isolated", "--wasm", "--dotnet-path", "$HELIX_CORRELATION_PAYLOAD/dotnet/"]
+        dotnet_path = (
+            "%HELIX_CORRELATION_PAYLOAD%\\dotnet\\"
+            if os_group == "windows"
+            else "$HELIX_CORRELATION_PAYLOAD/dotnet/")
+        work_item_command += [
+            "--run-isolated",
+            "--wasm",
+            "--dotnet-path",
+            dotnet_path,
+        ]
         if wasm_coreclr:
             work_item_command += ["--wasm-runtime-flavor", "CoreCLR"]
             if wasm_ready_to_run:

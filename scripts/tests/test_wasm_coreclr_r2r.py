@@ -78,6 +78,30 @@ def test_workload_source_is_forwarded_to_helix_work_item():
     assert command[source_index + 1] == "https://example.test/cohort/v3/index.json"
 
 
+def test_windows_wasm_work_item_uses_windows_payload_paths():
+    command = get_work_item_command(
+        os_group="windows",
+        target_csproj="src/benchmarks/micro/MicroBenchmarks.csproj",
+        architecture="x64",
+        perf_lab_framework="net11.0",
+        internal=True,
+        wasm=True,
+        bdn_artifacts_dir="%HELIX_WORKITEM_UPLOAD_ROOT%\\artifacts",
+        wasm_coreclr=True,
+        wasm_ready_to_run=True,
+        wasm_workload_source=(
+            "%HELIX_CORRELATION_PAYLOAD%\\wasm-workload-source"),
+    )
+
+    dotnet_path_index = command.index("--dotnet-path")
+    workload_source_index = command.index("--wasm-workload-source")
+    assert command[dotnet_path_index + 1] == (
+        "%HELIX_CORRELATION_PAYLOAD%\\dotnet\\")
+    assert command[workload_source_index + 1] == (
+        "%HELIX_CORRELATION_PAYLOAD%\\wasm-workload-source")
+    assert all("$HELIX_CORRELATION_PAYLOAD" not in argument for argument in command)
+
+
 def test_ready_to_run_has_distinct_result_configuration():
     configurations = get_run_configurations(
         run_kind="micro",
