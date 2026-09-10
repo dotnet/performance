@@ -242,7 +242,7 @@ jobs:
               - '--cross-build'
             - ${{ if ne(parameters.additionalSetupParameters, '') }}:
               - '${{ parameters.additionalSetupParameters }}'
-            - ${{ if ne(parameters.wasmWorkloadSource, '') }}:
+            - ${{ if and(ne(parameters.wasmWorkloadSource, ''), eq(parameters.runtimeType, 'wasm_coreclr'), eq(parameters.r2rRunType, 'r2r')) }}:
               - '--wasm-workload-source "${{ parameters.wasmWorkloadSource }}"'
       - template: /eng/pipelines/templates/send-to-helix-step.yml
         parameters:

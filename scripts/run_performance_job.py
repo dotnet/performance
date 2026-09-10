@@ -227,6 +227,10 @@ def get_pre_commands(
         v8_version: str,
         wasm_local_package_version: Optional[str] = None,
         wasm_workload_source: Optional[str] = None):
+    if os_group == "windows" and runtime_type in ("wasm", "wasm_coreclr"):
+        raise ValueError(
+            "WASM performance job prerequisite setup is not supported on Windows")
+
     helix_pre_commands: list[str] = []
 
     # Remember the previous PYTHONPATH that was set so it can be restored in the post commands
