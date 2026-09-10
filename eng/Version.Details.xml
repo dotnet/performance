@@ -35,6 +35,10 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>bcd0a2de8927de44b65f3ad41bef8820ee2b3d0b</Sha>
     </Dependency>
+    <Dependency Name="Microsoft.DotNet.Helix.JobMonitor" Version="11.0.0-beta.26458.103">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>bcd0a2de8927de44b65f3ad41bef8820ee2b3d0b</Sha>
+    </Dependency>
     <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="11.0.0-prerelease.26458.2">
       <Uri>https://github.com/dotnet/xharness</Uri>
       <Sha>1665037768fd7eec44e046d94fd07b8c6407c966</Sha>

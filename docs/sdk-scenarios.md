@@ -4,6 +4,32 @@ An introduction of how to run scenario tests can be found in [Scenarios Tests Gu
 
 - [SDK Build Throughput Scenario](#sdk-build-throughput-scenario)
 
+## SDK performance pipeline
+
+The repository's [azure-pipelines.yml](../azure-pipelines.yml) entrypoint uses
+[sdk-perf-jobs.yml](../eng/pipelines/sdk-perf-jobs.yml) for SDK-based scenario and
+benchmark jobs. It backs the internal `dotnet-performance` pipeline (definition 306)
+and the public `performance-ci` pipeline (definition 38).
+
+Internal non-PR runs with selected jobs submit asynchronously and use the standalone
+Helix Job Monitor in the same implicit stage. The monitor runs alongside submitters,
+waits for their Helix work items, and reports failures to Azure DevOps. Public and PR
+runs remain synchronous. The existing manual job-selection parameters and schedules
+are unchanged; a manual run with no jobs selected does not start a monitor. A monitored
+run with no Helix jobs fails rather than silently succeeding.
+
+The entrypoint imports `DotNet-HelixApi-Access` only when the monitor is enabled, so
+the standalone job receives its own credential rather than depending on a submitter's
+job-scoped variables. Its tool is restored from `.config/dotnet-tools.json` in its own
+checkout; `eng/Version.Details.xml` tracks that pin alongside the Helix SDK.
+
+Submitter build logs still use the existing `Logs_*` pipeline artifacts. Benchmark
+results and diagnostics are still uploaded from the Helix work items to PerfLab and
+Helix, respectively. The monitor reports test results and links to Helix consoles; it
+does not download arbitrary Helix uploads into pipeline artifacts. Asynchronous sends
+skip the submitter's `artifacts/helix-results` downloads, which were not published by
+this pipeline. Local `--send-to-helix` runs still wait and download performance reports.
+
 ## SDK Build Throughput Scenario
 
 **SDK Build Throughput** is a scenario test that measures the throughput of SDK build process. To be more specific, our test *implicitly calls*

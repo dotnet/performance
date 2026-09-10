@@ -12,6 +12,16 @@ parameters:
   type: boolean
   default: false
 
+variables:
+  # This entrypoint has one implicit stage. Keep asynchronous sends paired with its monitor,
+  # and leave public/PR runs and manual runs without selected jobs on the synchronous default.
+  - name: EnableHelixJobMonitor
+    value: ${{ and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest'), or(ne(variables['Build.Reason'], 'Manual'), parameters.runPublicJobs, parameters.runPrivateJobs, parameters.runScheduledPrivateJobs)) }}
+  - ${{ if eq(variables.EnableHelixJobMonitor, 'true') }}:
+    - template: /eng/common/templates/variables/pool-providers.yml
+    # The standalone monitor does not inherit the submitter jobs' variable groups.
+    - group: DotNet-HelixApi-Access
+
 resources:
   containers:
     - container: ubuntu_x64_build_container
@@ -67,3 +77,11 @@ jobs:
       jobParameters:
         ${{ if parameters.onlySanityCheck }}:
           onlySanityCheck: true
+
+  - ${{ if eq(variables.EnableHelixJobMonitor, 'true') }}:
+    - template: /eng/common/core-templates/job/helix-job-monitor.yml
+      parameters:
+        # Allow the existing 320-minute submitter budget plus six-hour Helix work items.
+        timeoutInMinutes: 720
+        helixAccessToken: $(HelixApiAccessToken)
+        allowNoHelixJobs: false
