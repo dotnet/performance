@@ -259,7 +259,7 @@ def get_wasm_workload_commands(
             '--skip-manifest-update',
             '--configfile',
             config_file,
-            '--no-http-cache',
+            '--no-cache',
         ],
     ]
 

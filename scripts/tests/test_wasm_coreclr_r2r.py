@@ -451,5 +451,5 @@ def test_generated_workload_commands_pin_workload_and_coreclr_r2r_cohort():
         "--skip-manifest-update",
         "--configfile",
         "/tmp/NuGet.Config",
-        "--no-http-cache",
+        "--no-cache",
     ]
