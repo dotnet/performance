@@ -13,7 +13,7 @@
     <MicrosoftExtensionsLoggingPackageVersion>11.0.0-rc.2.26458.103</MicrosoftExtensionsLoggingPackageVersion>
     <BenchmarkDotNetVersion>0.16.0-nightly.20260801.595</BenchmarkDotNetVersion>
     <MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>11.0.0-preview.5.26261.101</MicrosoftNETRuntimeEmscripten3156Nodewinx64Version>
-    <MicrosoftDotNetXHarnessCLIVersion>11.0.0-prerelease.26459.1</MicrosoftDotNetXHarnessCLIVersion>
+    <MicrosoftDotNetXHarnessCLIVersion>11.0.0-prerelease.26461.1</MicrosoftDotNetXHarnessCLIVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
