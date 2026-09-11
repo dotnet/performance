@@ -13,16 +13,17 @@ parameters:
   default: false
 
 variables:
-  # This entrypoint has one implicit stage. Keep asynchronous sends paired with its monitor,
-  # and leave public/PR runs and manual runs without selected jobs on the synchronous default.
+  # This entrypoint has one implicit stage. Keep asynchronous sends paired with its monitor.
+  # Public runs always select correctness jobs; internal runs use the existing job selectors.
   # Use the inputs directly here: a variable defined in this block is not yet
   # available to conditions within the same block during template expansion.
-  - ${{ if and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest'), or(ne(variables['Build.Reason'], 'Manual'), parameters.runPublicJobs, parameters.runPrivateJobs, parameters.runScheduledPrivateJobs)) }}:
+  - ${{ if or(eq(variables['System.TeamProject'], 'public'), and(eq(variables['System.TeamProject'], 'internal'), or(notin(variables['Build.Reason'], 'PullRequest', 'Manual'), eq(variables['Build.CronSchedule.DisplayName'], 'Every 12 hours build'), parameters.runPublicJobs, parameters.runPrivateJobs, parameters.runScheduledPrivateJobs))) }}:
     - name: EnableHelixJobMonitor
       value: true
     - template: /eng/common/templates/variables/pool-providers.yml
-    # The standalone monitor does not inherit the submitter jobs' variable groups.
-    - group: DotNet-HelixApi-Access
+    - ${{ if and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+      # The standalone monitor does not inherit the submitter jobs' variable groups.
+      - group: DotNet-HelixApi-Access
   - ${{ else }}:
     - name: EnableHelixJobMonitor
       value: false
@@ -86,7 +87,7 @@ jobs:
   - ${{ if eq(variables.EnableHelixJobMonitor, 'true') }}:
     - template: /eng/common/core-templates/job/helix-job-monitor.yml
       parameters:
-        # Allow the existing 320-minute submitter budget plus six-hour Helix work items.
-        timeoutInMinutes: 720
-        helixAccessToken: $(HelixApiAccessToken)
+        timeoutInMinutes: 360
+        ${{ if and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+          helixAccessToken: $(HelixApiAccessToken)
         allowNoHelixJobs: false

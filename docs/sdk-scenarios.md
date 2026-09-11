@@ -11,17 +11,25 @@ The repository's [azure-pipelines.yml](../azure-pipelines.yml) entrypoint uses
 benchmark jobs. It backs the internal `dotnet-performance` pipeline (definition 306)
 and the public `performance-ci` pipeline (definition 38).
 
-Internal non-PR runs with selected jobs submit asynchronously and use the standalone
-Helix Job Monitor in the same implicit stage. The monitor runs alongside submitters,
-waits for their Helix work items, and reports failures to Azure DevOps. Public and PR
-runs remain synchronous. The existing manual job-selection parameters and schedules
-are unchanged; a manual run with no jobs selected does not start a monitor. A monitored
-run with no Helix jobs fails rather than silently succeeding.
+Public runs (including PRs) and internal runs with selected jobs submit asynchronously
+and use the standalone Helix Job Monitor in the same implicit stage. The monitor runs
+alongside submitters, waits for their Helix work items, and reports failures to Azure
+DevOps. The existing manual job-selection parameters and schedules are unchanged:
+public runs always select correctness jobs, while an internal manual run with no jobs
+selected does not start a monitor. A monitored run with no Helix jobs fails rather than
+silently succeeding.
 
-The entrypoint imports `DotNet-HelixApi-Access` only when the monitor is enabled, so
-the standalone job receives its own credential rather than depending on a submitter's
-job-scoped variables. Its tool is restored from `.config/dotnet-tools.json` in its own
-checkout; `eng/Version.Details.xml` tracks that pin alongside the Helix SDK.
+The monitor job has a six-hour timeout (355 minutes for the tool, leaving five minutes
+for it to exit). Existing 320-minute submitter limits and Helix work-item timeouts are
+unchanged. These limits start when the respective job runs; they are not a whole-run
+wall-clock deadline that includes time waiting for agents.
+
+Only monitored internal non-PR runs import `DotNet-HelixApi-Access` and pass its token
+to the standalone job. Public and PR monitors use anonymous Helix access, not an
+unresolved private-token variable. Azure DevOps timeline access and result reporting
+still use the job's `System.AccessToken`. The tool is restored from
+`.config/dotnet-tools.json` in its own checkout; `eng/Version.Details.xml` tracks that
+pin alongside the Helix SDK.
 
 Submitter build logs still use the existing `Logs_*` pipeline artifacts. Benchmark
 results and diagnostics are still uploaded from the Helix work items to PerfLab and
