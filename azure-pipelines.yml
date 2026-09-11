@@ -14,22 +14,15 @@ parameters:
 
 variables:
   # This entrypoint has one implicit stage. Keep asynchronous sends paired with its monitor.
-  # Public runs always select correctness jobs; internal runs use the existing job selectors.
-  # Use the inputs directly here: a variable defined in this block is not yet
-  # available to conditions within the same block during template expansion.
-  - ${{ if or(eq(variables['System.TeamProject'], 'public'), and(eq(variables['System.TeamProject'], 'internal'), or(notin(variables['Build.Reason'], 'PullRequest', 'Manual'), eq(variables['Build.CronSchedule.DisplayName'], 'Every 12 hours build'), parameters.runPublicJobs, parameters.runPrivateJobs, parameters.runScheduledPrivateJobs))) }}:
-    - name: EnableHelixJobMonitor
-      value: true
-    # Matrix legs share a phase and queue. Keep their monitor identities distinct across channels.
-    - name: TestRunNamePrefix
-      value: '$(Agent.JobName)_'
-    - template: /eng/common/templates/variables/pool-providers.yml
-    - ${{ if and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest')) }}:
-      # The standalone monitor does not inherit the submitter jobs' variable groups.
-      - group: DotNet-HelixApi-Access
-  - ${{ else }}:
-    - name: EnableHelixJobMonitor
-      value: false
+  - name: EnableHelixJobMonitor
+    value: true
+  # Matrix legs share a phase and queue. Keep their monitor identities distinct across channels.
+  - name: TestRunNamePrefix
+    value: '$(Agent.JobName)_'
+  - template: /eng/common/templates/variables/pool-providers.yml
+  - ${{ if and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+    # The standalone monitor does not inherit the submitter jobs' variable groups.
+    - group: DotNet-HelixApi-Access
 
 resources:
   containers:
@@ -87,10 +80,9 @@ jobs:
         ${{ if parameters.onlySanityCheck }}:
           onlySanityCheck: true
 
-  - ${{ if eq(variables.EnableHelixJobMonitor, 'true') }}:
-    - template: /eng/common/core-templates/job/helix-job-monitor.yml
-      parameters:
-        timeoutInMinutes: 360
-        ${{ if and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest')) }}:
-          helixAccessToken: $(HelixApiAccessToken)
-        allowNoHelixJobs: false
+  - template: /eng/common/core-templates/job/helix-job-monitor.yml
+    parameters:
+      timeoutInMinutes: 360
+      helixAccessToken: ${{ iif(and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest')), '$(HelixApiAccessToken)', '') }}
+      # Manual runs can legitimately select no workloads.
+      allowNoHelixJobs: true
