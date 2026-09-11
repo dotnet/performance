@@ -31,6 +31,10 @@ still use the job's `System.AccessToken`. The tool is restored from
 `.config/dotnet-tools.json` in its own checkout; `eng/Version.Details.xml` tracks that
 pin alongside the Helix SDK.
 
+Monitor test-run names include the matrix-expanded job display name. This keeps
+different channels in the same phase and Helix queue independent while preserving a
+stable identity when the same leg is retried.
+
 Submitter build logs still use the existing `Logs_*` pipeline artifacts. Benchmark
 results and diagnostics are still uploaded from the Helix work items to PerfLab and
 Helix, respectively. The monitor reports test results and links to Helix consoles; it

@@ -20,6 +20,9 @@ variables:
   - ${{ if or(eq(variables['System.TeamProject'], 'public'), and(eq(variables['System.TeamProject'], 'internal'), or(notin(variables['Build.Reason'], 'PullRequest', 'Manual'), eq(variables['Build.CronSchedule.DisplayName'], 'Every 12 hours build'), parameters.runPublicJobs, parameters.runPrivateJobs, parameters.runScheduledPrivateJobs))) }}:
     - name: EnableHelixJobMonitor
       value: true
+    # Matrix legs share a phase and queue. Keep their monitor identities distinct across channels.
+    - name: TestRunNamePrefix
+      value: '$(Agent.JobName)_'
     - template: /eng/common/templates/variables/pool-providers.yml
     - ${{ if and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest')) }}:
       # The standalone monitor does not inherit the submitter jobs' variable groups.
