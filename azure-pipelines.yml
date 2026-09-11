@@ -12,6 +12,18 @@ parameters:
   type: boolean
   default: false
 
+variables:
+  # This entrypoint has one implicit stage. Keep asynchronous sends paired with its monitor.
+  - name: EnableHelixJobMonitor
+    value: true
+  # Matrix legs share a phase and queue. Keep their monitor identities distinct across channels.
+  - name: TestRunNamePrefix
+    value: '$(Agent.JobName)_'
+  - template: /eng/common/templates/variables/pool-providers.yml
+  - ${{ if and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+    # The standalone monitor does not inherit the submitter jobs' variable groups.
+    - group: DotNet-HelixApi-Access
+
 resources:
   containers:
     - container: ubuntu_x64_build_container
@@ -67,3 +79,10 @@ jobs:
       jobParameters:
         ${{ if parameters.onlySanityCheck }}:
           onlySanityCheck: true
+
+  - template: /eng/common/core-templates/job/helix-job-monitor.yml
+    parameters:
+      timeoutInMinutes: 360
+      helixAccessToken: ${{ iif(and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest')), '$(HelixApiAccessToken)', '') }}
+      # Manual runs can legitimately select no workloads.
+      allowNoHelixJobs: true

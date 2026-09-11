@@ -4,6 +4,46 @@ An introduction of how to run scenario tests can be found in [Scenarios Tests Gu
 
 - [SDK Build Throughput Scenario](#sdk-build-throughput-scenario)
 
+## SDK performance pipeline
+
+The repository's [azure-pipelines.yml](../azure-pipelines.yml) entrypoint uses
+[sdk-perf-jobs.yml](../eng/pipelines/sdk-perf-jobs.yml) for SDK-based scenario and
+benchmark jobs. It backs the internal `dotnet-performance` pipeline (definition 306)
+and the public `performance-ci` pipeline (definition 38).
+
+The entrypoint always enables asynchronous submission and includes the standalone
+Helix Job Monitor, its pool provider, and its parameters, including on public and PR
+runs. The monitor runs alongside submitters in the same implicit stage, waits for
+their Helix work items, and reports failures to Azure DevOps. The existing manual
+job-selection parameters and schedules are unchanged: public runs always select
+correctness jobs, while internal manual runs can select no workloads. Such runs still
+include the monitor and may succeed without Helix jobs (`allowNoHelixJobs: true`).
+This permits an empty stage; it does not suppress submitter or work-item failures.
+
+The monitor job has a six-hour timeout (355 minutes for the tool, leaving five minutes
+for it to exit). Existing 320-minute submitter limits and Helix work-item timeouts are
+unchanged. These limits start when the respective job runs; they are not a whole-run
+wall-clock deadline that includes time waiting for agents.
+
+Only internal non-PR runs import `DotNet-HelixApi-Access`. The always-present token
+parameter uses a compile-time expression to select its token macro for those runs
+and an empty string otherwise. Public and PR monitors therefore use anonymous Helix
+access, not an unresolved private-token variable. Azure DevOps timeline access and
+result reporting still use the job's `System.AccessToken`. The tool is restored from
+`.config/dotnet-tools.json` in its own checkout; `eng/Version.Details.xml` tracks that
+pin alongside the Helix SDK.
+
+Monitor test-run names include the matrix-expanded job display name. This keeps
+different channels in the same phase and Helix queue independent while preserving a
+stable identity when the same leg is retried.
+
+Submitter build logs still use the existing `Logs_*` pipeline artifacts. Benchmark
+results and diagnostics are still uploaded from the Helix work items to PerfLab and
+Helix, respectively. The monitor reports test results and links to Helix consoles; it
+does not download arbitrary Helix uploads into pipeline artifacts. Asynchronous sends
+skip the submitter's `artifacts/helix-results` downloads, which were not published by
+this pipeline. Local `--send-to-helix` runs still wait and download performance reports.
+
 ## SDK Build Throughput Scenario
 
 **SDK Build Throughput** is a scenario test that measures the throughput of SDK build process. To be more specific, our test *implicitly calls*
