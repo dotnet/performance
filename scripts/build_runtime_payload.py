@@ -350,6 +350,7 @@ def build_wasm_coreclr_payload(
         browser_wasm_coreclr_archive_or_dir, wasm_built_nugets_dir, prefix="staging/built-nugets/"
     )
     local_package_version = _get_wasm_local_package_version(wasm_built_nugets_dir)
+    _ensure_wasm_tool_framework_version(wasm_dotnet_dir, local_package_version)
 
     # Determine version from the runtime pack directory structure
     runtime_pack_src = os.path.join(
@@ -378,6 +379,36 @@ def build_wasm_coreclr_payload(
 
     _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir], mode=0o664)
     return local_package_version
+
+
+def _ensure_wasm_tool_framework_version(wasm_dotnet_dir: str, package_version: str) -> None:
+    """Make the SDK's shared framework available at the local tool package version."""
+    shared_framework_dir = Path(wasm_dotnet_dir) / "shared" / "Microsoft.NETCore.App"
+    requested_framework_dir = shared_framework_dir / package_version
+    if requested_framework_dir.is_dir():
+        return
+
+    version_parts = package_version.split(".", 2)
+    if len(version_parts) < 2 or not all(part.isdigit() for part in version_parts[:2]):
+        raise ValueError(f"Invalid local WebAssembly toolchain package version: {package_version}")
+
+    version_prefix = f"{version_parts[0]}.{version_parts[1]}."
+    compatible_frameworks = sorted(
+        path for path in shared_framework_dir.glob(f"{version_prefix}*") if path.is_dir()
+    )
+    if len(compatible_frameworks) != 1:
+        installed_versions = ", ".join(path.name for path in compatible_frameworks) or "none"
+        raise ValueError(
+            f"Expected one installed Microsoft.NETCore.App {version_parts[0]}.{version_parts[1]} "
+            f"framework for local WebAssembly tools {package_version}, found: {installed_versions}"
+        )
+
+    shutil.copytree(compatible_frameworks[0], requested_framework_dir)
+    getLogger().info(
+        "Installed Microsoft.NETCore.App framework alias %s from %s for local WebAssembly tools",
+        package_version,
+        compatible_frameworks[0].name,
+    )
 
 
 def _get_wasm_local_package_version(built_nugets_dir: str) -> str:
