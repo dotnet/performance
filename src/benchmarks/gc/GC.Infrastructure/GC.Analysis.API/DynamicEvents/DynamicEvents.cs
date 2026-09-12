@@ -44,6 +44,94 @@ namespace GC.Analysis.API.DynamicEvents
 
         public int MaxOccurrence { get; init; } = 1;
 
+        internal static bool TryComputeOffset(byte[] payload, List<int> unadjustedArrayLengthOffsets, List<int> arrayElementSizes, int unadjustedOffset, out int adjustedOffset)
+        {
+            //
+            // Any offsets on or before the first array content will have their
+            // actual offset equals to the unadjusted offsets. In particular,
+            // the offset to the first array's length is never adjusted. So we can
+            // find the length of the first array.
+            //
+            int adjustment = 0;
+            for (int i = 0; i < unadjustedArrayLengthOffsets.Count; i++)
+            {
+                int unadjustedArrayLengthOffset = unadjustedArrayLengthOffsets[i];
+                if (unadjustedOffset > unadjustedArrayLengthOffset)
+                {
+                    if (payload.Length <= unadjustedArrayLengthOffset)
+                    {
+                        adjustedOffset = 0;
+                        return false;
+                    }
+
+                    //
+                    // If we had a second array, the second arrays unadjusted offsets will
+                    // be earlier than its actual offset, but we know how to adjust it. So
+                    // we can get the actual offset to the second array's length.
+                    //
+                    byte arrayLength = payload[unadjustedArrayLengthOffset + adjustment];
+                    adjustment += arrayLength * arrayElementSizes[i];
+                }
+                else
+                {
+                    //
+                    // If the offset are are looking for is not after the kth array length
+                    // Then we should stop computing the adjustment
+                    //
+                    break;
+                }
+            }
+
+            adjustedOffset = unadjustedOffset + adjustment;
+            return true;
+        }
+
+        internal static int ComputeOffset(byte[] payload, List<int> unadjustedArrayLengthOffsets, List<int> arrayElementSizes, int unadjustedOffset)
+        {
+            if (TryComputeOffset(payload, unadjustedArrayLengthOffsets, arrayElementSizes, unadjustedOffset, out int adjustedOffset))
+            {
+                return adjustedOffset;
+            }
+            else
+            {
+                throw new Exception("Fail to compute offset, this should not happen");
+            }
+        }
+
+        internal static bool IsSupportedPrimitiveType(Type type)
+        {
+            return
+            (type == typeof(ushort)) ||
+            (type == typeof(uint)) ||
+            (type == typeof(float)) ||
+            (type == typeof(ulong)) ||
+            (type == typeof(byte)) ||
+            (type == typeof(bool)) ||
+            false;
+        }
+
+        internal static int Size(Type type)
+        {
+            if (type == typeof(ushort)) { return 2; }
+            else if (type == typeof(uint)) { return 4; }
+            else if (type == typeof(float)) { return 8; }
+            else if (type == typeof(ulong)) { return 8; }
+            else if (type == typeof(byte)) { return 1; }
+            else if (type == typeof(bool)) { return 1; }
+            else { throw new Exception("Wrong type"); }
+        }
+
+        internal static object Decode(Type type, byte[] payload, int offset)
+        {
+            if (type == typeof(ushort)) { return BitConverter.ToUInt16(payload, offset); }
+            else if (type == typeof(uint)) { return BitConverter.ToUInt32(payload, offset); }
+            else if (type == typeof(float)) { return BitConverter.ToSingle(payload, offset); }
+            else if (type == typeof(ulong)) { return BitConverter.ToUInt64(payload, offset); }
+            else if (type == typeof(byte)) { return payload[offset]; }
+            else if (type == typeof(bool)) { return BitConverter.ToBoolean(payload, offset); }
+            else { throw new Exception("Wrong type"); }
+        }
+
         internal static CompiledSchema Compile(DynamicEventSchema dynamicEventSchema, bool allowPartialSchema = true)
         {
             if (DynamicEventSchemas != null && DynamicEventSchemas.ContainsKey(dynamicEventSchema.DynamicEventName))
@@ -61,6 +149,17 @@ namespace GC.Analysis.API.DynamicEvents
             }
             schema.MinOccurrence = dynamicEventSchema.MinOccurrence;
             schema.MaxOccurrence = dynamicEventSchema.MaxOccurrence;
+
+            //
+            // With array, a field in an event no longer have a fixed offset.
+            // Unadjusted offsets are offsets as if all the arrays are empty
+            // This list will store the unadjusted offsets to array lengths
+            //
+            // This is sufficient to get to the actual offsets, once we have
+            // the payload, see TryComputeOffset for more details.
+            //
+            List<int> unadjustedArrayLengthOffsets = new List<int>();
+            List<int> arrayElementSizes = new List<int>();
             int offset = 0;
             foreach (KeyValuePair<string, Type> field in dynamicEventSchema.Fields)
             {
@@ -69,30 +168,32 @@ namespace GC.Analysis.API.DynamicEvents
                     DynamicEventSchemas?.Clear();
                     throw new Exception($"Provided event named {dynamicEventSchema.DynamicEventName} has a duplicated field named {field.Key}");
                 }
-                schema.Add(field.Key, new DynamicEventField { FieldOffset = offset, FieldType = field.Value });
+                Func<byte[], object>? fieldFetcher = null;
 
-                if (field.Value == typeof(ushort))
+                // The local variable makes sure we capture the value of the offset variable in the lambdas
+                int currentOffset = offset;
+                if (IsSupportedPrimitiveType(field.Value))
                 {
-                    offset += 2;
+                    fieldFetcher = (payload) => Decode(field.Value, payload, ComputeOffset(payload, unadjustedArrayLengthOffsets, arrayElementSizes, currentOffset));
+                    offset += Size(field.Value);
                 }
-                else if (field.Value == typeof(uint))
+                else if (field.Value.IsArray && IsSupportedPrimitiveType(field.Value.GetElementType()))
                 {
-                    offset += 4;
-                }
-                else if (field.Value == typeof(float))
-                {
-                    offset += 4;
-                }
-                else if (field.Value == typeof(ulong))
-                {
-                    offset += 8;
-                }
-                else if (field.Value == typeof(byte))
-                {
-                    offset += 1;
-                }
-                else if (field.Value == typeof(bool))
-                {
+                    Type elementType = field.Value.GetElementType();
+                    int elementSize = Size(elementType);
+                    fieldFetcher = (payload) =>
+                    {
+                        int unadjustedArrayLengthOffset = ComputeOffset(payload, unadjustedArrayLengthOffsets, arrayElementSizes, currentOffset);
+                        int length = (int)payload[unadjustedArrayLengthOffset];
+                        Array result = Array.CreateInstance(elementType, length);
+                        for (int i = 0; i < length; i++)
+                        {
+                            result.SetValue(Decode(elementType, payload, unadjustedArrayLengthOffset + 1 + elementSize * i), i);
+                        }
+                        return result;
+                    };
+                    unadjustedArrayLengthOffsets.Add(offset);
+                    arrayElementSizes.Add(elementSize);
                     offset += 1;
                 }
                 else
@@ -100,8 +201,9 @@ namespace GC.Analysis.API.DynamicEvents
                     DynamicEventSchemas?.Clear();
                     throw new Exception($"Provided event named {dynamicEventSchema.DynamicEventName} has a field named {field.Key} using an unsupported type {field.Value}");
                 }
+                schema.Add(field.Key, new DynamicEventField { FieldFetcher = fieldFetcher });
             }
-            schema.Size = offset;
+            schema.SizeValidator = (payload) => payload.Length == ComputeOffset(payload, unadjustedArrayLengthOffsets, arrayElementSizes, offset);
             return schema;
         }
 
@@ -124,15 +226,14 @@ namespace GC.Analysis.API.DynamicEvents
 
     internal sealed class DynamicEventField
     {
-        public required int FieldOffset { get; init; }
-        public required Type FieldType { get; init; }
+        public required Func<byte[], object> FieldFetcher;
     }
 
     internal sealed class CompiledSchema : Dictionary<string, DynamicEventField>
     {
         public int MinOccurrence { get; set; }
         public int MaxOccurrence { get; set; }
-        public int Size { get; set; }
+        public Func<byte[], bool> SizeValidator { get; set; }
     }
 
     internal sealed class DynamicIndex : DynamicObject
@@ -212,44 +313,13 @@ namespace GC.Analysis.API.DynamicEvents
         {
             this.name = dynamicEvent.Name;
             this.fieldValues = new Dictionary<string, object>();
-            if (dynamicEvent.Payload.Length != schema.Size)
+            if (!schema.SizeValidator(dynamicEvent.Payload))
             {
                 throw new Exception($"Event {dynamicEvent.Name} does not have matching size");
             }
             foreach (KeyValuePair<string, DynamicEventField> field in schema)
             {
-                object? value = null;
-                int fieldOffset = field.Value.FieldOffset;
-                Type fieldType = field.Value.FieldType;
-
-                if (fieldType == typeof(ushort))
-                {
-                    value = BitConverter.ToUInt16(dynamicEvent.Payload, fieldOffset);
-                }
-                else if (fieldType == typeof(uint))
-                {
-                    value = BitConverter.ToUInt32(dynamicEvent.Payload, fieldOffset);
-                }
-                else if (fieldType == typeof(float))
-                {
-                    value = BitConverter.ToSingle(dynamicEvent.Payload, fieldOffset);
-                }
-                else if (fieldType == typeof(ulong))
-                {
-                    value = BitConverter.ToUInt64(dynamicEvent.Payload, fieldOffset);
-                }
-                else if (fieldType == typeof(byte))
-                {
-                    value = dynamicEvent.Payload[fieldOffset];
-                }
-                else if (fieldType == typeof(bool))
-                {
-                    value = BitConverter.ToBoolean(dynamicEvent.Payload, fieldOffset);
-                }
-                else
-                {
-                    throw new Exception($"Provided schema has a field named {field.Key} using an unsupported type {fieldType}");
-                }
+                object value = field.Value.FieldFetcher(dynamicEvent.Payload);
                 this.fieldValues.Add(field.Key, value);
             }
             this.fieldValues.Add("TimeStamp", dynamicEvent.TimeStamp);

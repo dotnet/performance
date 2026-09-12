@@ -319,5 +319,57 @@ TimeStamp : *
             };
             test.Should().Throw<Exception>();
         }
+
+        [TestMethod]
+        public void TestArray()
+        {
+            List<DynamicEventSchema> arraySchema = new List<DynamicEventSchema>
+            {
+                new DynamicEventSchema
+                {
+                    DynamicEventName = "ArrayEventName",
+                    Fields = new List<KeyValuePair<string, Type>>
+                    {
+                        new KeyValuePair<string, Type>("version", typeof(ushort)),
+                        new KeyValuePair<string, Type>("Array1", typeof(ushort[])),
+                        new KeyValuePair<string, Type>("Number1", typeof(ulong)),
+                        new KeyValuePair<string, Type>("Array2", typeof(byte[])),
+                        new KeyValuePair<string, Type>("Number2", typeof(ulong)),
+                    }
+                },
+            };
+            DynamicEventSchema.Set(arraySchema, false);
+            List<GCDynamicEvent> dynamicEvents = new List<GCDynamicEvent>
+            {
+                new GCDynamicEvent(
+                    "ArrayEventName",
+                    DateTime.Now,
+                    //           ver   [ Array 1                     ]  [ Number 1           ]  [ Array 2               ]  [ Number 2           ]
+                    new byte[] { 1, 0, 5, 1, 0, 0, 0, 0, 0, 8, 0, 6, 0, 1, 0, 0, 0, 0, 0, 0, 0, 8, 2, 8, 9, 6, 3, 0, 3, 5, 2, 0, 0, 0, 0, 0, 0, 0 }
+                )
+            };
+            dynamic index = new DynamicIndex(dynamicEvents);
+            ushort[] array1 = (ushort[])index.ArrayEventName.Array1;
+            ulong number1 = (ulong)index.ArrayEventName.Number1;
+            byte[] array2 = (byte[])index.ArrayEventName.Array2;
+            ulong number2 = (ulong)index.ArrayEventName.Number2;
+            array1.Length.Should().Be(5);
+            array2.Length.Should().Be(8);
+            array1[0].Should().Be(1);
+            array1[1].Should().Be(0);
+            array1[2].Should().Be(0);
+            array1[3].Should().Be(8);
+            array1[4].Should().Be(6);
+            number1.Should().Be(1);
+            array2[0].Should().Be(2);
+            array2[1].Should().Be(8);
+            array2[2].Should().Be(9);
+            array2[3].Should().Be(6);
+            array2[4].Should().Be(3);
+            array2[5].Should().Be(0);
+            array2[6].Should().Be(3);
+            array2[7].Should().Be(5);
+            number2.Should().Be(2);
+        }
     }
 }
