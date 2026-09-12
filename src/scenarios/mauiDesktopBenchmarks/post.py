@@ -1,0 +1,28 @@
+'''
+Post-commands for MAUI Desktop BenchmarkDotNet benchmarks.
+Cleans up the cloned maui repo and temporary artifacts.
+'''
+import os
+from performance.common import remove_directory
+from performance.logger import setup_loggers, getLogger
+
+setup_loggers(True)
+log = getLogger(__name__)
+
+# Match the absolute-path resolution used by test.py so cleanup finds the
+# checkout regardless of the cwd post.py inherits.
+MAUI_REPO_DIRNAME = 'maui_repo'
+MAUI_REPO_DIR = os.path.abspath(MAUI_REPO_DIRNAME)
+
+
+def cleanup():
+    """Remove the cloned maui repository."""
+    if os.path.exists(MAUI_REPO_DIR):
+        log.info(f'Removing cloned MAUI repo: {MAUI_REPO_DIR}')
+        remove_directory(MAUI_REPO_DIR)
+
+    log.info('Post-commands cleanup complete.')
+
+
+if __name__ == '__main__':
+    cleanup()
