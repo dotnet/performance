@@ -89,18 +89,68 @@ def test_ready_to_run_validates_resolved_runtime_pack_items():
 def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
     artifact = tmp_path / "artifact" / "staging"
     ref_pack = artifact / "dotnet-none" / "packs" / "Microsoft.NETCore.App.Ref" / "11.0.0-rc.1.26431.109"
+    shared_framework = artifact / "dotnet-none" / "shared" / "Microsoft.NETCore.App" / "11.0.0-rc.1.26431.109"
     runtime_pack = artifact / "microsoft.netcore.app.runtime.browser-wasm" / "Release"
     built_nugets = artifact / "built-nugets"
     ref_pack.mkdir(parents=True)
+    shared_framework.mkdir(parents=True)
     runtime_pack.mkdir(parents=True)
     built_nugets.mkdir(parents=True)
+    (shared_framework / "System.Private.CoreLib.dll").touch()
     (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.11.0.0-ci.nupkg").touch()
     (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.11.0.0-ci.nupkg").touch()
     (built_nugets / "Microsoft.NET.ILLink.Tasks.11.0.0-ci.nupkg").touch()
 
-    version = build_wasm_coreclr_payload(str(artifact.parent), str(tmp_path / "payload"))
+    payload = tmp_path / "payload"
+    version = build_wasm_coreclr_payload(str(artifact.parent), str(payload))
 
     assert version == "11.0.0-ci"
+    assert (
+        payload
+        / "dotnet"
+        / "shared"
+        / "Microsoft.NETCore.App"
+        / "11.0.0-ci"
+        / "System.Private.CoreLib.dll"
+    ).is_file()
+
+
+def test_coreclr_payload_aliases_sdk_framework_during_major_version_rollover(tmp_path):
+    artifact = tmp_path / "artifact" / "staging"
+    dotnet = artifact / "dotnet-none"
+    installed_version = "12.0.0-alpha.1.26458.117"
+    shared_framework = dotnet / "shared" / "Microsoft.NETCore.App" / installed_version
+    built_nugets = artifact / "built-nugets"
+    shared_framework.mkdir(parents=True)
+    built_nugets.mkdir(parents=True)
+    (shared_framework / "System.Private.CoreLib.dll").write_text("runtime")
+    (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.12.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.12.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NET.ILLink.Tasks.12.0.0-ci.nupkg").touch()
+
+    payload = tmp_path / "payload"
+    version = build_wasm_coreclr_payload(str(artifact.parent), str(payload))
+
+    aliased_framework = (
+        payload / "dotnet" / "shared" / "Microsoft.NETCore.App" / "12.0.0-ci"
+    )
+    assert version == "12.0.0-ci"
+    assert (aliased_framework / "System.Private.CoreLib.dll").read_text() == "runtime"
+
+
+def test_coreclr_payload_rejects_missing_compatible_sdk_framework(tmp_path):
+    artifact = tmp_path / "artifact" / "staging"
+    (artifact / "dotnet-none" / "shared" / "Microsoft.NETCore.App" / "11.0.0").mkdir(
+        parents=True
+    )
+    built_nugets = artifact / "built-nugets"
+    built_nugets.mkdir(parents=True)
+    (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.12.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.12.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NET.ILLink.Tasks.12.0.0-ci.nupkg").touch()
+
+    with pytest.raises(ValueError, match="Expected one installed Microsoft.NETCore.App 12.0"):
+        build_wasm_coreclr_payload(str(artifact.parent), str(tmp_path / "payload"))
 
 
 def test_coreclr_payload_rejects_mismatched_toolchain_package_versions(tmp_path):
