@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <StartupObject>MauiPerfLab.EntryPoint</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Remove="BenchmarkDotNet" />
+    <PackageReference Include="BenchmarkDotNet" Version="@BENCHMARK_DOTNET_VERSION@" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="@BENCHMARK_DOTNET_VERSION@" />
+
+    <Compile Include="$(MSBuildThisFileDirectory)PerfLabEntry.cs" Link="PerfLabEntry.cs" />
+
+    <Reference Include="BenchmarkDotNet.Extensions">
+      <HintPath>$(MSBuildThisFileDirectory)harness\BenchmarkDotNet.Extensions.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Reporting">
+      <HintPath>$(MSBuildThisFileDirectory)harness\Reporting.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(MSBuildThisFileDirectory)harness\Newtonsoft.Json.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Microsoft.DotNet.PlatformAbstractions">
+      <HintPath>$(MSBuildThisFileDirectory)harness\Microsoft.DotNet.PlatformAbstractions.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+</Project>
