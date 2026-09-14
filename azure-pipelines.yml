@@ -20,7 +20,7 @@ variables:
   - name: TestRunNamePrefix
     value: '$(Agent.JobName)_'
   - template: /eng/common/templates/variables/pool-providers.yml
-  - ${{ if and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+  - ${{ if eq(variables['System.TeamProject'], 'internal') }}:
     # The standalone monitor does not inherit the submitter jobs' variable groups.
     - group: DotNet-HelixApi-Access
 
@@ -83,6 +83,6 @@ jobs:
   - template: /eng/common/core-templates/job/helix-job-monitor.yml
     parameters:
       timeoutInMinutes: 360
-      helixAccessToken: ${{ iif(and(eq(variables['System.TeamProject'], 'internal'), ne(variables['Build.Reason'], 'PullRequest')), '$(HelixApiAccessToken)', '') }}
+      helixAccessToken: ${{ iif(eq(variables['System.TeamProject'], 'internal'), '$(HelixApiAccessToken)', '') }}
       # Manual runs can legitimately select no workloads.
       allowNoHelixJobs: true

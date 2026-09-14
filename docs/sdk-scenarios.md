@@ -25,11 +25,12 @@ for it to exit). Existing 320-minute submitter limits and Helix work-item timeou
 unchanged. These limits start when the respective job runs; they are not a whole-run
 wall-clock deadline that includes time waiting for agents.
 
-Only internal non-PR runs import `DotNet-HelixApi-Access`. The always-present token
-parameter uses a compile-time expression to select its token macro for those runs
-and an empty string otherwise. Public and PR monitors therefore use anonymous Helix
-access, not an unresolved private-token variable. Azure DevOps timeline access and
-result reporting still use the job's `System.AccessToken`. The tool is restored from
+Internal runs, including internal PR runs, import `DotNet-HelixApi-Access`. The
+always-present token parameter uses a compile-time expression to select its token
+macro for the internal project and an empty string otherwise. Public runs, including
+public PR runs, therefore use anonymous Helix access, not an unresolved private-token
+variable. Azure DevOps timeline access and result reporting still use the job's
+`System.AccessToken`. The tool is restored from
 `.config/dotnet-tools.json` in its own checkout; `eng/Version.Details.xml` tracks that
 pin alongside the Helix SDK.
 
