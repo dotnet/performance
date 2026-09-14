@@ -84,5 +84,4 @@ jobs:
     parameters:
       timeoutInMinutes: 360
       helixAccessToken: ${{ iif(eq(variables['System.TeamProject'], 'internal'), '$(HelixApiAccessToken)', '') }}
-      # Manual runs can legitimately select no workloads.
-      allowNoHelixJobs: true
+      allowNoHelixJobs: false

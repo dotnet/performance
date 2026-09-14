@@ -16,9 +16,10 @@ Helix Job Monitor, its pool provider, and its parameters, including on public an
 runs. The monitor runs alongside submitters in the same implicit stage, waits for
 their Helix work items, and reports failures to Azure DevOps. The existing manual
 job-selection parameters and schedules are unchanged: public runs always select
-correctness jobs, while internal manual runs can select no workloads. Such runs still
-include the monitor and may succeed without Helix jobs (`allowNoHelixJobs: true`).
-This permits an empty stage; it does not suppress submitter or work-item failures.
+correctness jobs. Internal manual runs must select workloads; leaving all three
+job-selection flags false still includes the monitor and fails because no Helix jobs
+were submitted (`allowNoHelixJobs: false`). Submitter and work-item failures also
+continue to fail the run.
 
 The monitor job has a six-hour timeout (355 minutes for the tool, leaving five minutes
 for it to exit). Existing 320-minute submitter limits and Helix work-item timeouts are
