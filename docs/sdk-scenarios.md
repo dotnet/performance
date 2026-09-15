@@ -28,10 +28,10 @@ wall-clock deadline that includes time waiting for agents.
 
 Internal runs, including internal PR runs, import `DotNet-HelixApi-Access`. The
 monitor forwards `$(HelixApiAccessToken)` directly, matching the shared pipeline
-convention. Public runs, including public PR runs, rely on the public pipeline's
-empty value for this variable to use anonymous Helix access; the internal credential
-group is not imported there. An undefined macro is not a substitute for that empty
-value. Azure DevOps timeline access and result reporting still use the job's
+convention. Internal runs use the imported credential. Public runs, including public
+PR runs, do not import that group and use public Helix access. Direct forwarding
+does not change how Azure DevOps expands variables or how the SDK handles tokens.
+Azure DevOps timeline access and result reporting still use the job's
 `System.AccessToken`. The tool is restored from
 `.config/dotnet-tools.json` in its own checkout; `eng/Version.Details.xml` tracks that
 pin alongside the Helix SDK.
