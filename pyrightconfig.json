@@ -65,6 +65,7 @@
         { "root": "./src/scenarios/mauiblazordesktop" },
         { "root": "./src/scenarios/mauiblazorios" },
         { "root": "./src/scenarios/mauidesktop" },
+        { "root": "./src/scenarios/mauidesktopbenchmarks" },
         { "root": "./src/scenarios/mauiios" },
         { "root": "./src/scenarios/mauimaccatalyst" },
         { "root": "./src/scenarios/mauisamplecontentandroid" },
