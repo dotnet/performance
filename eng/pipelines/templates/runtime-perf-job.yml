@@ -16,6 +16,7 @@ parameters:
   isScenario: false
   downloadSpecificBuild: null # buildId, pipeline, branchName, project
   crossBuild: false
+  wasmWorkloadSource: ''
   runtimeRepoAlias: runtime
   performanceRepoAlias: self
   selfIsRuntime: true
