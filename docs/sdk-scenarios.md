@@ -27,10 +27,11 @@ unchanged. These limits start when the respective job runs; they are not a whole
 wall-clock deadline that includes time waiting for agents.
 
 Internal runs, including internal PR runs, import `DotNet-HelixApi-Access`. The
-always-present token parameter uses a compile-time expression to select its token
-macro for the internal project and an empty string otherwise. Public runs, including
-public PR runs, therefore use anonymous Helix access, not an unresolved private-token
-variable. Azure DevOps timeline access and result reporting still use the job's
+monitor forwards `$(HelixApiAccessToken)` directly, matching the shared pipeline
+convention. Public runs, including public PR runs, rely on the public pipeline's
+empty value for this variable to use anonymous Helix access; the internal credential
+group is not imported there. An undefined macro is not a substitute for that empty
+value. Azure DevOps timeline access and result reporting still use the job's
 `System.AccessToken`. The tool is restored from
 `.config/dotnet-tools.json` in its own checkout; `eng/Version.Details.xml` tracks that
 pin alongside the Helix SDK.
