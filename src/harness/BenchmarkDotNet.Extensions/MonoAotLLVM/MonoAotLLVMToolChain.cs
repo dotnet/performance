@@ -3,14 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Toolchains;
-using BenchmarkDotNet.Toolchains.DotNetCli;
 
 namespace BenchmarkDotNet.Extensions;
 
 public class MonoAotLLVMToolChain(MonoAotLLVMRuntime runtime, MonoAotLLVMSettings settings)
-    : Toolchain("MonoAotLLVM", runtime,
-        new MonoAotLLVMGenerator(settings),
-        new DotNetCliBuilder(settings),
-        new Executor())
+    : Toolchain("MonoAotLLVM", runtime, new MonoAotLLVMBuilder(settings), Toolchains.Executor.Instance)
 {
 }
