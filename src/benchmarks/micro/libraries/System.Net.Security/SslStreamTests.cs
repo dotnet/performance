@@ -36,7 +36,7 @@ namespace System.Net.Security.Tests
         private PipeStream _clientPipe, _serverPipe;    // used for handshake tests
 
         [GlobalSetup]
-        public void Setup()
+        public async Task Setup()
         {
             string pipeName = "SetupTlsHandshakePipe";
             using (var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
@@ -51,7 +51,7 @@ namespace System.Net.Security.Tests
 
                 _sslClient = new SslStream(new NetworkStream(client, ownsSocket: true), leaveInnerStreamOpen: false, delegate { return true; });
                 _sslServer = new SslStream(new NetworkStream(server, ownsSocket: true), leaveInnerStreamOpen: false, delegate { return true; });
-                Task.WaitAll(
+                await Task.WhenAll(
                     _sslClient.AuthenticateAsClientAsync("localhost", null, SslProtocols.None, checkCertificateRevocation: false),
                     _sslServer.AuthenticateAsServerAsync(_cert, clientCertificateRequired: false, SslProtocols.None, checkCertificateRevocation: false));
 
@@ -80,7 +80,7 @@ namespace System.Net.Security.Tests
             // Create PIPE Pair.
             var pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
             var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
-            Task.WaitAll(pipeServer.WaitForConnectionAsync(), pipeClient.ConnectAsync());
+            await Task.WhenAll(pipeServer.WaitForConnectionAsync(), pipeClient.ConnectAsync());
             _serverPipe = pipeServer;
             _clientPipe = pipeClient;
         }
