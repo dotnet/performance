@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <!-- Keep Windows enabled so MAUI product projects retain a desktop target. -->
+    <IncludeAndroidTargetFrameworks>false</IncludeAndroidTargetFrameworks>
+    <IncludeIosTargetFrameworks>false</IncludeIosTargetFrameworks>
+    <IncludeMacCatalystTargetFrameworks>false</IncludeMacCatalystTargetFrameworks>
+    <IncludeMacOSTargetFrameworks>false</IncludeMacOSTargetFrameworks>
+    <IncludeTizenTargetFrameworks>false</IncludeTizenTargetFrameworks>
+  </PropertyGroup>
+</Project>
