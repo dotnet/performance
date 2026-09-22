@@ -116,6 +116,12 @@ And select one of the benchmarks from the list by either entering its number or 
 
 ### Command Line
 
+The microbenchmark `--msbuild-arguments` option passes additional arguments to MSBuild for BenchmarkDotNet's generated project. Use slash-prefixed arguments such as `/p:` or `/t:`, not `-p:` or `-t:`: `CommandLineOptions.ParseAndRemoveStringsParameter` stops collecting values at any token beginning with `-`. Embedded `--` within a `/p:` value is fine, for example:
+
+```text
+--msbuild-arguments /p:PublishReadyToRunCrossgen2ExtraArgs=--target-allows-runtime-code-generation:false
+```
+
 #### Filtering the Benchmarks
 
 You can filter the benchmarks using `--filter $globPattern` console line argument. The filter is **case insensitive**.

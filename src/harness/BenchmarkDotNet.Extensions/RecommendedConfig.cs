@@ -31,6 +31,7 @@ namespace BenchmarkDotNet.Extensions
             List<string>? categoryExclusionFilterValue = null,
             Job? job = null,
             bool getDiffableDisasm = false,
+            IReadOnlyList<string>? msBuildArguments = null,
             IToolchain? toolchain = null)
         {
             if (job is null)
@@ -48,6 +49,11 @@ namespace BenchmarkDotNet.Extensions
             if (toolchain is not null)
             {
                 job = job.WithToolchain(toolchain);
+            }
+
+            if (msBuildArguments is not null && msBuildArguments.Count > 0)
+            {
+                job = job.WithMsBuildArguments(msBuildArguments.ToArray());
             }
 
             var config = ManualConfig.CreateEmpty()

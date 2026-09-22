@@ -48,6 +48,7 @@ namespace MicroBenchmarks
             int? partitionIndex;
             List<string> exclusionFilterValue;
             List<string> categoryExclusionFilterValue;
+            List<string> msBuildArguments;
             bool getDiffableDisasm;
             MonoAotLLVMToolChain monoAotToolchain = null;
 
@@ -58,6 +59,7 @@ namespace MicroBenchmarks
                 argsList = CommandLineOptions.ParseAndRemoveIntParameter(argsList, "--partition-index", out partitionIndex);
                 argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--exclusion-filter", out exclusionFilterValue);
                 argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--category-exclusion-filter", out categoryExclusionFilterValue);
+                argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--msbuild-arguments", out msBuildArguments);
                 CommandLineOptions.ParseAndRemoveBooleanParameter(argsList, "--disasm-diff", out getDiffableDisasm);
 
                 // Extract monoaotllvm args not recognized by BDN and build the toolchain.
@@ -131,6 +133,7 @@ namespace MicroBenchmarks
                         exclusionFilterValue: exclusionFilterValue,
                         categoryExclusionFilterValue: categoryExclusionFilterValue,
                         getDiffableDisasm: getDiffableDisasm,
+                        msBuildArguments: msBuildArguments,
                         toolchain: monoAotToolchain)
                     .AddValidator(new NoWasmValidator(Categories.NoWASM)))
                 .ConfigureAwait(false);
