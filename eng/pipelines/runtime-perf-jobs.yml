@@ -14,7 +14,7 @@ parameters:
   - name: viperMicro
     type: object
     default:
-      enabled: true
+      enabled: false
       configs:
         - linux_x64
         - windows_x64
@@ -22,48 +22,48 @@ parameters:
   - name: viperMicroRuntimeAsync
     type: object
     default:
-      enabled: true
+      enabled: false
       configs:
         - linux_x64
         - windows_x64
   - name: cobaltMicroRuntimeAsync
     type: object
     default:
-      enabled: true
+      enabled: false
       configs:
         - linux_arm64
   - name: monoMicro
     type: object
     default:
-      enabled: true
+      enabled: false
       configs:
         - linux_x64
   - name: monoInterpreter
     type: object
     default:
-      enabled: true
+      enabled: false
       configs:
         - linux_x64
   - name: monoAot
     type: object
     default:
-      enabled: true
+      enabled: false
       configs:
         - linux_x64
   - name: androidCoreclrJit
     type: object
     default:
-      enabled: true
+      enabled: false
   - name: cobaltMicro
     type: object
     default:
-      enabled: true
+      enabled: false
       configs:
         - linux_arm64
   - name: cobaltSveMicro
     type: object
     default:
-      enabled: true
+      enabled: false
       configs:
         - linux_arm64
   - name: m4Micro
@@ -75,13 +75,13 @@ parameters:
   - name: cobaltMicroR2RInterpreter
     type: object
     default:
-      enabled: true
+      enabled: false
       configs:
         - linux_arm64
   - name: androidCoreclrR2r
     type: object
     default:
-      enabled: true
+      enabled: false
 
 jobs:
   - template: /eng/pipelines/performance/templates/perf-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
@@ -89,12 +89,7 @@ jobs:
       perfBranch: ${{ parameters.perfBranch }}
 
   - ${{ if not(startswith(variables['Build.SourceBranch'], 'refs/heads/release')) }}:
-    # Build and run iOS CoreCLR and NativeAOT scenarios
-    - template: /eng/pipelines/runtime-ios-scenarios-perf-jobs.yml
-      parameters:
-        runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-        performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-        jobParameters: ${{ parameters.jobParameters }}
+    # Temporarily omit iOS builds and runs while validating the M4 queue.
 
     # Android CoreCLR JIT (includes static linking variant) — controlled by androidCoreclrJit toggle
     - ${{ if eq(parameters.androidCoreclrJit.enabled, true) }}:
