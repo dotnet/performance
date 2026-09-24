@@ -123,14 +123,7 @@ public class MonoAotLLVMBuilder : CsProjBuilder
             new XAttribute("Condition", "Exists($(MonoTargetsPath))")));
     }
 
-    protected override string GetPublishDirectoryPath(string buildArtifactsDirectoryPath, string configuration)
-        => Path.Combine(GetBinariesDirectoryPath(buildArtifactsDirectoryPath, configuration), "publish");
-
-    protected override string GetExecutablePath(string binariesDirectoryPath, string programName)
-        => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? Path.Combine(binariesDirectoryPath, "publish", $"{programName}.exe")
-            : Path.Combine(binariesDirectoryPath, "publish", programName);
-
-    protected override string GetBinariesDirectoryPath(string buildArtifactsDirectoryPath, string configuration)
-        => Path.Combine(buildArtifactsDirectoryPath, "bin", configuration, Settings.TargetFrameworkMoniker, RuntimeInformation.RuntimeIdentifier);
+    // A self-contained publish produces an app host, so the executable is not the managed dll the base returns.
+    protected override string GetExecutableExtension()
+        => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".exe" : string.Empty;
 }

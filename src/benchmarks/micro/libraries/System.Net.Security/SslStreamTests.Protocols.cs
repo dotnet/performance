@@ -14,12 +14,12 @@ namespace System.Net.Security.Tests
     {
         private static readonly Lazy<Task<bool>> s_supportsTls13 = new(GetTls13SupportAsync);
 
-        public static async IAsyncEnumerable<object[]> TlsProtocols()
+        public static async IAsyncEnumerable<SslProtocols> TlsProtocols()
         {
-            yield return new object[] { SslProtocols.Tls12 };
+            yield return SslProtocols.Tls12;
             if (await s_supportsTls13.Value)
             {
-                yield return new object[] { SslProtocols.Tls13 };
+                yield return SslProtocols.Tls13;
             }
         }
 

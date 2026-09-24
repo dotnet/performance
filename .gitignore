@@ -88,6 +88,9 @@ dlldata.c
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
 
+# BenchmarkDotNet generated builds, written beside the benchmark project
+.bdn/
+
 # .NET Core
 project.lock.json
 project.fragment.lock.json
