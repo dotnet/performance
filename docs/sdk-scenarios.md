@@ -11,6 +11,11 @@ The repository's [azure-pipelines.yml](../azure-pipelines.yml) entrypoint uses
 benchmark jobs. It backs the internal `dotnet-performance` pipeline (definition 306)
 and the public `performance-ci` pipeline (definition 38).
 
+SDK jobs no longer invoke the Mono-based Blazor scenarios (including scheduled
+size-on-disk measurements) or MAUI Android/iOS Mono smoke and .NET 10 baseline
+scenarios. CoreCLR and NativeAOT jobs keep their existing channels and settings.
+The scenario projects and manual Mono execution support remain available.
+
 The entrypoint always enables asynchronous submission and includes the standalone
 Helix Job Monitor, its pool provider, and its parameters, including on public and PR
 runs. The monitor runs alongside submitters in the same implicit stage, waits for
