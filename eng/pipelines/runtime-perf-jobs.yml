@@ -66,6 +66,12 @@ parameters:
       enabled: true
       configs:
         - linux_arm64
+  - name: m4Micro
+    type: object
+    default:
+      enabled: true
+      configs:
+        - osx_arm64
   - name: cobaltMicroR2RInterpreter
     type: object
     default:
@@ -319,6 +325,24 @@ jobs:
           runKind: micro
           logicalMachine: 'perfcobalt'
           osDistro: 'azurelinux'
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
+  # CoreCLR Mac M4 microbenchmarks. Older runtime branches do not build macOS Arm64 artifacts.
+  - ${{ if and(eq(parameters.m4Micro.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: coreclr
+        platforms: ${{ parameters.m4Micro.configs }}
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runKind: micro
+          queue: 'osx.26.arm64.m4.perf'
+          machinePool: 'M4'
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
           ${{ each parameter in parameters.jobParameters }}:
