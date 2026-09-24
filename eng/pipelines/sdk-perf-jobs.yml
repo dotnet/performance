@@ -93,24 +93,6 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Blazor scenario benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        runKind: blazor_scenarios
-        projectFileName: blazor_scenarios.proj
-        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
   # SDK scenario benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
@@ -428,29 +410,6 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui Android scenario benchmarks (SDK Default Baseline) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-pixel10a
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - 10.0
-        runtimeFlavor: mono # Update to coreclr when the baseline moves to .NET 11.
-        codeGenType: Default
-        buildConfig: Release
-        variables:
-          - name: MAUI_WORKLOAD_MODE
-            value: stable
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
   # Maui Android scenario benchmarks (CoreCLR Full R2R) - Release
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
@@ -493,48 +452,6 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Maui Android scenario benchmarks (Mono Default) - Release
-  # Smoke coverage that the MAUI Android app still builds and runs on Mono.
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-android-arm64-pixel
-        - win-x64-android-arm64-pixel10a
-        - win-x64-android-arm64-galaxy
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_android
-        projectFileName: maui_scenarios_android.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: Mono
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # Maui iOS scenario benchmarks (Mono Default) - Release
-  # Smoke coverage that the MAUI iOS app still builds and runs on Mono.
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - main
-        runtimeFlavor: mono
-        codeGenType: Default
-        buildConfig: Release
-        additionalJobIdentifier: Mono
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
   # Maui iOS scenario benchmarks (CoreCLR Default) - Release
   - template: /eng/pipelines/templates/build-machine-matrix.yml
     parameters:
@@ -551,27 +468,6 @@ jobs:
         codeGenType: Default
         buildConfig: Release
         additionalJobIdentifier: CoreCLR
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # Maui iOS scenario benchmarks (SDK Default Baseline) - Release
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - osx-x64-ios-arm64
-      isPublic: false
-      jobParameters:
-        runKind: maui_scenarios_ios
-        projectFileName: maui_scenarios_ios.proj
-        channels:
-          - 10.0
-        runtimeFlavor: mono # Update to coreclr when the baseline moves to .NET 11.
-        codeGenType: Default
-        buildConfig: Release
-        variables:
-          - name: MAUI_WORKLOAD_MODE
-            value: stable
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -733,23 +629,6 @@ jobs:
       jobParameters:
         runKind: sdk_scenarios
         projectFileName: sdk_scenarios.proj
-        channels:
-          - main
-          - 9.0
-          - 8.0
-        ${{ each parameter in parameters.jobParameters }}:
-          ${{ parameter.key }}: ${{ parameter.value }}
-
-  # Blazor 3.2 scenario benchmarks
-  - template: /eng/pipelines/templates/build-machine-matrix.yml
-    parameters:
-      jobTemplate: /eng/pipelines/templates/run-scenarios-job.yml
-      buildMachines:
-        - win-x64-viper
-      isPublic: false
-      jobParameters:
-        runKind: blazor_scenarios
-        projectFileName: blazor_scenarios.proj
         channels:
           - main
           - 9.0
