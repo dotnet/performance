@@ -59,8 +59,7 @@ namespace MicroBenchmarks
                         exclusionFilterValue: exclusionFilterValue,
                         categoryExclusionFilterValue: categoryExclusionFilterValue,
                         getDiffableDisasm: getDiffableDisasm,
-                        msBuildArguments: msBuildArguments)
-                    .AddValidator(new NoWasmValidator(Categories.NoWASM)))
+                        msBuildArguments: msBuildArguments))
                 .ConfigureAwait(false);
 
             return summaries.ToExitCode();

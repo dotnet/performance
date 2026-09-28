@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace System.Threading.Tasks
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
+    [BenchmarkCategory(Categories.Libraries)]
     [MinWarmupCount(2, forceAutoWarmup: true)] // these benchmarks require more warmups than in our default config
     [MaxWarmupCount(10, forceAutoWarmup: true)]
     public class ValueTaskPerfTest
