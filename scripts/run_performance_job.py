@@ -697,6 +697,9 @@ def get_run_configurations(
         configurations["R2RType"] = "nor2r"
     elif r2r_run_type == "r2r":
         configurations["R2RType"] = "r2r"
+    elif r2r_run_type == "r2r_composite":
+        # CoreCLR WASM composite R2R gets its own PerfLab history, distinct from per-assembly r2r.
+        configurations["R2RType"] = "r2r_composite"
 
     if runtime_type == "coreclr_r2r_interpreter":
         configurations["R2RType"] = "r2r_interpreter"
@@ -754,7 +757,8 @@ def get_work_item_command(
         wasm_coreclr: bool = False,
         wasm_ready_to_run: bool = False,
         only_sanity_check: bool = False,
-        wasm_workload_source: Optional[str] = None):
+        wasm_workload_source: Optional[str] = None,
+        wasm_ready_to_run_composite: bool = False):
     if os_group == "windows":
         work_item_command = [
             "python",
@@ -793,9 +797,11 @@ def get_work_item_command(
         ]
         if wasm_coreclr:
             work_item_command += ["--wasm-runtime-flavor", "CoreCLR"]
-            if wasm_ready_to_run:
+            if wasm_ready_to_run_composite:
+                work_item_command += ["--wasm-ready-to-run-composite"]
+            elif wasm_ready_to_run:
                 work_item_command += ["--wasm-ready-to-run"]
-            if wasm_ready_to_run and wasm_workload_source:
+            if (wasm_ready_to_run or wasm_ready_to_run_composite) and wasm_workload_source:
                 work_item_command += [
                     "--wasm-workload-source",
                     wasm_workload_source,
@@ -861,6 +867,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
     wasm_coreclr = args.runtime_type == "wasm_coreclr"
     wasm = args.runtime_type == "wasm" or wasm_coreclr  # wasm_coreclr also uses wasm infrastructure
     wasm_aot = wasm and is_aot and not wasm_coreclr
+    if args.r2r_run_type == "r2r_composite" and not wasm_coreclr:
+        raise Exception("r2r_composite R2R run type is only supported for the wasm_coreclr runtime type")
 
     working_dir = os.path.join(args.performance_repo_dir, "CorrelationStaging") # folder in which the payload and workitem directories will be made
     work_item_dir = os.path.join(working_dir, "workitem", "") # Folder in which the work item commands will be run in
@@ -1025,7 +1033,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         args.wasm_workload_source)
     wasm_sdk_cohort = (
         wasm_coreclr
-        and args.r2r_run_type == "r2r"
+        and args.r2r_run_type in ("r2r", "r2r_composite")
         and wasm_workload_source is not None)
     helix_wasm_workload_source = (
         wasm_workload_source if wasm_sdk_cohort else None)
@@ -1497,7 +1505,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             wasm_coreclr,
             wasm_coreclr and args.r2r_run_type == "r2r",
             args.only_sanity_check,
-            helix_wasm_workload_source)
+            helix_wasm_workload_source,
+            wasm_coreclr and args.r2r_run_type == "r2r_composite")
     
     work_item_command = get_work_item_command_for_artifact_dir(bdn_artifacts_directory)
     baseline_work_item_command = get_work_item_command_for_artifact_dir(bdn_baseline_artifacts_dir)

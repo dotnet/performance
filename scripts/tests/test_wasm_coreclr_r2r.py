@@ -43,6 +43,70 @@ def test_ready_to_run_configures_msbuild_environment(monkeypatch):
     assert os.environ["PERFLAB_WASM_READY_TO_RUN"] == "true"
 
 
+@pytest.mark.parametrize(
+    "extra_args",
+    [
+        [],
+        ["--wasm"],
+        ["--wasm", "--wasm-runtime-flavor", "Mono"],
+    ],
+)
+def test_composite_ready_to_run_requires_coreclr_wasm(extra_args):
+    with pytest.raises(SystemExit):
+        micro_benchmarks.__process_arguments([
+            "--frameworks", "net11.0",
+            "--wasm-ready-to-run-composite",
+            *extra_args,
+        ])
+
+
+@pytest.mark.parametrize(
+    ("flags", "expected_ready_to_run", "expected_composite"),
+    [
+        ([], False, False),
+        (["--wasm-ready-to-run"], True, False),
+        (["--wasm-ready-to-run-composite"], True, True),
+        (["--wasm-ready-to-run", "--wasm-ready-to-run-composite"], True, True),
+    ],
+)
+def test_ready_to_run_mode_parsing(flags, expected_ready_to_run, expected_composite):
+    args = micro_benchmarks.__process_arguments([
+        "--frameworks", "net11.0",
+        "--wasm",
+        "--wasm-runtime-flavor", "CoreCLR",
+        *flags,
+    ])
+
+    assert micro_benchmarks.is_wasm_ready_to_run(args) == expected_ready_to_run
+    assert micro_benchmarks.is_wasm_ready_to_run_composite(args) == expected_composite
+
+
+@pytest.mark.parametrize(
+    ("ready_to_run", "composite", "expected_ready_to_run", "expected_composite"),
+    [
+        (False, False, "false", "false"),
+        (True, False, "true", "false"),
+        (False, True, "true", "true"),
+    ],
+)
+def test_ready_to_run_mode_configures_msbuild_environment(
+        monkeypatch, ready_to_run, composite, expected_ready_to_run, expected_composite):
+    # A stale parent value must not leak into a different mode.
+    monkeypatch.setenv("PERFLAB_WASM_READY_TO_RUN", "true")
+    monkeypatch.setenv("PERFLAB_WASM_READY_TO_RUN_COMPOSITE", "true")
+    args = Namespace(
+        wasm=True,
+        wasm_runtime_flavor="CoreCLR",
+        wasm_ready_to_run=ready_to_run,
+        wasm_ready_to_run_composite=composite,
+    )
+
+    micro_benchmarks.configure_wasm_ready_to_run(args)
+
+    assert os.environ["PERFLAB_WASM_READY_TO_RUN"] == expected_ready_to_run
+    assert os.environ["PERFLAB_WASM_READY_TO_RUN_COMPOSITE"] == expected_composite
+
+
 def test_ready_to_run_argument_is_forwarded_to_helix_work_item():
     command = get_work_item_command(
         os_group="linux",
@@ -58,6 +122,44 @@ def test_ready_to_run_argument_is_forwarded_to_helix_work_item():
 
     assert "--wasm-runtime-flavor" in command
     assert "--wasm-ready-to-run" in command
+    assert "--wasm-ready-to-run-composite" not in command
+
+
+def test_composite_ready_to_run_argument_is_forwarded_to_helix_work_item():
+    command = get_work_item_command(
+        os_group="linux",
+        target_csproj="src/benchmarks/micro/MicroBenchmarks.csproj",
+        architecture="x64",
+        perf_lab_framework="net11.0",
+        internal=True,
+        wasm=True,
+        bdn_artifacts_dir="/tmp/artifacts",
+        wasm_coreclr=True,
+        wasm_workload_source="https://example.test/cohort/v3/index.json",
+        wasm_ready_to_run_composite=True,
+    )
+
+    assert "--wasm-runtime-flavor" in command
+    assert "--wasm-ready-to-run-composite" in command
+    assert "--wasm-ready-to-run" not in command
+    source_index = command.index("--wasm-workload-source")
+    assert command[source_index + 1] == "https://example.test/cohort/v3/index.json"
+
+
+def test_composite_ready_to_run_is_ignored_without_coreclr_wasm():
+    command = get_work_item_command(
+        os_group="linux",
+        target_csproj="src/benchmarks/micro/MicroBenchmarks.csproj",
+        architecture="x64",
+        perf_lab_framework="net11.0",
+        internal=True,
+        wasm=True,
+        bdn_artifacts_dir="/tmp/artifacts",
+        wasm_coreclr=False,
+        wasm_ready_to_run_composite=True,
+    )
+
+    assert "--wasm-ready-to-run-composite" not in command
 
 
 def test_workload_source_is_forwarded_to_helix_work_item():
@@ -115,6 +217,96 @@ def test_ready_to_run_has_distinct_result_configuration():
     assert configurations["CompilationMode"] == "wasm"
     assert configurations["RuntimeType"] == "coreclr"
     assert configurations["R2RType"] == "r2r"
+
+
+def test_composite_ready_to_run_has_distinct_result_configuration():
+    configurations = get_run_configurations(
+        run_kind="micro",
+        runtime_type="wasm_coreclr",
+        codegen_type="wasm",
+        r2r_run_type="r2r_composite",
+        runtime_flavor="coreclr",
+        javascript_engine="v8",
+    )
+
+    assert configurations["CompilationMode"] == "wasm"
+    assert configurations["RuntimeType"] == "coreclr"
+    assert configurations["R2RType"] == "r2r_composite"
+
+
+def _wasm_targets():
+    targets_path = scripts_dir.parent / "src" / "benchmarks" / "micro" / "MicroBenchmarks.Wasm.targets"
+    return ET.parse(targets_path).getroot()
+
+
+def test_ready_to_run_properties_select_composite_from_environment():
+    root = _wasm_targets()
+    mode = [
+        element for group in root.findall("PropertyGroup")
+        for element in group.findall("_PerformanceWasmReadyToRunComposite")
+    ]
+    assert [(e.text, e.attrib.get("Condition")) for e in mode] == [
+        ("false", None),
+        ("true", "'$(PERFLAB_WASM_READY_TO_RUN_COMPOSITE)' == 'true'"),
+    ]
+
+    r2r_group = next(
+        group for group in root.findall("PropertyGroup")
+        if group.find("PublishReadyToRun") is not None
+    )
+    assert "'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'" in r2r_group.attrib["Condition"]
+    properties = {element.tag: element.text for element in r2r_group}
+    assert properties == {
+        "PublishReadyToRun": "true",
+        "PublishReadyToRunComposite": "$(_PerformanceWasmReadyToRunComposite)",
+        "PublishReadyToRunContainerFormat": "wasm",
+        "PublishTrimmed": "true",
+        "WasmEnableWebcil": "true",
+    }
+
+
+def test_ready_to_run_configuration_validates_selected_composite_mode():
+    target = _wasm_targets().find("./Target[@Name='ValidateWasmReadyToRunConfiguration']")
+    assert target is not None
+    assert "PERFLAB_WASM_READY_TO_RUN_COMPOSITE" in target.attrib["Condition"]
+
+    conditions = [error.attrib["Condition"] for error in target.findall("Error")]
+    assert "'$(PERFLAB_WASM_READY_TO_RUN)' != 'true'" in conditions
+    assert any(
+        "'$(PublishReadyToRunComposite)' != '$(_PerformanceWasmReadyToRunComposite)'" in condition
+        for condition in conditions
+    )
+
+
+def test_ready_to_run_output_guard_checks_composite_image():
+    target = _wasm_targets().find("./Target[@Name='ValidateWasmReadyToRunOutputs']")
+    assert target is not None
+    assert target.attrib["AfterTargets"] == "_CreateR2RImages"
+
+    include = target.find("./ItemGroup/_PerformanceWasmCompositeCompilation").attrib["Include"]
+    assert "WithMetadataValue('CreateCompositeImage', 'true')" in include
+    image = target.find("./ItemGroup/_PerformanceWasmCompositeImage").attrib["Include"]
+    assert "%(OutputR2RImage)" in image
+
+    conditions = " ".join(error.attrib["Condition"] for error in target.findall("Error"))
+    assert "'@(_ReadyToRunFilesToPublish)' == ''" in conditions
+    assert "EndsWith('.r2r.wasm')" in conditions
+    assert "!Exists('$(_PerformanceWasmCompositeImagePath)')" in conditions
+    assert "@(_ReadyToRunCompositeBuildInput)" in conditions
+    # Per-assembly mode rejects an unexpected composite plan.
+    assert "'$(_PerformanceWasmReadyToRunComposite)' != 'true' and '@(_PerformanceWasmCompositeImage)' != ''" in conditions
+
+
+def test_composite_publish_guard_checks_boot_config_core_assembly_asset():
+    target = _wasm_targets().find("./Target[@Name='ValidateWasmReadyToRunCompositePublishAssets']")
+    assert target is not None
+    assert target.attrib["AfterTargets"] == "ProcessPublishFilesForWasm"
+    assert "'$(_PerformanceWasmReadyToRunComposite)' == 'true'" in target.attrib["Condition"]
+
+    include = target.find("./ItemGroup/_PerformanceWasmCompositePublishAsset").attrib["Include"]
+    assert include == (
+        "@(_WasmCompositePublishStaticWebAsset->"
+        "WithMetadataValue('AssetTraitValue', 'readyToRunComposite'))")
 
 
 def test_ready_to_run_validates_resolved_runtime_pack_items():
@@ -332,9 +524,41 @@ def test_pipeline_scopes_workload_source_to_coreclr_r2r():
     condition = (
         "and(ne(parameters.wasmWorkloadSource, ''), "
         "eq(parameters.runtimeType, 'wasm_coreclr'), "
-        "eq(parameters.r2rRunType, 'r2r'))"
+        "in(parameters.r2rRunType, 'r2r', 'r2r_composite'))"
     )
     assert condition in template
+
+
+def test_pipeline_defines_coreclr_composite_r2r_lane():
+    jobs = (
+        scripts_dir.parent / "eng" / "pipelines" / "runtime-wasm-perf-jobs.yml"
+    ).read_text(encoding="utf-8")
+    release_exclusion = (
+        "  - ${{ if not(startswith(variables['Build.SourceBranch'], "
+        "'refs/heads/release')) }}:\n"
+    )
+
+    def lane(identifier):
+        blocks = [
+            block for block in jobs.split(release_exclusion)[1:]
+            if f"additionalJobIdentifier: {identifier}\n" in block
+        ]
+        assert len(blocks) == 1
+        # Stop at the next job's leading comment.
+        return blocks[0].split("\n\n")[0]
+
+    def without_lane_identity(block):
+        return [
+            line for line in block.splitlines()
+            if not line.strip().startswith(("r2rRunType:", "additionalJobIdentifier:"))
+        ]
+
+    per_assembly = lane("coreclr_r2r_v8")
+    composite = lane("coreclr_r2r_composite_v8")
+
+    assert "r2rRunType: 'r2r'\n" in per_assembly
+    assert "r2rRunType: 'r2r_composite'\n" in composite
+    assert without_lane_identity(composite) == without_lane_identity(per_assembly)
 
 
 @pytest.mark.parametrize("source", [None, "", "   "])
