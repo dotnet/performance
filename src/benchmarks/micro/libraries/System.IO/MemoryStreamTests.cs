@@ -69,7 +69,6 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.NoWASM)]
         [MemoryRandomization]
         public async Task CopyToAsync()
         {
