@@ -50,7 +50,7 @@ parameters:
   isCompare: false                  # optional -- If the job is comparing two configurations
   onlySanityCheck: false            # optional -- Whether to only run a sanity check for pipeline validation, not performance testing
   pgoRunType: ''                    # optional -- PGO run type (e.g. nodynamicpgo)
-  r2rRunType: ''                    # optional -- R2R run type (e.g. nor2r)
+  r2rRunType: ''                    # optional -- R2R run type (e.g. nor2r, r2r, r2r_composite)
   experimentName: ''                # optional -- Name of the experiment
   javascriptEngine: ''              # optional -- JavaScript engine to use
   iOSLlvmBuild: false               # optional -- Whether to build iOS with LLVM
@@ -242,7 +242,7 @@ jobs:
               - '--cross-build'
             - ${{ if ne(parameters.additionalSetupParameters, '') }}:
               - '${{ parameters.additionalSetupParameters }}'
-            - ${{ if and(ne(parameters.wasmWorkloadSource, ''), eq(parameters.runtimeType, 'wasm_coreclr'), eq(parameters.r2rRunType, 'r2r')) }}:
+            - ${{ if and(ne(parameters.wasmWorkloadSource, ''), eq(parameters.runtimeType, 'wasm_coreclr'), in(parameters.r2rRunType, 'r2r', 'r2r_composite')) }}:
               - '--wasm-workload-source "${{ parameters.wasmWorkloadSource }}"'
       - template: /eng/pipelines/templates/send-to-helix-step.yml
         parameters:

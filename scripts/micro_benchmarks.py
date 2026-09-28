@@ -155,7 +155,17 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         default=False,
         action='store_true',
-        help='Publish CoreCLR WASM benchmarks as ReadyToRun'
+        help='Publish CoreCLR WASM benchmarks as per-assembly ReadyToRun'
+    )
+
+    parser.add_argument(
+        '--wasm-ready-to-run-composite',
+        dest='wasm_ready_to_run_composite',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Publish CoreCLR WASM benchmarks as a single composite '
+             'ReadyToRun image (implies ReadyToRun)'
     )
 
     parser.add_argument(
@@ -252,9 +262,21 @@ def __process_arguments(args: list[str]):
     return parsed_args
 
 
+def is_wasm_ready_to_run_composite(args: Any) -> bool:
+    return bool(getattr(args, 'wasm_ready_to_run_composite', False))
+
+
+def is_wasm_ready_to_run(args: Any) -> bool:
+    '''True for either per-assembly or composite CoreCLR WASM ReadyToRun.'''
+    return bool(args.wasm_ready_to_run) or is_wasm_ready_to_run_composite(args)
+
+
 def validate_wasm_ready_to_run(args: Any) -> None:
-    if args.wasm_ready_to_run and (not args.wasm or args.wasm_runtime_flavor != 'CoreCLR'):
-        raise ArgumentTypeError('--wasm-ready-to-run requires --wasm --wasm-runtime-flavor CoreCLR')
+    if not args.wasm or args.wasm_runtime_flavor != 'CoreCLR':
+        if is_wasm_ready_to_run_composite(args):
+            raise ArgumentTypeError('--wasm-ready-to-run-composite requires --wasm --wasm-runtime-flavor CoreCLR')
+        if args.wasm_ready_to_run:
+            raise ArgumentTypeError('--wasm-ready-to-run requires --wasm --wasm-runtime-flavor CoreCLR')
 
 
 def configure_wasm_ready_to_run(args: Any) -> None:
@@ -263,7 +285,10 @@ def configure_wasm_ready_to_run(args: Any) -> None:
     # BenchmarkDotNet builds generated projects in child processes. MSBuild
     # imports environment variables as properties, which lets the generated
     # WASM project opt into R2R without requiring a new BDN command-line option.
-    environ['PERFLAB_WASM_READY_TO_RUN'] = str(args.wasm_ready_to_run).lower()
+    # Both variables are always written so a stale value from the parent
+    # environment cannot select a different mode.
+    environ['PERFLAB_WASM_READY_TO_RUN'] = str(is_wasm_ready_to_run(args)).lower()
+    environ['PERFLAB_WASM_READY_TO_RUN_COMPOSITE'] = str(is_wasm_ready_to_run_composite(args)).lower()
 
 
 def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:

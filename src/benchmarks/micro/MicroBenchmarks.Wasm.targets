@@ -15,9 +15,17 @@
     <RuntimeFlavor>CoreCLR</RuntimeFlavor>
   </PropertyGroup>
 
+  <!-- CoreCLR WASM R2R has two modes, selected by scripts/micro_benchmarks.py through environment variables:
+       per-assembly (PERFLAB_WASM_READY_TO_RUN=true) and composite (additionally PERFLAB_WASM_READY_TO_RUN_COMPOSITE=true),
+       which compiles the whole closure into one <entry>.r2r.wasm image loaded through the boot config's coreAssembly. -->
+  <PropertyGroup>
+    <_PerformanceWasmReadyToRunComposite>false</_PerformanceWasmReadyToRunComposite>
+    <_PerformanceWasmReadyToRunComposite Condition="'$(PERFLAB_WASM_READY_TO_RUN_COMPOSITE)' == 'true'">true</_PerformanceWasmReadyToRunComposite>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' and '$(UseMonoRuntime)' == 'false'">
     <PublishReadyToRun>true</PublishReadyToRun>
-    <PublishReadyToRunComposite>false</PublishReadyToRunComposite>
+    <PublishReadyToRunComposite>$(_PerformanceWasmReadyToRunComposite)</PublishReadyToRunComposite>
     <PublishReadyToRunContainerFormat>wasm</PublishReadyToRunContainerFormat>
     <PublishTrimmed>true</PublishTrimmed>
     <WasmEnableWebcil>true</WasmEnableWebcil>
@@ -26,16 +34,18 @@
   <Target Name="ValidateWasmReadyToRunConfiguration"
           DependsOnTargets="UpdateTargetingAndRuntimePack"
           BeforeTargets="PrepareForWasmBuild"
-          Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'">
+          Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' or '$(PERFLAB_WASM_READY_TO_RUN_COMPOSITE)' == 'true'">
     <ItemGroup>
       <_PerformanceWasmResolvedRuntimePack Include="@(ResolvedRuntimePack)"
                                            Condition="'%(ResolvedRuntimePack.FrameworkName)' == 'Microsoft.NETCore.App'" />
       <_PerformanceWasmResolvedFrameworkReference Include="@(ResolvedFrameworkReference)"
                                                   Condition="'%(ResolvedFrameworkReference.Identity)' == 'Microsoft.NETCore.App'" />
     </ItemGroup>
+    <Error Condition="'$(PERFLAB_WASM_READY_TO_RUN)' != 'true'"
+           Text="CoreCLR WASM composite R2R requires PERFLAB_WASM_READY_TO_RUN=true." />
     <Error Condition="'$(UseMonoRuntime)' != 'false'"
            Text="CoreCLR WASM R2R requires UseMonoRuntime=false." />
-    <Error Condition="'$(PublishReadyToRun)' != 'true' or '$(PublishReadyToRunComposite)' != 'false' or '$(PublishReadyToRunContainerFormat)' != 'wasm' or '$(PublishTrimmed)' != 'true' or '$(WasmEnableWebcil)' != 'true'"
+    <Error Condition="'$(PublishReadyToRun)' != 'true' or '$(PublishReadyToRunComposite)' != '$(_PerformanceWasmReadyToRunComposite)' or '$(PublishReadyToRunContainerFormat)' != 'wasm' or '$(PublishTrimmed)' != 'true' or '$(WasmEnableWebcil)' != 'true'"
            Text="CoreCLR WASM R2R project properties were not applied." />
     <Error Condition="'@(_PerformanceWasmResolvedRuntimePack->Count())' != '1' or '@(_PerformanceWasmResolvedRuntimePack->'%(NuGetPackageId)')' != 'Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)'"
            Text="CoreCLR WASM R2R resolved an unexpected runtime pack '@(_PerformanceWasmResolvedRuntimePack->'%(NuGetPackageId)')'." />
@@ -46,8 +56,42 @@
   <Target Name="ValidateWasmReadyToRunOutputs"
           AfterTargets="_CreateR2RImages"
           Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'">
+    <ItemGroup>
+      <_PerformanceWasmCompositeCompilation Include="@(_ReadyToRunCompileList->WithMetadataValue('CreateCompositeImage', 'true'))" />
+      <_PerformanceWasmCompositeImage Include="@(_PerformanceWasmCompositeCompilation->'%(OutputR2RImage)')" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_PerformanceWasmCompositeImagePath>@(_PerformanceWasmCompositeImage)</_PerformanceWasmCompositeImagePath>
+    </PropertyGroup>
     <Error Condition="'@(_ReadyToRunFilesToPublish)' == ''"
            Text="CoreCLR WASM R2R did not produce any ReadyToRun images." />
+    <Error Condition="'$(_PerformanceWasmReadyToRunComposite)' != 'true' and '@(_PerformanceWasmCompositeImage)' != ''"
+           Text="CoreCLR WASM per-assembly R2R unexpectedly planned a composite image '@(_PerformanceWasmCompositeImage)'." />
+    <!-- Composite: exactly one owner named <entry>.r2r.wasm (the name component stubs probe for) must exist on disk,
+         with at least one component compiled into it. -->
+    <Error Condition="'$(_PerformanceWasmReadyToRunComposite)' == 'true' and '@(_PerformanceWasmCompositeImage->Count())' != '1'"
+           Text="CoreCLR WASM composite R2R expected exactly one composite image but planned '@(_PerformanceWasmCompositeImage)'." />
+    <Error Condition="'$(_PerformanceWasmReadyToRunComposite)' == 'true' and '@(_PerformanceWasmCompositeImage->Count())' == '1' and !$(_PerformanceWasmCompositeImagePath.EndsWith('.r2r.wasm'))"
+           Text="CoreCLR WASM composite R2R image '$(_PerformanceWasmCompositeImagePath)' is not named '&lt;entry&gt;.r2r.wasm'." />
+    <Error Condition="'$(_PerformanceWasmReadyToRunComposite)' == 'true' and '@(_PerformanceWasmCompositeImage->Count())' == '1' and !Exists('$(_PerformanceWasmCompositeImagePath)')"
+           Text="CoreCLR WASM composite R2R image '$(_PerformanceWasmCompositeImagePath)' was not produced." />
+    <Error Condition="'$(_PerformanceWasmReadyToRunComposite)' == 'true' and '@(_ReadyToRunCompositeBuildInput)' == '' and '@(_ReadyToRunCompositeUnrootedBuildInput)' == ''"
+           Text="CoreCLR WASM composite R2R did not compile any component assemblies into the composite image." />
+  </Target>
+
+  <!-- The WebAssembly SDK defines the composite owner as a publish static web asset with the readyToRunComposite
+       trait; GenerateWasmBootJson routes exactly those assets to resources.coreAssembly. Verify that routing
+       happened so a composite that was compiled but never shipped/loaded fails the build. -->
+  <Target Name="ValidateWasmReadyToRunCompositePublishAssets"
+          AfterTargets="ProcessPublishFilesForWasm"
+          Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' and '$(_PerformanceWasmReadyToRunComposite)' == 'true' and '$(WasmBuildingForNestedPublish)' != 'true'">
+    <ItemGroup>
+      <_PerformanceWasmCompositePublishAsset Include="@(_WasmCompositePublishStaticWebAsset->WithMetadataValue('AssetTraitValue', 'readyToRunComposite'))" />
+    </ItemGroup>
+    <Error Condition="'@(_PerformanceWasmCompositePublishAsset->Count())' != '1'"
+           Text="CoreCLR WASM composite R2R expected one readyToRunComposite publish asset for the boot config coreAssembly entry but found '@(_PerformanceWasmCompositePublishAsset)'." />
+    <Error Condition="'@(_PerformanceWasmCompositePublishAsset->Count())' == '1' and !$([System.String]::Copy('%(_PerformanceWasmCompositePublishAsset.RelativePath)').EndsWith('.wasm'))"
+           Text="CoreCLR WASM composite R2R publish asset '%(_PerformanceWasmCompositePublishAsset.RelativePath)' is not a .wasm image." />
   </Target>
 
   <ItemGroup>
