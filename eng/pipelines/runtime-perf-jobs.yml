@@ -331,7 +331,7 @@ jobs:
             ${{ parameter.key }}: ${{ parameter.value }}
 
   # CoreCLR Mac M4 microbenchmarks. Older runtime branches do not build macOS Arm64 artifacts.
-  - ${{ if and(eq(parameters.m4Micro.enabled, true), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release'))) }}:
+  - ${{ if and(eq(parameters.m4Micro.enabled, true), not(or(startswith(variables['Build.SourceBranch'], 'refs/heads/release/'), startswith(variables['Build.SourceBranch'], 'refs/heads/internal/release/')))) }}:
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
