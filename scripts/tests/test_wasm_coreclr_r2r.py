@@ -1,4 +1,7 @@
+import json
 import os
+import shutil
+import subprocess
 import sys
 import xml.etree.ElementTree as ET
 from argparse import Namespace
@@ -134,6 +137,63 @@ def test_ready_to_run_validates_resolved_runtime_pack_items():
         for condition in conditions
     )
     assert all("_PerformanceWasmRuntimePackName" not in condition for condition in conditions)
+
+
+@pytest.mark.parametrize("ready_to_run", ["false", "true"])
+@pytest.mark.parametrize(
+    ("use_mono_runtime", "initial_flavor", "expected_flavor"),
+    [
+        ("false", "", "CoreCLR"),
+        ("false", "Mono", "CoreCLR"),
+        ("true", "", ""),
+        ("true", "Mono", "Mono"),
+        ("", "", ""),
+        ("", "Mono", "Mono"),
+    ],
+)
+def test_wasm_runtime_flavor_after_generated_project_imports(
+        tmp_path, ready_to_run, use_mono_runtime, initial_flavor, expected_flavor):
+    dotnet_cli = shutil.which("dotnet")
+    if dotnet_cli is None:
+        pytest.skip("A .NET SDK is required for MSBuild property evaluation.")
+
+    micro_dir = scripts_dir.parent / "src" / "benchmarks" / "micro"
+    project = ET.Element("Project")
+    properties = ET.SubElement(project, "PropertyGroup")
+    for name, value in {
+        "UseMonoRuntime": "true",
+        "RuntimeFlavor": initial_flavor,
+        "PERFLAB_WASM_READY_TO_RUN": ready_to_run,
+        "PublishReadyToRun": "false",
+    }.items():
+        ET.SubElement(properties, name).text = value
+
+    # BenchmarkDotNet overrides UseMonoRuntime after .props but before .targets.
+    ET.SubElement(project, "Import", Project=str(micro_dir / "MicroBenchmarks.Wasm.props"))
+    properties = ET.SubElement(project, "PropertyGroup")
+    ET.SubElement(properties, "UseMonoRuntime").text = use_mono_runtime
+    ET.SubElement(project, "Import", Project=str(micro_dir / "MicroBenchmarks.Wasm.targets"))
+    project_path = tmp_path / "GeneratedWasm.proj"
+    ET.ElementTree(project).write(project_path, encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            dotnet_cli, "msbuild", str(project_path), "-nologo",
+            "-getProperty:UseMonoRuntime,RuntimeFlavor,PublishReadyToRun",
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    evaluated = json.loads(result.stdout)["Properties"]
+    assert evaluated["UseMonoRuntime"] == use_mono_runtime
+    assert evaluated["RuntimeFlavor"] == expected_flavor
+    assert evaluated["PublishReadyToRun"] == (
+        "true" if use_mono_runtime == "false" and ready_to_run == "true" else "false"
+    )
 
 
 def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
