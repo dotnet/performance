@@ -545,9 +545,8 @@ class CSharpProject:
         if not bin_directory:
             raise TypeError('bin folder cannot be null.')
 
-        # Mixed symlink and physical paths can drop transitive references during restore.
-        self.__csproj_file = path.realpath(project.file_name)
-        self.__working_directory = path.realpath(project.working_directory)
+        self.__csproj_file = path.abspath(project.file_name)
+        self.__working_directory = path.abspath(project.working_directory)
         self.__bin_directory = bin_directory
 
         if not path.isdir(self.__working_directory):
