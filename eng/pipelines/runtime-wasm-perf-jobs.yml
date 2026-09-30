@@ -155,8 +155,7 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
-  # Run CoreCLR WASM R2R microbenchmarks using the same runtime payload.
-  # Browser WASM supports per-assembly R2R rather than composite R2R.
+  # Run CoreCLR WASM per-assembly R2R microbenchmarks using the same runtime payload.
   - ${{ if not(startswith(variables['Build.SourceBranch'], 'refs/heads/release')) }}:
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
@@ -174,6 +173,32 @@ jobs:
           logicalMachine: 'perfviper'
           javascriptEngine: 'v8'
           additionalJobIdentifier: coreclr_r2r_v8
+          downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
+          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+          ${{ each parameter in parameters.jobParameters }}:
+            ${{ parameter.key }}: ${{ parameter.value }}
+
+  # Run CoreCLR WASM composite R2R microbenchmarks using the same runtime payload.
+  # The whole benchmark closure is compiled into one <entry>.r2r.wasm image (PublishReadyToRunComposite=true)
+  # and reported as R2RType=r2r_composite, a history separate from per-assembly R2RType=r2r.
+  - ${{ if not(startswith(variables['Build.SourceBranch'], 'refs/heads/release')) }}:
+    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+      parameters:
+        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+        buildConfig: release
+        runtimeFlavor: coreclr
+        platforms:
+        - linux_x64
+        jobParameters:
+          liveLibrariesBuildConfig: Release
+          runtimeType: wasm_coreclr
+          codeGenType: 'wasm'
+          r2rRunType: 'r2r_composite'
+          runKind: micro
+          logicalMachine: 'perfviper'
+          javascriptEngine: 'v8'
+          additionalJobIdentifier: coreclr_r2r_composite_v8
           downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
           performanceRepoAlias: ${{ parameters.performanceRepoAlias }}

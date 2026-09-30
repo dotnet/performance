@@ -242,6 +242,15 @@ recorded in that SDK's `Microsoft.NETCoreSdk.BundledVersions.props`.
 `PERFLAB_WASM_PACKAGE_VERSION` should remain unset; that override is reserved
 for non-official runtime payloads.
 
+`--wasm-ready-to-run` publishes per-assembly ReadyToRun images. Replace it with
+`--wasm-ready-to-run-composite` to compile the benchmark closure into a single
+composite image (`PublishReadyToRunComposite=true`, published as
+`<entry>.r2r.wasm` and loaded through the boot config's `coreAssembly`
+resources). Composite mode requires a WebAssembly SDK with composite support
+(dotnet/runtime#134618) and ReadyToRun SDK tasks with wasm output naming
+(dotnet/sdk#56395). CI reports the two modes as `R2RType=r2r` and
+`R2RType=r2r_composite`.
+
 #### Note about "file ... being used by another process" error
 
 If you are seeing warnings like:

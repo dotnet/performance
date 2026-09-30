@@ -231,10 +231,11 @@ def main(argv: list[str]):
     if args.wasm_workload_source and not (
             args.wasm
             and args.wasm_runtime_flavor == 'CoreCLR'
-            and args.wasm_ready_to_run):
+            and micro_benchmarks.is_wasm_ready_to_run(args)):
         raise ValueError(
             '--wasm-workload-source requires --wasm '
-            '--wasm-runtime-flavor CoreCLR --wasm-ready-to-run')
+            '--wasm-runtime-flavor CoreCLR --wasm-ready-to-run '
+            '(or --wasm-ready-to-run-composite)')
 
     # Acquire necessary tools (dotnet)
     if not args.dotnet_path:
