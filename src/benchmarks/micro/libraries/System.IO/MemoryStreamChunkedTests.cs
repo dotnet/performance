@@ -69,7 +69,6 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.NoWASM)]
         [MemoryRandomization]
         public async Task<int> ReadAsyncMemory()
         {
@@ -113,7 +112,6 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.NoWASM)]
         [MemoryRandomization]
         public async Task WriteAsyncMemory()
         {
@@ -138,7 +136,6 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.NoWASM)]
         [MemoryRandomization]
         public async Task CopyToAsyncWithBufferSize()
         {

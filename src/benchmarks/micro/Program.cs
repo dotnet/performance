@@ -134,8 +134,7 @@ namespace MicroBenchmarks
                         categoryExclusionFilterValue: categoryExclusionFilterValue,
                         getDiffableDisasm: getDiffableDisasm,
                         msBuildArguments: msBuildArguments,
-                        toolchain: monoAotToolchain)
-                    .AddValidator(new NoWasmValidator(Categories.NoWASM)))
+                        toolchain: monoAotToolchain))
                 .ConfigureAwait(false);
 
             return summaries.ToExitCode();

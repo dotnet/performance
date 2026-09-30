@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace System.Threading.Tasks
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class ValueTaskPerfTest
     {
         private Task<int> _completedTask = Task.FromResult(42);

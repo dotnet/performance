@@ -183,6 +183,14 @@ Make sure you have the v8 engine installed and in the PATH. Follow the installat
 
 #### Run the benchmarks with the interpreter
 
+`NoWASM` excludes benchmarks that still require WASM-specific support. Async
+benchmarks are not excluded solely because they return `Task` or `ValueTask`:
+BenchmarkDotNet awaits them by default. The self-contained async benchmarks
+in `Perf_AsyncMethods`, `ValueTaskPerfTest`, `MemoryStreamTests`, and
+`MemoryStreamChunkedTests` are eligible for WASM runs. Other benchmarks retain
+their exclusions until their platform dependencies and runtime behavior are
+validated individually.
+
 1. Configure NuGet Feeds to include local packages. Open the `NuGet.config` and modify `packageSources` section
 
 ```xml
