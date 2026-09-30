@@ -47,6 +47,28 @@ does not download arbitrary Helix uploads into pipeline artifacts. Asynchronous 
 skip the submitter's `artifacts/helix-results` downloads, which were not published by
 this pipeline. Local `--send-to-helix` runs still wait and download performance reports.
 
+## Blazor workload preparation
+
+SDK Blazor jobs install `wasm-tools` once on the build agent through
+`PreparePayloadWorkItems`, using the SDK in the correlation payload, its bundled
+manifests (`--skip-manifest-update`), and the payload's `NuGet.config`. An installation
+failure stops payload preparation before the job is sent to Helix.
+
+Helix work items use `pre.py publish --has-workload --readonly-dotnet` and
+`post.py --readonly-dotnet`. These flags prevent the scenario helpers from changing
+the shared workload installation; they do not set filesystem permissions. Application
+restore, publish, size measurements, and cleanup of work-item-local outputs still run
+on Helix. Standalone scenario scripts retain their existing workload-management
+defaults.
+
+Workload availability does not select the benchmark's compilation mode. The Minimum
+Template explicitly enables native relinking, while the non-AOT New Template, Pizza,
+and Localized scenarios disable it with `WasmNativeWorkload=false`. AOT scenarios
+enable `RunAOTCompilation=true`. The Localized AOT command passes this property directly
+instead of referencing item metadata as an MSBuild property, which previously dropped
+the AOT argument. Its reported sizes may therefore change when it first runs with AOT
+actually enabled.
+
 ## SDK Build Throughput Scenario
 
 **SDK Build Throughput** is a scenario test that measures the throughput of SDK build process. To be more specific, our test *implicitly calls*

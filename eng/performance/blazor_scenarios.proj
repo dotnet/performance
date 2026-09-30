@@ -7,8 +7,12 @@
     <PerfLabTargetFrameworksEnvVar Condition="'$(TargetsWindows)' == 'true'">%PERFLAB_TARGET_FRAMEWORKS%</PerfLabTargetFrameworksEnvVar>
     <PerfLabTargetFrameworksEnvVar Condition="'$(TargetsWindows)' != 'true'">%24{PERFLAB_TARGET_FRAMEWORKS}</PerfLabTargetFrameworksEnvVar>
     <_MSBuildArgs>/p:_TrimmerDumpDependencies=true;/warnaserror:NU1602,NU1604</_MSBuildArgs>
-    <PublishArgs>--msbuild &quot;$(_MSBuildArgs)&quot; --msbuild-static AdditionalMonoLinkerOptions=%27&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;%27 --binlog $(LogDirectory)blazor_publish.binlog</PublishArgs>
+    <PublishArgs>--has-workload --readonly-dotnet --msbuild &quot;$(_MSBuildArgs)&quot; --msbuild-static AdditionalMonoLinkerOptions=%27&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;%27 --binlog $(LogDirectory)blazor_publish.binlog</PublishArgs>
     <PublishCommand>$(Python) pre.py publish $(PublishArgs)</PublishCommand>
+
+    <_BlazorDotNet>$([MSBuild]::NormalizePath('$(CorrelationPayloadDirectory)', 'dotnet', 'dotnet'))</_BlazorDotNet>
+    <_BlazorDotNet Condition="'$(TargetsWindows)' == 'true'">$(_BlazorDotNet).exe</_BlazorDotNet>
+    <_BlazorNuGetConfig>$([MSBuild]::NormalizePath('$(CorrelationPayloadDirectory)', 'performance', 'NuGet.config'))</_BlazorNuGetConfig>
 
     <PizzaAppPubLocation Condition="'$(TargetsWindows)' == 'true'">pub\wwwroot</PizzaAppPubLocation>
     <PizzaAppPubLocation Condition="'$(TargetsWindows)' != 'true'">pub/wwwroot</PizzaAppPubLocation>
@@ -27,6 +31,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PreparePayloadWorkItem Include="Blazor wasm-tools workload">
+      <Command>&quot;$(_BlazorDotNet)&quot; workload install wasm-tools --skip-manifest-update --configfile &quot;$(_BlazorNuGetConfig)&quot;</Command>
+      <WorkingDirectory>$(CorrelationPayloadDirectory)performance</WorkingDirectory>
+    </PreparePayloadWorkItem>
+
     <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
       <PayloadDirectory>%(Identity)</PayloadDirectory>
     </HelixCorrelationPayload>
@@ -35,7 +44,7 @@
 
   <ItemDefinitionGroup>
       <HelixWorkItem>
-      <PostCommands>$(Python) post.py</PostCommands>
+      <PostCommands>$(Python) post.py --readonly-dotnet</PostCommands>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemDefinitionGroup>
@@ -78,17 +87,19 @@
       <Command>$(PublishCommand) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation) $(ScenarioArgs)</Command>
     </HelixWorkItem>
         
+    <!-- Unlike the other scenarios, both Localized variants use the same pre.py.
+         Select the mode here: disable native relinking for non-AOT even with wasm-tools
+         installed, and explicitly enable AOT for the AOT work item. -->
     <HelixWorkItem Include="SOD - Localized App - Publish">
       <PayloadDirectory>$(ScenariosDir)blazorlocalized</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <Command>$(PublishCommand) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation) $(ScenarioArgs)</Command>
+      <Command>$(PublishCommand) --msbuild &quot;$(_MSBuildArgs);/p:WasmNativeWorkload=false&quot; -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation) $(ScenarioArgs)</Command>
     </HelixWorkItem>
 
     <HelixWorkItem Include="SOD - Localized App - Publish - AOT"> 
-      <_PublishArgsWithAOT>--msbuild &quot;$(_MSBuildArgs);/p:RunAOTCompilation=true&quot;</_PublishArgsWithAOT>
       <PayloadDirectory>$(ScenariosDir)blazorlocalized</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <Command>$(PublishCommand) $(_PublishArgsWithAOT) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation) $(ScenarioArgs)</Command>
+      <Command>$(PublishCommand) --msbuild &quot;$(_MSBuildArgs);/p:RunAOTCompilation=true&quot; -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation) $(ScenarioArgs)</Command>
     </HelixWorkItem>
   </ItemGroup>
   <Import Project="PreparePayloadWorkItems.targets" />
