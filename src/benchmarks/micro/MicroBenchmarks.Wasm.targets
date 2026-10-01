@@ -10,6 +10,11 @@
     <_WasmStrictVersionMatch>false</_WasmStrictVersionMatch>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(UseMonoRuntime)' == 'false'">
+    <!-- BenchmarkDotNet sets UseMonoRuntime after importing .Wasm.props. -->
+    <RuntimeFlavor>CoreCLR</RuntimeFlavor>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' and '$(UseMonoRuntime)' == 'false'">
     <PublishReadyToRun>true</PublishReadyToRun>
     <PublishReadyToRunComposite>false</PublishReadyToRunComposite>

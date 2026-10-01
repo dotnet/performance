@@ -215,6 +215,11 @@ Essentially, add `--aotcompilermode wasm` to the `--bdn-arguments=".."`:
 
 #### Run CoreCLR WASM ReadyToRun with a nightly or VMR SDK
 
+For CoreCLR WASM, `MicroBenchmarks.Wasm.targets` sets `RuntimeFlavor=CoreCLR`
+after BenchmarkDotNet applies `UseMonoRuntime=false`. This lets the WebAssembly
+SDK select the correct Webcil format, with or without ReadyToRun, while leaving
+Mono configuration unchanged.
+
 Use an exact SDK version together with a NuGet source containing the matching
 browser runtime/ref, WebAssembly SDK, host-specific Crossgen2, and ILLink
 packages, plus the complete `wasm-tools` pack closure. The source can be a
