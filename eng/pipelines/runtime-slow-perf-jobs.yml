@@ -1,12 +1,13 @@
 parameters:
   runScheduledJobs: false
   runPrivateJobs: false
+  runMono: true
   runtimeRepoAlias: runtime
   performanceRepoAlias: self
   jobParameters: {}
 
 jobs:
-  - ${{ if eq(parameters.runScheduledJobs, true) }}:
+  - ${{ if and(eq(parameters.runScheduledJobs, true), eq(parameters.runMono, true)) }}:
     - template: /eng/pipelines/performance/templates/perf-arm64-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         mono: true
@@ -54,27 +55,28 @@ jobs:
     - template: /eng/pipelines/performance/templates/perf-arm64-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
       parameters:
         coreclr: true
-        monoAot: true
+        monoAot: ${{ parameters.runMono }}
 
     # run mono aot microbenchmarks perf job
-    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-        buildConfig: release
-        runtimeFlavor: aot
-        platforms:
-        - linux_arm64
-        jobParameters:
-          liveLibrariesBuildConfig: Release
-          runtimeType: mono
-          codeGenType: 'AOT'
-          runKind: micro_mono
-          logicalMachine: 'perfampere'
-          timeoutInMinutes: 780
-          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
+    - ${{ if eq(parameters.runMono, true) }}:
+      - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
+        parameters:
+          jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
+          buildConfig: release
+          runtimeFlavor: aot
+          platforms:
+          - linux_arm64
+          jobParameters:
+            liveLibrariesBuildConfig: Release
+            runtimeType: mono
+            codeGenType: 'AOT'
+            runKind: micro_mono
+            logicalMachine: 'perfampere'
+            timeoutInMinutes: 780
+            runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
+            performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
+            ${{ each parameter in parameters.jobParameters }}:
+              ${{ parameter.key }}: ${{ parameter.value }}
 
     # run coreclr Linux arm64 ampere microbenchmarks perf job
     - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}

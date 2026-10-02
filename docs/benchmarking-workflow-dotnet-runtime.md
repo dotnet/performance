@@ -44,6 +44,14 @@ If you are not familiar with BenchmarkDotNet or this repository you should read 
 
 To learn more about designing benchmarks, please read [Microbenchmark Design Guidelines](./microbenchmark-design-guidelines.md).
 
+The shared `eng/pipelines/runtime-slow-perf-jobs.yml` and
+`eng/pipelines/runtime-wasm-perf-jobs.yml` templates accept `runMono: false` to
+disable their Mono jobs. The default is `true` to preserve existing callers,
+including runtime release branches. The slow template also disables the
+corresponding ARM64 Mono builds while retaining CoreCLR jobs. The WASM template
+skips the Mono-only `non-v8` build when disabled; runtime owns the build flavors
+for the retained `v8` profile. These controls do not remove manual Mono support.
+
 ### Code Organization
 
 All Libraries benchmarks which have been ported from the old CoreFX repository belong to the corresponding folders: `libraries\$namespace`. The Runtime (old CoreCLR) benchmarks can be found in `runtime` subfolder. The directory structure is the following (some folders have been omitted for brevity):

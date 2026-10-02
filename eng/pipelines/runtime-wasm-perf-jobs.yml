@@ -1,17 +1,19 @@
 # This contains all the wasm related perf jobs
 parameters:
   runProfile: 'non-v8'
+  runMono: true
   downloadSpecificBuild: null # { buildId, pipeline, branchName, project }
   runtimeRepoAlias: runtime
   performanceRepoAlias: self
   jobParameters: {}
 
 jobs:
-- ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:
-  # build mono on wasm - if not using an existing build
+- ${{ if and(eq(parameters.downloadSpecificBuild.buildId, ''), or(eq(parameters.runMono, true), eq(parameters.runProfile, 'v8'))) }}:
+  # Skip building for the disabled Mono-only profile or when using an existing build.
+  # Runtime owns the build flavors; do not require new parameters from older wrappers.
   - template: /eng/pipelines/performance/templates/perf-wasm-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
 
-- ${{ if eq(parameters.runProfile, 'non-v8') }}:
+- ${{ if and(eq(parameters.runProfile, 'non-v8'), eq(parameters.runMono, true)) }}:
   #run mono wasm microbenchmarks perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
@@ -56,7 +58,7 @@ jobs:
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
-- ${{ if eq(parameters.runProfile, 'v8') }}:
+- ${{ if and(eq(parameters.runProfile, 'v8'), eq(parameters.runMono, true)) }}:
   # run mono wasm interpreter (default) microbenchmarks perf job
   - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
@@ -131,6 +133,7 @@ jobs:
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
+- ${{ if eq(parameters.runProfile, 'v8') }}:
   # Run CoreCLR WASM microbenchmarks perf job
   # Excluded on release branches — the wasm_coreclr build doesn't exist in older runtime branches.
   - ${{ if not(startswith(variables['Build.SourceBranch'], 'refs/heads/release')) }}:
