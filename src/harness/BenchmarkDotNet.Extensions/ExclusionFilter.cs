@@ -6,7 +6,7 @@ using System.Text;
 
 namespace BenchmarkDotNet.Extensions
 {
-    class ExclusionFilter : IFilter
+    public class ExclusionFilter : IFilter
     {
         private readonly GlobFilter? globFilter;
 
