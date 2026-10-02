@@ -411,9 +411,12 @@ However, **`[Params]` are applied to all the benchmarks in given class**. So if 
 
 `[ArgumentsSource]` is xUnit's `[MemberData]` counterpart.
 
+How the source maps onto the benchmark's parameters is read from its declared element type.
+
+For a **single argument** the source yields the parameter's own type:
+
 ```cs
-// for single argument it's an IEnumerable of objects (object), not IEnumerable of arrays of objects (object[])
-public IEnumerable<object> Cultures()
+public IEnumerable<CultureInfo> Cultures()
 {
     yield return new CultureInfo("fr");
     yield return new CultureInfo("da");
@@ -425,6 +428,21 @@ public IEnumerable<object> Cultures()
 [ArgumentsSource(nameof(Cultures))]
 public DateTime Parse(CultureInfo cultureInfo)
     => DateTime.Parse("10/10/2010 12:00:00 AM", cultureInfo);
+```
+
+For **several arguments** it yields one element per case holding all of them, a `ValueTuple` naming each parameter's type:
+
+```cs
+public IEnumerable<(string input, NumberStyles styles)> Inputs()
+{
+    yield return ("1234", NumberStyles.Integer);
+    yield return ("1,234", NumberStyles.AllowThousands);
+    yield return ("0x4D2", NumberStyles.HexNumber);
+}
+
+[Benchmark]
+[ArgumentsSource(nameof(Inputs))]
+public int Parse(string input, NumberStyles styles) => int.Parse(input, styles);
 ```
 
 **Note:** If you need to use the argument in the setup method, then instead of using `ArgumentsSource` you should use `ParamsSource`.
@@ -445,7 +463,7 @@ public void Bitmap_FromStream(ImageTestData format)
     }
 }
 
-public IEnumerable<object> ImageFormats() => return new [] 
+public IEnumerable<ImageTestData> ImageFormats() => new [] 
 {
     new ImageTestData(ImageFormat.Bmp),
     new ImageTestData(ImageFormat.Jpeg),

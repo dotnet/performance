@@ -114,12 +114,12 @@ namespace System.Net.Http.Tests
         }
 
         [GlobalCleanup]
-        public void Cleanup()
+        public async Task Cleanup()
         {
             _invoker.Dispose();
             _handler.Dispose();
             _listener.Dispose();
-            _serverTask.GetAwaiter().GetResult();
+            await _serverTask;
             _serverCert.Dispose();
         }
     }
