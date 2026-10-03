@@ -54,11 +54,9 @@ namespace BenchmarkDotNet.Extensions
             {
                 T value = GenerateValue<T>(random);
 
-                if (!uniqueValues.Contains(value))
-                    uniqueValues.Add(value);
+                if (uniqueValues.Add(value))
+                    result[uniqueValues.Count - 1] = value;
             }
-
-            uniqueValues.CopyTo(result);
 
             return result;
         }
@@ -178,9 +176,10 @@ namespace BenchmarkDotNet.Extensions
             
             while (unique.Count != count)
             {
-                unique.Add(GenerateRandomString(random, minLength, maxLength));
+                string randomString = GenerateRandomString(random, minLength, maxLength);
+                if (unique.Add(randomString))
+                    strings[unique.Count - 1] = randomString;
             }
-            unique.CopyTo(strings);
             return strings;
         }
 
