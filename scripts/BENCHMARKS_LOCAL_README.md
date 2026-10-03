@@ -73,11 +73,11 @@ This group of arguments includes those that have a direct impact on the runtime 
 
 Here is an example command line that runs the MonoJIT RunType from a local runtime for the tests matching `*Span.IndexerBench.CoveredIndex2*`:
 
-`python .\benchmarks_local.py --local-test-repo "<absolute path to runtime folder>/runtime" --run-types MonoJIT --filter *Span.IndexerBench.CoveredIndex2*`
+`python .\benchmarks_local.py --local-test-repo "<absolute path to runtime folder>/runtime" --run-types MonoJIT --filter '*Span.IndexerBench.CoveredIndex2*'`
 
 Here is an example command line that runs the MonoInterpreter and MonoJIT RunTypes using commits `dd079f53` and `69702c37` for the tests `*Span.IndexerBench.CoveredIndex2*` with the commits being cloned to the `--repo-storage-path` for building, it also passes `--join` to BenchmarkDotNet so all the reports from a single run will be joined into a single report:
 
-`python .\benchmarks_local.py --commits dd079f53b95519c8398d8b0c6e796aaf7686b99a 69702c372a051580f76defc7ba899dde8fcd2723 --repo-storage-path "<absolute path to where you want to store runtime clones>" --run-types MonoInterpreter MonoJIT --filter *Span.IndexerBench.CoveredIndex2* *WriteReadAsync* --bdn-arguments="--join"`
+`python .\benchmarks_local.py --commits dd079f53b95519c8398d8b0c6e796aaf7686b99a 69702c372a051580f76defc7ba899dde8fcd2723 --repo-storage-path "<absolute path to where you want to store runtime clones>" --run-types MonoInterpreter MonoJIT --filter '*Span.IndexerBench.CoveredIndex2*' '*WriteReadAsync*' --bdn-arguments="--join"`
 
 - Note: There is not currently a way to block specific RunTypes from being run on specific hardware.
 
