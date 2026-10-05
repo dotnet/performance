@@ -340,7 +340,9 @@ def _stage_wasm_crossgen2_tasks(
 ) -> bool:
     """Copy the optional ``staging/Crossgen2Tasks`` shim into the payload.
 
-    Returns True when the shim was staged, False when the artifact predates it.
+    Returns True when the shim was staged, False when the artifact predates it
+    (no ``staging/Crossgen2Tasks`` content at all). A shim that is present but
+    missing any required file raises ``ValueError``.
     """
     dest_dir = os.path.join(payload_parent_dir, WASM_CROSSGEN2_TASKS_PAYLOAD_DIR)
     if (os.path.isdir(browser_wasm_coreclr_archive_or_dir)
@@ -351,14 +353,17 @@ def _stage_wasm_crossgen2_tasks(
     extract_archive_or_copy(
         browser_wasm_coreclr_archive_or_dir, dest_dir, prefix="staging/Crossgen2Tasks/"
     )
+    # Archives can't be probed for a folder up front; nothing extracted means no shim.
+    if (not os.path.isdir(browser_wasm_coreclr_archive_or_dir)
+            and not any(path.is_file() for path in Path(dest_dir).rglob("*"))):
+        shutil.rmtree(dest_dir, ignore_errors=True)
+        getLogger().info("BrowserWasmCoreCLR artifact does not contain the Crossgen2Tasks shim")
+        return False
+
     missing = [
         name for name in WASM_CROSSGEN2_TASKS_FILES
         if not os.path.isfile(os.path.join(dest_dir, name))
     ]
-    if len(missing) == len(WASM_CROSSGEN2_TASKS_FILES):
-        shutil.rmtree(dest_dir, ignore_errors=True)
-        getLogger().info("BrowserWasmCoreCLR artifact does not contain the Crossgen2Tasks shim")
-        return False
     if missing:
         raise ValueError(
             f"Incomplete Crossgen2Tasks shim in BrowserWasmCoreCLR artifact, missing: {', '.join(missing)}")

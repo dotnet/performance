@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tarfile
 import xml.etree.ElementTree as ET
 from argparse import Namespace
 from pathlib import Path
@@ -18,6 +19,7 @@ import dotnet
 from build_runtime_payload import (
     WASM_CROSSGEN2_TASKS_FILES,
     WASM_CROSSGEN2_TASKS_PAYLOAD_DIR,
+    _stage_wasm_crossgen2_tasks,
     build_wasm_coreclr_payload,
 )
 from run_performance_job import (
@@ -457,6 +459,51 @@ def test_coreclr_payload_without_crossgen2_tasks_shim(tmp_path):
     build_wasm_coreclr_payload(str(artifact), str(payload))
 
     assert not (payload / WASM_CROSSGEN2_TASKS_PAYLOAD_DIR).exists()
+
+
+@pytest.mark.parametrize("files", [(), ("Crossgen2Tasks.deps.json",)])
+def test_coreclr_payload_rejects_present_shim_without_required_files(tmp_path, files):
+    artifact = _write_coreclr_artifact(tmp_path)
+    shim = artifact / "staging" / "Crossgen2Tasks"
+    shim.mkdir()
+    for name in files:
+        (shim / name).touch()
+
+    with pytest.raises(ValueError, match="Incomplete Crossgen2Tasks shim"):
+        build_wasm_coreclr_payload(str(artifact), str(tmp_path / "payload"))
+
+
+def _archive_coreclr_artifact(artifact_root, tmp_path):
+    archive = tmp_path / "BrowserWasmCoreCLR.tar.gz"
+    with tarfile.open(archive, "w:gz") as tar:
+        tar.add(artifact_root / "staging", arcname="staging")
+    return archive
+
+
+def test_coreclr_archive_payload_without_crossgen2_tasks_shim(tmp_path):
+    archive = _archive_coreclr_artifact(_write_coreclr_artifact(tmp_path), tmp_path)
+    payload = tmp_path / "payload"
+
+    assert not _stage_wasm_crossgen2_tasks(str(archive), str(payload))
+    assert not (payload / WASM_CROSSGEN2_TASKS_PAYLOAD_DIR).exists()
+
+
+def test_coreclr_archive_payload_stages_crossgen2_tasks_shim(tmp_path):
+    archive = _archive_coreclr_artifact(
+        _write_coreclr_artifact(tmp_path, WASM_CROSSGEN2_TASKS_FILES), tmp_path)
+    payload = tmp_path / "payload"
+
+    assert _stage_wasm_crossgen2_tasks(str(archive), str(payload))
+    for name in WASM_CROSSGEN2_TASKS_FILES:
+        assert (payload / WASM_CROSSGEN2_TASKS_PAYLOAD_DIR / name).is_file()
+
+
+def test_coreclr_archive_payload_rejects_incomplete_crossgen2_tasks_shim(tmp_path):
+    archive = _archive_coreclr_artifact(
+        _write_coreclr_artifact(tmp_path, ("Crossgen2Tasks.deps.json",)), tmp_path)
+
+    with pytest.raises(ValueError, match="Incomplete Crossgen2Tasks shim"):
+        _stage_wasm_crossgen2_tasks(str(archive), str(tmp_path / "payload"))
 
 
 def test_coreclr_payload_rejects_incomplete_crossgen2_tasks_shim(tmp_path):
