@@ -22,6 +22,7 @@ __all__ = [
     "build_r2r_interpreter_payload",
     "build_wasm_payload",
     "build_wasm_coreclr_payload",
+    "WASM_CROSSGEN2_TASKS_PAYLOAD_DIR",
 ]
 
 
@@ -322,6 +323,50 @@ def build_wasm_payload(
     _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir], mode=0o664) # rw-rw-r--
 
 
+# dotnet/runtime's wasm-aware ReadyToRun SDK task shim (Crossgen2Tasks.dll plus the
+# Microsoft.NET.CrossGen.props/.targets that load it). Composite CoreCLR WASM R2R needs it until
+# dotnet/sdk#56395 reaches the SDK shipped in the BrowserWasmCoreCLR artifact.
+WASM_CROSSGEN2_TASKS_PAYLOAD_DIR = "crossgen2-tasks"
+WASM_CROSSGEN2_TASKS_FILES = (
+    "Crossgen2Tasks.dll",
+    "Microsoft.NET.CrossGen.props",
+    "Microsoft.NET.CrossGen.targets",
+)
+
+
+def _stage_wasm_crossgen2_tasks(
+    browser_wasm_coreclr_archive_or_dir: str,
+    payload_parent_dir: str,
+) -> bool:
+    """Copy the optional ``staging/Crossgen2Tasks`` shim into the payload.
+
+    Returns True when the shim was staged, False when the artifact predates it.
+    """
+    dest_dir = os.path.join(payload_parent_dir, WASM_CROSSGEN2_TASKS_PAYLOAD_DIR)
+    if (os.path.isdir(browser_wasm_coreclr_archive_or_dir)
+            and not os.path.isdir(os.path.join(browser_wasm_coreclr_archive_or_dir, "staging", "Crossgen2Tasks"))):
+        getLogger().info("BrowserWasmCoreCLR artifact does not contain the Crossgen2Tasks shim")
+        return False
+
+    extract_archive_or_copy(
+        browser_wasm_coreclr_archive_or_dir, dest_dir, prefix="staging/Crossgen2Tasks/"
+    )
+    missing = [
+        name for name in WASM_CROSSGEN2_TASKS_FILES
+        if not os.path.isfile(os.path.join(dest_dir, name))
+    ]
+    if len(missing) == len(WASM_CROSSGEN2_TASKS_FILES):
+        shutil.rmtree(dest_dir, ignore_errors=True)
+        getLogger().info("BrowserWasmCoreCLR artifact does not contain the Crossgen2Tasks shim")
+        return False
+    if missing:
+        raise ValueError(
+            f"Incomplete Crossgen2Tasks shim in BrowserWasmCoreCLR artifact, missing: {', '.join(missing)}")
+
+    getLogger().info("Staged Crossgen2Tasks shim into %s", dest_dir)
+    return True
+
+
 def build_wasm_coreclr_payload(
     browser_wasm_coreclr_archive_or_dir: str,
     payload_parent_dir: str,
@@ -331,7 +376,8 @@ def build_wasm_coreclr_payload(
     This is a self-contained payload for running CoreCLR WASM benchmarks without
     requiring Mono artifacts. The archive/directory layout is expected to contain
     a `staging/` folder with `dotnet-none` (SDK) and
-    `microsoft.netcore.app.runtime.browser-wasm` (CoreCLR runtime pack) subfolders.
+    `microsoft.netcore.app.runtime.browser-wasm` (CoreCLR runtime pack) subfolders,
+    and optionally `Crossgen2Tasks` (staged as ``WASM_CROSSGEN2_TASKS_PAYLOAD_DIR``).
 
     Returns:
         The shared version of the locally built WebAssembly SDK and Crossgen2 packages.
@@ -351,6 +397,8 @@ def build_wasm_coreclr_payload(
     )
     local_package_version = _get_wasm_local_package_version(wasm_built_nugets_dir)
     _ensure_wasm_tool_framework_version(wasm_dotnet_dir, local_package_version)
+    has_crossgen2_tasks = _stage_wasm_crossgen2_tasks(
+        browser_wasm_coreclr_archive_or_dir, payload_parent_dir)
 
     # Determine version from the runtime pack directory structure
     runtime_pack_src = os.path.join(
@@ -377,7 +425,10 @@ def build_wasm_coreclr_payload(
         else:
             getLogger().warning("Microsoft.NETCore.App.Ref pack not found – cannot determine version")
 
-    _set_permissions_recursive([wasm_dotnet_dir, wasm_built_nugets_dir], mode=0o664)
+    permission_dirs = [wasm_dotnet_dir, wasm_built_nugets_dir]
+    if has_crossgen2_tasks:
+        permission_dirs.append(os.path.join(payload_parent_dir, WASM_CROSSGEN2_TASKS_PAYLOAD_DIR))
+    _set_permissions_recursive(permission_dirs, mode=0o664)
     return local_package_version
 
 

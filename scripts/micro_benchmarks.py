@@ -289,6 +289,36 @@ def configure_wasm_ready_to_run(args: Any) -> None:
     # environment cannot select a different mode.
     environ['PERFLAB_WASM_READY_TO_RUN'] = str(is_wasm_ready_to_run(args)).lower()
     environ['PERFLAB_WASM_READY_TO_RUN_COMPOSITE'] = str(is_wasm_ready_to_run_composite(args)).lower()
+    configure_wasm_crossgen2_sdk_override(args)
+
+
+WASM_CROSSGEN2_TASKS_DIR_VARIABLE = 'PERFLAB_WASM_CROSSGEN2_TASKS_DIR'
+
+
+def configure_wasm_crossgen2_sdk_override(args: Any) -> None:
+    '''Activate dotnet/runtime's wasm-aware ReadyToRun task shim for composite R2R.
+
+    Composite CoreCLR WASM R2R needs SDK ReadyToRun tasks that name the owner
+    image <entry>.r2r.wasm (dotnet/sdk#56395). Until that reaches the SDK in
+    use, the CoreCLR WASM payload ships the shim and exports its directory in
+    PERFLAB_WASM_CROSSGEN2_TASKS_DIR. The WebAssembly SDK reads the override
+    paths during props evaluation, before BenchmarkDotNet imports
+    MicroBenchmarks.Wasm.targets, so they are passed as environment
+    properties. TODO: remove with dotnet/runtime#135023.
+    '''
+    tasks_dir = environ.get(WASM_CROSSGEN2_TASKS_DIR_VARIABLE)
+    if not is_wasm_ready_to_run_composite(args) or not tasks_dir:
+        return
+
+    props_path = path.join(tasks_dir, 'Microsoft.NET.CrossGen.props')
+    targets_path = path.join(tasks_dir, 'Microsoft.NET.CrossGen.targets')
+    for required in (path.join(tasks_dir, 'Crossgen2Tasks.dll'), props_path, targets_path):
+        if not path.isfile(required):
+            raise FileNotFoundError(
+                f'{WASM_CROSSGEN2_TASKS_DIR_VARIABLE} does not contain {path.basename(required)}: {tasks_dir}')
+
+    environ['Crossgen2SdkOverridePropsPath'] = props_path
+    environ['Crossgen2SdkOverrideTargetsPath'] = targets_path
 
 
 def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:

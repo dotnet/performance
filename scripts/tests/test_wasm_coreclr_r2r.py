@@ -15,7 +15,11 @@ sys.path.insert(0, str(scripts_dir))
 
 import micro_benchmarks
 import dotnet
-from build_runtime_payload import build_wasm_coreclr_payload
+from build_runtime_payload import (
+    WASM_CROSSGEN2_TASKS_FILES,
+    WASM_CROSSGEN2_TASKS_PAYLOAD_DIR,
+    build_wasm_coreclr_payload,
+)
 from run_performance_job import (
     get_pre_commands,
     get_run_configurations,
@@ -415,6 +419,143 @@ def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
         / "11.0.0-ci"
         / "System.Private.CoreLib.dll"
     ).is_file()
+
+
+def _write_coreclr_artifact(tmp_path, crossgen2_tasks_files=()):
+    artifact = tmp_path / "artifact" / "staging"
+    shared_framework = artifact / "dotnet-none" / "shared" / "Microsoft.NETCore.App" / "11.0.0-ci"
+    built_nugets = artifact / "built-nugets"
+    shared_framework.mkdir(parents=True)
+    built_nugets.mkdir(parents=True)
+    (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.11.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.11.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NET.ILLink.Tasks.11.0.0-ci.nupkg").touch()
+    if crossgen2_tasks_files:
+        crossgen2_tasks = artifact / "Crossgen2Tasks"
+        crossgen2_tasks.mkdir()
+        for name in crossgen2_tasks_files:
+            (crossgen2_tasks / name).write_text(name)
+    return artifact.parent
+
+
+def test_coreclr_payload_stages_crossgen2_tasks_shim(tmp_path):
+    artifact = _write_coreclr_artifact(
+        tmp_path, (*WASM_CROSSGEN2_TASKS_FILES, "Crossgen2Tasks.deps.json"))
+    payload = tmp_path / "payload"
+
+    build_wasm_coreclr_payload(str(artifact), str(payload))
+
+    staged = payload / WASM_CROSSGEN2_TASKS_PAYLOAD_DIR
+    for name in (*WASM_CROSSGEN2_TASKS_FILES, "Crossgen2Tasks.deps.json"):
+        assert (staged / name).read_text() == name
+
+
+def test_coreclr_payload_without_crossgen2_tasks_shim(tmp_path):
+    artifact = _write_coreclr_artifact(tmp_path)
+    payload = tmp_path / "payload"
+
+    build_wasm_coreclr_payload(str(artifact), str(payload))
+
+    assert not (payload / WASM_CROSSGEN2_TASKS_PAYLOAD_DIR).exists()
+
+
+def test_coreclr_payload_rejects_incomplete_crossgen2_tasks_shim(tmp_path):
+    artifact = _write_coreclr_artifact(tmp_path, ("Crossgen2Tasks.dll",))
+
+    with pytest.raises(ValueError, match="Microsoft.NET.CrossGen.props"):
+        build_wasm_coreclr_payload(str(artifact), str(tmp_path / "payload"))
+
+
+def test_coreclr_pre_commands_export_crossgen2_tasks_dir():
+    commands = get_pre_commands(
+        os_group="linux",
+        os_distro="ubuntu",
+        internal=False,
+        runtime_type="wasm_coreclr",
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+        wasm_local_package_version="11.0.0-ci",
+        wasm_crossgen2_tasks_dir="$HELIX_CORRELATION_PAYLOAD/crossgen2-tasks",
+    )
+
+    assert any(
+        "export PERFLAB_WASM_CROSSGEN2_TASKS_DIR=$HELIX_CORRELATION_PAYLOAD/crossgen2-tasks" in command
+        for command in commands
+    )
+
+
+def test_coreclr_pre_commands_omit_crossgen2_tasks_dir_by_default():
+    commands = get_pre_commands(
+        os_group="linux",
+        os_distro="ubuntu",
+        internal=False,
+        runtime_type="wasm_coreclr",
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+        wasm_local_package_version="11.0.0-ci",
+    )
+
+    assert not any("PERFLAB_WASM_CROSSGEN2_TASKS_DIR" in command for command in commands)
+
+
+def _crossgen2_tasks_dir(tmp_path, files=WASM_CROSSGEN2_TASKS_FILES):
+    tasks_dir = tmp_path / "crossgen2-tasks"
+    tasks_dir.mkdir()
+    for name in files:
+        (tasks_dir / name).touch()
+    return tasks_dir
+
+
+def _ready_to_run_args(composite):
+    return Namespace(
+        wasm=True,
+        wasm_runtime_flavor="CoreCLR",
+        wasm_ready_to_run=not composite,
+        wasm_ready_to_run_composite=composite,
+    )
+
+
+def test_composite_ready_to_run_activates_crossgen2_tasks_shim(tmp_path, monkeypatch):
+    tasks_dir = _crossgen2_tasks_dir(tmp_path)
+    monkeypatch.setenv("PERFLAB_WASM_CROSSGEN2_TASKS_DIR", str(tasks_dir))
+    monkeypatch.delenv("Crossgen2SdkOverridePropsPath", raising=False)
+    monkeypatch.delenv("Crossgen2SdkOverrideTargetsPath", raising=False)
+
+    micro_benchmarks.configure_wasm_ready_to_run(_ready_to_run_args(composite=True))
+
+    assert os.environ["Crossgen2SdkOverridePropsPath"] == str(tasks_dir / "Microsoft.NET.CrossGen.props")
+    assert os.environ["Crossgen2SdkOverrideTargetsPath"] == str(tasks_dir / "Microsoft.NET.CrossGen.targets")
+
+
+def test_per_assembly_ready_to_run_keeps_sdk_ready_to_run_tasks(tmp_path, monkeypatch):
+    monkeypatch.setenv("PERFLAB_WASM_CROSSGEN2_TASKS_DIR", str(_crossgen2_tasks_dir(tmp_path)))
+    monkeypatch.delenv("Crossgen2SdkOverridePropsPath", raising=False)
+    monkeypatch.delenv("Crossgen2SdkOverrideTargetsPath", raising=False)
+
+    micro_benchmarks.configure_wasm_ready_to_run(_ready_to_run_args(composite=False))
+
+    assert "Crossgen2SdkOverridePropsPath" not in os.environ
+    assert "Crossgen2SdkOverrideTargetsPath" not in os.environ
+
+
+def test_composite_ready_to_run_without_shim_keeps_sdk_ready_to_run_tasks(monkeypatch):
+    monkeypatch.delenv("PERFLAB_WASM_CROSSGEN2_TASKS_DIR", raising=False)
+    monkeypatch.delenv("Crossgen2SdkOverridePropsPath", raising=False)
+    monkeypatch.delenv("Crossgen2SdkOverrideTargetsPath", raising=False)
+
+    micro_benchmarks.configure_wasm_ready_to_run(_ready_to_run_args(composite=True))
+
+    assert "Crossgen2SdkOverridePropsPath" not in os.environ
+
+
+def test_composite_ready_to_run_rejects_incomplete_shim(tmp_path, monkeypatch):
+    tasks_dir = _crossgen2_tasks_dir(tmp_path, ("Crossgen2Tasks.dll", "Microsoft.NET.CrossGen.props"))
+    monkeypatch.setenv("PERFLAB_WASM_CROSSGEN2_TASKS_DIR", str(tasks_dir))
+
+    with pytest.raises(FileNotFoundError, match="Microsoft.NET.CrossGen.targets"):
+        micro_benchmarks.configure_wasm_ready_to_run(_ready_to_run_args(composite=True))
 
 
 def test_coreclr_payload_aliases_sdk_framework_during_major_version_rollover(tmp_path):

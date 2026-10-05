@@ -226,7 +226,8 @@ def get_pre_commands(
         build_config: str,
         v8_version: str,
         wasm_local_package_version: Optional[str] = None,
-        wasm_workload_source: Optional[str] = None):
+        wasm_workload_source: Optional[str] = None,
+        wasm_crossgen2_tasks_dir: Optional[str] = None):
     if os_group == "windows" and runtime_type in ("wasm", "wasm_coreclr"):
         raise ValueError(
             "WASM performance job prerequisite setup is not supported on Windows")
@@ -317,6 +318,13 @@ def get_pre_commands(
                         "PERFLAB_WASM_PACKAGE_VERSION",
                         wasm_local_package_version)
                 ]
+                if wasm_crossgen2_tasks_dir:
+                    install_prerequisites += [
+                        set_shell_environment_variable(
+                            os_group,
+                            "PERFLAB_WASM_CROSSGEN2_TASKS_DIR",
+                            wasm_crossgen2_tasks_dir)
+                    ]
             elif not use_workload_source:
                 raise ValueError(
                     "CoreCLR WASM requires either a private runtime payload or "
@@ -1029,6 +1037,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     v8_version = ""
     wasm_local_package_version = None
+    helix_wasm_crossgen2_tasks_dir = None
     wasm_workload_source = normalize_wasm_workload_source(
         args.wasm_workload_source)
     wasm_sdk_cohort = (
@@ -1062,6 +1071,18 @@ def run_performance_job(args: RunPerformanceJobArgs):
             browser_wasm_coreclr_dir,
             payload_dir,
         )
+        if args.r2r_run_type == "r2r_composite":
+            # Composite needs the artifact's wasm-aware ReadyToRun task shim until
+            # dotnet/sdk#56395 reaches the artifact's SDK (dotnet/runtime#135023).
+            if os.path.isdir(os.path.join(payload_dir, WASM_CROSSGEN2_TASKS_PAYLOAD_DIR)):
+                helix_wasm_crossgen2_tasks_dir = (
+                    f"%HELIX_CORRELATION_PAYLOAD%\\{WASM_CROSSGEN2_TASKS_PAYLOAD_DIR}"
+                    if args.os_group == "windows"
+                    else f"$HELIX_CORRELATION_PAYLOAD/{WASM_CROSSGEN2_TASKS_PAYLOAD_DIR}")
+            else:
+                getLogger().warning(
+                    "BrowserWasmCoreCLR artifact has no Crossgen2Tasks shim; composite R2R "
+                    "will use the SDK's ReadyToRun tasks")
 
     elif wasm and not wasm_coreclr:
         if args.libraries_download_dir is None:
@@ -1255,7 +1276,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         args.build_config,
         v8_version,
         wasm_local_package_version,
-        helix_wasm_workload_source)
+        helix_wasm_workload_source,
+        helix_wasm_crossgen2_tasks_dir)
     helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
 
     # Point ML.NET at the SSWE model that was pre-downloaded into the correlation payload above, so it
