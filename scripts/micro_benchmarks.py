@@ -293,6 +293,10 @@ def configure_wasm_ready_to_run(args: Any) -> None:
 
 
 WASM_CROSSGEN2_TASKS_DIR_VARIABLE = 'PERFLAB_WASM_CROSSGEN2_TASKS_DIR'
+WASM_CROSSGEN2_SDK_OVERRIDE_VARIABLES = (
+    'Crossgen2SdkOverridePropsPath',
+    'Crossgen2SdkOverrideTargetsPath',
+)
 
 
 def configure_wasm_crossgen2_sdk_override(args: Any) -> None:
@@ -305,7 +309,14 @@ def configure_wasm_crossgen2_sdk_override(args: Any) -> None:
     paths during props evaluation, before BenchmarkDotNet imports
     MicroBenchmarks.Wasm.targets, so they are passed as environment
     properties. TODO: remove with dotnet/runtime#135023.
+
+    Inherited override paths are always cleared first so per-assembly R2R
+    keeps the SDK's tasks and composite never uses a stale shim; set
+    PERFLAB_WASM_CROSSGEN2_TASKS_DIR to select a shim.
     '''
+    for variable in WASM_CROSSGEN2_SDK_OVERRIDE_VARIABLES:
+        environ.pop(variable, None)
+
     tasks_dir = environ.get(WASM_CROSSGEN2_TASKS_DIR_VARIABLE)
     if not is_wasm_ready_to_run_composite(args) or not tasks_dir:
         return

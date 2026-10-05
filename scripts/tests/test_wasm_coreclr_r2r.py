@@ -520,8 +520,8 @@ def _ready_to_run_args(composite):
 def test_composite_ready_to_run_activates_crossgen2_tasks_shim(tmp_path, monkeypatch):
     tasks_dir = _crossgen2_tasks_dir(tmp_path)
     monkeypatch.setenv("PERFLAB_WASM_CROSSGEN2_TASKS_DIR", str(tasks_dir))
-    monkeypatch.delenv("Crossgen2SdkOverridePropsPath", raising=False)
-    monkeypatch.delenv("Crossgen2SdkOverrideTargetsPath", raising=False)
+    monkeypatch.setenv("Crossgen2SdkOverridePropsPath", "/stale/Microsoft.NET.CrossGen.props")
+    monkeypatch.setenv("Crossgen2SdkOverrideTargetsPath", "/stale/Microsoft.NET.CrossGen.targets")
 
     micro_benchmarks.configure_wasm_ready_to_run(_ready_to_run_args(composite=True))
 
@@ -531,8 +531,9 @@ def test_composite_ready_to_run_activates_crossgen2_tasks_shim(tmp_path, monkeyp
 
 def test_per_assembly_ready_to_run_keeps_sdk_ready_to_run_tasks(tmp_path, monkeypatch):
     monkeypatch.setenv("PERFLAB_WASM_CROSSGEN2_TASKS_DIR", str(_crossgen2_tasks_dir(tmp_path)))
-    monkeypatch.delenv("Crossgen2SdkOverridePropsPath", raising=False)
-    monkeypatch.delenv("Crossgen2SdkOverrideTargetsPath", raising=False)
+    # Inherited shim paths must not leak into a per-assembly run.
+    monkeypatch.setenv("Crossgen2SdkOverridePropsPath", "/stale/Microsoft.NET.CrossGen.props")
+    monkeypatch.setenv("Crossgen2SdkOverrideTargetsPath", "/stale/Microsoft.NET.CrossGen.targets")
 
     micro_benchmarks.configure_wasm_ready_to_run(_ready_to_run_args(composite=False))
 
@@ -542,17 +543,21 @@ def test_per_assembly_ready_to_run_keeps_sdk_ready_to_run_tasks(tmp_path, monkey
 
 def test_composite_ready_to_run_without_shim_keeps_sdk_ready_to_run_tasks(monkeypatch):
     monkeypatch.delenv("PERFLAB_WASM_CROSSGEN2_TASKS_DIR", raising=False)
-    monkeypatch.delenv("Crossgen2SdkOverridePropsPath", raising=False)
-    monkeypatch.delenv("Crossgen2SdkOverrideTargetsPath", raising=False)
+    # A stale inherited shim must not be used when this run has none.
+    monkeypatch.setenv("Crossgen2SdkOverridePropsPath", "/stale/Microsoft.NET.CrossGen.props")
+    monkeypatch.setenv("Crossgen2SdkOverrideTargetsPath", "/stale/Microsoft.NET.CrossGen.targets")
 
     micro_benchmarks.configure_wasm_ready_to_run(_ready_to_run_args(composite=True))
 
     assert "Crossgen2SdkOverridePropsPath" not in os.environ
+    assert "Crossgen2SdkOverrideTargetsPath" not in os.environ
 
 
 def test_composite_ready_to_run_rejects_incomplete_shim(tmp_path, monkeypatch):
     tasks_dir = _crossgen2_tasks_dir(tmp_path, ("Crossgen2Tasks.dll", "Microsoft.NET.CrossGen.props"))
     monkeypatch.setenv("PERFLAB_WASM_CROSSGEN2_TASKS_DIR", str(tasks_dir))
+    monkeypatch.delenv("Crossgen2SdkOverridePropsPath", raising=False)
+    monkeypatch.delenv("Crossgen2SdkOverrideTargetsPath", raising=False)
 
     with pytest.raises(FileNotFoundError, match="Microsoft.NET.CrossGen.targets"):
         micro_benchmarks.configure_wasm_ready_to_run(_ready_to_run_args(composite=True))
