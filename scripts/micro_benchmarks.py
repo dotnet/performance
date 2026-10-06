@@ -155,7 +155,17 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         default=False,
         action='store_true',
-        help='Publish CoreCLR WASM benchmarks as ReadyToRun'
+        help='Publish CoreCLR WASM benchmarks as per-assembly ReadyToRun'
+    )
+
+    parser.add_argument(
+        '--wasm-ready-to-run-composite',
+        dest='wasm_ready_to_run_composite',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Publish CoreCLR WASM benchmarks as a single composite '
+             'ReadyToRun image (implies ReadyToRun)'
     )
 
     parser.add_argument(
@@ -252,9 +262,21 @@ def __process_arguments(args: list[str]):
     return parsed_args
 
 
+def is_wasm_ready_to_run_composite(args: Any) -> bool:
+    return bool(getattr(args, 'wasm_ready_to_run_composite', False))
+
+
+def is_wasm_ready_to_run(args: Any) -> bool:
+    '''True for either per-assembly or composite CoreCLR WASM ReadyToRun.'''
+    return bool(args.wasm_ready_to_run) or is_wasm_ready_to_run_composite(args)
+
+
 def validate_wasm_ready_to_run(args: Any) -> None:
-    if args.wasm_ready_to_run and (not args.wasm or args.wasm_runtime_flavor != 'CoreCLR'):
-        raise ArgumentTypeError('--wasm-ready-to-run requires --wasm --wasm-runtime-flavor CoreCLR')
+    if not args.wasm or args.wasm_runtime_flavor != 'CoreCLR':
+        if is_wasm_ready_to_run_composite(args):
+            raise ArgumentTypeError('--wasm-ready-to-run-composite requires --wasm --wasm-runtime-flavor CoreCLR')
+        if args.wasm_ready_to_run:
+            raise ArgumentTypeError('--wasm-ready-to-run requires --wasm --wasm-runtime-flavor CoreCLR')
 
 
 def configure_wasm_ready_to_run(args: Any) -> None:
@@ -263,7 +285,51 @@ def configure_wasm_ready_to_run(args: Any) -> None:
     # BenchmarkDotNet builds generated projects in child processes. MSBuild
     # imports environment variables as properties, which lets the generated
     # WASM project opt into R2R without requiring a new BDN command-line option.
-    environ['PERFLAB_WASM_READY_TO_RUN'] = str(args.wasm_ready_to_run).lower()
+    # Both variables are always written so a stale value from the parent
+    # environment cannot select a different mode.
+    environ['PERFLAB_WASM_READY_TO_RUN'] = str(is_wasm_ready_to_run(args)).lower()
+    environ['PERFLAB_WASM_READY_TO_RUN_COMPOSITE'] = str(is_wasm_ready_to_run_composite(args)).lower()
+    configure_wasm_crossgen2_sdk_override(args)
+
+
+WASM_CROSSGEN2_TASKS_DIR_VARIABLE = 'PERFLAB_WASM_CROSSGEN2_TASKS_DIR'
+WASM_CROSSGEN2_SDK_OVERRIDE_VARIABLES = (
+    'Crossgen2SdkOverridePropsPath',
+    'Crossgen2SdkOverrideTargetsPath',
+)
+
+
+def configure_wasm_crossgen2_sdk_override(args: Any) -> None:
+    '''Activate dotnet/runtime's wasm-aware ReadyToRun task shim for composite R2R.
+
+    Composite CoreCLR WASM R2R needs SDK ReadyToRun tasks that name the owner
+    image <entry>.r2r.wasm (dotnet/sdk#56395). Until that reaches the SDK in
+    use, the CoreCLR WASM payload ships the shim and exports its directory in
+    PERFLAB_WASM_CROSSGEN2_TASKS_DIR. The WebAssembly SDK reads the override
+    paths during props evaluation, before BenchmarkDotNet imports
+    MicroBenchmarks.Wasm.targets, so they are passed as environment
+    properties. TODO: remove with dotnet/runtime#135023.
+
+    Inherited override paths are always cleared first so per-assembly R2R
+    keeps the SDK's tasks and composite never uses a stale shim; set
+    PERFLAB_WASM_CROSSGEN2_TASKS_DIR to select a shim.
+    '''
+    for variable in WASM_CROSSGEN2_SDK_OVERRIDE_VARIABLES:
+        environ.pop(variable, None)
+
+    tasks_dir = environ.get(WASM_CROSSGEN2_TASKS_DIR_VARIABLE)
+    if not is_wasm_ready_to_run_composite(args) or not tasks_dir:
+        return
+
+    props_path = path.join(tasks_dir, 'Microsoft.NET.CrossGen.props')
+    targets_path = path.join(tasks_dir, 'Microsoft.NET.CrossGen.targets')
+    for required in (path.join(tasks_dir, 'Crossgen2Tasks.dll'), props_path, targets_path):
+        if not path.isfile(required):
+            raise FileNotFoundError(
+                f'{WASM_CROSSGEN2_TASKS_DIR_VARIABLE} does not contain {path.basename(required)}: {tasks_dir}')
+
+    environ['Crossgen2SdkOverridePropsPath'] = props_path
+    environ['Crossgen2SdkOverrideTargetsPath'] = targets_path
 
 
 def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:

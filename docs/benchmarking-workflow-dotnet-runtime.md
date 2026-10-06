@@ -255,6 +255,20 @@ recorded in that SDK's `Microsoft.NETCoreSdk.BundledVersions.props`.
 `PERFLAB_WASM_PACKAGE_VERSION` should remain unset; that override is reserved
 for non-official runtime payloads.
 
+`--wasm-ready-to-run` publishes per-assembly ReadyToRun images. Replace it with
+`--wasm-ready-to-run-composite` to compile the benchmark closure into a single
+composite image (`PublishReadyToRunComposite=true`, published as
+`<entry>.r2r.wasm` and loaded through the boot config's `coreAssembly`
+resources). Composite mode requires a WebAssembly SDK with composite support
+(dotnet/runtime#134618) and ReadyToRun SDK tasks with wasm output naming
+(dotnet/sdk#56395). Until that SDK change is available, set
+`PERFLAB_WASM_CROSSGEN2_TASKS_DIR` to a directory containing dotnet/runtime's
+`Crossgen2Tasks` shim (`artifacts/bin/Crossgen2Tasks/<Configuration>/` from a
+runtime build, or `staging/Crossgen2Tasks/` in the `BrowserWasmCoreCLR` perf
+artifact); composite runs then pass it to the WebAssembly SDK through
+`Crossgen2SdkOverridePropsPath`/`Crossgen2SdkOverrideTargetsPath`. CI reports
+the two modes as `R2RType=r2r` and `R2RType=r2r_composite`.
+
 #### Note about "file ... being used by another process" error
 
 If you are seeing warnings like:

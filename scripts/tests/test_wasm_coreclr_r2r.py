@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tarfile
 import xml.etree.ElementTree as ET
 from argparse import Namespace
 from pathlib import Path
@@ -15,7 +16,12 @@ sys.path.insert(0, str(scripts_dir))
 
 import micro_benchmarks
 import dotnet
-from build_runtime_payload import build_wasm_coreclr_payload
+from build_runtime_payload import (
+    WASM_CROSSGEN2_TASKS_FILES,
+    WASM_CROSSGEN2_TASKS_PAYLOAD_DIR,
+    _stage_wasm_crossgen2_tasks,
+    build_wasm_coreclr_payload,
+)
 from run_performance_job import (
     get_pre_commands,
     get_run_configurations,
@@ -46,6 +52,70 @@ def test_ready_to_run_configures_msbuild_environment(monkeypatch):
     assert os.environ["PERFLAB_WASM_READY_TO_RUN"] == "true"
 
 
+@pytest.mark.parametrize(
+    "extra_args",
+    [
+        [],
+        ["--wasm"],
+        ["--wasm", "--wasm-runtime-flavor", "Mono"],
+    ],
+)
+def test_composite_ready_to_run_requires_coreclr_wasm(extra_args):
+    with pytest.raises(SystemExit):
+        micro_benchmarks.__process_arguments([
+            "--frameworks", "net11.0",
+            "--wasm-ready-to-run-composite",
+            *extra_args,
+        ])
+
+
+@pytest.mark.parametrize(
+    ("flags", "expected_ready_to_run", "expected_composite"),
+    [
+        ([], False, False),
+        (["--wasm-ready-to-run"], True, False),
+        (["--wasm-ready-to-run-composite"], True, True),
+        (["--wasm-ready-to-run", "--wasm-ready-to-run-composite"], True, True),
+    ],
+)
+def test_ready_to_run_mode_parsing(flags, expected_ready_to_run, expected_composite):
+    args = micro_benchmarks.__process_arguments([
+        "--frameworks", "net11.0",
+        "--wasm",
+        "--wasm-runtime-flavor", "CoreCLR",
+        *flags,
+    ])
+
+    assert micro_benchmarks.is_wasm_ready_to_run(args) == expected_ready_to_run
+    assert micro_benchmarks.is_wasm_ready_to_run_composite(args) == expected_composite
+
+
+@pytest.mark.parametrize(
+    ("ready_to_run", "composite", "expected_ready_to_run", "expected_composite"),
+    [
+        (False, False, "false", "false"),
+        (True, False, "true", "false"),
+        (False, True, "true", "true"),
+    ],
+)
+def test_ready_to_run_mode_configures_msbuild_environment(
+        monkeypatch, ready_to_run, composite, expected_ready_to_run, expected_composite):
+    # A stale parent value must not leak into a different mode.
+    monkeypatch.setenv("PERFLAB_WASM_READY_TO_RUN", "true")
+    monkeypatch.setenv("PERFLAB_WASM_READY_TO_RUN_COMPOSITE", "true")
+    args = Namespace(
+        wasm=True,
+        wasm_runtime_flavor="CoreCLR",
+        wasm_ready_to_run=ready_to_run,
+        wasm_ready_to_run_composite=composite,
+    )
+
+    micro_benchmarks.configure_wasm_ready_to_run(args)
+
+    assert os.environ["PERFLAB_WASM_READY_TO_RUN"] == expected_ready_to_run
+    assert os.environ["PERFLAB_WASM_READY_TO_RUN_COMPOSITE"] == expected_composite
+
+
 def test_ready_to_run_argument_is_forwarded_to_helix_work_item():
     command = get_work_item_command(
         os_group="linux",
@@ -61,6 +131,44 @@ def test_ready_to_run_argument_is_forwarded_to_helix_work_item():
 
     assert "--wasm-runtime-flavor" in command
     assert "--wasm-ready-to-run" in command
+    assert "--wasm-ready-to-run-composite" not in command
+
+
+def test_composite_ready_to_run_argument_is_forwarded_to_helix_work_item():
+    command = get_work_item_command(
+        os_group="linux",
+        target_csproj="src/benchmarks/micro/MicroBenchmarks.csproj",
+        architecture="x64",
+        perf_lab_framework="net11.0",
+        internal=True,
+        wasm=True,
+        bdn_artifacts_dir="/tmp/artifacts",
+        wasm_coreclr=True,
+        wasm_workload_source="https://example.test/cohort/v3/index.json",
+        wasm_ready_to_run_composite=True,
+    )
+
+    assert "--wasm-runtime-flavor" in command
+    assert "--wasm-ready-to-run-composite" in command
+    assert "--wasm-ready-to-run" not in command
+    source_index = command.index("--wasm-workload-source")
+    assert command[source_index + 1] == "https://example.test/cohort/v3/index.json"
+
+
+def test_composite_ready_to_run_is_ignored_without_coreclr_wasm():
+    command = get_work_item_command(
+        os_group="linux",
+        target_csproj="src/benchmarks/micro/MicroBenchmarks.csproj",
+        architecture="x64",
+        perf_lab_framework="net11.0",
+        internal=True,
+        wasm=True,
+        bdn_artifacts_dir="/tmp/artifacts",
+        wasm_coreclr=False,
+        wasm_ready_to_run_composite=True,
+    )
+
+    assert "--wasm-ready-to-run-composite" not in command
 
 
 def test_workload_source_is_forwarded_to_helix_work_item():
@@ -118,6 +226,96 @@ def test_ready_to_run_has_distinct_result_configuration():
     assert configurations["CompilationMode"] == "wasm"
     assert configurations["RuntimeType"] == "coreclr"
     assert configurations["R2RType"] == "r2r"
+
+
+def test_composite_ready_to_run_has_distinct_result_configuration():
+    configurations = get_run_configurations(
+        run_kind="micro",
+        runtime_type="wasm_coreclr",
+        codegen_type="wasm",
+        r2r_run_type="r2r_composite",
+        runtime_flavor="coreclr",
+        javascript_engine="v8",
+    )
+
+    assert configurations["CompilationMode"] == "wasm"
+    assert configurations["RuntimeType"] == "coreclr"
+    assert configurations["R2RType"] == "r2r_composite"
+
+
+def _wasm_targets():
+    targets_path = scripts_dir.parent / "src" / "benchmarks" / "micro" / "MicroBenchmarks.Wasm.targets"
+    return ET.parse(targets_path).getroot()
+
+
+def test_ready_to_run_properties_select_composite_from_environment():
+    root = _wasm_targets()
+    mode = [
+        element for group in root.findall("PropertyGroup")
+        for element in group.findall("_PerformanceWasmReadyToRunComposite")
+    ]
+    assert [(e.text, e.attrib.get("Condition")) for e in mode] == [
+        ("false", None),
+        ("true", "'$(PERFLAB_WASM_READY_TO_RUN_COMPOSITE)' == 'true'"),
+    ]
+
+    r2r_group = next(
+        group for group in root.findall("PropertyGroup")
+        if group.find("PublishReadyToRun") is not None
+    )
+    assert "'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'" in r2r_group.attrib["Condition"]
+    properties = {element.tag: element.text for element in r2r_group}
+    assert properties == {
+        "PublishReadyToRun": "true",
+        "PublishReadyToRunComposite": "$(_PerformanceWasmReadyToRunComposite)",
+        "PublishReadyToRunContainerFormat": "wasm",
+        "PublishTrimmed": "true",
+        "WasmEnableWebcil": "true",
+    }
+
+
+def test_ready_to_run_configuration_validates_selected_composite_mode():
+    target = _wasm_targets().find("./Target[@Name='ValidateWasmReadyToRunConfiguration']")
+    assert target is not None
+    assert "PERFLAB_WASM_READY_TO_RUN_COMPOSITE" in target.attrib["Condition"]
+
+    conditions = [error.attrib["Condition"] for error in target.findall("Error")]
+    assert "'$(PERFLAB_WASM_READY_TO_RUN)' != 'true'" in conditions
+    assert any(
+        "'$(PublishReadyToRunComposite)' != '$(_PerformanceWasmReadyToRunComposite)'" in condition
+        for condition in conditions
+    )
+
+
+def test_ready_to_run_output_guard_checks_composite_image():
+    target = _wasm_targets().find("./Target[@Name='ValidateWasmReadyToRunOutputs']")
+    assert target is not None
+    assert target.attrib["AfterTargets"] == "_CreateR2RImages"
+
+    include = target.find("./ItemGroup/_PerformanceWasmCompositeCompilation").attrib["Include"]
+    assert "WithMetadataValue('CreateCompositeImage', 'true')" in include
+    image = target.find("./ItemGroup/_PerformanceWasmCompositeImage").attrib["Include"]
+    assert "%(OutputR2RImage)" in image
+
+    conditions = " ".join(error.attrib["Condition"] for error in target.findall("Error"))
+    assert "'@(_ReadyToRunFilesToPublish)' == ''" in conditions
+    assert "EndsWith('.r2r.wasm')" in conditions
+    assert "!Exists('$(_PerformanceWasmCompositeImagePath)')" in conditions
+    assert "@(_ReadyToRunCompositeBuildInput)" in conditions
+    # Per-assembly mode rejects an unexpected composite plan.
+    assert "'$(_PerformanceWasmReadyToRunComposite)' != 'true' and '@(_PerformanceWasmCompositeImage)' != ''" in conditions
+
+
+def test_composite_publish_guard_checks_boot_config_core_assembly_asset():
+    target = _wasm_targets().find("./Target[@Name='ValidateWasmReadyToRunCompositePublishAssets']")
+    assert target is not None
+    assert target.attrib["AfterTargets"] == "ProcessPublishFilesForWasm"
+    assert "'$(_PerformanceWasmReadyToRunComposite)' == 'true'" in target.attrib["Condition"]
+
+    include = target.find("./ItemGroup/_PerformanceWasmCompositePublishAsset").attrib["Include"]
+    assert include == (
+        "@(_WasmCompositePublishStaticWebAsset->"
+        "WithMetadataValue('AssetTraitValue', 'readyToRunComposite'))")
 
 
 def test_ready_to_run_validates_resolved_runtime_pack_items():
@@ -223,6 +421,193 @@ def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
         / "11.0.0-ci"
         / "System.Private.CoreLib.dll"
     ).is_file()
+
+
+def _write_coreclr_artifact(tmp_path, crossgen2_tasks_files=()):
+    artifact = tmp_path / "artifact" / "staging"
+    shared_framework = artifact / "dotnet-none" / "shared" / "Microsoft.NETCore.App" / "11.0.0-ci"
+    built_nugets = artifact / "built-nugets"
+    shared_framework.mkdir(parents=True)
+    built_nugets.mkdir(parents=True)
+    (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.11.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.11.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NET.ILLink.Tasks.11.0.0-ci.nupkg").touch()
+    if crossgen2_tasks_files:
+        crossgen2_tasks = artifact / "Crossgen2Tasks"
+        crossgen2_tasks.mkdir()
+        for name in crossgen2_tasks_files:
+            (crossgen2_tasks / name).write_text(name)
+    return artifact.parent
+
+
+def test_coreclr_payload_stages_crossgen2_tasks_shim(tmp_path):
+    artifact = _write_coreclr_artifact(
+        tmp_path, (*WASM_CROSSGEN2_TASKS_FILES, "Crossgen2Tasks.deps.json"))
+    payload = tmp_path / "payload"
+
+    build_wasm_coreclr_payload(str(artifact), str(payload))
+
+    staged = payload / WASM_CROSSGEN2_TASKS_PAYLOAD_DIR
+    for name in (*WASM_CROSSGEN2_TASKS_FILES, "Crossgen2Tasks.deps.json"):
+        assert (staged / name).read_text() == name
+
+
+def test_coreclr_payload_without_crossgen2_tasks_shim(tmp_path):
+    artifact = _write_coreclr_artifact(tmp_path)
+    payload = tmp_path / "payload"
+
+    build_wasm_coreclr_payload(str(artifact), str(payload))
+
+    assert not (payload / WASM_CROSSGEN2_TASKS_PAYLOAD_DIR).exists()
+
+
+@pytest.mark.parametrize("files", [(), ("Crossgen2Tasks.deps.json",)])
+def test_coreclr_payload_rejects_present_shim_without_required_files(tmp_path, files):
+    artifact = _write_coreclr_artifact(tmp_path)
+    shim = artifact / "staging" / "Crossgen2Tasks"
+    shim.mkdir()
+    for name in files:
+        (shim / name).touch()
+
+    with pytest.raises(ValueError, match="Incomplete Crossgen2Tasks shim"):
+        build_wasm_coreclr_payload(str(artifact), str(tmp_path / "payload"))
+
+
+def _archive_coreclr_artifact(artifact_root, tmp_path):
+    archive = tmp_path / "BrowserWasmCoreCLR.tar.gz"
+    with tarfile.open(archive, "w:gz") as tar:
+        tar.add(artifact_root / "staging", arcname="staging")
+    return archive
+
+
+def test_coreclr_archive_payload_without_crossgen2_tasks_shim(tmp_path):
+    archive = _archive_coreclr_artifact(_write_coreclr_artifact(tmp_path), tmp_path)
+    payload = tmp_path / "payload"
+
+    assert not _stage_wasm_crossgen2_tasks(str(archive), str(payload))
+    assert not (payload / WASM_CROSSGEN2_TASKS_PAYLOAD_DIR).exists()
+
+
+def test_coreclr_archive_payload_stages_crossgen2_tasks_shim(tmp_path):
+    archive = _archive_coreclr_artifact(
+        _write_coreclr_artifact(tmp_path, WASM_CROSSGEN2_TASKS_FILES), tmp_path)
+    payload = tmp_path / "payload"
+
+    assert _stage_wasm_crossgen2_tasks(str(archive), str(payload))
+    for name in WASM_CROSSGEN2_TASKS_FILES:
+        assert (payload / WASM_CROSSGEN2_TASKS_PAYLOAD_DIR / name).is_file()
+
+
+def test_coreclr_archive_payload_rejects_incomplete_crossgen2_tasks_shim(tmp_path):
+    archive = _archive_coreclr_artifact(
+        _write_coreclr_artifact(tmp_path, ("Crossgen2Tasks.deps.json",)), tmp_path)
+
+    with pytest.raises(ValueError, match="Incomplete Crossgen2Tasks shim"):
+        _stage_wasm_crossgen2_tasks(str(archive), str(tmp_path / "payload"))
+
+
+def test_coreclr_payload_rejects_incomplete_crossgen2_tasks_shim(tmp_path):
+    artifact = _write_coreclr_artifact(tmp_path, ("Crossgen2Tasks.dll",))
+
+    with pytest.raises(ValueError, match="Microsoft.NET.CrossGen.props"):
+        build_wasm_coreclr_payload(str(artifact), str(tmp_path / "payload"))
+
+
+def test_coreclr_pre_commands_export_crossgen2_tasks_dir():
+    commands = get_pre_commands(
+        os_group="linux",
+        os_distro="ubuntu",
+        internal=False,
+        runtime_type="wasm_coreclr",
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+        wasm_local_package_version="11.0.0-ci",
+        wasm_crossgen2_tasks_dir="$HELIX_CORRELATION_PAYLOAD/crossgen2-tasks",
+    )
+
+    assert any(
+        "export PERFLAB_WASM_CROSSGEN2_TASKS_DIR=$HELIX_CORRELATION_PAYLOAD/crossgen2-tasks" in command
+        for command in commands
+    )
+
+
+def test_coreclr_pre_commands_omit_crossgen2_tasks_dir_by_default():
+    commands = get_pre_commands(
+        os_group="linux",
+        os_distro="ubuntu",
+        internal=False,
+        runtime_type="wasm_coreclr",
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+        wasm_local_package_version="11.0.0-ci",
+    )
+
+    assert not any("PERFLAB_WASM_CROSSGEN2_TASKS_DIR" in command for command in commands)
+
+
+def _crossgen2_tasks_dir(tmp_path, files=WASM_CROSSGEN2_TASKS_FILES):
+    tasks_dir = tmp_path / "crossgen2-tasks"
+    tasks_dir.mkdir()
+    for name in files:
+        (tasks_dir / name).touch()
+    return tasks_dir
+
+
+def _ready_to_run_args(composite):
+    return Namespace(
+        wasm=True,
+        wasm_runtime_flavor="CoreCLR",
+        wasm_ready_to_run=not composite,
+        wasm_ready_to_run_composite=composite,
+    )
+
+
+def test_composite_ready_to_run_activates_crossgen2_tasks_shim(tmp_path, monkeypatch):
+    tasks_dir = _crossgen2_tasks_dir(tmp_path)
+    monkeypatch.setenv("PERFLAB_WASM_CROSSGEN2_TASKS_DIR", str(tasks_dir))
+    monkeypatch.setenv("Crossgen2SdkOverridePropsPath", "/stale/Microsoft.NET.CrossGen.props")
+    monkeypatch.setenv("Crossgen2SdkOverrideTargetsPath", "/stale/Microsoft.NET.CrossGen.targets")
+
+    micro_benchmarks.configure_wasm_ready_to_run(_ready_to_run_args(composite=True))
+
+    assert os.environ["Crossgen2SdkOverridePropsPath"] == str(tasks_dir / "Microsoft.NET.CrossGen.props")
+    assert os.environ["Crossgen2SdkOverrideTargetsPath"] == str(tasks_dir / "Microsoft.NET.CrossGen.targets")
+
+
+def test_per_assembly_ready_to_run_keeps_sdk_ready_to_run_tasks(tmp_path, monkeypatch):
+    monkeypatch.setenv("PERFLAB_WASM_CROSSGEN2_TASKS_DIR", str(_crossgen2_tasks_dir(tmp_path)))
+    # Inherited shim paths must not leak into a per-assembly run.
+    monkeypatch.setenv("Crossgen2SdkOverridePropsPath", "/stale/Microsoft.NET.CrossGen.props")
+    monkeypatch.setenv("Crossgen2SdkOverrideTargetsPath", "/stale/Microsoft.NET.CrossGen.targets")
+
+    micro_benchmarks.configure_wasm_ready_to_run(_ready_to_run_args(composite=False))
+
+    assert "Crossgen2SdkOverridePropsPath" not in os.environ
+    assert "Crossgen2SdkOverrideTargetsPath" not in os.environ
+
+
+def test_composite_ready_to_run_without_shim_keeps_sdk_ready_to_run_tasks(monkeypatch):
+    monkeypatch.delenv("PERFLAB_WASM_CROSSGEN2_TASKS_DIR", raising=False)
+    # A stale inherited shim must not be used when this run has none.
+    monkeypatch.setenv("Crossgen2SdkOverridePropsPath", "/stale/Microsoft.NET.CrossGen.props")
+    monkeypatch.setenv("Crossgen2SdkOverrideTargetsPath", "/stale/Microsoft.NET.CrossGen.targets")
+
+    micro_benchmarks.configure_wasm_ready_to_run(_ready_to_run_args(composite=True))
+
+    assert "Crossgen2SdkOverridePropsPath" not in os.environ
+    assert "Crossgen2SdkOverrideTargetsPath" not in os.environ
+
+
+def test_composite_ready_to_run_rejects_incomplete_shim(tmp_path, monkeypatch):
+    tasks_dir = _crossgen2_tasks_dir(tmp_path, ("Crossgen2Tasks.dll", "Microsoft.NET.CrossGen.props"))
+    monkeypatch.setenv("PERFLAB_WASM_CROSSGEN2_TASKS_DIR", str(tasks_dir))
+    monkeypatch.delenv("Crossgen2SdkOverridePropsPath", raising=False)
+    monkeypatch.delenv("Crossgen2SdkOverrideTargetsPath", raising=False)
+
+    with pytest.raises(FileNotFoundError, match="Microsoft.NET.CrossGen.targets"):
+        micro_benchmarks.configure_wasm_ready_to_run(_ready_to_run_args(composite=True))
 
 
 def test_coreclr_payload_aliases_sdk_framework_during_major_version_rollover(tmp_path):
@@ -392,9 +777,41 @@ def test_pipeline_scopes_workload_source_to_coreclr_r2r():
     condition = (
         "and(ne(parameters.wasmWorkloadSource, ''), "
         "eq(parameters.runtimeType, 'wasm_coreclr'), "
-        "eq(parameters.r2rRunType, 'r2r'))"
+        "in(parameters.r2rRunType, 'r2r', 'r2r_composite'))"
     )
     assert condition in template
+
+
+def test_pipeline_defines_coreclr_composite_r2r_lane():
+    jobs = (
+        scripts_dir.parent / "eng" / "pipelines" / "runtime-wasm-perf-jobs.yml"
+    ).read_text(encoding="utf-8")
+    release_exclusion = (
+        "  - ${{ if not(startswith(variables['Build.SourceBranch'], "
+        "'refs/heads/release')) }}:\n"
+    )
+
+    def lane(identifier):
+        blocks = [
+            block for block in jobs.split(release_exclusion)[1:]
+            if f"additionalJobIdentifier: {identifier}\n" in block
+        ]
+        assert len(blocks) == 1
+        # Stop at the next job's leading comment.
+        return blocks[0].split("\n\n")[0]
+
+    def without_lane_identity(block):
+        return [
+            line for line in block.splitlines()
+            if not line.strip().startswith(("r2rRunType:", "additionalJobIdentifier:"))
+        ]
+
+    per_assembly = lane("coreclr_r2r_v8")
+    composite = lane("coreclr_r2r_composite_v8")
+
+    assert "r2rRunType: 'r2r'\n" in per_assembly
+    assert "r2rRunType: 'r2r_composite'\n" in composite
+    assert without_lane_identity(composite) == without_lane_identity(per_assembly)
 
 
 @pytest.mark.parametrize("source", [None, "", "   "])
