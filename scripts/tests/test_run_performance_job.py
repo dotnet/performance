@@ -59,3 +59,20 @@ def test_generated_prerequisites_do_not_poll_dpkg_lock():
     prerequisites = "\n".join(pre_commands)
     assert "fuser" not in prerequisites
     assert "Waiting for dpkg" not in prerequisites
+
+
+def test_linux_prerequisite_failure_remains_failed_after_health_check():
+    pre_commands = get_pre_commands(
+        os_group="linux",
+        os_distro="ubuntu",
+        internal=True,
+        runtime_type="coreclr",
+        codegen_type="jit",
+        build_config="Release",
+        v8_version="12.0.0",
+    )
+
+    health_check = next(
+        command for command in pre_commands if "machine_health.py" in command
+    )
+    assert health_check.endswith("check || true; exit 1; fi")
