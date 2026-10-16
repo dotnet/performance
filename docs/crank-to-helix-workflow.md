@@ -95,7 +95,7 @@ After installing crank as mentioned in the prerequisites, you will be able to in
 Below is an example of a crank command which will run any benchmarks with Linq in the name on a Windows x64 queue. This command must be run in the performance repository, and the runtime repository must be located next to it so that you could navigate to it with `cd ../runtime`.
 
 ```cmd
-crank --config .\helix.yml --scenario micro --profile win-x64 --variable bdnArgs="--filter *Linq*" --profile msft-internal --variable buildNumber="myalias-20230811.1"
+crank --config .\helix.yml --scenario micro --profile win-x64 --variable bdnArgs="--filter '*Linq*'" --profile msft-internal --variable buildNumber="myalias-20230811.1"
 ```
 
 An explanation for each argument:
@@ -103,7 +103,7 @@ An explanation for each argument:
 - `--config .\helix.yml`: This tells crank what yaml file defines all the scenarios and jobs
 - `--scenario micro`: Runs the microbenchmarks scenario
 - `--profile win-x64`: Configures crank to a local Windows x64 build of the runtime, and sets the Helix Queue to a Windows x64 queue.
-- `--variable bdnArgs="--filter *Linq*"`: Sets arguments to pass to BenchmarkDotNet that will filter it to only Linq benchmarks
+- `--variable bdnArgs="--filter '*Linq*'"`: Sets arguments to pass to BenchmarkDotNet that will filter it to only Linq benchmarks
 - `--profile msft-internal`: Sets the crank agent endpoint to the internal hosted crank agent
 - `--variable buildNumber="myalias-20230811.1"`: Sets the build number which will be associated with the results when it gets uploaded to our storage accounts. You can use this to search for the run results in Azure Data Explorer. This build number does not have to follow any convention, the only recommendation would be to include something unique to yourself so that it doesn't conflict with other build numbers.
 
