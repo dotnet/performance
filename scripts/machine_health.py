@@ -196,8 +196,24 @@ def _write_semaphore_with_new_venv(machine_name: str, reason: str) -> bool:
         if not os.path.exists(python_exe):  # Windows layout (not expected here, but be safe)
             python_exe = os.path.join(venv_dir, "Scripts", "python.exe")
 
-        subprocess.run([python_exe, "-m", "pip", "install", "-q", "-U", "pip"], check=True, timeout=300)
-        subprocess.run([python_exe, "-m", "pip", "install", "-q", *_AZURE_PACKAGES], check=True, timeout=600)
+        # Helix sets PYTHONPATH to its own scripts, which include an incompatible partial ``azure``
+        # package. Let the temporary interpreter use only its virtual environment packages.
+        venv_environment = dict(os.environ)
+        venv_environment.pop("PYTHONHOME", None)
+        venv_environment.pop("PYTHONPATH", None)
+
+        subprocess.run(
+            [python_exe, "-m", "pip", "install", "-q", "-U", "pip"],
+            check=True,
+            env=venv_environment,
+            timeout=300,
+        )
+        subprocess.run(
+            [python_exe, "-m", "pip", "install", "-q", *_AZURE_PACKAGES],
+            check=True,
+            env=venv_environment,
+            timeout=600,
+        )
 
         # Re-run this module inside the venv to do just the upload, now that azure is available.
         result = subprocess.run(
@@ -208,7 +224,7 @@ def _write_semaphore_with_new_venv(machine_name: str, reason: str) -> bool:
                 "--machine", machine_name,
                 "--reason", reason,
             ],
-            env=dict(os.environ),
+            env=venv_environment,
             timeout=300,
         )
         return result.returncode == 0
