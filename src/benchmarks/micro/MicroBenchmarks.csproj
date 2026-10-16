@@ -276,6 +276,10 @@
     <Compile Remove="libraries\System.Reflection.Metadata\*.cs" />
   </ItemGroup>
 
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
+    <Compile Remove="libraries\System.IO.Compression\ZipArchive.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))">
     <Compile Remove="libraries\System.IO.Compression\Zstandard.cs" />
   </ItemGroup>
