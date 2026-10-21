@@ -72,10 +72,6 @@ public class Reporter
         return JsonSerializer.Serialize(this, _jsonSerializerOptions);
     }
 
-    public static Reporter FromJson(string json)
-        => JsonSerializer.Deserialize<Reporter>(json, _jsonSerializerOptions)
-            ?? throw new JsonException("The JSON payload did not contain a reporter.");
-
     public string WriteResultTable()
     {
         var ret = new StringBuilder();

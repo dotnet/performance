@@ -5,6 +5,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Xunit;
 
 namespace Reporting.Tests;
@@ -257,7 +258,11 @@ No results in file.
     }
 
     private static Reporter DeserializeReporter(string json)
-        => Reporter.FromJson(json);
+        => JsonSerializer.Deserialize<Reporter>(json, new JsonSerializerOptions
+        {
+            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        }) ?? throw new JsonException("The JSON payload did not contain a reporter.");
 
     private static Reporter GetReporterWithSpecifiedEnvironment(PerfLabEnvironmentProviderMock enviroment, string counterName = null, double result = 1.1)
     {
