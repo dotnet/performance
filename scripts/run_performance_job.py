@@ -7,7 +7,7 @@ import hashlib
 import json
 import os
 import shutil
-from subprocess import CalledProcessError
+from subprocess import CalledProcessError, check_output
 import sys
 import tempfile
 import time
@@ -19,12 +19,19 @@ from typing import Any, Optional
 
 from build_runtime_payload import *
 import ci_setup
-from performance.common import RunCommand, set_environment_variable
+import dotnet
+from performance.common import RunCommand, retry_on_exception, set_environment_variable
 from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
 DEFAULT_BUILD_CONFIG = "Release"
 APT_LOCK_TIMEOUT_OPTION = "-o DPkg::Lock::Timeout=120"
+TARGETING_PACK_COMPONENTS = {
+    "Microsoft.NETCore.App.Ref": "runtime",
+    "Microsoft.AspNetCore.App.Ref": "aspnetcore-runtime",
+    "Microsoft.WindowsDesktop.App.Ref": "windowsdesktop",
+}
+PUBLIC_TARGETING_PACK_SOURCE = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json"
 
 
 def apt_command(arguments: str, *, executable: str = "apt-get") -> str:
@@ -216,6 +223,200 @@ def try_provision_mlnet_resources(payload_dir: str) -> bool:
         "Could not pre-provision the ML.NET SSWE model into the payload after retries "
         f"(last error: {last_error}); ML.NET will attempt to download it at benchmark runtime.")
     return False
+
+
+def get_released_targeting_pack_versions(
+        target_framework: str,
+        package_names: set[str]) -> dict[str, str]:
+    channel = target_framework.removeprefix("net")
+    url = f"https://builds.dotnet.microsoft.com/dotnet/release-metadata/{channel}/releases.json"
+
+    def read_metadata():
+        with urllib.request.urlopen(url, timeout=60) as response:
+            return json.load(response)
+
+    metadata = retry_on_exception(
+        read_metadata,
+        retry_exceptions=[urllib.error.URLError, TimeoutError])
+    if not isinstance(metadata, dict) or metadata.get("channel-version") != channel:
+        raise ValueError(f"Invalid public release metadata for {target_framework}: {url}")
+    if metadata.get("support-phase") in ("preview", "go-live"):
+        getLogger().info(
+            "No public GA release for %s; retaining the SDK's targeting packs",
+            target_framework)
+        return {}
+
+    versions: dict[str, str] = {}
+    for package_name in sorted(package_names):
+        component = TARGETING_PACK_COMPONENTS[package_name]
+        candidates = [
+            version
+            for release in metadata["releases"]
+            if isinstance(component_release := release.get(component), dict)
+            and isinstance(version := component_release.get("version"), str)
+            and re.fullmatch(rf"{re.escape(channel)}\.\d+", version)
+        ]
+        if not candidates:
+            raise ValueError(
+                f"No publicly released {package_name} version for {target_framework}")
+        versions[package_name] = max(
+            candidates, key=lambda version: tuple(map(int, version.split("."))))
+        getLogger().info(
+            "Public targeting pack for %s: %s %s",
+            target_framework, package_name, versions[package_name])
+    return versions
+
+
+def provision_downlevel_targeting_packs(
+        performance_payload_dir: str,
+        dotnet_root: str,
+        framework: str,
+        os_group: str) -> None:
+    dotnet_executable = os.path.join(
+        dotnet_root, "dotnet.exe" if sys.platform == "win32" else "dotnet")
+    sdk_path = dotnet.get_base_path(dotnet_executable)
+    sdk_version = os.path.basename(os.path.normpath(sdk_path))
+    sdk_match = re.match(r"^(\d+)\.(\d+)\.", sdk_version)
+    if not sdk_match:
+        raise ValueError(f"Cannot determine the SDK target framework from {sdk_version}")
+    sdk_framework_version = tuple(map(int, sdk_match.groups()))
+
+    harness_project = os.path.join(
+        performance_payload_dir, "src", "harness", "BenchmarkDotNet.Extensions",
+        "BenchmarkDotNet.Extensions.csproj")
+    harness_framework = ET.parse(harness_project).findtext(".//TargetFramework")
+    if not harness_framework:
+        raise ValueError(f"Cannot determine the harness target framework from {harness_project}")
+    frameworks = {dotnet.get_target_framework_moniker(framework), harness_framework}
+    downlevel_frameworks: list[str] = []
+    for target_framework in frameworks:
+        match = re.fullmatch(r"net(\d+)\.(\d+)", target_framework)
+        if not match:
+            raise ValueError(f"Unsupported benchmark target framework: {target_framework}")
+        if tuple(map(int, match.groups())) < sdk_framework_version:
+            downlevel_frameworks.append(target_framework)
+    if not downlevel_frameworks:
+        return
+
+    bundled_versions = ET.parse(os.path.join(
+        sdk_path, "Microsoft.NETCoreSdk.BundledVersions.props"))
+    released_packs: dict[str, dict[str, str]] = {}
+    for target_framework in sorted(downlevel_frameworks):
+        package_names = {
+            package_name
+            for reference in bundled_versions.iter("KnownFrameworkReference")
+            if reference.get("TargetFramework") == target_framework
+            and (package_name := reference.get("TargetingPackName")) is not None
+            and package_name in TARGETING_PACK_COMPONENTS
+        }
+        if "Microsoft.NETCore.App.Ref" not in package_names:
+            raise ValueError(
+                f"SDK {sdk_version} has no targeting packs for {target_framework}")
+        if os_group != "windows":
+            package_names.discard("Microsoft.WindowsDesktop.App.Ref")
+        versions = get_released_targeting_pack_versions(target_framework, package_names)
+        if versions:
+            released_packs[target_framework] = versions
+    if not released_packs:
+        return
+
+    props_path = os.path.join(
+        performance_payload_dir, "eng", "DownlevelTargetingPacks.props")
+    overrides = ET.Element("Project")
+    references = ET.SubElement(ET.SubElement(overrides, "ItemGroup"),
+                               "KnownFrameworkReference",
+                               {"Update": "@(KnownFrameworkReference)"})
+    missing_packs: list[tuple[str, str, str, str]] = []
+    for target_framework, packages in released_packs.items():
+        for package_name, version in packages.items():
+            condition = (
+                f"'%(KnownFrameworkReference.TargetFramework)' == '{target_framework}' and "
+                f"'%(KnownFrameworkReference.TargetingPackName)' == '{package_name}'")
+            ET.SubElement(references, "TargetingPackVersion",
+                          {"Condition": condition}).text = version
+            installed_pack = os.path.join(dotnet_root, "packs", package_name, version)
+            if not os.path.isdir(os.path.join(installed_pack, "ref", target_framework)):
+                missing_packs.append((target_framework, package_name, version, installed_pack))
+
+    with tempfile.TemporaryDirectory(prefix="perflab-downlevel-packs-") as temp_dir:
+        with open(os.path.join(temp_dir, "global.json"), "w", encoding="utf-8") as global_json:
+            json.dump({"sdk": {
+                "version": sdk_version, "rollForward": "disable", "allowPrerelease": True
+            }}, global_json)
+
+        project = ET.Element("Project", {"Sdk": "Microsoft.NET.Sdk"})
+        properties = ET.SubElement(project, "PropertyGroup")
+        # The acquisition project must not implicitly restore an unpublished downlevel pack.
+        ET.SubElement(properties, "TargetFramework").text = (
+            f"net{sdk_match.group(1)}.{sdk_match.group(2)}")
+        ET.SubElement(properties, "DisableTransitiveFrameworkReferenceDownloads").text = "true"
+        ET.SubElement(project, "Import", {
+            "Project": props_path, "Condition": f"Exists('{props_path}')"})
+        downloads = ET.SubElement(project, "ItemGroup")
+        package_versions: dict[str, set[str]] = {}
+        for _, package_name, version, _ in missing_packs:
+            package_versions.setdefault(package_name, set()).add(version)
+        for package_name, versions_to_download in package_versions.items():
+            ET.SubElement(downloads, "PackageDownload", {
+                "Include": package_name,
+                "Version": ";".join(
+                    f"[{version}]" for version in sorted(versions_to_download))})
+        project_path = os.path.join(temp_dir, "DownlevelTargetingPacks.csproj")
+        ET.ElementTree(project).write(project_path, encoding="utf-8", xml_declaration=True)
+
+        if missing_packs:
+            config = ET.Element("configuration")
+            sources = ET.SubElement(config, "packageSources")
+            ET.SubElement(sources, "clear")
+            ET.SubElement(sources, "add", {
+                "key": "dotnet-public", "value": PUBLIC_TARGETING_PACK_SOURCE})
+            config_path = os.path.join(temp_dir, "NuGet.config")
+            ET.ElementTree(config).write(config_path, encoding="utf-8", xml_declaration=True)
+            package_root = os.path.join(temp_dir, "packages")
+            RunCommand([
+                dotnet_executable, "restore", project_path,
+                "--configfile", config_path, "--packages", package_root,
+            ], verbose=True, retry=1).run(temp_dir)
+            for target_framework, package_name, version, installed_pack in missing_packs:
+                restored_pack = os.path.join(
+                    package_root, package_name.lower(), version)
+                if not os.path.isdir(os.path.join(restored_pack, "ref", target_framework)):
+                    raise ValueError(f"NuGet did not restore {package_name} {version}")
+                shutil.copytree(restored_pack, installed_pack, dirs_exist_ok=True)
+
+        os.makedirs(os.path.dirname(props_path), exist_ok=True)
+        ET.indent(overrides, space="  ")
+        ET.ElementTree(overrides).write(props_path, encoding="utf-8", xml_declaration=True)
+
+        for target_framework, packages in released_packs.items():
+            try:
+                output = check_output([
+                    dotnet_executable, "msbuild", project_path, "-nologo",
+                    "-t:ProcessFrameworkReferences", f"-p:TargetFramework={target_framework}",
+                    f"-p:EnableWindowsTargeting={'true' if os_group == 'windows' else 'false'}",
+                    "-getItem:TargetingPack",
+                ], cwd=temp_dir, text=True)
+            except CalledProcessError as error:
+                raise ValueError(
+                    f"SDK {sdk_version} could not evaluate the {target_framework} "
+                    f"targeting-pack overrides:\n{error.output}") from error
+            selected_packs = json.loads(output)["Items"]["TargetingPack"]
+            for package_name, version in packages.items():
+                selections = [
+                    item for item in selected_packs
+                    if item["NuGetPackageId"] == package_name
+                ]
+                selected_versions = {item["NuGetPackageVersion"] for item in selections}
+                if selected_versions != {version}:
+                    raise ValueError(
+                        f"SDK {sdk_version} did not honor the {target_framework} "
+                        f"{package_name} override: expected {version}, "
+                        f"selected {selected_versions}")
+                if any(not os.path.isdir(item.get("PackageDirectory", "")) for item in selections):
+                    raise ValueError(
+                        f"SDK {sdk_version} could not locate staged {package_name} {version}")
+    getLogger().info("Staged public downlevel targeting-pack overrides at %s", props_path)
+
 
 def get_pre_commands(
         os_group: str,
@@ -1335,6 +1536,13 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     framework = os.environ["PERFLAB_Framework"]
     os.environ["PERFLAB_TARGET_FRAMEWORKS"] = framework
+    # Workload lanes must retain their coherent SDK-selected pack versions.
+    if not args.is_scenario and args.runtime_type in ("coreclr", "mono"):
+        provision_downlevel_targeting_packs(
+            performance_payload_dir,
+            ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir,
+            framework,
+            args.os_group)
     if args.os_group == "windows":
         runtime_id = f"win-{args.architecture}"
     elif args.os_group == "osx":
