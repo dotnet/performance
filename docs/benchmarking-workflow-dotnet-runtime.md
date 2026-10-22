@@ -52,6 +52,23 @@ corresponding ARM64 Mono builds while retaining CoreCLR jobs. The WASM template
 skips the Mono-only `non-v8` build when disabled; runtime owns the build flavors
 for the retained `v8` profile. These controls do not remove manual Mono support.
 
+For CoreCLR and Mono benchmark jobs, `scripts/run_performance_job.py` prepares
+downlevel reference packs before submitting the Helix payload. It reads the
+benchmark and harness target frameworks and resolves their latest public GA
+Core, ASP.NET Core, and (on Windows) Windows Desktop reference-pack versions
+from the public .NET release metadata. Only shipped frameworks older than the
+selected SDK are overridden; preview channels, the SDK, current-framework packs,
+and runtime under test remain unchanged. WASM and scenario workload provisioning
+is unaffected.
+
+The exact packs are restored from `dotnet-public` into the staged SDK, and
+`eng/DownlevelTargetingPacks.props` is generated only in the payload's performance
+repository. The shared targets conditionally import this file, so every Helix
+partition uses the same resolved versions without changing ordinary local
+builds. Payload preparation fails if packs cannot be acquired or the SDK does
+not honor the overrides. New public servicing releases are picked up by the
+next payload preparation without a checked-in patch-version update.
+
 ### Code Organization
 
 All Libraries benchmarks which have been ported from the old CoreFX repository belong to the corresponding folders: `libraries\$namespace`. The Runtime (old CoreCLR) benchmarks can be found in `runtime` subfolder. The directory structure is the following (some folders have been omitted for brevity):
