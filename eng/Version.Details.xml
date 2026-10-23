@@ -67,9 +67,9 @@
       <Sha>6fa58a2ef810f82b3197d69763cedfb34c88b9fd</Sha>
       <Uri>https://github.com/dotnet/dotnet</Uri>
     </Dependency>
-    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="36.1.120">
+    <Dependency Name="Microsoft.Android.Sdk.Windows" Version="36.1.123">
       <Uri>https://github.com/dotnet/android</Uri>
-      <Sha>7d6e309920313db622262491e482858125a0417b</Sha>
+      <Sha>49516ae50dffb0421b7faf5f60f9df9cc220743d</Sha>
     </Dependency>
     <Dependency Name="Microsoft.NET.Workload.Emscripten.Current.Manifest-9.0.100" Version="9.0.1">
       <Sha>4c9d1b112c16716c2479e054e9ad4db8b5b8c70c</Sha>
