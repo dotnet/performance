@@ -1,5 +1,6 @@
 import re
 import subprocess
+import tempfile
 import time
 from performance.common import RunCommand
 from logging import getLogger
@@ -63,14 +64,22 @@ class AndroidHelper:
         self.packagename = packagename
 
         if not skip_xharness_warmup:
-            # Try calling xharness with stdout=None and stderr=None to hopefully bypass the hang
-            getLogger().info("Clearing xharness stdout and stderr to avoid hang")
+            # Keep ADB server startup off pipes, but retain the probe's diagnostics.
+            getLogger().info("Warming up XHarness without output pipes")
             cmdline = xharness_adb() + [
                 'shell',
                 'echo', 'Hello World'
             ]
-            RunCommand(cmdline, verbose=False).run()
-            getLogger().info("Ran echo command to clear stdout and stderr")
+            getLogger().info("$ %s", subprocess.list2cmdline(cmdline))
+            with tempfile.TemporaryFile(mode='w+', encoding='utf-8', errors='backslashreplace') as output:
+                result = subprocess.run(cmdline, stdout=output, stderr=subprocess.STDOUT)
+                output.seek(0)
+                for line in output:
+                    getLogger().info(line.rstrip())
+                if result.returncode != 0:
+                    getLogger().error("XHarness warm-up failed with status %s", result.returncode)
+                result.check_returncode()
+            getLogger().info("XHarness warm-up succeeded")
 
             cmdline = xharness_adb() + [
                 'shell',
@@ -414,7 +423,7 @@ class AndroidHelper:
         except CalledProcessError:
             getLogger().warning("Failed to restore force_enable_pss_profiling", exc_info=True)
 
-        if not skip_uninstall:
+        if not skip_uninstall and self.stopappcommand is not None:
             getLogger().info("Stopping App for uninstall")
             RunCommand(self.stopappcommand, verbose=True).run()
                     

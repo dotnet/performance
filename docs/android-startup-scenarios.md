@@ -16,6 +16,9 @@ Explicit `JavaSdkDirectory`, `JAVA_HOME`, and `JDK_HOME` selections are preserve
 The MAUI Android inner-loop Helix setup installs its local SDK and JDK through
 `InstallAndroidDependencies` with `AndroidManifestType=GoogleV2`. This uses Google's
 current Android package catalog. The measurement command runs only if setup succeeds.
+Payload preparation records both the Android and MAUI manifests in `rollback_maui.json`.
+Helix installs those same versions so the MAUI package references do not fall back to
+the SDK's bundled MAUI version while Android uses newer assemblies.
 
 ## Steps
 
@@ -67,6 +70,8 @@ current Android package catalog. The measurement command runs only if setup succ
 
 ## Notes
 
+- The first XHarness/ADB probe logs both output streams without using pipes. If it
+  fails before app setup, cleanup skips app commands so the original error remains visible.
 - Specific example command such as when using the runtime android example app: `python test.py devicestartup --device-type android --package-path HelloAndroid.apk --package-name net.dot.HelloAndroid`.
 - Other example commands and additional logic can be found in the `maui_scenarios_android.proj` and `runner.py` files in the `performance` repository.
 - If using `[--use-fully-drawn-time --fully-drawn-extra-delay <delay in sec>]` arguments, the Android app must have reportFullyDrawn() called on a ComponentActivity. Reference: https://developer.android.com/topic/performance/vitals/launch-time#retrieve-TTFD.
