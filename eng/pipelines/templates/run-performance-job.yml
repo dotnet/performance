@@ -73,7 +73,7 @@ jobs:
     pool: ${{ parameters.pool }}
     container: ${{ parameters.container }}
     # Phase conditions run before System.JobName exists for the matrix jobs.
-    ${{ if and(parameters.onlySanityCheck, not(parameters.isRuntimeJob)) }}:
+    ${{ if and(eq(parameters.onlySanityCheck, true), eq(parameters.isRuntimeJob, false)) }}:
       condition: >-
         and(succeeded(), ${{ and(
           eq(parameters.runtimeFlavor, 'coreclr'),
