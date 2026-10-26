@@ -9,6 +9,14 @@
 - Have an Android app APK available for testing.
 - Have an Android Device (with developer mode enabled) or emulator connected to computer, and viewable with `xharness android device` or `xharness android adb -- devices -l`.
 
+For .NET 11+ Android payload builds on hosted Windows images, `pre.py` selects
+`JAVA_HOME_21_X64` when the image still uses its default Java 8 installation.
+Explicit `JavaSdkDirectory`, `JAVA_HOME`, and `JDK_HOME` selections are preserved.
+
+The MAUI Android inner-loop Helix setup installs its local SDK and JDK through
+`InstallAndroidDependencies` with `AndroidManifestType=GoogleV2`. This uses Google's
+current Android package catalog. The measurement command runs only if setup succeeds.
+
 ## Steps
 
 1. Initialize the environment (note the . for bash):

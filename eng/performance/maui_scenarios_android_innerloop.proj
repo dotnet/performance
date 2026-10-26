@@ -85,8 +85,8 @@
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <!-- NOTE: The scenario is only relevant in Debug mode. Do NOT use Release mode. -->
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Device - %(Identity)')">
-      <PreCommands>$(_WindowsEnvVars);$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot;</PreCommands>
-      <Command>$(Python) test.py androidinnerloop --csproj-path app/MauiAndroidInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --package-name com.companyname.mauiandroidinnerloop -f $(PERFLAB_Framework)-android -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) --screen-timeout-ms $(ScreenTimeoutMs) $(ScenarioArgs)</Command>
+      <PreCommands>$(_WindowsEnvVars)</PreCommands>
+      <Command>$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &amp;&amp; $(Python) test.py androidinnerloop --csproj-path app/MauiAndroidInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --package-name com.companyname.mauiandroidinnerloop -f $(PERFLAB_Framework)-android -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) --screen-timeout-ms $(ScreenTimeoutMs) $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>
@@ -95,8 +95,8 @@
   <ItemGroup Condition="'$(TargetsWindows)' != 'true'">
     <!-- NOTE: The scenario is only relevant in Debug mode. Do NOT use Release mode. -->
     <HelixWorkItem Include="@(MAUIAndroidInnerLoopScenario -> 'Inner Loop Emulator - %(Identity)')">
-      <PreCommands>$(_LinuxEnvVars);$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot;</PreCommands>
-      <Command>$(Python) test.py androidinnerloop --csproj-path app/MauiAndroidInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --package-name com.companyname.mauiandroidinnerloop -f $(PERFLAB_Framework)-android -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) --screen-timeout-ms $(ScreenTimeoutMs) $(ScenarioArgs)</Command>
+      <PreCommands>$(_LinuxEnvVars)</PreCommands>
+      <Command>$(Python) setup_helix.py $(PERFLAB_Framework)-android &quot;$(_MSBuildArgs)&quot; &amp;&amp; $(Python) test.py androidinnerloop --csproj-path app/MauiAndroidInnerLoop.csproj --edit-src &quot;src/MainPage.xaml.cs;src/MainPage.xaml&quot; --edit-dest &quot;app/Pages/MainPage.xaml.cs;app/Pages/MainPage.xaml&quot; --package-name com.companyname.mauiandroidinnerloop -f $(PERFLAB_Framework)-android -c Debug --msbuild-args &quot;$(_MSBuildArgs)&quot; --scenario-name &quot;%(Identity)&quot; --inner-loop-iterations $(InnerLoopIterations) --screen-timeout-ms $(ScreenTimeoutMs) $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <DownloadFilesFromResults>output.log</DownloadFilesFromResults>
     </HelixWorkItem>

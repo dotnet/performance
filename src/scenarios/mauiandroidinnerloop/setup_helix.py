@@ -197,14 +197,16 @@ def install_android_dependencies(ctx):
         check=False,
     )
     if result.returncode != 0:
-        log("WARNING: restore failed — "
-            "InstallAndroidDependencies may not work")
+        log("Restore before InstallAndroidDependencies FAILED", tee=True)
+        _dump_log()
+        sys.exit(result.returncode)
 
     result = run_cmd(
         [ctx["dotnet_exe"], "msbuild", csproj,
          "-t:InstallAndroidDependencies",
          f"/p:AndroidSdkDirectory={android_home}",
          f"/p:JavaSdkDirectory={java_home}",
+         "/p:AndroidManifestType=GoogleV2",
          "/p:AcceptAndroidSdkLicenses=True",
          f"/p:TargetFramework={ctx['framework']}"],
         check=False,
@@ -212,7 +214,7 @@ def install_android_dependencies(ctx):
     if result.returncode != 0:
         log("InstallAndroidDependencies FAILED", tee=True)
         _dump_log()
-        sys.exit(1)
+        sys.exit(result.returncode)
     log("Android SDK and Java dependencies installed successfully")
 
     log(f"ANDROID_HOME={android_home}")
