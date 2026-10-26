@@ -2,12 +2,55 @@
 Because of how pytest finds things, all import modules must start with scripts.
 '''
 
-from scripts.dotnet import CSharpProject, CSharpProjFile
+from scripts.dotnet import CSharpProject, CSharpProjFile, FrameworkVersion, WasmPackage, WasmWorkloadCohort
 import os
 import subprocess
+import sys
 from unittest.mock import Mock
 
 import pytest
+
+
+def test_dotnet_import_does_not_use_deprecated_namedtuple_syntax():
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-W", "error:Creating NamedTuple classes using keyword arguments:DeprecationWarning",
+            "-c", "import dotnet",
+        ],
+        cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.parametrize(
+    ("record_type", "fields"),
+    [
+        (CSharpProjFile, {"file_name": "test.csproj", "working_directory": "project"}),
+        (WasmPackage, {"package_id": "Microsoft.NET.Runtime.WebAssembly.Sdk", "version": "11.0.0"}),
+        (
+            WasmWorkloadCohort,
+            {
+                "sdk_version": "11.0.100",
+                "product_version": "11.0.0",
+                "host_rid": "win-x64",
+                "workload_id": "wasm-tools",
+                "packages": (WasmPackage("Microsoft.NET.Runtime.WebAssembly.Sdk", "11.0.0"),),
+            },
+        ),
+        (FrameworkVersion, {"major": 11, "minor": 0}),
+    ],
+)
+def test_namedtuple_records_preserve_fields_and_constructors(record_type, fields):
+    record = record_type(**fields)
+
+    assert record == record_type(*fields.values())
+    assert tuple(record) == tuple(fields.values())
+    assert record._fields == tuple(fields)
+    for name, value in fields.items():
+        assert getattr(record, name) == value
 
 
 def test_new():
