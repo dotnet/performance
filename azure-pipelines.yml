@@ -79,6 +79,19 @@ jobs:
       jobParameters:
         ${{ if parameters.onlySanityCheck }}:
           onlySanityCheck: true
+          # SDK12/net11 compatibility validation, not .NET12 runtime validation.
+          condition: >-
+            and(
+              succeeded(),
+              or(
+                startsWith(variables['System.JobName'], 'run_performance_test_maui_scenarios_android_Default_CoreCLRwindows__22H2_x64_Pixel8'),
+                startsWith(variables['System.JobName'], 'run_performance_test_maui_scenarios_ios_Default_CoreCLRosx__26_x64_iPhone17'),
+                startsWith(variables['System.JobName'], 'run_performance_test_maui_scenarios_android_innerloop_Default_CoreCLR_Debug_InnerLoop_Emulatorubuntu__2204_x64_AndroidEmulator')
+              )
+            )
+          variables:
+            - name: InnerLoopIterations
+              value: 1
 
   - template: /eng/common/core-templates/job/helix-job-monitor.yml
     parameters:
