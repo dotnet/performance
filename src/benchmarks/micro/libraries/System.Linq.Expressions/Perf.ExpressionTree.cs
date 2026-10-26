@@ -9,7 +9,7 @@ using MicroBenchmarks;
 namespace System.Linq.Expressions.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.LINQ)]
-    public class Perf_LambdaExpression
+    public class Perf_ExpressionTree
     {
         // The shape EnumerableQuery and ORM test doubles compile for every query: Queryable.* calls over
         // an IQueryable captured in a closure. Compile() emits a DynamicMethod that is jitted in FullOpts,
