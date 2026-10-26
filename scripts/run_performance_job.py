@@ -415,6 +415,12 @@ def provision_downlevel_targeting_packs(
                 if any(not os.path.isdir(item.get("PackageDirectory", "")) for item in selections):
                     raise ValueError(
                         f"SDK {sdk_version} could not locate staged {package_name} {version}")
+                # Worker setup replaces the SDK, so retain the verified packs separately.
+                shutil.copytree(
+                    os.path.join(dotnet_root, "packs", package_name, version),
+                    os.path.join(performance_payload_dir, "eng", "DownlevelTargetingPacks",
+                                 package_name, version),
+                    dirs_exist_ok=True)
     getLogger().info("Staged public downlevel targeting-pack overrides at %s", props_path)
 
 
@@ -1537,7 +1543,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     framework = os.environ["PERFLAB_Framework"]
     os.environ["PERFLAB_TARGET_FRAMEWORKS"] = framework
     # Workload lanes must retain their coherent SDK-selected pack versions.
-    if not args.is_scenario and args.runtime_type in ("coreclr", "mono"):
+    if not args.is_scenario and args.runtime_type in ("coreclr", "coreclr_r2r_interpreter", "mono"):
         provision_downlevel_targeting_packs(
             performance_payload_dir,
             ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir,

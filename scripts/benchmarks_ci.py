@@ -73,6 +73,13 @@ def init_tools(
         azure_feed_url=azure_feed_url,
         internal_build_key=internal_build_key
     )
+    targeting_packs = os.path.join(
+        get_repo_root_path(), "eng", "DownlevelTargetingPacks")
+    if os.path.isdir(targeting_packs):
+        getLogger().info("Restoring staged targeting packs from %s", targeting_packs)
+        shutil.copytree(
+            targeting_packs, os.path.join(os.environ["DOTNET_ROOT"], "packs"),
+            dirs_exist_ok=True)
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''Adds new arguments to the specified ArgumentParser object.'''

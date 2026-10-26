@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
+import scripts.benchmarks_ci as benchmarks_ci
 import scripts.run_performance_job as job
 from scripts.run_performance_job import APT_LOCK_TIMEOUT_OPTION, get_pre_commands
 
@@ -240,6 +241,54 @@ def test_multiple_downlevel_frameworks_share_one_restore(targeting_pack_payload)
     assert state.requests.call_count == 2
     assert state.commands.call_count == 1
     assert state.selection.call_count == 2
+
+
+@pytest.mark.parametrize(
+    ("architecture", "stage_packs"),
+    [("x64", True), ("arm64", True), ("x64", False)],
+)
+def test_worker_sdk_reinstall_preserves_staged_reference_packs(
+        targeting_pack_payload, monkeypatch, architecture, stage_packs):
+    state = targeting_pack_payload
+    current_pack = state.dotnet_root / "packs" / "Microsoft.NETCore.App.Ref" / "11.0.0"
+    current_pack.mkdir(parents=True)
+    (current_pack / "architecture").write_text("x64")
+    if stage_packs:
+        job.provision_downlevel_targeting_packs(
+            str(state.payload), str(state.dotnet_root), "net11.0", "windows")
+
+    worker_sdk = state.dotnet_root.with_name(architecture)
+    if worker_sdk != state.dotnet_root:
+        state.dotnet_root.rename(worker_sdk)
+    (worker_sdk / "producer-sdk").write_text("x64")
+    monkeypatch.setattr(
+        benchmarks_ci, "get_repo_root_path", lambda: str(state.payload))
+    monkeypatch.setattr(
+        benchmarks_ci.dotnet, "get_tools_directory", lambda: str(state.payload / "tools"))
+
+    def install(**kwargs):
+        worker_sdk.mkdir(parents=True)
+        native_pack = worker_sdk / "packs" / "Microsoft.NETCore.App.Ref" / "11.0.0"
+        native_pack.mkdir(parents=True)
+        (native_pack / "architecture").write_text(kwargs["architecture"])
+        monkeypatch.setenv("DOTNET_ROOT", str(worker_sdk))
+
+    monkeypatch.setattr(benchmarks_ci.dotnet, "install", install)
+    benchmarks_ci.init_tools(
+        architecture=architecture,
+        dotnet_versions=["11.0.100"],
+        target_framework_monikers=["net11.0"],
+        verbose=False)
+
+    assert not (worker_sdk / "producer-sdk").exists()
+    assert (worker_sdk / "packs" / "Microsoft.NETCore.App.Ref" / "11.0.0" /
+            "architecture").read_text() == architecture
+    for package, version in state.versions["net8.0"].items():
+        reference = worker_sdk / "packs" / package / version / "ref" / "net8.0" / "Reference.dll"
+        if stage_packs:
+            assert reference.read_bytes() == b"reference"
+        else:
+            assert not reference.exists()
 
 
 def test_current_framework_needs_no_downlevel_override(targeting_pack_payload, monkeypatch):
