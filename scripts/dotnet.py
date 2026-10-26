@@ -71,15 +71,17 @@ def __log_script_header(message: str):
     getLogger().info('-' * message_length)
 
 
-CSharpProjFile = NamedTuple('CSharpProjFile', file_name=str, working_directory=str)
-WasmPackage = NamedTuple('WasmPackage', package_id=str, version=str)
+CSharpProjFile = NamedTuple('CSharpProjFile', [('file_name', str), ('working_directory', str)])
+WasmPackage = NamedTuple('WasmPackage', [('package_id', str), ('version', str)])
 WasmWorkloadCohort = NamedTuple(
     'WasmWorkloadCohort',
-    sdk_version=str,
-    product_version=str,
-    host_rid=str,
-    workload_id=str,
-    packages=tuple[WasmPackage, ...])
+    [
+        ('sdk_version', str),
+        ('product_version', str),
+        ('host_rid', str),
+        ('workload_id', str),
+        ('packages', tuple[WasmPackage, ...])
+    ])
 
 @tracer.start_as_current_span("get_target_framework_moniker")
 def get_target_framework_moniker(framework: str) -> str:
@@ -812,7 +814,7 @@ class CSharpProject:
             self.working_directory)
 
 
-FrameworkVersion = NamedTuple('FrameworkVersion', major=int, minor=int)
+FrameworkVersion = NamedTuple('FrameworkVersion', [('major', int), ('minor', int)])
 @tracer.start_as_current_span("dotnet_get_framework_version")
 def get_framework_version(framework: str) -> FrameworkVersion:
     groups = search(r".*?(\d+)\.(\d+)$", framework)
