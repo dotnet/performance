@@ -72,19 +72,7 @@ jobs:
       clean: all
     pool: ${{ parameters.pool }}
     container: ${{ parameters.container }}
-    # Phase conditions run before System.JobName exists for the matrix jobs.
-    ${{ if and(eq(parameters.onlySanityCheck, true), eq(parameters.isRuntimeJob, false)) }}:
-      condition: >-
-        and(succeeded(), ${{ and(
-          eq(parameters.runtimeFlavor, 'coreclr'),
-          eq(parameters.codeGenType, 'Default'),
-          or(
-            and(eq(parameters.runKind, 'maui_scenarios_android'), eq(parameters.machinePool, 'Pixel8'), eq(parameters.buildConfig, 'Release')),
-            and(eq(parameters.runKind, 'maui_scenarios_android_innerloop'), eq(parameters.machinePool, 'AndroidEmulator'), eq(parameters.buildConfig, 'Debug'))
-          )
-        ) }})
-    ${{ else }}:
-      condition: ${{ parameters.condition }}
+    condition: ${{ parameters.condition }}
     dependsOn:
       - ${{ if ne(parameters.dependsOn, '') }}:
         - ${{ parameters.dependsOn }}

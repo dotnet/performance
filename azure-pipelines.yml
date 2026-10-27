@@ -79,10 +79,6 @@ jobs:
       jobParameters:
         ${{ if parameters.onlySanityCheck }}:
           onlySanityCheck: true
-          # SDK12/net11 compatibility validation, not .NET12 runtime validation.
-          variables:
-            - name: InnerLoopIterations
-              value: 1
 
   - template: /eng/common/core-templates/job/helix-job-monitor.yml
     parameters:
