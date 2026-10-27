@@ -80,7 +80,14 @@
             <SystemVersion>10.0.0</SystemVersion>
         </PropertyGroup>
     </When>
-    <When Condition="'$(TargetFramework)' == 'net11.0' or '$(TargetFramework)' == 'net12.0'">
+    <When Condition="'$(TargetFramework)' == 'net11.0'">
+        <PropertyGroup>
+            <LangVersion>preview</LangVersion>
+            <ExtensionsVersion>$(MicrosoftExtensionsLoggingPackageVersion)</ExtensionsVersion>
+            <SystemVersion>$(SystemThreadingChannelsPackageVersion)</SystemVersion>
+        </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net12.0'">
         <PropertyGroup>
             <LangVersion>preview</LangVersion>
             <ExtensionsVersion>$(MicrosoftExtensionsLoggingPackageVersion)</ExtensionsVersion>

@@ -364,11 +364,7 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:
     if framework.startswith("nativeaot"):
         run_args += ['--runtimes', framework]
     if args.wasm:
-        if framework == "net12.0":
-            if args.wasm_runtime_flavor != 'CoreCLR':
-                raise ArgumentTypeError('Mono WebAssembly is not supported on net12.0; use net11.0 or --wasm-runtime-flavor CoreCLR')
-            run_args += ['--runtimes', 'corewasm12.0']
-        elif framework == "net6.0":
+        if framework == "net6.0":
             run_args += ['--runtimes', 'wasm']
         elif framework == "net7.0":
             run_args += ['--runtimes', 'wasmnet70']
@@ -380,9 +376,13 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:
             run_args += ['--runtimes', 'wasmnet10_0']
         elif framework == "net11.0":
             run_args += ['--runtimes', 'wasmnet11_0']
+        elif framework == "net12.0":
+            if args.wasm_runtime_flavor != 'CoreCLR':
+                raise ArgumentTypeError('Mono WebAssembly is not supported on net12.0; use net11.0 or --wasm-runtime-flavor CoreCLR')
+            run_args += ['--runtimes', 'corewasm12.0']
         else:
             raise ArgumentTypeError('Framework {} is not supported for wasm'.format(framework))
-        if framework != "net12.0" and args.wasm_runtime_flavor != 'Mono':
+        if args.wasm_runtime_flavor != 'Mono':
             run_args += ['--wasmRuntimeFlavor', args.wasm_runtime_flavor]
 
     # Increase default 2 min build timeout to accommodate slow (or even very slow) hardware

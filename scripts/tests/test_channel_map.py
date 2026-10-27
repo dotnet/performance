@@ -28,7 +28,7 @@ def test_main_selects_sdk_and_runtime_12():
 @pytest.mark.parametrize(("framework", "flavor", "moniker", "legacy_flavor"), [
     ("net11.0", "Mono", "wasmnet11_0", False),
     ("net11.0", "CoreCLR", "wasmnet11_0", True),
-    ("net12.0", "CoreCLR", "corewasm12.0", False),
+    ("net12.0", "CoreCLR", "corewasm12.0", True),
 ])
 def test_wasm_runner_arguments_match_benchmarkdotnet_version(framework, flavor, moniker, legacy_flavor):
     from scripts import micro_benchmarks
@@ -38,6 +38,8 @@ def test_wasm_runner_arguments_match_benchmarkdotnet_version(framework, flavor, 
     arguments = micro_benchmarks.__get_benchmarkdotnet_arguments(framework, args)
     assert arguments[arguments.index("--runtimes") + 1] == moniker
     assert ("--wasmRuntimeFlavor" in arguments) == legacy_flavor
+    if legacy_flavor:
+        assert arguments[arguments.index("--wasmRuntimeFlavor") + 1] == flavor
 
 
 def test_net12_mono_wasm_fails_explicitly():
@@ -90,8 +92,14 @@ def test_setup_preserves_sdk_channel_with_target_override(
     monkeypatch.setattr(ci_setup, "init_tools", install)
     monkeypatch.setattr(ci_setup, "check_output", Mock(return_value=b"performance-sha"))
     monkeypatch.setattr(ci_setup.dotnet, "info", Mock())
-    monkeypatch.setattr(ci_setup.dotnet, "get_dotnet_sdk", Mock(return_value="sdk-sha"))
-    monkeypatch.setattr(ci_setup.dotnet, "get_dotnet_version_precise", Mock(return_value="sdk-version"))
+    sdk_path = tmp_path / "sdk"
+    for major in (10, 11, 12):
+        sdk_directory = sdk_path / f"{major}.0.100"
+        sdk_directory.mkdir(parents=True)
+        (sdk_directory / ".version").write_text(
+            f"sdk-sha-{major}\n{major}.0.100\nunused\n{major}.0.100-precise\n",
+            encoding="utf-8")
+    monkeypatch.setattr(ci_setup.dotnet, "get_sdk_path", lambda _: str(sdk_path))
     monkeypatch.setattr(ci_setup.dotnet, "get_commit_date", Mock(return_value="2026-10-27T00:00:00Z"))
     monkeypatch.setenv("PERFLAB_Framework", "")
     setup = tmp_path / "machine-setup"
@@ -107,7 +115,54 @@ def test_setup_preserves_sdk_channel_with_target_override(
         f'PERFLAB_TARGET_FRAMEWORKS={expected_framework}' if os.name == "nt"
         else f'PERFLAB_TARGET_FRAMEWORKS="{expected_framework}"')
     assert expected_assignment in output
+    expected_sdk_assignment = (
+        f"DOTNET_VERSION={sdk_major}.0.100-precise" if os.name == "nt"
+        else f'DOTNET_VERSION="{sdk_major}.0.100-precise"')
+    assert expected_sdk_assignment in output
+    assert f"sdk-sha-{sdk_major}" in output
     assert json.loads((tmp_path / "global.json").read_text())["sdk"]["version"].startswith(f"{sdk_major}.")
+
+
+@pytest.mark.parametrize(("frameworks", "sdk_major"), [
+    (["net8.0"], 8), (["net11.0"], 11), (["net12.0"], 12),
+    (["net8.0", "net11.0"], 11), (["net11.0", "net12.0"], 12),
+    (["net472", "net11.0"], 11), (["net472"], 12),
+])
+@pytest.mark.parametrize("fail", [False, True])
+def test_benchmarks_ci_selects_and_restores_sdk_pin(tmp_path, monkeypatch, frameworks, sdk_major, fail):
+    from scripts import benchmarks_ci
+
+    for name in ("global.json", "global.net8.json", "global.net11.json"):
+        shutil.copy(repo_root / name, tmp_path / name)
+    monkeypatch.setattr(benchmarks_ci, "get_repo_root_path", lambda: str(tmp_path))
+    global_json = tmp_path / "global.json"
+    original_content = global_json.read_bytes()
+
+    def run():
+        with benchmarks_ci.__use_compatible_global_json(frameworks):
+            assert json.loads(global_json.read_text())["sdk"]["version"].startswith(f"{sdk_major}.")
+            if fail:
+                raise RuntimeError("benchmark failure")
+
+    if fail:
+        with pytest.raises(RuntimeError, match="benchmark failure"):
+            run()
+    else:
+        run()
+    assert global_json.read_bytes() == original_content
+
+
+def test_runtime_pipeline_framework_overrides_precede_mobile_defaults():
+    template = (repo_root / "eng" / "pipelines" / "templates" / "runtime-perf-job.yml").read_text()
+    assert "  framework: ''" in template
+    assert """    frameworks:
+    - ${{ if ne(parameters.framework, '') }}:
+      - ${{ parameters.framework }}
+    - ${{ elseif in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSCoreCLR', 'iOSNativeAOT') }}:
+      - net11.0
+    - ${{ else }}:
+      - net12.0
+""" in template
 
 
 def test_mobile_main_uses_existing_dependency_branches(monkeypatch):

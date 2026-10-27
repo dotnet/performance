@@ -14,6 +14,10 @@ To learn more about designing benchmarks, please read [Microbenchmark Design Gui
 
 The first thing that you need to choose is the Target Framework. Available options are: `net8.0|net9.0|net10.0|net11.0|net12.0`. You can specify the target framework using `-f|--framework` argument. The `main` channel installs SDK 12 and targets `net12.0`; explicitly versioned channels retain their matching frameworks. The examples below targeting `net11.0` require a .NET 11 runtime; SDK 12 alone does not provide it or implicitly roll those benchmarks forward.
 
+For older-only runs, `benchmarks_ci.py` temporarily selects the corresponding
+versioned `global.json` for the newest requested framework and restores the
+original file afterward, including on failure.
+
 To restore, build, and run a benchmark on the main SDK and runtime, run this from the repository root:
 
 ```cmd

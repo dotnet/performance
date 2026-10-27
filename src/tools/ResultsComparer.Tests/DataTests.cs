@@ -12,6 +12,7 @@ public class DataTests
     [InlineData("net10.0")]
     [InlineData("net11.0")]
     [InlineData("net12.0")]
+    [InlineData("nativeaot12.0")]
     public void DecompressExtractsJsonFilesFromNestedZipArchives(string framework)
     {
         var tempDir = Directory.CreateTempSubdirectory();
@@ -47,8 +48,11 @@ public class DataTests
         }
     }
 
-    [Fact]
-    public void DecompressExtractsJsonFilesFromTarGzArchives()
+    [Theory]
+    [InlineData("nativeaot10.0")]
+    [InlineData("nativeaot11.0")]
+    [InlineData("nativeaot12.0")]
+    public void DecompressExtractsJsonFilesFromTarGzArchives(string framework)
     {
         var tempDir = Directory.CreateTempSubdirectory();
         try
@@ -64,7 +68,7 @@ public class DataTests
             using (var fileStream = File.Create(outerZipPath))
             using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Create))
             {
-                var entry = archive.CreateEntry("Performance-Runs/nativeaot10.0/testuser/arm64_win10-nativeaot10.0.tar.gz");
+                var entry = archive.CreateEntry($"Performance-Runs/{framework}/testuser/arm64_win10-{framework}.tar.gz");
                 using var entryStream = entry.Open();
                 entryStream.Write(tarGzBytes, 0, tarGzBytes.Length);
             }
@@ -75,7 +79,7 @@ public class DataTests
             var extractedFile = Assert.Single(extractedFiles);
             var directoryName = Path.GetFileName(Path.GetDirectoryName(extractedFile));
 
-            Assert.Contains("nativeaot10.0", directoryName, System.StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(framework, directoryName, System.StringComparison.OrdinalIgnoreCase);
         }
         finally
         {

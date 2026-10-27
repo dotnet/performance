@@ -1,7 +1,7 @@
 parameters:
   steps: []
   variables: []
-  framework: net12.0 # Specify the appropriate framework when running release branches (ie net6.0 for release/6.0)
+  framework: '' # Override when running release branches (for example net10.0 for release/10.0).
   buildConfig: ''
   archType: ''
   osGroup: ''
@@ -32,7 +32,12 @@ jobs:
     isRuntimeJob: true
     useLocalCommitTime: true
     frameworks:
-    - ${{ parameters.framework }}
+    - ${{ if ne(parameters.framework, '') }}:
+      - ${{ parameters.framework }}
+    - ${{ elseif in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSCoreCLR', 'iOSNativeAOT') }}:
+      - net11.0
+    - ${{ else }}:
+      - net12.0
 
     # Test job depends on the corresponding build job
     ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:

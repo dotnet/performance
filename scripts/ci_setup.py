@@ -467,7 +467,7 @@ def main(args: CiSetupArgs):
     os.makedirs(dir_path, exist_ok=True)
 
     if not framework.startswith('net4'):
-        target_framework_moniker = dotnet.get_target_framework_moniker(framework)
+        target_framework_moniker = dotnet.get_target_framework_moniker(channel_framework)
         dotnet_version = dotnet.get_dotnet_version_precise(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.repository is None else args.commit_sha
 
