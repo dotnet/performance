@@ -206,7 +206,6 @@ def install_android_dependencies(ctx):
          "-t:InstallAndroidDependencies",
          f"/p:AndroidSdkDirectory={android_home}",
          f"/p:JavaSdkDirectory={java_home}",
-         "/p:AndroidManifestType=GoogleV2",
          "/p:AcceptAndroidSdkLicenses=True",
          f"/p:TargetFramework={ctx['framework']}"],
         check=False,
