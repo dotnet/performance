@@ -21,7 +21,7 @@ precommands = PreCommands()
 with MauiNuGetConfigContext(precommands):
     install_latest_maui(
         precommands,
-        workloads=["microsoft.net.sdk.android", "microsoft.net.sdk.maui"],
+        workloads=["microsoft.net.sdk.android"],
         workload_name='maui-android',
     )
 

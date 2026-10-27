@@ -197,9 +197,8 @@ def install_android_dependencies(ctx):
         check=False,
     )
     if result.returncode != 0:
-        log("Restore before InstallAndroidDependencies FAILED", tee=True)
-        _dump_log()
-        sys.exit(result.returncode)
+        log("WARNING: restore failed — "
+            "InstallAndroidDependencies may not work")
 
     result = run_cmd(
         [ctx["dotnet_exe"], "msbuild", csproj,
@@ -213,7 +212,7 @@ def install_android_dependencies(ctx):
     if result.returncode != 0:
         log("InstallAndroidDependencies FAILED", tee=True)
         _dump_log()
-        sys.exit(result.returncode)
+        sys.exit(1)
     log("Android SDK and Java dependencies installed successfully")
 
     log(f"ANDROID_HOME={android_home}")
