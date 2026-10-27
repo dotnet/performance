@@ -218,6 +218,20 @@ def test_microbenchmarks_select_intended_packages(framework, extensions, system,
     assert "net12.0" in properties["SupportedTargetFrameworks"].split(";")
 
 
+@pytest.mark.parametrize(("framework", "expected"), [("net11.0", "11.0.0"), ("net12.0", "12.0.0-alpha.1")])
+def test_next_library_pins_do_not_change_net11_measurements(framework, expected):
+    result = subprocess.run(
+        [shutil.which("dotnet"), "msbuild",
+         str(repo_root / "src" / "benchmarks" / "micro" / "MicroBenchmarks.csproj"),
+         "-nologo", f"-p:TargetFramework={framework}", f"-p:PERFLAB_TARGET_FRAMEWORKS={framework}",
+         "-p:MicrosoftExtensionsLoggingPackageVersion=12.0.0-alpha.1",
+         "-p:SystemThreadingChannelsPackageVersion=12.0.0-alpha.1",
+         "-getProperty:ExtensionsVersion,SystemVersion"],
+        cwd=repo_root, check=True, capture_output=True, text=True,
+    )
+    assert set(json.loads(result.stdout)["Properties"].values()) == {expected}
+
+
 @pytest.mark.parametrize("framework", ["net10.0", "net11.0", "net12.0"])
 def test_sdk_scenarios_include_current_framework(tmp_path, framework):
     project = ET.parse(repo_root / "eng" / "performance" / "sdk_scenarios.proj")
