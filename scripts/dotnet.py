@@ -75,13 +75,11 @@ CSharpProjFile = NamedTuple('CSharpProjFile', [('file_name', str), ('working_dir
 WasmPackage = NamedTuple('WasmPackage', [('package_id', str), ('version', str)])
 WasmWorkloadCohort = NamedTuple(
     'WasmWorkloadCohort',
-    [
-        ('sdk_version', str),
-        ('product_version', str),
-        ('host_rid', str),
-        ('workload_id', str),
-        ('packages', tuple[WasmPackage, ...])
-    ])
+    [('sdk_version', str),
+     ('product_version', str),
+     ('host_rid', str),
+     ('workload_id', str),
+     ('packages', tuple[WasmPackage, ...])])
 
 @tracer.start_as_current_span("get_target_framework_moniker")
 def get_target_framework_moniker(framework: str) -> str:
