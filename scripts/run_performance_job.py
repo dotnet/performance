@@ -19,6 +19,7 @@ from typing import Any, Optional
 
 from build_runtime_payload import *
 import ci_setup
+from channel_map import ChannelMap
 from performance.common import RunCommand, set_environment_variable
 from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
@@ -807,6 +808,17 @@ def get_work_item_command(
 
     return work_item_command
 
+def get_target_framework(args: RunPerformanceJobArgs, channel: str) -> str:
+    if args.framework:
+        return args.framework
+    # Mobile dependencies still use the net11.0 MAUI/macios branches with SDK 12.
+    if channel == "main" and (
+            args.run_kind.startswith("maui_scenarios")
+            or args.run_kind in ("android_scenarios", "ios_scenarios")):
+        return "net11.0"
+    return ChannelMap.get_target_framework_moniker(channel)
+
+
 def run_performance_job(args: RunPerformanceJobArgs):
     setup_loggers(verbose=True)
 
@@ -1314,6 +1326,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     if args.channel is not None:
         ci_setup_arguments.channel = args.channel
+    ci_setup_arguments.framework = get_target_framework(args, ci_setup_arguments.channel)
 
     if args.perf_repo_hash is not None and args.performance_repo_ci:
         ci_setup_arguments.perf_hash = args.perf_repo_hash

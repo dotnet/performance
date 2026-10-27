@@ -1,4 +1,9 @@
 <Project>
+    <PropertyGroup Condition="$(TargetFrameworks.Contains('net12.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '12.0')))">
+        <AspNetCoreVersion>12.0.0-*</AspNetCoreVersion>
+        <BlazorVersion>12.0.0-*</BlazorVersion>
+        <SystemNetHttpJsonVersion>12.0.0-*</SystemNetHttpJsonVersion>
+    </PropertyGroup>
     <PropertyGroup Condition="$(TargetFrameworks.Contains('net11.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '11.0')))">
         <AspNetCoreVersion>11.0.0-*</AspNetCoreVersion>
         <BlazorVersion>11.0.0-*</BlazorVersion>

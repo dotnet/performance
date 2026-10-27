@@ -169,6 +169,8 @@ namespace ResultsComparer
                 return "net11.0";
             if (key.Contains("nativeaot11.0"))
                 return "nativeaot11.0";
+            if (key.Contains("net12.0"))
+                return "net12.0";
 
             return null;
         }

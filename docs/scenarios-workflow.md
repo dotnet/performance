@@ -7,6 +7,16 @@ Our existing scenario tests are under `src\scenarios` in this repo, where each s
 
 ## Running scenario tests
 
+The `main` channel installs SDK 12 and targets `net12.0` for desktop scenarios.
+MAUI and mobile scenario jobs on `main` deliberately retain `net11.0` targets with
+SDK 12 until their upstream dependencies support net12. This also keeps MAUI and
+macios dependency lookups on their existing `net11.0` branches. Explicitly
+versioned channels continue to use their own SDKs and frameworks.
+For equivalent manual setup, use
+`python scripts\ci_setup.py --channel main --framework net11.0 --architecture x64 --not-in-lab`
+and pass the matching platform-qualified target (for example, `net11.0-android`)
+to the scenario's precommand. The framework override does not change the SDK channel.
+
 This is a general guideline on how the scenario tests are arranged in this repo. We will walk through it by measuring the **startup time of an empty console template** as a sample scenario. For other scenarios, refer to the following links:
 
 - [How to run SDK scenario tests](./sdk-scenarios.md)

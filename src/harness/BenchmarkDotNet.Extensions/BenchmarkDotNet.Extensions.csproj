@@ -21,6 +21,8 @@
     <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet.Diagnostics.Windows\BenchmarkDotNet.Diagnostics.Windows.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="System.Linq.AsyncEnumerable" Version="10.0.0" Condition="'$(BenchmarkDotNetVersion)' == '$(BenchmarkDotNetNet12Version)'" />
+    <Compile Remove="AotFilterAttribute.cs" Condition="'$(BenchmarkDotNetVersion)' != '$(BenchmarkDotNetNet12Version)'" />
     <ProjectReference Include="..\..\tools\Reporting\Reporting\Reporting.csproj" />
   </ItemGroup>
 </Project>
