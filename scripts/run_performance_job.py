@@ -20,6 +20,7 @@ from typing import Any, Optional
 from build_runtime_payload import *
 import ci_setup
 from channel_map import ChannelMap
+from dotnet import get_framework_version
 from performance.common import RunCommand, set_environment_variable
 from performance.logger import setup_loggers
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
@@ -535,7 +536,8 @@ def get_bdn_arguments(
         javascript_engine_path: Optional[str] = None,
         product_version: Optional[str] = None,
         corerun_payload_dir: Optional[str] = None,
-        extra_bdn_args: Optional[str] = None) -> list[str]:
+        extra_bdn_args: Optional[str] = None,
+        framework: Optional[str] = None) -> list[str]:
     bdn_arguments = ["--anyCategories", run_categories]
 
     if affinity is not None and not "0":
@@ -603,19 +605,23 @@ def get_bdn_arguments(
         ]
 
     if runtime_type == "coreclr_r2r_interpreter":
+        if framework is None:
+            raise ValueError("A target framework is required for the R2R interpreter")
+        runtime_version = get_framework_version(framework)
+        r2r_runtime = f"r2r{runtime_version.major}_{runtime_version.minor}"
         bdn_arguments += [
             "--msbuild-arguments",
             "/p:PublishReadyToRunCrossgen2ExtraArgs=--target-allows-runtime-code-generation:false",
         ]
         if os_group == "windows":
             bdn_arguments += [
-                "--runtimes", "r2r11_0",
+                "--runtimes", r2r_runtime,
                 "--customruntimepack", "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\runtimepack",
                 "--aotcompilerpath", "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\crossgen2",
             ]
         else:
             bdn_arguments += [
-                "--runtimes", "r2r11_0",
+                "--runtimes", r2r_runtime,
                 "--customruntimepack", "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/runtimepack",
                 "--aotcompilerpath", "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/crossgen2",
             ]
@@ -1500,7 +1506,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             args.javascript_engine_path,
             product_version,
             coreroot_dir,
-            args.extra_bdn_args
+            args.extra_bdn_args,
+            framework=framework
         )
 
     bdn_arguments = get_bdn_args_for_coreroot_dir(coreroot_dir="Core_Root" if use_core_run else None)
