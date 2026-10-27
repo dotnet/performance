@@ -376,6 +376,10 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:
             run_args += ['--runtimes', 'wasmnet10_0']
         elif framework == "net11.0":
             run_args += ['--runtimes', 'wasmnet11_0']
+        elif framework == "net12.0":
+            if args.wasm_runtime_flavor != 'CoreCLR':
+                raise ArgumentTypeError('Mono WebAssembly is not supported on net12.0; use net11.0 or --wasm-runtime-flavor CoreCLR')
+            run_args += ['--runtimes', 'corewasm12.0']
         else:
             raise ArgumentTypeError('Framework {} is not supported for wasm'.format(framework))
         if args.wasm_runtime_flavor != 'Mono':

@@ -1,6 +1,41 @@
 import pytest
 
-from scripts.run_performance_job import APT_LOCK_TIMEOUT_OPTION, get_pre_commands
+from scripts.run_performance_job import APT_LOCK_TIMEOUT_OPTION, get_bdn_arguments, get_pre_commands
+
+
+@pytest.mark.parametrize("os_group", ["windows", "linux"])
+@pytest.mark.parametrize(("framework", "runtime"), [
+    ("net11.0", "r2r11_0"), ("net12.0", "r2r12_0"),
+])
+def test_r2r_interpreter_matches_target_and_preserves_toolchain(os_group, framework, runtime):
+    arguments = get_bdn_arguments(
+        run_categories="libraries",
+        internal=True,
+        os_group=os_group,
+        runtime_type="coreclr_r2r_interpreter",
+        codegen_type="Interpreter",
+        framework=framework,
+    )
+
+    assert arguments[arguments.index("--runtimes") + 1] == runtime
+    assert arguments[arguments.index("--msbuild-arguments") + 1] == (
+        "/p:PublishReadyToRunCrossgen2ExtraArgs=--target-allows-runtime-code-generation:false")
+    prefix = (
+        "%HELIX_CORRELATION_PAYLOAD%\\r2r_interpreter\\" if os_group == "windows"
+        else "$HELIX_CORRELATION_PAYLOAD/r2r_interpreter/")
+    assert arguments[arguments.index("--customruntimepack") + 1] == prefix + "runtimepack"
+    assert arguments[arguments.index("--aotcompilerpath") + 1] == prefix + "crossgen2"
+
+
+def test_r2r_interpreter_requires_an_explicit_framework():
+    with pytest.raises(ValueError, match="target framework is required"):
+        get_bdn_arguments(
+            run_categories="libraries",
+            internal=True,
+            os_group="windows",
+            runtime_type="coreclr_r2r_interpreter",
+            codegen_type="Interpreter",
+        )
 
 
 def get_generated_apt_commands(*, internal: bool, runtime_type: str) -> list[str]:

@@ -1,15 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net11.0</TargetFrameworks>
+    <TargetFrameworks>net12.0</TargetFrameworks>
+    <BenchmarkDotNetVersion>$(BenchmarkDotNetNet12Version)</BenchmarkDotNetVersion>
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\benchmarks\micro\MicroBenchmarks.csproj"
-                      SetTargetFramework="TargetFramework=net10.0"
-                      AdditionalProperties="PERFLAB_TARGET_FRAMEWORKS=net10.0" />
-    <ProjectReference Include="..\..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
+                      SetTargetFramework="TargetFramework=net12.0"
+                      AdditionalProperties="PERFLAB_TARGET_FRAMEWORKS=net12.0" />
+    <ProjectReference Include="..\..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj"
+                      AdditionalProperties="BenchmarkDotNetVersion=$(BenchmarkDotNetVersion)" />
   </ItemGroup>
 </Project>

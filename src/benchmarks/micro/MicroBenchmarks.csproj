@@ -6,6 +6,7 @@
     <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net9.0'))">$(SupportedTargetFrameworks);net9.0</SupportedTargetFrameworks>
     <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net10.0'))">$(SupportedTargetFrameworks);net10.0</SupportedTargetFrameworks>
     <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net11.0'))">$(SupportedTargetFrameworks);net11.0</SupportedTargetFrameworks>
+    <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net12.0'))">$(SupportedTargetFrameworks);net12.0</SupportedTargetFrameworks>
     <!-- Used by Python script to narrow down the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == '' and '$(TargetFramework)' != ''">$(TargetFramework)</TargetFrameworks>
@@ -34,6 +35,10 @@
     <!-- Allow building with one major version, and running using a sdk with a higher major version -->
     <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
     <GenerateProgramFile>false</GenerateProgramFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net12.0' or $(TargetFrameworks.Contains('net12.0'))">
+    <BenchmarkDotNetVersion>$(BenchmarkDotNetNet12Version)</BenchmarkDotNetVersion>
   </PropertyGroup>
 
   <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->
@@ -76,6 +81,13 @@
         </PropertyGroup>
     </When>
     <When Condition="'$(TargetFramework)' == 'net11.0'">
+        <PropertyGroup>
+            <LangVersion>preview</LangVersion>
+            <ExtensionsVersion>11.0.0</ExtensionsVersion>
+            <SystemVersion>11.0.0</SystemVersion>
+        </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net12.0'">
         <PropertyGroup>
             <LangVersion>preview</LangVersion>
             <ExtensionsVersion>$(MicrosoftExtensionsLoggingPackageVersion)</ExtensionsVersion>
@@ -140,7 +152,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
+    <ProjectReference Include="..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj"
+                      AdditionalProperties="BenchmarkDotNetVersion=$(BenchmarkDotNetVersion)" />
   </ItemGroup>
 
   <ItemGroup>
