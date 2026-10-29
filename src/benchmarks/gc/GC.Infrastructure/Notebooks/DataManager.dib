@@ -41,6 +41,8 @@ public static T[] MA<T>(params T[] elems) => elems;
 public static V GetOrAdd<K,V>(this Dictionary<K,V> dict, K key, V value)
     => dict.TryAdd(key, value) ? value : dict[key];
 
+public static char? SafeGetChar(this string s, int index) => ((index >= 0) && (index < s.Length)) ? s[index] : null;
+
 public static void SetWithExtend<T>(this List<T> list, int index, T value)
 {
     int count = list.Count;
@@ -95,6 +97,20 @@ public sealed class LoadInfo
     public int Iteration {get; set;} = -1;
 }
 
+public sealed class GCPerfSimInfo
+{
+    public long SOHAllocatedBytes { get; set; } = -1;
+    public long LOHAllocatedBytes { get; set; } = -1;
+    public long POHAllocatedBytes { get; set; } = -1;
+    public double SecondsTaken { get; set; } = double.NaN;
+    public int[] CollectionCounts  { get; set; } = null; // should have Length==3
+    public long NumCreatedWithFinalizers { get; set; } = -1;
+    public long NumFinalized { get; set; } = -1;
+    public long FinalTotalMemoryBytes { get; set; } = -1;
+    public long FinalHeapSizeBytes { get; set; } = -1;
+    public long FinalFragmentationBytes { get; set; } = -1;
+}
+
 public class GCSummaryInfo
 {
     public double TotalSuspensionTimeMSec {get;set;} = double.NaN;
@@ -147,9 +163,10 @@ public class BenchmarkSummaryData
 
 // XXXData is the Data for an XXX, not a mapping from XXX to data.
 // For example, BenchmarkData is a mapping from iterations to data because a benchmark can have multiple iterations.
-public record IterationData(LoadInfo LoadInfo, GCSummaryInfo GCSummaryInfo, GCProcessData GCProcessData)
+public record IterationData(LoadInfo LoadInfo, GCPerfSimInfo GCPerfSimInfo, GCSummaryInfo GCSummaryInfo, GCProcessData GCProcessData)
 {
     public LoadInfo LoadInfo { get; set; } = LoadInfo;
+    public GCPerfSimInfo GCPerfSimInfo { get; set; } = GCPerfSimInfo;
     public GCSummaryInfo GCSummaryInfo { get; set; } = GCSummaryInfo;
     public GCProcessData GCProcessData  { get; set; } = GCProcessData;
     // GCLogInfo GCLogInfo;
@@ -366,6 +383,24 @@ public class DataManager
         return dataManager;
     }
 
+    public static DataManager CreateGCPerfSim(string basePath,
+        Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null, ConfigIterationFilter configIterationFilter = null,
+        List<string> pertinentProcesses = null)
+        => CreateGCPerfSim(MA(basePath),
+            configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter, configIterationFilter: configIterationFilter,
+            pertinentProcesses: pertinentProcesses);
+
+    public static DataManager CreateGCPerfSim(IEnumerable<string> basePaths,
+        Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null, ConfigIterationFilter configIterationFilter = null,
+        List<string> pertinentProcesses = null)
+    {
+        DataManager dataManager = new();
+        dataManager.AddGCPerfSim(basePaths: basePaths,
+            configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter, configIterationFilter: configIterationFilter,
+            pertinentProcesses: pertinentProcesses);
+        return dataManager;
+    }
+
     public static DataManager CreateGCTrace(string file, List<string> pertinentProcesses, string run = null, string config = null, int? iteration = null,
         bool loadMultipleProcesses = true)
     {
@@ -409,10 +444,34 @@ public class DataManager
         }
     }
 
+    public void AddGCPerfSim(string basePath,
+        Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null, ConfigIterationFilter configIterationFilter = null,
+        List<string> pertinentProcesses = null)
+        => AddGCPerfSim(basePaths: MA(basePath),
+            configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter, configIterationFilter: configIterationFilter,
+            pertinentProcesses: pertinentProcesses);
+
+    public void AddGCPerfSim(IEnumerable<string> basePaths,
+        Filter configFilter = null, Filter benchmarkFilter = null, IntFilter iterationFilter = null, ConfigIterationFilter configIterationFilter = null,
+        List<string> pertinentProcesses = null)
+    {
+        configFilter = configFilter ?? Filter.All;
+        benchmarkFilter = benchmarkFilter ?? Filter.All;
+        iterationFilter = iterationFilter ?? IntFilter.All;
+        // configIterationFilter is not set to an empty dictionary as that would exclude everything
+
+        foreach (var basePath in basePaths)
+        {
+            LoadGCPerfSimFromBasePath(basePath: basePath,
+                configFilter: configFilter, benchmarkFilter: benchmarkFilter, iterationFilter: iterationFilter, configIterationFilter: configIterationFilter,
+                pertinentProcesses: pertinentProcesses);
+        }
+    }
+
     public void AddGCTrace(string file, List<string> pertinentProcesses, string run = null, string config = null, string benchmark = null, int? iteration = null, bool loadMultipleProcesses = true)
     {
         LoadGCTrace(file: file, configFilter: Filter.All, benchmarkFilter: Filter.All, run: run, config: config, benchmark: benchmark, iteration: iteration, pertinentProcesses: pertinentProcesses,
-            expectAspNetData: false, loadMultipleProcesses: loadMultipleProcesses);
+            isForGCPerfSim: false, expectAspNetData: false, loadMultipleProcesses: loadMultipleProcesses);
     }
 
     public void AddGCTraces(string basePath, List<string> pertinentProcesses, SearchOption searchOption = SearchOption.TopDirectoryOnly, Filter configFilter = null, Filter benchmarkFilter = null,
@@ -423,7 +482,7 @@ public class DataManager
 
         LoadGCTracesFromPath(path: basePath, searchOption: searchOption, configFilter: configFilter, benchmarkFilter: benchmarkFilter,
             run: run, config: config, benchmark: benchmark, iteration: iteration, pertinentProcesses: pertinentProcesses,
-            expectAspNetData: false, loadMultipleProcesses: loadMultipleProcesses);
+            isForGCPerfSim: false, expectAspNetData: false, loadMultipleProcesses: loadMultipleProcesses);
     }
 
     public static double DeltaPercent (double baseline, double comparand) => Math.Round((comparand - baseline) / baseline * 100, 2);
@@ -469,6 +528,24 @@ public class DataManager
         return (config, benchmark, iteration);
     }
 
+    private (string, string, int) ParseGCPerfSimLogFileName(string logName)
+    {
+        string[] split = Path.GetFileName(logName).Split(".");
+        if ((split.Length != 5) || (split[3] != "LogFile") || (split[4] != "txt"))
+        {
+            Console.WriteLine($"{logName} is not in the form <benchmark>.<config>.<iteration>.LogFile.txt");
+        }
+        string benchmark = split[0];
+        string config = split[1];
+        int iteration;
+        if (!int.TryParse(split[2], out iteration))
+        {
+            Console.WriteLine($"{logName} is not in the form <benchmark>.<config>.<iteration>.LogFile.txt");
+            iteration = 0;
+        }
+        return (config, benchmark, iteration);
+    }
+
     private List<string> AspNetProcesses = new()
     {
         "PlatformBenchmarks",
@@ -498,7 +575,33 @@ public class DataManager
                 // and the filenames become the configs
                 LoadGCTracesFromPath(fullDir, SearchOption.TopDirectoryOnly, configFilter: Filter.All, benchmarkFilter: benchmarkFilter,
                     run: run, config: config, benchmark: null, iteration: iteration,
-                    pertinentProcesses: pertinentProcesses, expectAspNetData: true, loadMultipleProcesses: false);
+                    pertinentProcesses: pertinentProcesses, isForGCPerfSim: false, expectAspNetData: true, loadMultipleProcesses: false);
+            }
+        }
+    }
+
+    private List<string> GCPerfSimProcesses = new()
+    {
+        "corerun"
+    };
+
+    private void LoadGCPerfSimFromBasePath(string basePath,
+        Filter configFilter, Filter benchmarkFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter,
+        List<string> pertinentProcesses)
+    {
+        pertinentProcesses = pertinentProcesses ?? GCPerfSimProcesses;
+        string run = Path.GetFileName(basePath);
+
+        foreach (string fullDir in Directory.GetDirectories(basePath))
+        {
+            string subDir = Path.GetFileName(fullDir);
+            string benchmark = subDir;
+            if (benchmarkFilter.Include(benchmark))
+            {
+                LoadGCPerfSimFromPath(fullDir, configFilter, iterationFilter, configIterationFilter, run, benchmark);
+                LoadGCTracesFromPath(fullDir, SearchOption.TopDirectoryOnly, configFilter: configFilter, benchmarkFilter: benchmarkFilter,
+                    run: run, config: null, benchmark: benchmark, iteration: null,
+                    pertinentProcesses: pertinentProcesses, isForGCPerfSim: true, expectAspNetData: true, loadMultipleProcesses: false);
             }
         }
     }
@@ -603,6 +706,80 @@ public class DataManager
         return info;
     }
 
+    // === STATS ===
+    // sohAllocatedBytes: 579820643604
+    // lohAllocatedBytes: 0
+    // pohAllocatedBytes: 0
+    // seconds_taken: 19.1031121
+    // collection_counts: [187, 79, 9]
+    // num_created_with_finalizers: 0
+    // num_finalized: 0
+    // final_total_memory_bytes: 2985059440
+    // final_heap_size_bytes: 5641302328
+    // final_fragmentation_bytes: 3787895160
+
+    delegate bool Parser<T>(string? str, out T value);
+
+    // Returns a GCPerfSimInfo with information extracted from the log file.
+    private GCPerfSimInfo LoadGCPerfSimLogFile(string file)
+    {
+        GCPerfSimInfo info = new();
+
+        using (var lines = File.ReadLines(file).GetEnumerator())
+        {
+            while (lines.MoveNext())
+            {
+                if (lines.Current.Contains("=== STATS ===")) break;
+            }
+
+            bool TryGetTagged<T>(string s, string key, Parser<T> tryParse, Action<T> store)
+            {
+                if (s.StartsWith(key) && tryParse(s.Substring(key.Length), out T value))
+                {
+                     store(value);
+                     return true;
+                }
+
+                Console.WriteLine($"'{s}' does not contain '{key}'");
+                return false;
+            }
+
+            bool TryParseThreeInts(string s, out int[] value)
+            {
+                s = s.Trim();
+                if (s.SafeGetChar(0) != '[') goto fail;
+                if (s.SafeGetChar(s.Length - 1) != ']') goto fail;
+                string[] split = s.Substring(1, s.Length - 2).Split(',');
+                if (split.Length != 3) goto fail;
+                value = new int[3];
+                if (!int.TryParse(split[0], out value[0])) goto fail;
+                if (!int.TryParse(split[1], out value[1])) goto fail;
+                if (!int.TryParse(split[2], out value[2])) goto fail;
+                return true;
+
+            fail:
+                Console.WriteLine($"Failed to parse [i1, i2, i3] from {s}");
+                value = null;
+                return false;
+            }
+
+            bool found = true;
+
+            if (!found || lines.MoveNext()) found = TryGetTagged<long>(lines.Current, "sohAllocatedBytes:", long.TryParse, x => info.SOHAllocatedBytes = x);
+            if (!found || lines.MoveNext()) found = TryGetTagged<long>(lines.Current, "lohAllocatedBytes:", long.TryParse, x => info.LOHAllocatedBytes = x);
+            if (!found || lines.MoveNext()) found = TryGetTagged<long>(lines.Current, "pohAllocatedBytes:", long.TryParse, x => info.POHAllocatedBytes = x);
+            if (!found || lines.MoveNext()) found = TryGetTagged<double>(lines.Current, "seconds_taken:", double.TryParse, x => info.SecondsTaken = x);
+            if (!found || lines.MoveNext()) found = TryGetTagged<int[]>(lines.Current, "collection_counts:", TryParseThreeInts, x => info.CollectionCounts = x);
+            if (!found || lines.MoveNext()) found = TryGetTagged<long>(lines.Current, "num_created_with_finalizers:", long.TryParse, x => info.NumCreatedWithFinalizers = x);
+            if (!found || lines.MoveNext()) found = TryGetTagged<long>(lines.Current, "num_finalized:", long.TryParse, x => info.NumFinalized = x);
+            if (!found || lines.MoveNext()) found = TryGetTagged<long>(lines.Current, "final_total_memory_bytes:", long.TryParse, x => info.FinalTotalMemoryBytes = x);
+            if (!found || lines.MoveNext()) found = TryGetTagged<long>(lines.Current, "final_heap_size_bytes:", long.TryParse, x => info.FinalHeapSizeBytes = x);
+            if (!found || lines.MoveNext()) found = TryGetTagged<long>(lines.Current, "final_fragmentation_bytes:", long.TryParse, x => info.FinalFragmentationBytes = x);
+        }
+
+        return info;
+    }
+
     private void LoadAspNetDataFromPath(string path, Filter benchmarkFilter, string run, string config, int iteration)
     {
         var files = Directory.GetFiles(path, "*.log", SearchOption.AllDirectories);
@@ -644,13 +821,50 @@ public class DataManager
             }
             else
             {
-                benchmarkData.Iterations.SetWithExtend(iteration, new(info, null, null));
+                benchmarkData.Iterations.SetWithExtend(iteration, new(info, null, null, null));
             }
         }
     }
 
+    private void LoadGCPerfSimFromPath(string path, Filter configFilter, IntFilter iterationFilter, ConfigIterationFilter configIterationFilter, string run, string benchmark)
+    {
+        var files = Directory.GetFiles(path, "*.LogFile.txt", SearchOption.AllDirectories);
+
+        foreach (var file in files)
+        {
+            (string config, string logBenchmark, int iteration) = ParseGCPerfSimLogFileName(file);
+
+            if (!configFilter.Include(config) || !iterationFilter.Include(iteration) || !configIterationFilter.Include(config, iteration))
+            {
+                continue;
+            }
+
+            if (benchmark != logBenchmark)
+            {
+                Console.WriteLine($"Directory name and log filename in {file} disagree on benchmark");
+            }
+
+            GCPerfSimInfo info = LoadGCPerfSimLogFile(file);
+
+            RunData runData = _data.Runs.GetOrAdd(run, new(new()));
+            ConfigData configData = runData.Configs.GetOrAdd(config, new(new()));
+            BenchmarkData benchmarkData = configData.Benchmarks.GetOrAdd(benchmark, new(null, new()));
+            if ((benchmarkData.Iterations.Count > iteration)
+                && (benchmarkData.Iterations[iteration] != null))
+            {
+                Console.WriteLine($"WARNING: Duplicate iteration '{run} / {config} / {benchmark} / {iteration}' found");
+                benchmarkData.Iterations[iteration].GCPerfSimInfo = info;
+            }
+            else
+            {
+                benchmarkData.Iterations.SetWithExtend(iteration, new(null, info, null, null));
+            }
+
+        }
+    }
+
     private void LoadGCTracesFromPath(string path, SearchOption searchOption, Filter configFilter, Filter benchmarkFilter, string run, string config, string benchmark, int? iteration, List<string> pertinentProcesses,
-        bool expectAspNetData, bool loadMultipleProcesses)
+        bool isForGCPerfSim, bool expectAspNetData, bool loadMultipleProcesses)
     {
         var traceFiles = Directory.GetFiles(path, "*.etl.zip", searchOption).ToList();
         var nettraceFiles = Directory.GetFiles(path, "*.nettrace", searchOption);
@@ -658,10 +872,13 @@ public class DataManager
 
         Parallel.ForEach(traceFiles,
             file => LoadGCTrace(file: file, configFilter: configFilter, benchmarkFilter: benchmarkFilter, run: run, config: config, benchmark: benchmark, iteration: iteration,
-                pertinentProcesses: pertinentProcesses, expectAspNetData: expectAspNetData, loadMultipleProcesses: loadMultipleProcesses));
+                pertinentProcesses: pertinentProcesses, isForGCPerfSim: isForGCPerfSim, expectAspNetData: expectAspNetData, loadMultipleProcesses: loadMultipleProcesses));
     }
 
-    private void LoadGCTrace(string file, Filter configFilter, Filter benchmarkFilter, string run, string config, string benchmark, int? iteration, List<string> pertinentProcesses, bool expectAspNetData, bool loadMultipleProcesses)
+    // The parameterization across ASP.NET, GCPerfSim, and plain GC traces is very messy.  Either these need to pass in the implementations
+    // to calculate config, etc., or we should abandon the LoadGCTracesFromPath strategy of finding all traces and instead search for them
+    // individually based on finding the other logs for each benchmark.
+    private void LoadGCTrace(string file, Filter configFilter, Filter benchmarkFilter, string run, string config, string benchmark, int? iteration, List<string> pertinentProcesses, bool isForGCPerfSim, bool expectAspNetData, bool loadMultipleProcesses)
     {
         string dir = Path.GetFileName(Path.GetDirectoryName(file));
         //string[] sp = file.Split("\\");
@@ -680,7 +897,19 @@ public class DataManager
         }
 
         run = run ?? (loadMultipleProcesses ? dir : "");
-        config = config ?? (loadMultipleProcesses ? fileBaseName : dir);
+
+        if (isForGCPerfSim)
+        {
+             // probably should be error-checking, alternatives...
+             string[] split = fileBaseName.Split('.');
+            config = config ?? split[1];
+            iteration = iteration ?? int.Parse(split[2]);
+        }
+        else
+        {
+            config = config ?? (loadMultipleProcesses ? fileBaseName : dir);
+        }
+
         if (!configFilter.Include(config)) return;
 
         Analyzer analyzer = AnalyzerManager.GetAnalyzer(file);
@@ -701,15 +930,20 @@ public class DataManager
 
         if (allData.Count == 0)
         {
-            Console.WriteLine($"The following trace doesn't have a pertinent process: {file}");
-            Console.WriteLine($"Processes: {string.Join(", ", analyzer.AllGCProcessData.Keys)}");
-            Console.WriteLine($"Check: {string.Join(", ", analyzer.AllGCProcessData.Keys.Select(k => k == pertinentProcesses[0]))}");
+            lock(_data)
+            {
+                Console.WriteLine($"The following trace doesn't have a pertinent process: {file}");
+                Console.WriteLine($"Processes: {string.Join(", ", analyzer.AllGCProcessData.Keys)}");
+            }
             return;
         }
         if (!loadMultipleProcesses && (allData.Count > 1))
         {
-            Console.WriteLine($"The following trace has more than one pertinent process: {file}");
-            Console.WriteLine($"Found processes: {string.Join(", ", allData.Select(d => d.ProcessName))}'");
+            lock(_data)
+            {
+                Console.WriteLine($"The following trace has more than one pertinent process: {file}");
+                Console.WriteLine($"Found processes: {string.Join(", ", allData.Select(d => d.ProcessName))}'");
+            }
             return;
         }
 
@@ -791,7 +1025,7 @@ public class DataManager
                     Console.WriteLine($"The following trace doesn't have a corresponding ASP.NET log '{run} / {config} / {benchmark} / {iterationToUse}' - {file}");
                 }
 
-                benchmarkData.Iterations.SetWithExtend(iterationToUse, new(null, gcSummaryInfo, data));
+                benchmarkData.Iterations.SetWithExtend(iterationToUse, new(null, null, gcSummaryInfo, data));
             }
         }
     }
