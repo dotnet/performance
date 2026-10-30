@@ -5,6 +5,10 @@
 using System.Linq;
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Exporters;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Running;
 using Xunit;
 
 namespace Tests
@@ -25,6 +29,23 @@ namespace Tests
 
             Assert.IsType<System.Tests.Perf_Enum.Colors>(arguments[0]);
             Assert.Equal(new[] { 6, 42 }, arguments.Select(System.Convert.ToInt32));
+        }
+
+        [Theory]
+        [InlineData(nameof(System.Tests.Perf_Enum.InterpolateIntoSpan_NonFlags), 4)]
+        [InlineData(nameof(System.Tests.Perf_Enum.InterpolateIntoStringBuilder_NonFlags), 12)]
+        public void EnumInterpolationUsesUnmodifiedFullNameAndPartition(string methodName, int partition)
+        {
+            var run = BenchmarkConverter.TypeToBenchmarks(typeof(System.Tests.Perf_Enum),
+                ManualConfig.CreateEmpty().AddJob(Job.Default));
+            var cases = run.BenchmarksCases.Where(c => c.Descriptor.WorkloadMethod.Name == methodName).ToArray();
+            var six = Assert.Single(cases, c => System.Convert.ToInt32(c.Parameters.GetArgument("value").Value) == 6);
+            Assert.IsType<System.Tests.Perf_Enum.Colors>(six.Parameters.GetArgument("value").Value);
+            Assert.Equal($"System.Tests.Perf_Enum.{methodName}(value: Orange, Yellow)", FullNameProvider.GetBenchmarkName(six));
+            Assert.Equal(partition, Assert.Single(Enumerable.Range(0, 15),
+                index => new PartitionFilter(15, index).Predicate(six)));
+            var fortyTwo = Assert.Single(cases, c => System.Convert.ToInt32(c.Parameters.GetArgument("value").Value) == 42);
+            Assert.Equal($"System.Tests.Perf_Enum.{methodName}(value: 42)", FullNameProvider.GetBenchmarkName(fortyTwo));
         }
 
         [Fact]

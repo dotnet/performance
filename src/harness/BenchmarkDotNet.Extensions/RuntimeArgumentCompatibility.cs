@@ -49,6 +49,8 @@ namespace BenchmarkDotNet.Extensions
                 throw new ArgumentException("Run monoaotllvm separately from other runtimes so no requested job is replaced.");
             }
 
+            ValidateAndRemoveInProcessOptions(args);
+            runtimeOption = args.FindIndex(IsRuntimeOption);
             args.RemoveRange(runtimeOption, 2);
             string compiler = RemoveOption(args, "--aotcompilerpath")
                 ?? throw new ArgumentException("--aotcompilerpath is required for monoaotllvm.");
@@ -160,6 +162,35 @@ namespace BenchmarkDotNet.Extensions
 
         private static bool IsRuntimeOption(string argument)
             => argument.Equals("--runtimes", StringComparison.OrdinalIgnoreCase) || argument == "-r";
+
+        private static void ValidateAndRemoveInProcessOptions(List<string> args)
+        {
+            var disabled = new List<(int Index, int Count)>();
+            for (int i = 0; i < args.Count; i++)
+            {
+                int equals = args[i].IndexOf('=');
+                string option = equals < 0 ? args[i] : args[i].Substring(0, equals);
+                if (!option.Equals("--inProcess", StringComparison.OrdinalIgnoreCase)
+                    && !option.Equals("-i", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                string? value = equals >= 0 ? args[i].Substring(equals + 1)
+                    : i + 1 < args.Count ? args[i + 1] : null;
+                if (!bool.TryParse(value, out bool enabled) || enabled)
+                {
+                    throw new ArgumentException("monoaotllvm cannot run in process; omit --inProcess or explicitly set it to false.");
+                }
+                disabled.Add((i, equals >= 0 ? 1 : 2));
+                if (equals < 0)
+                    i++;
+            }
+
+            // BDN's non-nullable bool option is presence-based, even with an explicit false.
+            for (int i = disabled.Count - 1; i >= 0; i--)
+                args.RemoveRange(disabled[i].Index, disabled[i].Count);
+        }
 
         private static string? RemoveOption(List<string> args, string option)
         {

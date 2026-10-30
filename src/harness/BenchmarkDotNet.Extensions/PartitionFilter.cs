@@ -1,4 +1,4 @@
-using BenchmarkDotNet.Extensions;
+using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Filters;
 using BenchmarkDotNet.Running;
 using System;
@@ -24,7 +24,7 @@ public class PartitionFilter : IFilter
             return true; // the filter is not enabled so it does not filter anything out and can be added to RecommendedConfig
 
         // Hash the test name to ensure a balanced partitioning strategy that is not dependent on the order of benchmarks
-        var testName = BenchmarkNameProvider.GetBenchmarkName(benchmarkCase);
+        var testName = FullNameProvider.GetBenchmarkName(benchmarkCase);
         var hash = _sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(testName));
 
         // Use the first 4 bytes of the hash to determine the partition
