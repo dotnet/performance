@@ -1,4 +1,8 @@
 <Project>
+  <PropertyGroup Condition="'$(RestorePackagesPath)' != ''">
+    <!-- Arcade initializes this before NuGet imports; BDN's generated builds must use the restore cache for buildTransitive targets too. -->
+    <NuGetPackageRoot>$(RestorePackagesPath)</NuGetPackageRoot>
+  </PropertyGroup>
   <!-- Microsoft.DotNet.Arcade.Sdk must be imported in explict way in every Directory.Build.props file -->
   <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <PropertyGroup>
