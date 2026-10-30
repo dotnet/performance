@@ -6,7 +6,6 @@ using BenchmarkDotNet.Validators;
 using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Running;
-using BenchmarkDotNet.Exporters;
 
 namespace BenchmarkDotNet.Extensions
 {
@@ -37,7 +36,7 @@ namespace BenchmarkDotNet.Extensions
                 if (x is null || y is null)
                     return ReferenceEquals(x, y);
 
-                if (FullNameProvider.GetBenchmarkName(x).Equals(FullNameProvider.GetBenchmarkName(y), System.StringComparison.Ordinal))
+                if (BenchmarkNameProvider.GetBenchmarkName(x).Equals(BenchmarkNameProvider.GetBenchmarkName(y), System.StringComparison.Ordinal))
                     return true;
 
                 return Enumerable.SequenceEqual(
@@ -46,7 +45,7 @@ namespace BenchmarkDotNet.Extensions
             }
 
             public int GetHashCode(BenchmarkCase obj)
-                => FullNameProvider.GetBenchmarkName(obj).GetHashCode();
+                => BenchmarkNameProvider.GetBenchmarkName(obj).GetHashCode();
         }
     }
 }

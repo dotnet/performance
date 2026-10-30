@@ -42,7 +42,9 @@ namespace BenchmarkDotNet.Extensions
 
             if (args.FindAll(IsRuntimeOption).Count != 1
                 || runtimeOption + 2 < args.Count && !args[runtimeOption + 2].StartsWith("-", StringComparison.Ordinal)
-                || !args[runtimeOption + 1].Equals("monoaotllvm", StringComparison.OrdinalIgnoreCase))
+                || !args[runtimeOption + 1].Equals("monoaotllvm", StringComparison.OrdinalIgnoreCase)
+                || args.Exists(argument => argument.Equals("--corerun", StringComparison.OrdinalIgnoreCase)
+                    || argument.StartsWith("--corerun=", StringComparison.OrdinalIgnoreCase)))
             {
                 throw new ArgumentException("Run monoaotllvm separately from other runtimes so no requested job is replaced.");
             }
@@ -75,8 +77,8 @@ namespace BenchmarkDotNet.Extensions
                 TargetFrameworkMoniker = $"net{framework.Version.Major}.{framework.Version.Minor}",
                 CliPath = cli is null ? null : new FileInfo(cli),
                 PackagesPath = packages is null ? null : new DirectoryInfo(packages),
-                AotCompilerPath = compiler,
-                CustomRuntimePack = pack,
+                AotCompilerPath = Path.GetFullPath(compiler),
+                CustomRuntimePack = Path.GetFullPath(pack),
                 AotCompilerMode = mode
             });
         }

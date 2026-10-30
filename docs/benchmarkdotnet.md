@@ -116,8 +116,12 @@ And select one of the benchmarks from the list by either entering its number or 
 
 ### Command Line
 
-All runners use the global `0.16.0-nightly.20261029.662` version from the official
-BenchmarkDotNet nightly feed. There are no per-TFM BenchmarkDotNet version splits.
+All runners use the global `0.16.0-nightly.20261029.662` version through the
+repository's existing `benchmark-dotnet-prerelease` feed in the dnceng public
+project. Nightly updates use locally source-built packages verified against the
+corresponding published nightly before publication to that feed; local ZIPs are
+not assumed to be byte-identical to the upstream packages.
+There are no per-TFM BenchmarkDotNet version splits.
 The compatibility changes include .NET 12 CoreCLR recognition without changing
 benchmark warmup/tiering policy or enabling previously excluded benchmarks.
 Later nightlies require separate package and paired performance verification.
@@ -130,11 +134,18 @@ The enum interpolation benchmarks explicitly type their cross-enum argument as
 and numeric values (6 and 42), rather than changing the measured generic
 specialization to `DayOfWeek`, while allowing the updated generated code to compile.
 Candidate/control comparisons must use the same typed benchmark source.
+A shared compatibility helper preserves the historical `Saturday` export and
+partition key only for value 6 on these two methods, while retaining the typed
+argument and the raw BenchmarkDotNet display name. Other case identities are unchanged.
 
 WASM R2R settings and output validation apply to the real build/publish, not
 BDN's `BenchmarkDotNetGatherReferences` pass, which has no generated entry
 assembly yet. The final per-assembly/composite selection and output checks remain
 unchanged.
+
+BenchmarkDotNet writes generated build/publish projects into a project-relative
+`.bdn/` directory, separate from its result reports in `BenchmarkDotNet.Artifacts/`.
+The generated build directory is ignored along with other build outputs.
 
 When using a custom restore cache, `NuGetPackageRoot` must match
 `RestorePackagesPath` before Arcade is imported. The repository aligns these
@@ -151,7 +162,9 @@ the repository's custom runtime-pack toolchain, adapted from
 [dotnet/performance#5279](https://github.com/dotnet/performance/pull/5279).
 It requires `--aotcompilerpath` and `--customruntimepack`, retains the `mini`/`llvm`
 compiler modes, and uses the benchmark assembly's target framework even when the
-host rolls forward. Run it separately from other runtimes; legacy `monoaot` is
+host rolls forward. Compiler and runtime-pack paths are resolved relative to the
+invocation directory before generating a project. Run it separately from other
+runtimes, including `--corerun`; legacy `monoaot` is
 not an equivalent replacement. Mono WebAssembly still needs a coherent supported
 SDK/runtime-pack cohort; accepting a .NET 12 runtime moniker does not establish
 support for the corresponding Mono artifacts.

@@ -11,12 +11,14 @@ using System.Xml.Linq;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Characteristics;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.ConsoleArguments;
 using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Extensions;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains;
+using BenchmarkDotNet.Toolchains.CoreRun;
 using Xunit;
 
 namespace Tests
@@ -39,8 +41,8 @@ namespace Tests
             var settings = Assert.IsType<MonoAotLLVMSettings>(builder.Settings);
             Assert.Equal("net8.0", settings.TargetFrameworkMoniker);
             Assert.Equal(MonoAotCompilerMode.llvm, settings.AotCompilerMode);
-            Assert.Equal("mono-aot-cross", settings.AotCompilerPath);
-            Assert.Equal("mono-pack", settings.CustomRuntimePack);
+            Assert.Equal(Path.GetFullPath("mono-aot-cross"), settings.AotCompilerPath);
+            Assert.Equal(Path.GetFullPath("mono-pack"), settings.CustomRuntimePack);
             Assert.Equal(Path.GetFullPath("dotnet"), settings.CliPath!.FullName);
             Assert.Equal(Path.GetFullPath("packages"), settings.PackagesPath!.FullName);
             Assert.Equal(new[] { "--cli", "dotnet", "--packages", "packages", "--filter", "*Value*" },
@@ -73,6 +75,89 @@ namespace Tests
         }
 
         [Theory]
+        [InlineData("--corerun", "CoreRun")]
+        [InlineData("--corerun=CoreRun", null)]
+        [InlineData("--CORERUN", "CoreRun")]
+        public void CoreRunCannotReplaceRequestedMonoLlvm(string option, string? value)
+        {
+            var args = new List<string> { "--runtimes", "monoaotllvm",
+                "--aotcompilerpath", "compiler", "--customruntimepack", "pack", option };
+            if (value is not null)
+            {
+                args.Add(value);
+            }
+
+            var original = args.ToArray();
+            Assert.Throws<ArgumentException>(() =>
+                RuntimeArgumentCompatibility.ParseMonoAotLLVM(args, ".NETCoreApp,Version=v11.0"));
+            Assert.Equal(original, args);
+        }
+
+        [Fact]
+        public void CoreRunWithoutMonoLlvmIsUnchanged()
+        {
+            var args = new List<string> { "--corerun", "CoreRun" };
+            Assert.Null(RuntimeArgumentCompatibility.ParseMonoAotLLVM(args, ".NETCoreApp,Version=v11.0"));
+            Assert.Equal(new[] { "--corerun", "CoreRun" }, args);
+        }
+
+        [Fact]
+        public void BenchmarkDotNetCoreRunExpansionReplacesTheDefaultToolchain()
+        {
+            string coreRun = Path.GetTempFileName();
+            try
+            {
+                var settings = new MonoAotLLVMSettings
+                {
+                    TargetFrameworkMoniker = "net11.0", AotCompilerPath = "compiler",
+                    CustomRuntimePack = "pack", AotCompilerMode = MonoAotCompilerMode.llvm
+                };
+                var mono = new MonoAotLLVMToolChain(new MonoAotLLVMRuntime(new Version(11, 0)), settings);
+                var original = ManualConfig.CreateEmpty().AddJob(Job.Default.WithToolchain(mono).AsDefault());
+                var (success, parsed, _) = ConfigParser.Parse(new[] { "--corerun", coreRun }, NullLogger.Instance, original);
+
+                Assert.True(success);
+                Assert.IsType<CoreRunToolchain>(Assert.Single(parsed!.GetJobs()).Infrastructure.Toolchain);
+            }
+            finally
+            {
+                File.Delete(coreRun);
+            }
+        }
+
+        [Theory]
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(false, false)]
+        public async Task CompilerAndRuntimePackResolveAgainstInvocationDirectory(bool relativeCompiler, bool relativePack)
+        {
+            string compiler = Path.Combine("compiler & directory", "mono-aot-cross");
+            string pack = "runtime & pack";
+            if (!relativeCompiler)
+            {
+                compiler = Path.GetFullPath(compiler);
+            }
+            if (!relativePack)
+            {
+                pack = Path.GetFullPath(pack);
+            }
+            var args = new List<string> { "--runtimes", "monoaotllvm",
+                "--aotcompilerpath", compiler, "--customruntimepack", pack };
+            var toolchain = RuntimeArgumentCompatibility.ParseMonoAotLLVM(args, ".NETCoreApp,Version=v11.0");
+            var settings = Assert.IsType<MonoAotLLVMSettings>(Assert.IsType<MonoAotLLVMBuilder>(toolchain!.Builder).Settings);
+
+            Assert.Equal(Path.GetFullPath(compiler), settings.AotCompilerPath);
+            Assert.Equal(Path.GetFullPath(pack), settings.CustomRuntimePack);
+            Assert.True(Path.IsPathFullyQualified(settings.AotCompilerPath));
+            Assert.True(Path.IsPathFullyQualified(settings.CustomRuntimePack));
+            var project = await CreateProject(settings);
+            Assert.Equal(Path.GetFullPath(compiler), Assert.Single(project.Descendants("MonoAOTCompiler")).Attribute("CompilerBinaryPath")!.Value);
+            Assert.Equal(Path.GetFullPath(pack), Assert.Single(project.Descendants("MicrosoftNetCoreAppRuntimePackDir")).Value);
+            Assert.Contains("&amp;", project.ToString());
+        }
+
+        [Theory]
         [InlineData(MonoAotCompilerMode.mini, "false")]
         [InlineData(MonoAotCompilerMode.llvm, "true")]
         public async Task GeneratedProjectPreservesCustomPackCompilerAndPublishMode(MonoAotCompilerMode mode, string useLlvm)
@@ -84,12 +169,7 @@ namespace Tests
                 AotCompilerPath = "compiler & path",
                 AotCompilerMode = mode
             };
-            var toolchain = new MonoAotLLVMToolChain(new MonoAotLLVMRuntime(new Version(11, 0)), settings);
-            await using var run = await BenchmarkConverter.TypeToBenchmarksAsync(typeof(Benchmarks),
-                ManualConfig.CreateEmpty().AddJob(Job.Default.WithToolchain(toolchain)));
-            var partition = new BuildPartition(new[] { new BenchmarkBuildInfo(
-                Assert.Single(run.BenchmarksCases), run.Config, 0, run.CompositeInProcessDiagnoser) }, EngineParameters.DefaultResolver);
-            var project = new InspectableBuilder(settings).Project(partition).Root!;
+            var project = await CreateProject(settings);
 
             Assert.Equal("Microsoft.NET.Sdk", project.Attribute("Sdk")!.Value);
             Assert.Contains(project.Descendants("TargetFrameworks"), value => value.Value == "net11.0");
@@ -106,6 +186,16 @@ namespace Tests
                 Assert.Single(project.Descendants("PackageDirectory")).Value);
             Assert.Contains(project.Elements("Import"), import => import.Attribute("Project")?.Value == "$(MonoTargetsPath)");
             Assert.True(new InspectableBuilder(settings).Publishes);
+        }
+
+        private static async Task<XElement> CreateProject(MonoAotLLVMSettings settings)
+        {
+            var toolchain = new MonoAotLLVMToolChain(new MonoAotLLVMRuntime(new Version(11, 0)), settings);
+            await using var run = await BenchmarkConverter.TypeToBenchmarksAsync(typeof(Benchmarks),
+                ManualConfig.CreateEmpty().AddJob(Job.Default.WithToolchain(toolchain)));
+            var partition = new BuildPartition(new[] { new BenchmarkBuildInfo(
+                Assert.Single(run.BenchmarksCases), run.Config, 0, run.CompositeInProcessDiagnoser) }, EngineParameters.DefaultResolver);
+            return new InspectableBuilder(settings).Project(partition).Root!;
         }
 
         private sealed class InspectableBuilder(MonoAotLLVMSettings settings) : MonoAotLLVMBuilder(settings)

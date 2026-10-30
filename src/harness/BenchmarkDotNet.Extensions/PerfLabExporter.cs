@@ -24,6 +24,13 @@ namespace BenchmarkDotNet.Extensions
     {
         private const string FileExtension = "json";
         private const string FileCaption = "perf-lab-report";
+        private readonly IEnvironment? _environment;
+
+        public PerfLabExporter()
+        {
+        }
+
+        public PerfLabExporter(IEnvironment environment) => _environment = environment;
 
         public string Name => nameof(PerfLabExporter);
 
@@ -64,9 +71,9 @@ namespace BenchmarkDotNet.Extensions
             return summary.Title;
         }
 
-        private static string? BuildJson(Summary summary)
+        private string? BuildJson(Summary summary)
         {
-            var reporter = new Reporter();
+            var reporter = new Reporter(_environment);
 
             // Add BDN version to build AdditionalData when running in lab
             var bdnVersion = summary.HostEnvironmentInfo.BenchmarkDotNetVersion;
@@ -90,7 +97,7 @@ namespace BenchmarkDotNet.Extensions
                 }
 
                 var test = new Test();
-                test.Name = FullNameProvider.GetBenchmarkName(report.BenchmarkCase);
+                test.Name = BenchmarkNameProvider.GetBenchmarkName(report.BenchmarkCase);
                 test.Categories = report.BenchmarkCase.Descriptor.Categories;
 
                 if (hasCriticalErrors)
