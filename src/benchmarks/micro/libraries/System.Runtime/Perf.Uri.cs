@@ -12,21 +12,21 @@ namespace System.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Uri
     {
-        public static IEnumerable<object[]> Ctor_MemberData()
+        public static IEnumerable<string> Ctor_MemberData()
         {
-            yield return new object[] { "http://dot.net" };
-            yield return new object[] { "https://contoso.com" };
-            yield return new object[] { "https://CONTOSO.com" };
-            yield return new object[] { "https://a.much.longer.domain.name" };
-            yield return new object[] { "http://h\u00F6st.with.\u00FCnicode" };
-            yield return new object[] { "http://xn--hst-sna.with.xn--nicode-2ya" };
+            yield return "http://dot.net";
+            yield return "https://contoso.com";
+            yield return "https://CONTOSO.com";
+            yield return "https://a.much.longer.domain.name";
+            yield return "http://h\u00F6st.with.\u00FCnicode";
+            yield return "http://xn--hst-sna.with.xn--nicode-2ya";
         }
 
-        public static IEnumerable<object[]> CtorIdnHostPathAndQuery_MemberData()
+        public static IEnumerable<string> CtorIdnHostPathAndQuery_MemberData()
         {
-            foreach (object[] schemeAndAuthority in Ctor_MemberData())
+            foreach (string schemeAndAuthority in Ctor_MemberData())
             {
-                yield return new object[] { $"{schemeAndAuthority[0]}/path/with?key=value#fragment" };
+                yield return $"{schemeAndAuthority}/path/with?key=value#fragment";
             }
 
             string[] paths = new[]
@@ -41,16 +41,16 @@ namespace System.Tests
 
             foreach (string path in paths)
             {
-                yield return new object[] { $"http://host{path}" };
+                yield return $"http://host{path}";
             }
         }
 
-        public static IEnumerable<object[]> EscapeDataString_MemberData()
+        public static IEnumerable<string> EscapeDataString_MemberData()
         {
-            yield return new object[] { new string('a', 1000) }; // Nothing to escape
-            yield return new object[] { new string('{', 1000) }; // ASCII that needs escaping
-            yield return new object[] { new string('\u00FC', 1000) }; // Unicode
-            yield return new object[] { string.Concat(Enumerable.Repeat("a{\u00FC", 333)) };
+            yield return new string('a', 1000); // Nothing to escape
+            yield return new string('{', 1000); // ASCII that needs escaping
+            yield return new string('\u00FC', 1000); // Unicode
+            yield return string.Concat(Enumerable.Repeat("a{\u00FC", 333));
         }
 
         private static readonly Uri _uri = new Uri("http://contoso.com/path/with?key=value#fragment");

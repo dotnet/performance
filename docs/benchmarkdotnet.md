@@ -116,6 +116,46 @@ And select one of the benchmarks from the list by either entering its number or 
 
 ### Command Line
 
+All runners use the global `0.16.0-nightly.20261029.662` version from the official
+BenchmarkDotNet nightly feed. There are no per-TFM BenchmarkDotNet version splits.
+The compatibility changes include .NET 12 CoreCLR recognition without changing
+benchmark warmup/tiering policy or enabling previously excluded benchmarks.
+Later nightlies require separate package and paired performance verification.
+The Roslyn runner's direct `Microsoft.CodeAnalysis.CSharp` reference is raised
+to 5.6.0 to match BenchmarkDotNet's dependency floor; Roslyn comparisons must
+account for that compiler dependency change separately from BDN measurement effects.
+
+The enum interpolation benchmarks explicitly type their cross-enum argument as
+`Perf_Enum.Colors`. This retains BDN595's historical `Colors` parameter binding
+and numeric values (6 and 42), rather than changing the measured generic
+specialization to `DayOfWeek`, while allowing the updated generated code to compile.
+Candidate/control comparisons must use the same typed benchmark source.
+
+WASM R2R settings and output validation apply to the real build/publish, not
+BDN's `BenchmarkDotNetGatherReferences` pass, which has no generated entry
+assembly yet. The final per-assembly/composite selection and output checks remain
+unchanged.
+
+When using a custom restore cache, `NuGetPackageRoot` must match
+`RestorePackagesPath` before Arcade is imported. The repository aligns these
+properties so BDN's generated builds import the annotations/weaver targets from
+the same cache instead of silently publishing unwoven benchmark assemblies.
+
+The microbenchmark harness accepts the historical `wasmnet80`, `wasmnet90`,
+`wasmnet10_0`, and `wasmnet11_0` runtime spellings. At the BenchmarkDotNet boundary,
+it selects the corresponding `monowasm` runtime, or `corewasm` when
+`--wasmRuntimeFlavor CoreCLR` is supplied. `--aotcompilermode wasm` selects
+`monowasmaot` without changing the framework, engine, or other job options.
+Conflicting flavor/AOT selections fail explicitly. Native `monoaotllvm` uses
+the repository's custom runtime-pack toolchain, adapted from
+[dotnet/performance#5279](https://github.com/dotnet/performance/pull/5279).
+It requires `--aotcompilerpath` and `--customruntimepack`, retains the `mini`/`llvm`
+compiler modes, and uses the benchmark assembly's target framework even when the
+host rolls forward. Run it separately from other runtimes; legacy `monoaot` is
+not an equivalent replacement. Mono WebAssembly still needs a coherent supported
+SDK/runtime-pack cohort; accepting a .NET 12 runtime moniker does not establish
+support for the corresponding Mono artifacts.
+
 The microbenchmark `--msbuild-arguments` option passes additional arguments to MSBuild for BenchmarkDotNet's generated project. Use slash-prefixed arguments such as `/p:` or `/t:`, not `-p:` or `-t:`: `CommandLineOptions.ParseAndRemoveStringsParameter` stops collecting values at any token beginning with `-`. Embedded `--` within a `/p:` value is fine, for example:
 
 ```text

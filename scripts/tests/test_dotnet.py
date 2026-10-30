@@ -11,6 +11,28 @@ from unittest.mock import Mock
 import pytest
 
 
+@pytest.mark.parametrize("explicit_nuget_root", [False, True])
+def test_custom_restore_root_is_used_for_package_imports(tmp_path, explicit_nuget_root):
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    project = os.path.join(
+        repo_root, 'src', 'harness', 'BenchmarkDotNet.Extensions',
+        'BenchmarkDotNet.Extensions.csproj')
+    restore_root = tmp_path / "restored packages"
+    expected_root = tmp_path / "explicit root" if explicit_nuget_root else restore_root
+    command = [
+        "dotnet", "msbuild", project, "-nologo", "-getProperty:NuGetPackageRoot",
+        f"-p:RestorePackagesPath={restore_root}",
+    ]
+    if explicit_nuget_root:
+        command.append(f"-p:NuGetPackageRoot={expected_root}")
+
+    result = subprocess.run(command, cwd=repo_root, capture_output=True, text=True)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert os.path.normcase(os.path.normpath(result.stdout.strip())) == (
+        os.path.normcase(os.path.normpath(str(expected_root))))
+
+
 def test_dotnet_import_does_not_use_deprecated_namedtuple_syntax():
     result = subprocess.run(
         [

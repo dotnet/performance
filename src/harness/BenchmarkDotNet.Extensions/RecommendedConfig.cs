@@ -6,6 +6,7 @@ using BenchmarkDotNet.Exporters.Json;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Reports;
+using BenchmarkDotNet.Toolchains;
 using Perfolizer.Horology;
 using Reporting;
 using System;
@@ -29,7 +30,8 @@ namespace BenchmarkDotNet.Extensions
             List<string>? categoryExclusionFilterValue = null,
             Job? job = null,
             bool getDiffableDisasm = false,
-            IReadOnlyList<string>? msBuildArguments = null)
+            IReadOnlyList<string>? msBuildArguments = null,
+            IToolchain? toolchain = null)
         {
             if (job is null)
             {
@@ -42,6 +44,11 @@ namespace BenchmarkDotNet.Extensions
                     .WithEvaluateOverhead(Environment.GetEnvironmentVariable("PERFLAB_EVALUATE_OVERHEAD") == "1") // WASM has significant method-call overhead (1-10ns); subtract it when enabled
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
                 #pragma warning restore CS0618
+            }
+
+            if (toolchain is not null)
+            {
+                job = job.WithToolchain(toolchain);
             }
 
             if (msBuildArguments is not null && msBuildArguments.Count > 0)
