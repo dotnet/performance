@@ -19,6 +19,7 @@ using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.CoreRun;
+using BenchmarkDotNet.Toolchains.DotNetCli;
 using Xunit;
 
 namespace Tests
@@ -126,6 +127,113 @@ namespace Tests
         }
 
         [Theory]
+        [InlineData("")]
+        [InlineData("--freshPackages")]
+        [InlineData("--FRESHPACKAGES")]
+        [InlineData("--freshPackages true")]
+        [InlineData("--freshPackages false")]
+        [InlineData("--freshPackages=true")]
+        [InlineData("--freshPackages=false")]
+        [InlineData("--FRESHPACKAGES=FALSE")]
+        [InlineData("-- --freshPackages")]
+        public void FreshPackageOptionsMatchBdnAndSelectTheRequestedCache(string options)
+        {
+            string[] tokens = options.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var (nativeSuccess, _, nativeOptions) = ConfigParser.Parse(tokens, NullLogger.Instance);
+            Assert.True(nativeSuccess);
+            foreach (bool explicitPackages in new[] { false, true })
+            {
+                var args = new List<string> { "--runtimes", "monoaotllvm",
+                    "--aotcompilerpath", "compiler", "--customruntimepack", "pack" };
+                string packages = Path.GetFullPath("explicit package cache");
+                if (explicitPackages)
+                    args.AddRange(new[] { "--packages", packages });
+                args.AddRange(tokens);
+                var mono = RuntimeArgumentCompatibility.ParseMonoAotLLVM(args, ".NETCoreApp,Version=v11.0");
+                Assert.NotNull(mono);
+                var original = ManualConfig.CreateEmpty().AddJob(Job.Default.WithToolchain(mono).AsDefault());
+                var (success, parsed, _) = ConfigParser.Parse(args.ToArray(), NullLogger.Instance, original);
+                Assert.True(success);
+                var final = Assert.IsType<MonoAotLLVMToolChain>(Assert.Single(parsed!.GetJobs()).Infrastructure.Toolchain);
+                var settings = Assert.IsType<MonoAotLLVMSettings>(Assert.IsType<MonoAotLLVMBuilder>(final.Builder).Settings);
+                Assert.Equal(nativeOptions!.UseFreshPackages, settings.UseFreshPackages);
+                Assert.Equal(explicitPackages ? packages : null, settings.PackagesPath?.FullName);
+                var builder = new InspectableBuilder(settings);
+                foreach (string part in new[] { "first build", "second build" })
+                {
+                    string buildDirectory = Path.GetFullPath(Path.Combine("generated builds", part));
+                    string expected = explicitPackages ? packages
+                        : nativeOptions.UseFreshPackages ? Path.Combine(buildDirectory, "r") : "";
+                    Assert.Equal(expected, builder.PackagesDirectory(buildDirectory));
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("--freshPackages")]
+        [InlineData("--freshPackages=false")]
+        [InlineData("--FRESHPACKAGES")]
+        public void FreshPackageOptionsDoNotChangeOrdinaryNativeRequests(string options)
+        {
+            var args = new List<string> { "--runtimes", "net8.0", options };
+            string[] original = args.ToArray();
+            var (expectedSuccess, _, expectedOptions) = ConfigParser.Parse(original, NullLogger.Instance);
+            Assert.True(expectedSuccess);
+            Assert.Null(RuntimeArgumentCompatibility.ParseMonoAotLLVM(args, ".NETCoreApp,Version=v11.0"));
+            Assert.Equal(original, args);
+            var normalized = RuntimeArgumentCompatibility.Normalize(args);
+            Assert.Equal(original, normalized);
+            var (success, parsed, _) = ConfigParser.Parse(normalized.ToArray(), NullLogger.Instance);
+            Assert.True(success);
+            var settings = Assert.IsAssignableFrom<DotNetCliBuilder>(
+                Assert.Single(parsed!.GetJobs()).Infrastructure.Toolchain!.Builder).Settings;
+            Assert.Equal(expectedOptions!.UseFreshPackages, settings.UseFreshPackages);
+        }
+
+        [Theory]
+        [InlineData("--freshPackages --freshPackages")]
+        [InlineData("--freshPackages --FRESHPACKAGES=false")]
+        [InlineData("--freshPackages=true --freshPackages=false")]
+        public void RepeatedFreshPackageOptionsMatchBdnValidation(string options)
+        {
+            string[] tokens = options.Split(' ');
+            var (nativeSuccess, _, nativeOptions) = ConfigParser.Parse(tokens, NullLogger.Instance);
+            var args = new List<string> { "--runtimes", "monoaotllvm",
+                "--aotcompilerpath", "compiler", "--customruntimepack", "pack" };
+            args.AddRange(tokens);
+            var original = args.ToArray();
+            if (!nativeSuccess)
+            {
+                Assert.Throws<ArgumentException>(() =>
+                    RuntimeArgumentCompatibility.ParseMonoAotLLVM(args, ".NETCoreApp,Version=v11.0"));
+                Assert.Equal(original, args);
+                return;
+            }
+            var mono = RuntimeArgumentCompatibility.ParseMonoAotLLVM(args, ".NETCoreApp,Version=v11.0");
+            Assert.NotNull(mono);
+            var config = ManualConfig.CreateEmpty().AddJob(Job.Default.WithToolchain(mono).AsDefault());
+            var (success, parsed, _) = ConfigParser.Parse(args.ToArray(), NullLogger.Instance, config);
+            Assert.True(success);
+            var settings = Assert.IsType<MonoAotLLVMSettings>(Assert.IsType<MonoAotLLVMBuilder>(
+                Assert.IsType<MonoAotLLVMToolChain>(Assert.Single(parsed!.GetJobs()).Infrastructure.Toolchain).Builder).Settings);
+            Assert.Equal(nativeOptions!.UseFreshPackages, settings.UseFreshPackages);
+        }
+
+        [Theory]
+        [InlineData("--inProcess")]
+        [InlineData("--corerun CoreRun")]
+        public void FreshPackageRequestDoesNotBypassRuntimeGuards(string selection)
+        {
+            var args = new List<string> { "--runtimes", "monoaotllvm",
+                "--aotcompilerpath", "compiler", "--customruntimepack", "pack", "--freshPackages" };
+            args.AddRange(selection.Split(' '));
+            var original = args.ToArray();
+            Assert.Throws<ArgumentException>(() =>
+                RuntimeArgumentCompatibility.ParseMonoAotLLVM(args, ".NETCoreApp,Version=v11.0"));
+            Assert.Equal(original, args);
+        }
+
+        [Theory]
         [InlineData(true, true)]
         [InlineData(true, false)]
         [InlineData(false, true)]
@@ -202,6 +310,7 @@ namespace Tests
         {
             public XDocument Project(BuildPartition partition) => CreateProject(partition, ArtifactsPaths.Empty, NullLogger.Instance);
             public bool Publishes => PublishesOutput;
+            public string PackagesDirectory(string buildDirectory) => GetPackagesDirectoryPath(buildDirectory);
         }
 
         public class Benchmarks

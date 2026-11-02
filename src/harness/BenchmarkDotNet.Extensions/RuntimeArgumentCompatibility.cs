@@ -85,6 +85,7 @@ namespace BenchmarkDotNet.Extensions
                 TargetFrameworkMoniker = $"net{framework.Version.Major}.{framework.Version.Minor}",
                 CliPath = cli is null ? null : new FileInfo(cli),
                 PackagesPath = packages is null ? null : new DirectoryInfo(packages),
+                UseFreshPackages = ParseFreshPackages(args),
                 AotCompilerPath = Path.GetFullPath(compiler),
                 CustomRuntimePack = Path.GetFullPath(pack),
                 AotCompilerMode = mode
@@ -178,6 +179,27 @@ namespace BenchmarkDotNet.Extensions
         private static bool IsRuntimeOption(string argument)
             => argument.Equals("--runtimes", StringComparison.OrdinalIgnoreCase)
                 || argument.Equals("-r", StringComparison.OrdinalIgnoreCase);
+
+        private static bool ParseFreshPackages(List<string> args)
+        {
+            var flags = new List<string>();
+            foreach (string argument in args)
+            {
+                if (argument == "--")
+                    break;
+                if (argument.Equals("--freshPackages", StringComparison.OrdinalIgnoreCase)
+                    || argument.StartsWith("--freshPackages=", StringComparison.OrdinalIgnoreCase))
+                    flags.Add(argument);
+            }
+            if (flags.Count == 0)
+                return false;
+
+            var logger = new AccumulationLogger();
+            var (success, _, options) = ConfigParser.Parse(flags.ToArray(), logger);
+            if (!success || options is null)
+                throw new ArgumentException(logger.GetLog());
+            return options.UseFreshPackages;
+        }
 
         private static List<string> ExpandRuntimeSelectors(IEnumerable<string> arguments)
         {
