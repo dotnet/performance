@@ -6,14 +6,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Versioning;
+using BenchmarkDotNet.ConsoleArguments;
 using BenchmarkDotNet.Environments;
+using BenchmarkDotNet.Loggers;
 
 namespace BenchmarkDotNet.Extensions
 {
     public static class RuntimeArgumentCompatibility
     {
-        public static MonoAotLLVMToolChain? ParseMonoAotLLVM(List<string> args, string? targetFrameworkName)
+        public static MonoAotLLVMToolChain? ParseMonoAotLLVM(List<string> arguments, string? targetFrameworkName)
         {
+            if (ValidateNativeResponseFiles(arguments))
+                return null;
+
+            var args = ExpandRuntimeSelectors(arguments);
             int runtimeOption = -1;
             for (int i = 0; i < args.Count; i++)
             {
@@ -74,7 +80,7 @@ namespace BenchmarkDotNet.Extensions
 
             string? cli = RemoveOption(new List<string>(args), "--cli");
             string? packages = RemoveOption(new List<string>(args), "--packages");
-            return new MonoAotLLVMToolChain(new MonoAotLLVMRuntime(framework.Version), new()
+            var toolchain = new MonoAotLLVMToolChain(new MonoAotLLVMRuntime(framework.Version), new()
             {
                 TargetFrameworkMoniker = $"net{framework.Version.Major}.{framework.Version.Minor}",
                 CliPath = cli is null ? null : new FileInfo(cli),
@@ -83,13 +89,21 @@ namespace BenchmarkDotNet.Extensions
                 CustomRuntimePack = Path.GetFullPath(pack),
                 AotCompilerMode = mode
             });
+            arguments.Clear();
+            arguments.AddRange(args);
+            return toolchain;
         }
 
         public static List<string> Normalize(IEnumerable<string> arguments)
         {
-            var args = new List<string>(arguments);
+            var original = new List<string>(arguments);
+            if (ValidateNativeResponseFiles(original))
+                return original;
+
+            var args = ExpandRuntimeSelectors(original);
             string? flavor = RemoveOption(args, "--wasmRuntimeFlavor");
             string? aotMode = RemoveOption(args, "--aotcompilermode");
+            bool changed = flavor is not null || aotMode is not null;
 
             if (flavor is not null && flavor is not ("Mono" or "CoreCLR"))
             {
@@ -148,6 +162,7 @@ namespace BenchmarkDotNet.Extensions
                         moniker = $"monowasmaot{runtime.Version}";
                     }
 
+                    changed |= args[i] != moniker;
                     args[i] = moniker;
                 }
             }
@@ -157,11 +172,45 @@ namespace BenchmarkDotNet.Extensions
                 throw new ArgumentException("--wasmRuntimeFlavor and --aotcompilermode wasm require an explicit WebAssembly runtime.");
             }
 
-            return args;
+            return changed ? args : original;
         }
 
         private static bool IsRuntimeOption(string argument)
-            => argument.Equals("--runtimes", StringComparison.OrdinalIgnoreCase) || argument == "-r";
+            => argument.Equals("--runtimes", StringComparison.OrdinalIgnoreCase)
+                || argument.Equals("-r", StringComparison.OrdinalIgnoreCase);
+
+        private static List<string> ExpandRuntimeSelectors(IEnumerable<string> arguments)
+        {
+            var result = new List<string>();
+            foreach (string argument in arguments)
+            {
+                if (argument.StartsWith("--runtimes=", StringComparison.OrdinalIgnoreCase))
+                {
+                    result.Add(argument.Substring(0, "--runtimes".Length));
+                    result.Add(argument.Substring("--runtimes=".Length));
+                }
+                else
+                    result.Add(argument);
+            }
+            return result;
+        }
+
+        private static bool ValidateNativeResponseFiles(List<string> args)
+        {
+            if (!args.Exists(argument => argument.StartsWith("@", StringComparison.Ordinal)))
+                return false;
+
+            // BDN's response expansion is private. Keep its tokenizer and native response files unchanged,
+            // but reject files combined with legacy options rather than miss a hidden runtime override.
+            var logger = new AccumulationLogger();
+            if (!ConfigParser.Parse(args.ToArray(), logger).isSuccess)
+            {
+                throw new ArgumentException("Response files require native BenchmarkDotNet options and runtime names. "
+                    + "Pass legacy WASM or monoaotllvm compatibility options inline without response files."
+                    + Environment.NewLine + logger.GetLog());
+            }
+            return true;
+        }
 
         private static void ValidateAndRemoveInProcessOptions(List<string> args)
         {
@@ -194,19 +243,24 @@ namespace BenchmarkDotNet.Extensions
 
         private static string? RemoveOption(List<string> args, string option)
         {
-            int index = args.FindIndex(argument => argument.Equals(option, StringComparison.OrdinalIgnoreCase));
+            bool Matches(string argument) => argument.Equals(option, StringComparison.OrdinalIgnoreCase)
+                || argument.StartsWith(option + "=", StringComparison.OrdinalIgnoreCase);
+            int index = args.FindIndex(argument => Matches(argument));
             if (index < 0)
             {
                 return null;
             }
-            if (index + 1 >= args.Count || args[index + 1].StartsWith("-", StringComparison.Ordinal))
+            bool attached = args[index].StartsWith(option + "=", StringComparison.OrdinalIgnoreCase);
+            if (!attached && (index + 1 >= args.Count || args[index + 1].StartsWith("-", StringComparison.Ordinal)))
             {
                 throw new ArgumentException($"{option} requires a value.");
             }
 
-            string value = args[index + 1];
-            args.RemoveRange(index, 2);
-            if (args.Exists(argument => argument.Equals(option, StringComparison.OrdinalIgnoreCase)))
+            string value = attached ? args[index].Substring(option.Length + 1) : args[index + 1];
+            if (value.Length == 0)
+                throw new ArgumentException($"{option} requires a value.");
+            args.RemoveRange(index, attached ? 1 : 2);
+            if (args.Exists(argument => Matches(argument)))
             {
                 throw new ArgumentException($"{option} must be specified only once.");
             }
