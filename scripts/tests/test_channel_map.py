@@ -59,6 +59,7 @@ def test_versioned_channels_keep_their_sdk_and_framework(version):
     for channel in (f"{version}.0", f"release/{version}.0"):
         assert ChannelMap.get_branch(channel) == f"{version}.0"
         assert ChannelMap.get_target_framework_moniker(channel) == f"net{version}.0"
+        assert ChannelMap.get_target_framework_moniker(channel, mobile=True) == f"net{version}.0"
     assert ChannelMap.get_target_framework_moniker(f"nativeaot{version}.0") == f"nativeaot{version}.0"
 
 
@@ -79,13 +80,17 @@ def test_job_target_is_independent_of_sdk_channel(run_kind, channel):
     assert get_target_framework(args, channel) == "net10.0"
 
 
-@pytest.mark.parametrize("run_kind", [
-    "maui_scenarios", "maui_scenarios_android", "maui_scenarios_android_innerloop",
-    "maui_scenarios_ios", "android_scenarios", "ios_scenarios",
+@pytest.mark.parametrize(("run_kind", "runtime_type"), [
+    ("maui_scenarios", "coreclr"), ("maui_scenarios_android", "coreclr"),
+    ("maui_scenarios_android_innerloop", "coreclr"), ("maui_scenarios_ios", "coreclr"),
+    ("android_scenarios", "AndroidMono"), ("ios_scenarios", "iOSCoreCLR"),
+    ("micro", "AndroidMono"), ("micro", "AndroidCoreCLR"),
+    ("micro", "iOSMono"), ("micro", "iOSCoreCLR"), ("micro", "iOSNativeAOT"),
 ])
-def test_removing_mobile_override_inherits_main(monkeypatch, run_kind):
+def test_removing_mobile_override_inherits_main(monkeypatch, run_kind, runtime_type):
     monkeypatch.delitem(job.ChannelMap.channel_map["main"], "mobile_tfm")
-    args = RunPerformanceJobArgs(run_kind=run_kind, architecture="x64", os_group="windows")
+    args = RunPerformanceJobArgs(
+        run_kind=run_kind, runtime_type=runtime_type, architecture="x64", os_group="windows")
     assert get_target_framework(args, "main") == "net12.0"
     args.framework = "net10.0"
     assert get_target_framework(args, "main") == "net10.0"
@@ -96,6 +101,11 @@ def test_removing_mobile_override_inherits_main(monkeypatch, run_kind):
     ("main", None, "micro", "wasm_coreclr", None, "net12.0"),
     ("main", None, "micro", "wasm", None, "net12.0"),
     ("main", None, "micro", "mono", None, "net12.0"),
+    ("main", None, "micro", "AndroidMono", None, "net11.0"),
+    ("main", None, "micro", "AndroidCoreCLR", None, "net11.0"),
+    ("main", None, "micro", "iOSMono", None, "net11.0"),
+    ("main", None, "micro", "iOSCoreCLR", None, "net11.0"),
+    ("main", None, "micro", "iOSNativeAOT", None, "net11.0"),
     ("main", None, "android_scenarios", "AndroidMono", None, "net11.0"),
     ("main", None, "ios_scenarios", "iOSCoreCLR", None, "net11.0"),
     ("main", "main", "maui_scenarios_android", "coreclr", None, "net11.0"),
@@ -217,6 +227,11 @@ def test_benchmarks_ci_selects_and_restores_sdk_pin(tmp_path, monkeypatch, frame
     ("micro", "wasm_coreclr", None, "net12.0"),
     ("micro", "wasm", None, "net12.0"),
     ("micro", "mono", None, "net12.0"),
+    ("micro", "AndroidMono", None, "net11.0"),
+    ("micro", "AndroidCoreCLR", None, "net11.0"),
+    ("micro", "iOSMono", None, "net11.0"),
+    ("micro", "iOSCoreCLR", None, "net11.0"),
+    ("micro", "iOSNativeAOT", None, "net11.0"),
     ("android_scenarios", "AndroidMono", None, "net11.0"),
     ("ios_scenarios", "iOSCoreCLR", None, "net11.0"),
     ("micro", "mono", "net10.0", "net10.0"),

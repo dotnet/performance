@@ -1026,7 +1026,8 @@ def get_target_framework(args: RunPerformanceJobArgs, channel: str) -> str:
         return args.framework
     return ChannelMap.get_target_framework_moniker(
         channel, mobile=args.run_kind.startswith("maui_scenarios")
-        or args.run_kind in ("android_scenarios", "ios_scenarios"))
+        or args.run_kind in ("android_scenarios", "ios_scenarios")
+        or args.runtime_type in ("AndroidMono", "AndroidCoreCLR", "iOSMono", "iOSCoreCLR", "iOSNativeAOT"))
 
 
 def run_performance_job(args: RunPerformanceJobArgs):
