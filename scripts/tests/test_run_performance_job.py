@@ -542,3 +542,11 @@ def test_sdk_must_locate_staged_packs(targeting_pack_payload):
     with pytest.raises(ValueError, match="could not locate staged"):
         job.provision_downlevel_targeting_packs(
             str(state.payload), str(state.dotnet_root), "net11.0", "windows")
+
+
+def test_untraced_msbuild_prerequisites_do_not_modify_lttng():
+    commands = get_pre_commands(
+        os_group="linux", os_distro="ubuntu", internal=True, runtime_type="coreclr",
+        codegen_type="jit", build_config="Release", v8_version="",
+        use_legacy_trace=False)
+    assert "lttng" not in "\n".join(commands)

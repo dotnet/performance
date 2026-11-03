@@ -5,6 +5,7 @@ from shared.util import const
 # scenarios should try and run a given test type.
 testtypes = [const.STARTUP,
              const.SDK,
+             const.MSBUILD,
              const.CROSSGEN,
              const.CROSSGEN2,
              const.SOD,
@@ -80,4 +81,3 @@ class TestTraits:
     
     def get_all_traits(self):
         return vars(self)
-

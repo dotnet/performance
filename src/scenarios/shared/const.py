@@ -6,6 +6,7 @@ import shared
 
 STARTUP = 'startup'
 SDK = 'sdk'
+MSBUILD = 'msbuild'
 SOD = 'sod'
 IL = 'il'
 R2R = 'r2r'
