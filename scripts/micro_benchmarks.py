@@ -377,7 +377,7 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:
         elif framework == "net11.0":
             run_args += ['--runtimes', 'wasmnet11_0']
         elif framework == "net12.0":
-            run_args += ['--runtimes', 'corewasm12.0' if args.wasm_runtime_flavor == 'CoreCLR' else 'wasmnet12_0']
+            run_args += ['--runtimes', 'wasmnet12_0']
         else:
             raise ArgumentTypeError('Framework {} is not supported for wasm'.format(framework))
         if args.wasm_runtime_flavor != 'Mono':

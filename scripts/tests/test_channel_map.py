@@ -27,22 +27,26 @@ def test_main_selects_sdk_and_runtime_12():
     assert ChannelMap.get_target_framework_moniker("main", mobile=True) == "net11.0"
 
 
-@pytest.mark.parametrize(("framework", "flavor", "moniker", "legacy_flavor"), [
-    ("net11.0", "Mono", "wasmnet11_0", False),
-    ("net11.0", "CoreCLR", "wasmnet11_0", True),
-    ("net12.0", "Mono", "wasmnet12_0", False),
-    ("net12.0", "CoreCLR", "corewasm12.0", True),
+@pytest.mark.parametrize(("framework", "flavor", "moniker", "legacy_flavor", "aot_mode"), [
+    ("net11.0", "Mono", "wasmnet11_0", False, None),
+    ("net11.0", "CoreCLR", "wasmnet11_0", True, None),
+    ("net12.0", "Mono", "wasmnet12_0", False, None),
+    ("net12.0", "CoreCLR", "wasmnet12_0", True, None),
+    ("net12.0", "Mono", "wasmnet12_0", False, "wasm"),
 ])
-def test_wasm_runner_arguments_match_benchmarkdotnet_version(framework, flavor, moniker, legacy_flavor):
+def test_wasm_runner_arguments_match_benchmarkdotnet_version(framework, flavor, moniker, legacy_flavor, aot_mode):
     from scripts import micro_benchmarks
 
     args = Namespace(corerun=None, cli=None, enable_pmc=False, filter=None, resume=False,
-                     bdn_arguments=None, bdn_artifacts=None, wasm=True, wasm_runtime_flavor=flavor)
+                     bdn_arguments=["--aotcompilermode", aot_mode] if aot_mode else None,
+                     bdn_artifacts=None, wasm=True, wasm_runtime_flavor=flavor)
     arguments = micro_benchmarks.__get_benchmarkdotnet_arguments(framework, args)
     assert arguments[arguments.index("--runtimes") + 1] == moniker
     assert ("--wasmRuntimeFlavor" in arguments) == legacy_flavor
     if legacy_flavor:
         assert arguments[arguments.index("--wasmRuntimeFlavor") + 1] == flavor
+    if aot_mode:
+        assert arguments[arguments.index("--aotcompilermode") + 1] == aot_mode
 
 
 def test_unknown_wasm_framework_fails_explicitly():
