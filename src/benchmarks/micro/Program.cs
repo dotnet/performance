@@ -24,6 +24,7 @@ namespace MicroBenchmarks
             List<string> categoryExclusionFilterValue;
             List<string> msBuildArguments;
             bool getDiffableDisasm;
+            MonoAotLLVMToolChain monoAotToolchain;
 
             // Parse and remove any additional parameters that we need that aren't part of BDN
             try
@@ -36,6 +37,8 @@ namespace MicroBenchmarks
                 CommandLineOptions.ParseAndRemoveBooleanParameter(argsList, "--disasm-diff", out getDiffableDisasm);
 
                 CommandLineOptions.ValidatePartitionParameters(partitionCount, partitionIndex);
+                monoAotToolchain = RuntimeArgumentCompatibility.ParseMonoAotLLVM(argsList, AppContext.TargetFrameworkName);
+                argsList = RuntimeArgumentCompatibility.Normalize(argsList);
             }
             catch (ArgumentException e)
             {
@@ -59,7 +62,8 @@ namespace MicroBenchmarks
                         exclusionFilterValue: exclusionFilterValue,
                         categoryExclusionFilterValue: categoryExclusionFilterValue,
                         getDiffableDisasm: getDiffableDisasm,
-                        msBuildArguments: msBuildArguments))
+                        msBuildArguments: msBuildArguments,
+                        toolchain: monoAotToolchain))
                 .ConfigureAwait(false);
 
             return summaries.ToExitCode();

@@ -37,10 +37,6 @@
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net12.0' or $(TargetFrameworks.Contains('net12.0'))">
-    <BenchmarkDotNetVersion>$(BenchmarkDotNetNet12Version)</BenchmarkDotNetVersion>
-  </PropertyGroup>
-
   <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->
   <Choose>
     <When Condition="'$(TargetFramework)' == 'net6.0'">
@@ -152,8 +148,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj"
-                      AdditionalProperties="BenchmarkDotNetVersion=$(BenchmarkDotNetVersion)" />
+    <ProjectReference Include="..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

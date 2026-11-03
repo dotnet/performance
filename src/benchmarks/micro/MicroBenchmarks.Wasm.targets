@@ -23,7 +23,8 @@
     <_PerformanceWasmReadyToRunComposite Condition="'$(PERFLAB_WASM_READY_TO_RUN_COMPOSITE)' == 'true'">true</_PerformanceWasmReadyToRunComposite>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' and '$(UseMonoRuntime)' == 'false'">
+  <!-- BDN reference gathering has no entry assembly to convert or precompile. -->
+  <PropertyGroup Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' and '$(UseMonoRuntime)' == 'false' and '$(BenchmarkDotNetGatherReferences)' != 'true'">
     <PublishReadyToRun>true</PublishReadyToRun>
     <PublishReadyToRunComposite>$(_PerformanceWasmReadyToRunComposite)</PublishReadyToRunComposite>
     <PublishReadyToRunContainerFormat>wasm</PublishReadyToRunContainerFormat>
@@ -34,7 +35,7 @@
   <Target Name="ValidateWasmReadyToRunConfiguration"
           DependsOnTargets="UpdateTargetingAndRuntimePack"
           BeforeTargets="PrepareForWasmBuild"
-          Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' or '$(PERFLAB_WASM_READY_TO_RUN_COMPOSITE)' == 'true'">
+          Condition="('$(PERFLAB_WASM_READY_TO_RUN)' == 'true' or '$(PERFLAB_WASM_READY_TO_RUN_COMPOSITE)' == 'true') and '$(BenchmarkDotNetGatherReferences)' != 'true'">
     <ItemGroup>
       <_PerformanceWasmResolvedRuntimePack Include="@(ResolvedRuntimePack)"
                                            Condition="'%(ResolvedRuntimePack.FrameworkName)' == 'Microsoft.NETCore.App'" />
@@ -55,7 +56,7 @@
 
   <Target Name="ValidateWasmReadyToRunOutputs"
           AfterTargets="_CreateR2RImages"
-          Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true'">
+          Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' and '$(BenchmarkDotNetGatherReferences)' != 'true'">
     <ItemGroup>
       <_PerformanceWasmCompositeCompilation Include="@(_ReadyToRunCompileList->WithMetadataValue('CreateCompositeImage', 'true'))" />
       <_PerformanceWasmCompositeImage Include="@(_PerformanceWasmCompositeCompilation->'%(OutputR2RImage)')" />
@@ -84,7 +85,7 @@
        happened so a composite that was compiled but never shipped/loaded fails the build. -->
   <Target Name="ValidateWasmReadyToRunCompositePublishAssets"
           AfterTargets="ProcessPublishFilesForWasm"
-          Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' and '$(_PerformanceWasmReadyToRunComposite)' == 'true' and '$(WasmBuildingForNestedPublish)' != 'true'">
+          Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' and '$(_PerformanceWasmReadyToRunComposite)' == 'true' and '$(WasmBuildingForNestedPublish)' != 'true' and '$(BenchmarkDotNetGatherReferences)' != 'true'">
     <ItemGroup>
       <_PerformanceWasmCompositePublishAsset Include="@(_WasmCompositePublishStaticWebAsset->WithMetadataValue('AssetTraitValue', 'readyToRunComposite'))" />
     </ItemGroup>

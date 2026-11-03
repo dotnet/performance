@@ -28,6 +28,7 @@ def test_main_selects_sdk_and_runtime_12():
 @pytest.mark.parametrize(("framework", "flavor", "moniker", "legacy_flavor"), [
     ("net11.0", "Mono", "wasmnet11_0", False),
     ("net11.0", "CoreCLR", "wasmnet11_0", True),
+    ("net12.0", "Mono", "wasmnet12_0", False),
     ("net12.0", "CoreCLR", "corewasm12.0", True),
 ])
 def test_wasm_runner_arguments_match_benchmarkdotnet_version(framework, flavor, moniker, legacy_flavor):
@@ -42,13 +43,13 @@ def test_wasm_runner_arguments_match_benchmarkdotnet_version(framework, flavor, 
         assert arguments[arguments.index("--wasmRuntimeFlavor") + 1] == flavor
 
 
-def test_net12_mono_wasm_fails_explicitly():
+def test_unknown_wasm_framework_fails_explicitly():
     from scripts import micro_benchmarks
 
     args = Namespace(corerun=None, cli=None, enable_pmc=False, filter=None, resume=False,
                      bdn_arguments=None, bdn_artifacts=None, wasm=True, wasm_runtime_flavor="Mono")
-    with pytest.raises(ArgumentTypeError, match="Mono WebAssembly is not supported on net12.0"):
-        micro_benchmarks.__get_benchmarkdotnet_arguments("net12.0", args)
+    with pytest.raises(ArgumentTypeError, match="Framework net99.0 is not supported for wasm"):
+        micro_benchmarks.__get_benchmarkdotnet_arguments("net99.0", args)
 
 
 @pytest.mark.parametrize("version", [8, 9, 10, 11])
@@ -196,14 +197,14 @@ def test_blazor_package_versions_match_target(tmp_path, framework):
     assert set(json.loads(result.stdout)["Properties"].values()) == {expected_version}
 
 
-@pytest.mark.parametrize(("framework", "extensions", "system", "runner"), [
-    ("net8.0", "8.0.0", "8.0.0", "0.16.0-nightly.20260801.595"),
-    ("net9.0", "9.0.0", "9.0.0", "0.16.0-nightly.20260801.595"),
-    ("net10.0", "10.0.3", "10.0.0", "0.16.0-nightly.20260801.595"),
-    ("net11.0", "11.0.0", "11.0.0", "0.16.0-nightly.20260801.595"),
-    ("net12.0", "11.0.0", "11.0.0", "0.16.0-nightly.20261014.649"),
+@pytest.mark.parametrize(("framework", "extensions", "system"), [
+    ("net8.0", "8.0.0", "8.0.0"),
+    ("net9.0", "9.0.0", "9.0.0"),
+    ("net10.0", "10.0.3", "10.0.0"),
+    ("net11.0", "11.0.0", "11.0.0"),
+    ("net12.0", "11.0.0", "11.0.0"),
 ])
-def test_microbenchmarks_select_intended_packages(framework, extensions, system, runner):
+def test_microbenchmarks_select_intended_packages(framework, extensions, system):
     result = subprocess.run(
         [shutil.which("dotnet"), "msbuild",
          str(repo_root / "src" / "benchmarks" / "micro" / "MicroBenchmarks.csproj"),
@@ -214,6 +215,7 @@ def test_microbenchmarks_select_intended_packages(framework, extensions, system,
     properties = json.loads(result.stdout)["Properties"]
     assert properties["ExtensionsVersion"] == extensions
     assert properties["SystemVersion"] == system
+    runner = ET.parse(repo_root / "eng" / "Versions.props").findtext(".//BenchmarkDotNetVersion")
     assert properties["BenchmarkDotNetVersion"] == runner
     assert "net12.0" in properties["SupportedTargetFrameworks"].split(";")
 

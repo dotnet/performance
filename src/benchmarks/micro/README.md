@@ -24,10 +24,10 @@ To restore, build, and run a benchmark on the main SDK and runtime, run this fro
 python scripts\benchmarks_ci.py --frameworks net12.0 --filter *Perf_Guid.NewGuid*
 ```
 
-Net12 builds use a newer BenchmarkDotNet package that recognizes .NET 12; older
-framework-only runs retain the existing runner and package selections. For net12
-WebAssembly, select `--wasm --wasm-runtime-flavor CoreCLR`. Mono WebAssembly
-remains supported on the older targets, not net12.
+All target frameworks use the repository's shared BenchmarkDotNet version.
+Versioned frameworks retain their framework-specific library dependencies.
+WebAssembly runs require a matching SDK, runtime and workload-pack cohort;
+argument selection alone does not establish workload compatibility.
 
 The following commands are run from the `src/benchmarks/micro` directory.
 

@@ -178,7 +178,9 @@ jobs:
       archType: x64
       osVersion: 26
       pool:
-        vmImage: 'macos-26'
+        name: AcesShared
+        demands:
+          - ImageOverride -equals ACES_VM_SharedPool_GoldenGate
       queue: Mac.iPhone.17.Perf
       machinePool: iPhone17
       ${{ insert }}: ${{ parameters.jobParameters }}
