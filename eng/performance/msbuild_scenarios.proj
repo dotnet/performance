@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+  <PropertyGroup>
+    <UseLegacyPerfCollect>false</UseLegacyPerfCollect>
+  </PropertyGroup>
+  <Import Project="Scenarios.Common.props" />
+  <Import Project="MSBuildScenarios.Generated.props" />
+  <PropertyGroup>
+    <MSBuildTimeoutSeconds Condition="'$(MSBuildTimeoutSeconds)' == ''">900</MSBuildTimeoutSeconds>
+    <MSBuildScenarioFilter>$(MSBuildScenarioFilter.Replace(';', ','))</MSBuildScenarioFilter>
+  </PropertyGroup>
+  <ItemGroup>
+    <RequestedScenario Include="$(MSBuildScenarioFilter.Split(','))" />
+    <UnknownScenario Include="@(RequestedScenario)" Exclude="@(MSBuildScenario)" />
+    <SelectedMSBuildScenario Include="@(MSBuildScenario)" Condition="'$(MSBuildScenarioFilter)' == ''" />
+    <SelectedMSBuildScenario Include="@(RequestedScenario)" Condition="'$(MSBuildScenarioFilter)' != ''" />
+    <HelixWorkItem Include="@(SelectedMSBuildScenario)">
+      <PayloadDirectory>$(ScenariosDir)msbuild</PayloadDirectory>
+      <PreCommands>$(Python) pre.py --scenario-id &quot;%(Identity)&quot;</PreCommands>
+      <Command>$(Python) test.py msbuild --scenario-id &quot;%(Identity)&quot; --scenario-name &quot;%(Identity)&quot; $(MSBuildIterationArguments) --timeout $(MSBuildTimeoutSeconds) $(ScenarioArgs)</Command>
+      <Timeout>6:00</Timeout>
+    </HelixWorkItem>
+  </ItemGroup>
+  <Target Name="ValidateMSBuildScenarioSelection" BeforeTargets="PreparePayloadWorkItems;Test">
+    <RemoveDuplicates Inputs="@(RequestedScenario)">
+      <Output TaskParameter="Filtered" ItemName="UniqueRequestedScenario" />
+    </RemoveDuplicates>
+    <Error Condition="'@(RequestedScenario->Count())' != '@(UniqueRequestedScenario->Count())'" Text="Duplicate MSBuild scenario selection." />
+    <Error Condition="'@(UnknownScenario)' != ''" Text="Unknown, disabled, or unsupported MSBuild scenarios: @(UnknownScenario)" />
+    <Error Condition="'@(HelixWorkItem)' == ''" Text="No MSBuild scenarios selected for this worker." />
+  </Target>
+  <Import Project="PreparePayloadWorkItems.targets" />
+</Project>
