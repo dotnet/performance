@@ -304,7 +304,8 @@ def test_microbenchmarks_select_intended_packages(framework, extensions, system)
         [shutil.which("dotnet"), "msbuild",
          str(repo_root / "src" / "benchmarks" / "micro" / "MicroBenchmarks.csproj"),
          "-nologo", f"-p:TargetFramework={framework}", f"-p:PERFLAB_TARGET_FRAMEWORKS={framework}",
-         "-getProperty:ExtensionsVersion,SystemVersion,BenchmarkDotNetVersion,SupportedTargetFrameworks"],
+         "-getProperty:ExtensionsVersion,SystemVersion,BenchmarkDotNetVersion,SupportedTargetFrameworks",
+         "-getItem:PackageReference"],
         cwd=repo_root, check=True, capture_output=True, text=True,
     )
     properties = json.loads(result.stdout)["Properties"]
@@ -313,20 +314,32 @@ def test_microbenchmarks_select_intended_packages(framework, extensions, system)
     runner = ET.parse(repo_root / "eng" / "Versions.props").findtext(".//BenchmarkDotNetVersion")
     assert properties["BenchmarkDotNetVersion"] == runner
     assert "net12.0" in properties["SupportedTargetFrameworks"].split(";")
+    tensors = [item["Version"] for item in json.loads(result.stdout)["Items"]["PackageReference"]
+               if item["Identity"] == "System.Numerics.Tensors"]
+    assert tensors == ["10.0.*-*" if framework in ("net8.0", "net9.0") else "11.0.0"]
 
 
-@pytest.mark.parametrize(("framework", "expected"), [("net11.0", "11.0.0"), ("net12.0", "12.0.0-alpha.1")])
-def test_next_library_pins_do_not_change_net11_measurements(framework, expected):
+@pytest.mark.parametrize(("framework", "extensions", "system", "tensors"), [
+    ("net8.0", "8.0.0", "8.0.0", "10.0.*-*"),
+    ("net9.0", "9.0.0", "9.0.0", "10.0.*-*"),
+    ("net10.0", "10.0.3", "10.0.0", "12.0.0-alpha.1"),
+    ("net11.0", "11.0.0", "11.0.0", "11.0.0"),
+    ("net12.0", "12.0.0-alpha.1", "12.0.0-alpha.1", "12.0.0-alpha.1"),
+])
+def test_next_library_pins_do_not_change_net11_measurements(framework, extensions, system, tensors):
     result = subprocess.run(
         [shutil.which("dotnet"), "msbuild",
          str(repo_root / "src" / "benchmarks" / "micro" / "MicroBenchmarks.csproj"),
          "-nologo", f"-p:TargetFramework={framework}", f"-p:PERFLAB_TARGET_FRAMEWORKS={framework}",
          "-p:MicrosoftExtensionsLoggingPackageVersion=12.0.0-alpha.1",
          "-p:SystemThreadingChannelsPackageVersion=12.0.0-alpha.1",
-         "-getProperty:ExtensionsVersion,SystemVersion"],
+         "-getProperty:ExtensionsVersion,SystemVersion", "-getItem:PackageReference"],
         cwd=repo_root, check=True, capture_output=True, text=True,
     )
-    assert set(json.loads(result.stdout)["Properties"].values()) == {expected}
+    evaluated = json.loads(result.stdout)
+    assert evaluated["Properties"] == {"ExtensionsVersion": extensions, "SystemVersion": system}
+    assert [item["Version"] for item in evaluated["Items"]["PackageReference"]
+            if item["Identity"] == "System.Numerics.Tensors"] == [tensors]
 
 
 @pytest.mark.parametrize("framework", ["net10.0", "net11.0", "net12.0"])

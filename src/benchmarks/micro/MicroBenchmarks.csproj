@@ -144,7 +144,9 @@
     <PackageReference Include="System.Numerics.Tensors" Version="10.0.*-*" />
   </ItemGroup>
   <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
-    <PackageReference Include="System.Numerics.Tensors" Version="$(SystemThreadingChannelsPackageVersion)" />
+    <PackageReference Include="System.Numerics.Tensors" Version="$(SystemThreadingChannelsPackageVersion)">
+      <Version Condition="'$(TargetFramework)' == 'net11.0'">11.0.0</Version>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
