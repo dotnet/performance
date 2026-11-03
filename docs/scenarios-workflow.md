@@ -23,10 +23,10 @@ single-entry framework-matrix suffix in job/log names. Benchmark framework metad
 and Helix identities still use the resolved TFM; explicit framework matrices are
 unchanged.
 
-For equivalent manual setup, use
-`python scripts\ci_setup.py --channel main --framework net11.0 --architecture x64 --not-in-lab`
-and pass the matching platform-qualified target (for example, `net11.0-android`)
-to the scenario's precommand. The framework override does not change the SDK channel.
+For equivalent manual setup, pass `--channel main --framework <TFM>` to
+`scripts\ci_setup.py`, taking the TFM from the mobile override when present or
+main's target otherwise. Pass the matching platform-qualified target to the
+scenario's precommand. The framework override does not change the SDK channel.
 
 This is a general guideline on how the scenario tests are arranged in this repo. We will walk through it by measuring the **startup time of an empty console template** as a sample scenario. For other scenarios, refer to the following links:
 
