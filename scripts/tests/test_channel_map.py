@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 import pytest
 
 from scripts.channel_map import ChannelMap
+from scripts import run_performance_job as job
 from scripts.run_performance_job import RunPerformanceJobArgs, get_target_framework
 
 
@@ -23,6 +24,7 @@ def test_main_selects_sdk_and_runtime_12():
     assert ChannelMap.get_target_framework_moniker("main") == "net12.0"
     assert ChannelMap.get_channel_from_target_framework_moniker("net12.0") == "main"
     assert "net12.0" in ChannelMap.get_supported_frameworks()
+    assert ChannelMap.get_target_framework_moniker("main", mobile=True) == "net11.0"
 
 
 @pytest.mark.parametrize(("framework", "flavor", "moniker", "legacy_flavor"), [
@@ -77,12 +79,63 @@ def test_job_target_is_independent_of_sdk_channel(run_kind, channel):
     assert get_target_framework(args, channel) == "net10.0"
 
 
-@pytest.mark.parametrize(("channel", "framework", "sdk_major"), [
-    ("main", None, 12), ("main", "net11.0", 12), ("11.0", None, 11),
-    ("nativeaot11.0", None, 11), ("10.0", None, 10),
+@pytest.mark.parametrize("run_kind", [
+    "maui_scenarios", "maui_scenarios_android", "maui_scenarios_android_innerloop",
+    "maui_scenarios_ios", "android_scenarios", "ios_scenarios",
+])
+def test_removing_mobile_override_inherits_main(monkeypatch, run_kind):
+    monkeypatch.delitem(job.ChannelMap.channel_map["main"], "mobile_tfm")
+    args = RunPerformanceJobArgs(run_kind=run_kind, architecture="x64", os_group="windows")
+    assert get_target_framework(args, "main") == "net12.0"
+    args.framework = "net10.0"
+    assert get_target_framework(args, "main") == "net10.0"
+
+
+@pytest.mark.parametrize(("branch", "channel", "run_kind", "runtime_type", "framework", "expected"), [
+    ("main", None, "micro", "coreclr", None, "net12.0"),
+    ("main", None, "micro", "wasm_coreclr", None, "net12.0"),
+    ("main", None, "micro", "wasm", None, "net12.0"),
+    ("main", None, "micro", "mono", None, "net12.0"),
+    ("main", None, "android_scenarios", "AndroidMono", None, "net11.0"),
+    ("main", None, "ios_scenarios", "iOSCoreCLR", None, "net11.0"),
+    ("main", "main", "maui_scenarios_android", "coreclr", None, "net11.0"),
+    ("release/10.0", None, "micro", "mono", None, "net10.0"),
+    ("release/10.0", "main", "maui_scenarios_ios", "coreclr", None, "net11.0"),
+    ("main", None, "micro", "mono", "net10.0", "net10.0"),
+    ("main", "11.0", "micro", "coreclr", None, "net11.0"),
+])
+def test_job_resolves_framework_before_validation_and_identity(
+        monkeypatch, branch, channel, run_kind, runtime_type, framework, expected):
+    monkeypatch.setenv("BUILD_SOURCEBRANCH", f"refs/heads/{branch}")
+    monkeypatch.setattr(job, "setup_loggers", Mock())
+    assignments = {}
+
+    def stop_after_build_config(name, value, **kwargs):
+        assignments[name] = value
+        raise RuntimeError("stop after framework resolution")
+
+    monkeypatch.setattr(job, "set_environment_variable", stop_after_build_config)
+    args = RunPerformanceJobArgs(
+        run_kind=run_kind, runtime_type=runtime_type, architecture="x64", os_group="windows",
+        channel=channel, framework=framework, queue="test-queue",
+        performance_repo_ci=run_kind.startswith("maui_scenarios"))
+    with pytest.raises(RuntimeError, match="stop after framework resolution"):
+        job.run_performance_job(args)
+    assert args.framework == expected
+    expected_config = (
+        f"x64_{channel}_{run_kind}" if args.performance_repo_ci
+        else f"x64.{run_kind}.{expected}")
+    assert assignments["_BuildConfig"] == expected_config
+
+
+@pytest.mark.parametrize(("channel", "framework", "sdk_major", "run_kind"), [
+    ("main", None, 12, "micro"), ("main", "net11.0", 12, "micro"),
+    ("11.0", None, 11, "micro"), ("nativeaot11.0", None, 11, "micro"),
+    ("10.0", None, 10, "micro"), ("main", None, 12, "maui_scenarios_android"),
+    ("main", None, 12, "maui_scenarios_ios"), ("release/10.0", None, 10, "maui_scenarios"),
 ])
 def test_setup_preserves_sdk_channel_with_target_override(
-        tmp_path, monkeypatch, channel, framework, sdk_major):
+        tmp_path, monkeypatch, channel, framework, sdk_major, run_kind):
     from scripts import ci_setup
 
     for name in ("global.json", "global.net11.json", "global.net10.json"):
@@ -105,6 +158,8 @@ def test_setup_preserves_sdk_channel_with_target_override(
     monkeypatch.setenv("PERFLAB_Framework", "")
     setup = tmp_path / "machine-setup"
 
+    framework = get_target_framework(RunPerformanceJobArgs(
+        run_kind=run_kind, architecture="x64", os_group="windows", framework=framework), channel)
     ci_setup.main(ci_setup.CiSetupArgs(
         channel=channel, framework=framework, architecture="x64", output_file=str(setup)))
 
@@ -120,6 +175,10 @@ def test_setup_preserves_sdk_channel_with_target_override(
         f"DOTNET_VERSION={sdk_major}.0.100-precise" if os.name == "nt"
         else f'DOTNET_VERSION="{sdk_major}.0.100-precise"')
     assert expected_sdk_assignment in output
+    expected_branch = ChannelMap.get_branch(channel)
+    assert (
+        f"PERFLAB_BRANCH={expected_branch}" if os.name == "nt"
+        else f'PERFLAB_BRANCH="{expected_branch}"') in output
     assert f"sdk-sha-{sdk_major}" in output
     assert json.loads((tmp_path / "global.json").read_text())["sdk"]["version"].startswith(f"{sdk_major}.")
 
@@ -153,17 +212,34 @@ def test_benchmarks_ci_selects_and_restores_sdk_pin(tmp_path, monkeypatch, frame
     assert global_json.read_bytes() == original_content
 
 
-def test_runtime_pipeline_framework_overrides_precede_mobile_defaults():
+@pytest.mark.parametrize(("run_kind", "runtime_type", "requested", "expected"), [
+    ("micro", "coreclr", None, "net12.0"),
+    ("micro", "wasm_coreclr", None, "net12.0"),
+    ("micro", "wasm", None, "net12.0"),
+    ("micro", "mono", None, "net12.0"),
+    ("android_scenarios", "AndroidMono", None, "net11.0"),
+    ("ios_scenarios", "iOSCoreCLR", None, "net11.0"),
+    ("micro", "mono", "net10.0", "net10.0"),
+])
+def test_runtime_pipeline_only_creates_explicit_framework_matrix(run_kind, runtime_type, requested, expected):
     template = (repo_root / "eng" / "pipelines" / "templates" / "runtime-perf-job.yml").read_text()
     assert "  framework: ''" in template
-    assert """    frameworks:
-    - ${{ if ne(parameters.framework, '') }}:
+    assert """    ${{ if ne(parameters.framework, '') }}:
+      frameworks:
       - ${{ parameters.framework }}
-    - ${{ elseif in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSCoreCLR', 'iOSNativeAOT') }}:
-      - net11.0
-    - ${{ else }}:
-      - net12.0
 """ in template
+    assert template.count("frameworks:") == 1
+    assert "net11.0" not in template and "net12.0" not in template
+    shared = (repo_root / "eng" / "pipelines" / "templates" / "run-performance-job.yml").read_text()
+    assert "frameworks: []" in shared
+    assert "${{ each framework in parameters.frameworks }}:" in shared
+    assert "'--framework $(_Framework)'" in shared
+    frameworks = [requested] if requested else []
+    assert (len(frameworks) or 1) == 1
+    args = RunPerformanceJobArgs(
+        run_kind=run_kind, runtime_type=runtime_type, architecture="x64", os_group="linux",
+        framework=frameworks[0] if frameworks else None)
+    assert get_target_framework(args, "main") == expected
 
 
 def test_mobile_main_uses_existing_dependency_branches(monkeypatch):

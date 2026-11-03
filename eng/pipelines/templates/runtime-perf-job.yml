@@ -31,13 +31,9 @@ jobs:
 
     isRuntimeJob: true
     useLocalCommitTime: true
-    frameworks:
-    - ${{ if ne(parameters.framework, '') }}:
+    ${{ if ne(parameters.framework, '') }}:
+      frameworks:
       - ${{ parameters.framework }}
-    - ${{ elseif in(parameters.runtimeType, 'AndroidMono', 'AndroidCoreCLR', 'iOSMono', 'iOSCoreCLR', 'iOSNativeAOT') }}:
-      - net11.0
-    - ${{ else }}:
-      - net12.0
 
     # Test job depends on the corresponding build job
     ${{ if eq(parameters.downloadSpecificBuild.buildId, '') }}:

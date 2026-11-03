@@ -4,6 +4,7 @@ class ChannelMap():
     channel_map = {
         'main': {
             'tfm': 'net12.0',
+            'mobile_tfm': 'net11.0',
             'branch': '12.0',
             'quality': 'daily'
         },
@@ -203,12 +204,13 @@ class ChannelMap():
         return list(set(monikers))
 
     @staticmethod
-    def get_target_framework_moniker(channel: str) -> str:
+    def get_target_framework_moniker(channel: str, *, mobile: bool = False) -> str:
         '''
-        Translate channel name to Target Framework Moniker (TFM)
+        Translate a channel to its TFM, using its optional mobile override when requested.
         '''
         if channel in ChannelMap.channel_map:
-            return ChannelMap.channel_map[channel]['tfm']
+            settings = ChannelMap.channel_map[channel]
+            return settings.get('mobile_tfm', settings['tfm']) if mobile else settings['tfm']
         else:
             raise Exception('Channel %s is not supported. Supported channels %s' % (channel, ChannelMap.get_supported_channels()))
 

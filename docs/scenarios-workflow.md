@@ -12,6 +12,17 @@ MAUI and mobile scenario jobs on `main` deliberately retain `net11.0` targets wi
 SDK 12 until their upstream dependencies support net12. This also keeps MAUI and
 macios dependency lookups on their existing `net11.0` branches. Explicitly
 versioned channels continue to use their own SDKs and frameworks.
+The single temporary policy is `main.mobile_tfm` in `scripts/channel_map.py`.
+Once the upstream MAUI/macios net12 branches and workloads support these scenarios,
+remove that field: mobile jobs then inherit main's target without another YAML
+or Python version update. Installing SDK 12 alone does not establish that readiness.
+
+Runtime jobs without an explicit framework now resolve this same channel policy
+before payload preparation. They still run one job, but no longer have an Azure
+single-entry framework-matrix suffix in job/log names. Benchmark framework metadata
+and Helix identities still use the resolved TFM; explicit framework matrices are
+unchanged.
+
 For equivalent manual setup, use
 `python scripts\ci_setup.py --channel main --framework net11.0 --architecture x64 --not-in-lab`
 and pass the matching platform-qualified target (for example, `net11.0-android`)

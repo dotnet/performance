@@ -1024,16 +1024,20 @@ def get_work_item_command(
 def get_target_framework(args: RunPerformanceJobArgs, channel: str) -> str:
     if args.framework:
         return args.framework
-    # Mobile dependencies still use the net11.0 MAUI/macios branches with SDK 12.
-    if channel == "main" and (
-            args.run_kind.startswith("maui_scenarios")
-            or args.run_kind in ("android_scenarios", "ios_scenarios")):
-        return "net11.0"
-    return ChannelMap.get_target_framework_moniker(channel)
+    return ChannelMap.get_target_framework_moniker(
+        channel, mobile=args.run_kind.startswith("maui_scenarios")
+        or args.run_kind in ("android_scenarios", "ios_scenarios"))
 
 
 def run_performance_job(args: RunPerformanceJobArgs):
     setup_loggers(verbose=True)
+
+    branch = os.environ.get("BUILD_SOURCEBRANCH")
+    cleaned_branch_name = "main"
+    if branch is not None and branch.startswith("refs/heads/release"):
+        cleaned_branch_name = branch.replace("refs/heads/", "")
+    channel = args.channel or cleaned_branch_name
+    args.framework = get_target_framework(args, channel)
 
     if args.queue is None:
         if args.logical_machine is None:
@@ -1162,11 +1166,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         if not args.runtime_flavor:
             args.runtime_flavor = "coreclr"
 
-    branch = os.environ.get("BUILD_SOURCEBRANCH")
-    cleaned_branch_name = "main"
-    if branch is not None and branch.startswith("refs/heads/release"):
-        cleaned_branch_name = branch.replace("refs/heads/", "")
-
     configurations = get_run_configurations(
         args.run_kind, args.runtime_type, args.codegen_type, args.pgo_run_type, args.physical_promotion_run_type,
         args.r2r_run_type, args.experiment_name, args.linking_type,
@@ -1175,7 +1174,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     )
 
     ci_setup_arguments = ci_setup.CiSetupArgs(
-        channel=cleaned_branch_name,
+        channel=channel,
         queue=args.queue,
         build_configs=[f"{k}={v}" for k, v in configurations.items()],
         architecture=args.architecture,
@@ -1537,9 +1536,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         tools_dir = os.path.join(performance_payload_dir, "tools")
         ci_setup_arguments.install_dir = os.path.join(tools_dir, "dotnet", args.architecture)
 
-    if args.channel is not None:
-        ci_setup_arguments.channel = args.channel
-    ci_setup_arguments.framework = get_target_framework(args, ci_setup_arguments.channel)
+    ci_setup_arguments.framework = args.framework
 
     if args.perf_repo_hash is not None and args.performance_repo_ci:
         ci_setup_arguments.perf_hash = args.perf_repo_hash
