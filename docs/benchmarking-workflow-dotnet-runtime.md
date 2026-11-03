@@ -406,7 +406,7 @@ RunArch='x64'
 
 # Create mono dotnet
 mkdir -p $RunDir/artifacts/dotnet-mono
-$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeArtifactsPath=$RunDir/artifacts/bin/mono/$RunOS.$RunArch.Release /p:RuntimeFlavor=mono
+$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeFlavor=mono
 cp $RunDir/artifacts/bin/runtime/net11.0-$RunOS-Release-$RunArch/* $RunDir/artifacts/bin/testhost/net11.0-$RunOS-Release-$RunArch/shared/Microsoft.NETCore.App/11.0.0 -rf
 cp $RunDir/artifacts/bin/testhost/net11.0-$RunOS-Release-$RunArch/* $RunDir/artifacts/dotnet-mono -r
 cp $RunDir/artifacts/bin/coreclr/$RunOS.$RunArch.Release/corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/11.0.0/corerun
@@ -447,7 +447,7 @@ RunArch='x64'
 
 # Create mono dotnet
 mkdir -p $RunDir/artifacts/dotnet-mono
-$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeArtifactsPath=$RunDir\artifacts\bin\mono\$RunOS.$RunArch.Release /p:RuntimeFlavor=mono
+$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeFlavor=mono
 xcopy $RunDir\artifacts\bin\runtime\net11.0-$RunOS-Release-$RunArch\ $RunDir\artifacts\bin\testhost\net11.0-$RunOS-Release-$RunArch\shared\Microsoft.NETCore.App\11.0.0\ /e /y
 xcopy $RunDir\artifacts\bin\testhost\net11.0-$RunOS-Release-$RunArch\ $RunDir\artifacts\dotnet-mono\ /e /y
 xcopy $RunDir\artifacts\bin\coreclr\$RunOS.$RunArch.Release\corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\11.0.0\corerun /y
@@ -498,7 +498,7 @@ RunArch='x64'
 
 # Create mono dotnet
 mkdir -p $RunDir/artifacts/dotnet-mono
-$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeArtifactsPath=$RunDir/artifacts/bin/mono/$RunOS.$RunArch.Release /p:RuntimeFlavor=mono
+$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeFlavor=mono
 cp $RunDir/artifacts/bin/runtime/net11.0-$RunOS-Release-$RunArch/* $RunDir/artifacts/bin/testhost/net11.0-$RunOS-Release-$RunArch/shared/Microsoft.NETCore.App/11.0.0 -rf
 cp $RunDir/artifacts/bin/testhost/net11.0-$RunOS-Release-$RunArch/* $RunDir/artifacts/dotnet-mono -r
 cp $RunDir/artifacts/bin/coreclr/$RunOS.$RunArch.Release/corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/11.0.0/corerun
@@ -536,7 +536,7 @@ RunArch='x64'
 
 # Create mono dotnet
 mkdir -p $RunDir/artifacts/dotnet-mono
-$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeArtifactsPath=$RunDir\artifacts\bin\mono\$RunOS.$RunArch.Release /p:RuntimeFlavor=mono
+$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeFlavor=mono
 xcopy $RunDir\artifacts\bin\runtime\net11.0-$RunOS-Release-$RunArch\ $RunDir\artifacts\bin\testhost\net11.0-$RunOS-Release-$RunArch\shared\Microsoft.NETCore.App\11.0.0\ /e /y
 xcopy $RunDir\artifacts\bin\testhost\net11.0-$RunOS-Release-$RunArch\ $RunDir\artifacts\dotnet-mono\ /e /y
 xcopy $RunDir\artifacts\bin\coreclr\$RunOS.$RunArch.Release\corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\11.0.0\corerun /y
