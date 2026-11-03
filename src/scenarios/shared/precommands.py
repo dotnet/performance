@@ -101,6 +101,7 @@ class PreCommands:
         self.readonly_dotnet = args.readonly_dotnet
         self.windows = args.windows
         self.output = args.output
+        self._set_android_java_sdk()
         
         if self.operation == PUBLISH:
             self.self_contained = args.self_contained
@@ -111,6 +112,23 @@ class PreCommands:
             self.crossgen_arguments.parse_crossgen2_args(args)
         if self.operation == EXTRACT:
             self.pathtozip = args.pathtozip
+
+    def _set_android_java_sdk(self):
+        if sys.platform != 'win32' or not self.framework or '-android' not in self.framework:
+            return
+        if int(self.framework.split('.')[0][3:]) < 11:
+            return
+        java_sdk = os.environ.get("JAVA_HOME_21_X64")
+        if not java_sdk or os.environ.get("JavaSdkDirectory") or os.environ.get("JDK_HOME"):
+            return
+        java_home = os.environ.get("JAVA_HOME")
+        # The hosted Windows image defaults to Java 8. Keep explicitly selected JDKs.
+        if java_home and java_home != os.environ.get("JAVA_HOME_8_X64"):
+            return
+        if self.msbuild and "javasdkdirectory=" in self.msbuild.lower():
+            return
+        os.environ["JavaSdkDirectory"] = java_sdk
+        getLogger().info("Using hosted Java SDK 21: %s", java_sdk)
 
 
     def new(self,
