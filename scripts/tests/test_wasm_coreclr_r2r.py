@@ -338,6 +338,8 @@ def test_ready_to_run_validates_resolved_runtime_pack_items():
 
 
 @pytest.mark.parametrize("ready_to_run", ["false", "true"])
+@pytest.mark.parametrize("gather_references", ["false", "true"])
+@pytest.mark.parametrize("composite", ["false", "true"])
 @pytest.mark.parametrize(
     ("use_mono_runtime", "initial_flavor", "expected_flavor"),
     [
@@ -350,7 +352,8 @@ def test_ready_to_run_validates_resolved_runtime_pack_items():
     ],
 )
 def test_wasm_runtime_flavor_after_generated_project_imports(
-        tmp_path, ready_to_run, use_mono_runtime, initial_flavor, expected_flavor):
+        tmp_path, ready_to_run, gather_references, composite,
+        use_mono_runtime, initial_flavor, expected_flavor):
     dotnet_cli = shutil.which("dotnet")
     if dotnet_cli is None:
         pytest.skip("A .NET SDK is required for MSBuild property evaluation.")
@@ -362,7 +365,12 @@ def test_wasm_runtime_flavor_after_generated_project_imports(
         "UseMonoRuntime": "true",
         "RuntimeFlavor": initial_flavor,
         "PERFLAB_WASM_READY_TO_RUN": ready_to_run,
+        "PERFLAB_WASM_READY_TO_RUN_COMPOSITE": composite,
+        "BenchmarkDotNetGatherReferences": gather_references,
         "PublishReadyToRun": "false",
+        "PublishReadyToRunComposite": "false",
+        "PublishTrimmed": "false",
+        "WasmEnableWebcil": "false",
     }.items():
         ET.SubElement(properties, name).text = value
 
@@ -377,7 +385,7 @@ def test_wasm_runtime_flavor_after_generated_project_imports(
     result = subprocess.run(
         [
             dotnet_cli, "msbuild", str(project_path), "-nologo",
-            "-getProperty:UseMonoRuntime,RuntimeFlavor,PublishReadyToRun",
+            "-getProperty:UseMonoRuntime,RuntimeFlavor,PublishReadyToRun,PublishReadyToRunComposite,PublishTrimmed,WasmEnableWebcil",
         ],
         cwd=tmp_path,
         capture_output=True,
@@ -389,9 +397,45 @@ def test_wasm_runtime_flavor_after_generated_project_imports(
     evaluated = json.loads(result.stdout)["Properties"]
     assert evaluated["UseMonoRuntime"] == use_mono_runtime
     assert evaluated["RuntimeFlavor"] == expected_flavor
-    assert evaluated["PublishReadyToRun"] == (
-        "true" if use_mono_runtime == "false" and ready_to_run == "true" else "false"
-    )
+    publishing_ready_to_run = (
+        use_mono_runtime == "false"
+        and ready_to_run == "true"
+        and gather_references != "true")
+    expected_ready_to_run = "true" if publishing_ready_to_run else "false"
+    assert evaluated["PublishReadyToRun"] == expected_ready_to_run
+    assert evaluated["PublishTrimmed"] == expected_ready_to_run
+    assert evaluated["WasmEnableWebcil"] == expected_ready_to_run
+    assert evaluated["PublishReadyToRunComposite"] == (
+        "true" if publishing_ready_to_run and composite == "true" else "false")
+
+
+@pytest.mark.parametrize("target_name", [
+    "ValidateWasmReadyToRunConfiguration",
+    "ValidateWasmReadyToRunOutputs",
+    "ValidateWasmReadyToRunCompositePublishAssets",
+])
+def test_reference_collection_does_not_validate_unbuilt_wasm_outputs(tmp_path, target_name):
+    dotnet_cli = shutil.which("dotnet")
+    if dotnet_cli is None:
+        pytest.skip("A .NET SDK is required for MSBuild property evaluation.")
+
+    project = ET.Element("Project")
+    properties = ET.SubElement(project, "PropertyGroup")
+    for name, value in {
+        "UseMonoRuntime": "false",
+        "BenchmarkDotNetGatherReferences": "true",
+        "PERFLAB_WASM_READY_TO_RUN": "true",
+        "PERFLAB_WASM_READY_TO_RUN_COMPOSITE": "true",
+    }.items():
+        ET.SubElement(properties, name).text = value
+    targets = scripts_dir.parent / "src" / "benchmarks" / "micro" / "MicroBenchmarks.Wasm.targets"
+    ET.SubElement(project, "Import", Project=str(targets))
+    project_path = tmp_path / "ReferenceCollection.proj"
+    ET.ElementTree(project).write(project_path, encoding="utf-8")
+    result = subprocess.run(
+        [dotnet_cli, "msbuild", str(project_path), "-nologo", f"-target:{target_name}"],
+        cwd=tmp_path, capture_output=True, text=True, timeout=60)
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):

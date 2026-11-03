@@ -154,7 +154,7 @@ namespace System.Tests
         public bool InterpolateIntoSpan_Flags(Colors value) => InterpolateIntoSpan(s_scratch, value);
         
         [Benchmark]
-        [Arguments(DayOfWeek.Saturday)]
+        [Arguments((Colors)DayOfWeek.Saturday)]
         [Arguments(42)]
         public bool InterpolateIntoSpan_NonFlags(Colors value) => InterpolateIntoSpan(s_scratch, value);
 
@@ -185,7 +185,7 @@ namespace System.Tests
         public void InterpolateIntoStringBuilder_Flags(Colors value) => InterpolateIntoStringBuilder(s_sb, value);
 
         [Benchmark]
-        [Arguments(DayOfWeek.Saturday)]
+        [Arguments((Colors)DayOfWeek.Saturday)]
         [Arguments(42)]
         public void InterpolateIntoStringBuilder_NonFlags(Colors value) => InterpolateIntoStringBuilder(s_sb, value);
 

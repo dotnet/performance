@@ -16,12 +16,12 @@ namespace System.Net.Security.Tests
         private static Lazy<bool> s_supportsTls13 = new Lazy<bool>(GetTls13Support);
         public static bool SupportsTls13 => s_supportsTls13.Value;
 
-        public static IEnumerable<object[]> TlsProtocols()
+        public static IEnumerable<SslProtocols> TlsProtocols()
         {
-            yield return new object[] { SslProtocols.Tls12 };
+            yield return SslProtocols.Tls12;
             if (SupportsTls13)
             {
-                yield return new object[] { SslProtocols.Tls13 };
+                yield return SslProtocols.Tls13;
             }
         }
 
