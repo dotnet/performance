@@ -276,6 +276,20 @@ recorded in that SDK's `Microsoft.NETCoreSdk.BundledVersions.props`.
 `PERFLAB_WASM_PACKAGE_VERSION` should remain unset; that override is reserved
 for non-official runtime payloads.
 
+For a private CoreCLR runtime payload, the producer's explicit
+`PERFLAB_WASM_PACKAGE_VERSION` selects the runtime/ref packs as well as the
+WebAssembly SDK, Crossgen2 and ILLink packages before SDK framework resolution.
+The corresponding pack directories must actually be staged under that version.
+The SDK manifest version is not a substitute for the private cohort version;
+renaming a directory or changing runtime roll-forward does not establish a
+coherent payload. Official SDK/workload runs leave the override unset and keep
+their normal manifest-based selection.
+
+CoreCLR reference gathering does not compile an entry assembly, so its
+`BenchmarkDotNetGatherReferences=true` pass skips static web asset generation
+as well as ReadyToRun/Webcil processing. Final publish still enables the normal
+static assets and validates the requested ReadyToRun mode and composite routing.
+
 `--wasm-ready-to-run` publishes per-assembly ReadyToRun images. Replace it with
 `--wasm-ready-to-run-composite` to compile the benchmark closure into a single
 composite image (`PublishReadyToRunComposite=true`, published as

@@ -24,6 +24,10 @@
   </PropertyGroup>
 
   <!-- BDN reference gathering has no entry assembly to convert or precompile. -->
+  <PropertyGroup Condition="'$(UseMonoRuntime)' == 'false' and '$(BenchmarkDotNetGatherReferences)' == 'true'">
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(PERFLAB_WASM_READY_TO_RUN)' == 'true' and '$(UseMonoRuntime)' == 'false' and '$(BenchmarkDotNetGatherReferences)' != 'true'">
     <PublishReadyToRun>true</PublishReadyToRun>
     <PublishReadyToRunComposite>$(_PerformanceWasmReadyToRunComposite)</PublishReadyToRunComposite>
