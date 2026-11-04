@@ -261,6 +261,32 @@ def test_runtime_pipeline_only_creates_explicit_framework_matrix(run_kind, runti
     assert get_target_framework(args, "main") == expected
 
 
+def test_sdk_tooling_installs_share_root_and_select_main_last():
+    from scripts import dotnet
+
+    template = (repo_root / "eng" / "pipelines" / "sdk-perf-jobs.yml").read_text()
+    steps = template.split("    steps:\n", 1)[1].split("- ${{ if parameters.runPublicJobs }}:", 1)[0]
+    root = r"$(Build.SourcesDirectory)\tools\dotnet\x64"
+    tasks = steps.split("- task: UseDotNet@2")
+    assert len(tasks) == 3
+    for task, version in zip(tasks[1:], ("8.0.x", "10.0.x")):
+        inputs = task.split("- pwsh:", 1)[0]
+        assert f"version: {version}\n" in inputs
+        assert f"installationPath: '{root}'" in inputs
+    assert "includePreviewVersions: true" in tasks[2].split("- pwsh:", 1)[0]
+    assert steps.count("python scripts\\dotnet.py install") == 1
+    assert f'python scripts\\dotnet.py install --channels main --architecture x64 --install-dir "{root}"' in steps
+    assert f'##vso[task.prependpath]{root}' in steps
+    assert steps.index("version: 10.0.x") < steps.index("python scripts\\dotnet.py install") < steps.index("dotnet test")
+    assert "--framework net10.0" in steps
+    assert "Startup.Tests\\Startup.Tests.csproj --configuration Release --nologo" in steps
+    args = dotnet.__process_arguments([
+        "install", "--channels", "main", "--architecture", "x64", "--install-dir", root])
+    assert args.channels == ["main"]
+    assert args.architecture == "x64"
+    assert args.install_dir == root
+
+
 def test_mobile_main_uses_existing_dependency_branches(monkeypatch):
     monkeypatch.syspath_prepend(str(repo_root / "scripts"))
     monkeypatch.syspath_prepend(str(repo_root / "src" / "scenarios"))

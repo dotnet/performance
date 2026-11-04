@@ -26,12 +26,26 @@ jobs:
       vmImage: windows-2022
 
     steps:
+      - task: UseDotNet@2
+        displayName: Install .NET 8.0
+        inputs:
+          version: 8.0.x
+          installationPath: '$(Build.SourcesDirectory)\tools\dotnet\x64'
+
+      - task: UseDotNet@2
+        displayName: Install .NET 10.0
+        inputs:
+          version: 10.0.x
+          includePreviewVersions: true
+          installationPath: '$(Build.SourcesDirectory)\tools\dotnet\x64'
+
+      # Main needs daily SDK builds, which UseDotNet's release metadata does not list.
       - pwsh: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
-          python scripts\dotnet.py install --channels main 10.0 8.0 --architecture x64
+          python scripts\dotnet.py install --channels main --architecture x64 --install-dir "$(Build.SourcesDirectory)\tools\dotnet\x64"
           Write-Host "##vso[task.prependpath]$(Build.SourcesDirectory)\tools\dotnet\x64"
-        displayName: Install main SDK and tooling test runtimes
+        displayName: Install main daily SDK
 
       - pwsh: |
           $ErrorActionPreference = 'Stop'

@@ -94,6 +94,7 @@ def __use_compatible_global_json(target_framework_monikers: list[str]):
         yield
         return
 
+    # Compare numeric TFM majors: net11.0 -> 11, net12.0 -> 12.
     latest_framework = max(frameworks, key=lambda framework: int(framework[3:-2]))
     repo_root = Path(get_repo_root_path())
     versioned_global_json = repo_root / f'global.{latest_framework[:-2]}.json'
