@@ -43,7 +43,8 @@ in Release from `main` or a
 full SHA reachable from the mirror's `main`. The latest mirror SHA is
 resolved before fetch and checked out explicitly, then the six shipping packages are overlaid into
 one checksum-pinned SDK. The selected SDK must match the current `main`
-runtime band (currently .NET 11) and satisfy this repository's `global.json`.
+runtime band configured in `scripts\channel_map.py` and satisfy this
+repository's `global.json`.
 It uses the same DLL/target selection as PerfStar, but **not** official
 signing, OptProf optimization, or publishing. Results are marked
 `MSBuildSource=self-built-release`, with the MSBuild source SHA and commit

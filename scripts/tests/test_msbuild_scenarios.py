@@ -12,6 +12,7 @@ import zipfile
 
 import pytest
 
+from channel_map import ChannelMap
 from compose_msbuild_sdk import (
     ASSETS, LIBRARIES, RUNTIME_FILES, compose, extract_archive, package_files, sha512,
     verify_archive,
@@ -22,6 +23,10 @@ from shared import collect_linux
 from msbuild_catalog import ASSET_DEFINITIONS, SCENARIOS, select_scenarios
 from shared.msbuild_execution import execute_scenario, publish_selection
 from sync_msbuild_scenarios import generate
+
+
+SDK_TFM = ChannelMap.get_target_framework_moniker("main")
+SDK_VERSION = SDK_TFM.removeprefix("net") + ".100"
 
 
 def write_zip(path, entries):
@@ -39,15 +44,15 @@ def composition(tmp_path):
     subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
                     "commit", "-q", "--allow-empty", "-m", "Test"], cwd=source, check=True)
     sdk = write_zip(tmp_path / "sdk.zip", {
-        "dotnet.exe": b"host", "sdk/11.0.100/MSBuild.dll": b"original",
+        "dotnet.exe": b"host", f"sdk/{SDK_VERSION}/MSBuild.dll": b"original",
     })
     packages = tmp_path / "packages"
     packages.mkdir()
     for name in LIBRARIES:
         write_zip(packages / f"{name}.1.0.0.nupkg",
-                  {f"lib/net11.0/{name}.dll": name.encode()})
+                  {f"lib/{SDK_TFM}/{name}.dll": name.encode()})
     write_zip(packages / "Microsoft.Build.Runtime.1.0.0.nupkg",
-              {f"contentFiles/any/net11.0/{name}": name.encode() for name in RUNTIME_FILES})
+              {f"contentFiles/any/{SDK_TFM}/{name}": name.encode() for name in RUNTIME_FILES})
     assets = {}
     for name, (_, project) in ASSETS.items():
         archive = write_zip(tmp_path / (name + ".zip"), {
@@ -66,13 +71,13 @@ def test_overlay_and_helix_payload_preserve_source_identity(composition, tmp_pat
     args = SimpleNamespace(run_env_vars=["USER_OPTION=value"])
     payload = tmp_path / "payload"
     configure_inputs(item.output, payload, args)
-    assert (payload / "dotnet/sdk/11.0.100/Microsoft.Build.dll").read_bytes() == b"Microsoft.Build"
-    assert (payload / "dotnet/sdk/11.0.100/MSBuild.dll").read_bytes() == b"MSBuild.dll"
+    assert (payload / f"dotnet/sdk/{SDK_VERSION}/Microsoft.Build.dll").read_bytes() == b"Microsoft.Build"
+    assert (payload / f"dotnet/sdk/{SDK_VERSION}/MSBuild.dll").read_bytes() == b"MSBuild.dll"
     manifest = json.loads((payload / "msbuild-inputs/manifest.json").read_text())
     assert args.repository == "dotnet/msbuild"
     assert args.commit_sha == manifest["commit"]
     assert args.commit_time == manifest["commit_time"]
-    assert args.dotnet_versions == ["11.0.100"]
+    assert args.dotnet_versions == [SDK_VERSION]
     assert args.dotnet_path == args.install_dir == str(payload / "dotnet")
     assert "USER_OPTION=value" in args.run_env_vars
     assert "MSBuildSource=self-built-release" in args.run_env_vars
@@ -81,17 +86,18 @@ def test_overlay_and_helix_payload_preserve_source_identity(composition, tmp_pat
 def test_input_validation_rejects_corrupted_overlay(composition, tmp_path):
     item = composition
     compose(item.sdk, sha512(item.sdk), item.packages, item.output, item.source, item.assets)
-    (item.output / "sdk/sdk/11.0.100/MSBuild.dll").write_bytes(b"changed")
+    (item.output / f"sdk/sdk/{SDK_VERSION}/MSBuild.dll").write_bytes(b"changed")
     with pytest.raises(ValueError, match="Overlay checksum"):
         configure_inputs(item.output, tmp_path / "payload", SimpleNamespace(run_env_vars=None))
 
 
 def test_overlay_requires_all_files_and_compatible_runtime(composition):
+    sdk_major = int(SDK_VERSION.split(".")[0])
     with pytest.raises(ValueError, match="compatible"):
-        package_files(composition.packages, 10)
+        package_files(composition.packages, sdk_major - 1)
     (composition.packages / "Microsoft.Build.Framework.1.0.0.nupkg").unlink()
     with pytest.raises(ValueError, match="Microsoft.Build.Framework"):
-        package_files(composition.packages, 11)
+        package_files(composition.packages, sdk_major)
 
 
 def test_archive_validation_rejects_bad_checksum_and_traversal(tmp_path):
@@ -115,7 +121,7 @@ def test_prepare_pins_sdk_and_internal_restore_sources(composition, monkeypatch,
     assert "dotnet-public" in config
     assert "perfstar-vendored" in config
     assert "untrusted" not in config
-    assert json.loads((work / "app/global.json").read_text())["sdk"]["version"] == "11.0.100"
+    assert json.loads((work / "app/global.json").read_text())["sdk"]["version"] == SDK_VERSION
     with pytest.raises(FileExistsError):
         msbuild.prepare("orchard-core")
 
@@ -195,7 +201,7 @@ def write_tar(path, entries):
 def test_linux_composition_and_payload_restore_executable_permissions(composition, tmp_path):
     item = composition
     archive = write_tar(tmp_path / "sdk.tar.gz", {
-        "dotnet": b"linux host", "sdk/11.0.100/MSBuild.dll": b"original",
+        "dotnet": b"linux host", f"sdk/{SDK_VERSION}/MSBuild.dll": b"original",
     })
     compose(archive, sha512(archive), item.packages, item.output, item.source,
             item.assets, "linux")
