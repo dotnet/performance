@@ -22,6 +22,7 @@ namespace Tests
         [InlineData("wasmnet90", "monowasm9.0")]
         [InlineData("wasmnet10_0", "monowasm10.0")]
         [InlineData("wasmnet11_0", "monowasm11.0")]
+        [InlineData("wasmnet12_0", "monowasm12.0")]
         public void HistoricalMonoInterpreterSelectsSameRuntime(string legacy, string expected)
         {
             var args = RuntimeArgumentCompatibility.Normalize(new[] { "--runtimes", legacy });
@@ -38,6 +39,7 @@ namespace Tests
         [InlineData("wasmnet90", "corewasm9.0")]
         [InlineData("wasmnet10_0", "corewasm10.0")]
         [InlineData("wasmnet11_0", "corewasm11.0")]
+        [InlineData("wasmnet12_0", "corewasm12.0")]
         [InlineData("corewasm12.0", "corewasm12.0")]
         public void HistoricalCoreClrFlavorSelectsCoreClrToolchain(string input, string expected)
         {
@@ -56,6 +58,7 @@ namespace Tests
         [InlineData("wasmnet90", "monowasmaot9.0")]
         [InlineData("wasmnet10_0", "monowasmaot10.0")]
         [InlineData("wasmnet11_0", "monowasmaot11.0")]
+        [InlineData("wasmnet12_0", "monowasmaot12.0")]
         public void HistoricalWasmAotSelectsAotToolchain(string input, string expected)
         {
             var args = RuntimeArgumentCompatibility.Normalize(

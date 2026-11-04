@@ -21,10 +21,13 @@ https://github.com/dotnet/performance/blob/main/docs/benchmarking-workflow.md
 '''
 
 from argparse import ArgumentParser, ArgumentTypeError
+from contextlib import contextmanager
 import json
 from logging import getLogger
 
 import os
+from pathlib import Path
+import re
 import shutil
 import sys
 from typing import Any, Optional
@@ -80,6 +83,33 @@ def init_tools(
         shutil.copytree(
             targeting_packs, os.path.join(os.environ["DOTNET_ROOT"], "packs"),
             dirs_exist_ok=True)
+
+@contextmanager
+def __use_compatible_global_json(target_framework_monikers: list[str]):
+    frameworks = [
+        framework for framework in target_framework_monikers
+        if re.fullmatch(r'net\d+\.0', framework)
+    ]
+    if not frameworks:
+        yield
+        return
+
+    # Compare numeric TFM majors: net11.0 -> 11, net12.0 -> 12.
+    latest_framework = max(frameworks, key=lambda framework: int(framework[3:-2]))
+    repo_root = Path(get_repo_root_path())
+    versioned_global_json = repo_root / f'global.{latest_framework[:-2]}.json'
+    if not versioned_global_json.is_file():
+        yield
+        return
+
+    global_json = repo_root / 'global.json'
+    original_content = global_json.read_bytes()
+    try:
+        shutil.copy(versioned_global_json, global_json)
+        getLogger().info('Using %s for the requested frameworks', versioned_global_json.name)
+        yield
+    finally:
+        global_json.write_bytes(original_content)
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''Adds new arguments to the specified ArgumentParser object.'''
@@ -244,6 +274,11 @@ def main(argv: list[str]):
             '--wasm-runtime-flavor CoreCLR --wasm-ready-to-run '
             '(or --wasm-ready-to-run-composite)')
 
+    with __use_compatible_global_json(target_framework_monikers):
+        __run_benchmarks(args, target_framework_monikers, verbose)
+
+
+def __run_benchmarks(args: Any, target_framework_monikers: list[str], verbose: bool):
     # Acquire necessary tools (dotnet)
     if not args.dotnet_path:
         init_tools(

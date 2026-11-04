@@ -18,7 +18,8 @@
 
   <!-- Use local targeting pack for NetCoreAppCurrent. -->
   <Target Name="UpdateTargetingAndRuntimePack"
-          AfterTargets="ResolveFrameworkReferences">
+          AfterTargets="ResolveFrameworkReferences"
+          Condition="'$(UseMonoRuntime)' != 'false' or '$(PERFLAB_WASM_PACKAGE_VERSION)' == ''">
     <ItemGroup>
       <ResolvedRuntimePack
           FrameworkName="Microsoft.NETCore.App"
@@ -38,7 +39,8 @@
 
   <!-- Update the local targeting pack's version as it's written into the runtimeconfig.json file to select the right framework. -->
   <Target Name="UpdateRuntimeFrameworkVersion"
-          AfterTargets="ResolveTargetingPackAssets">
+          AfterTargets="ResolveTargetingPackAssets"
+          Condition="'$(UseMonoRuntime)' != 'false' or '$(PERFLAB_WASM_PACKAGE_VERSION)' == ''">
     <ItemGroup>
       <RuntimeFramework Version="$(_RuntimePackInWorkloadVersionCurrent)"
                         Condition="'%(RuntimeFramework.FrameworkName)' == 'Microsoft.NETCore.App'" />
@@ -71,6 +73,16 @@
     <PropertyGroup>
       <_PerformanceWasmToolchainPackVersion Condition="'$(_PerformanceWasmToolchainPackVersion)' == ''">$(_RuntimePackInWorkloadVersionCurrent)</_PerformanceWasmToolchainPackVersion>
     </PropertyGroup>
+    <!-- Resolve the private cohort during restore, not by rewriting its resolved
+         pack to the SDK manifest's unrelated version after resolution. -->
+    <ItemGroup Condition="'$(UseMonoRuntime)' == 'false' and '$(PERFLAB_WASM_PACKAGE_VERSION)' != ''">
+      <KnownFrameworkReference Update="@(KnownFrameworkReference)"
+                               Condition="'%(KnownFrameworkReference.Identity)' == 'Microsoft.NETCore.App' and '%(KnownFrameworkReference.TargetFramework)' == '$(TargetFramework)'">
+        <DefaultRuntimeFrameworkVersion>$(PERFLAB_WASM_PACKAGE_VERSION)</DefaultRuntimeFrameworkVersion>
+        <LatestRuntimeFrameworkVersion>$(PERFLAB_WASM_PACKAGE_VERSION)</LatestRuntimeFrameworkVersion>
+        <TargetingPackVersion>$(PERFLAB_WASM_PACKAGE_VERSION)</TargetingPackVersion>
+      </KnownFrameworkReference>
+    </ItemGroup>
     <ItemGroup>
       <KnownWebAssemblySdkPack Update="@(KnownWebAssemblySdkPack)">
         <WebAssemblySdkPackVersion Condition="'%(KnownWebAssemblySdkPack.TargetFramework)' == '$(TargetFramework)'">$(_PerformanceWasmToolchainPackVersion)</WebAssemblySdkPackVersion>

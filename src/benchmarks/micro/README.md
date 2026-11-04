@@ -12,7 +12,22 @@ To learn more about designing benchmarks, please read [Microbenchmark Design Gui
 
 ## Quick Start
 
-The first thing that you need to choose is the Target Framework. Available options are: `net8.0|net9.0|net10.0|net11.0`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `net11.0` as the target framework.
+The first thing that you need to choose is the Target Framework. Available options are: `net8.0|net9.0|net10.0|net11.0|net12.0`. You can specify the target framework using `-f|--framework` argument. The `main` channel installs SDK 12 and targets `net12.0`; explicitly versioned channels retain their matching frameworks. The examples below targeting `net11.0` require a .NET 11 runtime; SDK 12 alone does not provide it or implicitly roll those benchmarks forward.
+
+For older-only runs, `benchmarks_ci.py` temporarily selects the corresponding
+versioned `global.json` for the newest requested framework and restores the
+original file afterward, including on failure.
+
+To restore, build, and run a benchmark on the main SDK and runtime, run this from the repository root:
+
+```cmd
+python scripts\benchmarks_ci.py --frameworks net12.0 --filter *Perf_Guid.NewGuid*
+```
+
+All target frameworks use the repository's shared BenchmarkDotNet version.
+Versioned frameworks retain their framework-specific library dependencies.
+WebAssembly runs require a matching SDK, runtime and workload-pack cohort;
+argument selection alone does not establish workload compatibility.
 
 The following commands are run from the `src/benchmarks/micro` directory.
 

@@ -30,27 +30,31 @@ jobs:
         displayName: Install .NET 8.0
         inputs:
           version: 8.0.x
+          installationPath: '$(Build.SourcesDirectory)\tools\dotnet\x64'
 
       - task: UseDotNet@2
         displayName: Install .NET 10.0
         inputs:
           version: 10.0.x
           includePreviewVersions: true
+          installationPath: '$(Build.SourcesDirectory)\tools\dotnet\x64'
 
-      - task: UseDotNet@2
-        displayName: Install .NET 11.0
-        inputs:
-          version: 11.0.x
-          includePreviewVersions: true
+      # Main needs daily SDK builds, which UseDotNet's release metadata does not list.
+      - pwsh: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          python scripts\dotnet.py install --channels main --architecture x64 --install-dir "$(Build.SourcesDirectory)\tools\dotnet\x64"
+          Write-Host "##vso[task.prependpath]$(Build.SourcesDirectory)\tools\dotnet\x64"
+        displayName: Install main daily SDK
 
       - pwsh: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
 
-          dotnet test src\tools\ResultsComparer.Tests\ResultsComparer.Tests.csproj --configuration Release --framework net11.0 --nologo --verbosity minimal
-          dotnet test src\tools\Reporting\Reporting.Tests\Reporting.Tests.csproj --configuration Release --framework net11.0 --nologo --verbosity minimal
+          dotnet test src\tools\ResultsComparer.Tests\ResultsComparer.Tests.csproj --configuration Release --framework net12.0 --nologo --verbosity minimal
+          dotnet test src\tools\Reporting\Reporting.Tests\Reporting.Tests.csproj --configuration Release --framework net12.0 --nologo --verbosity minimal
           dotnet test src\tools\CertHelperTests\CertRotatorTests.csproj --configuration Release --framework net10.0 --nologo --verbosity minimal
-          dotnet test src\tests\harness\BenchmarkDotNet.Extensions.Tests\BenchmarkDotNet.Extensions.Tests.csproj --configuration Release --framework net11.0 -p:PERFLAB_TARGET_FRAMEWORKS=net10.0 --nologo --verbosity minimal
+          dotnet test src\tests\harness\BenchmarkDotNet.Extensions.Tests\BenchmarkDotNet.Extensions.Tests.csproj --configuration Release --framework net12.0 -p:PERFLAB_TARGET_FRAMEWORKS=net12.0 --nologo --verbosity minimal
           dotnet test src\tools\ScenarioMeasurement\Startup.Tests\Startup.Tests.csproj --configuration Release --nologo --verbosity minimal
         displayName: Run tooling tests
 

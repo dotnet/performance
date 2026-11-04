@@ -14,6 +14,7 @@
       <Framework Include="net9.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '8.0'"/>
       <Framework Include="net10.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '9.0' and '$(PERFLAB_Framework)' != 'net11.0'"/>
       <Framework Include="net11.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '10.0'"/>
+      <Framework Include="net12.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '11.0'"/>
   </ItemGroup>
 
   <ItemDefinitionGroup>

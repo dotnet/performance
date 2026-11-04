@@ -7,6 +7,27 @@ Our existing scenario tests are under `src\scenarios` in this repo, where each s
 
 ## Running scenario tests
 
+The `main` channel installs SDK 12 and targets `net12.0` for desktop scenarios.
+MAUI and mobile scenario jobs on `main` deliberately retain `net11.0` targets with
+SDK 12 until their upstream dependencies support net12. This also keeps MAUI and
+macios dependency lookups on their existing `net11.0` branches. Explicitly
+versioned channels continue to use their own SDKs and frameworks.
+The single temporary policy is `main.mobile_tfm` in `scripts/channel_map.py`.
+Once the upstream MAUI/macios net12 branches and workloads support these scenarios,
+remove that field: mobile jobs then inherit main's target without another YAML
+or Python version update. Installing SDK 12 alone does not establish that readiness.
+
+Runtime jobs without an explicit framework now resolve this same channel policy
+before payload preparation. They still run one job, but no longer have an Azure
+single-entry framework-matrix suffix in job/log names. Benchmark framework metadata
+and Helix identities still use the resolved TFM; explicit framework matrices are
+unchanged.
+
+For equivalent manual setup, pass `--channel main --framework <TFM>` to
+`scripts\ci_setup.py`, taking the TFM from the mobile override when present or
+main's target otherwise. Pass the matching platform-qualified target to the
+scenario's precommand. The framework override does not change the SDK channel.
+
 This is a general guideline on how the scenario tests are arranged in this repo. We will walk through it by measuring the **startup time of an empty console template** as a sample scenario. For other scenarios, refer to the following links:
 
 - [How to run SDK scenario tests](./sdk-scenarios.md)

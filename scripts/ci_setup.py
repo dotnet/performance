@@ -56,6 +56,11 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Channel to download product from'
     )
     parser.add_argument(
+        '--framework',
+        choices=ChannelMap.get_supported_frameworks(),
+        help='Target framework override, independent of the SDK channel (for example, MAUI on main)'
+    )
+    parser.add_argument(
         '--no-dynamic-pgo',
         dest='pgo_status',
         required=False,
@@ -309,8 +314,10 @@ class CiSetupArgs:
             physical_promotion_status: Optional[str] = None,
             r2r_status: Optional[str] = None,
             experiment_name: Optional[str] = None,
-            collect_sdk_repository_commits: bool = False):
+            collect_sdk_repository_commits: bool = False,
+            framework: Optional[str] = None):
         self.channel = channel
+        self.framework = framework
         self.quiet = quiet
         self.commit_sha = commit_sha
         self.repository = repository
@@ -380,17 +387,22 @@ def main(args: CiSetupArgs):
     else:
         dotnet.setup_dotnet(args.dotnet_path)
 
-    framework = ChannelMap.get_target_framework_moniker(args.channel)
-    if framework in ('net10.0', 'nativeaot10.0'):
+    channel_framework = ChannelMap.get_target_framework_moniker(args.channel)
+    framework = args.framework or channel_framework
+    if channel_framework in ('net11.0', 'nativeaot11.0'):
+        global_json_path = os.path.join(get_repo_root_path(), 'global.json')
+        shutil.copy(os.path.join(get_repo_root_path(), 'global.net11.json'), global_json_path)
+        getLogger().info('Overwrote global.json with global.net11.json')
+    if channel_framework in ('net10.0', 'nativeaot10.0'):
         global_json_path = os.path.join(get_repo_root_path(), 'global.json')
         shutil.copy(os.path.join(get_repo_root_path(), 'global.net10.json'), global_json_path)
         getLogger().info('Overwrote global.json with global.net10.json')
-    if framework in ('net9.0', 'nativeaot9.0'):
+    if channel_framework in ('net9.0', 'nativeaot9.0'):
         global_json_path = os.path.join(get_repo_root_path(), 'global.json')
         shutil.copy(os.path.join(get_repo_root_path(), 'global.net9.json'), global_json_path)
         getLogger().info('Overwrote global.json with global.net9.json')
         
-    if framework in ('net8.0', 'nativeaot8.0'):
+    if channel_framework in ('net8.0', 'nativeaot8.0'):
         global_json_path = os.path.join(get_repo_root_path(), 'global.json')
         shutil.copy(os.path.join(get_repo_root_path(), 'global.net8.json'), global_json_path)
         getLogger().info('Overwrote global.json with global.net8.json')
@@ -455,7 +467,7 @@ def main(args: CiSetupArgs):
     os.makedirs(dir_path, exist_ok=True)
 
     if not framework.startswith('net4'):
-        target_framework_moniker = dotnet.get_target_framework_moniker(framework)
+        target_framework_moniker = dotnet.get_target_framework_moniker(channel_framework)
         dotnet_version = dotnet.get_dotnet_version_precise(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.repository is None else args.commit_sha
 

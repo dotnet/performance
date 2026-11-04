@@ -371,6 +371,7 @@ def test_wasm_runtime_flavor_after_generated_project_imports(
         "PublishReadyToRunComposite": "false",
         "PublishTrimmed": "false",
         "WasmEnableWebcil": "false",
+        "StaticWebAssetsEnabled": "true",
     }.items():
         ET.SubElement(properties, name).text = value
 
@@ -385,7 +386,7 @@ def test_wasm_runtime_flavor_after_generated_project_imports(
     result = subprocess.run(
         [
             dotnet_cli, "msbuild", str(project_path), "-nologo",
-            "-getProperty:UseMonoRuntime,RuntimeFlavor,PublishReadyToRun,PublishReadyToRunComposite,PublishTrimmed,WasmEnableWebcil",
+            "-getProperty:UseMonoRuntime,RuntimeFlavor,PublishReadyToRun,PublishReadyToRunComposite,PublishTrimmed,WasmEnableWebcil,StaticWebAssetsEnabled",
         ],
         cwd=tmp_path,
         capture_output=True,
@@ -397,6 +398,8 @@ def test_wasm_runtime_flavor_after_generated_project_imports(
     evaluated = json.loads(result.stdout)["Properties"]
     assert evaluated["UseMonoRuntime"] == use_mono_runtime
     assert evaluated["RuntimeFlavor"] == expected_flavor
+    assert evaluated["StaticWebAssetsEnabled"] == (
+        "false" if use_mono_runtime == "false" and gather_references == "true" else "true")
     publishing_ready_to_run = (
         use_mono_runtime == "false"
         and ready_to_run == "true"
@@ -436,6 +439,126 @@ def test_reference_collection_does_not_validate_unbuilt_wasm_outputs(tmp_path, t
         [dotnet_cli, "msbuild", str(project_path), "-nologo", f"-target:{target_name}"],
         cwd=tmp_path, capture_output=True, text=True, timeout=60)
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("private_version", ["", "8.0.0-ci"])
+@pytest.mark.parametrize("gather_references", ["false", "true"])
+@pytest.mark.parametrize(
+    ("phase", "runtime_pack_present"),
+    [
+        ("ResolveFrameworkReferences", True),
+        ("ResolveRuntimePackAssets", True),
+        ("ResolveRuntimePackAssets", False),
+    ])
+def test_coreclr_cohort_is_selected_before_restore_and_pack_resolution(
+        tmp_path, private_version, gather_references, phase, runtime_pack_present):
+    dotnet_cli = shutil.which("dotnet")
+    if dotnet_cli is None:
+        pytest.skip("A .NET SDK is required for MSBuild pack resolution.")
+
+    public_version = "8.0.0"
+    expected_version = private_version or public_version
+    packs = tmp_path / "packs"
+    for package_id, list_name, assembly_path in [
+        ("Microsoft.NETCore.App.Ref", "FrameworkList.xml", "ref/net8.0/System.Runtime.dll"),
+        ("Microsoft.NETCore.App.Runtime.browser-wasm", "RuntimeList.xml",
+         "runtimes/browser-wasm/lib/net8.0/System.Runtime.dll"),
+    ]:
+        if not runtime_pack_present and package_id.endswith(".browser-wasm"):
+            continue
+        pack_dir = packs / package_id / expected_version
+        data_dir = pack_dir / "data"
+        data_dir.mkdir(parents=True)
+        assembly = pack_dir / assembly_path
+        assembly.parent.mkdir(parents=True)
+        assembly.touch()
+        file_list = ET.Element("FileList", FrameworkName="Microsoft.NETCore.App")
+        ET.SubElement(
+            file_list, "File", Type="Managed", Path=assembly_path,
+            AssemblyName="System.Runtime", AssemblyVersion="8.0.0.0",
+            FileVersion="8.0.0.0", PublicKeyToken="b03f5f7f11d50a3a")
+        ET.ElementTree(file_list).write(data_dir / list_name, encoding="utf-8")
+
+    project = ET.Element("Project", Sdk="Microsoft.NET.Sdk")
+    properties = ET.SubElement(project, "PropertyGroup")
+    for name, value in {
+        "TargetFramework": "net8.0",
+        "RuntimeIdentifier": "browser-wasm",
+        "UseMonoRuntime": "false",
+        "UseAppHost": "false",
+        "SelfContained": "true",
+        "DisableTransitiveFrameworkReferenceDownloads": "true",
+        "EnableTargetingPackDownload": "false",
+        "EnableRuntimePackDownload": "false",
+        "NetCoreTargetingPackRoot": str(packs),
+        "PERFLAB_WASM_PACKAGE_VERSION": private_version,
+        "BenchmarkDotNetGatherReferences": gather_references,
+    }.items():
+        ET.SubElement(properties, name).text = value
+    targets = scripts_dir.parent / "src" / "scenarios" / "build-common" / "WasmOverridePacks.targets"
+    ET.SubElement(project, "Import", Project=str(targets))
+
+    # Simulate the manifest's later evaluation, with no network or installed packs.
+    properties = ET.SubElement(project, "PropertyGroup")
+    ET.SubElement(properties, "_RuntimePackInWorkloadVersionCurrent").text = public_version
+    known = ET.SubElement(
+        ET.SubElement(project, "ItemGroup"), "KnownFrameworkReference",
+        Update="Microsoft.NETCore.App")
+    for name, value in {
+        "DefaultRuntimeFrameworkVersion": public_version,
+        "LatestRuntimeFrameworkVersion": public_version,
+        "TargetingPackVersion": public_version,
+        "RuntimePackRuntimeIdentifiers": "browser-wasm",
+    }.items():
+        ET.SubElement(
+            known, name,
+            Condition="'%(KnownFrameworkReference.TargetFramework)' == 'net8.0'").text = value
+    capture = ET.SubElement(
+        project, "Target", Name="CaptureCohortFramework",
+        AfterTargets="ProcessFrameworkReferences")
+    ET.SubElement(
+        ET.SubElement(capture, "ItemGroup"), "_CohortRuntimeFramework",
+        Include="@(RuntimeFramework)")
+    project_path = tmp_path / "Cohort.csproj"
+    ET.ElementTree(project).write(project_path, encoding="utf-8")
+    (tmp_path / "NuGet.Config").write_text(
+        "<configuration><packageSources><clear /></packageSources></configuration>",
+        encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            dotnet_cli, "msbuild", str(project_path), "-nologo", "-verbosity:quiet",
+            f"-target:Restore;ResolveFrameworkReferences;{phase}",
+            "-getProperty:_RuntimePackInWorkloadVersionCurrent",
+            "-getItem:_CohortRuntimeFramework,RuntimePack,ResolvedRuntimePack,ResolvedTargetingPack,KnownFrameworkReference",
+        ],
+        cwd=tmp_path, capture_output=True, text=True, timeout=60,
+        env={**os.environ, "MSBuildEnableWorkloadResolver": "false"})
+    evaluated = json.loads(result.stdout)
+    assert evaluated["Properties"]["_RuntimePackInWorkloadVersionCurrent"] == public_version
+    items = evaluated["Items"]
+    framework = next(item for item in items["_CohortRuntimeFramework"]
+                     if item["Identity"] == "Microsoft.NETCore.App")
+    assert framework["Version"] == expected_version
+    if not runtime_pack_present:
+        assert result.returncode != 0
+        assert any(code in result.stderr for code in ("NETSDK1112", "NETSDK1185"))
+        return
+    assert result.returncode == 0, result.stdout + result.stderr
+    for kind in ("RuntimePack", "ResolvedRuntimePack", "ResolvedTargetingPack"):
+        pack, = (item for item in items[kind]
+                 if item["NuGetPackageId"].startswith("Microsoft.NETCore.App."))
+        assert pack["NuGetPackageVersion"] == expected_version
+        assert Path(pack["PackageDirectory"]) == packs / pack["NuGetPackageId"] / expected_version
+        assert Path(pack["PackageDirectory"], "data").is_dir()
+    assert all(
+        item.get(metadata) != "8.0.0-ci"
+        for item in items["KnownFrameworkReference"]
+        if item["Identity"] != "Microsoft.NETCore.App" or item["TargetFramework"] != "net8.0"
+        for metadata in ("DefaultRuntimeFrameworkVersion", "LatestRuntimeFrameworkVersion", "TargetingPackVersion"))
+    assets = json.loads((tmp_path / "obj" / "project.assets.json").read_text(encoding="utf-8"))
+    assert "net8.0/browser-wasm" in assets["targets"]
+    assert not assets["project"]["frameworks"]["net8.0"].get("downloadDependencies")
 
 
 def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
