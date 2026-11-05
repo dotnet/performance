@@ -18,7 +18,7 @@
     {
         public Dictionary<string, string> environment_variables { get; set; } = new();
         public uint default_max_seconds { get; set; } = 300;
-        public string framework_version { get; set; } = "net8.0";
+        public string framework_version { get; set; } = "net10.0";
     }
 
     public class BenchmarkSettings

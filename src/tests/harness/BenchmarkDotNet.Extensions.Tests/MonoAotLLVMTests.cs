@@ -35,12 +35,12 @@ namespace Tests
                 "--customruntimepack", "mono-pack", "--aotcompilermode", "llvm",
                 "--cli", "dotnet", "--packages", "packages", "--filter", "*Value*" };
 
-            var toolchain = RuntimeArgumentCompatibility.ParseMonoAotLLVM(args, ".NETCoreApp,Version=v8.0");
+            var toolchain = RuntimeArgumentCompatibility.ParseMonoAotLLVM(args, ".NETCoreApp,Version=v10.0");
             Assert.NotNull(toolchain);
-            Assert.Equal(new Version(8, 0), toolchain.Runtime.Version);
+            Assert.Equal(new Version(10, 0), toolchain.Runtime.Version);
             var builder = Assert.IsType<MonoAotLLVMBuilder>(toolchain.Builder);
             var settings = Assert.IsType<MonoAotLLVMSettings>(builder.Settings);
-            Assert.Equal("net8.0", settings.TargetFrameworkMoniker);
+            Assert.Equal("net10.0", settings.TargetFrameworkMoniker);
             Assert.Equal(MonoAotCompilerMode.llvm, settings.AotCompilerMode);
             Assert.Equal(Path.GetFullPath("mono-aot-cross"), settings.AotCompilerPath);
             Assert.Equal(Path.GetFullPath("mono-pack"), settings.CustomRuntimePack);
@@ -175,7 +175,7 @@ namespace Tests
         [InlineData("--FRESHPACKAGES")]
         public void FreshPackageOptionsDoNotChangeOrdinaryNativeRequests(string options)
         {
-            var args = new List<string> { "--runtimes", "net8.0", options };
+            var args = new List<string> { "--runtimes", "net10.0", options };
             string[] original = args.ToArray();
             var (expectedSuccess, _, expectedOptions) = ConfigParser.Parse(original, NullLogger.Instance);
             Assert.True(expectedSuccess);

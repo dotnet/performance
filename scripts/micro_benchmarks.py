@@ -368,10 +368,6 @@ def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:
             run_args += ['--runtimes', 'wasm']
         elif framework == "net7.0":
             run_args += ['--runtimes', 'wasmnet70']
-        elif framework == "net8.0":
-            run_args += ['--runtimes', 'wasmnet80']
-        elif framework == "net9.0":
-            run_args += ['--runtimes', 'wasmnet90']
         elif framework == "net10.0":
             run_args += ['--runtimes', 'wasmnet10_0']
         elif framework == "net11.0":

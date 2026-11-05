@@ -36,73 +36,6 @@ class ChannelMap():
             'branch': '11.0',
             'quality': 'daily'
         },
-        '9.0': {
-            'tfm': 'net9.0',
-            'branch': '9.0'
-        },
-        'release/9.0': {
-            'tfm': 'net9.0',
-            'branch': '9.0'
-        },
-        'nativeaot9.0': {
-            'tfm': 'nativeaot9.0',
-            'branch': '9.0',
-            'quality': 'daily'
-        },
-        '8.0': {
-            'tfm': 'net8.0',
-            'branch': '8.0'
-        },
-        'release/8.0':{
-            'tfm': 'net8.0',
-            'branch': '8.0'
-        },
-        'release/8.0-rc2': {
-            'tfm': 'net8.0',
-            'branch': '8.0-rc2'
-        },
-        'release/8.0-rc1': {
-            'tfm': 'net8.0',
-            'branch': '8.0-rc1'
-        },
-        '8.0-preview': {
-            'tfm': 'net8.0',
-            'branch': '8.0',
-            'qualtiy': 'preview'
-        },
-        'release/8.0-preview7': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview7'
-        },
-        'release/8.0-preview6': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview6'
-        },
-        'release/8.0-preview5': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview5'
-        },
-        'release/8.0-preview4': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview4'
-        },
-        'release/8.0-preview3': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview3'
-        },
-        'release/8.0-preview2': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview2'
-        },
-        'release/8.0-preview1': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview1'
-        },
-        'nativeaot8.0': {
-            'tfm': 'nativeaot8.0',
-            'branch': '8.0',
-            'quality': 'daily'
-        },
         '7.0': {
             'tfm': 'net7.0',
             'branch': '7.0',
@@ -162,7 +95,7 @@ class ChannelMap():
         },
         'net472': {
             'tfm': 'net472',
-            'branch': '9.0',
+            'branch': '10.0',
             'quality': 'daily'
         },
         'net48': {

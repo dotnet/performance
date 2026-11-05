@@ -56,7 +56,7 @@ def get_generated_apt_commands(*, internal: bool, runtime_type: str) -> list[str
         codegen_type="jit",
         build_config="Release",
         v8_version="12.0.0",
-        wasm_local_package_version="11.0.0-ci" if runtime_type == "wasm_coreclr" else None,
+        wasm_local_package_version="12.0.0-ci" if runtime_type == "wasm_coreclr" else None,
     )
 
     return [
@@ -128,35 +128,35 @@ def targeting_pack_payload(tmp_path, monkeypatch):
     harness = payload / "src" / "harness" / "BenchmarkDotNet.Extensions"
     harness.mkdir(parents=True)
     (harness / "BenchmarkDotNet.Extensions.csproj").write_text(
-        "<Project><PropertyGroup><TargetFramework>net8.0</TargetFramework>"
+        "<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework>"
         "</PropertyGroup></Project>")
     dotnet_root = payload / "tools" / "dotnet" / "x64"
-    sdk_path = dotnet_root / "sdk" / "11.0.100"
+    sdk_path = dotnet_root / "sdk" / "12.0.100"
     sdk_path.mkdir(parents=True)
     bundled_versions = ET.Element("Project")
     items = ET.SubElement(bundled_versions, "ItemGroup")
-    for framework in ("net8.0", "net9.0", "net11.0"):
+    for framework in ("net10.0", "net11.0", "net12.0"):
         for package in job.TARGETING_PACK_COMPONENTS:
             ET.SubElement(items, "KnownFrameworkReference", {
                 "Include": package.removesuffix(".Ref"),
                 "TargetFramework": framework,
                 "TargetingPackName": package,
-                "TargetingPackVersion": "8.0.33",
+                "TargetingPackVersion": "10.0.33",
             })
     ET.ElementTree(bundled_versions).write(
         sdk_path / "Microsoft.NETCoreSdk.BundledVersions.props")
     monkeypatch.setattr(job.dotnet, "get_base_path", Mock(return_value=str(sdk_path)))
 
     versions = {
-        "net8.0": {
-            "Microsoft.NETCore.App.Ref": "8.0.32",
-            "Microsoft.AspNetCore.App.Ref": "8.0.31",
-            "Microsoft.WindowsDesktop.App.Ref": "8.0.30",
+        "net10.0": {
+            "Microsoft.NETCore.App.Ref": "10.0.32",
+            "Microsoft.AspNetCore.App.Ref": "10.0.31",
+            "Microsoft.WindowsDesktop.App.Ref": "10.0.30",
         },
-        "net9.0": {
-            "Microsoft.NETCore.App.Ref": "9.0.21",
-            "Microsoft.AspNetCore.App.Ref": "9.0.20",
-            "Microsoft.WindowsDesktop.App.Ref": "9.0.19",
+        "net11.0": {
+            "Microsoft.NETCore.App.Ref": "11.0.21",
+            "Microsoft.AspNetCore.App.Ref": "11.0.20",
+            "Microsoft.WindowsDesktop.App.Ref": "11.0.19",
         },
     }
 
@@ -225,34 +225,34 @@ def targeting_pack_payload(tmp_path, monkeypatch):
 
 def test_released_targeting_packs_use_latest_stable_component_versions(targeting_pack_payload):
     versions = job.get_released_targeting_pack_versions(
-        "net8.0", set(targeting_pack_payload.versions["net8.0"]))
+        "net10.0", set(targeting_pack_payload.versions["net10.0"]))
 
-    assert versions == targeting_pack_payload.versions["net8.0"]
+    assert versions == targeting_pack_payload.versions["net10.0"]
 
 
 @pytest.mark.parametrize("os_group", ["windows", "linux"])
 def test_downlevel_targeting_packs_are_staged_once_without_changing_current_packs(
         targeting_pack_payload, os_group):
     state = targeting_pack_payload
-    current_pack = state.dotnet_root / "packs" / "Microsoft.NETCore.App.Ref" / "11.0.0"
+    current_pack = state.dotnet_root / "packs" / "Microsoft.NETCore.App.Ref" / "12.0.0"
     current_pack.mkdir(parents=True)
     (current_pack / "marker").write_text("daily")
 
     job.provision_downlevel_targeting_packs(
-        str(state.payload), str(state.dotnet_root), "net11.0", os_group)
+        str(state.payload), str(state.dotnet_root), "net12.0", os_group)
 
-    expected = dict(state.versions["net8.0"])
+    expected = dict(state.versions["net10.0"])
     if os_group != "windows":
         del expected["Microsoft.WindowsDesktop.App.Ref"]
     for package, version in expected.items():
         assert (state.dotnet_root / "packs" / package / version /
-                "ref" / "net8.0" / "Reference.dll").is_file()
+                "ref" / "net10.0" / "Reference.dll").is_file()
     overrides = ET.parse(state.payload / "eng" / "DownlevelTargetingPacks.props")
     metadata = overrides.findall(".//TargetingPackVersion")
     assert len(metadata) == len(expected)
     for item in metadata:
-        assert "'net8.0'" in item.get("Condition")
-        assert "'net11.0'" not in item.get("Condition")
+        assert "'net10.0'" in item.get("Condition")
+        assert "'net12.0'" not in item.get("Condition")
     assert {item.text for item in metadata} == set(expected.values())
     assert (current_pack / "marker").read_text() == "daily"
     assert state.requests.call_count == 1
@@ -263,7 +263,7 @@ def test_multiple_downlevel_frameworks_share_one_restore(targeting_pack_payload)
     state = targeting_pack_payload
 
     job.provision_downlevel_targeting_packs(
-        str(state.payload), str(state.dotnet_root), "net9.0", "windows")
+        str(state.payload), str(state.dotnet_root), "net11.0", "windows")
 
     downloads = list(state.restored_projects[0].iter("PackageDownload"))
     assert len(downloads) == 3
@@ -271,7 +271,7 @@ def test_multiple_downlevel_frameworks_share_one_restore(targeting_pack_payload)
         name = package.get("Include")
         assert set(package.get("Version").split(";")) == {
             f"[{state.versions[framework][name]}]"
-            for framework in ("net8.0", "net9.0")
+            for framework in ("net10.0", "net11.0")
         }
     assert state.requests.call_count == 2
     assert state.commands.call_count == 1
@@ -285,12 +285,12 @@ def test_multiple_downlevel_frameworks_share_one_restore(targeting_pack_payload)
 def test_worker_sdk_reinstall_preserves_staged_reference_packs(
         targeting_pack_payload, monkeypatch, architecture, stage_packs):
     state = targeting_pack_payload
-    current_pack = state.dotnet_root / "packs" / "Microsoft.NETCore.App.Ref" / "11.0.0"
+    current_pack = state.dotnet_root / "packs" / "Microsoft.NETCore.App.Ref" / "12.0.0"
     current_pack.mkdir(parents=True)
     (current_pack / "architecture").write_text("x64")
     if stage_packs:
         job.provision_downlevel_targeting_packs(
-            str(state.payload), str(state.dotnet_root), "net11.0", "windows")
+            str(state.payload), str(state.dotnet_root), "net12.0", "windows")
 
     worker_sdk = state.dotnet_root.with_name(architecture)
     if worker_sdk != state.dotnet_root:
@@ -303,7 +303,7 @@ def test_worker_sdk_reinstall_preserves_staged_reference_packs(
 
     def install(**kwargs):
         worker_sdk.mkdir(parents=True)
-        native_pack = worker_sdk / "packs" / "Microsoft.NETCore.App.Ref" / "11.0.0"
+        native_pack = worker_sdk / "packs" / "Microsoft.NETCore.App.Ref" / "12.0.0"
         native_pack.mkdir(parents=True)
         (native_pack / "architecture").write_text(kwargs["architecture"])
         monkeypatch.setenv("DOTNET_ROOT", str(worker_sdk))
@@ -311,15 +311,15 @@ def test_worker_sdk_reinstall_preserves_staged_reference_packs(
     monkeypatch.setattr(benchmarks_ci.dotnet, "install", install)
     benchmarks_ci.init_tools(
         architecture=architecture,
-        dotnet_versions=["11.0.100"],
-        target_framework_monikers=["net11.0"],
+        dotnet_versions=["12.0.100"],
+        target_framework_monikers=["net12.0"],
         verbose=False)
 
     assert not (worker_sdk / "producer-sdk").exists()
-    assert (worker_sdk / "packs" / "Microsoft.NETCore.App.Ref" / "11.0.0" /
+    assert (worker_sdk / "packs" / "Microsoft.NETCore.App.Ref" / "12.0.0" /
             "architecture").read_text() == architecture
-    for package, version in state.versions["net8.0"].items():
-        reference = worker_sdk / "packs" / package / version / "ref" / "net8.0" / "Reference.dll"
+    for package, version in state.versions["net10.0"].items():
+        reference = worker_sdk / "packs" / package / version / "ref" / "net10.0" / "Reference.dll"
         if stage_packs:
             assert reference.read_bytes() == b"reference"
         else:
@@ -328,12 +328,12 @@ def test_worker_sdk_reinstall_preserves_staged_reference_packs(
 
 def test_current_framework_needs_no_downlevel_override(targeting_pack_payload, monkeypatch):
     state = targeting_pack_payload
-    sdk_path = state.sdk_path.with_name("8.0.426")
+    sdk_path = state.sdk_path.with_name("10.0.426")
     state.sdk_path.rename(sdk_path)
     monkeypatch.setattr(job.dotnet, "get_base_path", Mock(return_value=str(sdk_path)))
 
     job.provision_downlevel_targeting_packs(
-        str(state.payload), str(state.dotnet_root), "net8.0", "windows")
+        str(state.payload), str(state.dotnet_root), "net10.0", "windows")
 
     state.requests.assert_not_called()
     state.commands.assert_not_called()
@@ -343,12 +343,12 @@ def test_current_framework_needs_no_downlevel_override(targeting_pack_payload, m
 def test_unshipped_downlevel_framework_keeps_sdk_packs(targeting_pack_payload):
     state = targeting_pack_payload
     state.requests.side_effect = lambda *args, **kwargs: io.BytesIO(json.dumps({
-        "channel-version": "8.0", "support-phase": "preview",
-        "releases": [{"runtime": {"version": "8.0.0-rc.2"}}],
+        "channel-version": "10.0", "support-phase": "preview",
+        "releases": [{"runtime": {"version": "10.0.0-rc.2"}}],
     }).encode())
 
     job.provision_downlevel_targeting_packs(
-        str(state.payload), str(state.dotnet_root), "net11.0", "windows")
+        str(state.payload), str(state.dotnet_root), "net12.0", "windows")
 
     state.commands.assert_not_called()
     assert not (state.payload / "eng" / "DownlevelTargetingPacks.props").exists()
@@ -357,13 +357,13 @@ def test_unshipped_downlevel_framework_keeps_sdk_packs(targeting_pack_payload):
 def test_missing_released_component_fails_instead_of_using_daily_packs(targeting_pack_payload):
     state = targeting_pack_payload
     state.requests.side_effect = lambda *args, **kwargs: io.BytesIO(json.dumps({
-        "channel-version": "8.0", "support-phase": "active",
-        "releases": [{"runtime": {"version": "8.0.32"}}],
+        "channel-version": "10.0", "support-phase": "active",
+        "releases": [{"runtime": {"version": "10.0.32"}}],
     }).encode())
 
     with pytest.raises(ValueError, match="No publicly released Microsoft.AspNetCore.App.Ref"):
         job.provision_downlevel_targeting_packs(
-            str(state.payload), str(state.dotnet_root), "net11.0", "windows")
+            str(state.payload), str(state.dotnet_root), "net12.0", "windows")
 
     state.commands.assert_not_called()
 
@@ -375,7 +375,7 @@ def test_missing_restored_pack_fails_before_writing_overrides(targeting_pack_pay
 
     with pytest.raises(ValueError, match="NuGet did not restore"):
         job.provision_downlevel_targeting_packs(
-            str(state.payload), str(state.dotnet_root), "net11.0", "windows")
+            str(state.payload), str(state.dotnet_root), "net12.0", "windows")
 
     assert not (state.payload / "eng" / "DownlevelTargetingPacks.props").exists()
 
@@ -387,18 +387,18 @@ def test_ignored_sdk_override_fails_payload_preparation(
     state.selection.side_effect = None
     selections = [{
         "NuGetPackageId": "Microsoft.NETCore.App.Ref",
-        "NuGetPackageVersion": "8.0.33",
+        "NuGetPackageVersion": "10.0.33",
     }]
     if include_valid_profile:
         selections.extend({
             "NuGetPackageId": package, "NuGetPackageVersion": version,
             "PackageDirectory": str(state.dotnet_root / "packs" / package / version),
-        } for package, version in state.versions["net8.0"].items())
+        } for package, version in state.versions["net10.0"].items())
     state.selection.return_value = json.dumps({"Items": {"TargetingPack": selections}})
 
     with pytest.raises(ValueError, match="did not honor.*override"):
         job.provision_downlevel_targeting_packs(
-            str(state.payload), str(state.dotnet_root), "net11.0", "windows")
+            str(state.payload), str(state.dotnet_root), "net12.0", "windows")
 
 
 def test_sdk_must_locate_staged_packs(targeting_pack_payload):
@@ -406,9 +406,9 @@ def test_sdk_must_locate_staged_packs(targeting_pack_payload):
     state.selection.side_effect = None
     state.selection.return_value = json.dumps({"Items": {"TargetingPack": [
         {"NuGetPackageId": package, "NuGetPackageVersion": version}
-        for package, version in state.versions["net8.0"].items()
+        for package, version in state.versions["net10.0"].items()
     ]}})
 
     with pytest.raises(ValueError, match="could not locate staged"):
         job.provision_downlevel_targeting_packs(
-            str(state.payload), str(state.dotnet_root), "net11.0", "windows")
+            str(state.payload), str(state.dotnet_root), "net12.0", "windows")

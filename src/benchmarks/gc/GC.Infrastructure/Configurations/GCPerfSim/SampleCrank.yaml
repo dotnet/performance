@@ -1,6 +1,6 @@
 # Inputs:
 # - How to control the version of dotnet and SDK
-#   --application.framework net8.0
+#   --application.framework net10.0
 #   --application.runtimeVersion 7.0.0-rtm.22511.4 
 # - How to get custom corerun: both as commits and locally.
 #   --application.options.outputFiles c:\git\runtime\artifacts\bin\coreclr\windows.x64.Release\clrgc.dll

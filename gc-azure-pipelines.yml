@@ -1,5 +1,5 @@
 # Project: src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure.Core.UnitTests/GC.Infrastructure.Core.UnitTests.csproj.
-# Output: artifacts\bin\GC.Infrastructure.Core.UnitTests\Debug\net8.0\GC.Infrastructure.Core.UnitTests.dll
+# Output: artifacts\bin\GC.Infrastructure.Core.UnitTests\Debug\net10.0\GC.Infrastructure.Core.UnitTests.dll
 
 resources:
   containers:

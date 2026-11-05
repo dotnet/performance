@@ -92,10 +92,6 @@ def get_target_framework_moniker(framework: str) -> str:
         return 'net6.0'
     if framework == 'nativeaot7.0':
         return 'net7.0'
-    if framework == 'nativeaot8.0':
-        return 'net8.0'
-    if framework == 'nativeaot9.0':
-        return 'net9.0'
     if framework == 'nativeaot10.0':
         return 'net10.0'
     if framework == 'nativeaot11.0':
@@ -882,7 +878,7 @@ def get_dotnet_version_from_path(
         sdk = next((f for f in sdks if f.startswith(
             "{}.{}".format(version.major, version.minor + 1))), None)
     if not sdk:
-        # Attempt 3: Try to use SDK with major version + 1 (e.g., net9.0 -> SDK 10.0, net10.0 -> SDK 11.0).
+        # Attempt 3: Try to use SDK with major version + 1 (e.g., net10.0 -> SDK 11.0).
         sdk = next((f for f in sdks if f.startswith(
             "{}.{}".format(version.major + 1, version.minor))), None)
     if not sdk:
