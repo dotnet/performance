@@ -751,6 +751,43 @@ def test_coreclr_payload_rejects_nonempty_runtime_pack_destination(
         assert (stale_pack / name).read_bytes() == contents
 
 
+@pytest.mark.parametrize("archive", [False, True], ids=["directory", "tar.gz"])
+def test_coreclr_payload_rejects_existing_pack_before_sdk_overwrite(tmp_path, archive):
+    artifact = _write_coreclr_artifact(tmp_path)
+    payload = tmp_path / "payload"
+    relative_pack = Path("packs") / "Microsoft.NETCore.App.Runtime.browser-wasm" / "11.0.0-ci"
+    sdk_pack = artifact / "staging" / "dotnet-none" / relative_pack
+    destination = payload / "dotnet" / relative_pack
+    sdk_files = {
+        "data/RuntimeList.xml": b"SDK runtime metadata",
+        "dotnet.native.wasm": b"SDK runtime\x00\xff",
+    }
+    existing_files = {
+        "data/RuntimeList.xml": b"existing payload metadata",
+        "dotnet.native.wasm": b"existing payload runtime\x00\xfe",
+    }
+    for folder, files in ((sdk_pack, sdk_files), (destination, existing_files)):
+        (folder / "data").mkdir(parents=True)
+        for name, contents in files.items():
+            (folder / name).write_bytes(contents)
+    source = _archive_coreclr_artifact(artifact, tmp_path) if archive else artifact
+    archive_bytes = source.read_bytes() if archive else None
+
+    with pytest.raises(ValueError) as error:
+        build_wasm_coreclr_payload(str(source), str(payload))
+
+    assert str(error.value) == (
+        f"CoreCLR browser-wasm runtime pack destination is not empty: {destination}")
+    assert {
+        path.relative_to(destination).as_posix(): path.read_bytes()
+        for path in destination.rglob("*") if path.is_file()
+    } == existing_files
+    for name, contents in sdk_files.items():
+        assert (sdk_pack / name).read_bytes() == contents
+    if archive:
+        assert source.read_bytes() == archive_bytes
+
+
 def test_coreclr_archive_payload_without_crossgen2_tasks_shim(tmp_path):
     archive = _archive_coreclr_artifact(_write_coreclr_artifact(tmp_path), tmp_path)
     payload = tmp_path / "payload"
