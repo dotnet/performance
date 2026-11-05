@@ -339,6 +339,28 @@ def test_sdk_tooling_installs_share_root_and_select_main_last():
     assert args.install_dir == root
 
 
+def test_gc_bootstrap_installs_main_sdk_before_tool_restore():
+    template = (repo_root / "gc-azure-pipelines.yml").read_text()
+    root = r"$(Agent.ToolsDirectory)\dotnet"
+    tasks = template.split("- task: UseDotNet@2")
+    assert len(tasks) == 3
+    for task, version in zip(tasks[1:], ("10.0.x", "11.0.x")):
+        inputs = task.split("- pwsh:", 1)[0]
+        assert f"version: {version}\n" in inputs
+        assert f"installationPath: '{root}'" in inputs
+    install = f'python scripts\\dotnet.py install --channels main --architecture x64 --install-dir "{root}"'
+    assert template.count(install) == 1
+    assert f'##vso[task.prependpath]{root}' in template
+    assert template.index("version: 11.0.x") < template.index(install) < template.index("- script: dotnet tool restore")
+    bootstrap = template.split("- pwsh:", 1)[1].split("- script:", 1)[0]
+    assert "$ErrorActionPreference = 'Stop'" in bootstrap
+    assert "$PSNativeCommandUseErrorActionPreference = $true" in bootstrap
+    assert "version: 12.0.x" not in template
+    assert template.count("--framework net10.0") == 4
+    assert template.count("searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/bin/") == 2
+    assert template.count("/Debug/net10.0'") == 2
+
+
 @pytest.mark.parametrize(("group", "caller_count"), [
     ("runPublicJobs", 15), ("runPrivateJobs", 13), ("runScheduledPrivateJobs", 10),
 ])
