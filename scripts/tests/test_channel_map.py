@@ -29,6 +29,8 @@ def test_main_selects_sdk_and_runtime_12():
 
 
 @pytest.mark.parametrize(("framework", "flavor", "moniker", "legacy_flavor", "aot_mode"), [
+    ("net10.0", "Mono", "wasmnet10_0", False, None),
+    ("net10.0", "CoreCLR", "wasmnet10_0", True, None),
     ("net11.0", "Mono", "wasmnet11_0", False, None),
     ("net11.0", "CoreCLR", "wasmnet11_0", True, None),
     ("net12.0", "Mono", "wasmnet12_0", False, None),
@@ -69,6 +71,9 @@ def test_versioned_channels_keep_their_sdk_and_framework(version):
 
 
 @pytest.mark.parametrize("channel", [
+    "master", "3.1", "release/3.1.1xx", "release/3.1.2xx", "release/3.1.3xx",
+    "6.0", "release/6.0", "nativeaot6.0",
+    "7.0", "release/7.0", "release/7.0-rc1", "release/7.0-rc2", "nativeaot7.0",
     "8.0", "9.0", "release/8.0", "release/9.0", "nativeaot8.0", "nativeaot9.0",
     "release/8.0-rc1", "release/8.0-rc2", "8.0-preview",
     *(f"release/8.0-preview{version}" for version in range(1, 8)),
@@ -82,20 +87,35 @@ def test_retired_channels_are_not_supported(channel):
 
 
 def test_retired_frameworks_have_no_acquisition_channel():
-    for framework in ("net8.0", "net9.0", "nativeaot8.0", "nativeaot9.0"):
+    for framework in ("netcoreapp2.1", "netcoreapp3.0", "netcoreapp3.1",
+                      *(f"net{major}.0" for major in range(5, 10)),
+                      *(f"nativeaot{major}.0" for major in range(6, 10))):
         assert framework not in ChannelMap.get_supported_frameworks()
         with pytest.raises(Exception, match="is not supported"):
             ChannelMap.get_channel_from_target_framework_moniker(framework)
     assert ChannelMap.get_branch("net472") == "10.0"
     assert ChannelMap.get_target_framework_moniker("net472") == "net472"
+    assert ChannelMap.get_branch("net48") == "LTS"
+    assert ChannelMap.get_supported_frameworks() == {
+        "net10.0", "net11.0", "net12.0", "nativeaot10.0", "nativeaot11.0", "net472", "net48"}
 
 
-@pytest.mark.parametrize("framework", ["net8.0", "net9.0", "nativeaot8.0", "nativeaot9.0"])
+@pytest.mark.parametrize("framework", [
+    "netcoreapp2.1", "netcoreapp3.0", "netcoreapp3.1",
+    *(f"net{major}.0" for major in range(5, 10)),
+    *(f"nativeaot{major}.0" for major in range(6, 10)),
+])
 def test_retired_explicit_frameworks_fail_before_payload_setup(framework):
     args = RunPerformanceJobArgs(
         run_kind="micro", architecture="x64", os_group="windows", framework=framework)
     with pytest.raises(ValueError, match="targeting is retired"):
         get_target_framework(args, "main")
+
+
+def test_net472_explicit_target_is_not_retired():
+    args = RunPerformanceJobArgs(
+        run_kind="micro", architecture="x64", os_group="windows", framework="net472")
+    assert get_target_framework(args, "main") == "net472"
 
 
 @pytest.mark.parametrize(
@@ -342,12 +362,13 @@ def test_automatic_sdk_matrix_callers_only_select_main(group, caller_count):
     assert "'--channel $(_Channel)'" in matrix
 
 
-@pytest.mark.parametrize("version", [8, 9])
+@pytest.mark.parametrize("version", ["3.1", 6, 7, 8, 9])
 def test_retired_sdk_pins_are_removed(version):
     assert not (repo_root / f"global.net{version}.json").exists()
     assert f"global.net{version}.json" not in (repo_root / "scripts" / "ci_setup.py").read_text()
-    sources = ET.parse(repo_root / "NuGet.config").findall("./packageSources/add")
-    assert not {f"dotnet{version}", f"dotnet{version}-transport"} & {item.get("key") for item in sources}
+    for config in (repo_root / "NuGet.config", repo_root / "src" / "benchmarks" / "micro" / "wasm" / "nuget.config"):
+        sources = ET.parse(config).findall("./packageSources/add")
+        assert not {f"dotnet{version}", f"dotnet{version}-transport"} & {item.get("key") for item in sources}
 
 
 def test_gc_launch_assets_do_not_select_retired_frameworks():
@@ -361,7 +382,7 @@ def test_gc_launch_assets_do_not_select_retired_frameworks():
     for path in commands:
         frameworks.extend(re.findall(r"--application\.framework (\S+)", path.read_text(encoding="utf-8-sig")))
     assert "net10.0" in frameworks
-    assert not {"net8.0", "net9.0"} & set(frameworks)
+    assert all(not re.fullmatch(r"net(?:coreapp)?[1-9]\.\d+", framework) for framework in frameworks)
     for path in gc_root.joinpath("Notebooks", "Examples").glob("*.ipynb"):
         notebook = json.loads(path.read_text(encoding="utf-8-sig"))
         for cell in notebook["cells"]:
@@ -382,6 +403,11 @@ def test_gc_launch_assets_do_not_select_retired_frameworks():
     "src/benchmarks/real-world/ILLink/SampleProject/HelloWorld.template.csproj",
     "src/scenarios/blazorlocalized/src/BlazorLocalized/BlazorLocalized.csproj",
     "src/scenarios/blazorlocalized/src/BlazorLocalized.ClassLibrary/BlazorLocalized.ClassLibrary.csproj",
+    *[
+        f"src/scenarios/{scenario}/src/{project}/{project}.csproj"
+        for scenario in ("blazorpizza", "blazorpizzaaot")
+        for project in ("BlazingComponents", "BlazingPizza.Client", "BlazingPizza.ComponentsLibrary", "BlazingPizza.Shared")
+    ],
 ])
 def test_standalone_benchmark_defaults_use_net10(project):
     result = subprocess.run(
@@ -390,6 +416,24 @@ def test_standalone_benchmark_defaults_use_net10(project):
         cwd=repo_root, check=True, capture_output=True, text=True,
     )
     assert result.stdout.strip() == "net10.0"
+
+
+@pytest.mark.parametrize(("project", "framework"), [
+    ("src/tools/ResultsComparer/ResultsComparer.csproj", "net10.0"),
+    ("src/tools/PerfLabGenericEventSourceForwarder/PerfLabGenericEventSourceForwarder/PerfLabGenericEventSourceForwarder.csproj", "net10.0"),
+    ("src/benchmarks/other/docker/docker-harness.csproj", "net10.0"),
+    ("src/scenarios/weblarge3.0/src/mvc/mvc.csproj", "net10.0"),
+    ("src/scenarios/staticwinformstemplate/src/staticwinformstemplate.csproj", "net10.0-windows"),
+    ("src/scenarios/windowsformslarge/src/WinformsNetCorePerfApp1.csproj", "net10.0-windows"),
+    ("src/scenarios/wpfsfc/src/wpfsfc.csproj", "net10.0-windows"),
+])
+def test_older_standalone_targets_are_migrated(project, framework):
+    result = subprocess.run(
+        [shutil.which("dotnet"), "msbuild", str(repo_root / project), "-nologo",
+         "-p:PERFLAB_TARGET_FRAMEWORKS=", "-getProperty:TargetFramework"],
+        cwd=repo_root, check=True, capture_output=True, text=True,
+    )
+    assert result.stdout.strip() == framework
 
 
 def test_shared_harness_and_tooling_floor():
@@ -500,10 +544,18 @@ def test_sdk_scenarios_include_current_framework(tmp_path, framework):
     )
     items = json.loads(result.stdout)["Items"]
     frameworks = [item["Identity"] for item in items["Framework"]]
-    assert framework in frameworks
-    assert ("net12.0" in frameworks) == (framework == "net12.0")
-    assert not {"net8.0", "net9.0"} & set(frameworks)
+    assert frameworks == {
+        "net10.0": ["net10.0"], "net11.0": ["net11.0"],
+        "net12.0": ["net10.0", "net11.0", "net12.0"],
+    }[framework]
     for kind in ("SDKWorkItem", "HelixWorkItem"):
         assert items[kind]
-        assert not re.search(r"net[89]\.0", json.dumps(items[kind]))
+        assert not re.search(r"net(?:coreapp)?[1-9]\.\d+", json.dumps(items[kind]))
     assert any(item["Identity"] == f"SDK Console Template {framework}" for item in items["SDKWorkItem"])
+    assert not any(item["Identity"].startswith("Hot Reload") for item in items["HelixWorkItem"])
+
+
+def test_old_only_runner_and_sdk_examples_are_retired():
+    assert not (repo_root / "scripts" / "benchmarks_monthly.py").exists()
+    project = (repo_root / "eng" / "performance" / "sdk_scenarios.proj").read_text()
+    assert not re.search(r"net(?:coreapp)?[1-9]\.\d+|Exclude=|Hot Reload|weblarge3\.0", project)

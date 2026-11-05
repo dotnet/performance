@@ -80,8 +80,8 @@ Same instruction of [Scenario Tests Guide - Step 4](./scenarios-workflow.md#step
 
 ## Command Matrix
 
-The current .NET targets are listed below. Fixed netcoreapp3.1 assets in the
-matrix are historical/manual scenarios, not automatic current-target jobs.
+The current .NET targets are listed below. Windows UI assets use the
+corresponding `-windows` target framework.
 
 - \<tfm> values:
   - net10.0
@@ -99,9 +99,9 @@ matrix are historical/manual scenarios, not automatic current-target jobs.
 | Static VB Console Template Publish Startup    | staticvbconsoletemplate | pre.py publish -f TFM -c Release           | test.py startup | post.py     | net10.0;net11.0;net12.0 | Windows            |
 | Static VB Console Template Publish SizeOnDisk | staticvbconsoletemplate | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | net10.0;net11.0;net12.0 | Windows;Linux      |
 | Static VB Console Template Build SizeOnDisk   | staticvbconsoletemplate | pre.py build -f TFM -c Release             | test.py sod     | post.py     | net10.0;net11.0;net12.0 | Windows;Linux      |
-| Static Winforms Template Publish Startup      | staticwinformstemplate  | pre.py publish -f TFM -c Release           | test.py startup | post.py     | netcoreapp3.1        | Windows            |
-| Static Winforms Template Publish SizeOnDisk   | staticwinformstemplate  | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | netcoreapp3.1        | Windows;Linux      |
-| Static Winforms Template Build SizeOnDisk     | staticwinformstemplate  | pre.py build -f TFM -c Release             | test.py sod     | post.py     | netcoreapp3.1        | Windows;Linux      |
+| Static Winforms Template Publish Startup      | staticwinformstemplate  | pre.py publish -f TFM -c Release           | test.py startup | post.py     | net10.0;net11.0;net12.0 | Windows            |
+| Static Winforms Template Publish SizeOnDisk   | staticwinformstemplate  | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | net10.0;net11.0;net12.0 | Windows            |
+| Static Winforms Template Build SizeOnDisk     | staticwinformstemplate  | pre.py build -f TFM -c Release             | test.py sod     | post.py     | net10.0;net11.0;net12.0 | Windows            |
 | New Console Template Publish Startup          | emptyconsoletemplate    | pre.py publish -f TFM -c Release           | test.py startup | post.py     | net10.0;net11.0;net12.0 | Windows            |
 | New Console Template Publish SizeOnDisk       | emptyconsoletemplate    | pre.py publish -f TFM -c Release /<-r RID> | test.py sod     | post.py     | net10.0;net11.0;net12.0 | Windows;Linux      |
 | New Console Template Build SizeOnDisk         | emptyconsoletemplate    | pre.py build -f TFM -c Release             | test.py sod     | post.py     | net10.0;net11.0;net12.0 | Windows;Linux      |

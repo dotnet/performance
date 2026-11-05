@@ -171,9 +171,12 @@ Same instruction of [Step 4 in Scenario Tests Guide](scenarios-workflow.md#step-
 
 ## Command Matrix
 
-The current .NET targets are listed below. Fixed netcoreapp3.1 assets are
-historical/manual scenarios; the netstandard library scenario is not queued by
-the current SDK pipeline.
+The current .NET targets are listed below. The netstandard library scenario is
+manual and is not queued by the current SDK pipeline. Obsolete downlevel SDK
+work items and their disabled examples have been removed.
+
+Regular .NET 10 and .NET 11 pipeline runs, analogous to the former .NET 8/9
+runs, are a separate follow-up. This cleanup does not add those automatic jobs.
 
 - \<tfm> values:
   - net10.0
@@ -188,9 +191,5 @@ the current SDK pipeline.
 | SDK Console Template          | emptyconsoletemplate | pre.py default -f \<tfm> | test.py sdk \<build option> | post.py     | net10.0;net11.0;net12.0 | Windows;Linux      |
 | SDK .NET 2.0 Library Template | netstandard2.0       | pre.py default -f netstandard2.0 | test.py sdk \<build option> | post.py     | netstandard2.0 (manual) | Windows;Linux      |
 | SDK ASP.NET MVC App Template  | mvcapptemplate       | pre.py default -f \<tfm> | test.py sdk \<build option> | post.py     | net10.0;net11.0;net12.0               | Windows;Linux      |
-| SDK Web Large 3.0             | weblarge3.0          | pre.py default -f \<tfm> | test.py sdk \<build option> | post.py     | netcoreapp3.1                             | Windows;Linux      |
-| SDK Windows Forms Large       | windowsformslarge    | pre.py default -f \<tfm> | test.py sdk \<build option> | post.py     | netcoreapp3.1                             | Windows            |
-| SDK WPF Large                 | wpflarge             | pre.py default -f \<tfm> | test.py sdk \<build option> | post.py     | netcoreapp3.1                             | Windows            |
-| SDK Windows Forms Template    | windowsforms         | pre.py default -f \<tfm> | test.py sdk \<build option> | post.py     | netcoreapp3.1                             | Windows            |
-| SDK WPF Template              | wpf                  | pre.py default -f \<tfm> | test.py sdk \<build option> | post.py     | netcoreapp3.1                             | Windows            |
+| SDK Web Large (manual)         | weblarge3.0          | pre.py default -f \<tfm> | test.py sdk \<build option> | post.py     | net10.0;net11.0;net12.0                   | Windows;Linux      |
 | SDK New Console               | emptyconsoletemplate | N/A                      | test.py sdk new_console     | post.py     | net10.0;net11.0;net12.0 | Windows;Linux      |

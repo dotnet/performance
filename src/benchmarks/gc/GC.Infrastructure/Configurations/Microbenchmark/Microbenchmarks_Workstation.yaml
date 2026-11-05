@@ -19,7 +19,7 @@ runs:
 microbenchmark_configurations:
   filter: 
   filter_path: C:\InfraRuns\RunNew_All\Suites\Microbenchmark\MicrobenchmarksToRun.txt
-  dotnet_installer: net7.0
+  dotnet_installer: net10.0
   bdn_arguments: --warmupCount 1 --iterationCount 20 --allStats --outliers DontRemove --keepFiles
 environment:
   default_max_seconds: 3000

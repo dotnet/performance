@@ -3,7 +3,7 @@ runs:
     corerun: C:\CoreRuns\Empty\
     environment_variables:
       DOTNET_gcServer: 1
-    framework_version: net6.0
+    framework_version: net10.0
   run:
     corerun: C:\CoreRuns\Empty\
     environment_variables:

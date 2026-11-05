@@ -20,7 +20,7 @@ from performance.common import RunCommand, get_machine_architecture
 from performance.logger import setup_loggers
 
 # Assumptions: We are only testing this Performance repo, should allow single run or multiple runs
-# For dotnet_version based runs, use the benchmarks_monthly .py script instead
+# For explicit SDK versions, use benchmarks_ci.py --dotnet-versions instead.
 # Verify the input commands
 # What are supported default cases: MonoJIT, MonoInterpreter, MonoAOTLLVM, Corerun, WasmInterpreter etc.
 

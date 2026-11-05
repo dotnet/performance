@@ -44,10 +44,21 @@ If you are not familiar with BenchmarkDotNet or this repository you should read 
 
 To learn more about designing benchmarks, please read [Microbenchmark Design Guidelines](./microbenchmark-design-guidelines.md).
 
-Main no longer queues .NET 8/9 SDK-channel jobs or generates their downlevel SDK
-scenario work items. Repo-owned benchmark defaults and the shared harness now
+Main no longer queues obsolete pre-.NET 10 SDK-channel jobs or generates their
+downlevel SDK scenario work items. Repo-owned benchmark defaults and the shared harness now
 require .NET 10 or later. Explicit .NET 10/11 channels remain available; main
 continues to select .NET 12 for desktop/browser and .NET 11 for mobile.
+
+**Separate follow-up:** add regular .NET 10 and .NET 11 runs and coverage,
+analogous to the former .NET 8 and .NET 9 runs. This retirement does not add
+those automatic matrix legs, schedules, or live jobs; explicit 10/11 support
+is retained to enable that rollout.
+
+The `net472` ChannelMap identity and its SDK 10 acquisition are retained.
+The separate `net48` Full Framework/LTS-SDK mapping is also unchanged.
+These are not obsolete .NET Core runtime channels. Structural API guards,
+netstandard library targets, and historical result-key parsing remain for
+their distinct compilation and data-compatibility purposes.
 
 For an old-target reproduction, use a separate checkout of the pre-retirement
 commit `387a666faaf7c64e6294293427a97b5828bb91af` or the appropriate historical

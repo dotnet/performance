@@ -2,11 +2,13 @@ import importlib
 import json
 import os
 from pathlib import Path
+import runpy
 import shlex
 import shutil
 import subprocess
 import sys
 from unittest.mock import Mock
+from types import SimpleNamespace
 import xml.etree.ElementTree as ET
 
 import pytest
@@ -179,3 +181,52 @@ def test_readonly_sdk_requires_preinstalled_workload(scenario_commands, monkeypa
         PreCommands().install_workload("wasm-tools")
 
     run.assert_not_called()
+
+
+@pytest.mark.parametrize("framework", ["net10.0", "net11.0", "net12.0"])
+def test_linker_dump_uses_supported_targets(scenario_commands, tmp_path, framework):
+    get_linker_dump = importlib.import_module("shared.runner").get_linker_dump
+    old = tmp_path / "obj" / "Release" / "net5.0" / "browser-wasm" / "linked" / "linker-dependencies.xml.gz"
+    old.parent.mkdir(parents=True)
+    old.touch()
+    assert get_linker_dump(str(tmp_path)) is None
+    current = tmp_path / "obj" / "Release" / framework / "browser-wasm" / "linked" / old.name
+    current.parent.mkdir(parents=True)
+    current.touch()
+    assert get_linker_dump(str(tmp_path)) == str(current)
+
+
+def test_multiple_current_linker_dumps_fail_explicitly(scenario_commands, tmp_path):
+    get_linker_dump = importlib.import_module("shared.runner").get_linker_dump
+    for framework in ("net10.0", "net12.0"):
+        dump = tmp_path / "obj" / "Release" / framework / "browser-wasm" / "linked" / "linker-dependencies.xml.gz"
+        dump.parent.mkdir(parents=True)
+        dump.touch()
+    with pytest.raises(ValueError, match="Multiple current-target linker dumps"):
+        get_linker_dump(str(tmp_path))
+
+
+@pytest.mark.parametrize("scenario", ["blazor", "blazoraot", "blazorminapp", "blazorminappaot", "blazorpizza", "blazorpizzaaot"])
+def test_blazor_runner_forwards_current_linker_dump(scenario_commands, monkeypatch, scenario):
+    runner = importlib.import_module("shared.runner")
+    dump = Mock(return_value="current-linker-dump")
+    run = Mock()
+    monkeypatch.setattr(runner, "get_linker_dump", dump)
+    monkeypatch.setattr(runner, "Runner", run)
+    runpy.run_path(str(repo_root / "src" / "scenarios" / scenario / "test.py"), run_name="__main__")
+    dump.assert_called_once()
+    assert run.call_args.args[0].artifact == "current-linker-dump"
+    run.return_value.run.assert_called_once()
+
+
+@pytest.mark.parametrize("scenario", ["blazor", "blazorpizza"])
+def test_current_blazor_precommand_uses_current_workload(scenario_commands, monkeypatch, scenario):
+    commands = importlib.import_module("shared.precommands")
+    pre = Mock()
+    pre.framework = "net12.0"
+    monkeypatch.setattr(commands, "PreCommands", Mock(return_value=pre))
+    monkeypatch.setitem(sys.modules, "test", SimpleNamespace(EXENAME="test"))
+    monkeypatch.setattr("performance.logger.setup_loggers", Mock())
+    runpy.run_path(str(repo_root / "src" / "scenarios" / scenario / "pre.py"))
+    pre.uninstall_workload.assert_called_once_with("wasm-tools")
+    pre.execute.assert_called_once_with(["-p:WasmNativeWorkload=false"])

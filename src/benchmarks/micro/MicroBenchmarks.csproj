@@ -37,20 +37,6 @@
 
   <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->
   <Choose>
-    <When Condition="'$(TargetFramework)' == 'net6.0'">
-        <PropertyGroup>
-            <LangVersion>10.0</LangVersion>
-            <ExtensionsVersion>6.0.0</ExtensionsVersion>
-            <SystemVersion>6.0.0</SystemVersion>
-        </PropertyGroup>
-    </When>
-    <When Condition="'$(TargetFramework)' == 'net7.0'">
-        <PropertyGroup>
-            <LangVersion>11.0</LangVersion>
-            <ExtensionsVersion>7.0.0</ExtensionsVersion>
-            <SystemVersion>7.0.0</SystemVersion>
-        </PropertyGroup>
-    </When>
     <When Condition="'$(TargetFramework)' == 'net10.0'">
         <PropertyGroup>
             <LangVersion>14</LangVersion>

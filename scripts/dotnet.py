@@ -88,10 +88,6 @@ def get_target_framework_moniker(framework: str) -> str:
     To run NativeAOT benchmarks we need to run the host BDN process as latest
     .NET the host process will build and run AOT benchmarks
     '''
-    if framework == 'nativeaot6.0':
-        return 'net6.0'
-    if framework == 'nativeaot7.0':
-        return 'net7.0'
     if framework == 'nativeaot10.0':
         return 'net10.0'
     if framework == 'nativeaot11.0':
@@ -111,7 +107,7 @@ def get_target_framework_monikers(frameworks: list[str]) -> list[str]:
         for framework in frameworks
     ]
 
-    # ['net6.0', 'nativeaot6.0'] should become ['net6.0']
+    # ['net10.0', 'nativeaot10.0'] should become ['net10.0']
     return list(set(monikers))
 
 

@@ -148,7 +148,7 @@ class PreCommands:
         parser.add_argument('-f', '--framework',
                             dest='framework',
                             metavar='framework',
-                            help='framework for build or publish - ex: netcoreapp3.0')
+                            help='framework for build or publish - ex: net10.0')
         parser.add_argument('-r', '--runtime',
                             dest='runtime',
                             metavar='runtime',
@@ -387,4 +387,3 @@ class PreCommands:
         if os.path.isdir(const.APPDIR):
             shutil.rmtree(const.APPDIR)
         shutil.copytree(projectdir, const.APPDIR)
-

@@ -1023,9 +1023,10 @@ def get_work_item_command(
 
 def get_target_framework(args: RunPerformanceJobArgs, channel: str) -> str:
     if args.framework:
-        if re.fullmatch(r"(?:net|nativeaot)[89]\.0", args.framework):
+        runtime_version = re.fullmatch(r"(?:net|nativeaot|netcoreapp)(\d+)\.\d+", args.framework)
+        if runtime_version and int(runtime_version.group(1)) < 10:
             raise ValueError(
-                ".NET 8/9 targeting is retired on main; use a historical performance checkout.")
+                "Runtime targeting is retired for .NET versions earlier than 10; use a historical performance checkout.")
         return args.framework
     return ChannelMap.get_target_framework_moniker(
         channel, mobile=args.run_kind.startswith("maui_scenarios")

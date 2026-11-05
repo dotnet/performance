@@ -4,15 +4,9 @@
 
 
   <ItemGroup>
-      <Framework Include="netcoreapp2.1" FrameworkName="%(Identity)"/>
-      <Framework Include="netcoreapp3.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '2.1'"/>
-      <Framework Include="netcoreapp3.1" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.0'"/>
-      <Framework Include="netcoreapp5.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.1'"/>
-      <Framework Include="net6.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '5.0'"/>
-      <Framework Include="net7.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '6.0'"/>
-      <Framework Include="net10.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '9.0' and '$(PERFLAB_Framework)' != 'net11.0'"/>
-      <Framework Include="net11.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '10.0'"/>
-      <Framework Include="net12.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '11.0'"/>
+      <Framework Include="net10.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt;= '10.0' and '$(PERFLAB_Framework)' != 'net11.0'"/>
+      <Framework Include="net11.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt;= '11.0'"/>
+      <Framework Include="net12.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt;= '12.0'"/>
   </ItemGroup>
 
   <ItemDefinitionGroup>
@@ -24,7 +18,7 @@
   </ItemDefinitionGroup>
   
   <ItemGroup>
-    <SDKWorkItem Include="@(Framework -> 'SDK Console Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0;*7.0;">
+    <SDKWorkItem Include="@(Framework -> 'SDK Console Template %(Identity)')">
       <ScenarioDirectoryName>emptyconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
@@ -89,37 +83,6 @@
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem> -->
 
-    <!-- WebLarge3.0 asset is specific to netcoreapp3.0 and netcoreapp3.1
-    <SDKWorkItem Include="@(Framework -> 'SDK Web Large 3.0 %(Identity)')" Exclude="*2.1;*5.0">
-      <ScenarioDirectoryName>weblarge3.0</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
-    </SDKWorkItem> -->
-
-    <!-- We never run against Framework 3.0 or 3.1 -->
-    <!-- <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
-      <ScenarioDirectoryName>windowsformslarge</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
-    </SDKWorkItem>
-
-    <SDKWorkItem Include="@(Framework -> 'SDK WPF Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
-      <ScenarioDirectoryName>wpflarge</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
-    </SDKWorkItem>
-
-    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Template %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
-      <ScenarioDirectoryName>windowsforms</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
-    </SDKWorkItem>
-
-    <SDKWorkItem Include="@(Framework -> 'SDK WPF Template %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
-      <ScenarioDirectoryName>wpf</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
-    </SDKWorkItem> -->
   </ItemGroup>
 
   <ItemGroup>
@@ -169,22 +132,6 @@
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>$(Python) pre.py default -f $(PERFLAB_Framework)</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
-      <PostCommands>$(Python) post.py</PostCommands>
-    </HelixWorkItem>
-    <!--
-    <HelixWorkItem Include="Hot Reload Blazor Client" Condition="'$(FrameworkVersion)' == '6.0'">
-      <ScenarioDirectoryName>blazorwasmdotnetwatch</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py build -f $(PERFLAB_Framework) -c Release</PreCommands>
-      <Command>$(Python) test.py dotnetwatch -(-fixme when uncommenting!!)scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
-      <PostCommands>$(Python) post.py</PostCommands>
-    </HelixWorkItem>
-    -->
-    <HelixWorkItem Include="Hot Reload MVC" Condition="'$(FrameworkVersion)' == '6.0'">
-      <ScenarioDirectoryName>mvcdotnetwatch</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py build -f $(PERFLAB_Framework) -c Release</PreCommands>
-      <Command>$(Python) test.py dotnetwatch --scenario-name &quot;%(Identity)&quot; $(ScenarioArgs)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
   </ItemGroup>
