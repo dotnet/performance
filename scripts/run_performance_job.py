@@ -28,6 +28,7 @@ from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
 DEFAULT_BUILD_CONFIG = "Release"
 APT_LOCK_TIMEOUT_OPTION = "-o DPkg::Lock::Timeout=120"
+WASM_NODE_MIN_VERSION = (22, 23, 4)
 TARGETING_PACK_COMPONENTS = {
     "Microsoft.NETCore.App.Ref": "runtime",
     "Microsoft.AspNetCore.App.Ref": "aspnetcore-runtime",
@@ -552,6 +553,19 @@ def get_pre_commands(
                 "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
             ]
         else:
+            node_major, node_minor, node_patch = WASM_NODE_MIN_VERSION
+            node_min_version = ".".join(map(str, WASM_NODE_MIN_VERSION))
+            # Use one expression: semicolons delimit Helix's MSBuild pre-command list.
+            node_version_check = (
+                "node -e '(([major, minor, patch]) => "
+                f"major === {node_major} && "
+                f"(minor > {node_minor} || (minor === {node_minor} && patch >= {node_patch})) && "
+                r"/^\d+\.\d+\.\d+$/.test(process.versions.node) "
+                '? console.log("Node.js " + process.versions.node) '
+                f': (console.error("Node.js >= {node_min_version} in the {node_major}.x line is required, found " '
+                '+ process.versions.node), process.exit(1)))'
+                '(process.versions.node.split(".").map(Number))\''
+            )
             install_prerequisites += [
                 apt_command("-y remove nodejs"),
                 apt_command("update"),
@@ -559,11 +573,12 @@ def get_pre_commands(
                 "sudo mkdir -p /etc/apt/keyrings",
                 "sudo rm -f /etc/apt/keyrings/nodesource.gpg",
                 "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor --batch -o /etc/apt/keyrings/nodesource.gpg",
-                "export NODE_MAJOR=18",
+                f"export NODE_MAJOR={node_major}",
                 "echo \"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main\" | sudo tee /etc/apt/sources.list.d/nodesource.list",
                 apt_command("update"),
                 apt_command("autoremove -y", executable="apt"),
                 apt_command("install nodejs -y"),
+                node_version_check,
                 f"test -n \"{v8_version}\"",
                 "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
                 f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",

@@ -1,6 +1,9 @@
 import io
 import json
 from pathlib import Path
+import shlex
+import shutil
+import subprocess
 from types import SimpleNamespace
 from unittest.mock import Mock
 import xml.etree.ElementTree as ET
@@ -103,6 +106,107 @@ def test_generated_prerequisites_do_not_poll_dpkg_lock():
     prerequisites = "\n".join(pre_commands)
     assert "fuser" not in prerequisites
     assert "Waiting for dpkg" not in prerequisites
+
+
+@pytest.mark.parametrize("internal", [False, True])
+@pytest.mark.parametrize("runtime_type", ["wasm", "wasm_coreclr"])
+def test_wasm_nodesource_setup_requires_patched_node_22(internal, runtime_type):
+    pre_commands = get_pre_commands(
+        os_group="linux",
+        os_distro="ubuntu",
+        internal=internal,
+        runtime_type=runtime_type,
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+        wasm_local_package_version="11.0.0-ci" if runtime_type == "wasm_coreclr" else None,
+    )
+    prerequisites = next(command for command in pre_commands if "export NODE_MAJOR=" in command)
+    node_install = job.apt_command("install nodejs -y")
+    npm_install = "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g"
+
+    assert "export NODE_MAJOR=22 && " in prerequisites
+    assert "https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" in prerequisites
+    assert prerequisites.index(node_install) < prerequisites.index("node -e ") < prerequisites.index(npm_install)
+    assert "Node.js >= 22.23.4 in the 22.x line is required" in prerequisites
+    assert f"{npm_install} && $HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@15.1.206" in prerequisites
+    assert "export V8_ENGINE_PATH=~/.jsvu/bin/v8-15.1.206" in prerequisites
+    assert "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'" in prerequisites
+    assert prerequisites.endswith(" || export PERF_PREREQS_INSTALL_FAILED=1")
+
+
+@pytest.mark.parametrize(("version", "accepted"), [
+    ("18.20.8", False),
+    ("20.20.0", False),
+    ("22.0.0", False),
+    ("22.9.9", False),
+    ("22.22.99", False),
+    ("22.23.3", False),
+    ("22.23.4", True),
+    ("22.23.5", True),
+    ("22.24.0", True),
+    ("22.100.0", True),
+    ("23.0.0", False),
+    ("24.22.1", False),
+    ("22.23.4-rc.1", False),
+    ("22.24.0-pre", False),
+    ("22.24", False),
+    ("invalid", False),
+])
+def test_wasm_node_version_check_rejects_affected_or_unexpected_versions(version, accepted):
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node.js is required to exercise the generated version check")
+    pre_commands = get_pre_commands(
+        os_group="linux",
+        os_distro="ubuntu",
+        internal=False,
+        runtime_type="wasm",
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+    )
+    prerequisites = next(command for command in pre_commands if "export NODE_MAJOR=" in command)
+    tokens = shlex.split(prerequisites)
+    node_index = tokens.index("node")
+    assert tokens[node_index + 1] == "-e"
+    version_check = tokens[node_index + 2]
+    assert ";" not in version_check  # Helix serializes pre-commands as an MSBuild list.
+    result = subprocess.run([
+        node, "-e",
+        "require('node:vm').runInNewContext(process.argv[1], "
+        "{console, process: {versions: {node: process.argv[2]}, exit: process.exit}})",
+        version_check, version,
+    ], capture_output=True, text=True, check=False)
+
+    assert result.returncode == (0 if accepted else 1)
+    if accepted:
+        assert result.stdout.strip() == f"Node.js {version}"
+        assert not result.stderr
+    else:
+        assert f"Node.js >= 22.23.4 in the 22.x line is required, found {version}" in result.stderr
+
+
+@pytest.mark.parametrize("runtime_type", ["wasm", "wasm_coreclr"])
+def test_wasm_node_upgrade_preserves_azurelinux_setup(runtime_type):
+    pre_commands = get_pre_commands(
+        os_group="linux",
+        os_distro="azurelinux",
+        internal=False,
+        runtime_type=runtime_type,
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+        wasm_local_package_version="11.0.0-ci" if runtime_type == "wasm_coreclr" else None,
+    )
+    prerequisites = "\n".join(pre_commands)
+
+    assert "sudo tdnf -y install ca-certificates curl gnupg nodejs npm" in prerequisites
+    assert "$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@15.1.206" in prerequisites
+    assert "export V8_ENGINE_PATH=~/.jsvu/bin/v8-15.1.206" in prerequisites
+    assert "nodesource" not in prerequisites
+    assert "node -e " not in prerequisites
+    assert "sudo apt" not in prerequisites
 
 
 def test_linux_prerequisite_failure_remains_failed_after_health_check():
