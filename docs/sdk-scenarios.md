@@ -3,6 +3,335 @@
 An introduction of how to run scenario tests can be found in [Scenarios Tests Guide](./scenarios-workflow.md). The current document has specific instruction to run:
 
 - [SDK Build Throughput Scenario](#sdk-build-throughput-scenario)
+- [Self-built MSBuild scenarios](#self-built-msbuild-scenarios)
+
+## Self-built MSBuild scenarios
+
+`eng\pipelines\msbuild-perf.yml` is a **manual-only, Windows/Linux x64** entrypoint
+for dnceng/internal. It does not alter the existing SDK scenarios or activate
+any pipeline. Register the YAML in the approved Azure Repos performance
+repository. There is no schedule yet; the intended two-hour schedule remains
+disabled until source/artifact access and a manual smoke run are qualified.
+
+The default `accessCheckOnly: true` runs only the identity/source-access job.
+It requires no SDK/asset URLs, asset credentials, Helix variable group, or
+benchmark queue access. `Check-MSBuildSourceAccess.ps1` prints the authenticated
+AzDO job identity name/ID and uses that job's `System.AccessToken` to probe
+`DevDiv/DotNet-msbuild-Trusted` on `main`. It does not print the token, fall
+back to developer Git credentials, download assets, build MSBuild, or submit
+Helix work. A failed source probe fails the job explicitly; inspect the
+preceding Git error to distinguish authorization from connectivity problems.
+The printed identity is the current job principal, not a claim that a
+cross-organization service connection already exists.
+
+Select `accessCheckOnly: false` to include SDK composition and benchmarks.
+That mode still needs source access, the pinned SDK/workload inputs below,
+and authorization to use the existing `DotNet-HelixApi-Access` variable group
+and Tiger queues. If the default dnceng job credential cannot read DevDiv,
+an approved cross-organization credential/access arrangement must be wired
+in before this mode can run; local developer access does not establish it.
+
+The checked-in catalog ports **all 45 enabled PerfStar scenarios** across
+12 versioned workload assets. Disabled PerfStar scenarios, desktop-only
+workloads, and Framework `msbuild.exe` tests are intentionally excluded.
+Canonical scenario names are retained; unsupported/disabled names fail
+selection rather than being mapped to a rebuild.
+
+The pipeline checks out the trusted Azure Repos MSBuild mirror, never GitHub,
+and builds and packs `dotnet/msbuild` using the .NET build engine
+in Release from `main` or a
+full SHA reachable from the mirror's `main`. The latest mirror SHA is
+resolved before fetch and checked out explicitly, then the six shipping packages are overlaid into
+one checksum-pinned SDK. The selected SDK must match the current `main`
+runtime band configured in `scripts\channel_map.py` and satisfy this
+repository's `global.json`.
+It uses the same DLL/target selection as PerfStar, but **not** official
+signing, OptProf optimization, or publishing. Results are marked
+`MSBuildSource=self-built-release`, with the MSBuild source SHA and commit
+timestamp as their primary build identity.
+The build job checks a package-free SDK project, not just `--version`,
+before publishing composed inputs. This catches lazy assembly-binding
+failures such as an incompatible `NuGet.Frameworks` version before the
+benchmark matrix is submitted.
+
+Supply an immutable Windows x64 SDK ZIP URL and its SHA-512 checksum, plus
+`linuxSdkUrl` and `linuxSdkSha512` for a Linux x64 `.tar.gz` from the same
+SDK release. `runLinux` defaults to true; set it false for Windows-only runs.
+The Linux SDK uses the exact same self-built MSBuild shipping packages.
+Safe in-archive file links are materialized during extraction, and executable
+paths are recorded and restored when staging on Linux.
+
+Supply `assetManifestUrl` and `assetManifestSha512` for a staged JSON
+descriptor. Each selected workload needs its exact universal-package
+version, an HTTPS archive URL, and a SHA-512 checksum. The descriptor uses
+the following shape (replace placeholders and include every selected asset):
+
+```json
+{
+  "assets": {
+    "net8-console-app": {
+      "version": "0.0.1",
+      "url": "https://approved-host/immutable/Net8ConsoleApp.zip",
+      "sha512": "<128 hexadecimal digits>"
+    }
+  }
+}
+```
+
+| Asset/package | Version | Enabled operation families |
+|---|---|---|
+| `aspire` | `0.0.3` | rebuild, warm incremental build |
+| `azure-core` | `0.0.1` | rebuild, warm incremental build |
+| `eshop-on-blazor-modified` | `0.0.3` | rebuild |
+| `net8-blazorwasm-app` (package `net8-blazor-wasm-app`) | `0.0.1` | rebuild |
+| `net8-class-lib` | `0.0.1` | rebuild |
+| `net8-console-app` | `0.0.1` | rebuild, `/nr:false`, warm incremental build, warm restore |
+| `orchard-core` | `0.0.6` | rebuild, `/nr:false`, warm incremental build, cold/warm restore, evaluation Pack/Publish/project queries |
+| `rar-search-stress` | `0.0.1` | rebuild |
+| `rar-conflict-details-stress` | `0.0.1` | rebuild |
+| `rar-conflict-warning-stress` | `0.0.1` | rebuild |
+| `very-large-net8-console-app` | `0.0.1` | operational restore |
+| `xunit` | `0.0.2` | rebuild, warm incremental build |
+
+Archive paths, source edits, OS support, and exact iteration counts are in
+`scripts\msbuild_scenarios.json`. The ZIP must be the archive inside the
+universal package, not a ZIP of the universal-package staging directory.
+
+Acquire those packages from `DevDiv/MSBuild.TestAssets` using an identity
+with ReadPackages, then stage the ZIPs at an approved location accessible
+to the pipeline. No feed publication or staging upload is performed by
+this entrypoint. Checksums are mandatory; compute them with
+`Get-FileHash -Algorithm SHA512`. Prefer credential-free archive URLs;
+do not place access tokens in queue-time parameters.
+
+For local composition, `--asset-manifest <file>` accepts the same descriptor
+with a `path` instead of `url`; relative paths resolve beside the descriptor.
+A remotely downloaded descriptor may not reference submitter-local paths.
+The composed manifest stores relative archive paths so the Linux composition
+can reuse the verified Windows downloads without downloading the assets again.
+The old two-archive console/Orchard CLI options remain supported for local
+prototype qualification.
+
+The composed artifact includes the extracted SDK, both asset archives, and
+a manifest containing SDK/overlay checksums, asset versions/checksums,
+source SHA, source timestamp, and build configuration. It is shipped in
+the existing Helix correlation payload rather than downloading a fresh SDK
+on the worker.
+
+Unlike PerfStar's daily-SDK path, composition does not rewrite targeting-pack
+versions to a moving "latest published" version. Select a base SDK whose
+targeting packs for these .NET 8 assets are available on the declared feeds.
+Unavailable packs fail restore explicitly; any baseline patch must be made
+before calculating and pinning the SDK archive checksum.
+
+The default fan-out is **45 work items per OS**, using explicit `/mt:false`
+or `/mt` together with `/m`. Use the pipeline's comma-separated `scenarios`
+parameter to select exact canonical names. Unknown, disabled, unsupported,
+duplicate, and missing-asset selections fail explicitly. `iterations: 0`
+uses the original configured count for each scenario; a positive override
+is intended for qualification and is recorded in report metadata.
+
+Asset setup verifies and extracts each ZIP, declares internal-only NuGet
+sources (including `.perfstar-packages`), and pins the composed SDK.
+Preparation is not timed. Operations preserve these boundaries:
+
+| Family | Setup and measured work |
+|---|---|
+| Rebuild | Initial restore and untimed build; shutdown before each `/t:rebuild`. CLI implicit restore remains enabled with warmed packages. |
+| `/nr:false` rebuild | Same rebuild boundary, with the explicit node-reuse-disabled flag only on these two named scenarios. |
+| Warm incremental build | Initial restore; per round shutdown, source edit, untimed priming build, another source edit, then measured build. |
+| Cold/operational restore | Initial restore populates packages; delete `obj` outside timing and measure `/t:restore` from cold server state. |
+| Warm restore | Initial restore; per round shutdown, untimed priming restore, then measured no-op restore with `obj` retained. |
+| Orchard Pack/Publish evaluation | Restore and Release prebuild; untimed operation warm-up, then server-backed measured operations with shutdown and metrics completion per sample. Publish uses a sorted module/theme `.slnx` and Orchard's declared default framework. |
+| Orchard project-query evaluation | Separate property and item query samples, alternating order across rounds. The primary wall-time counter is the property query; both variants retain independent evaluation counters. |
+
+Node reuse/shared compilation remain enabled within a build except for the
+two explicit `/nr:false` scenarios. Failed Linux MT rounds have a bounded
+five-round recollection budget with discarded-attempt logging; persistent
+build failures, shutdown failures, and malformed/incomplete metrics fail
+qualification rather than producing success-shaped fallback samples.
+Child tool lookup is pinned with both `PATH` and `DOTNET_HOST_PATH`, and
+NuGet package/HTTP caches are isolated per work item. As in PerfStar,
+`DOTNET_CLI_ENABLEAOT=0` keeps SDK commands on the managed path so native
+CLI code cannot bypass the overlaid MSBuild. The RAR conflict-warning
+workload retains its `/clp:ErrorsOnly` console-logging flag.
+The worker rechecks the selected SDK's overlaid-file hashes before running.
+On Windows it normalizes only future-dated SDK files before setup, avoiding
+ZIP timezone artifacts that would invalidate warm incrementality. It does
+not rewrite project source timestamps, and a system-wide `DOTNET_ROOT` is
+rejected instead of being silently measured as the composed SDK.
+
+Both workloads use monotonic wall-clock timing around the build process,
+with no ETW, sampling profile, or binlog in measured iterations. The
+existing Startup tool is used **parse-only** to produce standard PerfLab
+reports (`MSBuild` category, `Build Wall Clock Time` in milliseconds).
+This is not ETW Time on Thread or the existing SDK Clean Build metric.
+Catalog defaults range from 1 to 12 iterations and use a 900-second timeout per command; failed
+builds/timeouts fail the work item rather than becoming timing samples.
+Helix work items have a six-hour budget.
+
+For local use, compose an input directory with
+`scripts\compose_msbuild_sdk.py --help`. Set `PERFLAB_MSBUILD_INPUTS` to that
+directory, `DOTNET_ROOT` to its `sdk` subdirectory, and `PYTHONPATH` to this
+repository's `scripts` and `src\scenarios` directories. From
+`src\scenarios\msbuild`, with no existing `app`
+directory, run:
+
+```powershell
+py -3 pre.py --scenario-id net8-console-app-warm-inc-build-mt-dotnet
+py -3 test.py msbuild --scenario-id net8-console-app-warm-inc-build-mt-dotnet --iterations 1 --timeout 900
+```
+
+On Linux, use `python3`, a Linux composed SDK, and `:` rather than `;` when
+setting `PYTHONPATH`. Normal timing requires no tracing privileges. Linux
+SDK staging validates that the manifest platform matches the selected worker.
+
+Select the exact MT/non-MT scenario identity rather than changing its flags.
+Use `--diagnostics` for a separate, untimed repetition of the selected
+operation with a binlog. Diagnostic failure also fails the work item. Existing
+PerfLab environment variables are required to emit a JSON report locally.
+
+### Evaluation metrics and catalog maintenance
+
+The evaluation startup hook and lifecycle/session reader were ported from
+PerfStar's `tests\EvaluationMetricsStartupHook\StartupHook.cs` and
+`tests\Measurements\EvaluationMetricsSession.cs`. They are built in-repo;
+runtime execution does not require a PerfStar checkout or Crank.
+Hook/event contract checks, per-process completion, server identity, and
+warm time-window validation are retained.
+
+Canonical scenarios collect evaluation metrics by default. Ordinary
+scenarios may explicitly use `--evaluation-collection off` for unsupported
+historical builds; the three evaluation lighthouses require current
+collection. A missing evaluation is not converted into zero: warm zeroes
+require completed, capable collectors spanning the measurement window.
+Both priming and measured windows are validated; only measured-window
+evaluations contribute to warm counters.
+The reader reports evaluation time/count, outside-build-submission
+time/count, and complete per-pass families. Individual evaluation extrema
+and their project/process/evaluation IDs are retained in
+`traces\evaluation-extrema.json`.
+
+Raw session files are written directly under `traces\.perfstar-evaluation-metrics`,
+so lifecycle validation waits on the live collector directory rather than
+an early copy that could miss late process-exit flushes.
+The measurement envelope retains source clock frequency and relative
+session paths so reports can be replayed after download or on another OS.
+Incomplete cohorts, hook errors, and absent required server metrics fail
+the report. Windows lifecycle replacement is serialized and retries
+transient sharing/access conflicts at most five times (375 ms total);
+retries are logged and exposed in the
+`evaluation-collector-lifecycle-retries-count` counter. Persistent errors
+are not suppressed. Measured builds remain untraced; the lightweight
+evaluation hook is separate from optional binlog/collect-linux diagnostics.
+
+To synchronize a later source inventory:
+
+```powershell
+py -3 scripts\sync_msbuild_scenarios.py --perfstar-root D:\git\dotnet-perfstar
+py -3 scripts\sync_msbuild_scenarios.py --perfstar-root D:\git\dotnet-perfstar --check
+```
+
+The generator imports enabled rows only, preserving names, OS routing,
+configured iterations, and pinned asset versions. It rejects unimplemented
+enabled operations. Commit both generated outputs,
+`scripts\msbuild_scenarios.json` and
+`eng\performance\MSBuildScenarios.Generated.props`, with implementation
+changes. The catalog records a platform-independent normalized inventory
+SHA-256 for provenance. Collector code changes require separate review
+and qualification; the catalog generator does not overwrite that code.
+Curated project/edit bindings and workload-specific arguments in
+`scripts\sync_msbuild_scenarios.py` must also be reviewed against the
+upstream asset/test classes when those definitions change.
+
+### SDK/workload compatibility
+
+The port preserves the immutable workloads rather than suppressing SDK
+errors or removing projects to force a successful build. Qualification
+found that Aspire `0.0.3` fails static-web-assets endpoint validation with
+base SDK `11.0.100-rc.2.26504.105`, including on a freshly extracted asset
+with the untouched SDK and no metrics hook. The failing asset is
+`Aspire.Managed` and the endpoint is the SDK's DotNetWatch JS module.
+
+The older `11.0.100-rc.1.26425.128` SDK builds that asset without the overlay,
+but is not a usable replacement for current MSBuild `fed363926dd715fb44d830e924c2e8820595c79e`:
+the overlay requires `NuGet.Frameworks` 8.0, which that base SDK does not
+provide. Select a compatible SDK/MSBuild/asset combination before including
+Aspire in the first full run. Aspire remains registered and enabled; these
+failures are not silently skipped or converted into timing samples.
+
+### Linux diagnostic collection
+
+The new MSBuild scenarios do not use or install `perfcollect`/LTTng. They
+also do not remove existing LTTng kernel packages. Other, pre-existing
+scenario types keep their existing behavior; this is not a repository-wide
+tracing migration.
+
+Use `--collect-linux` locally, or the pipeline's `collectLinux: true`, to
+record **one separate diagnostic round of the selected operation**, after all untraced measurement
+iterations. This also collects a binlog. Artifacts under `traces` include
+`diagnostic.nettrace`, `diagnostic-0.binlog`, `diagnostic-0.log`, and
+`collect-linux.log`; the existing Helix upload path preserves them.
+No diagnostic rebuild duration is added to the primary timing samples.
+Warm diagnostic rounds repeat their priming/edit boundaries; project-query
+diagnostics capture both variants with separately suffixed binlogs and logs.
+
+Collection uses `dotnet-trace collect-linux --profile dotnet-common,cpu-sampling`.
+The version is pinned in `.config\dotnet-tools.json` (10.0.750501); pipeline
+submission installs that version into the correlation payload only when
+Linux diagnostics are requested. For local use, install the same version
+and set `PERFLAB_DOTNET_TRACE` to the absolute executable path, or put
+`dotnet-trace` on `PATH`.
+
+**Use a dedicated worker.** Collection is machine-wide so MSBuild workers,
+compiler servers, native code, and kernel CPU samples are included; it can
+also capture unrelated activity. It requires Linux x64 with glibc 2.27+,
+.NET 10+ for supported runtime events, kernel 6.4+ built with
+`CONFIG_USER_EVENTS=y`, and mounted tracefs with `user_events_data`.
+Run the collector as root or provision non-interactive `sudo` access.
+The harness elevates only the collector, not measured builds. It does not
+mount tracefs, change sysctls/capabilities, or silently fall back to
+`perfcollect` or single-process EventPipe collection.
+
+`linuxQueue` defaults to the existing `Ubuntu.2204.Amd64.Tiger.Perf` queue
+for ordinary timing. **Do not assume that queue meets tracing prerequisites**:
+select a dedicated, appropriately provisioned queue before enabling
+`collectLinux`. Queue authorization and worker provisioning are not
+performed by this change. The submitter uses `ubuntu-24.04`; that does
+not determine the Helix worker's kernel.
+
+Because `collect-linux` cannot launch the build command, the harness starts
+it first, waits up to 60 seconds for its recording-ready message, then
+starts the diagnostic rebuild. A terminal is used for the collector's
+progress message even in CI. Completion sends SIGINT to finalize the trace,
+with a finalization limit equal to the per-build timeout (900 seconds by
+default). The recording-duration bound adds the 60-second startup allowance
+so readiness time does not truncate a build near its timeout. Large builds can spend
+several minutes resolving symbols after recording stops. Early collector exit, missing/empty output,
+startup timeout, build failure, and finalization failure fail the work item
+with logs retained. `--probe` alone is not treated as proof that kernel
+collection works.
+
+See the supported [collect-linux prerequisites and command reference](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/dotnet-trace#dotnet-trace-collect-linux).
+
+ScenarioMeasurement's Startup/Util projects now reference TraceEvent 4.0.0.
+Analyze these traces with a current reader that supports the .NET 11
+EventPipe format and `Universal.Events`.
+The pinned collector's own `report topN` command embeds an older reader
+and can reject these traces with `Unknown label kind 10`; that command
+is not used to generate the scenario's wall-clock report. Keep the
+original `.nettrace` for analysis in a compatible reader.
+
+Budget disk space and time for diagnostics separately from timing runs.
+The validated Orchard capture produced approximately 1.6 GiB and needed
+several minutes of symbol finalization. Collection remains opt-in; it is
+not appropriate to enable for every measurement iteration.
+
+Per-commit triggering is deliberately deferred. A GitHub secondary
+repository resource cannot provide a native Azure Pipelines repository
+push trigger. Enabling that later requires an MSBuild-repository entrypoint
+or another explicitly authorized trigger mechanism; adding
+`trigger: main` here would only watch the performance repository.
 
 ## SDK performance pipeline
 

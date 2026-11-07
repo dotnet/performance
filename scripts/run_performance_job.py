@@ -152,6 +152,10 @@ class RunPerformanceJobArgs:
     build_config: str = DEFAULT_BUILD_CONFIG
     live_libraries_build_config: Optional[str] = None
     cross_build: bool = False
+    msbuild_scenario_inputs: Optional[str] = None
+    msbuild_collect_linux: bool = False
+    msbuild_scenarios: str = ""
+    msbuild_iterations: Optional[int] = None
 
 # Subdirectory (inside the Helix correlation payload) that holds the pre-downloaded ML.NET resources.
 # On the Helix machine this is referenced as <HELIX_CORRELATION_PAYLOAD>/mlnet-resources.
@@ -436,7 +440,8 @@ def get_pre_commands(
         v8_version: str,
         wasm_local_package_version: Optional[str] = None,
         wasm_workload_source: Optional[str] = None,
-        wasm_crossgen2_tasks_dir: Optional[str] = None):
+        wasm_crossgen2_tasks_dir: Optional[str] = None,
+        use_legacy_trace: bool = True):
     if os_group == "windows" and runtime_type in ("wasm", "wasm_coreclr"):
         raise ValueError(
             "WASM performance job prerequisite setup is not supported on Windows")
@@ -468,10 +473,10 @@ def get_pre_commands(
                         "sudo tdnf -y install python3-pip"
                     ]
                 else:
-                    install_prerequisites += [
-                        apt_command("remove -y lttng-modules-dkms"),  # https://github.com/dotnet/runtime/pull/101142
-                        apt_command("-y install python3-pip")
-                    ]
+                    if use_legacy_trace:
+                        # https://github.com/dotnet/runtime/pull/101142
+                        install_prerequisites += [apt_command("remove -y lttng-modules-dkms")]
+                    install_prerequisites += [apt_command("-y install python3-pip")]
 
             install_prerequisites += [
                 "python3 -m venv $HELIX_WORKITEM_ROOT/.venv",
@@ -1490,7 +1495,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         v8_version,
         wasm_local_package_version,
         helix_wasm_workload_source,
-        helix_wasm_crossgen2_tasks_dir)
+        helix_wasm_crossgen2_tasks_dir,
+        use_legacy_trace=args.run_kind != "msbuild_scenarios")
     helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
 
     # Point ML.NET at the SSWE model that was pre-downloaded into the correlation payload above, so it
@@ -1539,6 +1545,36 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     ci_setup_arguments.framework = args.framework
 
+    if args.msbuild_scenario_inputs is not None:
+        if (not args.is_scenario or args.run_kind != "msbuild_scenarios"
+                or args.os_group not in ("windows", "linux") or args.architecture != "x64"
+                or args.dotnet_version_link is not None or args.channel != "main"):
+            raise ValueError("MSBuild inputs require Windows/Linux x64 msbuild_scenarios on channel main.")
+        from msbuild_inputs import configure_inputs
+        from msbuild_catalog import select_scenarios
+        selected = select_scenarios(args.msbuild_scenarios.strip(), args.os_group)
+        configure_inputs(args.msbuild_scenario_inputs, payload_dir, ci_setup_arguments, args.os_group,
+                         {item["asset"] for item in selected})
+        set_environment_variable("DOTNET_CLI_ENABLEAOT", "0")
+        set_environment_variable("MSBuildScenarioFilter", ",".join(item["name"] for item in selected))
+        if args.msbuild_iterations is not None and not 1 <= args.msbuild_iterations <= 2_147_483_647:
+            raise ValueError("MSBuild iteration override must be positive and fit Int32.")
+        set_environment_variable("MSBuildIterationArguments",
+                                 f"--iterations {args.msbuild_iterations}" if args.msbuild_iterations else "")
+
+    if args.msbuild_collect_linux:
+        if args.msbuild_scenario_inputs is None or args.os_group != "linux":
+            raise ValueError("collect-linux requires Linux MSBuild scenario inputs.")
+        tool_manifest = os.path.join(args.performance_repo_dir, ".config", "dotnet-tools.json")
+        with open(tool_manifest) as manifest_file:
+            trace_version = json.load(manifest_file)["tools"]["dotnet-trace"]["version"]
+        RunCommand([
+            os.path.join(ci_setup_arguments.dotnet_path, "dotnet"), "tool", "install",
+            "dotnet-trace", "--version", trace_version,
+            "--allow-roll-forward",
+            "--tool-path", os.path.join(payload_dir, "dotnet-trace")], verbose=True).run()
+        scenario_arguments += ["--collect-linux"]
+
     if args.perf_repo_hash is not None and args.performance_repo_ci:
         ci_setup_arguments.perf_hash = args.perf_repo_hash
 
@@ -1584,6 +1620,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-f", framework,
             "-r", runtime_id,
             "--self-contained" if self_contained else "",
+            "-p:UseLegacyPerfCollect=false" if args.run_kind == "msbuild_scenarios" else "",
             csproj_path,
             f"/bl:{os.path.join(ci_artifacts_log_dir, f'{payload_dir_name}.binlog')}",
             "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
@@ -1610,23 +1647,19 @@ def run_performance_job(args: RunPerformanceJobArgs):
         publish_dotnet_app_to_payload("SOD", os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "SizeOnDisk", "SizeOnDisk.csproj"))
         
         if args.performance_repo_ci:
-            # build MemoryConsumption
-            publish_dotnet_app_to_payload(
-                "MemoryConsumption", 
-                os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"))
-            
-            # build PerfLabGenericEventSourceForwarder
-            publish_dotnet_app_to_payload(
-                "PerfLabGenericEventSourceForwarder",
-                os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder.csproj"),
-                self_contained=False)
-            
-            # build PerfLabGenericEventSourceLTTngProvider
-            if args.os_group != "windows" and args.os_group != "osx" and args.os_version == "2204":
-                RunCommand([
-                    os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceLTTngProvider", "build.sh"),
-                    "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")],
-                    verbose=True).run()
+            if args.run_kind != "msbuild_scenarios":
+                publish_dotnet_app_to_payload(
+                    "MemoryConsumption",
+                    os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"))
+                publish_dotnet_app_to_payload(
+                    "PerfLabGenericEventSourceForwarder",
+                    os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder.csproj"),
+                    self_contained=False)
+                if args.os_group != "windows" and args.os_group != "osx" and args.os_version == "2204":
+                    RunCommand([
+                        os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceLTTngProvider", "build.sh"),
+                        "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")],
+                        verbose=True).run()
             
             # copy PDN
             if args.os_group == "windows" and args.architecture != "x86" and args.pdn_path is not None:
@@ -1861,7 +1894,8 @@ def main(argv: list[str]):
                 "--performance-repo-ci": "performance_repo_ci",
                 "--only-sanity": "only_sanity_check",
                 "--use-local-commit-time": "use_local_commit_time",
-                "--cross-build": "cross_build"
+                "--cross-build": "cross_build",
+                "--msbuild-collect-linux": "msbuild_collect_linux"
             }
 
             if key in bool_args:
@@ -1878,6 +1912,8 @@ def main(argv: list[str]):
                 "--baseline-core-root-dir": "baseline_core_root_dir",
                 "--performance-repo-dir": "performance_repo_dir",
                 "--mono-dotnet-dir": "mono_dotnet_dir",
+                "--msbuild-scenario-inputs": "msbuild_scenario_inputs",
+                "--msbuild-scenarios": "msbuild_scenarios",
                 "--libraries-download-dir": "libraries_download_dir",
                 "--versions-props-path": "versions_props_path",
                 "--browser-versions-props-path": "browser_versions_props_path",
@@ -1918,8 +1954,8 @@ def main(argv: list[str]):
             if key in simple_arg_map:
                 arg_name = simple_arg_map[key]
                 val = argv[i + 1]
-            elif key == "--partition-count":
-                arg_name = "partition_count"
+            elif key in ("--partition-count", "--msbuild-iterations"):
+                arg_name = "partition_count" if key == "--partition-count" else "msbuild_iterations"
                 val = int(argv[i + 1])
             elif key == "--run-env-vars":
                 val = {}

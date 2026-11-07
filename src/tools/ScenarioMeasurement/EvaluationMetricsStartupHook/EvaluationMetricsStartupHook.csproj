@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>PerfStar.EvaluationMetrics.StartupHook</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Startup.Tests" />
+  </ItemGroup>
+</Project>
