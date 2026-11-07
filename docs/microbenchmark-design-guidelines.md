@@ -110,7 +110,7 @@ public int[] Reverse()
 Profile it using the [ETW Profiler](./benchmarkdotnet.md#Profiling):
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.1 --filter *.Reverse --profiler ETW
+dotnet run -c Release -f netcoreapp3.1 --filter '*.Reverse' --profiler ETW
 ```
 
 And open the produced trace file with [PerfView](https://github.com/Microsoft/perfview):
