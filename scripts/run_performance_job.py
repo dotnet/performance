@@ -1023,6 +1023,10 @@ def get_work_item_command(
 
 def get_target_framework(args: RunPerformanceJobArgs, channel: str) -> str:
     if args.framework:
+        runtime_version = re.fullmatch(r"(?:net|nativeaot|netcoreapp)(\d+)\.\d+", args.framework)
+        if runtime_version and int(runtime_version.group(1)) < 10:
+            raise ValueError(
+                "Runtime targeting is retired for .NET versions earlier than 10; use a historical performance checkout.")
         return args.framework
     return ChannelMap.get_target_framework_moniker(
         channel, mobile=args.run_kind.startswith("maui_scenarios")
@@ -1348,8 +1352,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         elif os.path.exists(os.path.join(args.performance_repo_dir, args.dotnet_version_link)) and args.dotnet_version_link.endswith("Version.Details.xml"): # version_link is a file in the perf repo
             with open(os.path.join(args.performance_repo_dir, args.dotnet_version_link), encoding="utf-8") as f:
                 root = ET.fromstring(f.read())
-            dependency = root.find(".//Dependency[@Name='Microsoft.NET.Sdk']") # For net9.0
-            if dependency is None: # For older than net9.0
+            dependency = root.find(".//Dependency[@Name='Microsoft.NET.Sdk']")
+            if dependency is None: # Older metadata uses an alternate SDK dependency name.
                 dependency = root.find(".//Dependency[@Name='Microsoft.Dotnet.Sdk.Internal']")
             if dependency is not None and "Version" in dependency.attrib: # Get the actual version
                 ci_setup_arguments.dotnet_versions = [dependency.get("Version", "ERROR: Failed to get version")]

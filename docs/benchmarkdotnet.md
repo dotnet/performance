@@ -60,7 +60,7 @@ In order to build or run the benchmarks you will need the **.NET Core command-li
 
 ### Using .NET Cli
 
-To build the benchmarks you need the appropriate `dotnet` SDKs for the target frameworks you plan to run. By default, the microbenchmarks target current supported TFMs (`net8.0`, `net9.0`, and newer TFMs when your installed SDK supports them).
+To build the benchmarks you need the appropriate `dotnet` SDKs for the target frameworks you plan to run. By default, the microbenchmarks target `net10.0`, `net11.0`, and `net12.0` when supported by the selected SDK. .NET 8/9 targeting has been retired from main.
 
 In practice, local runs need the SDK for the runtime you want to test **and** the SDK version required by the repo's `global.json` file (or a newer SDK that satisfies that requirement). If you want to drive the repo with a different SDK locally, an alternative is to update `global.json` to the SDK version you want to use for the test run.
 
@@ -73,7 +73,7 @@ dotnet build -c Release
 If you only want to build or run the benchmarks for selected runtime(s), set `PERFLAB_TARGET_FRAMEWORKS` to the TFM or semicolon-delimited TFM list you want to use.
 
 ```powershell
-$env:PERFLAB_TARGET_FRAMEWORKS = "net9.0"
+$env:PERFLAB_TARGET_FRAMEWORKS = "net10.0"
 dotnet build -c Release
 ```
 
@@ -84,7 +84,7 @@ For the common `dotnet run -c Release -f <tfm>` flow, the selected `-f` value is
 If you don't want to install `dotnet cli` manually, we have a Python 3 script which can do that for you. All you need to do is to provide the frameworks:
 
 ```cmd
-py .\scripts\benchmarks_ci.py --frameworks net9.0
+py .\scripts\benchmarks_ci.py --frameworks net10.0
 ```
 
 ## Running the Benchmarks
@@ -94,7 +94,7 @@ py .\scripts\benchmarks_ci.py --frameworks net9.0
 To run the benchmarks in interactive mode you have to execute `dotnet run -c Release -f $targetFrameworkMoniker` in the folder with benchmarks project.
 
 ```cmd
-C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f net9.0
+C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f net10.0
 Available Benchmarks:
   #0   Burgers
   #1   ByteMark
@@ -131,37 +131,37 @@ The glob patterns are applied to full benchmark name: namespace.typeName.methodN
 - Run all the benchmarks from BenchmarksGame namespace:
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter BenchmarksGame*
+dotnet run -c Release -f net10.0 --filter BenchmarksGame*
 ```
 
 - Run all the benchmarks with type name Richards:
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter *.Richards.*
+dotnet run -c Release -f net10.0 --filter *.Richards.*
 ```
 
 - Run all the benchmarks with method name ToStream:
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter *.ToStream
+dotnet run -c Release -f net10.0 --filter *.ToStream
 ```
 
 - Run ALL benchmarks:
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter *
+dotnet run -c Release -f net10.0 --filter *
 ```
 
 - You can provide many filters (logical disjunction):
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
+dotnet run -c Release -f net10.0 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
 ```
 
 - To print a **joined summary** for all of the benchmarks (by default printed per type), use `--join`:
 
 ```cmd
-dotnet run -c Release -f net9.0 --filter BenchmarksGame* --join
+dotnet run -c Release -f net10.0 --filter BenchmarksGame* --join
 ```
 
 Please remember that on **Unix** systems `*` is resolved to all files in current directory, so you need to escape it `'*'`.
@@ -173,7 +173,7 @@ To print the list of all available benchmarks you need to pass `--list [tree/fla
 Example: Show the tree of all the benchmarks from System.Threading namespace that can be run for .NET 7.0:
 
 ```cmd
-dotnet run -c Release -f net9.0 --list tree --filter System.Threading*
+dotnet run -c Release -f net10.0 --list tree --filter System.Threading*
 ```
 
 ```log
@@ -268,7 +268,7 @@ If you want to disassemble the benchmarked code, you need to use the [Disassembl
 
 You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`.
 
-Example: `dotnet run -c Release -f net9.0 -- --filter System.Memory.Span<Int32>.Reverse -d`
+Example: `dotnet run -c Release -f net10.0 -- --filter System.Memory.Span<Int32>.Reverse -d`
 
 ```assembly
 ; System.Runtime.InteropServices.MemoryMarshal.GetReference[[System.Byte, System.Private.CoreLib]](System.Span`1<Byte>)
@@ -294,25 +294,29 @@ M00_L00:
 
 The `--runtimes` or just `-r` allows you to run the benchmarks for **multiple Runtimes**.
 
-Available options are: Mono, wasmnet70, CoreRT, netcoreapp3.1, net6.0, net7.0, net8.0, and net9.0.
+Current .NET targets include `net10.0`, `net11.0`, and `net12.0`. Runtime-specific
+toolchains, such as Mono and browser WASM, have their own selectors; see the
+[runtime workflow](benchmarking-workflow-dotnet-runtime.md).
 
-Example: run the benchmarks for .NET 7.0 and 8.0:
+Example: run the benchmarks for .NET 10.0 and 11.0:
 
 ```cmd
-dotnet run -c Release -f net7.0 --runtimes net7.0 net8.0
+dotnet run -c Release -f net10.0 --runtimes net10.0 net11.0
 ```
 
-**Important: The host process needs to be the lowest common API denominator of the runtimes you want to compare!** In this case, it was `net7.0`.
+**Important: The host process needs to be the lowest common API denominator of the runtimes you want to compare!** In this case, it is `net10.0`.
 
 ## Regressions
 
 To perform a Mann–Whitney U Test and display the results in a dedicated column you need to provide the Threshold for Statistical Test via `--statisticalTest` argument. The value can be relative (5%) or absolute (10ms, 100ns, 1s)
 
-Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET 7.0 (base) vs .NET 8.0 (diff). .NET 7.0 will be baseline because it was first.
+Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET 10.0 (base) vs .NET 11.0 (diff). .NET 10.0 will be baseline because it was first.
 
 ```cmd
-dotnet run -c Release -f net8.0 --filter *BinaryTrees_2* --runtimes net7.0 net8.0 --statisticalTest 5%
+dotnet run -c Release -f net10.0 --filter *BinaryTrees_2* --runtimes net10.0 net11.0 --statisticalTest 5%
 ```
+
+Historical output illustrating the column format (not measurements for the versions above):
 
 |        Method |     Toolchain |     Mean | MannWhitney(5%) |
 |-------------- |-------------- |---------:|---------------- |
@@ -338,7 +342,7 @@ Please use this option only when you are sure that the benchmarks you want to ru
 It's possible to benchmark private builds of [dotnet/runtime](https://github.com/dotnet/runtime) using CoreRun.
 
 ```cmd
-dotnet run -c Release -f net9.0 --coreRun $thePath
+dotnet run -c Release -f net10.0 --coreRun $thePath
 ```
 
 **Note:** You can provide more than 1 path to CoreRun. In such case, the first path will be the baseline and all the benchmarks are going to be executed for all CoreRuns you have specified.
@@ -361,7 +365,7 @@ public void PrintInfo()
 You can also use any dotnet cli to build and run the benchmarks.
 
 ```cmd
-dotnet run -c Release -f net9.0 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
+dotnet run -c Release -f net10.0 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
 ```
 
 This is very useful when you want to compare different builds of .NET.
@@ -371,5 +375,5 @@ This is very useful when you want to compare different builds of .NET.
 To run benchmarks with private CoreRT build you need to provide the `IlcPath`. Example:
 
 ```cmd
-dotnet run -c Release -f net9.0 -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release
+dotnet run -c Release -f net10.0 -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release
 ```

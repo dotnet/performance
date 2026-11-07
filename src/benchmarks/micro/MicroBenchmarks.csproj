@@ -2,16 +2,14 @@
 
   <PropertyGroup>
     <!-- Supported target frameworks -->
-    <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net8.0'))">net8.0</SupportedTargetFrameworks>
-    <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net9.0'))">$(SupportedTargetFrameworks);net9.0</SupportedTargetFrameworks>
-    <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net10.0'))">$(SupportedTargetFrameworks);net10.0</SupportedTargetFrameworks>
+    <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net10.0'))">net10.0</SupportedTargetFrameworks>
     <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net11.0'))">$(SupportedTargetFrameworks);net11.0</SupportedTargetFrameworks>
     <SupportedTargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('net$(NETCoreAppMaximumVersion)', 'net12.0'))">$(SupportedTargetFrameworks);net12.0</SupportedTargetFrameworks>
     <!-- Used by Python script to narrow down the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == '' and '$(TargetFramework)' != ''">$(TargetFramework)</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">$(SupportedTargetFrameworks)</TargetFrameworks>
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net10.0</TargetFrameworks>
     <NoWarn>$(NoWarn);CS8002</NoWarn>
     <!-- Suppress binaryformatter obsolete warning -->
     <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
@@ -39,36 +37,6 @@
 
   <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->
   <Choose>
-    <When Condition="'$(TargetFramework)' == 'net6.0'">
-        <PropertyGroup>
-            <LangVersion>10.0</LangVersion>
-            <ExtensionsVersion>6.0.0</ExtensionsVersion>
-            <SystemVersion>6.0.0</SystemVersion>
-        </PropertyGroup>
-    </When>
-    <When Condition="'$(TargetFramework)' == 'net7.0'">
-        <PropertyGroup>
-            <LangVersion>11.0</LangVersion>
-            <ExtensionsVersion>7.0.0</ExtensionsVersion>
-            <SystemVersion>7.0.0</SystemVersion>
-        </PropertyGroup>
-    </When>
-    <When Condition="'$(TargetFramework)' == 'net8.0'">
-        <PropertyGroup>
-            <LangVersion>12.0</LangVersion>
-            <ExtensionsVersion>8.0.0</ExtensionsVersion>
-            <PrimitivesVersion>10.0.3</PrimitivesVersion>
-            <SystemVersion>8.0.0</SystemVersion>
-        </PropertyGroup>
-    </When>
-    <When Condition="'$(TargetFramework)' == 'net9.0'">
-        <PropertyGroup>
-            <LangVersion>13</LangVersion>
-            <ExtensionsVersion>9.0.0</ExtensionsVersion>
-            <PrimitivesVersion>10.0.3</PrimitivesVersion>
-            <SystemVersion>9.0.0</SystemVersion>
-        </PropertyGroup>
-    </When>
     <When Condition="'$(TargetFramework)' == 'net10.0'">
         <PropertyGroup>
             <LangVersion>14</LangVersion>
@@ -98,13 +66,6 @@
         </PropertyGroup>
     </Otherwise>
   </Choose>
-  <!-- BenchmarkDotNet -> Microsoft.Diagnostics.Runtime -> Azure.Identity -> Azure.Core (1.53.0) requires
-       Microsoft.Extensions.Primitives >= 10.0.3. Because Primitives is a direct reference, NuGet flags the
-       net8.0/net9.0 pins (8.0.0/9.0.0) as a downgrade (NU1605). Float only Primitives to the transitive floor
-       on those TFMs (set above); the implementation packages stay on their native TFM versions. -->
-  <PropertyGroup>
-    <PrimitivesVersion Condition="'$(PrimitivesVersion)' == ''">$(ExtensionsVersion)</PrimitivesVersion>
-  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Jil" Version="3.0.0-alpha2" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
@@ -118,7 +79,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="$(ExtensionsVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(PrimitivesVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" />
     <PackageReference Include="protobuf-net" Version="3.0.73" />
     <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))" />
     <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net5.0'))" />
@@ -138,10 +99,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(ExtensionsVersion)" />
-  </ItemGroup>
-  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0')) and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
-    <!-- Newer System.Numerics.Tensors packages require net10+, so keep net8.0/net9.0 on the last compatible package line. -->
-    <PackageReference Include="System.Numerics.Tensors" Version="10.0.*-*" />
   </ItemGroup>
   <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
     <PackageReference Include="System.Numerics.Tensors" Version="$(SystemThreadingChannelsPackageVersion)">

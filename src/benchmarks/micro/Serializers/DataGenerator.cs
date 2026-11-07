@@ -387,7 +387,7 @@ namespace MicroBenchmarks.Serializers
     // (introduced in net6+ via System.Memory.Data, transitive via Azure.Core).
     // The collision caused [GenericTypeArguments(typeof(BinaryData))] to resolve
     // to System.BinaryData in some compile contexts (e.g. when the harness targets
-    // net8.0 instead of netstandard2.0), bypassing the data generator and producing
+    // net10.0 instead of netstandard2.0), bypassing the data generator and producing
     // NotImplementedException at runtime.
     public class BinaryDataPayload
     {

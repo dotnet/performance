@@ -3,6 +3,7 @@ import importlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 from unittest.mock import Mock
@@ -28,6 +29,8 @@ def test_main_selects_sdk_and_runtime_12():
 
 
 @pytest.mark.parametrize(("framework", "flavor", "moniker", "legacy_flavor", "aot_mode"), [
+    ("net10.0", "Mono", "wasmnet10_0", False, None),
+    ("net10.0", "CoreCLR", "wasmnet10_0", True, None),
     ("net11.0", "Mono", "wasmnet11_0", False, None),
     ("net11.0", "CoreCLR", "wasmnet11_0", True, None),
     ("net12.0", "Mono", "wasmnet12_0", False, None),
@@ -58,13 +61,61 @@ def test_unknown_wasm_framework_fails_explicitly():
         micro_benchmarks.__get_benchmarkdotnet_arguments("net99.0", args)
 
 
-@pytest.mark.parametrize("version", [8, 9, 10, 11])
+@pytest.mark.parametrize("version", [10, 11])
 def test_versioned_channels_keep_their_sdk_and_framework(version):
     for channel in (f"{version}.0", f"release/{version}.0"):
         assert ChannelMap.get_branch(channel) == f"{version}.0"
         assert ChannelMap.get_target_framework_moniker(channel) == f"net{version}.0"
         assert ChannelMap.get_target_framework_moniker(channel, mobile=True) == f"net{version}.0"
     assert ChannelMap.get_target_framework_moniker(f"nativeaot{version}.0") == f"nativeaot{version}.0"
+
+
+@pytest.mark.parametrize("channel", [
+    "master", "3.1", "release/3.1.1xx", "release/3.1.2xx", "release/3.1.3xx",
+    "6.0", "release/6.0", "nativeaot6.0",
+    "7.0", "release/7.0", "release/7.0-rc1", "release/7.0-rc2", "nativeaot7.0",
+    "8.0", "9.0", "release/8.0", "release/9.0", "nativeaot8.0", "nativeaot9.0",
+    "release/8.0-rc1", "release/8.0-rc2", "8.0-preview",
+    *(f"release/8.0-preview{version}" for version in range(1, 8)),
+])
+def test_retired_channels_are_not_supported(channel):
+    assert channel not in ChannelMap.get_supported_channels()
+    with pytest.raises(Exception, match="is not supported"):
+        ChannelMap.get_target_framework_moniker(channel)
+    with pytest.raises(Exception, match="is not supported"):
+        ChannelMap.get_branch(channel)
+
+
+def test_retired_frameworks_have_no_acquisition_channel():
+    for framework in ("netcoreapp2.1", "netcoreapp3.0", "netcoreapp3.1",
+                      *(f"net{major}.0" for major in range(5, 10)),
+                      *(f"nativeaot{major}.0" for major in range(6, 10))):
+        assert framework not in ChannelMap.get_supported_frameworks()
+        with pytest.raises(Exception, match="is not supported"):
+            ChannelMap.get_channel_from_target_framework_moniker(framework)
+    assert ChannelMap.get_branch("net472") == "10.0"
+    assert ChannelMap.get_target_framework_moniker("net472") == "net472"
+    assert ChannelMap.get_branch("net48") == "LTS"
+    assert ChannelMap.get_supported_frameworks() == {
+        "net10.0", "net11.0", "net12.0", "nativeaot10.0", "nativeaot11.0", "net472", "net48"}
+
+
+@pytest.mark.parametrize("framework", [
+    "netcoreapp2.1", "netcoreapp3.0", "netcoreapp3.1",
+    *(f"net{major}.0" for major in range(5, 10)),
+    *(f"nativeaot{major}.0" for major in range(6, 10)),
+])
+def test_retired_explicit_frameworks_fail_before_payload_setup(framework):
+    args = RunPerformanceJobArgs(
+        run_kind="micro", architecture="x64", os_group="windows", framework=framework)
+    with pytest.raises(ValueError, match="targeting is retired"):
+        get_target_framework(args, "main")
+
+
+def test_net472_explicit_target_is_not_retired():
+    args = RunPerformanceJobArgs(
+        run_kind="micro", architecture="x64", os_group="windows", framework="net472")
+    assert get_target_framework(args, "main") == "net472"
 
 
 @pytest.mark.parametrize(
@@ -198,15 +249,15 @@ def test_setup_preserves_sdk_channel_with_target_override(
 
 
 @pytest.mark.parametrize(("frameworks", "sdk_major"), [
-    (["net8.0"], 8), (["net11.0"], 11), (["net12.0"], 12),
-    (["net8.0", "net11.0"], 11), (["net11.0", "net12.0"], 12),
+    (["net10.0"], 10), (["net11.0"], 11), (["net12.0"], 12),
+    (["net10.0", "net11.0"], 11), (["net11.0", "net12.0"], 12),
     (["net472", "net11.0"], 11), (["net472"], 12),
 ])
 @pytest.mark.parametrize("fail", [False, True])
 def test_benchmarks_ci_selects_and_restores_sdk_pin(tmp_path, monkeypatch, frameworks, sdk_major, fail):
     from scripts import benchmarks_ci
 
-    for name in ("global.json", "global.net8.json", "global.net11.json"):
+    for name in ("global.json", "global.net10.json", "global.net11.json"):
         shutil.copy(repo_root / name, tmp_path / name)
     monkeypatch.setattr(benchmarks_ci, "get_repo_root_path", lambda: str(tmp_path))
     global_json = tmp_path / "global.json"
@@ -268,23 +319,158 @@ def test_sdk_tooling_installs_share_root_and_select_main_last():
     steps = template.split("    steps:\n", 1)[1].split("- ${{ if parameters.runPublicJobs }}:", 1)[0]
     root = r"$(Build.SourcesDirectory)\tools\dotnet\x64"
     tasks = steps.split("- task: UseDotNet@2")
-    assert len(tasks) == 3
-    for task, version in zip(tasks[1:], ("8.0.x", "10.0.x")):
-        inputs = task.split("- pwsh:", 1)[0]
-        assert f"version: {version}\n" in inputs
-        assert f"installationPath: '{root}'" in inputs
-    assert "includePreviewVersions: true" in tasks[2].split("- pwsh:", 1)[0]
+    assert len(tasks) == 2
+    inputs = tasks[1].split("- pwsh:", 1)[0]
+    assert "version: 10.0.x\n" in inputs
+    assert f"installationPath: '{root}'" in inputs
+    assert "includePreviewVersions: true" in inputs
     assert steps.count("python scripts\\dotnet.py install") == 1
     assert f'python scripts\\dotnet.py install --channels main --architecture x64 --install-dir "{root}"' in steps
     assert f'##vso[task.prependpath]{root}' in steps
     assert steps.index("version: 10.0.x") < steps.index("python scripts\\dotnet.py install") < steps.index("dotnet test")
     assert "--framework net10.0" in steps
-    assert "Startup.Tests\\Startup.Tests.csproj --configuration Release --nologo" in steps
+    assert "Startup.Tests\\Startup.Tests.csproj --configuration Release --framework net10.0 --nologo" in steps
+    assert steps.count("dotnet test ") == 5
+    assert "8.0.x" not in steps and "9.0.x" not in steps
     args = dotnet.__process_arguments([
         "install", "--channels", "main", "--architecture", "x64", "--install-dir", root])
     assert args.channels == ["main"]
     assert args.architecture == "x64"
     assert args.install_dir == root
+
+
+def test_gc_bootstrap_installs_main_sdk_before_tool_restore():
+    template = (repo_root / "gc-azure-pipelines.yml").read_text()
+    root = r"$(Agent.ToolsDirectory)\dotnet"
+    tasks = template.split("- task: UseDotNet@2")
+    assert len(tasks) == 3
+    for task, version in zip(tasks[1:], ("10.0.x", "11.0.x")):
+        inputs = task.split("- pwsh:", 1)[0]
+        assert f"version: {version}\n" in inputs
+        assert f"installationPath: '{root}'" in inputs
+    install = f'python scripts\\dotnet.py install --channels main --architecture x64 --install-dir "{root}"'
+    assert template.count(install) == 1
+    assert f'##vso[task.prependpath]{root}' in template
+    assert template.index("version: 11.0.x") < template.index(install) < template.index("- script: dotnet tool restore")
+    bootstrap = template.split("- pwsh:", 1)[1].split("- script:", 1)[0]
+    assert "$ErrorActionPreference = 'Stop'" in bootstrap
+    assert "$PSNativeCommandUseErrorActionPreference = $true" in bootstrap
+    assert "version: 12.0.x" not in template
+    assert template.count("--framework net10.0") == 4
+    assert template.count("searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/bin/") == 2
+    assert template.count("/Debug/net10.0'") == 2
+
+
+@pytest.mark.parametrize(("group", "caller_count"), [
+    ("runPublicJobs", 15), ("runPrivateJobs", 13), ("runScheduledPrivateJobs", 10),
+])
+def test_automatic_sdk_matrix_callers_only_select_main(group, caller_count):
+    template = (repo_root / "eng" / "pipelines" / "sdk-perf-jobs.yml").read_text()
+    groups = re.split(r"^- \$\{\{ if parameters\.(\w+) \}\}:\s*$", template, flags=re.MULTILINE)
+    bodies = [body for name, body in zip(groups[1::2], groups[2::2]) if name == group]
+    assert bodies
+    lists = []
+    for body in bodies:
+        assert not re.search(r"\b(?:channel|framework|frameworks|dotnetVersionsLinks):", body)
+        lists.extend(re.findall(r"^\s+channels:[^\n]*\n((?:[ \t]+- [^\n]+\n)+)", body, flags=re.MULTILINE))
+    assert len(lists) == caller_count
+    for channel_list in lists:
+        channels = re.findall(r"^\s+- (\S+)", channel_list, flags=re.MULTILINE)
+        assert channels == ["main"]
+        assert all(ChannelMap.get_target_framework_moniker(channel) == "net12.0" for channel in channels)
+    matrix = (repo_root / "eng" / "pipelines" / "templates" / "run-performance-job.yml").read_text()
+    assert "${{ each channel in parameters.channels }}:" in matrix
+    assert "_Channel: ${{ channel }}" in matrix
+    assert "'--channel $(_Channel)'" in matrix
+
+
+@pytest.mark.parametrize("version", ["3.1", 6, 7, 8, 9])
+def test_retired_sdk_pins_are_removed(version):
+    assert not (repo_root / f"global.net{version}.json").exists()
+    assert f"global.net{version}.json" not in (repo_root / "scripts" / "ci_setup.py").read_text()
+    for config in (repo_root / "NuGet.config", repo_root / "src" / "benchmarks" / "micro" / "wasm" / "nuget.config"):
+        sources = ET.parse(config).findall("./packageSources/add")
+        assert not {f"dotnet{version}", f"dotnet{version}-transport"} & {item.get("key") for item in sources}
+
+
+def test_gc_launch_assets_do_not_select_retired_frameworks():
+    gc_root = repo_root / "src" / "benchmarks" / "gc" / "GC.Infrastructure"
+    commands = [
+        *gc_root.joinpath("Configurations", "ASPNetBenchmarks").glob("*.csv"),
+        *gc_root.joinpath("GC.Infrastructure", "Commands", "RunCommand", "BaseSuite").glob("*.csv"),
+    ]
+    assert commands
+    frameworks = []
+    for path in commands:
+        frameworks.extend(re.findall(r"--application\.framework (\S+)", path.read_text(encoding="utf-8-sig")))
+    assert "net10.0" in frameworks
+    assert all(not re.fullmatch(r"net(?:coreapp)?[1-9]\.\d+", framework) for framework in frameworks)
+    for path in gc_root.joinpath("Notebooks", "Examples").glob("*.ipynb"):
+        notebook = json.loads(path.read_text(encoding="utf-8-sig"))
+        for cell in notebook["cells"]:
+            for line in cell.get("source", []):
+                if "#r " in line and "GC.Analysis.API.dll" in line:
+                    assert "\\net10.0\\" in line
+
+
+@pytest.mark.parametrize("project", [
+    "src/benchmarks/micro-fsharp/MicrobenchmarksFSharp.fsproj",
+    "src/benchmarks/real-world/FSharp/FSharp.fsproj",
+    "src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj",
+    "src/benchmarks/real-world/PowerShell.Benchmarks/PowerShell.Benchmarks.csproj",
+    "src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj",
+    "src/benchmarks/real-world/Akade.IndexedSet.Benchmarks/Akade.IndexedSet.Benchmarks.csproj",
+    "src/benchmarks/real-world/ImageSharp/ImageSharp.Benchmarks.csproj",
+    "src/benchmarks/real-world/bepuphysics2/DemoBenchmarks.csproj",
+    "src/benchmarks/real-world/ILLink/SampleProject/HelloWorld.template.csproj",
+    "src/scenarios/blazorlocalized/src/BlazorLocalized/BlazorLocalized.csproj",
+    "src/scenarios/blazorlocalized/src/BlazorLocalized.ClassLibrary/BlazorLocalized.ClassLibrary.csproj",
+    *[
+        f"src/scenarios/{scenario}/src/{project}/{project}.csproj"
+        for scenario in ("blazorpizza", "blazorpizzaaot")
+        for project in ("BlazingComponents", "BlazingPizza.Client", "BlazingPizza.ComponentsLibrary", "BlazingPizza.Shared")
+    ],
+])
+def test_standalone_benchmark_defaults_use_net10(project):
+    result = subprocess.run(
+        [shutil.which("dotnet"), "msbuild", str(repo_root / project), "-nologo",
+         "-p:PERFLAB_TARGET_FRAMEWORKS=", "-getProperty:TargetFrameworks"],
+        cwd=repo_root, check=True, capture_output=True, text=True,
+    )
+    assert result.stdout.strip() == "net10.0"
+
+
+@pytest.mark.parametrize(("project", "framework"), [
+    ("src/tools/ResultsComparer/ResultsComparer.csproj", "net10.0"),
+    ("src/tools/PerfLabGenericEventSourceForwarder/PerfLabGenericEventSourceForwarder/PerfLabGenericEventSourceForwarder.csproj", "net10.0"),
+    ("src/benchmarks/other/docker/docker-harness.csproj", "net10.0"),
+    ("src/scenarios/weblarge3.0/src/mvc/mvc.csproj", "net10.0"),
+    ("src/scenarios/staticwinformstemplate/src/staticwinformstemplate.csproj", "net10.0-windows"),
+    ("src/scenarios/windowsformslarge/src/WinformsNetCorePerfApp1.csproj", "net10.0-windows"),
+    ("src/scenarios/wpfsfc/src/wpfsfc.csproj", "net10.0-windows"),
+])
+def test_older_standalone_targets_are_migrated(project, framework):
+    result = subprocess.run(
+        [shutil.which("dotnet"), "msbuild", str(repo_root / project), "-nologo",
+         "-p:PERFLAB_TARGET_FRAMEWORKS=", "-getProperty:TargetFramework"],
+        cwd=repo_root, check=True, capture_output=True, text=True,
+    )
+    assert result.stdout.strip() == framework
+
+
+def test_shared_harness_and_tooling_floor():
+    harness = ET.parse(repo_root / "src" / "harness" / "BenchmarkDotNet.Extensions" / "BenchmarkDotNet.Extensions.csproj")
+    assert harness.findtext(".//TargetFramework") == "net10.0"
+    references = harness.findall(".//ProjectReference")
+    assert references[0].get("SetTargetFramework") == "TargetFramework=net10.0"
+    assert references[1].get("SetTargetFramework") == "TargetFramework=netstandard2.0"
+    result = subprocess.run(
+        [shutil.which("dotnet"), "msbuild",
+         str(repo_root / "src" / "tools" / "ScenarioMeasurement" / "Startup.Tests" / "Startup.Tests.csproj"),
+         "-nologo", "-p:PERFLAB_TARGET_FRAMEWORKS=", "-getProperty:TargetFramework"],
+        cwd=repo_root, check=True, capture_output=True, text=True,
+    )
+    assert result.stdout.strip() == "net10.0"
 
 
 def test_mobile_main_uses_existing_dependency_branches(monkeypatch):
@@ -300,7 +486,7 @@ def test_mobile_main_uses_existing_dependency_branches(monkeypatch):
         "https://raw.githubusercontent.com/dotnet/macios/net11.0/NuGet.config")
 
 
-@pytest.mark.parametrize("framework", ["net8.0", "net9.0", "net10.0", "net11.0", "net12.0"])
+@pytest.mark.parametrize("framework", ["net10.0", "net11.0", "net12.0"])
 def test_blazor_package_versions_match_target(tmp_path, framework):
     project = tmp_path / "blazor.proj"
     project.write_text(
@@ -319,8 +505,6 @@ def test_blazor_package_versions_match_target(tmp_path, framework):
 
 
 @pytest.mark.parametrize(("framework", "extensions", "system"), [
-    ("net8.0", "8.0.0", "8.0.0"),
-    ("net9.0", "9.0.0", "9.0.0"),
     ("net10.0", "10.0.3", "10.0.0"),
     ("net11.0", "11.0.0", "11.0.0"),
     ("net12.0", "11.0.0", "11.0.0"),
@@ -340,14 +524,13 @@ def test_microbenchmarks_select_intended_packages(framework, extensions, system)
     runner = ET.parse(repo_root / "eng" / "Versions.props").findtext(".//BenchmarkDotNetVersion")
     assert properties["BenchmarkDotNetVersion"] == runner
     assert "net12.0" in properties["SupportedTargetFrameworks"].split(";")
+    assert not {"net8.0", "net9.0"} & set(properties["SupportedTargetFrameworks"].split(";"))
     tensors = [item["Version"] for item in json.loads(result.stdout)["Items"]["PackageReference"]
                if item["Identity"] == "System.Numerics.Tensors"]
-    assert tensors == ["10.0.*-*" if framework in ("net8.0", "net9.0") else "11.0.0"]
+    assert tensors == ["11.0.0"]
 
 
 @pytest.mark.parametrize(("framework", "extensions", "system", "tensors"), [
-    ("net8.0", "8.0.0", "8.0.0", "10.0.*-*"),
-    ("net9.0", "9.0.0", "9.0.0", "10.0.*-*"),
     ("net10.0", "10.0.3", "10.0.0", "12.0.0-alpha.1"),
     ("net11.0", "11.0.0", "11.0.0", "11.0.0"),
     ("net12.0", "12.0.0-alpha.1", "12.0.0-alpha.1", "12.0.0-alpha.1"),
@@ -378,9 +561,23 @@ def test_sdk_scenarios_include_current_framework(tmp_path, framework):
     project.write(project_path, encoding="utf-8")
     result = subprocess.run(
         [shutil.which("dotnet"), "msbuild", str(project_path), "-nologo",
-         f"-p:PERFLAB_Framework={framework}", "-getItem:Framework"],
+         f"-p:PERFLAB_Framework={framework}", "-getItem:Framework,SDKWorkItem,HelixWorkItem"],
         cwd=tmp_path, check=True, capture_output=True, text=True,
     )
-    frameworks = [item["Identity"] for item in json.loads(result.stdout)["Items"]["Framework"]]
-    assert framework in frameworks
-    assert ("net12.0" in frameworks) == (framework == "net12.0")
+    items = json.loads(result.stdout)["Items"]
+    frameworks = [item["Identity"] for item in items["Framework"]]
+    assert frameworks == {
+        "net10.0": ["net10.0"], "net11.0": ["net11.0"],
+        "net12.0": ["net10.0", "net11.0", "net12.0"],
+    }[framework]
+    for kind in ("SDKWorkItem", "HelixWorkItem"):
+        assert items[kind]
+        assert not re.search(r"net(?:coreapp)?[1-9]\.\d+", json.dumps(items[kind]))
+    assert any(item["Identity"] == f"SDK Console Template {framework}" for item in items["SDKWorkItem"])
+    assert not any(item["Identity"].startswith("Hot Reload") for item in items["HelixWorkItem"])
+
+
+def test_old_only_runner_and_sdk_examples_are_retired():
+    assert not (repo_root / "scripts" / "benchmarks_monthly.py").exists()
+    project = (repo_root / "eng" / "performance" / "sdk_scenarios.proj").read_text()
+    assert not re.search(r"net(?:coreapp)?[1-9]\.\d+|Exclude=|Hot Reload|weblarge3\.0", project)

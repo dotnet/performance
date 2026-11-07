@@ -126,7 +126,7 @@ def extract_latest_dotnet_feed_from_nuget_config(path: str, offset: int = 0) -> 
     '''
         Extract the latest dotnet feed from the NuGet.config file.
         The latest feed is the one that has the highest version number.
-        Supports only single number versioning (dotnet9, dotnet10, etc.)
+        Supports only single number versioning (dotnet10, dotnet11, etc.)
         
         Args:
             path: Path to the NuGet.config file

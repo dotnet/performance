@@ -86,7 +86,7 @@ namespace GC.Infrastructure.Core.Configurations.Microbenchmarks
 
             if (string.IsNullOrEmpty(configuration.MicrobenchmarkConfigurations.DotnetInstaller))
             {
-                throw new ArgumentNullException($"{nameof(MicrobenchmarkConfigurationParser)}: {nameof(configuration.MicrobenchmarkConfigurations.DotnetInstaller)} is null. A framework version must be specified e.g. 'net7.0'");
+                throw new ArgumentNullException($"{nameof(MicrobenchmarkConfigurationParser)}: {nameof(configuration.MicrobenchmarkConfigurations.DotnetInstaller)} is null. A framework version must be specified e.g. 'net10.0'");
             }
 
             // Trace Configurations must have a type specified.

@@ -6,7 +6,7 @@ jobs:
     variables:
       architecture: 'x64'
       queue: ''
-      framework: 'net8.0'
+      framework: 'net10.0'
       runCategories: ''
       kind: ''
       runtimeRepoDir: '../runtime' # A guess that the performance repo is next to the runtime repo

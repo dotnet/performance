@@ -44,6 +44,30 @@ If you are not familiar with BenchmarkDotNet or this repository you should read 
 
 To learn more about designing benchmarks, please read [Microbenchmark Design Guidelines](./microbenchmark-design-guidelines.md).
 
+Main no longer queues obsolete pre-.NET 10 SDK-channel jobs or generates their
+downlevel SDK scenario work items. Repo-owned benchmark defaults and the shared harness now
+require .NET 10 or later. Explicit .NET 10/11 channels remain available; main
+continues to select .NET 12 for desktop/browser and .NET 11 for mobile.
+
+**Separate follow-up:** add regular .NET 10 and .NET 11 runs and coverage,
+analogous to the former .NET 8 and .NET 9 runs. This retirement does not add
+those automatic matrix legs, schedules, or live jobs; explicit 10/11 support
+is retained to enable that rollout.
+
+The `net472` ChannelMap identity and its SDK 10 acquisition are retained.
+The separate `net48` Full Framework/LTS-SDK mapping is also unchanged.
+These are not obsolete .NET Core runtime channels. Structural API guards,
+netstandard library targets, and historical result-key parsing remain for
+their distinct compilation and data-compatibility purposes.
+
+For an old-target reproduction, use a separate checkout of the pre-retirement
+commit `387a666faaf7c64e6294293427a97b5828bb91af` or the appropriate historical
+release source. Historical reports and result-key parsing remain available.
+This source change takes effect when a pipeline adopts the updated main source;
+it does not cancel queued work or alter external pipeline UI schedules, resource
+refs, or producer repositories. Reproducing an old source checkout alone does
+not change those live definitions.
+
 The shared `eng/pipelines/runtime-slow-perf-jobs.yml` and
 `eng/pipelines/runtime-wasm-perf-jobs.yml` templates accept `runMono: false` to
 disable their Mono jobs. The default is `true` to preserve existing callers,
@@ -661,7 +685,7 @@ If profiling using the `--profiler ETW` is not enough, you should use a differen
 
 BenchmarkDotNet has some extra features that might be useful when doing performance investigation:
 
-- You can run the benchmarks against [multiple Runtimes](./benchmarkdotnet.md#Multiple-Runtimes). It can be very useful when the regression has been introduced between .NET Core releases, for example: between net8.0 and net11.0.
+- You can run the benchmarks against [multiple Runtimes](./benchmarkdotnet.md#Multiple-Runtimes). It can be very useful when the regression has been introduced between .NET Core releases, for example: between net10.0 and net11.0.
 - You can run the benchmarks using provided [dotnet cli](./benchmarkdotnet.md#dotnet-cli). You can download few dotnet SDKs, unzip them and just run the benchmarks to spot the version that has introduced the regression to narrow down your investigation.
 - You can run the benchmarks using few [CoreRuns](./benchmarkdotnet.md#CoreRun). You can build the latest [dotnet/runtime](https://github.com/dotnet/runtime) in Release, create a copy of the folder with CoreRun and use git to checkout an older commit. Then rebuild [dotnet/runtime](https://github.com/dotnet/runtime) and run the benchmarks against the old and new builds. This can narrow down your investigation to the commit that has introduced the bug.
 
