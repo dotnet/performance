@@ -16,92 +16,99 @@ internal static class MSBuildEvaluationReader
 
     internal static IEnumerable<Counter> Read(JsonElement requests, string measurementsPath)
     {
-        Dictionary<string, List<double>> values = new();
-        HashSet<string> incompleteCounters = new();
-        List<object> extrema = new();
-        Dictionary<string, bool> availability = new();
-        foreach (JsonElement request in requests.EnumerateArray())
+        var values = new Dictionary<string, List<double>>();
+        var incompleteCounters = new HashSet<string>();
+        var extrema = new List<object>();
+        var availability = new Dictionary<string, bool>();
+        foreach (var request in requests.EnumerateArray())
         {
-            string variant = request.GetProperty("variant").GetString() ?? "";
-            string prefix = variant.Length == 0 ? "" : variant + "-";
-            string directory = Path.GetFullPath(request.GetProperty("directory").GetString()!,
+            var variant = request.GetProperty("variant").GetString() ?? "";
+            var prefix = variant.Length == 0 ? "" : variant + "-";
+            var directory = Path.GetFullPath(request.GetProperty("directory").GetString()!,
                 Path.GetDirectoryName(Path.GetFullPath(measurementsPath))!);
-            string sessionId = request.GetProperty("session").GetString()!;
-            using EvaluationMetricsSession session = new(
+            var sessionId = request.GetProperty("session").GetString()!;
+            using (var session = new EvaluationMetricsSession(
                 directory,
                 forceProcessExit: false,
                 sessionId: sessionId,
-                preserveFiles: true);
-            EvaluationMetricsSnapshot? snapshot;
-            if (request.TryGetProperty("window", out JsonElement window))
+                preserveFiles: true))
             {
-                long frequency = request.GetProperty("clock_frequency").GetInt64();
-                if (frequency <= 0)
+                EvaluationMetricsSnapshot? snapshot;
+                if (request.TryGetProperty("window", out var window))
                 {
-                    throw new InvalidDataException("Invalid evaluation timestamp frequency.");
-                }
-                long ToTicks(long nanoseconds) =>
-                    (long)((Int128)nanoseconds * frequency / 1_000_000_000);
-                JsonElement priming = request.GetProperty("priming_window");
-                EvaluationMetricsWindowReadResult result = session.ReadByTimeWindows(
-                    new[]
+                    var frequency = request.GetProperty("clock_frequency").GetInt64();
+                    if (frequency <= 0)
                     {
-                        new EvaluationMetricsTimeWindow(
-                            ToTicks(priming.GetProperty("start").GetInt64()),
-                            ToTicks(priming.GetProperty("end").GetInt64())),
-                        new EvaluationMetricsTimeWindow(
-                            ToTicks(window.GetProperty("start").GetInt64()),
-                            ToTicks(window.GetProperty("end").GetInt64()))
-                    },
-                    waitForFirstFile: true);
-                if (result.IsAvailable && result.Windows.Any(item => item is null))
+                        throw new InvalidDataException("Invalid evaluation timestamp frequency.");
+                    }
+
+                    long ToTicks(long nanoseconds) =>
+                        (long)((Int128)nanoseconds * frequency / 1_000_000_000);
+                    var priming = request.GetProperty("priming_window");
+                    var result = session.ReadByTimeWindows(
+                        new[]
+                        {
+                            new EvaluationMetricsTimeWindow(
+                                ToTicks(priming.GetProperty("start").GetInt64()),
+                                ToTicks(priming.GetProperty("end").GetInt64())),
+                            new EvaluationMetricsTimeWindow(
+                                ToTicks(window.GetProperty("start").GetInt64()),
+                                ToTicks(window.GetProperty("end").GetInt64()))
+                        },
+                        waitForFirstFile: true);
+                    if (result.IsAvailable && result.Windows.Any(item => item is null))
+                    {
+                        throw new InvalidDataException("A warm evaluation window lacks complete collector evidence.");
+                    }
+
+                    snapshot = result.Windows.Last();
+                }
+                else
                 {
-                    throw new InvalidDataException("A warm evaluation window lacks complete collector evidence.");
+                    snapshot = request.GetProperty("require_server").GetBoolean()
+                        ? session.ReadFromServer(TimeSpan.FromSeconds(30))
+                        : session.Read(TimeSpan.FromSeconds(30));
                 }
 
-                snapshot = result.Windows.Last();
-            }
-            else
-            {
-                snapshot = request.GetProperty("require_server").GetBoolean()
-                    ? session.ReadFromServer(TimeSpan.FromSeconds(30))
-                    : session.Read(TimeSpan.FromSeconds(30));
-            }
-            if (availability.TryGetValue(prefix, out bool previous) && previous != (snapshot is not null))
-            {
-                throw new InvalidDataException("Evaluation metric availability changed between samples.");
-            }
-            availability[prefix] = snapshot is not null;
-            string metricsDirectory = Path.Combine(directory, ".perfstar-evaluation-metrics");
-            Add(prefix + "evaluation-collector-lifecycle-retries-count",
-                Directory.GetFiles(metricsDirectory, sessionId + "-*.retries.txt")
-                    .Sum(path => File.ReadAllLines(path).Length));
-            Add(prefix + "evaluation-metrics-available", snapshot is null ? 0 : 1);
-            if (snapshot is null)
-            {
-                if (request.GetProperty("require_server").GetBoolean())
+                if (availability.TryGetValue(prefix, out var previous) && previous != (snapshot is not null))
                 {
-                    throw new InvalidDataException("Required server evaluation metrics are unavailable.");
+                    throw new InvalidDataException("Evaluation metric availability changed between samples.");
                 }
-                Console.Error.WriteLine("MSBuild evaluation metrics are unavailable for this invocation.");
-                continue;
-            }
 
-            Add(prefix + "evaluation-time-metrics", snapshot.TotalDurationMilliseconds);
-            Add(prefix + "evaluation-metrics-count", snapshot.TotalCount);
-            Add(prefix + "outside-build-submission-evaluation-time-metrics", snapshot.OutsideBuildSubmissionDurationMilliseconds);
-            Add(prefix + "outside-build-submission-evaluation-metrics-count", snapshot.OutsideBuildSubmissionCount);
-            AddPasses(prefix + "evaluation-time-", snapshot.PassDurationsMilliseconds, snapshot.TotalCount);
-            AddPasses(prefix + "outside-build-submission-evaluation-time-",
-                snapshot.OutsideBuildSubmissionPassDurationsMilliseconds, snapshot.OutsideBuildSubmissionCount);
-            extrema.Add(new
-            {
-                iteration = request.GetProperty("iteration").GetInt32(),
-                variant,
-                minimum = snapshot.MinimumEvaluation,
-                maximum = snapshot.MaximumEvaluation
-            });
+                availability[prefix] = snapshot is not null;
+                var metricsDirectory = Path.Combine(directory, ".perfstar-evaluation-metrics");
+                Add(prefix + "evaluation-collector-lifecycle-retries-count",
+                    Directory.GetFiles(metricsDirectory, sessionId + "-*.retries.txt")
+                        .Sum(path => File.ReadAllLines(path).Length));
+                Add(prefix + "evaluation-metrics-available", snapshot is null ? 0 : 1);
+                if (snapshot is null)
+                {
+                    if (request.GetProperty("require_server").GetBoolean())
+                    {
+                        throw new InvalidDataException("Required server evaluation metrics are unavailable.");
+                    }
+
+                    Console.Error.WriteLine("MSBuild evaluation metrics are unavailable for this invocation.");
+                    continue;
+                }
+
+                Add(prefix + "evaluation-time-metrics", snapshot.TotalDurationMilliseconds);
+                Add(prefix + "evaluation-metrics-count", snapshot.TotalCount);
+                Add(prefix + "outside-build-submission-evaluation-time-metrics", snapshot.OutsideBuildSubmissionDurationMilliseconds);
+                Add(prefix + "outside-build-submission-evaluation-metrics-count", snapshot.OutsideBuildSubmissionCount);
+                AddPasses(prefix + "evaluation-time-", snapshot.PassDurationsMilliseconds, snapshot.TotalCount);
+                AddPasses(prefix + "outside-build-submission-evaluation-time-",
+                    snapshot.OutsideBuildSubmissionPassDurationsMilliseconds, snapshot.OutsideBuildSubmissionCount);
+                extrema.Add(new
+                {
+                    iteration = request.GetProperty("iteration").GetInt32(),
+                    variant,
+                    minimum = snapshot.MinimumEvaluation,
+                    maximum = snapshot.MaximumEvaluation
+                });
+            }
         }
+
         File.WriteAllText(
             Path.Combine(Path.GetDirectoryName(Path.GetFullPath(measurementsPath))!, "evaluation-extrema.json"),
             JsonSerializer.Serialize(extrema, new JsonSerializerOptions { WriteIndented = true }));
@@ -121,11 +128,13 @@ internal static class MSBuildEvaluationReader
             {
                 throw new InvalidDataException($"Invalid evaluation metric '{name}'.");
             }
-            if (!values.TryGetValue(name, out List<double>? samples))
+
+            if (!values.TryGetValue(name, out var samples))
             {
                 samples = new List<double>();
                 values.Add(name, samples);
             }
+
             samples.Add(value);
         }
 
@@ -133,16 +142,18 @@ internal static class MSBuildEvaluationReader
         {
             if (count != 0 && durations.Count == 0)
             {
-                foreach (string pass in s_passes)
+                foreach (var pass in s_passes)
                 {
                     incompleteCounters.Add(family + pass + "-metrics");
                 }
+
                 Console.Error.WriteLine($"Evaluation pass family '{family}' is unavailable; omitting it.");
                 return;
             }
-            foreach (string pass in s_passes)
+
+            foreach (var pass in s_passes)
             {
-                Add(family + pass + "-metrics", durations.TryGetValue(pass, out double duration) ? duration : 0);
+                Add(family + pass + "-metrics", durations.TryGetValue(pass, out var duration) ? duration : 0);
             }
         }
     }

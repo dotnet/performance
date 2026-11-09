@@ -45,6 +45,10 @@ resolved before fetch and checked out explicitly, then the six shipping packages
 one checksum-pinned SDK. The selected SDK must match the current `main`
 runtime band configured in `scripts\channel_map.py` and satisfy this
 repository's `global.json`.
+Composition selects the highest shipping-package `netX.Y` target no newer
+than the SDK runtime band; for example, `net11.0` assemblies can be overlaid
+into a .NET 12 SDK. The functional smoke check still validates the resulting
+SDK and its dependencies.
 It uses the same DLL/target selection as PerfStar, but **not** official
 signing, OptProf optimization, or publishing. Results are marked
 `MSBuildSource=self-built-release`, with the MSBuild source SHA and commit
@@ -112,11 +116,14 @@ can reuse the verified Windows downloads without downloading the assets again.
 The old two-archive console/Orchard CLI options remain supported for local
 prototype qualification.
 
-The composed artifact includes the extracted SDK, both asset archives, and
+The composed artifact includes the extracted SDK, selected asset archives, and
 a manifest containing SDK/overlay checksums, asset versions/checksums,
 source SHA, source timestamp, and build configuration. It is shipped in
 the existing Helix correlation payload rather than downloading a fresh SDK
 on the worker.
+Asset-version metadata replaces hyphens with underscores in environment
+variable names (for example, `PerfStarAsset_net8_console_app_version`);
+the canonical asset IDs in the manifest and catalog remain unchanged.
 
 Unlike PerfStar's daily-SDK path, composition does not rewrite targeting-pack
 versions to a moving "latest published" version. Select a base SDK whose
@@ -147,8 +154,10 @@ Preparation is not timed. Operations preserve these boundaries:
 
 Node reuse/shared compilation remain enabled within a build except for the
 two explicit `/nr:false` scenarios. Failed Linux MT rounds have a bounded
-five-round recollection budget with discarded-attempt logging; persistent
-build failures, shutdown failures, and malformed/incomplete metrics fail
+five-round recollection budget with discarded-attempt logging. Retries use
+`-attempt-N` log suffixes, and diagnostic priming uses `diagnostic-prime-N`,
+so original failure evidence and measured-round priming logs are preserved.
+Persistent build failures, shutdown failures, and malformed/incomplete metrics fail
 qualification rather than producing success-shaped fallback samples.
 Child tool lookup is pinned with both `PATH` and `DOTNET_HOST_PATH`, and
 NuGet package/HTTP caches are isolated per work item. As in PerfStar,
@@ -279,7 +288,9 @@ diagnostics capture both variants with separately suffixed binlogs and logs.
 Collection uses `dotnet-trace collect-linux --profile dotnet-common,cpu-sampling`.
 The version is pinned in `.config\dotnet-tools.json` (10.0.750501); pipeline
 submission installs that version into the correlation payload only when
-Linux diagnostics are requested. For local use, install the same version
+Linux diagnostics are requested. Collector selection prefers an explicit
+`PERFLAB_DOTNET_TRACE` override, then the pinned payload tool, then `PATH`.
+For local use, install the same version
 and set `PERFLAB_DOTNET_TRACE` to the absolute executable path, or put
 `dotnet-trace` on `PATH`.
 
@@ -305,8 +316,10 @@ it first, waits up to 60 seconds for its recording-ready message, then
 starts the diagnostic rebuild. A terminal is used for the collector's
 progress message even in CI. Completion sends SIGINT to finalize the trace,
 with a finalization limit equal to the per-build timeout (900 seconds by
-default). The recording-duration bound adds the 60-second startup allowance
-so readiness time does not truncate a build near its timeout. Large builds can spend
+default). The recording-duration bound covers all commands in the diagnostic
+round, including priming, both query variants when applicable, and their
+shutdowns, plus the 60-second startup allowance. Finalization retains its
+separate per-command timeout. Large builds can spend
 several minutes resolving symbols after recording stops. Early collector exit, missing/empty output,
 startup timeout, build failure, and finalization failure fail the work item
 with logs retained. `--probe` alone is not treated as proof that kernel

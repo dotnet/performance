@@ -1,12 +1,12 @@
 """Validate and stage a composed MSBuild SDK for the existing Helix scenario runner."""
 
 import json
-from pathlib import Path
 import re
 import shutil
+from pathlib import Path
 
-from compose_msbuild_sdk import ASSETS, LIBRARIES, RUNTIME_FILES, sha512, verify_archive
 from channel_map import ChannelMap
+from compose_msbuild_sdk import ASSETS, LIBRARIES, RUNTIME_FILES, sha512, verify_archive
 from msbuild_catalog import CATALOG, CATALOG_SHA256
 
 
@@ -66,7 +66,8 @@ def configure_inputs(directory, payload, ci_args, target_os="windows", required_
     shutil.copyfile(root / "manifest.json", inputs / "manifest.json")
     ci_args.install_dir = str(destination)
     ci_args.dotnet_path = str(destination)
-    ci_args.repository = "dotnet/msbuild"
+    # ci_setup needs a URL for report identity; source checkout stays in Azure Repos.
+    ci_args.repository = "https://github.com/dotnet/msbuild"
     ci_args.commit_sha = manifest["commit"]
     ci_args.commit_time = manifest["commit_time"]
     ci_args.branch = "main"
@@ -78,7 +79,10 @@ def configure_inputs(directory, payload, ci_args, target_os="windows", required_
         "MSBuildScenarioCatalog": CATALOG_SHA256,
         "MSBuildSourceInventory": CATALOG["source_inventory_sha256"],
     }
-    metadata.update({f"PerfStarAsset_{name}_version": entry["version"] for name, entry in assets.items()})
+    metadata.update({
+        f"PerfStarAsset_{name.replace('-', '_')}_version": entry["version"]
+        for name, entry in assets.items()
+    })
     ci_args.run_env_vars = (ci_args.run_env_vars or []) + [
         f"{key}={value}" for key, value in metadata.items()
     ]

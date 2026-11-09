@@ -3,7 +3,6 @@
 import argparse
 import hashlib
 import json
-from pathlib import Path
 import posixpath
 import re
 import shutil
@@ -13,6 +12,8 @@ import tempfile
 import urllib.parse
 import urllib.request
 import zipfile
+from pathlib import Path
+
 from msbuild_catalog import ASSET_DEFINITIONS, select_scenarios
 
 
@@ -149,7 +150,8 @@ def package_files(packages_dir, sdk_major):
             }
             compatible = [
                 tfm for tfm in tfms
-                if re.fullmatch(rf"net{sdk_major}\.\d+", tfm)
+                if re.fullmatch(r"net\d+\.\d+", tfm)
+                and tuple(map(int, tfm[3:].split("."))) <= (sdk_major, 0)
             ]
             if not compatible:
                 raise ValueError(f"{package_name} has no TFM compatible with SDK {sdk_major}.")

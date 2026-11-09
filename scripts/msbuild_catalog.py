@@ -1,7 +1,7 @@
 """Load the self-contained, generated PerfStar scenario catalog."""
 
-import json
 import hashlib
+import json
 from pathlib import Path
 
 

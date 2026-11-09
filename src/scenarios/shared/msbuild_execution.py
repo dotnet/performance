@@ -1,23 +1,25 @@
 """Execute the enabled PerfStar operations without timing their setup or diagnostics."""
 
-import json
 import ctypes
+import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import sys
 import time
 import uuid
 import xml.etree.ElementTree as ET
+from logging import getLogger
+from pathlib import Path
 
-from shared import const
 from msbuild_catalog import ASSET_DEFINITIONS
+from performance.common import get_artifacts_directory
+from shared import collect_linux, const
 
 RESTORE = ["/t:restore", "/p:WarningsNotAsErrors=NU3018%3BNU3027%3BNU3042"]
 
 
-def publish_selection(app):
+def publish_selection(app: Path) -> tuple[Path, str]:
     orchard = app / "OrchardCore"
     projects = sorted([
         *orchard.joinpath("src/OrchardCore.Modules").rglob("*.csproj"),
@@ -48,8 +50,7 @@ def execute_scenario(scenario, dotnet, iterations, timeout, diagnostics=False,
         raise ValueError("Evaluation lighthouses require evaluation collection.")
     collector = None
     if linux_trace:
-        from shared.collect_linux import validate_collector
-        collector = validate_collector()
+        collector = collect_linux.validate_collector()
     app = Path(const.APPDIR).resolve()
     asset = ASSET_DEFINITIONS[scenario["asset"]]
     project = app / asset["project"]
@@ -70,11 +71,12 @@ def execute_scenario(scenario, dotnet, iterations, timeout, diagnostics=False,
     for name in ("MSBUILDDISABLENODEREUSE", "MSBUILDUSESERVER", "UseSharedCompilation",
                  "MSBUILDDEBUGCOMM", "MSBUILDDEBUGPATH"):
         env.pop(name, None)
-    env.update(DOTNET_ROOT=str(Path(dotnet).resolve().parent),
-               DOTNET_HOST_PATH=str(Path(dotnet).resolve()), DOTNET_MULTILEVEL_LOOKUP="0",
-               DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_SKIP_FIRST_TIME_EXPERIENCE="1",
-               DOTNET_CLI_ENABLEAOT="0", NUGET_PACKAGES=str(Path("packages").resolve()),
-               NUGET_HTTP_CACHE_PATH=str(Path("http-cache").resolve()))
+    env.update(
+        DOTNET_ROOT=str(Path(dotnet).resolve().parent),
+        DOTNET_HOST_PATH=str(Path(dotnet).resolve()), DOTNET_MULTILEVEL_LOOKUP="0",
+        DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_SKIP_FIRST_TIME_EXPERIENCE="1",
+        DOTNET_CLI_ENABLEAOT="0", NUGET_PACKAGES=str(Path("packages").resolve()),
+        NUGET_HTTP_CACHE_PATH=str(Path("http-cache").resolve()))
     env["PATH"] = str(Path(dotnet).resolve().parent) + os.pathsep + env.get("PATH", "")
     if lighthouse:
         env.update(MSBUILDDISABLENODEREUSE="0", MSBUILDUSESERVER="1")
@@ -103,21 +105,26 @@ def execute_scenario(scenario, dotnet, iterations, timeout, diagnostics=False,
     if evaluation_collection == "current":
         tools = os.environ.get("PERFLAB_EVALUATION_HOOK")
         payload = os.environ.get("HELIX_CORRELATION_PAYLOAD")
-        hook = Path(tools) if tools else Path(payload or "artifacts") / "startup/PerfStar.EvaluationMetrics.StartupHook.dll"
+        hook = (
+            Path(tools) if tools else
+            Path(payload or get_artifacts_directory()) / "startup/PerfStar.EvaluationMetrics.StartupHook.dll"
+        )
         if not hook.is_file():
             raise FileNotFoundError(f"Evaluation startup hook not found: {hook}")
 
     def execute(command, label, environment=None):
         nonlocal stopped
-        print("Running:", subprocess.list2cmdline(command), flush=True)
+        log_path = traces / (label + ".log")
+        getLogger().info("Running: %s (log: %s)", subprocess.list2cmdline(command), log_path)
         stopped = False
-        with (traces / (label + ".log")).open("w", encoding="utf-8") as log:
+        with log_path.open("x", encoding="utf-8") as log:
             start = time.perf_counter_ns()
             try:
-                subprocess.run(command, env=environment or env, stdout=log,
-                               stderr=subprocess.STDOUT, check=True, timeout=timeout, cwd=const.APPDIR)
+                subprocess.run(
+                    command, env=environment or env, stdout=log,
+                    stderr=subprocess.STDOUT, check=True, timeout=timeout, cwd=const.APPDIR)
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-                print(f"Command failed; see {traces / (label + '.log')}", flush=True)
+                getLogger().error("Command failed; see %s", log_path)
                 raise
             return start, time.perf_counter_ns()
 
@@ -139,8 +146,14 @@ def execute_scenario(scenario, dotnet, iterations, timeout, diagnostics=False,
             if path.is_dir():
                 shutil.rmtree(path)
 
-    def round_run(index, diagnostic=False):
-        shutdown(f"shutdown-{index}")
+    def round_run(index, diagnostic=False, attempt=0):
+        suffix = f"-attempt-{attempt}" if attempt else ""
+        round_name = f"{index}{suffix}"
+        priming_label = f"prime-{round_name}"
+        if diagnostic:
+            round_name = f"diagnostic-{round_name}"
+            priming_label = f"diagnostic-{priming_label}"
+        shutdown(f"shutdown-{round_name}")
         environment = env.copy()
         token = uuid.uuid4().hex if hook and not diagnostic else None
         if token:
@@ -157,10 +170,10 @@ def execute_scenario(scenario, dotnet, iterations, timeout, diagnostics=False,
         priming = None
         if kind == "warm-inc-build":
             edit_sources()
-            priming = execute(base, f"prime-{index}", environment)
+            priming = execute(base, priming_label, environment)
             edit_sources()
         elif kind == "warm-restore":
-            priming = execute(base + RESTORE, f"prime-{index}", environment)
+            priming = execute(base + RESTORE, priming_label, environment)
         elif kind in ("restore", "cold-restore"):
             remove_obj()
         order = ["get-property", "get-item"]
@@ -182,7 +195,9 @@ def execute_scenario(scenario, dotnet, iterations, timeout, diagnostics=False,
                 arguments = ["/t:rebuild"]
             elif kind in ("restore", "cold-restore", "warm-restore"):
                 arguments = RESTORE
-            label = f"{'diagnostic' if diagnostic else 'measured'}-{index}" + (f"-{variant}" if variant else "")
+            label = round_name if diagnostic else f"measured-{round_name}"
+            if variant:
+                label += f"-{variant}"
             if diagnostic and legacy and not variant:
                 label = "diagnostic"
             if diagnostic:
@@ -199,7 +214,7 @@ def execute_scenario(scenario, dotnet, iterations, timeout, diagnostics=False,
                     request["window"] = {"start": start, "end": end}
                     request["priming_window"] = {"start": priming[0], "end": priming[1]}
                 pending.append(request)
-            shutdown(f"shutdown-after-{index}" + (f"-{variant}" if variant else ""))
+            shutdown(f"shutdown-after-{round_name}" + (f"-{variant}" if variant else ""))
         return result, pending
 
     try:
@@ -219,15 +234,17 @@ def execute_scenario(scenario, dotnet, iterations, timeout, diagnostics=False,
                     execute(base, "warmup")
         recollections = 0
         for index in range(iterations):
+            attempt = 0
             while True:
                 try:
-                    values, pending = round_run(index)
+                    values, pending = round_run(index, attempt=attempt)
                     break
                 except subprocess.CalledProcessError:
                     if sys.platform != "linux" or not scenario["mt"] or recollections >= 5:
                         raise
                     recollections += 1
-                    print(f"Re-collecting failed Linux MT round ({recollections}/5).", flush=True)
+                    attempt += 1
+                    getLogger().warning("Re-collecting failed Linux MT round (%s/5).", recollections)
                     shutdown(f"recollection-{recollections}")
             samples.append(values["get-property"] if variants else values[""])
             for name in variants:
@@ -247,8 +264,13 @@ def execute_scenario(scenario, dotnet, iterations, timeout, diagnostics=False,
         if diagnostics or linux_trace:
             shutdown("diagnostic-shutdown")
             if linux_trace:
-                from shared.collect_linux import collect_linux
-                collect_linux(collector, lambda: round_run(0, diagnostic=True), traces, env, timeout)
+                # Each operation shuts down its servers; warm rounds also prime once.
+                command_count = 2 * (len(variants) or 1)
+                if kind in ("warm-inc-build", "warm-restore"):
+                    command_count += 1
+                collect_linux.collect_linux(
+                    collector, lambda: round_run(0, diagnostic=True), traces, env, timeout,
+                    recording_timeout=command_count * timeout)
             else:
                 round_run(0, diagnostic=True)
         return samples

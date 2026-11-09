@@ -1,26 +1,28 @@
-import json
 import io
+import json
 import os
-from pathlib import Path
-from types import SimpleNamespace
+import re
 import subprocess
 import sys
 import tarfile
 import time
 import xml.etree.ElementTree as ET
 import zipfile
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
+import ci_setup
+import dotnet
 from channel_map import ChannelMap
 from compose_msbuild_sdk import (
     ASSETS, LIBRARIES, RUNTIME_FILES, compose, extract_archive, package_files, sha512,
     verify_archive,
 )
 from msbuild_inputs import configure_inputs
-from shared import msbuild
-from shared import collect_linux
 from msbuild_catalog import ASSET_DEFINITIONS, SCENARIOS, select_scenarios
+from shared import collect_linux, msbuild
 from shared.msbuild_execution import execute_scenario, publish_selection
 from sync_msbuild_scenarios import generate
 
@@ -74,13 +76,37 @@ def test_overlay_and_helix_payload_preserve_source_identity(composition, tmp_pat
     assert (payload / f"dotnet/sdk/{SDK_VERSION}/Microsoft.Build.dll").read_bytes() == b"Microsoft.Build"
     assert (payload / f"dotnet/sdk/{SDK_VERSION}/MSBuild.dll").read_bytes() == b"MSBuild.dll"
     manifest = json.loads((payload / "msbuild-inputs/manifest.json").read_text())
-    assert args.repository == "dotnet/msbuild"
+    assert manifest["repository"] == "dotnet/msbuild"
+    assert dotnet.get_repository(args.repository) == ("dotnet", "msbuild")
     assert args.commit_sha == manifest["commit"]
     assert args.commit_time == manifest["commit_time"]
     assert args.dotnet_versions == [SDK_VERSION]
     assert args.dotnet_path == args.install_dir == str(payload / "dotnet")
     assert "USER_OPTION=value" in args.run_env_vars
     assert "MSBuildSource=self-built-release" in args.run_env_vars
+
+
+def test_linux_machine_setup_preserves_asset_metadata(composition, tmp_path, monkeypatch):
+    item = composition
+    compose(item.sdk, sha512(item.sdk), item.packages, item.output, item.source, item.assets)
+    args = ci_setup.CiSetupArgs(
+        channel="main", output_file=str(tmp_path / "machine-setup.sh"),
+        local_build=True, target_windows=False)
+    configure_inputs(item.output, tmp_path / "payload", args)
+    monkeypatch.setattr(ci_setup, "setup_loggers", lambda **kwargs: None)
+    monkeypatch.setattr(dotnet, "setup_dotnet", lambda *args: None)
+    monkeypatch.setattr(dotnet, "info", lambda **kwargs: None)
+    monkeypatch.setattr(ci_setup, "check_output", lambda *args: b"0" * 40)
+    monkeypatch.setattr(ci_setup, "set_environment_variable", lambda *args: None)
+    ci_setup.main(args)
+    script = Path(args.output_file).read_text()
+    identifiers = re.findall(r"^export ([^=]+)=", script, re.MULTILINE)
+    assert identifiers and all(re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key) for key in identifiers)
+    assert 'export PERFLAB_REPO="dotnet/msbuild"' in script
+    for name, (version, _) in ASSETS.items():
+        key = f"PerfStarAsset_{name.replace('-', '_')}_version"
+        assert f'export {key}="{version}"' in script
+        assert f'export PERFLAB_DATA_{key}="{version}"' in script
 
 
 def test_input_validation_rejects_corrupted_overlay(composition, tmp_path):
@@ -98,6 +124,22 @@ def test_overlay_requires_all_files_and_compatible_runtime(composition):
     (composition.packages / "Microsoft.Build.Framework.1.0.0.nupkg").unlink()
     with pytest.raises(ValueError, match="Microsoft.Build.Framework"):
         package_files(composition.packages, sdk_major)
+
+
+def test_overlay_selects_highest_compatible_package_tfm(composition):
+    sdk_major = int(SDK_VERSION.split(".")[0])
+    for package in composition.packages.glob("*.nupkg"):
+        runtime = package.name.startswith("Microsoft.Build.Runtime.")
+        prefix = "contentFiles/any/" if runtime else "lib/"
+        names = RUNTIME_FILES if runtime else (package.name.split(".1.0.0")[0] + ".dll",)
+        write_zip(package, {
+            f"{prefix}net{major}.{minor}/{name}": f"{major}.{minor}:{name}".encode()
+            for major, minor in ((sdk_major - 2, 0), (sdk_major - 1, 0), (sdk_major, 1))
+            for name in names
+        })
+    files = package_files(composition.packages, sdk_major)
+    assert files["MSBuild.dll"] == f"{sdk_major - 1}.0:MSBuild.dll".encode()
+    assert files["Microsoft.Build.dll"] == f"{sdk_major - 1}.0:Microsoft.Build.dll".encode()
 
 
 def test_archive_validation_rejects_bad_checksum_and_traversal(tmp_path):
@@ -269,8 +311,9 @@ def test_linux_profile_is_a_separate_unmeasured_build(tmp_path, monkeypatch):
     monkeypatch.setattr(subprocess, "run", lambda command, **kwargs: calls.append(command))
     profile_calls = []
 
-    def profile(collector, build, traces, env, timeout):
+    def profile(collector, build, traces, env, timeout, *, recording_timeout):
         assert collector == ["dotnet-trace"]
+        assert timeout == 900 and recording_timeout == 1800
         assert len(calls) == 5
         profile_calls.append(True)
         build()
@@ -306,7 +349,7 @@ def test_collect_linux_waits_for_recording_and_finalizes_on_build_failure(tmp_pa
 
     def start(*args, **kwargs):
         command = args[0]
-        assert command[command.index("--duration") + 1] == "00:00:16:00"
+        assert command[command.index("--duration") + 1] == "00:00:31:00"
         process = popen(*args, **kwargs)
         wait = process.wait
 
@@ -321,10 +364,10 @@ def test_collect_linux_waits_for_recording_and_finalizes_on_build_failure(tmp_pa
     if fail:
         with pytest.raises(ValueError, match="build failure"):
             collect_linux.collect_linux([sys.executable, str(fake)], build, tmp_path,
-                                        os.environ.copy(), 900)
+                                        os.environ.copy(), 900, recording_timeout=1800)
     else:
         collect_linux.collect_linux([sys.executable, str(fake)], build, tmp_path,
-                                    os.environ.copy(), 900)
+                                    os.environ.copy(), 900, recording_timeout=1800)
     assert (tmp_path / "diagnostic.nettrace").read_bytes() == b"finalized trace"
     assert finalization_budgets == [900]
 
@@ -343,9 +386,126 @@ def test_collect_linux_startup_failure_never_runs_diagnostic_build(tmp_path):
     builds = []
     with pytest.raises(RuntimeError, match="before recording"):
         collect_linux.collect_linux([sys.executable, str(fake)], lambda: builds.append(True),
-                                    tmp_path, os.environ.copy(), 10)
+                                    tmp_path, os.environ.copy(), 10, recording_timeout=20)
     assert builds == []
     assert "kernel permission denied" in (tmp_path / "collect-linux.log").read_text()
+
+
+@pytest.mark.parametrize("selection", ["override", "payload", "path"])
+def test_collector_selection_prefers_override_then_pinned_payload(tmp_path, monkeypatch, selection):
+    tools = {}
+    for name in ("override", "payload", "path"):
+        tool = tmp_path / name / "dotnet-trace" / "dotnet-trace"
+        tool.parent.mkdir(parents=True)
+        tool.write_bytes(b"collector")
+        tools[name] = tool
+    monkeypatch.setattr(collect_linux.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(collect_linux.platform, "release", lambda: "6.4.0")
+    monkeypatch.setattr(os, "geteuid", lambda: 0, raising=False)
+    monkeypatch.delenv("PERFLAB_DOTNET_TRACE", raising=False)
+    monkeypatch.delenv("HELIX_CORRELATION_PAYLOAD", raising=False)
+    if selection == "override":
+        monkeypatch.setenv("PERFLAB_DOTNET_TRACE", str(tools["override"]))
+    if selection != "path":
+        monkeypatch.setenv("HELIX_CORRELATION_PAYLOAD", str(tmp_path / "payload"))
+    monkeypatch.setattr(collect_linux.shutil, "which", lambda _: str(tools["path"]))
+    calls = []
+    monkeypatch.setattr(subprocess, "run", lambda command, **kwargs: calls.append(command))
+    assert collect_linux.validate_collector() == [str(tools[selection])]
+    assert calls == [[str(tools[selection]), "collect-linux", "--help"]]
+
+
+@pytest.mark.parametrize("location", ["local", "payload", "override"])
+def test_evaluation_hook_resolves_independently_of_working_directory(tmp_path, monkeypatch, location):
+    monkeypatch.chdir(tmp_path)
+    project = tmp_path / "app" / ASSET_DEFINITIONS["net8-console-app"]["project"]
+    project.parent.mkdir(parents=True)
+    project.write_text("project")
+    artifacts = tmp_path / "repo-artifacts"
+    payload = tmp_path / "payload"
+    hook = (
+        tmp_path / "override.dll" if location == "override" else
+        (payload if location == "payload" else artifacts) / "startup/PerfStar.EvaluationMetrics.StartupHook.dll"
+    )
+    hook.parent.mkdir(parents=True, exist_ok=True)
+    hook.write_bytes(b"hook")
+    monkeypatch.delenv("PERFLAB_EVALUATION_HOOK", raising=False)
+    monkeypatch.delenv("HELIX_CORRELATION_PAYLOAD", raising=False)
+    if location != "local":
+        monkeypatch.setenv("HELIX_CORRELATION_PAYLOAD", str(payload))
+    if location == "override":
+        monkeypatch.setenv("PERFLAB_EVALUATION_HOOK", str(hook))
+    monkeypatch.setattr("shared.msbuild_execution.get_artifacts_directory", lambda: str(artifacts))
+    calls = []
+    monkeypatch.setattr(subprocess, "run", lambda command, **kwargs: calls.append(kwargs["env"]))
+    execute_scenario(
+        {"asset": "net8-console-app", "kind": "rebuild", "mt": False},
+        tmp_path / "dotnet", 1, 900, evaluation_collection="current")
+    measured = [env for env in calls if "PERFSTAR_EVALUATION_METRICS_SESSION" in env]
+    assert measured and all(env["DOTNET_STARTUP_HOOKS"].split(os.pathsep)[-1] == str(hook) for env in measured)
+
+
+@pytest.mark.parametrize("kind", ["warm-inc-build", "warm-restore", "project-query-evaluation"])
+def test_diagnostic_budget_covers_priming_operations_and_shutdowns(tmp_path, monkeypatch, kind):
+    monkeypatch.chdir(tmp_path)
+    asset = "orchard-core" if kind == "project-query-evaluation" else "net8-console-app"
+    project_path = (
+        "OrchardCore/src/OrchardCore.Modules/OrchardCore.Admin/OrchardCore.Admin.csproj"
+        if kind == "project-query-evaluation" else ASSET_DEFINITIONS[asset]["project"]
+    )
+    project = tmp_path / "app" / project_path
+    project.parent.mkdir(parents=True)
+    project.write_text("project")
+    for relative in ASSET_DEFINITIONS[asset]["edits"]:
+        edit = tmp_path / "app" / relative
+        edit.parent.mkdir(parents=True, exist_ok=True)
+        edit.write_text("source")
+    hook = tmp_path / "hook.dll"
+    hook.write_bytes(b"hook")
+    monkeypatch.setenv("PERFLAB_EVALUATION_HOOK", str(hook))
+    monkeypatch.setattr(collect_linux, "validate_collector", lambda: ["collector"])
+    calls = []
+    monkeypatch.setattr(subprocess, "run", lambda command, **kwargs: calls.append(command))
+    budget = 3600 if kind == "project-query-evaluation" else 2700
+
+    def profile(collector, build, traces, env, timeout, *, recording_timeout):
+        assert recording_timeout == budget
+        assert timeout == 900
+        count = len(calls)
+        build()
+        assert (len(calls) - count) * timeout == recording_timeout
+
+    monkeypatch.setattr(collect_linux, "collect_linux", profile)
+    execute_scenario(
+        {"asset": asset, "kind": kind, "mt": True}, tmp_path / "dotnet", 1, 900,
+        linux_trace=True, evaluation_collection="current")
+
+
+def test_linux_retries_and_diagnostic_priming_preserve_original_logs(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    project = tmp_path / "app" / ASSET_DEFINITIONS["net8-console-app"]["project"]
+    project.parent.mkdir(parents=True)
+    project.write_text("project")
+    (project.parent / "Program.cs").write_text("source")
+    monkeypatch.setattr(sys, "platform", "linux")
+
+    def run(command, **kwargs):
+        log = kwargs["stdout"]
+        if Path(log.name).name == "measured-0.log":
+            log.write("original failure evidence")
+            raise subprocess.CalledProcessError(1, command)
+        log.write("successful " + Path(log.name).name)
+
+    monkeypatch.setattr(subprocess, "run", run)
+    values = execute_scenario(
+        {"asset": "net8-console-app", "kind": "warm-inc-build", "mt": True},
+        tmp_path / "dotnet", 1, 900, diagnostics=True)
+    traces = tmp_path / "traces"
+    assert len(values) == 1
+    assert (traces / "measured-0.log").read_text() == "original failure evidence"
+    for name in ("measured-0-attempt-1", "prime-0", "prime-0-attempt-1", "diagnostic-prime-0"):
+        assert (traces / f"{name}.log").read_text() == f"successful {name}.log"
+    assert json.loads((traces / "build-wall-clock.json").read_text())["recollected_attempts"] == 1
 
 
 @pytest.mark.parametrize("kind", ["warm-inc-build", "warm-restore", "cold-restore", "restore", "rebuild-nr-false"])
@@ -405,7 +565,8 @@ def test_publish_evaluation_uses_only_sorted_modules_and_themes(tmp_path):
         project.write_text("<Project />")
     props = orchard / "src/OrchardCore.Build/TargetFrameworks.props"
     props.parent.mkdir(parents=True)
-    props.write_text("<Project><PropertyGroup><DefaultTargetFramework>net9.0</DefaultTargetFramework></PropertyGroup></Project>")
+    props.write_text(
+        "<Project><PropertyGroup><DefaultTargetFramework>net9.0</DefaultTargetFramework></PropertyGroup></Project>")
     path, framework = publish_selection(tmp_path)
     assert framework == "net9.0"
     text = path.read_text()
@@ -431,7 +592,10 @@ def test_queries_alternate_order_without_mixing_variant_samples(tmp_path, monkey
         "-getProperty:TargetFramework", "-getItem:ProjectReference",
         "-getItem:ProjectReference", "-getProperty:TargetFramework",
     ]
-    measured_envs = [env for command, env in calls if command[1] == "msbuild" and "PERFSTAR_EVALUATION_METRICS_SESSION" in env]
+    measured_envs = [
+        env for command, env in calls
+        if command[1] == "msbuild" and "PERFSTAR_EVALUATION_METRICS_SESSION" in env
+    ]
     assert len({env["PERFSTAR_EVALUATION_METRICS_SESSION"] for env in measured_envs}) == 4
     assert all(env["MSBUILDUSESERVER"] == "1" for env in measured_envs)
     assert all(env["PERFSTAR_EVALUATION_METRICS_DIR"] ==
@@ -439,7 +603,8 @@ def test_queries_alternate_order_without_mixing_variant_samples(tmp_path, monkey
     assert not (tmp_path / "app/.perfstar-evaluation-metrics").exists()
     data = json.loads((tmp_path / "traces/build-wall-clock.json").read_text())
     assert len(data["sessions"]) == 4
-    assert [request["variant"] for request in data["sessions"]] == ["get-property", "get-item", "get-item", "get-property"]
+    assert [request["variant"] for request in data["sessions"]] == [
+        "get-property", "get-item", "get-item", "get-property"]
     assert all(len(counter["samples"]) == 2 for counter in data["counters"])
 
 
@@ -493,7 +658,9 @@ def test_catalog_import_preserves_enabled_routes_and_is_line_ending_independent(
         "scenario_kind": "rebuild", "build_app": "dotnet", "mt": False,
         "configured_iterations": 10, "supported_os": ["windows", "linux"],
     }
-    inventory = json.dumps({"schema_version": 2, "scenarios": [scenario, {"name": "disabled", "enabled": False}]}, indent=2)
+    inventory = json.dumps({
+        "schema_version": 2, "scenarios": [scenario, {"name": "disabled", "enabled": False}],
+    }, indent=2)
     path = root / "ScenarioInventory.json"
     path.write_bytes(inventory.encode())
     (root / "ScenarioMetadata.json").write_text(json.dumps({

@@ -12,11 +12,11 @@ public class BuildWallClockParserTests
     [Fact]
     public void PreservesLongBuildDurationsWithoutTraceCollection()
     {
-        string path = Path.GetTempFileName();
+        var path = Path.GetTempFileName();
         try
         {
             File.WriteAllText(path, "[12.5, 180000.25]");
-            Reporting.Counter counter = Assert.Single(
+            var counter = Assert.Single(
                 new BuildWallClockParser().Parse(path, "dotnet", new List<int>(), ""));
             Assert.Equal("ms", counter.MetricName);
             Assert.True(counter.DefaultCounter);
@@ -35,7 +35,7 @@ public class BuildWallClockParserTests
     [InlineData("[-1]")]
     public void RejectsMissingOrInvalidMeasurements(string json)
     {
-        string path = Path.GetTempFileName();
+        var path = Path.GetTempFileName();
         try
         {
             File.WriteAllText(path, json);

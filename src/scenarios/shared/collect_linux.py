@@ -2,13 +2,13 @@
 
 import errno
 import os
-from pathlib import Path
 import platform
 import shutil
 import signal
 import subprocess
 import threading
 import time
+from pathlib import Path
 
 
 def validate_collector():
@@ -17,9 +17,11 @@ def validate_collector():
     version = tuple(int(part) for part in platform.release().split("-")[0].split(".")[:2])
     if version < (6, 4):
         raise RuntimeError("collect-linux requires kernel 6.4+ with CONFIG_USER_EVENTS=y.")
-    tool = os.environ.get("PERFLAB_DOTNET_TRACE") or shutil.which("dotnet-trace")
-    if not tool and os.environ.get("HELIX_CORRELATION_PAYLOAD"):
-        tool = str(Path(os.environ["HELIX_CORRELATION_PAYLOAD"]) / "dotnet-trace" / "dotnet-trace")
+    tool = os.environ.get("PERFLAB_DOTNET_TRACE")
+    if not tool:
+        payload = os.environ.get("HELIX_CORRELATION_PAYLOAD")
+        staged = Path(payload) / "dotnet-trace" / "dotnet-trace" if payload else None
+        tool = str(staged) if staged and staged.is_file() else shutil.which("dotnet-trace")
     if not tool or not Path(tool).is_file():
         raise FileNotFoundError("Set PERFLAB_DOTNET_TRACE to a dotnet-trace supporting collect-linux.")
     tool = str(Path(tool).resolve())
@@ -32,7 +34,7 @@ def validate_collector():
     return command
 
 
-def collect_linux(collector, build, trace_directory, env, timeout):
+def collect_linux(collector, build, trace_directory, env, timeout, *, recording_timeout):
     import pty
 
     trace = (Path(trace_directory) / "diagnostic.nettrace").resolve()
@@ -46,7 +48,7 @@ def collect_linux(collector, build, trace_directory, env, timeout):
     reader_errors = []
     process = None
     reader = None
-    days, seconds = divmod(timeout + 60, 86400)
+    days, seconds = divmod(recording_timeout + 60, 86400)
     hours, seconds = divmod(seconds, 3600)
     minutes, seconds = divmod(seconds, 60)
     duration = f"{days:02}:{hours:02}:{minutes:02}:{seconds:02}"

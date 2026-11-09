@@ -1,23 +1,25 @@
-"""PerfStar rebuild semantics with untraced wall-clock measurement."""
+"""Prepare PerfStar workloads and report untraced MSBuild scenario measurements."""
 
 import json
 import os
-from pathlib import Path
 import shutil
 import sys
 import time
 import xml.etree.ElementTree as ET
+from logging import getLogger
+from pathlib import Path
 
-from shared import const
-from shared.startup import StartupWrapper
-from shared.util import helixuploaddir
-from performance.common import extension
 from compose_msbuild_sdk import ASSETS, extract_archive, verify_archive
 from msbuild_catalog import ASSET_DEFINITIONS, SCENARIOS, CATALOG_SHA256
 from msbuild_inputs import verify_sdk
+from performance.common import extension
+from shared import const
+from shared.msbuild_execution import execute_scenario
+from shared.startup import StartupWrapper
+from shared.util import helixuploaddir
 
 
-def input_directory():
+def input_directory() -> Path:
     root = os.environ.get("PERFLAB_MSBUILD_INPUTS")
     if not root:
         payload = os.environ.get("HELIX_CORRELATION_PAYLOAD")
@@ -27,7 +29,7 @@ def input_directory():
     return Path(root)
 
 
-def prepare(asset):
+def prepare(asset: str) -> None:
     root = input_directory()
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     entry = manifest["assets"][asset]
@@ -71,13 +73,12 @@ def prepare(asset):
 
 def measure(asset, dotnet, iterations, timeout, mt, diagnostics=False, linux_trace=False,
             scenario=None, evaluation_collection="off"):
-    from shared.msbuild_execution import execute_scenario
     definition = scenario or {"asset": asset, "kind": "rebuild", "mt": mt}
     return execute_scenario(definition, dotnet, iterations, timeout, diagnostics,
                             linux_trace, evaluation_collection, legacy=scenario is None)
 
 
-def normalize_future_sdk_timestamps(sdk):
+def normalize_future_sdk_timestamps(sdk: Path) -> int:
     cutoff = time.time_ns()
     changed = 0
     for path in Path(sdk).rglob("*"):
@@ -105,7 +106,7 @@ def run(traits, iterations, timeout, mt, diagnostics, linux_trace=False,
     verify_sdk(dotnet.parent, manifest, host_os)
     if os.name == "nt":
         changed = normalize_future_sdk_timestamps(dotnet.parent)
-        print(f"Normalized {changed} future-dated SDK files before setup.", flush=True)
+        getLogger().info("Normalized %s future-dated SDK files before setup.", changed)
     if not scenario_id and traits.exename not in ASSET_DEFINITIONS:
         raise ValueError("The generic MSBuild entrypoint requires --scenario-id.")
     startup = StartupWrapper()
@@ -118,8 +119,9 @@ def run(traits, iterations, timeout, mt, diagnostics, linux_trace=False,
             raise ValueError(f"Scenario {scenario_id} does not support {host_os}.")
         if mt and not scenario["mt"]:
             raise ValueError("--mt conflicts with the selected non-MT scenario.")
-        traits.add_traits(exename=scenario["asset"],
-                          scenarioname=traits.scenarioname or scenario_id)
+        traits.add_traits(
+            exename=scenario["asset"],
+            scenarioname=traits.scenarioname or scenario_id)
         os.environ["PERFLAB_DATA_MSBuildScenario"] = scenario_id
         os.environ["PERFLAB_DATA_MSBuildScenarioCatalog"] = CATALOG_SHA256
     else:
@@ -131,8 +133,9 @@ def run(traits, iterations, timeout, mt, diagnostics, linux_trace=False,
     try:
         measure(traits.exename, dotnet, iterations, timeout, mt, diagnostics, linux_trace,
                 scenario, evaluation_collection)
-        traits.add_traits(apptorun=str(dotnet), startupmetric="BuildWallClock",
-                          tracename="build-wall-clock.json")
+        traits.add_traits(
+            apptorun=str(dotnet), startupmetric="BuildWallClock",
+            tracename="build-wall-clock.json")
         startup.parsetraces(traits)
     finally:
         upload = helixuploaddir()

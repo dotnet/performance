@@ -1,4 +1,7 @@
+"""Prepare the selected MSBuild workload."""
+
 import argparse
+
 from msbuild_catalog import SCENARIOS
 from shared.msbuild import prepare
 

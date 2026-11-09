@@ -4,21 +4,23 @@ import argparse
 import hashlib
 import json
 import re
-from pathlib import Path
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 
 BINDINGS = {
     "aspire": ("Aspire/aspire-src.proj", ["Aspire/src/Aspire.Hosting/ConnectionStringResource.cs"]),
-    "azure-core": ("AzureCore/sdk/core/Azure.Core/tests/Azure.Core.Tests.csproj",
-                   ["AzureCore/sdk/core/Azure.Core/src/AzureKeyCredential.cs"]),
-    "eshop-on-blazor-modified": ("eShopOnBlazor/eShopOnBlazor.sln",
-                                 ["eShopOnBlazor/src/eShopOnBlazor/Program.cs"]),
+    "azure-core": (
+        "AzureCore/sdk/core/Azure.Core/tests/Azure.Core.Tests.csproj",
+        ["AzureCore/sdk/core/Azure.Core/src/AzureKeyCredential.cs"]),
+    "eshop-on-blazor-modified": (
+        "eShopOnBlazor/eShopOnBlazor.sln", ["eShopOnBlazor/src/eShopOnBlazor/Program.cs"]),
     "net8-blazorwasm-app": ("Net8BlazorWasmApp/Net8BlazorWasmApp.csproj", ["Net8BlazorWasmApp/Program.cs"]),
     "net8-class-lib": ("Net8ClassLib/Net8ClassLib.csproj", ["Net8ClassLib/Class1.cs"]),
     "net8-console-app": ("Net8ConsoleApp/Net8ConsoleApp.csproj", ["Net8ConsoleApp/Program.cs"]),
-    "orchard-core": ("OrchardCore/OrchardCore.sln",
-                     ["OrchardCore/src/OrchardCore.Modules/OrchardCore.Admin/AdminFilter.cs"]),
+    "orchard-core": (
+        "OrchardCore/OrchardCore.sln",
+        ["OrchardCore/src/OrchardCore.Modules/OrchardCore.Admin/AdminFilter.cs"]),
     "rar-search-stress": ("RarSearchStress/RarSearchStress.proj", []),
     "rar-conflict-details-stress": ("RarConflictDetailsStress/RarConflictDetailsStress.proj", []),
     "rar-conflict-warning-stress": ("RarConflictWarningStress/RarConflictWarningStress.proj", []),

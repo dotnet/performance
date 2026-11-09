@@ -145,18 +145,18 @@ new_console:     measure duration of creating a new console template
         self.add_common_arguments(sdkparser)
 
         msbuildparser = subparsers.add_parser(const.MSBUILD,
-                                              description='measure an enabled PerfStar MSBuild scenario')
+                                             description='measure an enabled PerfStar MSBuild scenario')
         msbuildparser.add_argument('--scenario-id', help='Canonical enabled PerfStar scenario name')
         msbuildparser.add_argument('--mt', action='store_true')
         msbuildparser.add_argument('--iterations', type=int,
-                                   help='Override catalog iteration count (legacy rebuild default: 10)')
+                                  help='Override catalog iteration count (legacy rebuild default: 10)')
         msbuildparser.add_argument('--evaluation-collection', choices=['current', 'off'], default='current')
         msbuildparser.add_argument('--timeout', type=int, default=900,
-                                   help='Timeout in seconds for each build or shutdown')
+                                  help='Timeout in seconds for each build or shutdown')
         msbuildparser.add_argument('--diagnostics', action='store_true',
-                                   help='Collect a binlog in a separate, untimed rebuild')
+                                  help='Collect a binlog in a separate, untimed round')
         msbuildparser.add_argument('--collect-linux', action='store_true',
-                                   help='Opt-in machine-wide dotnet-trace collection on a dedicated Linux worker')
+                                  help='Opt-in machine-wide dotnet-trace collection on a dedicated Linux worker')
         self.add_common_arguments(msbuildparser)
 
         crossgenparser = subparsers.add_parser(const.CROSSGEN,

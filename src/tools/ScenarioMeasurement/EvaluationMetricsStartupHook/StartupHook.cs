@@ -1,9 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading;
 
 /// <summary>Collects MSBuild evaluation metrics in each process and writes them to a per-process TSV file.</summary>
 public static class StartupHook
@@ -47,8 +52,8 @@ public static class StartupHook
     {
         try
         {
-            string? outputDirectory = Environment.GetEnvironmentVariable(OutputDirectoryEnvironmentVariable);
-            string? session = Environment.GetEnvironmentVariable(SessionEnvironmentVariable);
+            var outputDirectory = Environment.GetEnvironmentVariable(OutputDirectoryEnvironmentVariable);
+            var session = Environment.GetEnvironmentVariable(SessionEnvironmentVariable);
             if (string.IsNullOrWhiteSpace(outputDirectory) || string.IsNullOrWhiteSpace(session))
             {
                 return;
@@ -56,7 +61,7 @@ public static class StartupHook
 
             s_hookStartTimestamp = Stopwatch.GetTimestamp();
             Directory.CreateDirectory(outputDirectory);
-            string sanitizedSession = SanitizeFileName(session);
+            var sanitizedSession = SanitizeFileName(session);
             s_outputPath = Path.Combine(
                 outputDirectory,
                 $"{sanitizedSession}-{Environment.ProcessId.ToString(CultureInfo.InvariantCulture)}.metrics.tsv");
@@ -74,9 +79,9 @@ public static class StartupHook
                         $"{sanitizedSession}-{Environment.ProcessId.ToString(CultureInfo.InvariantCulture)}.server"),
                     Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
             }
-            bool isSessionLeader = TryClaimSessionLeader(outputDirectory, sanitizedSession);
+            var isSessionLeader = TryClaimSessionLeader(outputDirectory, sanitizedSession);
 
-            EvaluationEventListener listener = new(eventSourceName);
+            var listener = new EvaluationEventListener(eventSourceName);
             s_listener = listener;
             if (isSessionLeader)
             {
@@ -108,7 +113,7 @@ public static class StartupHook
                     "ProjectEvaluationCompleted",
                     expectedVersion: 0,
                     ["durationSeconds", "stage", "origin", "succeeded", "projectFile", "evaluationId"]);
-                (string projectFile, int evaluationId) = GetEvaluationIdentity(eventData);
+                (var projectFile, var evaluationId) = GetEvaluationIdentity(eventData);
                 AddMeasurement(
                     EvaluationDurationInstrumentName,
                     GetDuration(eventData, allowNaN: true),
@@ -154,7 +159,7 @@ public static class StartupHook
         int evaluationId,
         bool establishesCapability)
     {
-        MeasurementRecord record = new(
+        var record = new MeasurementRecord(
             Stopwatch.GetTimestamp(),
             instrument,
             stage,
@@ -199,7 +204,7 @@ public static class StartupHook
 
     private static (string ProjectFile, int EvaluationId) GetEvaluationIdentity(EventWrittenEventArgs eventData)
     {
-        string projectFile = GetPayload<string>(eventData, 4);
+        var projectFile = GetPayload<string>(eventData, 4);
         if (projectFile.Length > MaxProjectFileLength)
         {
             throw new InvalidDataException(
@@ -211,7 +216,7 @@ public static class StartupHook
 
     private static double GetDuration(EventWrittenEventArgs eventData, bool allowNaN)
     {
-        double durationSeconds = GetPayload<double>(eventData, 0);
+        var durationSeconds = GetPayload<double>(eventData, 0);
         if (double.IsInfinity(durationSeconds) ||
             durationSeconds < 0 ||
             (!allowNaN && double.IsNaN(durationSeconds)))
@@ -225,7 +230,7 @@ public static class StartupHook
 
     private static string GetStage(EventWrittenEventArgs eventData, int index)
     {
-        string stage = GetPayload<string>(eventData, index);
+        var stage = GetPayload<string>(eventData, index);
         return stage is "properties" or "item_definitions" or "items" or "using_tasks" or "full" or "unknown"
             ? stage
             : throw new InvalidDataException(
@@ -234,7 +239,7 @@ public static class StartupHook
 
     private static string GetPass(EventWrittenEventArgs eventData, int index)
     {
-        string pass = GetPayload<string>(eventData, index);
+        var pass = GetPayload<string>(eventData, index);
         return pass is "initial_properties" or "properties" or "item_definitions" or "items" or "using_tasks" or "targets"
             ? pass
             : throw new InvalidDataException(
@@ -243,7 +248,7 @@ public static class StartupHook
 
     private static string GetOrigin(EventWrittenEventArgs eventData, int index)
     {
-        string origin = GetPayload<string>(eventData, index);
+        var origin = GetPayload<string>(eventData, index);
         return origin is "build_submission" or "outside_build_submission"
             ? origin
             : throw new InvalidDataException(
@@ -252,7 +257,7 @@ public static class StartupHook
 
     private static T GetPayload<T>(EventWrittenEventArgs eventData, int index)
     {
-        object? value = eventData.Payload![index];
+        var value = eventData.Payload![index];
         return value is T typedValue
             ? typedValue
             : throw new InvalidDataException(
@@ -289,12 +294,12 @@ public static class StartupHook
                 listenerStartTimestamp = s_listenerStartTimestamp;
             }
 
-            string temporaryPath = s_outputPath + ".tmp";
-            using (StreamWriter writer = new(temporaryPath))
+            var temporaryPath = s_outputPath + ".tmp";
+            using (var writer = new StreamWriter(temporaryPath))
             {
                 writer.WriteLine(
                     "timestamp\tinstrument\tstage\tpass\torigin\tsucceeded\tdurationSeconds\tprojectFileBase64\tevaluationId");
-                foreach (MeasurementRecord measurement in measurements)
+                foreach (var measurement in measurements)
                 {
                     writer.Write(measurement.Timestamp.ToString(CultureInfo.InvariantCulture));
                     writer.Write('\t');
@@ -427,8 +432,8 @@ public static class StartupHook
             throw new InvalidOperationException("Evaluation metrics lifecycle path was not initialized.");
         }
 
-        string temporaryPath = s_lifecyclePath + ".tmp";
-        using (StreamWriter writer = new(temporaryPath))
+        var temporaryPath = s_lifecyclePath + ".tmp";
+        using (var writer = new StreamWriter(temporaryPath))
         {
             writer.WriteLine(LifecycleHeader);
             writer.Write(LifecycleVersion.ToString(CultureInfo.InvariantCulture));
@@ -455,7 +460,7 @@ public static class StartupHook
             }
             writer.WriteLine();
         }
-        for (int attempt = 0; ; attempt++)
+        for (var attempt = 0; ; attempt++)
         {
             try
             {
@@ -529,17 +534,19 @@ public static class StartupHook
 
     private static bool TryClaimSessionLeader(string outputDirectory, string session)
     {
-        string claimPath = Path.Combine(outputDirectory, $"{session}-leader.claim");
+        var claimPath = Path.Combine(outputDirectory, $"{session}-leader.claim");
         try
         {
-            using FileStream claim = new(
+            using (var claim = new FileStream(
                 claimPath,
                 FileMode.CreateNew,
                 FileAccess.Write,
-                FileShare.Read);
-            using StreamWriter writer = new(claim);
-            writer.Write(Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
-            return true;
+                FileShare.Read))
+            using (var writer = new StreamWriter(claim))
+            {
+                writer.Write(Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
+                return true;
+            }
         }
         catch (IOException) when (File.Exists(claimPath))
         {
@@ -565,8 +572,8 @@ public static class StartupHook
 
     private static string SanitizeFileName(string value)
     {
-        char[] result = value.ToCharArray();
-        for (int i = 0; i < result.Length; i++)
+        var result = value.ToCharArray();
+        for (var i = 0; i < result.Length; i++)
         {
             if (!char.IsAsciiLetterOrDigit(result[i]) && result[i] is not ('-' or '_'))
             {
@@ -588,7 +595,7 @@ public static class StartupHook
 
         public void Start()
         {
-            foreach (EventSource eventSource in EventSource.GetSources())
+            foreach (var eventSource in EventSource.GetSources())
             {
                 TryEnable(eventSource);
             }

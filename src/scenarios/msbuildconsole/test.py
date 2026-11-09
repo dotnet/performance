@@ -1,3 +1,5 @@
+"""Run the legacy console rebuild scenario."""
+
 from shared.runner import Runner, TestTraits
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -27,7 +27,10 @@ function Invoke-RestMethod {
     if ($Headers.Authorization -ne "Bearer $env:SYSTEM_ACCESSTOKEN") {
         throw 'The identity request did not authenticate with the job token.'
     }
-    return @{ authenticatedUser = @{ providerDisplayName = 'internal Build Service (dnceng)'; id = 'job-principal-id' } }
+    return @{ authenticatedUser = @{
+        providerDisplayName = 'internal Build Service (dnceng)'
+        id = 'job-principal-id'
+    } }
 }
 function git {
     $arguments = @($args)
