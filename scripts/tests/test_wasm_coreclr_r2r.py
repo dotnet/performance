@@ -572,6 +572,7 @@ def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
     runtime_pack.mkdir(parents=True)
     built_nugets.mkdir(parents=True)
     (shared_framework / "System.Private.CoreLib.dll").touch()
+    (runtime_pack / "Microsoft.NETCore.App.Runtime.browser-wasm.nuspec").touch()
     (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.11.0.0-ci.nupkg").touch()
     (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.11.0.0-ci.nupkg").touch()
     (built_nugets / "Microsoft.NET.ILLink.Tasks.11.0.0-ci.nupkg").touch()
@@ -588,6 +589,9 @@ def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
         / "11.0.0-ci"
         / "System.Private.CoreLib.dll"
     ).is_file()
+    runtime_packs = payload / "dotnet" / "packs" / "Microsoft.NETCore.App.Runtime.browser-wasm"
+    assert [path.name for path in runtime_packs.iterdir()] == ["11.0.0-ci"]
+    assert (runtime_packs / "11.0.0-ci" / "Microsoft.NETCore.App.Runtime.browser-wasm.nuspec").is_file()
 
 
 def _write_coreclr_artifact(tmp_path, crossgen2_tasks_files=()):
