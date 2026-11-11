@@ -28,7 +28,7 @@ from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
 DEFAULT_BUILD_CONFIG = "Release"
 APT_LOCK_TIMEOUT_OPTION = "-o DPkg::Lock::Timeout=120"
-WASM_NODE_MIN_VERSION = (22, 23, 4)
+WASM_NODE_MIN_VERSION = (24, 22, 1)
 TARGETING_PACK_COMPONENTS = {
     "Microsoft.NETCore.App.Ref": "runtime",
     "Microsoft.AspNetCore.App.Ref": "aspnetcore-runtime",

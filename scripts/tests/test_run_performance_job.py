@@ -107,7 +107,7 @@ def test_generated_prerequisites_do_not_poll_dpkg_lock():
 
 @pytest.mark.parametrize("internal", [False, True])
 @pytest.mark.parametrize("runtime_type", ["wasm", "wasm_coreclr"])
-def test_wasm_nodesource_setup_requires_patched_node_22(internal, runtime_type):
+def test_wasm_nodesource_setup_requires_patched_node_24(internal, runtime_type):
     pre_commands = get_pre_commands(
         os_group="linux",
         os_distro="ubuntu",
@@ -122,10 +122,10 @@ def test_wasm_nodesource_setup_requires_patched_node_22(internal, runtime_type):
     node_install = job.apt_command("install nodejs -y")
     npm_install = "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g"
 
-    assert "export NODE_MAJOR=22 && " in prerequisites
+    assert "export NODE_MAJOR=24 && " in prerequisites
     assert "https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" in prerequisites
     assert prerequisites.index(node_install) < prerequisites.index("node -e ") < prerequisites.index(npm_install)
-    assert "Node.js >= 22.23.4 in the 22.x line is required" in prerequisites
+    assert "Node.js >= 24.22.1 in the 24.x line is required" in prerequisites
     # Helix rewrites '\' to '/' in Unix pre-commands, which corrupted the Node check regex.
     assert "\\" not in prerequisites
     assert f"{npm_install} && $HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@15.1.206" in prerequisites
