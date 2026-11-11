@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 import sys
+import threading
 import time
 import uuid
 import xml.etree.ElementTree as ET
@@ -17,6 +18,34 @@ from performance.common import get_artifacts_directory
 from shared import collect_linux, const
 
 RESTORE = ["/t:restore", "/p:WarningsNotAsErrors=NU3018%3BNU3027%3BNU3042"]
+
+
+def run_command(command, *, env, stdout, timeout, cwd):
+    expired = threading.Event()
+    start = time.perf_counter_ns()
+    with subprocess.Popen(command, env=env, stdout=stdout, stderr=subprocess.STDOUT, cwd=cwd) as process:
+        def terminate():
+            if process.poll() is None:
+                expired.set()
+                process.kill()
+
+        watchdog = threading.Timer(timeout, terminate)
+        watchdog.start()
+        try:
+            # A timed wait polls on older POSIX Python versions and distorts short measurements.
+            process.wait()
+            end = time.perf_counter_ns()
+        finally:
+            watchdog.cancel()
+            watchdog.join()
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+        if expired.is_set():
+            raise subprocess.TimeoutExpired(command, timeout)
+        if process.returncode:
+            raise subprocess.CalledProcessError(process.returncode, command)
+    return start, end
 
 
 def publish_selection(app: Path) -> tuple[Path, str]:
@@ -44,6 +73,7 @@ def execute_scenario(scenario, dotnet, iterations, timeout, diagnostics=False,
                      linux_trace=False, evaluation_collection="off", legacy=False):
     if not 1 <= iterations <= 2_147_483_647 or timeout < 1:
         raise ValueError("Iterations must be positive and fit Int32; timeout must be positive.")
+    dotnet = Path(dotnet).resolve()
     kind = scenario["kind"]
     lighthouse = kind.endswith("-evaluation")
     if lighthouse and evaluation_collection != "current":
@@ -118,15 +148,13 @@ def execute_scenario(scenario, dotnet, iterations, timeout, diagnostics=False,
         getLogger().info("Running: %s (log: %s)", subprocess.list2cmdline(command), log_path)
         stopped = False
         with log_path.open("x", encoding="utf-8") as log:
-            start = time.perf_counter_ns()
             try:
-                subprocess.run(
+                return run_command(
                     command, env=environment or env, stdout=log,
-                    stderr=subprocess.STDOUT, check=True, timeout=timeout, cwd=const.APPDIR)
+                    timeout=timeout, cwd=const.APPDIR)
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
                 getLogger().error("Command failed; see %s", log_path)
                 raise
-            return start, time.perf_counter_ns()
 
     def shutdown(label):
         nonlocal stopped

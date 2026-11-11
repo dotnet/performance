@@ -95,7 +95,7 @@ def run(traits, iterations, timeout, mt, diagnostics, linux_trace=False,
     if sys.platform not in ("win32", "linux"):
         raise ValueError("MSBuild scenario collection supports Windows and Linux only.")
     root = input_directory()
-    dotnet = Path(os.environ.get("DOTNET_ROOT", str(root / "sdk"))) / ("dotnet" + extension())
+    dotnet = (Path(os.environ.get("DOTNET_ROOT", str(root / "sdk"))) / ("dotnet" + extension())).resolve()
     if not dotnet.is_file():
         raise FileNotFoundError(dotnet)
     allowed = {(root / "sdk").resolve(), (root.parent / "dotnet").resolve()}

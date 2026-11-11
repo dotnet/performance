@@ -23,7 +23,7 @@ from compose_msbuild_sdk import (
 )
 from msbuild_inputs import configure_inputs
 from msbuild_catalog import ASSET_DEFINITIONS, SCENARIOS, select_scenarios
-from shared import collect_linux, msbuild, startup
+from shared import collect_linux, msbuild, msbuild_execution, startup
 from shared.msbuild_execution import execute_scenario, publish_selection
 from shared.testtraits import TestTraits as ScenarioTraits
 from sync_msbuild_scenarios import generate
@@ -31,6 +31,15 @@ from sync_msbuild_scenarios import generate
 
 SDK_TFM = ChannelMap.get_target_framework_moniker("main")
 SDK_VERSION = SDK_TFM.removeprefix("net") + ".100"
+
+
+def mock_commands(monkeypatch, action):
+    def run(command, **kwargs):
+        start = time.perf_counter_ns()
+        action(command, **kwargs)
+        return start, time.perf_counter_ns()
+
+    monkeypatch.setattr(msbuild_execution, "run_command", run)
 
 
 def write_zip(path, entries):
@@ -183,7 +192,7 @@ def test_measured_rebuild_excludes_setup_and_diagnostics(tmp_path, monkeypatch, 
     calls = []
 
     def execute(command, **kwargs):
-        assert kwargs["check"] and kwargs["timeout"] == 900
+        assert kwargs["timeout"] == 900
         assert kwargs["cwd"] == "app"
         assert "MSBUILDDISABLENODEREUSE" not in kwargs["env"]
         assert "UseSharedCompilation" not in kwargs["env"]
@@ -193,7 +202,7 @@ def test_measured_rebuild_excludes_setup_and_diagnostics(tmp_path, monkeypatch, 
         assert kwargs["env"]["NUGET_HTTP_CACHE_PATH"] == str(tmp_path / "http-cache")
         calls.append(command)
 
-    monkeypatch.setattr(subprocess, "run", execute)
+    mock_commands(monkeypatch, execute)
     clock = iter(range(0, 40_000_000, 1_000_000))
     monkeypatch.setattr(time, "perf_counter_ns", lambda: next(clock))
     results = msbuild.measure("net8-console-app", tmp_path / "dotnet.exe", 2, 900, mt, True)
@@ -225,11 +234,97 @@ def test_failed_measured_build_does_not_emit_success_samples(tmp_path, monkeypat
         if "/t:rebuild" in command:
             raise subprocess.CalledProcessError(1, command)
 
-    monkeypatch.setattr(subprocess, "run", execute)
+    mock_commands(monkeypatch, execute)
     with pytest.raises(subprocess.CalledProcessError):
         msbuild.measure("net8-console-app", tmp_path / "dotnet.exe", 1, 900, False)
     assert calls[-1][1:] == ["build-server", "shutdown"]
     assert not (tmp_path / "traces/build-wall-clock.json").exists()
+
+
+@pytest.mark.parametrize("exit_code", [0, 7])
+def test_command_waits_without_polling_and_preserves_exit_status(tmp_path, monkeypatch, exit_code):
+    popen = subprocess.Popen
+    waits = []
+
+    def start(*args, **kwargs):
+        process = popen(*args, **kwargs)
+        wait = process.wait
+
+        def wait_without_timeout(timeout=None):
+            waits.append(timeout)
+            assert timeout is None
+            return wait()
+
+        process.wait = wait_without_timeout
+        return process
+
+    monkeypatch.setattr(subprocess, "Popen", start)
+    command = [sys.executable, "-c", f"raise SystemExit({exit_code})"]
+    with (tmp_path / "process.log").open("w") as log:
+        if exit_code:
+            with pytest.raises(subprocess.CalledProcessError) as error:
+                msbuild_execution.run_command(
+                    command, env=os.environ.copy(), stdout=log, timeout=10, cwd=tmp_path)
+            assert error.value.returncode == exit_code
+        else:
+            start_time, end_time = msbuild_execution.run_command(
+                command, env=os.environ.copy(), stdout=log, timeout=10, cwd=tmp_path)
+            assert end_time > start_time
+    assert waits and all(timeout is None for timeout in waits)
+
+
+def test_command_watchdog_kills_and_reaps_timed_out_process(tmp_path, monkeypatch):
+    popen = subprocess.Popen
+    processes = []
+
+    def start(*args, **kwargs):
+        process = popen(*args, **kwargs)
+        processes.append(process)
+        return process
+
+    monkeypatch.setattr(subprocess, "Popen", start)
+    command = [sys.executable, "-c", "import time; time.sleep(30)"]
+    with (tmp_path / "timeout.log").open("w") as log:
+        with pytest.raises(subprocess.TimeoutExpired):
+            msbuild_execution.run_command(
+                command, env=os.environ.copy(), stdout=log, timeout=0.1, cwd=tmp_path)
+    assert len(processes) == 1 and processes[0].poll() is not None
+
+
+@pytest.mark.parametrize("source", ["dotnet-root", "inputs", "direct"])
+def test_relative_sdk_paths_are_absolute_before_app_directory_commands(tmp_path, monkeypatch, source):
+    monkeypatch.chdir(tmp_path)
+    sdk = tmp_path / "inputs/sdk"
+    sdk.mkdir(parents=True)
+    host = sdk / ("dotnet.exe" if os.name == "nt" else "dotnet")
+    host.write_bytes(b"host")
+    (sdk.parent / "manifest.json").write_text("{}")
+    project = tmp_path / "app" / ASSET_DEFINITIONS["net8-console-app"]["project"]
+    project.parent.mkdir(parents=True)
+    project.write_text("project")
+    monkeypatch.setenv("PERFLAB_MSBUILD_INPUTS", "inputs")
+    monkeypatch.delenv("DOTNET_ROOT", raising=False)
+    if source == "dotnet-root":
+        monkeypatch.setenv("DOTNET_ROOT", "inputs/sdk")
+    monkeypatch.setattr(msbuild, "verify_sdk", lambda *args: None)
+    monkeypatch.setattr(msbuild, "StartupWrapper", Mock())
+    monkeypatch.setattr(msbuild, "helixuploaddir", lambda: None)
+    calls = []
+
+    def run(command, **kwargs):
+        assert command[0] == str(host)
+        assert kwargs["cwd"] == "app"
+        calls.append(command)
+
+    mock_commands(monkeypatch, run)
+    if source == "direct":
+        execute_scenario(
+            {"asset": "net8-console-app", "kind": "rebuild", "mt": False},
+            host.relative_to(tmp_path), 1, 900)
+    else:
+        msbuild.run(ScenarioTraits(exename="net8-console-app"), 1, 900, False, False)
+    assert any("/t:restore" in command for command in calls)
+    assert any(command[1:3] == ["build-server", "shutdown"] for command in calls)
 
 
 @pytest.mark.parametrize("failure", [None, "measurement", "parser", "upload"])
@@ -373,7 +468,7 @@ def test_linux_profile_is_a_separate_unmeasured_build(tmp_path, monkeypatch):
     project.write_text("project")
     calls = []
     monkeypatch.setattr(collect_linux, "validate_collector", lambda: ["dotnet-trace"])
-    monkeypatch.setattr(subprocess, "run", lambda command, **kwargs: calls.append(command))
+    mock_commands(monkeypatch, lambda command, **kwargs: calls.append(command))
     profile_calls = []
 
     def profile(collector, build, traces, env, timeout, *, recording_timeout):
@@ -502,7 +597,7 @@ def test_evaluation_hook_resolves_independently_of_working_directory(tmp_path, m
         monkeypatch.setenv("PERFLAB_EVALUATION_HOOK", str(hook))
     monkeypatch.setattr("shared.msbuild_execution.get_artifacts_directory", lambda: str(artifacts))
     calls = []
-    monkeypatch.setattr(subprocess, "run", lambda command, **kwargs: calls.append(kwargs["env"]))
+    mock_commands(monkeypatch, lambda command, **kwargs: calls.append(kwargs["env"]))
     execute_scenario(
         {"asset": "net8-console-app", "kind": "rebuild", "mt": False},
         tmp_path / "dotnet", 1, 900, evaluation_collection="current")
@@ -530,7 +625,7 @@ def test_diagnostic_budget_covers_priming_operations_and_shutdowns(tmp_path, mon
     monkeypatch.setenv("PERFLAB_EVALUATION_HOOK", str(hook))
     monkeypatch.setattr(collect_linux, "validate_collector", lambda: ["collector"])
     calls = []
-    monkeypatch.setattr(subprocess, "run", lambda command, **kwargs: calls.append(command))
+    mock_commands(monkeypatch, lambda command, **kwargs: calls.append(command))
     budget = 3600 if kind == "project-query-evaluation" else 2700
 
     def profile(collector, build, traces, env, timeout, *, recording_timeout):
@@ -561,7 +656,7 @@ def test_linux_retries_and_diagnostic_priming_preserve_original_logs(tmp_path, m
             raise subprocess.CalledProcessError(1, command)
         log.write("successful " + Path(log.name).name)
 
-    monkeypatch.setattr(subprocess, "run", run)
+    mock_commands(monkeypatch, run)
     values = execute_scenario(
         {"asset": "net8-console-app", "kind": "warm-inc-build", "mt": True},
         tmp_path / "dotnet", 1, 900, diagnostics=True)
@@ -590,7 +685,7 @@ def test_operation_lifecycles_preserve_edits_restore_outputs_and_node_reuse(tmp_
     def run(command, **kwargs):
         calls.append((list(command), edit.read_text(), obj.exists()))
 
-    monkeypatch.setattr(subprocess, "run", run)
+    mock_commands(monkeypatch, run)
     hook = tmp_path / "hook.dll"
     hook.write_bytes(b"test-hook")
     monkeypatch.setenv("PERFLAB_EVALUATION_HOOK", str(hook))
@@ -648,7 +743,7 @@ def test_queries_alternate_order_without_mixing_variant_samples(tmp_path, monkey
     hook.write_bytes(b"hook")
     monkeypatch.setenv("PERFLAB_EVALUATION_HOOK", str(hook))
     calls = []
-    monkeypatch.setattr(subprocess, "run", lambda command, **kwargs: calls.append((command, kwargs["env"])))
+    mock_commands(monkeypatch, lambda command, **kwargs: calls.append((command, kwargs["env"])))
     definition = SCENARIOS["orchard-core-project-query-evaluation-mt-dotnet"]
     execute_scenario(definition, tmp_path / "dotnet", 2, 900, evaluation_collection="current")
     queries = [command for command, _ in calls if command[1] == "msbuild"]

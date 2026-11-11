@@ -171,8 +171,12 @@ not rewrite project source timestamps, and a system-wide `DOTNET_ROOT` is
 rejected instead of being silently measured as the composed SDK.
 
 Both workloads use monotonic wall-clock timing around the build process,
-with no ETW, sampling profile, or binlog in measured iterations. The
-existing Startup tool is used **parse-only** to produce standard PerfLab
+with no ETW, sampling profile, or binlog in measured iterations.
+The SDK executable is resolved to an absolute path before changing directories.
+Process completion uses a blocking wait with a separate timeout watchdog,
+avoiding timed-wait polling latency on older POSIX Python versions. The end
+timestamp is captured before watchdog cleanup.
+The existing Startup tool is used **parse-only** to produce standard PerfLab
 reports (`MSBuild` category, `Build Wall Clock Time` in milliseconds).
 This is not ETW Time on Thread or the existing SDK Clean Build metric.
 Catalog defaults range from 1 to 12 iterations and use a 900-second timeout per command; failed
