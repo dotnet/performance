@@ -126,6 +126,8 @@ def test_wasm_nodesource_setup_requires_patched_node_22(internal, runtime_type):
     assert "https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" in prerequisites
     assert prerequisites.index(node_install) < prerequisites.index("node -e ") < prerequisites.index(npm_install)
     assert "Node.js >= 22.23.4 in the 22.x line is required" in prerequisites
+    # Helix rewrites '\' to '/' in Unix pre-commands, which corrupted the Node check regex.
+    assert "\\" not in prerequisites
     assert f"{npm_install} && $HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@15.1.206" in prerequisites
     assert "export V8_ENGINE_PATH=~/.jsvu/bin/v8-15.1.206" in prerequisites
     assert "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'" in prerequisites
