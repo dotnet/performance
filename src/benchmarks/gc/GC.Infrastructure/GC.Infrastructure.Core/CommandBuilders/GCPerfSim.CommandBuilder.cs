@@ -84,7 +84,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 keyValueArgsList.AddRange(
                     ServerRunCommandBuilder.GenerateKeyValuePairListForTrace(configuration.TraceConfigurations.Type, tracePath, os));
                 keyValueArgsList.AddRange(
-                    ServerRunCommandBuilder.GenerateKeyValuePairListForFramework("net8.0"));
+                    ServerRunCommandBuilder.GenerateKeyValuePairListForFramework("net10.0"));
             }
 
             // Upload corerun or Core_Root

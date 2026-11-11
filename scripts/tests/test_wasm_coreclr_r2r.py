@@ -441,7 +441,7 @@ def test_reference_collection_does_not_validate_unbuilt_wasm_outputs(tmp_path, t
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-@pytest.mark.parametrize("private_version", ["", "8.0.0-ci"])
+@pytest.mark.parametrize("private_version", ["", "10.0.0-ci"])
 @pytest.mark.parametrize("gather_references", ["false", "true"])
 @pytest.mark.parametrize(
     ("phase", "runtime_pack_present"),
@@ -456,13 +456,13 @@ def test_coreclr_cohort_is_selected_before_restore_and_pack_resolution(
     if dotnet_cli is None:
         pytest.skip("A .NET SDK is required for MSBuild pack resolution.")
 
-    public_version = "8.0.0"
+    public_version = "10.0.0"
     expected_version = private_version or public_version
     packs = tmp_path / "packs"
     for package_id, list_name, assembly_path in [
-        ("Microsoft.NETCore.App.Ref", "FrameworkList.xml", "ref/net8.0/System.Runtime.dll"),
+        ("Microsoft.NETCore.App.Ref", "FrameworkList.xml", "ref/net10.0/System.Runtime.dll"),
         ("Microsoft.NETCore.App.Runtime.browser-wasm", "RuntimeList.xml",
-         "runtimes/browser-wasm/lib/net8.0/System.Runtime.dll"),
+         "runtimes/browser-wasm/lib/net10.0/System.Runtime.dll"),
     ]:
         if not runtime_pack_present and package_id.endswith(".browser-wasm"):
             continue
@@ -475,14 +475,14 @@ def test_coreclr_cohort_is_selected_before_restore_and_pack_resolution(
         file_list = ET.Element("FileList", FrameworkName="Microsoft.NETCore.App")
         ET.SubElement(
             file_list, "File", Type="Managed", Path=assembly_path,
-            AssemblyName="System.Runtime", AssemblyVersion="8.0.0.0",
-            FileVersion="8.0.0.0", PublicKeyToken="b03f5f7f11d50a3a")
+            AssemblyName="System.Runtime", AssemblyVersion="10.0.0.0",
+            FileVersion="10.0.0.0", PublicKeyToken="b03f5f7f11d50a3a")
         ET.ElementTree(file_list).write(data_dir / list_name, encoding="utf-8")
 
     project = ET.Element("Project", Sdk="Microsoft.NET.Sdk")
     properties = ET.SubElement(project, "PropertyGroup")
     for name, value in {
-        "TargetFramework": "net8.0",
+        "TargetFramework": "net10.0",
         "RuntimeIdentifier": "browser-wasm",
         "UseMonoRuntime": "false",
         "UseAppHost": "false",
@@ -512,7 +512,7 @@ def test_coreclr_cohort_is_selected_before_restore_and_pack_resolution(
     }.items():
         ET.SubElement(
             known, name,
-            Condition="'%(KnownFrameworkReference.TargetFramework)' == 'net8.0'").text = value
+            Condition="'%(KnownFrameworkReference.TargetFramework)' == 'net10.0'").text = value
     capture = ET.SubElement(
         project, "Target", Name="CaptureCohortFramework",
         AfterTargets="ProcessFrameworkReferences")
@@ -552,13 +552,13 @@ def test_coreclr_cohort_is_selected_before_restore_and_pack_resolution(
         assert Path(pack["PackageDirectory"]) == packs / pack["NuGetPackageId"] / expected_version
         assert Path(pack["PackageDirectory"], "data").is_dir()
     assert all(
-        item.get(metadata) != "8.0.0-ci"
+        item.get(metadata) != "10.0.0-ci"
         for item in items["KnownFrameworkReference"]
-        if item["Identity"] != "Microsoft.NETCore.App" or item["TargetFramework"] != "net8.0"
+        if item["Identity"] != "Microsoft.NETCore.App" or item["TargetFramework"] != "net10.0"
         for metadata in ("DefaultRuntimeFrameworkVersion", "LatestRuntimeFrameworkVersion", "TargetingPackVersion"))
     assets = json.loads((tmp_path / "obj" / "project.assets.json").read_text(encoding="utf-8"))
-    assert "net8.0/browser-wasm" in assets["targets"]
-    assert not assets["project"]["frameworks"]["net8.0"].get("downloadDependencies")
+    assert "net10.0/browser-wasm" in assets["targets"]
+    assert not assets["project"]["frameworks"]["net10.0"].get("downloadDependencies")
 
 
 def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
