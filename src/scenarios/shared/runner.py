@@ -144,6 +144,21 @@ new_console:     measure duration of creating a new console template
         self.add_affinity_argument(sdkparser)
         self.add_common_arguments(sdkparser)
 
+        msbuildparser = subparsers.add_parser(const.MSBUILD,
+                                             description='measure an enabled PerfStar MSBuild scenario')
+        msbuildparser.add_argument('--scenario-id', help='Canonical enabled PerfStar scenario name')
+        msbuildparser.add_argument('--mt', action='store_true')
+        msbuildparser.add_argument('--iterations', type=int,
+                                  help='Override catalog iteration count (legacy rebuild default: 10)')
+        msbuildparser.add_argument('--evaluation-collection', choices=['current', 'off'], default='current')
+        msbuildparser.add_argument('--timeout', type=int, default=900,
+                                  help='Timeout in seconds for each build or shutdown')
+        msbuildparser.add_argument('--diagnostics', action='store_true',
+                                  help='Collect a binlog in a separate, untimed round')
+        msbuildparser.add_argument('--collect-linux', action='store_true',
+                                  help='Opt-in machine-wide dotnet-trace collection on a dedicated Linux worker')
+        self.add_common_arguments(msbuildparser)
+
         crossgenparser = subparsers.add_parser(const.CROSSGEN,
                                                description='measure duration of the crossgen compilation',
                                                formatter_class=RawTextHelpFormatter)
@@ -195,6 +210,15 @@ ex: C:\repos\performance;C:\repos\runtime
             sys.exit(1)
 
         self.testtype = args.testtype
+
+        if self.testtype == const.MSBUILD:
+            self.msbuild_iterations = args.iterations
+            self.msbuild_timeout = args.timeout
+            self.msbuild_mt = args.mt
+            self.msbuild_diagnostics = args.diagnostics
+            self.msbuild_collect_linux = args.collect_linux
+            self.msbuild_scenario_id = args.scenario_id
+            self.msbuild_evaluation_collection = args.evaluation_collection
     
         if self.testtype == const.SDK:
             self.sdktype = args.sdktype
@@ -293,6 +317,14 @@ ex: C:\repos\performance;C:\repos\runtime
         python_exe = python_command[0]
         python_args = " ".join(python_command[1:])
         self.traits.add_traits(upload_to_perflab_container=self.upload_to_perflab_container)
+
+        if self.testtype == const.MSBUILD:
+            from shared.msbuild import run
+            self.traits.add_traits(scenarioname=self.scenarioname)
+            run(self.traits, self.msbuild_iterations, self.msbuild_timeout,
+                self.msbuild_mt, self.msbuild_diagnostics, self.msbuild_collect_linux,
+                self.msbuild_scenario_id, self.msbuild_evaluation_collection)
+            return
 
         if self.testtype == const.INNERLOOP:
             startup = StartupWrapper()

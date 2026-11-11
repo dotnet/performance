@@ -1,0 +1,607 @@
+{
+  "schema_version": 1,
+  "source_inventory_sha256": "ca6a7032dae730ba90fec83e8f7c13031317ee6af7f7a7399260e3317ebca015",
+  "assets": {
+    "aspire": {
+      "version": "0.0.3",
+      "package": "aspire",
+      "project": "Aspire/aspire-src.proj",
+      "edits": [
+        "Aspire/src/Aspire.Hosting/ConnectionStringResource.cs"
+      ],
+      "arguments": []
+    },
+    "azure-core": {
+      "version": "0.0.1",
+      "package": "azure-core",
+      "project": "AzureCore/sdk/core/Azure.Core/tests/Azure.Core.Tests.csproj",
+      "edits": [
+        "AzureCore/sdk/core/Azure.Core/src/AzureKeyCredential.cs"
+      ],
+      "arguments": []
+    },
+    "eshop-on-blazor-modified": {
+      "version": "0.0.3",
+      "package": "eshop-on-blazor-modified",
+      "project": "eShopOnBlazor/eShopOnBlazor.sln",
+      "edits": [
+        "eShopOnBlazor/src/eShopOnBlazor/Program.cs"
+      ],
+      "arguments": []
+    },
+    "net8-blazorwasm-app": {
+      "version": "0.0.1",
+      "package": "net8-blazor-wasm-app",
+      "project": "Net8BlazorWasmApp/Net8BlazorWasmApp.csproj",
+      "edits": [
+        "Net8BlazorWasmApp/Program.cs"
+      ],
+      "arguments": []
+    },
+    "net8-class-lib": {
+      "version": "0.0.1",
+      "package": "net8-class-lib",
+      "project": "Net8ClassLib/Net8ClassLib.csproj",
+      "edits": [
+        "Net8ClassLib/Class1.cs"
+      ],
+      "arguments": []
+    },
+    "net8-console-app": {
+      "version": "0.0.1",
+      "package": "net8-console-app",
+      "project": "Net8ConsoleApp/Net8ConsoleApp.csproj",
+      "edits": [
+        "Net8ConsoleApp/Program.cs"
+      ],
+      "arguments": []
+    },
+    "orchard-core": {
+      "version": "0.0.6",
+      "package": "orchard-core",
+      "project": "OrchardCore/OrchardCore.sln",
+      "edits": [
+        "OrchardCore/src/OrchardCore.Modules/OrchardCore.Admin/AdminFilter.cs"
+      ],
+      "arguments": []
+    },
+    "rar-conflict-details-stress": {
+      "version": "0.0.1",
+      "package": "rar-conflict-details-stress",
+      "project": "RarConflictDetailsStress/RarConflictDetailsStress.proj",
+      "edits": [],
+      "arguments": []
+    },
+    "rar-conflict-warning-stress": {
+      "version": "0.0.1",
+      "package": "rar-conflict-warning-stress",
+      "project": "RarConflictWarningStress/RarConflictWarningStress.proj",
+      "edits": [],
+      "arguments": [
+        "/clp:ErrorsOnly"
+      ]
+    },
+    "rar-search-stress": {
+      "version": "0.0.1",
+      "package": "rar-search-stress",
+      "project": "RarSearchStress/RarSearchStress.proj",
+      "edits": [],
+      "arguments": []
+    },
+    "very-large-net8-console-app": {
+      "version": "0.0.1",
+      "package": "very-large-net8-console-app",
+      "project": "VeryLargeNet8ConsoleApp.csproj",
+      "edits": [
+        "Program.cs"
+      ],
+      "arguments": []
+    },
+    "xunit": {
+      "version": "0.0.2",
+      "package": "xunit",
+      "project": "Xunit/xunit.slnx",
+      "edits": [
+        "Xunit/src/xunit.v3.core/CollectionAttribute.cs"
+      ],
+      "arguments": []
+    }
+  },
+  "scenarios": [
+    {
+      "name": "aspire-rebuild-dotnet",
+      "asset": "aspire",
+      "kind": "rebuild",
+      "mt": false,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "aspire-rebuild-mt-dotnet",
+      "asset": "aspire",
+      "kind": "rebuild",
+      "mt": true,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "aspire-warm-inc-build-dotnet",
+      "asset": "aspire",
+      "kind": "warm-inc-build",
+      "mt": false,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "aspire-warm-inc-build-mt-dotnet",
+      "asset": "aspire",
+      "kind": "warm-inc-build",
+      "mt": true,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "azure-core-rebuild-dotnet",
+      "asset": "azure-core",
+      "kind": "rebuild",
+      "mt": false,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "azure-core-rebuild-mt-dotnet",
+      "asset": "azure-core",
+      "kind": "rebuild",
+      "mt": true,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "azure-core-warm-inc-build-dotnet",
+      "asset": "azure-core",
+      "kind": "warm-inc-build",
+      "mt": false,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "azure-core-warm-inc-build-mt-dotnet",
+      "asset": "azure-core",
+      "kind": "warm-inc-build",
+      "mt": true,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "eshop-on-blazor-modified-rebuild-dotnet",
+      "asset": "eshop-on-blazor-modified",
+      "kind": "rebuild",
+      "mt": false,
+      "iterations": 10,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "eshop-on-blazor-modified-rebuild-mt-dotnet",
+      "asset": "eshop-on-blazor-modified",
+      "kind": "rebuild",
+      "mt": true,
+      "iterations": 10,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "net8-blazorwasm-app-rebuild-dotnet",
+      "asset": "net8-blazorwasm-app",
+      "kind": "rebuild",
+      "mt": false,
+      "iterations": 10,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "net8-blazorwasm-app-rebuild-mt-dotnet",
+      "asset": "net8-blazorwasm-app",
+      "kind": "rebuild",
+      "mt": true,
+      "iterations": 10,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "net8-class-lib-rebuild-dotnet",
+      "asset": "net8-class-lib",
+      "kind": "rebuild",
+      "mt": false,
+      "iterations": 10,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "net8-class-lib-rebuild-mt-dotnet",
+      "asset": "net8-class-lib",
+      "kind": "rebuild",
+      "mt": true,
+      "iterations": 10,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "net8-console-app-rebuild-dotnet",
+      "asset": "net8-console-app",
+      "kind": "rebuild",
+      "mt": false,
+      "iterations": 10,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "net8-console-app-rebuild-mt-dotnet",
+      "asset": "net8-console-app",
+      "kind": "rebuild",
+      "mt": true,
+      "iterations": 10,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "net8-console-app-rebuild-nr-false-mt-dotnet",
+      "asset": "net8-console-app",
+      "kind": "rebuild-nr-false",
+      "mt": true,
+      "iterations": 10,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "net8-console-app-warm-inc-build-dotnet",
+      "asset": "net8-console-app",
+      "kind": "warm-inc-build",
+      "mt": false,
+      "iterations": 5,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "net8-console-app-warm-inc-build-mt-dotnet",
+      "asset": "net8-console-app",
+      "kind": "warm-inc-build",
+      "mt": true,
+      "iterations": 5,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "net8-console-app-warm-restore-dotnet",
+      "asset": "net8-console-app",
+      "kind": "warm-restore",
+      "mt": false,
+      "iterations": 5,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "net8-console-app-warm-restore-mt-dotnet",
+      "asset": "net8-console-app",
+      "kind": "warm-restore",
+      "mt": true,
+      "iterations": 5,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "orchard-core-cold-restore-dotnet",
+      "asset": "orchard-core",
+      "kind": "cold-restore",
+      "mt": false,
+      "iterations": 10,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "orchard-core-cold-restore-mt-dotnet",
+      "asset": "orchard-core",
+      "kind": "cold-restore",
+      "mt": true,
+      "iterations": 10,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "orchard-core-pack-evaluation-mt-dotnet",
+      "asset": "orchard-core",
+      "kind": "pack-evaluation",
+      "mt": true,
+      "iterations": 12,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "orchard-core-project-query-evaluation-mt-dotnet",
+      "asset": "orchard-core",
+      "kind": "project-query-evaluation",
+      "mt": true,
+      "iterations": 12,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "orchard-core-publish-evaluation-mt-dotnet",
+      "asset": "orchard-core",
+      "kind": "publish-evaluation",
+      "mt": true,
+      "iterations": 12,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "orchard-core-rebuild-dotnet",
+      "asset": "orchard-core",
+      "kind": "rebuild",
+      "mt": false,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "orchard-core-rebuild-mt-dotnet",
+      "asset": "orchard-core",
+      "kind": "rebuild",
+      "mt": true,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "orchard-core-rebuild-nr-false-mt-dotnet",
+      "asset": "orchard-core",
+      "kind": "rebuild-nr-false",
+      "mt": true,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "orchard-core-warm-inc-build-dotnet",
+      "asset": "orchard-core",
+      "kind": "warm-inc-build",
+      "mt": false,
+      "iterations": 5,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "orchard-core-warm-inc-build-mt-dotnet",
+      "asset": "orchard-core",
+      "kind": "warm-inc-build",
+      "mt": true,
+      "iterations": 5,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "orchard-core-warm-restore-dotnet",
+      "asset": "orchard-core",
+      "kind": "warm-restore",
+      "mt": false,
+      "iterations": 5,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "orchard-core-warm-restore-mt-dotnet",
+      "asset": "orchard-core",
+      "kind": "warm-restore",
+      "mt": true,
+      "iterations": 5,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "rar-conflict-details-stress-rebuild-dotnet",
+      "asset": "rar-conflict-details-stress",
+      "kind": "rebuild",
+      "mt": false,
+      "iterations": 3,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "rar-conflict-details-stress-rebuild-mt-dotnet",
+      "asset": "rar-conflict-details-stress",
+      "kind": "rebuild",
+      "mt": true,
+      "iterations": 3,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "rar-conflict-warning-stress-rebuild-dotnet",
+      "asset": "rar-conflict-warning-stress",
+      "kind": "rebuild",
+      "mt": false,
+      "iterations": 3,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "rar-conflict-warning-stress-rebuild-mt-dotnet",
+      "asset": "rar-conflict-warning-stress",
+      "kind": "rebuild",
+      "mt": true,
+      "iterations": 3,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "rar-search-stress-rebuild-dotnet",
+      "asset": "rar-search-stress",
+      "kind": "rebuild",
+      "mt": false,
+      "iterations": 3,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "rar-search-stress-rebuild-mt-dotnet",
+      "asset": "rar-search-stress",
+      "kind": "rebuild",
+      "mt": true,
+      "iterations": 3,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "very-large-net8-console-app-restore-dotnet",
+      "asset": "very-large-net8-console-app",
+      "kind": "restore",
+      "mt": false,
+      "iterations": 5,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "very-large-net8-console-app-restore-mt-dotnet",
+      "asset": "very-large-net8-console-app",
+      "kind": "restore",
+      "mt": true,
+      "iterations": 5,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "xunit-rebuild-dotnet",
+      "asset": "xunit",
+      "kind": "rebuild",
+      "mt": false,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "xunit-rebuild-mt-dotnet",
+      "asset": "xunit",
+      "kind": "rebuild",
+      "mt": true,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "xunit-warm-inc-build-dotnet",
+      "asset": "xunit",
+      "kind": "warm-inc-build",
+      "mt": false,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    },
+    {
+      "name": "xunit-warm-inc-build-mt-dotnet",
+      "asset": "xunit",
+      "kind": "warm-inc-build",
+      "mt": true,
+      "iterations": 1,
+      "supported_os": [
+        "linux",
+        "windows"
+      ]
+    }
+  ]
+}

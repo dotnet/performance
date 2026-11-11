@@ -542,3 +542,39 @@ def test_sdk_must_locate_staged_packs(targeting_pack_payload):
     with pytest.raises(ValueError, match="could not locate staged"):
         job.provision_downlevel_targeting_packs(
             str(state.payload), str(state.dotnet_root), "net11.0", "windows")
+
+
+def test_untraced_msbuild_prerequisites_do_not_modify_lttng():
+    commands = get_pre_commands(
+        os_group="linux", os_distro="ubuntu", internal=True, runtime_type="coreclr",
+        codegen_type="jit", build_config="Release", v8_version="",
+        use_legacy_trace=False)
+    assert "lttng" not in "\n".join(commands)
+
+
+def test_linux_collection_template_requires_explicit_boolean_equality():
+    template = (
+        Path(__file__).resolve().parents[2]
+        / "eng" / "pipelines" / "templates" / "run-performance-job.yml"
+    ).read_text(encoding="utf-8")
+    assert "  msbuildCollectLinux: false" in template
+    lines = template.splitlines()
+    flag = next(index for index, line in enumerate(lines) if line.strip() == "- '--msbuild-collect-linux'")
+    # Untyped template parameters can be strings: a bare "false" condition is truthy.
+    assert lines[flag - 1].strip() == "- ${{ if eq(parameters.msbuildCollectLinux, true) }}:"
+
+
+@pytest.mark.parametrize("collect_linux", [False, True])
+def test_linux_collection_cli_remains_opt_in(monkeypatch, collect_linux):
+    run = Mock()
+    monkeypatch.setattr(job, "run_performance_job", run)
+    monkeypatch.setattr(job, "setup_loggers", lambda **kwargs: None)
+    arguments = [
+        "run_performance_job.py", "--run-kind", "msbuild_scenarios",
+        "--architecture", "x64", "--os-group", "linux",
+    ]
+    if collect_linux:
+        arguments.append("--msbuild-collect-linux")
+    assert job.main(arguments) == 0
+    run.assert_called_once()
+    assert run.call_args.args[0].msbuild_collect_linux is collect_linux

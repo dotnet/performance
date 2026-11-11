@@ -59,6 +59,10 @@ parameters:
   wasmWorkloadSource: ''             # optional -- Exclusive coherent package source for SDK CoreCLR browser-WASM
   liveLibrariesBuildConfig: ''      # optional -- Build configuration when generating Core_Root for libraries
   crossBuild: false                 # optional -- Whether the Core_Root is being cross-compiled
+  msbuildScenarioInputs: ''         # optional -- Composed SDK, pinned workload archives, and manifest directory
+  msbuildCollectLinux: false        # optional -- Explicit machine-wide diagnostics on dedicated Linux workers
+  msbuildScenarios: ''
+  msbuildIterations: 0
 
 jobs:
 - template: ${{ parameters.jobTemplate }}
@@ -203,6 +207,14 @@ jobs:
             - ${{ elseif ne(parameters.framework, '') }}:
               - '--framework ${{ parameters.framework }}'
             - '--performance-repo-dir $(performanceRepoDir)'
+            - ${{ if ne(parameters.msbuildScenarioInputs, '') }}:
+              - '--msbuild-scenario-inputs "${{ parameters.msbuildScenarioInputs }}"'
+            - ${{ if eq(parameters.msbuildCollectLinux, true) }}:
+              - '--msbuild-collect-linux'
+            - ${{ if ne(parameters.msbuildScenarios, '') }}:
+              - '--msbuild-scenarios "${{ parameters.msbuildScenarios }}"'
+            - ${{ if ne(parameters.msbuildIterations, 0) }}:
+              - '--msbuild-iterations ${{ parameters.msbuildIterations }}'
             - ${{ if eq(parameters.isRuntimeJob, true) }}:
               - '--runtime-repo-dir $(Build.SourcesDirectory)'
             - ${{ if ne(parameters.codeGenType, '') }}:

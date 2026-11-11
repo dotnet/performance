@@ -1,0 +1,258 @@
+trigger: none
+pr: none
+
+parameters:
+- name: accessCheckOnly
+  displayName: Check job identity and MSBuild mirror access only
+  type: boolean
+  default: true
+- name: msbuildCommit
+  type: string
+  default: main
+- name: baseSdkUrl
+  type: string
+  default: ' '
+- name: baseSdkSha512
+  type: string
+  default: ' '
+- name: runLinux
+  type: boolean
+  default: true
+- name: linuxSdkUrl
+  type: string
+  default: ' '
+- name: linuxSdkSha512
+  type: string
+  default: ' '
+- name: linuxQueue
+  type: string
+  default: Ubuntu.2204.Amd64.Tiger.Perf
+- name: collectLinux
+  type: boolean
+  default: false
+- name: assetManifestUrl
+  displayName: Immutable staged workload descriptor URL
+  type: string
+  default: ' '
+- name: assetManifestSha512
+  displayName: SHA512 of the workload descriptor
+  type: string
+  default: ' '
+- name: scenarios
+  displayName: Canonical scenarios (comma-separated; blank = all 45 enabled)
+  type: string
+  default: ' '
+- name: iterations
+  displayName: Iteration override (0 = original per-scenario counts)
+  type: number
+  default: 0
+
+variables:
+- name: EnableHelixJobMonitor
+  value: true
+- name: TestRunNamePrefix
+  value: '$(Agent.JobName)_'
+- template: /eng/common/templates/variables/pool-providers.yml
+- ${{ if not(parameters.accessCheckOnly) }}:
+  - group: DotNet-HelixApi-Access
+
+jobs:
+- job: CheckSourceAccess
+  displayName: Identify job credential and check MSBuild mirror access
+  timeoutInMinutes: 10
+  workspace:
+    clean: all
+  pool:
+    vmImage: windows-2025
+  steps:
+  - checkout: self
+    path: s/performance
+    clean: true
+  - powershell: |
+      & '$(Pipeline.Workspace)\s\performance\eng\performance\Check-MSBuildSourceAccess.ps1'
+    displayName: Print job identity and probe the DevDiv mirror
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      ADO_COLLECTION_URI: $(System.CollectionUri)
+
+- ${{ if not(parameters.accessCheckOnly) }}:
+  - job: BuildMSBuildSdk
+    displayName: Build MSBuild and compose pinned SDK
+    dependsOn: CheckSourceAccess
+    timeoutInMinutes: 120
+    workspace:
+      clean: all
+    pool:
+      vmImage: windows-2025
+    steps:
+    - checkout: self
+      path: s/performance
+      clean: true
+    - powershell: |
+        $ErrorActionPreference = 'Stop'
+        if ($env:COLLECT_LINUX -eq 'True' -and $env:RUN_LINUX -ne 'True') {
+          throw 'collectLinux requires runLinux.'
+        }
+        if ($env:ITERATIONS -notmatch '^\d+$' -or [double]$env:ITERATIONS -gt 2147483647) {
+          throw 'Iteration override must be a non-negative Int32.'
+        }
+        $archives = @('BASE_SDK', 'ASSET_MANIFEST')
+        if ($env:RUN_LINUX -eq 'True') { $archives += 'LINUX_SDK' }
+        foreach ($name in $archives) {
+          $url = [Environment]::GetEnvironmentVariable("${name}_URL")
+          $hash = [Environment]::GetEnvironmentVariable("${name}_SHA512")
+          if ($url -notmatch '^https://' -or $hash -notmatch '^[0-9a-fA-F]{128}$') {
+            throw "$name requires an HTTPS archive URL and a SHA-512 checksum."
+          }
+        }
+        $source = '$(Pipeline.Workspace)\s\msbuild'
+        & '$(Pipeline.Workspace)\s\performance\eng\performance\Check-MSBuildSourceAccess.ps1' `
+          -SourceDirectory $source -Commit $env:MSBUILD_COMMIT.Trim()
+        Remove-Item Env:\SYSTEM_ACCESSTOKEN
+        & "$source\build.cmd" -configuration Release -pack -ci -msbuildEngine dotnet
+        if ($LASTEXITCODE -ne 0) { throw 'MSBuild Release build/pack failed.' }
+      displayName: Build selected MSBuild mirror commit
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        ADO_COLLECTION_URI: $(System.CollectionUri)
+        MSBUILD_COMMIT: ${{ parameters.msbuildCommit }}
+        RUN_LINUX: ${{ parameters.runLinux }}
+        COLLECT_LINUX: ${{ parameters.collectLinux }}
+        LINUX_SDK_URL: ${{ parameters.linuxSdkUrl }}
+        LINUX_SDK_SHA512: ${{ parameters.linuxSdkSha512 }}
+        BASE_SDK_URL: ${{ parameters.baseSdkUrl }}
+        BASE_SDK_SHA512: ${{ parameters.baseSdkSha512 }}
+        ASSET_MANIFEST_URL: ${{ parameters.assetManifestUrl }}
+        ASSET_MANIFEST_SHA512: ${{ parameters.assetManifestSha512 }}
+        ITERATIONS: ${{ parameters.iterations }}
+    - powershell: |
+        $ErrorActionPreference = 'Stop'
+        $selectionArguments = @()
+        if (-not [string]::IsNullOrWhiteSpace($env:SCENARIOS)) {
+          $selectionArguments = @('--scenarios', $env:SCENARIOS)
+        }
+        py -3 '$(Pipeline.Workspace)\s\performance\scripts\compose_msbuild_sdk.py' `
+          --sdk-url $env:BASE_SDK_URL --sdk-sha512 $env:BASE_SDK_SHA512 `
+          --packages-directory '$(Pipeline.Workspace)\s\msbuild\artifacts\packages\Release\Shipping' `
+          --source-directory '$(Pipeline.Workspace)\s\msbuild' `
+          --output-directory '$(Build.ArtifactStagingDirectory)\msbuild-inputs\windows' `
+          --asset-manifest-url $env:ASSET_MANIFEST_URL --asset-manifest-sha512 $env:ASSET_MANIFEST_SHA512 `
+          @selectionArguments
+        if ($LASTEXITCODE -ne 0) { throw 'SDK composition failed.' }
+        $dotnet = '$(Build.ArtifactStagingDirectory)\msbuild-inputs\windows\sdk\dotnet.exe'
+        $env:DOTNET_CLI_ENABLEAOT = '0'
+        Push-Location '$(Build.ArtifactStagingDirectory)\msbuild-inputs\windows'
+        try {
+          & $dotnet --info
+          if ($LASTEXITCODE -ne 0) { throw 'Composed SDK smoke check failed.' }
+          & $dotnet msbuild -nologo -version
+          if ($LASTEXITCODE -ne 0) { throw 'Composed MSBuild smoke check failed.' }
+          $smoke = Join-Path '$(Agent.TempDirectory)' ('msbuild-sdk-smoke-' + [Guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $smoke | Out-Null
+          $manifest = Get-Content '$(Build.ArtifactStagingDirectory)\msbuild-inputs\windows\manifest.json' -Raw | ConvertFrom-Json
+          $framework = 'net' + $manifest.base_sdk_version.Split('.')[0] + '.0'
+          ('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>' + $framework +
+            '</TargetFramework></PropertyGroup></Project>') |
+            Set-Content (Join-Path $smoke 'Smoke.csproj') -Encoding UTF8
+          '<configuration><packageSources><clear /></packageSources></configuration>' |
+            Set-Content (Join-Path $smoke 'NuGet.config') -Encoding UTF8
+          & $dotnet build (Join-Path $smoke 'Smoke.csproj') --nologo -v:q /m /mt
+          if ($LASTEXITCODE -ne 0) {
+            throw 'The selected base SDK cannot restore/build with this MSBuild overlay.'
+          }
+          & $dotnet build-server shutdown
+          if ($LASTEXITCODE -ne 0) { throw 'Smoke build-server cleanup failed.' }
+        } finally { Pop-Location }
+      displayName: Compose and smoke-check SDK and pinned workload assets
+      env:
+        BASE_SDK_URL: ${{ parameters.baseSdkUrl }}
+        BASE_SDK_SHA512: ${{ parameters.baseSdkSha512 }}
+        ASSET_MANIFEST_URL: ${{ parameters.assetManifestUrl }}
+        ASSET_MANIFEST_SHA512: ${{ parameters.assetManifestSha512 }}
+        SCENARIOS: ${{ parameters.scenarios }}
+    - ${{ if parameters.runLinux }}:
+      - powershell: |
+          $ErrorActionPreference = 'Stop'
+          $selectionArguments = @()
+          if (-not [string]::IsNullOrWhiteSpace($env:SCENARIOS)) {
+            $selectionArguments = @('--scenarios', $env:SCENARIOS)
+          }
+          py -3 '$(Pipeline.Workspace)\s\performance\scripts\compose_msbuild_sdk.py' `
+            --os linux --sdk-url $env:LINUX_SDK_URL --sdk-sha512 $env:LINUX_SDK_SHA512 `
+            --packages-directory '$(Pipeline.Workspace)\s\msbuild\artifacts\packages\Release\Shipping' `
+            --source-directory '$(Pipeline.Workspace)\s\msbuild' `
+            --output-directory '$(Build.ArtifactStagingDirectory)\msbuild-inputs\linux' `
+            --asset-manifest '$(Build.ArtifactStagingDirectory)\msbuild-inputs\windows\manifest.json' `
+            @selectionArguments
+          if ($LASTEXITCODE -ne 0) { throw 'Linux SDK composition failed.' }
+          $windowsManifest = Get-Content '$(Build.ArtifactStagingDirectory)\msbuild-inputs\windows\manifest.json' -Raw | ConvertFrom-Json
+          $linuxManifest = Get-Content '$(Build.ArtifactStagingDirectory)\msbuild-inputs\linux\manifest.json' -Raw | ConvertFrom-Json
+          if ($windowsManifest.base_sdk_version -ne $linuxManifest.base_sdk_version) {
+            throw 'Windows and Linux SDK archives must be the same SDK version.'
+          }
+        displayName: Compose pinned Linux x64 SDK from the same MSBuild commit
+        env:
+          LINUX_SDK_URL: ${{ parameters.linuxSdkUrl }}
+          LINUX_SDK_SHA512: ${{ parameters.linuxSdkSha512 }}
+          SCENARIOS: ${{ parameters.scenarios }}
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)\msbuild-inputs'
+        artifact: MSBuildScenarioInputs
+
+  - template: /eng/pipelines/templates/run-scenarios-job.yml
+    parameters:
+      dependsOn: BuildMSBuildSdk
+      osGroup: windows
+      archType: x64
+      osVersion: Win11
+      machinePool: Tiger
+      queue: Windows.11.Amd64.Tiger.Perf
+      pool:
+        vmImage: windows-2025
+      runKind: msbuild_scenarios
+      projectFileName: msbuild_scenarios.proj
+      channel: main
+      downloadPdn: false
+      msbuildScenarioInputs: '$(Pipeline.Workspace)\msbuild-inputs\windows'
+      msbuildScenarios: ${{ parameters.scenarios }}
+      msbuildIterations: ${{ parameters.iterations }}
+      steps:
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          artifact: MSBuildScenarioInputs
+          path: '$(Pipeline.Workspace)\msbuild-inputs'
+
+  - ${{ if parameters.runLinux }}:
+    - template: /eng/pipelines/templates/run-scenarios-job.yml
+      parameters:
+        dependsOn: BuildMSBuildSdk
+        osGroup: linux
+        osDistro: ubuntu
+        archType: x64
+        osVersion: '2204'
+        machinePool: Tiger
+        queue: ${{ parameters.linuxQueue }}
+        pool:
+          vmImage: ubuntu-24.04
+        runKind: msbuild_scenarios
+        projectFileName: msbuild_scenarios.proj
+        channel: main
+        downloadPdn: false
+        msbuildScenarioInputs: '$(Pipeline.Workspace)/msbuild-inputs/linux'
+        msbuildCollectLinux: ${{ parameters.collectLinux }}
+        msbuildScenarios: ${{ parameters.scenarios }}
+        msbuildIterations: ${{ parameters.iterations }}
+        steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifact: MSBuildScenarioInputs
+            path: '$(Pipeline.Workspace)/msbuild-inputs'
+
+  - template: /eng/common/core-templates/job/helix-job-monitor.yml
+    parameters:
+      dependsOn:
+      - BuildMSBuildSdk
+      timeoutInMinutes: 360
+      helixAccessToken: $(HelixApiAccessToken)
+      allowNoHelixJobs: false
