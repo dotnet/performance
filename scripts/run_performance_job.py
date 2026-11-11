@@ -135,7 +135,6 @@ class RunPerformanceJobArgs:
     local_build: bool = False
     compare: bool = False
     only_sanity_check: bool = False
-    ios_llvm_build: bool = False
     ios_strip_symbols: bool = False
     javascript_engine: str = "NoJS"
     send_to_helix: bool = False
@@ -663,12 +662,6 @@ def get_pre_commands(
     else:
         helix_pre_commands += ["export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD"]
 
-    if runtime_type == "iOSMono":
-        if os_group == "windows":
-            helix_pre_commands += ["%HELIX_CORRELATION_PAYLOAD%\\monoaot\\mono-aot-cross --llvm --version"]
-        else:
-            helix_pre_commands += ["$HELIX_CORRELATION_PAYLOAD/monoaot/mono-aot-cross --llvm --version"]
-
     # If we are running not release, make sure we make that very clear.
     if build_config.lower() != "release":
         banner = [
@@ -885,7 +878,6 @@ def get_run_configurations(
         experiment_name: Optional[str] = None,
         linking_type: Optional[str] = None,
         runtime_flavor: Optional[str] = None,
-        ios_llvm_build: bool = False,
         ios_strip_symbols: bool = False,
         javascript_engine: Optional[str] = None,
         build_config: Optional[str] = None):
@@ -894,7 +886,7 @@ def get_run_configurations(
 
     is_aot = codegen_type.lower() == "aot"
     if runtime_type == "mono":
-        llvm = is_aot and not run_kind == "android_scenarios"
+        llvm = is_aot
         configurations["LLVM"] = str(llvm)
         configurations["MonoInterpreter"] = str(codegen_type.lower() == "interpreter")
         configurations["MonoAOT"] = str(is_aot)
@@ -935,22 +927,19 @@ def get_run_configurations(
 
     # dotnet/runtime Android sample app scenarios
     if run_kind == "android_scenarios":
-        if not runtime_flavor in ("mono", "coreclr"):
-            raise Exception("Runtime flavor must be specified for runtime android scenarios")
+        if runtime_flavor != "coreclr":
+            raise ValueError("Runtime Android scenarios only support CoreCLR")
         configurations["CodegenType"] = str(codegen_type)
         configurations["LinkingType"] = str(linking_type)
         configurations["RuntimeType"] = str(runtime_flavor)
 
     # dotnet/runtime iOS sample app scenarios
     if run_kind == "ios_scenarios":
-        if not runtime_flavor in ("mono", "coreclr"):
-            raise Exception("Runtime flavor must be specified for runtime ios scenarios")
+        if runtime_flavor != "coreclr":
+            raise ValueError("Runtime iOS scenarios only support CoreCLR and NativeAOT")
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)
         configurations["iOSStripSymbols"] = str(ios_strip_symbols)
-
-        if runtime_flavor == "mono":
-            configurations["iOSLlvmBuild"] = str(ios_llvm_build)
 
     # .NET Android and .NET MAUI Android sample app scenarios
     if run_kind in ["maui_scenarios_android", "maui_scenarios_android_innerloop"]:
@@ -1043,11 +1032,14 @@ def get_target_framework(args: RunPerformanceJobArgs, channel: str) -> str:
     return ChannelMap.get_target_framework_moniker(
         channel, mobile=args.run_kind.startswith("maui_scenarios")
         or args.run_kind in ("android_scenarios", "ios_scenarios")
-        or args.runtime_type in ("AndroidMono", "AndroidCoreCLR", "iOSMono", "iOSCoreCLR", "iOSNativeAOT"))
+        or args.runtime_type in ("AndroidCoreCLR", "iOSCoreCLR", "iOSNativeAOT"))
 
 
 def run_performance_job(args: RunPerformanceJobArgs):
     setup_loggers(verbose=True)
+
+    if args.runtime_type in ("AndroidMono", "iOSMono"):
+        raise ValueError(f"{args.runtime_type} performance scenarios are no longer supported")
 
     branch = os.environ.get("BUILD_SOURCEBRANCH")
     cleaned_branch_name = "main"
@@ -1099,7 +1091,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.libraries_download_dir is None and not args.performance_repo_ci and args.runtime_repo_dir is not None:
         args.libraries_download_dir = os.path.join(args.runtime_repo_dir, "artifacts")
     
-    ios_mono = args.runtime_type == "iOSMono"
     ios_coreclr = args.runtime_type == "iOSCoreCLR"
     ios_nativeaot = args.runtime_type == "iOSNativeAOT"
     is_aot = args.codegen_type.lower() == "aot"
@@ -1163,21 +1154,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
         build_config = f"wasm.{build_config}"
 
     if args.run_kind == "android_scenarios":
-        if args.runtime_type == "AndroidMono":
-            args.runtime_flavor = "mono"
-        elif args.runtime_type == "AndroidCoreCLR":
+        if args.runtime_type == "AndroidCoreCLR":
             args.runtime_flavor = "coreclr"
         else:
-            raise Exception("Android scenarios only support Mono and CoreCLR runtimes")
+            raise ValueError("Android scenarios only support the AndroidCoreCLR runtime")
     if args.run_kind == "ios_scenarios":
-        if args.runtime_type == "iOSMono":
-            args.runtime_flavor = "mono"
-        elif args.runtime_type == "iOSCoreCLR":
-            args.runtime_flavor = "coreclr"
-        elif args.runtime_type == "iOSNativeAOT":
+        if args.runtime_type in ("iOSCoreCLR", "iOSNativeAOT"):
             args.runtime_flavor = "coreclr"
         else:
-            raise Exception("iOS scenarios only support Mono and CoreCLR runtimes")
+            raise ValueError("iOS scenarios only support the iOSCoreCLR and iOSNativeAOT runtimes")
 
     if args.run_kind == "micro" and args.runtime_type == "wasm_coreclr":
         if not args.runtime_flavor:
@@ -1186,7 +1171,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     configurations = get_run_configurations(
         args.run_kind, args.runtime_type, args.codegen_type, args.pgo_run_type, args.physical_promotion_run_type,
         args.r2r_run_type, args.experiment_name, args.linking_type,
-        args.runtime_flavor, args.ios_llvm_build, args.ios_strip_symbols, args.javascript_engine,
+        args.runtime_flavor, args.ios_strip_symbols, args.javascript_engine,
         args.build_config
     )
 
@@ -1454,14 +1439,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
             dest = os.path.join(android_binlog_dir, "msbuild.binlog")
             getLogger().info(f"Moving {binlog_files[0]} to {dest}")
             shutil.move(binlog_files[0], dest)
-        # Disabled due to not successfully building at the moment. https://github.com/dotnet/performance/issues/4729
-        # if android_mono:
-            # shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), os.path.join(root_payload_dir, "MonoBenchmarksDroid.apk"))
         ci_setup_arguments.architecture = "arm64"
 
-    if ios_mono or ios_coreclr or ios_nativeaot:
+    if ios_coreclr or ios_nativeaot:
         if args.built_app_dir is None:
-            raise Exception("Built apps directory must be present for IOS Mono or IOS Native AOT benchmarks")
+            raise Exception("Built apps directory must be present for iOS CoreCLR or NativeAOT benchmarks")
         
         getLogger().info("Copying IOS apps to payload directory")
         ios_hello_world_dir = os.path.join(payload_dir, "iosHelloWorld")
@@ -1836,7 +1818,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         compare_command=compare_command,
         only_sanity_check=args.only_sanity_check,
         ios_strip_symbols=args.ios_strip_symbols,
-        ios_llvm_build=args.ios_llvm_build,
         fail_on_test_failure=fail_on_test_failure,
         scenario_arguments=scenario_arguments or None)
     
@@ -1871,7 +1852,6 @@ def main(argv: list[str]):
                 "--is-scenario": "is_scenario",
                 "--local-build": "local_build",
                 "--compare": "compare",
-                "--ios-llvm-build": "ios_llvm_build",
                 "--ios-strip-symbols": "ios_strip_symbols",
                 "--send-to-helix": "send_to_helix",
                 "--performance-repo-ci": "performance_repo_ci",

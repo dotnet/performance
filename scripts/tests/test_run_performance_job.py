@@ -12,6 +12,85 @@ import scripts.run_performance_job as job
 from scripts.run_performance_job import APT_LOCK_TIMEOUT_OPTION, get_bdn_arguments, get_pre_commands
 
 
+@pytest.mark.parametrize("runtime_type", ["AndroidMono", "iOSMono"])
+def test_retired_mobile_mono_fails_before_payload_preparation(tmp_path, monkeypatch, runtime_type):
+    monkeypatch.setattr(job, "setup_loggers", Mock())
+    copy_payload = Mock()
+    monkeypatch.setattr(job.shutil, "copytree", copy_payload)
+    args = job.RunPerformanceJobArgs(
+        run_kind="android_scenarios" if runtime_type == "AndroidMono" else "ios_scenarios",
+        runtime_type=runtime_type,
+        architecture="arm64",
+        os_group="osx",
+        performance_repo_dir=str(tmp_path),
+        queue="test-queue",
+    )
+
+    with pytest.raises(ValueError, match=f"{runtime_type} performance scenarios are no longer supported"):
+        job.run_performance_job(args)
+
+    copy_payload.assert_not_called()
+    assert not (tmp_path / "CorrelationStaging").exists()
+
+
+@pytest.mark.parametrize(("run_kind", "runtime_type", "codegen_type", "linking_type"), [
+    ("android_scenarios", "AndroidCoreCLR", "JIT", ""),
+    ("android_scenarios", "AndroidCoreCLR", "JIT", "static"),
+    ("android_scenarios", "AndroidCoreCLR", "R2R", ""),
+    ("ios_scenarios", "iOSCoreCLR", "Interpreter", ""),
+    ("ios_scenarios", "iOSCoreCLR", "R2R", ""),
+    ("ios_scenarios", "iOSNativeAOT", "NativeAOT", ""),
+])
+def test_mobile_coreclr_result_configurations_are_preserved(
+        run_kind, runtime_type, codegen_type, linking_type):
+    configurations = job.get_run_configurations(
+        run_kind=run_kind,
+        runtime_type=runtime_type,
+        codegen_type=codegen_type,
+        linking_type=linking_type,
+        runtime_flavor="coreclr",
+        ios_strip_symbols=True,
+    )
+
+    expected = {
+        "CompilationMode": "Tiered",
+        "RunKind": run_kind,
+        "CodegenType": codegen_type,
+        "RuntimeType": "coreclr",
+    }
+    if run_kind == "android_scenarios":
+        expected["LinkingType"] = linking_type
+    else:
+        expected["iOSStripSymbols"] = "True"
+    assert configurations == expected
+
+
+@pytest.mark.parametrize("run_kind", ["android_scenarios", "ios_scenarios"])
+def test_runtime_sample_app_result_configuration_rejects_mono(run_kind):
+    with pytest.raises(ValueError, match="only support CoreCLR"):
+        job.get_run_configurations(
+            run_kind=run_kind,
+            runtime_type="AndroidMono" if run_kind == "android_scenarios" else "iOSMono",
+            codegen_type="AOT",
+            runtime_flavor="mono",
+        )
+
+
+@pytest.mark.parametrize("run_kind", ["maui_scenarios_android", "maui_scenarios_ios"])
+def test_maui_mono_result_configuration_is_unchanged(run_kind):
+    assert job.get_run_configurations(
+        run_kind=run_kind,
+        runtime_type="coreclr",
+        codegen_type="AOT",
+        runtime_flavor="mono",
+    ) == {
+        "CompilationMode": "Tiered",
+        "RunKind": run_kind,
+        "CodegenType": "AOT",
+        "RuntimeType": "mono",
+    }
+
+
 @pytest.mark.parametrize("os_group", ["windows", "linux"])
 @pytest.mark.parametrize(("framework", "runtime"), [
     ("net11.0", "r2r11_0"), ("net12.0", "r2r12_0"),
