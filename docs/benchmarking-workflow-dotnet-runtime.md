@@ -211,11 +211,12 @@ This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-latest`, which 
 Make sure you have the v8 engine installed and in the PATH. Follow the installation [instructions](https://github.com/dotnet/runtime/tree/main/src/mono/browser#installation-of-javascript-engines) if you don't have v8 installed.
 
 For Helix Mono and CoreCLR WASM jobs on APT-based Linux workers,
-`scripts/run_performance_job.py` installs Node.js from the NodeSource 22.x feed.
+`scripts/run_performance_job.py` installs Node.js 24 LTS from the NodeSource
+24.x feed, matching the Node.js line used by the Helix WebAssembly images.
 Preparation checks the active Node.js binary before running npm/jsvu and fails
-unless it is a stable 22.x release at least **22.23.4**, the patched baseline in
+unless it is a stable 24.x release at least **24.22.1**, the patched baseline in
 the [October 2026 Node.js security release](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases).
-Newer 22.x patches are accepted; stale packages or an older Node.js earlier on
+Newer 24.x patches are accepted; stale packages or an older Node.js earlier on
 `PATH` cannot silently pass. Azure Linux continues to use its existing `tdnf`
 package setup. Node.js only prepares the requested V8 engine: the selected V8
 version, work-item-local jsvu installation, and WASM runtime/package selection

@@ -28,7 +28,7 @@ from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
 DEFAULT_BUILD_CONFIG = "Release"
 APT_LOCK_TIMEOUT_OPTION = "-o DPkg::Lock::Timeout=120"
-WASM_NODE_MIN_VERSION = (22, 23, 4)
+WASM_NODE_MIN_VERSION = (24, 22, 1)
 TARGETING_PACK_COMPONENTS = {
     "Microsoft.NETCore.App.Ref": "runtime",
     "Microsoft.AspNetCore.App.Ref": "aspnetcore-runtime",
@@ -556,11 +556,12 @@ def get_pre_commands(
             node_major, node_minor, node_patch = WASM_NODE_MIN_VERSION
             node_min_version = ".".join(map(str, WASM_NODE_MIN_VERSION))
             # Use one expression: semicolons delimit Helix's MSBuild pre-command list.
+            # Avoid backslashes: the Helix submission rewrites them to '/' on Unix.
             node_version_check = (
                 "node -e '(([major, minor, patch]) => "
                 f"major === {node_major} && "
                 f"(minor > {node_minor} || (minor === {node_minor} && patch >= {node_patch})) && "
-                r"/^\d+\.\d+\.\d+$/.test(process.versions.node) "
+                "/^[0-9]+[.][0-9]+[.][0-9]+$/.test(process.versions.node) "
                 '? console.log("Node.js " + process.versions.node) '
                 f': (console.error("Node.js >= {node_min_version} in the {node_major}.x line is required, found " '
                 '+ process.versions.node), process.exit(1)))'
