@@ -209,7 +209,7 @@ jobs:
             - '--performance-repo-dir $(performanceRepoDir)'
             - ${{ if ne(parameters.msbuildScenarioInputs, '') }}:
               - '--msbuild-scenario-inputs "${{ parameters.msbuildScenarioInputs }}"'
-            - ${{ if parameters.msbuildCollectLinux }}:
+            - ${{ if eq(parameters.msbuildCollectLinux, true) }}:
               - '--msbuild-collect-linux'
             - ${{ if ne(parameters.msbuildScenarios, '') }}:
               - '--msbuild-scenarios "${{ parameters.msbuildScenarios }}"'
