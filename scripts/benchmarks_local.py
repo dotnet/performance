@@ -174,7 +174,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
 
         if force_regenerate or not os.path.exists(artifact_mono_interpreter) or not os.path.exists(artifact_mono_jit):
             build_runtime_dependency(parsed_args, repo_path, "clr+mono+libs")
-            build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={os.path.join(repo_path, 'artifacts', 'bin', 'mono', f'{parsed_args.os}.{parsed_args.architecture}.Release')}"])
+            build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono'])
 
             # Get the dotnet version from the currently checked out runtimes Versions.props file (we assume that it exists)
             versions_props_path = os.path.join(repo_path, "eng", "Versions.props")

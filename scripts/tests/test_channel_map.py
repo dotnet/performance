@@ -87,9 +87,8 @@ def test_job_target_is_independent_of_sdk_channel(run_kind, channel):
 @pytest.mark.parametrize(("run_kind", "runtime_type"), [
     ("maui_scenarios", "coreclr"), ("maui_scenarios_android", "coreclr"),
     ("maui_scenarios_android_innerloop", "coreclr"), ("maui_scenarios_ios", "coreclr"),
-    ("android_scenarios", "AndroidMono"), ("ios_scenarios", "iOSCoreCLR"),
-    ("micro", "AndroidMono"), ("micro", "AndroidCoreCLR"),
-    ("micro", "iOSMono"), ("micro", "iOSCoreCLR"), ("micro", "iOSNativeAOT"),
+    ("android_scenarios", "AndroidCoreCLR"), ("ios_scenarios", "iOSCoreCLR"),
+    ("micro", "AndroidCoreCLR"), ("micro", "iOSCoreCLR"), ("micro", "iOSNativeAOT"),
 ])
 def test_removing_mobile_override_inherits_main(monkeypatch, run_kind, runtime_type):
     monkeypatch.delitem(job.ChannelMap.channel_map["main"], "mobile_tfm")
@@ -105,12 +104,10 @@ def test_removing_mobile_override_inherits_main(monkeypatch, run_kind, runtime_t
     ("main", None, "micro", "wasm_coreclr", None, "net12.0"),
     ("main", None, "micro", "wasm", None, "net12.0"),
     ("main", None, "micro", "mono", None, "net12.0"),
-    ("main", None, "micro", "AndroidMono", None, "net11.0"),
     ("main", None, "micro", "AndroidCoreCLR", None, "net11.0"),
-    ("main", None, "micro", "iOSMono", None, "net11.0"),
     ("main", None, "micro", "iOSCoreCLR", None, "net11.0"),
     ("main", None, "micro", "iOSNativeAOT", None, "net11.0"),
-    ("main", None, "android_scenarios", "AndroidMono", None, "net11.0"),
+    ("main", None, "android_scenarios", "AndroidCoreCLR", None, "net11.0"),
     ("main", None, "ios_scenarios", "iOSCoreCLR", None, "net11.0"),
     ("main", "main", "maui_scenarios_android", "coreclr", None, "net11.0"),
     ("release/10.0", None, "micro", "mono", None, "net10.0"),
@@ -231,12 +228,10 @@ def test_benchmarks_ci_selects_and_restores_sdk_pin(tmp_path, monkeypatch, frame
     ("micro", "wasm_coreclr", None, "net12.0"),
     ("micro", "wasm", None, "net12.0"),
     ("micro", "mono", None, "net12.0"),
-    ("micro", "AndroidMono", None, "net11.0"),
     ("micro", "AndroidCoreCLR", None, "net11.0"),
-    ("micro", "iOSMono", None, "net11.0"),
     ("micro", "iOSCoreCLR", None, "net11.0"),
     ("micro", "iOSNativeAOT", None, "net11.0"),
-    ("android_scenarios", "AndroidMono", None, "net11.0"),
+    ("android_scenarios", "AndroidCoreCLR", None, "net11.0"),
     ("ios_scenarios", "iOSCoreCLR", None, "net11.0"),
     ("micro", "mono", "net10.0", "net10.0"),
 ])

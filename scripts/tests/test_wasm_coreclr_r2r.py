@@ -561,93 +561,57 @@ def test_coreclr_cohort_is_selected_before_restore_and_pack_resolution(
     assert not assets["project"]["frameworks"]["net8.0"].get("downloadDependencies")
 
 
-@pytest.mark.parametrize("archive", [False, True], ids=["directory", "tar.gz"])
-@pytest.mark.parametrize("major", [11, 12])
-@pytest.mark.parametrize("empty_destination", [False, True])
-def test_coreclr_payload_detects_local_toolchain_package_version(
-        tmp_path, archive, major, empty_destination):
+def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
     artifact = tmp_path / "artifact" / "staging"
-    local_version = f"{major}.0.0-ci"
-    installed_version = f"{major}.0.0-alpha.1.26528.120"
-    ref_pack_parent = artifact / "dotnet-none" / "packs" / "Microsoft.NETCore.App.Ref"
-    shared_framework = artifact / "dotnet-none" / "shared" / "Microsoft.NETCore.App" / installed_version
+    ref_pack = artifact / "dotnet-none" / "packs" / "Microsoft.NETCore.App.Ref" / "11.0.0-rc.1.26431.109"
+    shared_framework = artifact / "dotnet-none" / "shared" / "Microsoft.NETCore.App" / "11.0.0-rc.1.26431.109"
     runtime_pack = artifact / "microsoft.netcore.app.runtime.browser-wasm" / "Release"
     built_nugets = artifact / "built-nugets"
-    reference_files = {}
-    for version in (installed_version, f"{major - 1}.0.0"):
-        ref_pack = ref_pack_parent / version / "data"
-        ref_pack.mkdir(parents=True)
-        reference_files[f"{version}/data/FrameworkList.xml"] = (
-            f'<FileList TargetFrameworkIdentifier=".NETCoreApp" TargetFrameworkVersion="{version.split("-")[0]}" />'
-        ).encode()
-        (ref_pack / "FrameworkList.xml").write_bytes(reference_files[f"{version}/data/FrameworkList.xml"])
+    ref_pack.mkdir(parents=True)
     shared_framework.mkdir(parents=True)
     (runtime_pack / "data").mkdir(parents=True)
-    (runtime_pack / "runtimes" / "browser-wasm" / "native").mkdir(parents=True)
-    runtime_files = {
-        "data/RuntimeList.xml": (
-            f'<FileList TargetFrameworkIdentifier=".NETCoreApp" TargetFrameworkVersion="{major}.0" />'
-        ).encode(),
-        "runtimes/browser-wasm/native/dotnet.native.wasm": b"private CoreCLR runtime\x00\xff",
-    }
-    for name, contents in runtime_files.items():
-        (runtime_pack / name).write_bytes(contents)
+    (runtime_pack / "data" / "RuntimeList.xml").write_text(
+        '<FileList TargetFrameworkIdentifier=".NETCoreApp" TargetFrameworkVersion="11.0" />')
     built_nugets.mkdir(parents=True)
-    (shared_framework / "System.Private.CoreLib.dll").write_bytes(b"SDK shared framework")
-    (built_nugets / f"Microsoft.NET.Sdk.WebAssembly.Pack.{local_version}.nupkg").touch()
-    (built_nugets / f"Microsoft.NETCore.App.Crossgen2.linux-x64.{local_version}.nupkg").touch()
-    (built_nugets / f"Microsoft.NET.ILLink.Tasks.{local_version}.nupkg").touch()
+    (shared_framework / "System.Private.CoreLib.dll").touch()
+    (runtime_pack / "Microsoft.NETCore.App.Runtime.browser-wasm.nuspec").touch()
+    (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.11.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.11.0.0-ci.nupkg").touch()
+    (built_nugets / "Microsoft.NET.ILLink.Tasks.11.0.0-ci.nupkg").touch()
 
     payload = tmp_path / "payload"
-    runtime_pack_parent = payload / "dotnet" / "packs" / "Microsoft.NETCore.App.Runtime.browser-wasm"
-    if empty_destination:
-        (runtime_pack_parent / local_version).mkdir(parents=True)
-    source = _archive_coreclr_artifact(artifact.parent, tmp_path) if archive else artifact.parent
-    version = build_wasm_coreclr_payload(str(source), str(payload))
+    version = build_wasm_coreclr_payload(str(artifact.parent), str(payload))
 
-    assert version == local_version
-    assert {path.name for path in runtime_pack_parent.iterdir()} == {local_version}
-    for name, contents in runtime_files.items():
-        assert (runtime_pack_parent / version / name).read_bytes() == contents
-    staged_ref = payload / "dotnet" / "packs" / "Microsoft.NETCore.App.Ref"
-    assert {
-        path.relative_to(staged_ref).as_posix(): path.read_bytes()
-        for path in staged_ref.rglob("*") if path.is_file()
-    } == reference_files
-    assert {path.name for path in staged_ref.iterdir()} == {installed_version, f"{major - 1}.0.0"}
+    assert version == "11.0.0-ci"
     assert (
         payload
         / "dotnet"
         / "shared"
         / "Microsoft.NETCore.App"
-        / version
+        / "11.0.0-ci"
         / "System.Private.CoreLib.dll"
-    ).read_bytes() == b"SDK shared framework"
-    assert (shared_framework / "System.Private.CoreLib.dll").read_bytes() == b"SDK shared framework"
-    commands = get_pre_commands(
-        os_group="linux", os_distro="ubuntu", internal=False,
-        runtime_type="wasm_coreclr", codegen_type="wasm",
-        build_config="Release", v8_version="15.1.206",
-        wasm_local_package_version=version,
-    )
-    assert any(f"export PERFLAB_WASM_PACKAGE_VERSION={version}" in command for command in commands)
+    ).is_file()
+    runtime_packs = payload / "dotnet" / "packs" / "Microsoft.NETCore.App.Runtime.browser-wasm"
+    assert [path.name for path in runtime_packs.iterdir()] == ["11.0.0-ci"]
+    assert (runtime_packs / "11.0.0-ci" / "Microsoft.NETCore.App.Runtime.browser-wasm.nuspec").is_file()
 
 
-def _write_coreclr_artifact(tmp_path, crossgen2_tasks_files=()):
+def _write_coreclr_artifact(tmp_path, crossgen2_tasks_files=(), major=11):
     artifact = tmp_path / "artifact" / "staging"
-    shared_framework = artifact / "dotnet-none" / "shared" / "Microsoft.NETCore.App" / "11.0.0-ci"
+    local_version = f"{major}.0.0-ci"
+    shared_framework = artifact / "dotnet-none" / "shared" / "Microsoft.NETCore.App" / local_version
     built_nugets = artifact / "built-nugets"
     shared_framework.mkdir(parents=True)
     (shared_framework / "System.Private.CoreLib.dll").write_bytes(b"SDK shared framework")
     built_nugets.mkdir(parents=True)
-    (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.11.0.0-ci.nupkg").touch()
-    (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.11.0.0-ci.nupkg").touch()
-    (built_nugets / "Microsoft.NET.ILLink.Tasks.11.0.0-ci.nupkg").touch()
+    (built_nugets / f"Microsoft.NET.Sdk.WebAssembly.Pack.{local_version}.nupkg").touch()
+    (built_nugets / f"Microsoft.NETCore.App.Crossgen2.linux-x64.{local_version}.nupkg").touch()
+    (built_nugets / f"Microsoft.NET.ILLink.Tasks.{local_version}.nupkg").touch()
     runtime_pack = artifact / "microsoft.netcore.app.runtime.browser-wasm" / "Release"
     (runtime_pack / "data").mkdir(parents=True)
     (runtime_pack / "data" / "RuntimeList.xml").write_text(
-        '<FileList TargetFrameworkIdentifier=".NETCoreApp" TargetFrameworkVersion="11.0" />')
-    (runtime_pack / "dotnet.native.wasm").write_bytes(b"private runtime")
+        f'<FileList TargetFrameworkIdentifier=".NETCoreApp" TargetFrameworkVersion="{major}.0" />')
+    (runtime_pack / "dotnet.native.wasm").write_bytes(b"private runtime\x00\xff")
     if crossgen2_tasks_files:
         crossgen2_tasks = artifact / "Crossgen2Tasks"
         crossgen2_tasks.mkdir()
@@ -694,6 +658,40 @@ def _archive_coreclr_artifact(artifact_root, tmp_path):
     with tarfile.open(archive, "w:gz") as tar:
         tar.add(artifact_root / "staging", arcname="staging")
     return archive
+
+
+@pytest.mark.parametrize("archive", [False, True], ids=["directory", "tar.gz"])
+@pytest.mark.parametrize("major", [11, 12])
+@pytest.mark.parametrize("empty_destination", [False, True])
+def test_coreclr_payload_stages_raw_runtime_pack(tmp_path, archive, major, empty_destination):
+    artifact = _write_coreclr_artifact(tmp_path, major=major)
+    raw_pack = artifact / "staging" / "microsoft.netcore.app.runtime.browser-wasm" / "Release"
+    expected_files = {
+        path.relative_to(raw_pack).as_posix(): path.read_bytes()
+        for path in raw_pack.rglob("*") if path.is_file()
+    }
+    payload = tmp_path / "payload"
+    packs = payload / "dotnet" / "packs" / "Microsoft.NETCore.App.Runtime.browser-wasm"
+    destination = packs / f"{major}.0.0-ci"
+    if empty_destination:
+        destination.mkdir(parents=True)
+    source = _archive_coreclr_artifact(artifact, tmp_path) if archive else artifact
+
+    version = build_wasm_coreclr_payload(str(source), str(payload))
+
+    assert version == destination.name
+    assert {path.name for path in packs.iterdir()} == {version}
+    assert {
+        path.relative_to(destination).as_posix(): path.read_bytes()
+        for path in destination.rglob("*") if path.is_file()
+    } == expected_files
+    commands = get_pre_commands(
+        os_group="linux", os_distro="ubuntu", internal=False,
+        runtime_type="wasm_coreclr", codegen_type="wasm",
+        build_config="Release", v8_version="15.1.206",
+        wasm_local_package_version=version,
+    )
+    assert any(f"export PERFLAB_WASM_PACKAGE_VERSION={version}" in command for command in commands)
 
 
 @pytest.mark.parametrize("archive", [False, True], ids=["directory", "tar.gz"])

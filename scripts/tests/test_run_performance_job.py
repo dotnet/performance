@@ -12,6 +12,85 @@ import scripts.run_performance_job as job
 from scripts.run_performance_job import APT_LOCK_TIMEOUT_OPTION, get_bdn_arguments, get_pre_commands
 
 
+@pytest.mark.parametrize("runtime_type", ["AndroidMono", "iOSMono"])
+def test_retired_mobile_mono_fails_before_payload_preparation(tmp_path, monkeypatch, runtime_type):
+    monkeypatch.setattr(job, "setup_loggers", Mock())
+    copy_payload = Mock()
+    monkeypatch.setattr(job.shutil, "copytree", copy_payload)
+    args = job.RunPerformanceJobArgs(
+        run_kind="android_scenarios" if runtime_type == "AndroidMono" else "ios_scenarios",
+        runtime_type=runtime_type,
+        architecture="arm64",
+        os_group="osx",
+        performance_repo_dir=str(tmp_path),
+        queue="test-queue",
+    )
+
+    with pytest.raises(ValueError, match=f"{runtime_type} performance scenarios are no longer supported"):
+        job.run_performance_job(args)
+
+    copy_payload.assert_not_called()
+    assert not (tmp_path / "CorrelationStaging").exists()
+
+
+@pytest.mark.parametrize(("run_kind", "runtime_type", "codegen_type", "linking_type"), [
+    ("android_scenarios", "AndroidCoreCLR", "JIT", ""),
+    ("android_scenarios", "AndroidCoreCLR", "JIT", "static"),
+    ("android_scenarios", "AndroidCoreCLR", "R2R", ""),
+    ("ios_scenarios", "iOSCoreCLR", "Interpreter", ""),
+    ("ios_scenarios", "iOSCoreCLR", "R2R", ""),
+    ("ios_scenarios", "iOSNativeAOT", "NativeAOT", ""),
+])
+def test_mobile_coreclr_result_configurations_are_preserved(
+        run_kind, runtime_type, codegen_type, linking_type):
+    configurations = job.get_run_configurations(
+        run_kind=run_kind,
+        runtime_type=runtime_type,
+        codegen_type=codegen_type,
+        linking_type=linking_type,
+        runtime_flavor="coreclr",
+        ios_strip_symbols=True,
+    )
+
+    expected = {
+        "CompilationMode": "Tiered",
+        "RunKind": run_kind,
+        "CodegenType": codegen_type,
+        "RuntimeType": "coreclr",
+    }
+    if run_kind == "android_scenarios":
+        expected["LinkingType"] = linking_type
+    else:
+        expected["iOSStripSymbols"] = "True"
+    assert configurations == expected
+
+
+@pytest.mark.parametrize("run_kind", ["android_scenarios", "ios_scenarios"])
+def test_runtime_sample_app_result_configuration_rejects_mono(run_kind):
+    with pytest.raises(ValueError, match="only support CoreCLR"):
+        job.get_run_configurations(
+            run_kind=run_kind,
+            runtime_type="AndroidMono" if run_kind == "android_scenarios" else "iOSMono",
+            codegen_type="AOT",
+            runtime_flavor="mono",
+        )
+
+
+@pytest.mark.parametrize("run_kind", ["maui_scenarios_android", "maui_scenarios_ios"])
+def test_maui_mono_result_configuration_is_unchanged(run_kind):
+    assert job.get_run_configurations(
+        run_kind=run_kind,
+        runtime_type="coreclr",
+        codegen_type="AOT",
+        runtime_flavor="mono",
+    ) == {
+        "CompilationMode": "Tiered",
+        "RunKind": run_kind,
+        "CodegenType": "AOT",
+        "RuntimeType": "mono",
+    }
+
+
 @pytest.mark.parametrize("os_group", ["windows", "linux"])
 @pytest.mark.parametrize(("framework", "runtime"), [
     ("net11.0", "r2r11_0"), ("net12.0", "r2r12_0"),
@@ -103,6 +182,57 @@ def test_generated_prerequisites_do_not_poll_dpkg_lock():
     prerequisites = "\n".join(pre_commands)
     assert "fuser" not in prerequisites
     assert "Waiting for dpkg" not in prerequisites
+
+
+@pytest.mark.parametrize("internal", [False, True])
+@pytest.mark.parametrize("runtime_type", ["wasm", "wasm_coreclr"])
+def test_wasm_nodesource_setup_requires_patched_node_24(internal, runtime_type):
+    pre_commands = get_pre_commands(
+        os_group="linux",
+        os_distro="ubuntu",
+        internal=internal,
+        runtime_type=runtime_type,
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+        wasm_local_package_version="11.0.0-ci" if runtime_type == "wasm_coreclr" else None,
+    )
+    prerequisites = next(command for command in pre_commands if "export NODE_MAJOR=" in command)
+    node_install = job.apt_command("install nodejs -y")
+    npm_install = "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g"
+
+    assert "export NODE_MAJOR=24 && " in prerequisites
+    assert "https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" in prerequisites
+    assert prerequisites.index(node_install) < prerequisites.index("node -e ") < prerequisites.index(npm_install)
+    assert "Node.js >= 24.22.1 in the 24.x line is required" in prerequisites
+    # Helix rewrites '\' to '/' in Unix pre-commands, which corrupted the Node check regex.
+    assert "\\" not in prerequisites
+    assert f"{npm_install} && $HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@15.1.206" in prerequisites
+    assert "export V8_ENGINE_PATH=~/.jsvu/bin/v8-15.1.206" in prerequisites
+    assert "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'" in prerequisites
+    assert prerequisites.endswith(" || export PERF_PREREQS_INSTALL_FAILED=1")
+
+
+@pytest.mark.parametrize("runtime_type", ["wasm", "wasm_coreclr"])
+def test_wasm_node_upgrade_preserves_azurelinux_setup(runtime_type):
+    pre_commands = get_pre_commands(
+        os_group="linux",
+        os_distro="azurelinux",
+        internal=False,
+        runtime_type=runtime_type,
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+        wasm_local_package_version="11.0.0-ci" if runtime_type == "wasm_coreclr" else None,
+    )
+    prerequisites = "\n".join(pre_commands)
+
+    assert "sudo tdnf -y install ca-certificates curl gnupg nodejs npm" in prerequisites
+    assert "$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@15.1.206" in prerequisites
+    assert "export V8_ENGINE_PATH=~/.jsvu/bin/v8-15.1.206" in prerequisites
+    assert "nodesource" not in prerequisites
+    assert "node -e " not in prerequisites
+    assert "sudo apt" not in prerequisites
 
 
 def test_linux_prerequisite_failure_remains_failed_after_health_check():

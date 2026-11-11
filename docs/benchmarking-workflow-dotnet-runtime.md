@@ -52,6 +52,11 @@ corresponding ARM64 Mono builds while retaining CoreCLR jobs. The WASM template
 skips the Mono-only `non-v8` build when disabled; runtime owns the build flavors
 for the retained `v8` profile. These controls do not remove manual Mono support.
 
+Runtime sample-app scenarios support Android CoreCLR and iOS CoreCLR/NativeAOT.
+Mobile Mono scenarios and the Mono-only iOS LLVM option are no longer supported.
+Desktop/browser Mono, versioned .NET channels, and MAUI workload scenarios are
+unaffected.
+
 For CoreCLR (including R2R-interpreter) and Mono benchmark jobs,
 `scripts/run_performance_job.py` prepares downlevel reference packs before
 submitting the Helix payload. It reads the benchmark and harness target frameworks
@@ -209,6 +214,18 @@ This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-latest`, which 
 #### Install v8 engine
 
 Make sure you have the v8 engine installed and in the PATH. Follow the installation [instructions](https://github.com/dotnet/runtime/tree/main/src/mono/browser#installation-of-javascript-engines) if you don't have v8 installed.
+
+For Helix Mono and CoreCLR WASM jobs on APT-based Linux workers,
+`scripts/run_performance_job.py` installs Node.js 24 LTS from the NodeSource
+24.x feed, matching the Node.js line used by the Helix WebAssembly images.
+Preparation checks the active Node.js binary before running npm/jsvu and fails
+unless it is a stable 24.x release at least **24.22.1**, the patched baseline in
+the [October 2026 Node.js security release](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases).
+Newer 24.x patches are accepted; stale packages or an older Node.js earlier on
+`PATH` cannot silently pass. Azure Linux continues to use its existing `tdnf`
+package setup. Node.js only prepares the requested V8 engine: the selected V8
+version, work-item-local jsvu installation, and WASM runtime/package selection
+are unchanged.
 
 #### Run the benchmarks with the interpreter
 
@@ -420,7 +437,7 @@ RunArch='x64'
 
 # Create mono dotnet
 mkdir -p $RunDir/artifacts/dotnet-mono
-$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeArtifactsPath=$RunDir/artifacts/bin/mono/$RunOS.$RunArch.Release /p:RuntimeFlavor=mono
+$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeFlavor=mono
 cp $RunDir/artifacts/bin/runtime/net11.0-$RunOS-Release-$RunArch/* $RunDir/artifacts/bin/testhost/net11.0-$RunOS-Release-$RunArch/shared/Microsoft.NETCore.App/11.0.0 -rf
 cp $RunDir/artifacts/bin/testhost/net11.0-$RunOS-Release-$RunArch/* $RunDir/artifacts/dotnet-mono -r
 cp $RunDir/artifacts/bin/coreclr/$RunOS.$RunArch.Release/corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/11.0.0/corerun
@@ -461,7 +478,7 @@ RunArch='x64'
 
 # Create mono dotnet
 mkdir -p $RunDir/artifacts/dotnet-mono
-$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeArtifactsPath=$RunDir\artifacts\bin\mono\$RunOS.$RunArch.Release /p:RuntimeFlavor=mono
+$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeFlavor=mono
 xcopy $RunDir\artifacts\bin\runtime\net11.0-$RunOS-Release-$RunArch\ $RunDir\artifacts\bin\testhost\net11.0-$RunOS-Release-$RunArch\shared\Microsoft.NETCore.App\11.0.0\ /e /y
 xcopy $RunDir\artifacts\bin\testhost\net11.0-$RunOS-Release-$RunArch\ $RunDir\artifacts\dotnet-mono\ /e /y
 xcopy $RunDir\artifacts\bin\coreclr\$RunOS.$RunArch.Release\corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\11.0.0\corerun /y
@@ -512,7 +529,7 @@ RunArch='x64'
 
 # Create mono dotnet
 mkdir -p $RunDir/artifacts/dotnet-mono
-$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeArtifactsPath=$RunDir/artifacts/bin/mono/$RunOS.$RunArch.Release /p:RuntimeFlavor=mono
+$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeFlavor=mono
 cp $RunDir/artifacts/bin/runtime/net11.0-$RunOS-Release-$RunArch/* $RunDir/artifacts/bin/testhost/net11.0-$RunOS-Release-$RunArch/shared/Microsoft.NETCore.App/11.0.0 -rf
 cp $RunDir/artifacts/bin/testhost/net11.0-$RunOS-Release-$RunArch/* $RunDir/artifacts/dotnet-mono -r
 cp $RunDir/artifacts/bin/coreclr/$RunOS.$RunArch.Release/corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/11.0.0/corerun
@@ -550,7 +567,7 @@ RunArch='x64'
 
 # Create mono dotnet
 mkdir -p $RunDir/artifacts/dotnet-mono
-$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeArtifactsPath=$RunDir\artifacts\bin\mono\$RunOS.$RunArch.Release /p:RuntimeFlavor=mono
+$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeFlavor=mono
 xcopy $RunDir\artifacts\bin\runtime\net11.0-$RunOS-Release-$RunArch\ $RunDir\artifacts\bin\testhost\net11.0-$RunOS-Release-$RunArch\shared\Microsoft.NETCore.App\11.0.0\ /e /y
 xcopy $RunDir\artifacts\bin\testhost\net11.0-$RunOS-Release-$RunArch\ $RunDir\artifacts\dotnet-mono\ /e /y
 xcopy $RunDir\artifacts\bin\coreclr\$RunOS.$RunArch.Release\corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\11.0.0\corerun /y
