@@ -52,6 +52,11 @@ corresponding ARM64 Mono builds while retaining CoreCLR jobs. The WASM template
 skips the Mono-only `non-v8` build when disabled; runtime owns the build flavors
 for the retained `v8` profile. These controls do not remove manual Mono support.
 
+Runtime sample-app scenarios support Android CoreCLR and iOS CoreCLR/NativeAOT.
+Mobile Mono scenarios and the Mono-only iOS LLVM option are no longer supported.
+Desktop/browser Mono, versioned .NET channels, and MAUI workload scenarios are
+unaffected.
+
 For CoreCLR (including R2R-interpreter) and Mono benchmark jobs,
 `scripts/run_performance_job.py` prepares downlevel reference packs before
 submitting the Helix payload. It reads the benchmark and harness target frameworks
