@@ -6,10 +6,10 @@
   <Import Project="MSBuildScenarios.Generated.props" />
   <PropertyGroup>
     <MSBuildTimeoutSeconds Condition="'$(MSBuildTimeoutSeconds)' == ''">900</MSBuildTimeoutSeconds>
-    <MSBuildScenarioFilter>$(MSBuildScenarioFilter.Replace(';', ','))</MSBuildScenarioFilter>
+    <MSBuildScenarioFilter>$(MSBuildScenarioFilter.Trim().Replace(';', ','))</MSBuildScenarioFilter>
   </PropertyGroup>
   <ItemGroup>
-    <RequestedScenario Include="$(MSBuildScenarioFilter.Split(','))" />
+    <RequestedScenario Include="$(MSBuildScenarioFilter.Split(','))" Condition="'$(MSBuildScenarioFilter)' != ''" />
     <UnknownScenario Include="@(RequestedScenario)" Exclude="@(MSBuildScenario)" />
     <SelectedMSBuildScenario Include="@(MSBuildScenario)" Condition="'$(MSBuildScenarioFilter)' == ''" />
     <SelectedMSBuildScenario Include="@(RequestedScenario)" Condition="'$(MSBuildScenarioFilter)' != ''" />

@@ -10,6 +10,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 
@@ -22,8 +23,9 @@ from compose_msbuild_sdk import (
 )
 from msbuild_inputs import configure_inputs
 from msbuild_catalog import ASSET_DEFINITIONS, SCENARIOS, select_scenarios
-from shared import collect_linux, msbuild
+from shared import collect_linux, msbuild, startup
 from shared.msbuild_execution import execute_scenario, publish_selection
+from shared.testtraits import TestTraits as ScenarioTraits
 from sync_msbuild_scenarios import generate
 
 
@@ -228,6 +230,69 @@ def test_failed_measured_build_does_not_emit_success_samples(tmp_path, monkeypat
         msbuild.measure("net8-console-app", tmp_path / "dotnet.exe", 1, 900, False)
     assert calls[-1][1:] == ["build-server", "shutdown"]
     assert not (tmp_path / "traces/build-wall-clock.json").exists()
+
+
+@pytest.mark.parametrize("failure", [None, "measurement", "parser", "upload"])
+def test_msbuild_preserves_artifacts_and_uploads_report_without_duplicate_success_copy(
+        tmp_path, monkeypatch, failure):
+    monkeypatch.chdir(tmp_path)
+    inputs = tmp_path / "inputs"
+    sdk = inputs / "sdk"
+    sdk.mkdir(parents=True)
+    (sdk / ("dotnet.exe" if os.name == "nt" else "dotnet")).write_bytes(b"host")
+    (inputs / "manifest.json").write_text("{}")
+    monkeypatch.setenv("PERFLAB_MSBUILD_INPUTS", str(inputs))
+    monkeypatch.setenv("DOTNET_ROOT", str(sdk))
+    monkeypatch.setattr(msbuild, "verify_sdk", lambda *args: None)
+    upload_directory = tmp_path / "upload"
+    monkeypatch.setattr(msbuild, "helixuploaddir", lambda: str(upload_directory))
+    monkeypatch.setattr(startup, "helixuploaddir", lambda: str(upload_directory))
+    monkeypatch.setattr(startup, "runninginlab", lambda: True)
+    copies = []
+    copytree = msbuild.shutil.copytree
+
+    def copy_artifacts(source, destination, **kwargs):
+        copies.append(str(source))
+        return copytree(source, destination, **kwargs)
+
+    monkeypatch.setattr(msbuild.shutil, "copytree", copy_artifacts)
+    monkeypatch.setattr(startup, "copytree", copy_artifacts)
+    wrapper = startup.StartupWrapper.__new__(startup.StartupWrapper)
+    wrapper.startuppath = "Startup"
+    wrapper.reportjson = "traces/perf-lab-report.json"
+    monkeypatch.setattr(msbuild, "StartupWrapper", lambda: wrapper)
+
+    def measure(*args):
+        Path("traces").mkdir()
+        Path("traces/diagnostic.nettrace").write_bytes(b"trace")
+        if failure == "measurement":
+            raise RuntimeError("measurement failed")
+
+    def parse():
+        if failure == "parser":
+            raise subprocess.CalledProcessError(1, ["Startup"])
+        Path(wrapper.reportjson).write_text("{}")
+
+    monkeypatch.setattr(msbuild, "measure", measure)
+    monkeypatch.setattr(startup, "RunCommand", lambda *args, **kwargs: SimpleNamespace(run=parse))
+    upload_report = Mock(return_value=1 if failure == "upload" else 0)
+    monkeypatch.setitem(sys.modules, "upload", SimpleNamespace(upload=upload_report))
+    traits = ScenarioTraits(exename="net8-console-app", upload_to_perflab_container=True)
+
+    if failure:
+        with pytest.raises((RuntimeError, subprocess.CalledProcessError, SystemExit)):
+            msbuild.run(traits, 1, 900, False, False)
+    else:
+        msbuild.run(traits, 1, 900, False, False)
+
+    assert (upload_directory / "traces/diagnostic.nettrace").read_bytes() == b"trace"
+    if failure != "upload":
+        assert len(copies) == 1
+    if failure not in ("measurement", "parser"):
+        upload_report.assert_called_once()
+        assert (upload_directory / "traces/perf-lab-report.json").is_file()
+    else:
+        upload_report.assert_not_called()
 
 
 def write_tar(path, entries):

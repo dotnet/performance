@@ -130,6 +130,7 @@ def run(traits, iterations, timeout, mt, diagnostics, linux_trace=False,
     os.environ["PERFLAB_DATA_MSBuildIterations"] = str(iterations)
     os.environ["PERFLAB_DATA_EvaluationCollection"] = evaluation_collection
     # Tool preparation must finish before any timed build.
+    report_completed = False
     try:
         measure(traits.exename, dotnet, iterations, timeout, mt, diagnostics, linux_trace,
                 scenario, evaluation_collection)
@@ -137,7 +138,8 @@ def run(traits, iterations, timeout, mt, diagnostics, linux_trace=False,
             apptorun=str(dotnet), startupmetric="BuildWallClock",
             tracename="build-wall-clock.json")
         startup.parsetraces(traits)
+        report_completed = True
     finally:
         upload = helixuploaddir()
-        if upload and Path(const.TRACEDIR).is_dir():
+        if not report_completed and upload and Path(const.TRACEDIR).is_dir():
             shutil.copytree(const.TRACEDIR, Path(upload) / "traces", dirs_exist_ok=True)
