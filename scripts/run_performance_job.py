@@ -273,6 +273,59 @@ def get_released_targeting_pack_versions(
     return versions
 
 
+def get_daily_sdk_build_feed(dotnet_root: str) -> Optional[str]:
+    '''
+    Daily servicing SDKs bundle stable runtime versions (e.g. 11.0.1) whose packs are only
+    published to the VMR build's isolated feed. Arcade names that feed after the first eight
+    characters of the VMR commit, which the SDK records on the first line of its .version file.
+    '''
+    dotnet_executable = os.path.join(
+        dotnet_root, "dotnet.exe" if sys.platform == "win32" else "dotnet")
+    sdk_path = dotnet.get_base_path(dotnet_executable)
+    bundled_version = ET.parse(os.path.join(
+        sdk_path, "Microsoft.NETCoreSdk.BundledVersions.props")).findtext(
+            ".//BundledNETCoreAppPackageVersion")
+    if not re.fullmatch(r"\d+\.\d+\.\d+", bundled_version or ""):
+        return None
+    with open(os.path.join(sdk_path, ".version"), encoding="utf-8") as version_file:
+        commit = version_file.readline().strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{40}", commit):
+        getLogger().warning("SDK %s does not record a VMR commit; no build feed added", sdk_path)
+        return None
+
+    feed = ("https://pkgs.dev.azure.com/dnceng/public/_packaging/"
+            f"darc-pub-dotnet-dotnet-{commit[:8].lower()}/nuget/v3/index.json")
+    package_index = feed.replace(
+        "/index.json", "/flat2/microsoft.netcore.app.runtime.linux-x64/index.json")
+    try:
+        with urllib.request.urlopen(package_index, timeout=60) as response:
+            versions = json.load(response).get("versions", [])
+    except (urllib.error.URLError, TimeoutError, ValueError) as ex:
+        # Released SDKs come from internal builds without a public isolated feed.
+        getLogger().info("No public build feed for SDK commit %s (%s)", commit, ex)
+        return None
+    if bundled_version not in versions:
+        getLogger().info(
+            "Build feed %s does not contain runtime %s; no build feed added", feed, bundled_version)
+        return None
+    getLogger().info("SDK bundles runtime %s from build feed %s", bundled_version, feed)
+    return feed
+
+
+def add_package_source(nuget_config_path: str, key: str, url: str) -> None:
+    with open(nuget_config_path, encoding="utf-8") as config_file:
+        config = config_file.read()
+    if f'value="{url}"' in config:
+        return
+    config, replacements = re.subn(
+        r"(<packageSources>\s*<clear\s*/>)",
+        rf'\1\n    <add key="{key}" value="{url}" />', config, count=1)
+    if replacements != 1:
+        raise ValueError(f"Cannot add package source {key} to {nuget_config_path}")
+    with open(nuget_config_path, "w", encoding="utf-8") as config_file:
+        config_file.write(config)
+
+
 def provision_downlevel_targeting_packs(
         performance_payload_dir: str,
         dotnet_root: str,
@@ -1609,6 +1662,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     dotnet_executable_path = os.path.join(ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir, "dotnet")
     ci_artifacts_log_dir = os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config)
+    daily_sdk_build_feed = get_daily_sdk_build_feed(
+        ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir)
+    if daily_sdk_build_feed:
+        add_package_source(
+            os.path.join(performance_payload_dir, "NuGet.config"), "daily-sdk-build", daily_sdk_build_feed)
 
     def publish_dotnet_app_to_payload(payload_dir_name: str, csproj_path: str, self_contained: bool = True):
         RunCommand([
@@ -1618,15 +1676,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-f", framework,
             "-r", runtime_id,
             "--self-contained" if self_contained else "",
+            f"-p:RestoreAdditionalProjectSources={daily_sdk_build_feed}" if daily_sdk_build_feed else "",
             "-p:UseLegacyPerfCollect=false" if args.run_kind == "msbuild_scenarios" else "",
             csproj_path,
             f"/bl:{os.path.join(ci_artifacts_log_dir, f'{payload_dir_name}.binlog')}",
             "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
             verbose=True).run()
 
-    # Skip publishing CertHelper for WASM runs as a bug is breaking the build https://github.com/dotnet/runtime/issues/120901
-    if not wasm:
-        publish_dotnet_app_to_payload("certhelper", os.path.join(args.performance_repo_dir, "src", "tools", "CertHelper", "CertHelper.csproj"))
+    publish_dotnet_app_to_payload("certhelper", os.path.join(args.performance_repo_dir, "src", "tools", "CertHelper", "CertHelper.csproj"))
 
     if args.is_scenario:
         set_environment_variable("DOTNET_ROOT", ci_setup_arguments.install_dir, save_to_pipeline=True)

@@ -26,13 +26,26 @@ __all__ = [
 ]
 
 
+_EXECUTABLE_MAGIC = (
+    b"\x7fELF",
+    b"\xfe\xed\xfa\xce", b"\xfe\xed\xfa\xcf", b"\xce\xfa\xed\xfe", b"\xcf\xfa\xed\xfe",
+    b"\xca\xfe\xba\xbe",
+    b"#!",
+)
+
+
 def _set_permissions_recursive(dirs: Iterable[str], mode: int) -> None:
+    # Archive extraction and artifact downloads drop execute bits, so derive them from content:
+    # SDK tools such as dotnet and Roslyn/bincore/csc must stay executable.
+    executable_mode = mode | ((mode & 0o444) >> 2)
     for directory in dirs:
         for root, _, files in os.walk(directory):
             for item in files:
                 path = os.path.join(root, item)
                 try:
-                    os.chmod(path, mode)
+                    with open(path, "rb") as file:
+                        header = file.read(4)
+                    os.chmod(path, executable_mode if header.startswith(_EXECUTABLE_MAGIC) else mode)
                 except OSError as exc:  # Permission or unsupported FS operation
                     getLogger().debug("Failed to set permissions for %s: %s", path, exc)
 
