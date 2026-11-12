@@ -116,6 +116,8 @@ namespace GC.Infrastructure.Commands.RunCommand
             string outputPath = Path.Combine(inputConfiguration.output_path, "ASPNetBenchmarks");
             Core.Utilities.TryCreateDirectory(outputPath);
 
+            string? runtimeVersion = inputConfiguration.runtime_version;
+
             // Add runs.
             configuration.Runs = new();
 
@@ -128,12 +130,16 @@ namespace GC.Infrastructure.Commands.RunCommand
 
                 run.corerun = r.Value.Path;
 
-                // If just the GCName env var is passed, use that as the "corerun" - the corerun in the context of
+                if (!string.IsNullOrEmpty(r.Value.runtime_version))
+                    run.runtime_version = r.Value.runtime_version;
+                else if (!string.IsNullOrEmpty(runtimeVersion))
+                    run.runtime_version = runtimeVersion;
+
+                // If just the GCName env var is passed and the r.Value.Path is not a directory, use that as the "corerun" - the corerun in the context of
                 // ASPNET benchmarks is any file that gets uploaded to the servers
                 foreach (var envVars in r.Value.environment_variables)
                 {
-                    if (string.CompareOrdinal(envVars.Key, "DOTNET_GCName") == 0 ||
-                        string.CompareOrdinal(envVars.Key, "DOTNET_GCName") == 0)
+                    if (string.CompareOrdinal(envVars.Key, "DOTNET_GCName") == 0 && !Directory.Exists(r.Value.Path))
                     {
                         string directoryOfCorerun = Path.GetDirectoryName(r.Value.Path)!;
                         run.corerun = Path.Combine(directoryOfCorerun, envVars.Value);
@@ -219,10 +225,16 @@ namespace GC.Infrastructure.Commands.RunCommand
             configuration.Runs = new();
             foreach (var corerun in inputConfiguration.coreruns)
             {
+                string corerunPath = corerun.Value.Path;
+                if (Directory.Exists(corerunPath))
+                {
+                    corerunPath = Path.Combine(corerunPath, OperatingSystem.IsWindows() ? "corerun.exe" : "corerun");
+                }
+
                 configuration.Runs.Add(corerun.Key, new Core.Configurations.Microbenchmarks.CoreRunInfo
                 {
                     is_baseline = corerun.Value.is_baseline,
-                    Path = corerun.Value.Path,
+                    Path = corerunPath,
                     Name = corerun.Key,
                     environment_variables = corerun.Value.environment_variables
                 });
@@ -298,10 +310,16 @@ namespace GC.Infrastructure.Commands.RunCommand
             baseConfiguration.coreruns = new();
             foreach (var corerunKVP in inputConfiguration.coreruns)
             {
+                string corerunPath = corerunKVP.Value.Path;
+                if (Directory.Exists(corerunPath))
+                {
+                    corerunPath = Path.Combine(corerunPath, OperatingSystem.IsWindows() ? "corerun.exe" : "corerun");
+                }
+
                 baseConfiguration.coreruns.Add(corerunKVP.Key, new Core.Configurations.GCPerfSim.CoreRunInfo
                 {
                     is_baseline = corerunKVP.Value.is_baseline,
-                    Path = corerunKVP.Value.Path,
+                    Path = corerunPath,
                     Name = corerunKVP.Key,
                     environment_variables = corerunKVP.Value.environment_variables
                 });

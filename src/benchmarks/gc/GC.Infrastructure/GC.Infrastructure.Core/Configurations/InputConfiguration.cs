@@ -5,6 +5,7 @@
         public required string output_path { get; set; }
         public required string gcperfsim_path { get; set; }
         public required string microbenchmark_path { get; set; }
+        public string? runtime_version { get; set; }
         public required Dictionary<string, CoreRunInfoBase> coreruns { get; set; }
         public Dictionary<string, CoreRunInfoBase>? linux_coreruns { get; set; }
         public Dictionary<string, string>? environment_variables { get; set; }

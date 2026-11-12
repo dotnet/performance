@@ -36,6 +36,13 @@ namespace GC.Infrastructure.Core.CommandBuilders
             return commandKVPList;
         }
 
+        public static List<KeyValuePair<string, string>> GenerateKeyValuePairListForRuntime(string runtimeVersion)
+        {
+            List<KeyValuePair<string, string>> commandKVPList = new();
+            commandKVPList.Add(new("application.runtimeVersion", runtimeVersion));
+            return commandKVPList;
+        }
+
         public static List<KeyValuePair<string, string>> GenerateKeyValuePairListForEnvironmentVariables(Dictionary<string, string> environmentVariables)
         {
             return environmentVariables

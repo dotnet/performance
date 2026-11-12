@@ -54,11 +54,12 @@ namespace GC.Infrastructure.Core.Analysis
             HeapSizeAfter_Mean = GoodLinq.Average(processData.GCs, (gc => gc.HeapSizeAfterMB));
             HeapSizeBeforeMB_Mean = GoodLinq.Average(processData.GCs, (gc => gc.HeapSizeBeforeMB));
 
-            TotalCommittedInUse = GoodLinq.Average(processData.GCs, (gc => gc.CommittedUsageBefore.TotalCommittedInUse));
-            TotalBookkeepingCommitted = GoodLinq.Average(processData.GCs, (gc => gc.CommittedUsageBefore.TotalBookkeepingCommitted));
-            TotalCommittedInGlobalDecommit = GoodLinq.Average(processData.GCs, (gc => gc.CommittedUsageBefore.TotalCommittedInGlobalDecommit));
-            TotalCommittedInFree = GoodLinq.Average(processData.GCs, (gc => gc.CommittedUsageBefore.TotalCommittedInFree));
-            TotalCommittedInGlobalFree = GoodLinq.Average(processData.GCs, (gc => gc.CommittedUsageBefore.TotalCommittedInGlobalFree));
+            var gcsWithCommittedUsage = GoodLinq.Where(processData.GCs, gc => gc.CommittedUsageBefore != null);
+            TotalCommittedInUse = GoodLinq.Average(gcsWithCommittedUsage, gc => gc.CommittedUsageBefore.TotalCommittedInUse);
+            TotalBookkeepingCommitted = GoodLinq.Average(gcsWithCommittedUsage, gc => gc.CommittedUsageBefore.TotalBookkeepingCommitted);
+            TotalCommittedInGlobalDecommit = GoodLinq.Average(gcsWithCommittedUsage, gc => gc.CommittedUsageBefore.TotalCommittedInGlobalDecommit);
+            TotalCommittedInFree = GoodLinq.Average(gcsWithCommittedUsage, gc => gc.CommittedUsageBefore.TotalCommittedInFree);
+            TotalCommittedInGlobalFree = GoodLinq.Average(gcsWithCommittedUsage, gc => gc.CommittedUsageBefore.TotalCommittedInGlobalFree);
 
             var properties = processData.Stats.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             foreach (var property in properties)
