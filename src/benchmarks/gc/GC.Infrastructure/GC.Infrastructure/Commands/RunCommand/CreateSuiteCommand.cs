@@ -310,16 +310,10 @@ namespace GC.Infrastructure.Commands.RunCommand
             baseConfiguration.coreruns = new();
             foreach (var corerunKVP in inputConfiguration.coreruns)
             {
-                string corerunPath = corerunKVP.Value.Path;
-                if (Directory.Exists(corerunPath))
-                {
-                    corerunPath = Path.Combine(corerunPath, OperatingSystem.IsWindows() ? "corerun.exe" : "corerun");
-                }
-
                 baseConfiguration.coreruns.Add(corerunKVP.Key, new Core.Configurations.GCPerfSim.CoreRunInfo
                 {
                     is_baseline = corerunKVP.Value.is_baseline,
-                    Path = corerunPath,
+                    Path = corerunKVP.Value.Path,
                     Name = corerunKVP.Key,
                     environment_variables = corerunKVP.Value.environment_variables
                 });
