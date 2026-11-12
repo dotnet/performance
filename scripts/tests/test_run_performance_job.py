@@ -580,34 +580,58 @@ def test_linux_collection_cli_remains_opt_in(monkeypatch, collect_linux):
     assert run.call_args.args[0].msbuild_collect_linux is collect_linux
 
 
-@pytest.mark.parametrize(("bundled", "framework", "released", "expected"), [
-    ("11.0.1", "net11.0", "11.0.0", "11.0.0"),
-    ("11.0.0", "net11.0", "11.0.0", None),
-    ("12.0.0-alpha.1.26561.116", "net12.0", None, None),
-    ("11.0.1", "net10.0", "10.0.7", None),
+DAILY_SDK_COMMIT = "946e7e7c7b6d968a5a4ad8edca6cb8c4781229de"
+DAILY_SDK_FEED = ("https://pkgs.dev.azure.com/dnceng/public/_packaging/"
+                  "darc-pub-dotnet-dotnet-946e7e7c/nuget/v3/index.json")
+
+
+@pytest.fixture
+def daily_sdk(tmp_path, monkeypatch):
+    def create(bundled_version, commit=DAILY_SDK_COMMIT, feed_versions=None, feed_error=None):
+        sdk_path = tmp_path / "sdk" / "11.0.101"
+        sdk_path.mkdir(parents=True, exist_ok=True)
+        (sdk_path / "Microsoft.NETCoreSdk.BundledVersions.props").write_text(
+            "<Project><PropertyGroup><BundledNETCoreAppPackageVersion>"
+            f"{bundled_version}</BundledNETCoreAppPackageVersion></PropertyGroup></Project>")
+        (sdk_path / ".version").write_text(f"{commit}\n11.0.101\nlinux-x64\n")
+        monkeypatch.setattr(job.dotnet, "get_base_path", Mock(return_value=str(sdk_path)))
+        urlopen = Mock(side_effect=feed_error) if feed_error else Mock(
+            return_value=io.BytesIO(json.dumps({"versions": feed_versions or []}).encode()))
+        monkeypatch.setattr(job.urllib.request, "urlopen", urlopen)
+        return urlopen
+    return create
+
+
+def test_daily_servicing_sdk_uses_its_vmr_build_feed(tmp_path, daily_sdk):
+    urlopen = daily_sdk("11.0.1", feed_versions=["11.0.1"])
+
+    assert job.get_daily_sdk_build_feed(str(tmp_path)) == DAILY_SDK_FEED
+    assert urlopen.call_args.args[0] == DAILY_SDK_FEED.replace(
+        "/index.json", "/flat2/microsoft.netcore.app.runtime.linux-x64/index.json")
+
+
+@pytest.mark.parametrize(("bundled", "commit", "feed_versions", "feed_error"), [
+    ("12.0.0-alpha.1.26561.116", DAILY_SDK_COMMIT, ["12.0.0-alpha.1.26561.116"], None),
+    ("11.0.1", "not-a-commit", ["11.0.1"], None),
+    ("11.0.1", DAILY_SDK_COMMIT, ["11.0.0"], None),
+    ("10.0.7", DAILY_SDK_COMMIT, None, job.urllib.error.HTTPError(
+        DAILY_SDK_FEED, 404, "Not Found", None, None)),
 ])
-def test_self_contained_publish_pins_unreleased_bundled_runtime(
-        tmp_path, monkeypatch, bundled, framework, released, expected):
-    sdk_path = tmp_path / "sdk" / "11.0.101"
-    sdk_path.mkdir(parents=True)
-    (sdk_path / "Microsoft.NETCoreSdk.BundledVersions.props").write_text(
-        "<Project><PropertyGroup><BundledNETCoreAppPackageVersion>"
-        f"{bundled}</BundledNETCoreAppPackageVersion></PropertyGroup></Project>")
-    monkeypatch.setattr(job.dotnet, "get_base_path", Mock(return_value=str(sdk_path)))
-    released_versions = Mock(return_value={"Microsoft.NETCore.App.Ref": released} if released else {})
-    monkeypatch.setattr(job, "get_released_targeting_pack_versions", released_versions)
+def test_sdks_without_matching_public_build_feed_add_no_source(
+        tmp_path, daily_sdk, bundled, commit, feed_versions, feed_error):
+    daily_sdk(bundled, commit=commit, feed_versions=feed_versions, feed_error=feed_error)
 
-    assert job.get_public_runtime_framework_version(str(tmp_path), framework) == expected
+    assert job.get_daily_sdk_build_feed(str(tmp_path)) is None
 
 
-def test_runtime_pin_falls_back_to_bundled_runtime_without_release_metadata(tmp_path, monkeypatch):
-    sdk_path = tmp_path / "sdk" / "11.0.101"
-    sdk_path.mkdir(parents=True)
-    (sdk_path / "Microsoft.NETCoreSdk.BundledVersions.props").write_text(
-        "<Project><PropertyGroup><BundledNETCoreAppPackageVersion>11.0.1"
-        "</BundledNETCoreAppPackageVersion></PropertyGroup></Project>")
-    monkeypatch.setattr(job.dotnet, "get_base_path", Mock(return_value=str(sdk_path)))
-    monkeypatch.setattr(job, "get_released_targeting_pack_versions",
-                        Mock(side_effect=job.urllib.error.URLError("offline")))
+def test_build_feed_is_added_once_to_payload_nuget_config(tmp_path):
+    config_path = tmp_path / "NuGet.config"
+    config_path.write_text((Path(__file__).resolve().parents[2] / "NuGet.config").read_text())
 
-    assert job.get_public_runtime_framework_version(str(tmp_path), "net11.0") is None
+    job.add_package_source(str(config_path), "daily-sdk-build", DAILY_SDK_FEED)
+    job.add_package_source(str(config_path), "daily-sdk-build", DAILY_SDK_FEED)
+
+    sources = ET.parse(config_path).find("packageSources")
+    assert sources[0].tag == "clear"
+    assert sources[1].attrib == {"key": "daily-sdk-build", "value": DAILY_SDK_FEED}
+    assert [source.get("value") for source in sources].count(DAILY_SDK_FEED) == 1

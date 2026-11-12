@@ -273,11 +273,11 @@ def get_released_targeting_pack_versions(
     return versions
 
 
-def get_public_runtime_framework_version(dotnet_root: str, framework: str) -> Optional[str]:
+def get_daily_sdk_build_feed(dotnet_root: str) -> Optional[str]:
     '''
-    Daily servicing SDKs bundle a stable runtime (e.g. 11.0.1) whose runtime and apphost
-    packs are only on that build's isolated darc feed until release. Self-contained tool
-    publishes must pin to the latest public runtime to restore from public feeds.
+    Daily servicing SDKs bundle stable runtime versions (e.g. 11.0.1) whose packs are only
+    published to the VMR build's isolated feed. Arcade names that feed after the first eight
+    characters of the VMR commit, which the SDK records on the first line of its .version file.
     '''
     dotnet_executable = os.path.join(
         dotnet_root, "dotnet.exe" if sys.platform == "win32" else "dotnet")
@@ -285,27 +285,45 @@ def get_public_runtime_framework_version(dotnet_root: str, framework: str) -> Op
     bundled_version = ET.parse(os.path.join(
         sdk_path, "Microsoft.NETCoreSdk.BundledVersions.props")).findtext(
             ".//BundledNETCoreAppPackageVersion")
-    match = re.fullmatch(r"(\d+)\.(\d+)\.\d+", bundled_version or "")
-    target_framework = dotnet.get_target_framework_moniker(framework)
-    if not match or target_framework != f"net{match.group(1)}.{match.group(2)}":
+    if not re.fullmatch(r"\d+\.\d+\.\d+", bundled_version or ""):
+        return None
+    with open(os.path.join(sdk_path, ".version"), encoding="utf-8") as version_file:
+        commit = version_file.readline().strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{40}", commit):
+        getLogger().warning("SDK %s does not record a VMR commit; no build feed added", sdk_path)
         return None
 
+    feed = ("https://pkgs.dev.azure.com/dnceng/public/_packaging/"
+            f"darc-pub-dotnet-dotnet-{commit[:8].lower()}/nuget/v3/index.json")
+    package_index = feed.replace(
+        "/index.json", "/flat2/microsoft.netcore.app.runtime.linux-x64/index.json")
     try:
-        released_version = get_released_targeting_pack_versions(
-            target_framework, {"Microsoft.NETCore.App.Ref"}).get("Microsoft.NETCore.App.Ref")
-    except Exception as ex:
-        getLogger().warning(
-            "Could not read public release metadata for %s (%s); using the SDK's bundled runtime %s",
-            target_framework, ex, bundled_version)
+        with urllib.request.urlopen(package_index, timeout=60) as response:
+            versions = json.load(response).get("versions", [])
+    except (urllib.error.URLError, TimeoutError, ValueError) as ex:
+        # Released SDKs come from internal builds without a public isolated feed.
+        getLogger().info("No public build feed for SDK commit %s (%s)", commit, ex)
         return None
-    def version_key(version: str):
-        return tuple(map(int, version.split(".")))
-    if not released_version or version_key(released_version) >= version_key(bundled_version):
+    if bundled_version not in versions:
+        getLogger().info(
+            "Build feed %s does not contain runtime %s; no build feed added", feed, bundled_version)
         return None
-    getLogger().info(
-        "SDK bundles unreleased runtime %s; pinning self-contained publishes to public runtime %s",
-        bundled_version, released_version)
-    return released_version
+    getLogger().info("SDK bundles runtime %s from build feed %s", bundled_version, feed)
+    return feed
+
+
+def add_package_source(nuget_config_path: str, key: str, url: str) -> None:
+    with open(nuget_config_path, encoding="utf-8") as config_file:
+        config = config_file.read()
+    if f'value="{url}"' in config:
+        return
+    config, replacements = re.subn(
+        r"(<packageSources>\s*<clear\s*/>)",
+        rf'\1\n    <add key="{key}" value="{url}" />', config, count=1)
+    if replacements != 1:
+        raise ValueError(f"Cannot add package source {key} to {nuget_config_path}")
+    with open(nuget_config_path, "w", encoding="utf-8") as config_file:
+        config_file.write(config)
 
 
 def provision_downlevel_targeting_packs(
@@ -1644,8 +1662,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     dotnet_executable_path = os.path.join(ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir, "dotnet")
     ci_artifacts_log_dir = os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config)
-    public_runtime_framework_version = get_public_runtime_framework_version(
-        ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir, framework)
+    daily_sdk_build_feed = get_daily_sdk_build_feed(
+        ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir)
+    if daily_sdk_build_feed:
+        add_package_source(
+            os.path.join(performance_payload_dir, "NuGet.config"), "daily-sdk-build", daily_sdk_build_feed)
 
     def publish_dotnet_app_to_payload(payload_dir_name: str, csproj_path: str, self_contained: bool = True):
         RunCommand([
@@ -1655,8 +1676,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-f", framework,
             "-r", runtime_id,
             "--self-contained" if self_contained else "",
-            f"-p:RuntimeFrameworkVersion={public_runtime_framework_version}"
-                if self_contained and public_runtime_framework_version else "",
+            f"-p:RestoreAdditionalProjectSources={daily_sdk_build_feed}" if daily_sdk_build_feed else "",
             "-p:UseLegacyPerfCollect=false" if args.run_kind == "msbuild_scenarios" else "",
             csproj_path,
             f"/bl:{os.path.join(ci_artifacts_log_dir, f'{payload_dir_name}.binlog')}",
