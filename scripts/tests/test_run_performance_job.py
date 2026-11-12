@@ -578,3 +578,36 @@ def test_linux_collection_cli_remains_opt_in(monkeypatch, collect_linux):
     assert job.main(arguments) == 0
     run.assert_called_once()
     assert run.call_args.args[0].msbuild_collect_linux is collect_linux
+
+
+@pytest.mark.parametrize(("bundled", "framework", "released", "expected"), [
+    ("11.0.1", "net11.0", "11.0.0", "11.0.0"),
+    ("11.0.0", "net11.0", "11.0.0", None),
+    ("12.0.0-alpha.1.26561.116", "net12.0", None, None),
+    ("11.0.1", "net10.0", "10.0.7", None),
+])
+def test_self_contained_publish_pins_unreleased_bundled_runtime(
+        tmp_path, monkeypatch, bundled, framework, released, expected):
+    sdk_path = tmp_path / "sdk" / "11.0.101"
+    sdk_path.mkdir(parents=True)
+    (sdk_path / "Microsoft.NETCoreSdk.BundledVersions.props").write_text(
+        "<Project><PropertyGroup><BundledNETCoreAppPackageVersion>"
+        f"{bundled}</BundledNETCoreAppPackageVersion></PropertyGroup></Project>")
+    monkeypatch.setattr(job.dotnet, "get_base_path", Mock(return_value=str(sdk_path)))
+    released_versions = Mock(return_value={"Microsoft.NETCore.App.Ref": released} if released else {})
+    monkeypatch.setattr(job, "get_released_targeting_pack_versions", released_versions)
+
+    assert job.get_public_runtime_framework_version(str(tmp_path), framework) == expected
+
+
+def test_runtime_pin_falls_back_to_bundled_runtime_without_release_metadata(tmp_path, monkeypatch):
+    sdk_path = tmp_path / "sdk" / "11.0.101"
+    sdk_path.mkdir(parents=True)
+    (sdk_path / "Microsoft.NETCoreSdk.BundledVersions.props").write_text(
+        "<Project><PropertyGroup><BundledNETCoreAppPackageVersion>11.0.1"
+        "</BundledNETCoreAppPackageVersion></PropertyGroup></Project>")
+    monkeypatch.setattr(job.dotnet, "get_base_path", Mock(return_value=str(sdk_path)))
+    monkeypatch.setattr(job, "get_released_targeting_pack_versions",
+                        Mock(side_effect=job.urllib.error.URLError("offline")))
+
+    assert job.get_public_runtime_framework_version(str(tmp_path), "net11.0") is None

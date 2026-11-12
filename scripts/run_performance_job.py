@@ -273,6 +273,41 @@ def get_released_targeting_pack_versions(
     return versions
 
 
+def get_public_runtime_framework_version(dotnet_root: str, framework: str) -> Optional[str]:
+    '''
+    Daily servicing SDKs bundle a stable runtime (e.g. 11.0.1) whose runtime and apphost
+    packs are only on that build's isolated darc feed until release. Self-contained tool
+    publishes must pin to the latest public runtime to restore from public feeds.
+    '''
+    dotnet_executable = os.path.join(
+        dotnet_root, "dotnet.exe" if sys.platform == "win32" else "dotnet")
+    sdk_path = dotnet.get_base_path(dotnet_executable)
+    bundled_version = ET.parse(os.path.join(
+        sdk_path, "Microsoft.NETCoreSdk.BundledVersions.props")).findtext(
+            ".//BundledNETCoreAppPackageVersion")
+    match = re.fullmatch(r"(\d+)\.(\d+)\.\d+", bundled_version or "")
+    target_framework = dotnet.get_target_framework_moniker(framework)
+    if not match or target_framework != f"net{match.group(1)}.{match.group(2)}":
+        return None
+
+    try:
+        released_version = get_released_targeting_pack_versions(
+            target_framework, {"Microsoft.NETCore.App.Ref"}).get("Microsoft.NETCore.App.Ref")
+    except Exception as ex:
+        getLogger().warning(
+            "Could not read public release metadata for %s (%s); using the SDK's bundled runtime %s",
+            target_framework, ex, bundled_version)
+        return None
+    def version_key(version: str):
+        return tuple(map(int, version.split(".")))
+    if not released_version or version_key(released_version) >= version_key(bundled_version):
+        return None
+    getLogger().info(
+        "SDK bundles unreleased runtime %s; pinning self-contained publishes to public runtime %s",
+        bundled_version, released_version)
+    return released_version
+
+
 def provision_downlevel_targeting_packs(
         performance_payload_dir: str,
         dotnet_root: str,
@@ -1609,6 +1644,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     dotnet_executable_path = os.path.join(ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir, "dotnet")
     ci_artifacts_log_dir = os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config)
+    public_runtime_framework_version = get_public_runtime_framework_version(
+        ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir, framework)
 
     def publish_dotnet_app_to_payload(payload_dir_name: str, csproj_path: str, self_contained: bool = True):
         RunCommand([
@@ -1618,6 +1655,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-f", framework,
             "-r", runtime_id,
             "--self-contained" if self_contained else "",
+            f"-p:RuntimeFrameworkVersion={public_runtime_framework_version}"
+                if self_contained and public_runtime_framework_version else "",
             "-p:UseLegacyPerfCollect=false" if args.run_kind == "msbuild_scenarios" else "",
             csproj_path,
             f"/bl:{os.path.join(ci_artifacts_log_dir, f'{payload_dir_name}.binlog')}",

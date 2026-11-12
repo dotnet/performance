@@ -64,9 +64,6 @@ def test_versioned_channels_keep_their_sdk_and_framework(version):
         assert ChannelMap.get_branch(channel) == f"{version}.0"
         assert ChannelMap.get_target_framework_moniker(channel) == f"net{version}.0"
         assert ChannelMap.get_target_framework_moniker(channel, mobile=True) == f"net{version}.0"
-        # GA channels must install public SDKs; daily servicing SDKs bundle runtime packs
-        # that are not yet on public feeds, which breaks the self-contained CertHelper publish.
-        assert ChannelMap.get_quality_from_channel(channel) is None
     assert ChannelMap.get_target_framework_moniker(f"nativeaot{version}.0") == f"nativeaot{version}.0"
 
 
