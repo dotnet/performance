@@ -10,13 +10,11 @@ class ChannelMap():
         },
         '11.0': {
             'tfm': 'net11.0',
-            'branch': '11.0',
-            'quality': 'daily'
+            'branch': '11.0'
         },
         'release/11.0': {
             'tfm': 'net11.0',
-            'branch': '11.0',
-            'quality': 'daily'
+            'branch': '11.0'
         },
         '10.0': {
             'tfm': 'net10.0',
