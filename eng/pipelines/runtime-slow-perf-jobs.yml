@@ -1,7 +1,6 @@
 parameters:
   runScheduledJobs: false
   runPrivateJobs: false
-  runMono: true
   runtimeRepoAlias: runtime
   performanceRepoAlias: self
   jobParameters: {}
