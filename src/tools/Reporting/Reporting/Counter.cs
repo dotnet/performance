@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Reporting;
 
@@ -17,6 +18,9 @@ public class Counter
     public bool HigherIsBetter { get; set; }
 
     public string MetricName { get; set; } = "Count";
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? RegressionThreshold { get; set; }
 
     public IList<double>? Results { get; set; }
 
