@@ -12,6 +12,7 @@
     {
         public string? corerun { get; set; }
         public string? framework_version { get; set; }
+        public string? runtime_version { get; set; }
     }
 
     public class Environment
@@ -19,6 +20,7 @@
         public Dictionary<string, string> environment_variables { get; set; } = new();
         public uint default_max_seconds { get; set; } = 300;
         public string framework_version { get; set; } = "net8.0";
+        public string runtime_version { get; set; }
     }
 
     public class BenchmarkSettings

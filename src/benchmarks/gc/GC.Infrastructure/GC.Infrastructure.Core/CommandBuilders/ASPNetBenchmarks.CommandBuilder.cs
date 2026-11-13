@@ -52,6 +52,15 @@ namespace GC.Infrastructure.Core.CommandBuilders
             keyValueArgsList.AddRange(
                     ServerRunCommandBuilder.GenerateKeyValuePairListForFramework(frameworkVersion));
 
+            string runtimeVersion = string.IsNullOrEmpty(run.Value.runtime_version) ?
+                configuration.Environment.runtime_version : run.Value.runtime_version;
+
+            if (!string.IsNullOrEmpty(runtimeVersion))
+            {
+                keyValueArgsList.AddRange(
+                        ServerRunCommandBuilder.GenerateKeyValuePairListForRuntime(runtimeVersion));
+            }
+
             // If the corerun specified is a directory, upload the entire directory.
             // Else, we upload just the file.
             keyValueArgsList.AddRange(

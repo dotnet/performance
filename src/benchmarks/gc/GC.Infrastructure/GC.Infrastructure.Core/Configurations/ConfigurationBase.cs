@@ -25,6 +25,7 @@
         public required bool is_baseline { get; set; }
         public required string Path { get; set; }
         public required Dictionary<string, string> environment_variables { get; set; }
+        public string? runtime_version { get; set; }
     }
 
     public class RunBase
