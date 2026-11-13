@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using Microsoft.ML.Data;
@@ -75,39 +76,51 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void TrainSentiment()
         {
-            // Pipeline
-            var arguments = new TextLoader.Options()
+            // BDN 0.16 installs BenchmarkDotNetSynchronizationContext in the child process.
+            // ML.NET's ApplyWordEmbedding downloads a pretrained model using sync-over-async
+            // I/O that deadlocks on the single-threaded SyncCtx. Clear it for this benchmark.
+            var savedCtx = SynchronizationContext.Current;
+            SynchronizationContext.SetSynchronizationContext(null);
+            try
             {
-                Columns = new TextLoader.Column[]
+                // Pipeline
+                var arguments = new TextLoader.Options()
                 {
-                    new TextLoader.Column("Label", DataKind.Single, new[] { new TextLoader.Range() { Min = 0, Max = 0 } }),
-                    new TextLoader.Column("SentimentText", DataKind.String, new[] { new TextLoader.Range() { Min = 1, Max = 1 } })
-                },
-                HasHeader = true,
-                AllowQuoting = false,
-                AllowSparse = false
-            };
+                    Columns = new TextLoader.Column[]
+                    {
+                        new TextLoader.Column("Label", DataKind.Single, new[] { new TextLoader.Range() { Min = 0, Max = 0 } }),
+                        new TextLoader.Column("SentimentText", DataKind.String, new[] { new TextLoader.Range() { Min = 1, Max = 1 } })
+                    },
+                    HasHeader = true,
+                    AllowQuoting = false,
+                    AllowSparse = false
+                };
 
-            var loader = mlContext.Data.LoadFromTextFile(_sentimentDataPath, arguments);
-            var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new TextFeaturizingEstimator.Options
+                var loader = mlContext.Data.LoadFromTextFile(_sentimentDataPath, arguments);
+                var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new TextFeaturizingEstimator.Options
+                {
+                    OutputTokensColumnName = "WordEmbeddings_TransformedText",
+                    KeepPunctuations = false,
+                    StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(),
+                    Norm = TextFeaturizingEstimator.NormFunction.None,
+                    CharFeatureExtractor = null,
+                    WordFeatureExtractor = null,
+                }, "SentimentText").Fit(loader).Transform(loader);
+
+                var trans = mlContext.Transforms.Text.ApplyWordEmbedding("Features", "WordEmbeddings_TransformedText",
+                    WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
+                    .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                    .Fit(text).Transform(text);
+
+                // Train
+                var trainer = mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy();
+                var predicted = trainer.Fit(trans);
+                _consumer.Consume(predicted);
+            }
+            finally
             {
-                OutputTokensColumnName = "WordEmbeddings_TransformedText",
-                KeepPunctuations = false,
-                StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(),
-                Norm = TextFeaturizingEstimator.NormFunction.None,
-                CharFeatureExtractor = null,
-                WordFeatureExtractor = null,
-            }, "SentimentText").Fit(loader).Transform(loader);
-
-            var trans = mlContext.Transforms.Text.ApplyWordEmbedding("Features", "WordEmbeddings_TransformedText",
-                WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                .Fit(text).Transform(text);
-
-            // Train
-            var trainer = mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy();
-            var predicted = trainer.Fit(trans);
-            _consumer.Consume(predicted);
+                SynchronizationContext.SetSynchronizationContext(savedCtx);
+            }
         }
 
         [GlobalSetup(Targets = new string[] { nameof(PredictIris), nameof(PredictIrisBatchOf1), nameof(PredictIrisBatchOf2), nameof(PredictIrisBatchOf5) })]
