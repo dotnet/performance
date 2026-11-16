@@ -16,20 +16,23 @@ disabled until source/artifact access and a manual smoke run are qualified.
 The default `accessCheckOnly: true` runs only the identity/source-access job.
 It requires no SDK/asset URLs, asset credentials, Helix variable group, or
 benchmark queue access. `Check-MSBuildSourceAccess.ps1` prints the authenticated
-AzDO job identity name/ID and uses that job's `System.AccessToken` to probe
+DevDiv source identity name/ID and uses an Azure DevOps token obtained through
+the existing read-only `dnceng-devdiv-drop-r-code-r-wif-arm` service connection to probe
 `DevDiv/DotNet-msbuild-Trusted` on `main`. It does not print the token, fall
 back to developer Git credentials, download assets, build MSBuild, or submit
 Helix work. A failed source probe fails the job explicitly; inspect the
 preceding Git error to distinguish authorization from connectivity problems.
-The printed identity is the current job principal, not a claim that a
-cross-organization service connection already exists.
+Authorize only the registered MSBuild performance pipeline to use that service
+connection. The shared Arcade token template obtains a short-lived federated
+token and stores it as a secret pipeline variable; the probe receives it through
+`MSBUILD_SOURCE_ACCESS_TOKEN`, not the dnceng job token.
 
 Select `accessCheckOnly: false` to include SDK composition and benchmarks.
 That mode still needs source access, the pinned SDK/workload inputs below,
 and authorization to use the existing `DotNet-HelixApi-Access` variable group
-and Tiger queues. If the default dnceng job credential cannot read DevDiv,
-an approved cross-organization credential/access arrangement must be wired
-in before this mode can run; local developer access does not establish it.
+and Tiger queues. The build job obtains its own fresh source token through the
+same connection and removes it from the script environment before invoking the
+MSBuild build. Local developer access does not establish pipeline access.
 
 The checked-in catalog ports **all 45 enabled PerfStar scenarios** across
 12 versioned workload assets. Disabled PerfStar scenarios, desktop-only

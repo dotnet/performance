@@ -3,7 +3,7 @@ pr: none
 
 parameters:
 - name: accessCheckOnly
-  displayName: Check job identity and MSBuild mirror access only
+  displayName: Check federated identity and MSBuild mirror access only
   type: boolean
   default: true
 - name: msbuildCommit
@@ -58,7 +58,7 @@ variables:
 
 jobs:
 - job: CheckSourceAccess
-  displayName: Identify job credential and check MSBuild mirror access
+  displayName: Identify federated credential and check MSBuild mirror access
   timeoutInMinutes: 10
   workspace:
     clean: all
@@ -68,12 +68,15 @@ jobs:
   - checkout: self
     path: s/performance
     clean: true
+  - template: /eng/common/templates/steps/get-federated-access-token.yml
+    parameters:
+      federatedServiceConnection: dnceng-devdiv-drop-r-code-r-wif-arm
+      outputVariableName: MSBuildSourceAccessToken
   - powershell: |
       & '$(Pipeline.Workspace)\s\performance\eng\performance\Check-MSBuildSourceAccess.ps1'
-    displayName: Print job identity and probe the DevDiv mirror
+    displayName: Print federated identity and probe the DevDiv mirror
     env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      ADO_COLLECTION_URI: $(System.CollectionUri)
+      MSBUILD_SOURCE_ACCESS_TOKEN: $(MSBuildSourceAccessToken)
 
 - ${{ if not(parameters.accessCheckOnly) }}:
   - job: BuildMSBuildSdk
@@ -88,6 +91,10 @@ jobs:
     - checkout: self
       path: s/performance
       clean: true
+    - template: /eng/common/templates/steps/get-federated-access-token.yml
+      parameters:
+        federatedServiceConnection: dnceng-devdiv-drop-r-code-r-wif-arm
+        outputVariableName: MSBuildSourceAccessToken
     - powershell: |
         $ErrorActionPreference = 'Stop'
         if ($env:COLLECT_LINUX -eq 'True' -and $env:RUN_LINUX -ne 'True') {
@@ -108,13 +115,12 @@ jobs:
         $source = '$(Pipeline.Workspace)\s\msbuild'
         & '$(Pipeline.Workspace)\s\performance\eng\performance\Check-MSBuildSourceAccess.ps1' `
           -SourceDirectory $source -Commit $env:MSBUILD_COMMIT.Trim()
-        Remove-Item Env:\SYSTEM_ACCESSTOKEN
+        Remove-Item Env:\MSBUILD_SOURCE_ACCESS_TOKEN
         & "$source\build.cmd" -configuration Release -pack -ci -msbuildEngine dotnet
         if ($LASTEXITCODE -ne 0) { throw 'MSBuild Release build/pack failed.' }
       displayName: Build selected MSBuild mirror commit
       env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-        ADO_COLLECTION_URI: $(System.CollectionUri)
+        MSBUILD_SOURCE_ACCESS_TOKEN: $(MSBuildSourceAccessToken)
         MSBUILD_COMMIT: ${{ parameters.msbuildCommit }}
         RUN_LINUX: ${{ parameters.runLinux }}
         COLLECT_LINUX: ${{ parameters.collectLinux }}

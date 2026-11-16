@@ -10,11 +10,12 @@ import pytest
 POWERSHELL = shutil.which("powershell") or shutil.which("pwsh")
 pytestmark = pytest.mark.skipif(POWERSHELL is None, reason="PowerShell is required")
 PROBE = Path(__file__).resolve().parents[2] / "eng/performance/Check-MSBuildSourceAccess.ps1"
-TOKEN = "test-job-token-not-for-output"
+TOKEN = "test-federated-token-not-for-output"
+JOB_TOKEN = "test-dnceng-job-token-not-for-devdiv"
 LATEST = "1" * 40
 
 
-def invoke_probe(tmp_path, scenario, checkout=False):
+def invoke_probe(tmp_path, scenario, checkout=False, source_token=TOKEN):
     harness = tmp_path / "probe-test.ps1"
     result = tmp_path / "result.json"
     harness.write_text(
@@ -24,19 +25,21 @@ $ErrorActionPreference = 'Stop'
 $global:calls = [System.Collections.Generic.List[object]]::new()
 function Invoke-RestMethod {
     param($Uri, $Headers, $TimeoutSec)
-    if ($Headers.Authorization -ne "Bearer $env:SYSTEM_ACCESSTOKEN") {
-        throw 'The identity request did not authenticate with the job token.'
+    if ($Uri -ne 'https://dev.azure.com/devdiv/_apis/connectionData' -or
+        $Headers.Authorization -ne "Bearer $env:MSBUILD_SOURCE_ACCESS_TOKEN" -or
+        $Headers.Authorization -eq "Bearer $env:SYSTEM_ACCESSTOKEN") {
+        throw 'The identity request did not authenticate to DevDiv with the federated token.'
     }
     return @{ authenticatedUser = @{
-        providerDisplayName = 'internal Build Service (dnceng)'
-        id = 'job-principal-id'
+        providerDisplayName = 'DevDiv read-only source identity'
+        id = 'source-principal-id'
     } }
 }
 function git {
     $arguments = @($args)
     $global:calls.Add(@{
         arguments = $arguments
-        authenticated = ($env:GIT_CONFIG_VALUE_0 -eq "AUTHORIZATION: bearer $env:SYSTEM_ACCESSTOKEN")
+        authenticated = ($env:GIT_CONFIG_VALUE_0 -eq "AUTHORIZATION: bearer $env:MSBUILD_SOURCE_ACCESS_TOKEN")
     })
     $global:LASTEXITCODE = 0
     if ($arguments -contains 'ls-remote') {
@@ -77,8 +80,8 @@ exit $exitCode
         encoding="utf-8",
     )
     env = os.environ | {
-        "SYSTEM_ACCESSTOKEN": TOKEN,
-        "ADO_COLLECTION_URI": "https://dev.azure.com/dnceng/",
+        "SYSTEM_ACCESSTOKEN": JOB_TOKEN,
+        "MSBUILD_SOURCE_ACCESS_TOKEN": source_token,
     }
     command = [POWERSHELL, "-NoProfile", "-NonInteractive", "-File", str(harness),
                "-Probe", str(PROBE), "-Result", str(result), "-Scenario", scenario]
@@ -87,6 +90,7 @@ exit $exitCode
     process = subprocess.run(command, env=env, capture_output=True, text=True, timeout=30)
     data = json.loads(result.read_text(encoding="utf-8-sig"))
     assert TOKEN not in process.stdout + process.stderr + result.read_text(encoding="utf-8-sig")
+    assert JOB_TOKEN not in process.stdout + process.stderr + result.read_text(encoding="utf-8-sig")
     assert data["restored"] == [
         "7", "original-key", "original-value", "original-prompt", "original-interactive"]
     assert all(call["authenticated"] for call in data["calls"])
@@ -96,8 +100,8 @@ exit $exitCode
 def test_access_only_prints_identity_and_reads_ref_without_checkout(tmp_path):
     process, data = invoke_probe(tmp_path, "allowed")
     assert process.returncode == 0, process.stdout + process.stderr
-    assert "internal Build Service (dnceng)" in process.stdout
-    assert "job-principal-id" in process.stdout and LATEST in process.stdout
+    assert "DevDiv read-only source identity" in process.stdout
+    assert "source-principal-id" in process.stdout and LATEST in process.stdout
     assert len(data["calls"]) == 1
     assert data["calls"][0]["arguments"][:3] == ["-c", "credential.helper=", "ls-remote"]
 
@@ -109,7 +113,7 @@ def test_access_only_prints_identity_and_reads_ref_without_checkout(tmp_path):
 def test_source_probe_failures_are_explicit_after_identity_output(tmp_path, scenario, message):
     process, _ = invoke_probe(tmp_path, scenario)
     assert process.returncode != 0
-    assert "internal Build Service (dnceng)" in process.stdout
+    assert "DevDiv read-only source identity" in process.stdout
     assert message in process.stdout
 
 
@@ -127,3 +131,10 @@ def test_checkout_failure_does_not_report_success(tmp_path):
     assert process.returncode != 0
     assert "MSBuild mirror checkout failed" in process.stdout
     assert "Checked out MSBuild mirror SHA" not in process.stdout
+
+
+def test_missing_federated_token_does_not_fall_back_to_job_token(tmp_path):
+    process, data = invoke_probe(tmp_path, "allowed", source_token="")
+    assert process.returncode != 0
+    assert "Map a DevDiv-authorized federated token" in process.stdout
+    assert not data["calls"]
