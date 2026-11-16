@@ -1,0 +1,139 @@
+<Project>
+  <ItemGroup>
+    <MSBuildScenario Include="aspire-rebuild-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="aspire-rebuild-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="aspire-warm-inc-build-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="aspire-warm-inc-build-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="azure-core-rebuild-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="azure-core-rebuild-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="azure-core-warm-inc-build-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="azure-core-warm-inc-build-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="eshop-on-blazor-modified-rebuild-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="eshop-on-blazor-modified-rebuild-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="net8-blazorwasm-app-rebuild-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="net8-blazorwasm-app-rebuild-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="net8-class-lib-rebuild-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="net8-class-lib-rebuild-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="net8-console-app-rebuild-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="net8-console-app-rebuild-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="net8-console-app-rebuild-nr-false-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="net8-console-app-warm-inc-build-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="net8-console-app-warm-inc-build-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="net8-console-app-warm-restore-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="net8-console-app-warm-restore-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="orchard-core-cold-restore-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="orchard-core-cold-restore-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="orchard-core-pack-evaluation-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="orchard-core-project-query-evaluation-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="orchard-core-publish-evaluation-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="orchard-core-rebuild-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="orchard-core-rebuild-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="orchard-core-rebuild-nr-false-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="orchard-core-warm-inc-build-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="orchard-core-warm-inc-build-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="orchard-core-warm-restore-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="orchard-core-warm-restore-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="rar-conflict-details-stress-rebuild-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="rar-conflict-details-stress-rebuild-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="rar-conflict-warning-stress-rebuild-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="rar-conflict-warning-stress-rebuild-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="rar-search-stress-rebuild-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="rar-search-stress-rebuild-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="very-large-net8-console-app-restore-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="very-large-net8-console-app-restore-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="xunit-rebuild-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="xunit-rebuild-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="xunit-warm-inc-build-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+    <MSBuildScenario Include="xunit-warm-inc-build-mt-dotnet">
+      <SupportedOS>linux;windows</SupportedOS>
+    </MSBuildScenario>
+  </ItemGroup>
+</Project>

@@ -28,6 +28,7 @@ from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
 DEFAULT_BUILD_CONFIG = "Release"
 APT_LOCK_TIMEOUT_OPTION = "-o DPkg::Lock::Timeout=120"
+WASM_NODE_MIN_VERSION = (24, 22, 1)
 TARGETING_PACK_COMPONENTS = {
     "Microsoft.NETCore.App.Ref": "runtime",
     "Microsoft.AspNetCore.App.Ref": "aspnetcore-runtime",
@@ -134,7 +135,6 @@ class RunPerformanceJobArgs:
     local_build: bool = False
     compare: bool = False
     only_sanity_check: bool = False
-    ios_llvm_build: bool = False
     ios_strip_symbols: bool = False
     javascript_engine: str = "NoJS"
     send_to_helix: bool = False
@@ -152,6 +152,10 @@ class RunPerformanceJobArgs:
     build_config: str = DEFAULT_BUILD_CONFIG
     live_libraries_build_config: Optional[str] = None
     cross_build: bool = False
+    msbuild_scenario_inputs: Optional[str] = None
+    msbuild_collect_linux: bool = False
+    msbuild_scenarios: str = ""
+    msbuild_iterations: Optional[int] = None
 
 # Subdirectory (inside the Helix correlation payload) that holds the pre-downloaded ML.NET resources.
 # On the Helix machine this is referenced as <HELIX_CORRELATION_PAYLOAD>/mlnet-resources.
@@ -267,6 +271,59 @@ def get_released_targeting_pack_versions(
             "Public targeting pack for %s: %s %s",
             target_framework, package_name, versions[package_name])
     return versions
+
+
+def get_daily_sdk_build_feed(dotnet_root: str) -> Optional[str]:
+    '''
+    Daily servicing SDKs bundle stable runtime versions (e.g. 11.0.1) whose packs are only
+    published to the VMR build's isolated feed. Arcade names that feed after the first eight
+    characters of the VMR commit, which the SDK records on the first line of its .version file.
+    '''
+    dotnet_executable = os.path.join(
+        dotnet_root, "dotnet.exe" if sys.platform == "win32" else "dotnet")
+    sdk_path = dotnet.get_base_path(dotnet_executable)
+    bundled_version = ET.parse(os.path.join(
+        sdk_path, "Microsoft.NETCoreSdk.BundledVersions.props")).findtext(
+            ".//BundledNETCoreAppPackageVersion")
+    if not re.fullmatch(r"\d+\.\d+\.\d+", bundled_version or ""):
+        return None
+    with open(os.path.join(sdk_path, ".version"), encoding="utf-8") as version_file:
+        commit = version_file.readline().strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{40}", commit):
+        getLogger().warning("SDK %s does not record a VMR commit; no build feed added", sdk_path)
+        return None
+
+    feed = ("https://pkgs.dev.azure.com/dnceng/public/_packaging/"
+            f"darc-pub-dotnet-dotnet-{commit[:8].lower()}/nuget/v3/index.json")
+    package_index = feed.replace(
+        "/index.json", "/flat2/microsoft.netcore.app.runtime.linux-x64/index.json")
+    try:
+        with urllib.request.urlopen(package_index, timeout=60) as response:
+            versions = json.load(response).get("versions", [])
+    except (urllib.error.URLError, TimeoutError, ValueError) as ex:
+        # Released SDKs come from internal builds without a public isolated feed.
+        getLogger().info("No public build feed for SDK commit %s (%s)", commit, ex)
+        return None
+    if bundled_version not in versions:
+        getLogger().info(
+            "Build feed %s does not contain runtime %s; no build feed added", feed, bundled_version)
+        return None
+    getLogger().info("SDK bundles runtime %s from build feed %s", bundled_version, feed)
+    return feed
+
+
+def add_package_source(nuget_config_path: str, key: str, url: str) -> None:
+    with open(nuget_config_path, encoding="utf-8") as config_file:
+        config = config_file.read()
+    if f'value="{url}"' in config:
+        return
+    config, replacements = re.subn(
+        r"(<packageSources>\s*<clear\s*/>)",
+        rf'\1\n    <add key="{key}" value="{url}" />', config, count=1)
+    if replacements != 1:
+        raise ValueError(f"Cannot add package source {key} to {nuget_config_path}")
+    with open(nuget_config_path, "w", encoding="utf-8") as config_file:
+        config_file.write(config)
 
 
 def provision_downlevel_targeting_packs(
@@ -436,7 +493,8 @@ def get_pre_commands(
         v8_version: str,
         wasm_local_package_version: Optional[str] = None,
         wasm_workload_source: Optional[str] = None,
-        wasm_crossgen2_tasks_dir: Optional[str] = None):
+        wasm_crossgen2_tasks_dir: Optional[str] = None,
+        use_legacy_trace: bool = True):
     if os_group == "windows" and runtime_type in ("wasm", "wasm_coreclr"):
         raise ValueError(
             "WASM performance job prerequisite setup is not supported on Windows")
@@ -468,10 +526,10 @@ def get_pre_commands(
                         "sudo tdnf -y install python3-pip"
                     ]
                 else:
-                    install_prerequisites += [
-                        apt_command("remove -y lttng-modules-dkms"),  # https://github.com/dotnet/runtime/pull/101142
-                        apt_command("-y install python3-pip")
-                    ]
+                    if use_legacy_trace:
+                        # https://github.com/dotnet/runtime/pull/101142
+                        install_prerequisites += [apt_command("remove -y lttng-modules-dkms")]
+                    install_prerequisites += [apt_command("-y install python3-pip")]
 
             install_prerequisites += [
                 "python3 -m venv $HELIX_WORKITEM_ROOT/.venv",
@@ -552,6 +610,20 @@ def get_pre_commands(
                 "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'"
             ]
         else:
+            node_major, node_minor, node_patch = WASM_NODE_MIN_VERSION
+            node_min_version = ".".join(map(str, WASM_NODE_MIN_VERSION))
+            # Use one expression: semicolons delimit Helix's MSBuild pre-command list.
+            # Avoid backslashes: the Helix submission rewrites them to '/' on Unix.
+            node_version_check = (
+                "node -e '(([major, minor, patch]) => "
+                f"major === {node_major} && "
+                f"(minor > {node_minor} || (minor === {node_minor} && patch >= {node_patch})) && "
+                "/^[0-9]+[.][0-9]+[.][0-9]+$/.test(process.versions.node) "
+                '? console.log("Node.js " + process.versions.node) '
+                f': (console.error("Node.js >= {node_min_version} in the {node_major}.x line is required, found " '
+                '+ process.versions.node), process.exit(1)))'
+                '(process.versions.node.split(".").map(Number))\''
+            )
             install_prerequisites += [
                 apt_command("-y remove nodejs"),
                 apt_command("update"),
@@ -559,11 +631,12 @@ def get_pre_commands(
                 "sudo mkdir -p /etc/apt/keyrings",
                 "sudo rm -f /etc/apt/keyrings/nodesource.gpg",
                 "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor --batch -o /etc/apt/keyrings/nodesource.gpg",
-                "export NODE_MAJOR=18",
+                f"export NODE_MAJOR={node_major}",
                 "echo \"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main\" | sudo tee /etc/apt/sources.list.d/nodesource.list",
                 apt_command("update"),
                 apt_command("autoremove -y", executable="apt"),
                 apt_command("install nodejs -y"),
+                node_version_check,
                 f"test -n \"{v8_version}\"",
                 "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g",
                 f"$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@{v8_version}",
@@ -646,12 +719,6 @@ def get_pre_commands(
         helix_pre_commands += ["set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\\scripts%3B%HELIX_CORRELATION_PAYLOAD%"]
     else:
         helix_pre_commands += ["export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD"]
-
-    if runtime_type == "iOSMono":
-        if os_group == "windows":
-            helix_pre_commands += ["%HELIX_CORRELATION_PAYLOAD%\\monoaot\\mono-aot-cross --llvm --version"]
-        else:
-            helix_pre_commands += ["$HELIX_CORRELATION_PAYLOAD/monoaot/mono-aot-cross --llvm --version"]
 
     # If we are running not release, make sure we make that very clear.
     if build_config.lower() != "release":
@@ -869,7 +936,6 @@ def get_run_configurations(
         experiment_name: Optional[str] = None,
         linking_type: Optional[str] = None,
         runtime_flavor: Optional[str] = None,
-        ios_llvm_build: bool = False,
         ios_strip_symbols: bool = False,
         javascript_engine: Optional[str] = None,
         build_config: Optional[str] = None):
@@ -878,7 +944,7 @@ def get_run_configurations(
 
     is_aot = codegen_type.lower() == "aot"
     if runtime_type == "mono":
-        llvm = is_aot and not run_kind == "android_scenarios"
+        llvm = is_aot
         configurations["LLVM"] = str(llvm)
         configurations["MonoInterpreter"] = str(codegen_type.lower() == "interpreter")
         configurations["MonoAOT"] = str(is_aot)
@@ -919,22 +985,19 @@ def get_run_configurations(
 
     # dotnet/runtime Android sample app scenarios
     if run_kind == "android_scenarios":
-        if not runtime_flavor in ("mono", "coreclr"):
-            raise Exception("Runtime flavor must be specified for runtime android scenarios")
+        if runtime_flavor != "coreclr":
+            raise ValueError("Runtime Android scenarios only support CoreCLR")
         configurations["CodegenType"] = str(codegen_type)
         configurations["LinkingType"] = str(linking_type)
         configurations["RuntimeType"] = str(runtime_flavor)
 
     # dotnet/runtime iOS sample app scenarios
     if run_kind == "ios_scenarios":
-        if not runtime_flavor in ("mono", "coreclr"):
-            raise Exception("Runtime flavor must be specified for runtime ios scenarios")
+        if runtime_flavor != "coreclr":
+            raise ValueError("Runtime iOS scenarios only support CoreCLR and NativeAOT")
         configurations["CodegenType"] = str(codegen_type)
         configurations["RuntimeType"] = str(runtime_flavor)
         configurations["iOSStripSymbols"] = str(ios_strip_symbols)
-
-        if runtime_flavor == "mono":
-            configurations["iOSLlvmBuild"] = str(ios_llvm_build)
 
     # .NET Android and .NET MAUI Android sample app scenarios
     if run_kind in ["maui_scenarios_android", "maui_scenarios_android_innerloop"]:
@@ -1031,11 +1094,14 @@ def get_target_framework(args: RunPerformanceJobArgs, channel: str) -> str:
     return ChannelMap.get_target_framework_moniker(
         channel, mobile=args.run_kind.startswith("maui_scenarios")
         or args.run_kind in ("android_scenarios", "ios_scenarios")
-        or args.runtime_type in ("AndroidMono", "AndroidCoreCLR", "iOSMono", "iOSCoreCLR", "iOSNativeAOT"))
+        or args.runtime_type in ("AndroidCoreCLR", "iOSCoreCLR", "iOSNativeAOT"))
 
 
 def run_performance_job(args: RunPerformanceJobArgs):
     setup_loggers(verbose=True)
+
+    if args.runtime_type in ("AndroidMono", "iOSMono"):
+        raise ValueError(f"{args.runtime_type} performance scenarios are no longer supported")
 
     branch = os.environ.get("BUILD_SOURCEBRANCH")
     cleaned_branch_name = "main"
@@ -1087,7 +1153,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
     if args.libraries_download_dir is None and not args.performance_repo_ci and args.runtime_repo_dir is not None:
         args.libraries_download_dir = os.path.join(args.runtime_repo_dir, "artifacts")
     
-    ios_mono = args.runtime_type == "iOSMono"
     ios_coreclr = args.runtime_type == "iOSCoreCLR"
     ios_nativeaot = args.runtime_type == "iOSNativeAOT"
     is_aot = args.codegen_type.lower() == "aot"
@@ -1151,21 +1216,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
         build_config = f"wasm.{build_config}"
 
     if args.run_kind == "android_scenarios":
-        if args.runtime_type == "AndroidMono":
-            args.runtime_flavor = "mono"
-        elif args.runtime_type == "AndroidCoreCLR":
+        if args.runtime_type == "AndroidCoreCLR":
             args.runtime_flavor = "coreclr"
         else:
-            raise Exception("Android scenarios only support Mono and CoreCLR runtimes")
+            raise ValueError("Android scenarios only support the AndroidCoreCLR runtime")
     if args.run_kind == "ios_scenarios":
-        if args.runtime_type == "iOSMono":
-            args.runtime_flavor = "mono"
-        elif args.runtime_type == "iOSCoreCLR":
-            args.runtime_flavor = "coreclr"
-        elif args.runtime_type == "iOSNativeAOT":
+        if args.runtime_type in ("iOSCoreCLR", "iOSNativeAOT"):
             args.runtime_flavor = "coreclr"
         else:
-            raise Exception("iOS scenarios only support Mono and CoreCLR runtimes")
+            raise ValueError("iOS scenarios only support the iOSCoreCLR and iOSNativeAOT runtimes")
 
     if args.run_kind == "micro" and args.runtime_type == "wasm_coreclr":
         if not args.runtime_flavor:
@@ -1174,7 +1233,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     configurations = get_run_configurations(
         args.run_kind, args.runtime_type, args.codegen_type, args.pgo_run_type, args.physical_promotion_run_type,
         args.r2r_run_type, args.experiment_name, args.linking_type,
-        args.runtime_flavor, args.ios_llvm_build, args.ios_strip_symbols, args.javascript_engine,
+        args.runtime_flavor, args.ios_strip_symbols, args.javascript_engine,
         args.build_config
     )
 
@@ -1442,14 +1501,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
             dest = os.path.join(android_binlog_dir, "msbuild.binlog")
             getLogger().info(f"Moving {binlog_files[0]} to {dest}")
             shutil.move(binlog_files[0], dest)
-        # Disabled due to not successfully building at the moment. https://github.com/dotnet/performance/issues/4729
-        # if android_mono:
-            # shutil.copy(os.path.join(args.built_app_dir, "MonoBenchmarksDroid.apk"), os.path.join(root_payload_dir, "MonoBenchmarksDroid.apk"))
         ci_setup_arguments.architecture = "arm64"
 
-    if ios_mono or ios_coreclr or ios_nativeaot:
+    if ios_coreclr or ios_nativeaot:
         if args.built_app_dir is None:
-            raise Exception("Built apps directory must be present for IOS Mono or IOS Native AOT benchmarks")
+            raise Exception("Built apps directory must be present for iOS CoreCLR or NativeAOT benchmarks")
         
         getLogger().info("Copying IOS apps to payload directory")
         ios_hello_world_dir = os.path.join(payload_dir, "iosHelloWorld")
@@ -1494,7 +1550,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         v8_version,
         wasm_local_package_version,
         helix_wasm_workload_source,
-        helix_wasm_crossgen2_tasks_dir)
+        helix_wasm_crossgen2_tasks_dir,
+        use_legacy_trace=args.run_kind != "msbuild_scenarios")
     helix_post_commands = get_post_commands(args.os_group, args.internal, args.runtime_type)
 
     # Point ML.NET at the SSWE model that was pre-downloaded into the correlation payload above, so it
@@ -1543,6 +1600,36 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     ci_setup_arguments.framework = args.framework
 
+    if args.msbuild_scenario_inputs is not None:
+        if (not args.is_scenario or args.run_kind != "msbuild_scenarios"
+                or args.os_group not in ("windows", "linux") or args.architecture != "x64"
+                or args.dotnet_version_link is not None or args.channel != "main"):
+            raise ValueError("MSBuild inputs require Windows/Linux x64 msbuild_scenarios on channel main.")
+        from msbuild_inputs import configure_inputs
+        from msbuild_catalog import select_scenarios
+        selected = select_scenarios(args.msbuild_scenarios.strip(), args.os_group)
+        configure_inputs(args.msbuild_scenario_inputs, payload_dir, ci_setup_arguments, args.os_group,
+                         {item["asset"] for item in selected})
+        set_environment_variable("DOTNET_CLI_ENABLEAOT", "0")
+        set_environment_variable("MSBuildScenarioFilter", ",".join(item["name"] for item in selected))
+        if args.msbuild_iterations is not None and not 1 <= args.msbuild_iterations <= 2_147_483_647:
+            raise ValueError("MSBuild iteration override must be positive and fit Int32.")
+        set_environment_variable("MSBuildIterationArguments",
+                                 f"--iterations {args.msbuild_iterations}" if args.msbuild_iterations else "")
+
+    if args.msbuild_collect_linux:
+        if args.msbuild_scenario_inputs is None or args.os_group != "linux":
+            raise ValueError("collect-linux requires Linux MSBuild scenario inputs.")
+        tool_manifest = os.path.join(args.performance_repo_dir, ".config", "dotnet-tools.json")
+        with open(tool_manifest) as manifest_file:
+            trace_version = json.load(manifest_file)["tools"]["dotnet-trace"]["version"]
+        RunCommand([
+            os.path.join(ci_setup_arguments.dotnet_path, "dotnet"), "tool", "install",
+            "dotnet-trace", "--version", trace_version,
+            "--allow-roll-forward",
+            "--tool-path", os.path.join(payload_dir, "dotnet-trace")], verbose=True).run()
+        scenario_arguments += ["--collect-linux"]
+
     if args.perf_repo_hash is not None and args.performance_repo_ci:
         ci_setup_arguments.perf_hash = args.perf_repo_hash
 
@@ -1579,6 +1666,11 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     dotnet_executable_path = os.path.join(ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir, "dotnet")
     ci_artifacts_log_dir = os.path.join(args.performance_repo_dir, 'artifacts', 'log', build_config)
+    daily_sdk_build_feed = get_daily_sdk_build_feed(
+        ci_setup_arguments.dotnet_path or ci_setup_arguments.install_dir)
+    if daily_sdk_build_feed:
+        add_package_source(
+            os.path.join(performance_payload_dir, "NuGet.config"), "daily-sdk-build", daily_sdk_build_feed)
 
     def publish_dotnet_app_to_payload(payload_dir_name: str, csproj_path: str, self_contained: bool = True):
         RunCommand([
@@ -1588,14 +1680,14 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "-f", framework,
             "-r", runtime_id,
             "--self-contained" if self_contained else "",
+            f"-p:RestoreAdditionalProjectSources={daily_sdk_build_feed}" if daily_sdk_build_feed else "",
+            "-p:UseLegacyPerfCollect=false" if args.run_kind == "msbuild_scenarios" else "",
             csproj_path,
             f"/bl:{os.path.join(ci_artifacts_log_dir, f'{payload_dir_name}.binlog')}",
             "-p:DisableTransitiveFrameworkReferenceDownloads=true"],
             verbose=True).run()
 
-    # Skip publishing CertHelper for WASM runs as a bug is breaking the build https://github.com/dotnet/runtime/issues/120901
-    if not wasm:
-        publish_dotnet_app_to_payload("certhelper", os.path.join(args.performance_repo_dir, "src", "tools", "CertHelper", "CertHelper.csproj"))
+    publish_dotnet_app_to_payload("certhelper", os.path.join(args.performance_repo_dir, "src", "tools", "CertHelper", "CertHelper.csproj"))
 
     if args.is_scenario:
         set_environment_variable("DOTNET_ROOT", ci_setup_arguments.install_dir, save_to_pipeline=True)
@@ -1614,23 +1706,19 @@ def run_performance_job(args: RunPerformanceJobArgs):
         publish_dotnet_app_to_payload("SOD", os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "SizeOnDisk", "SizeOnDisk.csproj"))
         
         if args.performance_repo_ci:
-            # build MemoryConsumption
-            publish_dotnet_app_to_payload(
-                "MemoryConsumption", 
-                os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"))
-            
-            # build PerfLabGenericEventSourceForwarder
-            publish_dotnet_app_to_payload(
-                "PerfLabGenericEventSourceForwarder",
-                os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder.csproj"),
-                self_contained=False)
-            
-            # build PerfLabGenericEventSourceLTTngProvider
-            if args.os_group != "windows" and args.os_group != "osx" and args.os_version == "2204":
-                RunCommand([
-                    os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceLTTngProvider", "build.sh"),
-                    "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")],
-                    verbose=True).run()
+            if args.run_kind != "msbuild_scenarios":
+                publish_dotnet_app_to_payload(
+                    "MemoryConsumption",
+                    os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"))
+                publish_dotnet_app_to_payload(
+                    "PerfLabGenericEventSourceForwarder",
+                    os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder", "PerfLabGenericEventSourceForwarder.csproj"),
+                    self_contained=False)
+                if args.os_group != "windows" and args.os_group != "osx" and args.os_version == "2204":
+                    RunCommand([
+                        os.path.join(args.performance_repo_dir, "src", "tools", "PerfLabGenericEventSourceLTTngProvider", "build.sh"),
+                        "-o", os.path.join(payload_dir, "PerfLabGenericEventSourceForwarder")],
+                        verbose=True).run()
             
             # copy PDN
             if args.os_group == "windows" and args.architecture != "x86" and args.pdn_path is not None:
@@ -1824,7 +1912,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
         compare_command=compare_command,
         only_sanity_check=args.only_sanity_check,
         ios_strip_symbols=args.ios_strip_symbols,
-        ios_llvm_build=args.ios_llvm_build,
         fail_on_test_failure=fail_on_test_failure,
         scenario_arguments=scenario_arguments or None)
     
@@ -1859,13 +1946,13 @@ def main(argv: list[str]):
                 "--is-scenario": "is_scenario",
                 "--local-build": "local_build",
                 "--compare": "compare",
-                "--ios-llvm-build": "ios_llvm_build",
                 "--ios-strip-symbols": "ios_strip_symbols",
                 "--send-to-helix": "send_to_helix",
                 "--performance-repo-ci": "performance_repo_ci",
                 "--only-sanity": "only_sanity_check",
                 "--use-local-commit-time": "use_local_commit_time",
-                "--cross-build": "cross_build"
+                "--cross-build": "cross_build",
+                "--msbuild-collect-linux": "msbuild_collect_linux"
             }
 
             if key in bool_args:
@@ -1882,6 +1969,8 @@ def main(argv: list[str]):
                 "--baseline-core-root-dir": "baseline_core_root_dir",
                 "--performance-repo-dir": "performance_repo_dir",
                 "--mono-dotnet-dir": "mono_dotnet_dir",
+                "--msbuild-scenario-inputs": "msbuild_scenario_inputs",
+                "--msbuild-scenarios": "msbuild_scenarios",
                 "--libraries-download-dir": "libraries_download_dir",
                 "--versions-props-path": "versions_props_path",
                 "--browser-versions-props-path": "browser_versions_props_path",
@@ -1922,8 +2011,8 @@ def main(argv: list[str]):
             if key in simple_arg_map:
                 arg_name = simple_arg_map[key]
                 val = argv[i + 1]
-            elif key == "--partition-count":
-                arg_name = "partition_count"
+            elif key in ("--partition-count", "--msbuild-iterations"):
+                arg_name = "partition_count" if key == "--partition-count" else "msbuild_iterations"
                 val = int(argv[i + 1])
             elif key == "--run-env-vars":
                 val = {}

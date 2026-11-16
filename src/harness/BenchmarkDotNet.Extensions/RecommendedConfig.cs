@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Exporters.Json;
 using BenchmarkDotNet.Jobs;
@@ -35,15 +36,14 @@ namespace BenchmarkDotNet.Extensions
         {
             if (job is null)
             {
-                #pragma warning disable CS0618 // WithEvaluateOverhead is obsolete but needed for WASM accuracy
                 job = Job.Default
-                    .WithWarmupCount(1) // 1 warmup is enough for our purpose
+                    .WithJitTieringMode(JitTieringMode.Force) // Force benchmarks to be promoted to tier 1, even for longer-running benchmarks that the default mode might skip (e.g. large InvocationsPerIteration)
+                    .WithWarmupCount(0) // Jit stage already warms the benchmarks
                     .WithIterationTime(TimeInterval.FromMilliseconds(250)) // the default is 0.5s per iteration, which is slighlty too much for us
                     .WithMinIterationCount(15)
                     .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
                     .WithEvaluateOverhead(Environment.GetEnvironmentVariable("PERFLAB_EVALUATE_OVERHEAD") == "1") // WASM has significant method-call overhead (1-10ns); subtract it when enabled
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
-                #pragma warning restore CS0618
             }
 
             if (toolchain is not null)

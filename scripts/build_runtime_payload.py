@@ -26,13 +26,26 @@ __all__ = [
 ]
 
 
+_EXECUTABLE_MAGIC = (
+    b"\x7fELF",
+    b"\xfe\xed\xfa\xce", b"\xfe\xed\xfa\xcf", b"\xce\xfa\xed\xfe", b"\xcf\xfa\xed\xfe",
+    b"\xca\xfe\xba\xbe",
+    b"#!",
+)
+
+
 def _set_permissions_recursive(dirs: Iterable[str], mode: int) -> None:
+    # Archive extraction and artifact downloads drop execute bits, so derive them from content:
+    # SDK tools such as dotnet and Roslyn/bincore/csc must stay executable.
+    executable_mode = mode | ((mode & 0o444) >> 2)
     for directory in dirs:
         for root, _, files in os.walk(directory):
             for item in files:
                 path = os.path.join(root, item)
                 try:
-                    os.chmod(path, mode)
+                    with open(path, "rb") as file:
+                        header = file.read(4)
+                    os.chmod(path, executable_mode if header.startswith(_EXECUTABLE_MAGIC) else mode)
                 except OSError as exc:  # Permission or unsupported FS operation
                     getLogger().debug("Failed to set permissions for %s: %s", path, exc)
 
@@ -405,30 +418,22 @@ def build_wasm_coreclr_payload(
     has_crossgen2_tasks = _stage_wasm_crossgen2_tasks(
         browser_wasm_coreclr_archive_or_dir, payload_parent_dir)
 
-    # Determine version from the runtime pack directory structure
     runtime_pack_src = os.path.join(
         browser_wasm_coreclr_archive_or_dir if os.path.isdir(browser_wasm_coreclr_archive_or_dir) else "",
         "staging", "microsoft.netcore.app.runtime.browser-wasm", "Release"
     )
     if os.path.isdir(runtime_pack_src):
-        # Get version from NuGet.config or infer from directory
-        # For now, read version from the SDK's Microsoft.NETCore.App.Ref pack
-        ref_pack_parent = os.path.join(wasm_dotnet_dir, "packs", "Microsoft.NETCore.App.Ref")
-        if os.path.isdir(ref_pack_parent):
-            versions = os.listdir(ref_pack_parent)
-            if versions:
-                pack_version = versions[0]
-                coreclr_pack_dest = os.path.join(
-                    wasm_dotnet_dir, "packs", "Microsoft.NETCore.App.Runtime.browser-wasm", pack_version
-                )
-                extract_archive_or_copy(
-                    browser_wasm_coreclr_archive_or_dir,
-                    coreclr_pack_dest,
-                    prefix="staging/microsoft.netcore.app.runtime.browser-wasm/Release/",
-                )
-                getLogger().info("Installed CoreCLR browser-wasm runtime pack version %s", pack_version)
-        else:
-            getLogger().warning("Microsoft.NETCore.App.Ref pack not found – cannot determine version")
+        # Install under the local package version that PERFLAB_WASM_PACKAGE_VERSION selects.
+        # The SDK's packs/Microsoft.NETCore.App.Ref can also contain its own bundled version.
+        coreclr_pack_dest = os.path.join(
+            wasm_dotnet_dir, "packs", "Microsoft.NETCore.App.Runtime.browser-wasm", local_package_version
+        )
+        extract_archive_or_copy(
+            browser_wasm_coreclr_archive_or_dir,
+            coreclr_pack_dest,
+            prefix="staging/microsoft.netcore.app.runtime.browser-wasm/Release/",
+        )
+        getLogger().info("Installed CoreCLR browser-wasm runtime pack version %s", local_package_version)
 
     permission_dirs = [wasm_dotnet_dir, wasm_built_nugets_dir]
     if has_crossgen2_tasks:

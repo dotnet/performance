@@ -32,24 +32,6 @@ parameters:
       enabled: true
       configs:
         - linux_arm64
-  - name: monoMicro
-    type: object
-    default:
-      enabled: true
-      configs:
-        - linux_x64
-  - name: monoInterpreter
-    type: object
-    default:
-      enabled: true
-      configs:
-        - linux_x64
-  - name: monoAot
-    type: object
-    default:
-      enabled: true
-      configs:
-        - linux_x64
   - name: androidCoreclrJit
     type: object
     default:
@@ -215,62 +197,6 @@ jobs:
             performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
             ${{ each parameter in parameters.jobParameters }}:
               ${{ parameter.key }}: ${{ parameter.value }}
-
-  # Mono microbenchmarks — controlled by monoMicro toggle
-  - ${{ if eq(parameters.monoMicro.enabled, true) }}:
-    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-        buildConfig: release
-        runtimeFlavor: mono
-        platforms: ${{ parameters.monoMicro.configs }}
-        jobParameters:
-          liveLibrariesBuildConfig: Release
-          runtimeType: mono
-          runKind: micro_mono
-          logicalMachine: 'perfviper'
-          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
-
-  # Mono interpreter — controlled by monoInterpreter toggle
-  - ${{ if eq(parameters.monoInterpreter.enabled, true) }}:
-    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-        buildConfig: release
-        runtimeFlavor: mono
-        platforms: ${{ parameters.monoInterpreter.configs }}
-        jobParameters:
-          liveLibrariesBuildConfig: Release
-          runtimeType: mono
-          codeGenType: 'Interpreter'
-          runKind: micro_mono
-          logicalMachine: 'perfviper'
-          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
-
-  # Mono AOT microbenchmarks — controlled by monoAot toggle
-  - ${{ if eq(parameters.monoAot.enabled, true) }}:
-    - template: /eng/pipelines/common/platform-matrix.yml@${{ parameters.runtimeRepoAlias }}
-      parameters:
-        jobTemplate: /eng/pipelines/templates/runtime-perf-job.yml@${{ parameters.performanceRepoAlias }}
-        buildConfig: release
-        runtimeFlavor: aot
-        platforms: ${{ parameters.monoAot.configs }}
-        jobParameters:
-          liveLibrariesBuildConfig: Release
-          runtimeType: mono
-          codeGenType: 'AOT'
-          runKind: micro_mono
-          logicalMachine: 'perfviper'
-          runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
-          performanceRepoAlias: ${{ parameters.performanceRepoAlias }}
-          ${{ each parameter in parameters.jobParameters }}:
-            ${{ parameter.key }}: ${{ parameter.value }}
 
   # CoreCLR Viper microbenchmarks — controlled by viperMicro toggle.
   # Platform selection is driven by viperMicro.configs (default: linux_x64, windows_x64, windows_x86).

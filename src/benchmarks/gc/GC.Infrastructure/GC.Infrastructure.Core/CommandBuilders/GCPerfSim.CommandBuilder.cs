@@ -13,6 +13,10 @@ namespace GC.Infrastructure.Core.CommandBuilders
         {
             string commandArgs = string.Empty;
             string processName = corerunOverride.Path;
+            if (processName != null && Directory.Exists(processName))
+            {
+                processName = Path.Combine(processName, OperatingSystem.IsWindows() ? "corerun.exe" : "corerun");
+            }
 
             Dictionary<string, string> parameters = new();
             foreach (var p in configuration.gcperfsim_configurations.Parameters)

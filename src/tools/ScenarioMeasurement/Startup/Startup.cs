@@ -27,6 +27,7 @@ enum MetricType
     WinUIBlazor,
     TimeToMain2,
     BuildTime,
+    BuildWallClock,
     AndroidInnerLoop,
 }
 
@@ -264,7 +265,10 @@ public class Startup
             innerLoopProcHelper = CreateProcHelper(innerLoopCommand, innerLoopCommandArgs, true, logger);
         }
 
-        Util.Init();
+        if (!parseOnly)
+        {
+            Util.Init();
+        }
 
         // Warm up iteration
         if (warmup && !skipMeasurementIteration)
@@ -292,6 +296,7 @@ public class Startup
             MetricType.WinUIBlazor => new WinUIBlazorParser(),
             MetricType.TimeToMain2 => new TimeToMain2Parser(AddTestProcessEnvironmentVariable),
             MetricType.BuildTime => new BuildTimeParser(),
+            MetricType.BuildWallClock => new BuildWallClockParser(),
             MetricType.AndroidInnerLoop => new AndroidInnerLoopParser(),
             _ => throw new ArgumentOutOfRangeException(),
         };
@@ -353,7 +358,8 @@ public class Startup
                 }
                 if (!failed)
                 {
-                    CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                    CreateTestReport(scenarioName, counters, reportJsonPath, logger,
+                        metricType == MetricType.BuildWallClock ? "MSBuild" : "Startup");
                 }
             }
             catch
@@ -550,11 +556,11 @@ public class Startup
         return dict;
     }
 
-    private static void CreateTestReport(string scenarioName, IEnumerable<Counter> counters, string reportJsonPath, Logger logger)
+    private static void CreateTestReport(string scenarioName, IEnumerable<Counter> counters, string reportJsonPath, Logger logger, string category = "Startup")
     {
         var reporter = new Reporter();
         var test = new Test();
-        test.Categories.Add("Startup");
+        test.Categories.Add(category);
         test.Name = scenarioName;
         test.AddCounters(counters);
         reporter.AddTest(test);

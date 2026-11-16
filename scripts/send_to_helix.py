@@ -72,7 +72,6 @@ class PerfSendToHelixArgs:
     python: Optional[str] = None
     affinity: Optional[str] = None
     ios_strip_symbols: Optional[bool] = None
-    ios_llvm_build: Optional[bool] = None
     scenario_arguments: Optional[list[str]] = None
 
     def set_environment_variables(self, save_to_pipeline: bool = True):
@@ -112,7 +111,6 @@ class PerfSendToHelixArgs:
         set_env_var("CodegenType", self.codegen_type)
         set_env_var("LinkingType", self.linking_type)
         set_env_var("iOSStripSymbols", self.ios_strip_symbols)
-        set_env_var("iOSLlvmBuild", self.ios_llvm_build)
         set_env_var("TargetCsproj", self.target_csproj)
         set_env_var("WorkItemCommand", self.work_item_command, sep=" ")
         set_env_var("BaselineWorkItemCommand", self.baseline_work_item_command, sep=" ")

@@ -6,7 +6,6 @@ parameters:
 jobs:
   - template: /eng/pipelines/performance/templates/perf-ios-scenarios-build-jobs.yml@${{ parameters.runtimeRepoAlias }}
     parameters:
-      mono: false
       coreclr: true
       nativeAot: true
 

@@ -572,6 +572,7 @@ def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
     runtime_pack.mkdir(parents=True)
     built_nugets.mkdir(parents=True)
     (shared_framework / "System.Private.CoreLib.dll").touch()
+    (runtime_pack / "Microsoft.NETCore.App.Runtime.browser-wasm.nuspec").touch()
     (built_nugets / "Microsoft.NET.Sdk.WebAssembly.Pack.11.0.0-ci.nupkg").touch()
     (built_nugets / "Microsoft.NETCore.App.Crossgen2.linux-x64.11.0.0-ci.nupkg").touch()
     (built_nugets / "Microsoft.NET.ILLink.Tasks.11.0.0-ci.nupkg").touch()
@@ -588,6 +589,9 @@ def test_coreclr_payload_detects_local_toolchain_package_version(tmp_path):
         / "11.0.0-ci"
         / "System.Private.CoreLib.dll"
     ).is_file()
+    runtime_packs = payload / "dotnet" / "packs" / "Microsoft.NETCore.App.Runtime.browser-wasm"
+    assert [path.name for path in runtime_packs.iterdir()] == ["11.0.0-ci"]
+    assert (runtime_packs / "11.0.0-ci" / "Microsoft.NETCore.App.Runtime.browser-wasm.nuspec").is_file()
 
 
 def _write_coreclr_artifact(tmp_path, crossgen2_tasks_files=()):
@@ -605,6 +609,35 @@ def _write_coreclr_artifact(tmp_path, crossgen2_tasks_files=()):
         for name in crossgen2_tasks_files:
             (crossgen2_tasks / name).write_text(name)
     return artifact.parent
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX execute bits")
+def test_coreclr_payload_keeps_sdk_tools_executable(tmp_path):
+    artifact = _write_coreclr_artifact(tmp_path)
+    sdk = artifact / "staging" / "dotnet-none"
+    tools = {
+        "dotnet": b"\x7fELF\x02\x01",
+        "sdk/11.0.100/Roslyn/bincore/csc": b"\x7fELF\x02\x01",
+        "sdk/11.0.100/Roslyn/bincore/csc.dll": b"MZ\x90\x00",
+        "sdk/11.0.100/dotnet-tool.sh": b"#!/bin/sh\n",
+        "sdk/11.0.100/dotnet.runtimeconfig.json": b"{}",
+    }
+    for name, content in tools.items():
+        (sdk / name).parent.mkdir(parents=True, exist_ok=True)
+        (sdk / name).write_bytes(content)
+        (sdk / name).chmod(0o600)
+    payload = tmp_path / "payload"
+
+    build_wasm_coreclr_payload(str(artifact), str(payload))
+
+    modes = {name: (payload / "dotnet" / name).stat().st_mode & 0o777 for name in tools}
+    assert modes == {
+        "dotnet": 0o775,
+        "sdk/11.0.100/Roslyn/bincore/csc": 0o775,
+        "sdk/11.0.100/Roslyn/bincore/csc.dll": 0o664,
+        "sdk/11.0.100/dotnet-tool.sh": 0o775,
+        "sdk/11.0.100/dotnet.runtimeconfig.json": 0o664,
+    }
 
 
 def test_coreclr_payload_stages_crossgen2_tasks_shim(tmp_path):

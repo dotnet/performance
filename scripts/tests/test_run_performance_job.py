@@ -12,6 +12,85 @@ import scripts.run_performance_job as job
 from scripts.run_performance_job import APT_LOCK_TIMEOUT_OPTION, get_bdn_arguments, get_pre_commands
 
 
+@pytest.mark.parametrize("runtime_type", ["AndroidMono", "iOSMono"])
+def test_retired_mobile_mono_fails_before_payload_preparation(tmp_path, monkeypatch, runtime_type):
+    monkeypatch.setattr(job, "setup_loggers", Mock())
+    copy_payload = Mock()
+    monkeypatch.setattr(job.shutil, "copytree", copy_payload)
+    args = job.RunPerformanceJobArgs(
+        run_kind="android_scenarios" if runtime_type == "AndroidMono" else "ios_scenarios",
+        runtime_type=runtime_type,
+        architecture="arm64",
+        os_group="osx",
+        performance_repo_dir=str(tmp_path),
+        queue="test-queue",
+    )
+
+    with pytest.raises(ValueError, match=f"{runtime_type} performance scenarios are no longer supported"):
+        job.run_performance_job(args)
+
+    copy_payload.assert_not_called()
+    assert not (tmp_path / "CorrelationStaging").exists()
+
+
+@pytest.mark.parametrize(("run_kind", "runtime_type", "codegen_type", "linking_type"), [
+    ("android_scenarios", "AndroidCoreCLR", "JIT", ""),
+    ("android_scenarios", "AndroidCoreCLR", "JIT", "static"),
+    ("android_scenarios", "AndroidCoreCLR", "R2R", ""),
+    ("ios_scenarios", "iOSCoreCLR", "Interpreter", ""),
+    ("ios_scenarios", "iOSCoreCLR", "R2R", ""),
+    ("ios_scenarios", "iOSNativeAOT", "NativeAOT", ""),
+])
+def test_mobile_coreclr_result_configurations_are_preserved(
+        run_kind, runtime_type, codegen_type, linking_type):
+    configurations = job.get_run_configurations(
+        run_kind=run_kind,
+        runtime_type=runtime_type,
+        codegen_type=codegen_type,
+        linking_type=linking_type,
+        runtime_flavor="coreclr",
+        ios_strip_symbols=True,
+    )
+
+    expected = {
+        "CompilationMode": "Tiered",
+        "RunKind": run_kind,
+        "CodegenType": codegen_type,
+        "RuntimeType": "coreclr",
+    }
+    if run_kind == "android_scenarios":
+        expected["LinkingType"] = linking_type
+    else:
+        expected["iOSStripSymbols"] = "True"
+    assert configurations == expected
+
+
+@pytest.mark.parametrize("run_kind", ["android_scenarios", "ios_scenarios"])
+def test_runtime_sample_app_result_configuration_rejects_mono(run_kind):
+    with pytest.raises(ValueError, match="only support CoreCLR"):
+        job.get_run_configurations(
+            run_kind=run_kind,
+            runtime_type="AndroidMono" if run_kind == "android_scenarios" else "iOSMono",
+            codegen_type="AOT",
+            runtime_flavor="mono",
+        )
+
+
+@pytest.mark.parametrize("run_kind", ["maui_scenarios_android", "maui_scenarios_ios"])
+def test_maui_mono_result_configuration_is_unchanged(run_kind):
+    assert job.get_run_configurations(
+        run_kind=run_kind,
+        runtime_type="coreclr",
+        codegen_type="AOT",
+        runtime_flavor="mono",
+    ) == {
+        "CompilationMode": "Tiered",
+        "RunKind": run_kind,
+        "CodegenType": "AOT",
+        "RuntimeType": "mono",
+    }
+
+
 @pytest.mark.parametrize("os_group", ["windows", "linux"])
 @pytest.mark.parametrize(("framework", "runtime"), [
     ("net11.0", "r2r11_0"), ("net12.0", "r2r12_0"),
@@ -103,6 +182,57 @@ def test_generated_prerequisites_do_not_poll_dpkg_lock():
     prerequisites = "\n".join(pre_commands)
     assert "fuser" not in prerequisites
     assert "Waiting for dpkg" not in prerequisites
+
+
+@pytest.mark.parametrize("internal", [False, True])
+@pytest.mark.parametrize("runtime_type", ["wasm", "wasm_coreclr"])
+def test_wasm_nodesource_setup_requires_patched_node_24(internal, runtime_type):
+    pre_commands = get_pre_commands(
+        os_group="linux",
+        os_distro="ubuntu",
+        internal=internal,
+        runtime_type=runtime_type,
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+        wasm_local_package_version="11.0.0-ci" if runtime_type == "wasm_coreclr" else None,
+    )
+    prerequisites = next(command for command in pre_commands if "export NODE_MAJOR=" in command)
+    node_install = job.apt_command("install nodejs -y")
+    npm_install = "npm install --prefix $HELIX_WORKITEM_ROOT jsvu -g"
+
+    assert "export NODE_MAJOR=24 && " in prerequisites
+    assert "https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" in prerequisites
+    assert prerequisites.index(node_install) < prerequisites.index("node -e ") < prerequisites.index(npm_install)
+    assert "Node.js >= 24.22.1 in the 24.x line is required" in prerequisites
+    # Helix rewrites '\' to '/' in Unix pre-commands, which corrupted the Node check regex.
+    assert "\\" not in prerequisites
+    assert f"{npm_install} && $HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@15.1.206" in prerequisites
+    assert "export V8_ENGINE_PATH=~/.jsvu/bin/v8-15.1.206" in prerequisites
+    assert "${V8_ENGINE_PATH} -e 'console.log(`V8 version: ${this.version()}`)'" in prerequisites
+    assert prerequisites.endswith(" || export PERF_PREREQS_INSTALL_FAILED=1")
+
+
+@pytest.mark.parametrize("runtime_type", ["wasm", "wasm_coreclr"])
+def test_wasm_node_upgrade_preserves_azurelinux_setup(runtime_type):
+    pre_commands = get_pre_commands(
+        os_group="linux",
+        os_distro="azurelinux",
+        internal=False,
+        runtime_type=runtime_type,
+        codegen_type="wasm",
+        build_config="Release",
+        v8_version="15.1.206",
+        wasm_local_package_version="11.0.0-ci" if runtime_type == "wasm_coreclr" else None,
+    )
+    prerequisites = "\n".join(pre_commands)
+
+    assert "sudo tdnf -y install ca-certificates curl gnupg nodejs npm" in prerequisites
+    assert "$HELIX_WORKITEM_ROOT/bin/jsvu --os=linux64 v8@15.1.206" in prerequisites
+    assert "export V8_ENGINE_PATH=~/.jsvu/bin/v8-15.1.206" in prerequisites
+    assert "nodesource" not in prerequisites
+    assert "node -e " not in prerequisites
+    assert "sudo apt" not in prerequisites
 
 
 def test_linux_prerequisite_failure_remains_failed_after_health_check():
@@ -412,3 +542,95 @@ def test_sdk_must_locate_staged_packs(targeting_pack_payload):
     with pytest.raises(ValueError, match="could not locate staged"):
         job.provision_downlevel_targeting_packs(
             str(state.payload), str(state.dotnet_root), "net12.0", "windows")
+
+def test_untraced_msbuild_prerequisites_do_not_modify_lttng():
+    commands = get_pre_commands(
+        os_group="linux", os_distro="ubuntu", internal=True, runtime_type="coreclr",
+        codegen_type="jit", build_config="Release", v8_version="",
+        use_legacy_trace=False)
+    assert "lttng" not in "\n".join(commands)
+
+
+def test_linux_collection_template_requires_explicit_boolean_equality():
+    template = (
+        Path(__file__).resolve().parents[2]
+        / "eng" / "pipelines" / "templates" / "run-performance-job.yml"
+    ).read_text(encoding="utf-8")
+    assert "  msbuildCollectLinux: false" in template
+    lines = template.splitlines()
+    flag = next(index for index, line in enumerate(lines) if line.strip() == "- '--msbuild-collect-linux'")
+    # Untyped template parameters can be strings: a bare "false" condition is truthy.
+    assert lines[flag - 1].strip() == "- ${{ if eq(parameters.msbuildCollectLinux, true) }}:"
+
+
+@pytest.mark.parametrize("collect_linux", [False, True])
+def test_linux_collection_cli_remains_opt_in(monkeypatch, collect_linux):
+    run = Mock()
+    monkeypatch.setattr(job, "run_performance_job", run)
+    monkeypatch.setattr(job, "setup_loggers", lambda **kwargs: None)
+    arguments = [
+        "run_performance_job.py", "--run-kind", "msbuild_scenarios",
+        "--architecture", "x64", "--os-group", "linux",
+    ]
+    if collect_linux:
+        arguments.append("--msbuild-collect-linux")
+    assert job.main(arguments) == 0
+    run.assert_called_once()
+    assert run.call_args.args[0].msbuild_collect_linux is collect_linux
+
+
+DAILY_SDK_COMMIT = "946e7e7c7b6d968a5a4ad8edca6cb8c4781229de"
+DAILY_SDK_FEED = ("https://pkgs.dev.azure.com/dnceng/public/_packaging/"
+                  "darc-pub-dotnet-dotnet-946e7e7c/nuget/v3/index.json")
+
+
+@pytest.fixture
+def daily_sdk(tmp_path, monkeypatch):
+    def create(bundled_version, commit=DAILY_SDK_COMMIT, feed_versions=None, feed_error=None):
+        sdk_path = tmp_path / "sdk" / "11.0.101"
+        sdk_path.mkdir(parents=True, exist_ok=True)
+        (sdk_path / "Microsoft.NETCoreSdk.BundledVersions.props").write_text(
+            "<Project><PropertyGroup><BundledNETCoreAppPackageVersion>"
+            f"{bundled_version}</BundledNETCoreAppPackageVersion></PropertyGroup></Project>")
+        (sdk_path / ".version").write_text(f"{commit}\n11.0.101\nlinux-x64\n")
+        monkeypatch.setattr(job.dotnet, "get_base_path", Mock(return_value=str(sdk_path)))
+        urlopen = Mock(side_effect=feed_error) if feed_error else Mock(
+            return_value=io.BytesIO(json.dumps({"versions": feed_versions or []}).encode()))
+        monkeypatch.setattr(job.urllib.request, "urlopen", urlopen)
+        return urlopen
+    return create
+
+
+def test_daily_servicing_sdk_uses_its_vmr_build_feed(tmp_path, daily_sdk):
+    urlopen = daily_sdk("11.0.1", feed_versions=["11.0.1"])
+
+    assert job.get_daily_sdk_build_feed(str(tmp_path)) == DAILY_SDK_FEED
+    assert urlopen.call_args.args[0] == DAILY_SDK_FEED.replace(
+        "/index.json", "/flat2/microsoft.netcore.app.runtime.linux-x64/index.json")
+
+
+@pytest.mark.parametrize(("bundled", "commit", "feed_versions", "feed_error"), [
+    ("12.0.0-alpha.1.26561.116", DAILY_SDK_COMMIT, ["12.0.0-alpha.1.26561.116"], None),
+    ("11.0.1", "not-a-commit", ["11.0.1"], None),
+    ("11.0.1", DAILY_SDK_COMMIT, ["11.0.0"], None),
+    ("10.0.7", DAILY_SDK_COMMIT, None, job.urllib.error.HTTPError(
+        DAILY_SDK_FEED, 404, "Not Found", None, None)),
+])
+def test_sdks_without_matching_public_build_feed_add_no_source(
+        tmp_path, daily_sdk, bundled, commit, feed_versions, feed_error):
+    daily_sdk(bundled, commit=commit, feed_versions=feed_versions, feed_error=feed_error)
+
+    assert job.get_daily_sdk_build_feed(str(tmp_path)) is None
+
+
+def test_build_feed_is_added_once_to_payload_nuget_config(tmp_path):
+    config_path = tmp_path / "NuGet.config"
+    config_path.write_text((Path(__file__).resolve().parents[2] / "NuGet.config").read_text())
+
+    job.add_package_source(str(config_path), "daily-sdk-build", DAILY_SDK_FEED)
+    job.add_package_source(str(config_path), "daily-sdk-build", DAILY_SDK_FEED)
+
+    sources = ET.parse(config_path).find("packageSources")
+    assert sources[0].tag == "clear"
+    assert sources[1].attrib == {"key": "daily-sdk-build", "value": DAILY_SDK_FEED}
+    assert [source.get("value") for source in sources].count(DAILY_SDK_FEED) == 1

@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EvaluationMetricsStartupHook\EvaluationMetricsStartupHook.csproj" />
     <ProjectReference Include="..\..\Reporting\Reporting\Reporting.csproj" />
   </ItemGroup>
 </Project>
