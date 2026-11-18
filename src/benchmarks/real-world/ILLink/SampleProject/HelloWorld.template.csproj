@@ -3,7 +3,7 @@
 		<OutputType>exe</OutputType>
 		<TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
 		<!-- Update PublishSampleProject in Utilities default framework when updating default framework below -->
-		<TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net9.0</TargetFrameworks>
+		<TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net10.0</TargetFrameworks>
 		<PublishTrimmed>false</PublishTrimmed>
 		<TrimMode>partial</TrimMode>
 		<SelfContained>true</SelfContained>

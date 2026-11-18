@@ -55,7 +55,7 @@ The aggregate results for each of the test suites will be written in ``C:\InfraR
 
 As an aside, you can run the infrastructure with just the binaries on a machine without the source. To achieve this do the following steps:
 
-1. Copy the contents from ``C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\`` onto the machine you wish to run the infrastructure on such as ``C:\InfrastructureBinary\``.
+1. Copy the contents from ``C:\performance\artifacts\bin\GC.Infrastructure\Release\net10.0\`` onto the machine you wish to run the infrastructure on such as ``C:\InfrastructureBinary\``.
 2. Copy the contents of the Configurations from ``C:\performance\src\benchmarks\gc\GC.Infrastructure\Configuration\`` onto the machine you wish the infrastructure on such as ``C:\InfrastructureConfigurations``.
 3. ``cd C:\InfrastructureBinary``.
 4. ``.\GC.Infrastructure.exe run --configuration C:\InfrastructureConfigurations\Run.yaml``.
@@ -66,7 +66,7 @@ As an aside, you can run the infrastructure with just the binaries on a machine 
 
 To run a specific GCPerfSim scenario such as the Normal Server scenario, invoke the following command:
 
-1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
+1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net10.0\``.
 2. ``.\GC.Infrastructure.exe gcperfsim --configuration C:\InfrastructureConfigurations\GCPerfSim\Normal_Server.yaml``.
 
 ###### Running GCPerfSim Scenarios on the ASP.NET Machines
@@ -88,7 +88,7 @@ The list of machines you can choose to run the configuration can be found in the
 
 To run the infrastructure on a specific Microbenchmark scenario such as the Server case invoke the following command:
 
-1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
+1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net10.0\``.
 2. ``.\GC.Infrastructure.exe microbenchmarks --configuration C:\InfrastructureConfigurations\Microbenchmark\Microbenchmark_Server.yaml``.
 
 ###### How To Update The Microbenchmarks To Run
@@ -99,7 +99,7 @@ If you wish to change the microbenchmarks you'd wish to run, you can edit the tx
 microbenchmark_configurations:
   filter: 
   filter_path: C:\InfraRuns\RunNew_All\Suites\Microbenchmark\MicrobenchmarksToRun.txt # CHANGE THIS.
-  dotnet_installer: net7.0
+  dotnet_installer: net10.0
   bdn_arguments: --warmupCount 1 --iterationCount 20 --allStats --outliers DontRemove --keepFiles
 ```
 
@@ -111,7 +111,7 @@ As an example, if you want to _just_ run the "System.IO.Tests.Perf_File.ReadAllB
 3. Updating the filter_path in ``C:\performance\src\benchmarks\gc\GC.Infrastructure\Configurations\Microbenchmark\Microbenchmarks_Server.yaml`` to point to MicrobenchmarksToRun.txt:
    1. ``filter_path: C:\performance\src\benchmarks\gc\GC.Infrastructure\Configurations\Microbenchmark\MicrobenchmarksToRun.txt``.
 4. Running the infrastructure:
-   1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
+   1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net10.0\``.
    2. ``.\GC.Infrastructure.exe microbenchmarks --configuration C:\InfrastructureConfigurations\Microbenchmark\Microbenchmark_Server.yaml``.
 
 ###### Using Cached Invocation Counts
@@ -129,14 +129,14 @@ System.Tests.Perf_GC<Char>.AllocateArray(length: 1000, *|2700576
 
 The path to this file can be passed in as an optional argument for the ``microbenchmarks`` command and can be invoked in the following manner:
 
-1. ```cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0```.
+1. ```cd C:\Infrastructure\GC.Infrastructure\bin\Release\net10.0```.
 2. ``.\GC.Infrastructure.exe microbenchmarks --configuration  C:\Infrastructure\Configurations\Microbenchmark\Microbenchmarks_Server.yaml --invocationCountPSV C:\GC.Analysis.API\Configurations\Microbenchmark\MicrobenchmarkInvocationCounts.psv``.
 
 ##### ASP.NET Benchmarks
 
 To run the infrastructure on a specific set of ASP.NET Benchmarks, do the following:
 
-1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
+1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net10.0\``.
 2. ``.\GC.Infrastructure.exe aspnetbenchmarks --configuration C:\performance\src\benchmarks\gc\GC.Infrastructure\Configurations\ASPNetBenchmarks\ASPNetBenchmarks.yaml``.
 
 More details about running and troubleshooting ASP.NET benchmarks can be found in the [ASP.NET Benchmarks guide](./docs/ASPNETBenchmarks.md).

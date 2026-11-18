@@ -22,9 +22,9 @@ namespace Tests
     public class RuntimeArgumentParsingTests
     {
         [Theory]
-        [InlineData("-R net8.0")]
-        [InlineData("--runtimes=net8.0")]
-        [InlineData("--RUNTIMES=net8.0")]
+        [InlineData("-R net10.0")]
+        [InlineData("--runtimes=net10.0")]
+        [InlineData("--RUNTIMES=net10.0")]
         public void NativeSelectorsReplaceTheDefaultMonoJobAndMustBeRejectedWhenMixed(string selector)
         {
             var mono = CreateMono();
@@ -33,7 +33,7 @@ namespace Tests
             var native = Assert.Single(parsed!.GetJobs()).Infrastructure.Toolchain;
             Assert.NotNull(native);
             Assert.IsNotType<MonoAotLLVMToolChain>(native);
-            Assert.Equal(Runtime.Parse("net8.0"), native.Runtime);
+            Assert.Equal(Runtime.Parse("net10.0"), native.Runtime);
 
             var args = MonoArguments();
             args.AddRange(selector.Split(' '));
@@ -87,7 +87,7 @@ namespace Tests
             using var files = new ArgumentFiles();
             string cli = uppercase ? "--CLI=" : "--cli=";
             string packages = uppercase ? "--PACKAGES=" : "--packages=";
-            var native = new[] { "--runtimes=net8.0", cli + files.Cli, packages + files.Packages };
+            var native = new[] { "--runtimes=net10.0", cli + files.Cli, packages + files.Packages };
             var (nativeSuccess, nativeConfig, nativeOptions) = ConfigParser.Parse(native, NullLogger.Instance);
             Assert.True(nativeSuccess);
             Assert.Equal(files.Cli, nativeOptions!.CliPath!.FullName);
@@ -139,8 +139,8 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData("-R net8.0")]
-        [InlineData("--runtimes=net8.0")]
+        [InlineData("-R net10.0")]
+        [InlineData("--runtimes=net10.0")]
         public void OrdinaryNativeSelectorsAndSettingsAreUnchanged(string selector)
         {
             using var files = new ArgumentFiles();
@@ -207,7 +207,7 @@ namespace Tests
         public void NativeResponseFilesRetainBdnQuotingAndFinalSettings()
         {
             using var files = new ArgumentFiles();
-            File.WriteAllText(files.Response, "--runtimes=net8.0\n--filter \"*name with spaces*\"");
+            File.WriteAllText(files.Response, "--runtimes=net10.0\n--filter \"*name with spaces*\"");
             var args = new List<string> { "@" + files.Response, "--cli=" + files.Cli, "--packages=" + files.Packages };
             var original = args.ToArray();
             var logger = new AccumulationLogger();
@@ -230,7 +230,7 @@ namespace Tests
         public void InvalidNativeResponseFileDoesNotFallBackToTheHost()
         {
             using var files = new ArgumentFiles();
-            File.WriteAllText(files.Response, "--runtimes=net8.0\n--cli \"" + files.Cli + "\"");
+            File.WriteAllText(files.Response, "--runtimes=net10.0\n--cli \"" + files.Cli + "\"");
             var args = new List<string> { "@" + files.Response };
             // BDN662 preserves a leading space for this quoted path and rejects it; do not silently repair it.
             Assert.False(ConfigParser.Parse(args.ToArray(), NullLogger.Instance).isSuccess);

@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <!-- net8.0 is the lowest TFM exercised by the perf pipelines (see scripts/channel_map.py).
+    <!-- net10.0 is the minimum target for the current performance flow.
          net472 (and other netfx) consumers are no longer supported; the harness uses BDN APIs
          (e.g. IValidator.ValidateAsync returning IAsyncEnumerable<T>) that would otherwise require
          polyfill packages on netstandard2.0. -->
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
@@ -17,11 +17,10 @@
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(BenchmarkDotNetVersion)" />
   </ItemGroup>
   <ItemGroup Condition="'$(BenchmarkDotNetSources)' != ''">
-    <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet\BenchmarkDotNet.csproj" SetTargetFramework="TargetFramework=net8.0" />
+    <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet\BenchmarkDotNet.csproj" SetTargetFramework="TargetFramework=net10.0" />
     <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet.Diagnostics.Windows\BenchmarkDotNet.Diagnostics.Windows.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Linq.AsyncEnumerable" Version="$(SystemLinqAsyncEnumerablePackageVersion)" PrivateAssets="none" Publish="true" />
     <ProjectReference Include="..\..\tools\Reporting\Reporting\Reporting.csproj" />
   </ItemGroup>
 </Project>

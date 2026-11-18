@@ -54,7 +54,13 @@ Before running the MCP Server, ensure your environment meets these requirements:
 
 - **Operating System**: Windows (required for local scenario execution)
 - **Administrative Privileges**: Required for registry modifications and system-level operations
-- **.NET SDK**: .NET 9.0 or later
+- **.NET SDK**: .NET 10.0 or later
+
+Repo-owned GC launch defaults now select .NET 10 instead of .NET 8. This
+intentionally changes the measured target; results are not interchangeable with
+historical .NET 8 measurements. Explicit per-run framework overrides and saved
+results are unchanged. Updating these source defaults does not deploy or
+reconfigure external Crank agents or services.
 
 ### Dependencies
 
@@ -142,7 +148,7 @@ dotnet build -c Release
 2. **Run the Executable**:
 
 ```powershell
-cd "C:\performance\artifacts\bin\GC.Infrastructure.MCPServer\Release\net9.0"
+cd "C:\performance\artifacts\bin\GC.Infrastructure.MCPServer\Release\net10.0"
 .\GC.Infrastructure.MCPServer.exe
 ```
 
@@ -269,7 +275,7 @@ Benchmark configurations are stored in YAML files and passed to the respective t
    - Required for registry modifications and system-level operations
 
 2. **Build Failures**
-   - Verify .NET 9.0 SDK is installed
+   - Verify .NET 10.0 SDK is installed
    - Ensure all dependencies are built in Release configuration
 
 3. **MCP Connection Issues**

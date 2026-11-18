@@ -1,5 +1,5 @@
 # Project: src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure.Core.UnitTests/GC.Infrastructure.Core.UnitTests.csproj.
-# Output: artifacts\bin\GC.Infrastructure.Core.UnitTests\Debug\net8.0\GC.Infrastructure.Core.UnitTests.dll
+# Output: artifacts\bin\GC.Infrastructure.Core.UnitTests\Debug\net10.0\GC.Infrastructure.Core.UnitTests.dll
 
 resources:
   containers:
@@ -37,17 +37,26 @@ jobs:
       vmImage: windows-2025
  
     steps:
-    # Install dotnet. We temporarily need both .NET 8 (for building and running the projects) and .NET 9 (for installing deps).
+    # Keep the net10 test host and net11 tool dependencies alongside the main SDK.
     - task: UseDotNet@2
       displayName: Install .NET 10.0 
       inputs:
         version: 10.0.x
         includePreviewVersions: true
+        installationPath: '$(Agent.ToolsDirectory)\dotnet'
     - task: UseDotNet@2
       displayName: Install .NET 11.0 
       inputs:
         version: 11.0.x
         includePreviewVersions: true
+        installationPath: '$(Agent.ToolsDirectory)\dotnet'
+    # Main's daily SDK is not listed in UseDotNet's release metadata.
+    - pwsh: |
+        $ErrorActionPreference = 'Stop'
+        $PSNativeCommandUseErrorActionPreference = $true
+        python scripts\dotnet.py install --channels main --architecture x64 --install-dir "$(Agent.ToolsDirectory)\dotnet"
+        Write-Host "##vso[task.prependpath]$(Agent.ToolsDirectory)\dotnet"
+      displayName: Install main daily SDK
     - script: dotnet tool restore
     - script: dotnet tool install --global dotnet-repl 
     - script: dotnet build src/benchmarks/gc/GC.Infrastructure/GC.Infrastructure.Core/GC.Infrastructure.Core.csproj --configuration Debug --framework net10.0

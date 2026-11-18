@@ -36,142 +36,14 @@ class ChannelMap():
             'branch': '11.0',
             'quality': 'daily'
         },
-        '9.0': {
-            'tfm': 'net9.0',
-            'branch': '9.0'
-        },
-        'release/9.0': {
-            'tfm': 'net9.0',
-            'branch': '9.0'
-        },
-        'nativeaot9.0': {
-            'tfm': 'nativeaot9.0',
-            'branch': '9.0',
-            'quality': 'daily'
-        },
-        '8.0': {
-            'tfm': 'net8.0',
-            'branch': '8.0'
-        },
-        'release/8.0':{
-            'tfm': 'net8.0',
-            'branch': '8.0'
-        },
-        'release/8.0-rc2': {
-            'tfm': 'net8.0',
-            'branch': '8.0-rc2'
-        },
-        'release/8.0-rc1': {
-            'tfm': 'net8.0',
-            'branch': '8.0-rc1'
-        },
-        '8.0-preview': {
-            'tfm': 'net8.0',
-            'branch': '8.0',
-            'qualtiy': 'preview'
-        },
-        'release/8.0-preview7': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview7'
-        },
-        'release/8.0-preview6': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview6'
-        },
-        'release/8.0-preview5': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview5'
-        },
-        'release/8.0-preview4': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview4'
-        },
-        'release/8.0-preview3': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview3'
-        },
-        'release/8.0-preview2': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview2'
-        },
-        'release/8.0-preview1': {
-            'tfm': 'net8.0',
-            'branch': '8.0-preview1'
-        },
-        'nativeaot8.0': {
-            'tfm': 'nativeaot8.0',
-            'branch': '8.0',
-            'quality': 'daily'
-        },
-        '7.0': {
-            'tfm': 'net7.0',
-            'branch': '7.0',
-            'quality': 'daily'
-        },
-        'release/7.0-rc2': {
-            'tfm': 'net7.0',
-            'branch': '7.0-rc2',
-            'quality': 'daily'
-        },
-        'release/7.0-rc1': {
-            'tfm': 'net7.0',
-            'branch': '7.0-rc1',
-            'quality': 'daily'
-        },
-        'nativeaot7.0': {
-            'tfm': 'nativeaot7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0': {
-            'tfm': 'net7.0',
-            'branch': '7.0',
-            'quality': 'daily'
-        },
-        '6.0': {
-            'tfm': 'net6.0',
-            'branch': '6.0',
-            'quality': 'daily'
-        },
-        'release/6.0': {
-            'tfm': 'net6.0',
-            'branch': '6.0',
-            'quality': 'daily'
-        },
-        'nativeaot6.0': {
-            'tfm': 'nativeaot6.0',
-            'branch': '6.0',
-            'quality': 'daily'
-        },
-        'release/3.1.3xx':{
-            'tfm': 'netcoreapp3.1',
-            'branch': 'release/3.1.3xx'
-        },
-        'release/3.1.2xx': {
-            'tfm': 'netcoreapp3.1',
-            'branch': 'release/3.1.2xx'
-        },
-        'release/3.1.1xx': {
-            'tfm': 'netcoreapp3.1',
-            'branch': 'release/3.1.1xx'
-        },
-        '3.1': {
-            'tfm': 'netcoreapp3.1',
-            'branch': '3.1.4xx',
-            'quality': 'daily'
-        },
         'net472': {
             'tfm': 'net472',
-            'branch': '9.0',
+            'branch': '10.0',
             'quality': 'daily'
         },
         'net48': {
             'tfm': 'net48', # For Full Framework download the LTS for dotnet cli.
             'branch': 'LTS'
-        },
-        'master': {
-            'tfm': 'net6.0',
-            'branch': 'master'
         }
     }
     @staticmethod

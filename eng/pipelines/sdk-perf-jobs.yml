@@ -27,12 +27,6 @@ jobs:
 
     steps:
       - task: UseDotNet@2
-        displayName: Install .NET 8.0
-        inputs:
-          version: 8.0.x
-          installationPath: '$(Build.SourcesDirectory)\tools\dotnet\x64'
-
-      - task: UseDotNet@2
         displayName: Install .NET 10.0
         inputs:
           version: 10.0.x
@@ -55,7 +49,7 @@ jobs:
           dotnet test src\tools\Reporting\Reporting.Tests\Reporting.Tests.csproj --configuration Release --framework net12.0 --nologo --verbosity minimal
           dotnet test src\tools\CertHelperTests\CertRotatorTests.csproj --configuration Release --framework net10.0 --nologo --verbosity minimal
           dotnet test src\tests\harness\BenchmarkDotNet.Extensions.Tests\BenchmarkDotNet.Extensions.Tests.csproj --configuration Release --framework net12.0 -p:PERFLAB_TARGET_FRAMEWORKS=net12.0 --nologo --verbosity minimal
-          dotnet test src\tools\ScenarioMeasurement\Startup.Tests\Startup.Tests.csproj --configuration Release --nologo --verbosity minimal
+          dotnet test src\tools\ScenarioMeasurement\Startup.Tests\Startup.Tests.csproj --configuration Release --framework net10.0 --nologo --verbosity minimal
         displayName: Run tooling tests
 
 - ${{ if parameters.runPublicJobs }}:
@@ -73,8 +67,6 @@ jobs:
         projectFileName: scenarios.proj
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -92,8 +84,6 @@ jobs:
           projectFileName: maui_scenarios.proj
           channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
             - main
-            - 9.0
-            - 8.0
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -110,8 +100,6 @@ jobs:
         projectFileName: sdk_scenarios.proj
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
   
@@ -129,8 +117,6 @@ jobs:
         runCategories: 'runtime libraries' 
         channels:
           - main
-          - 9.0
-          - 8.0
 
   # Ubuntux64 Default and NativeAOT micro benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
@@ -145,10 +131,6 @@ jobs:
         runCategories: 'runtime libraries' 
         channels:
           - main
-          # - nativeaot9.0 # Disable until I have time to properly fix the issues and can merge https://github.com/dotnet/performance/pull/4741
-          # - nativeaot8.0
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -166,8 +148,6 @@ jobs:
         runCategories: 'mldotnet' 
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -186,8 +166,6 @@ jobs:
           runCategories: 'fsharp'
           channels:
             - main
-            - 9.0
-            - 8.0
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -204,8 +182,6 @@ jobs:
         runCategories: 'FSharpMicro'
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -223,8 +199,6 @@ jobs:
         runCategories: 'BepuPhysics'
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -242,8 +216,6 @@ jobs:
         runCategories: 'ImageSharp'
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -261,8 +233,6 @@ jobs:
         runCategories: 'AkadeIndexedSet'
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -278,10 +248,8 @@ jobs:
         runKind: roslyn
         targetCsproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
         runCategories: 'roslyn'
-        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+        channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -299,10 +267,8 @@ jobs:
           runKind: illink
           targetCsproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
           runCategories: 'illink'
-          channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          channels:
             - main
-            - 9.0
-            - 8.0
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -319,8 +285,6 @@ jobs:
         projectFileName: nativeaot_scenarios.proj
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -338,8 +302,6 @@ jobs:
         runCategories: 'Public'
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -364,8 +326,6 @@ jobs:
         projectFileName: scenarios.proj
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -382,8 +342,6 @@ jobs:
         projectFileName: scenarios_affinitized.proj
         channels:
           - main
-          - 9.0
-          - 8.0
         additionalJobIdentifier: 'Affinity_85'
         affinity: '85'  # (01010101) Enables alternating process threads to take hyperthreading into account
         runEnvVars: 
@@ -590,8 +548,6 @@ jobs:
           projectFileName: maui_scenarios.proj
           channels:
             - main
-            - 9.0
-            - 8.0
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -609,8 +565,6 @@ jobs:
         projectFileName: nativeaot_scenarios.proj
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -635,8 +589,6 @@ jobs:
         projectFileName: sdk_scenarios.proj
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -657,8 +609,6 @@ jobs:
           runCategories: 'fsharp'
           channels:
             - main
-            - 9.0
-            - 8.0
           ${{ each parameter in parameters.jobParameters }}:
             ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -677,8 +627,6 @@ jobs:
         runCategories: 'FSharpMicro'
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -698,8 +646,6 @@ jobs:
         runCategories: 'BepuPhysics'
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -719,8 +665,6 @@ jobs:
         runCategories: 'ImageSharp'
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -740,7 +684,6 @@ jobs:
         runCategories: 'AkadeIndexedSet'
         channels:
           - main
-          - 9.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}
 
@@ -760,8 +703,6 @@ jobs:
         runCategories: 'mldotnet'
         channels:
           - main
-          - 9.0
-          - 8.0
         affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
         runEnvVars: 
           - DOTNET_GCgen0size=410000 # ~4MB
@@ -784,10 +725,8 @@ jobs:
         runKind: roslyn
         targetCsproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
         runCategories: 'roslyn'
-        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+        channels:
           - main
-          - 9.0
-          - 8.0
         affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
         runEnvVars: 
           - DOTNET_GCgen0size=410000 # ~4MB
@@ -811,10 +750,8 @@ jobs:
           runKind: illink
           targetCsproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
           runCategories: 'illink'
-          channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          channels:
             - main
-            - 9.0
-            - 8.0
 
   # Powershell benchmarks
   - template: /eng/pipelines/templates/build-machine-matrix.yml
@@ -832,7 +769,5 @@ jobs:
         runCategories: 'Public Internal'
         channels:
           - main
-          - 9.0
-          - 8.0
         ${{ each parameter in parameters.jobParameters }}:
           ${{ parameter.key }}: ${{ parameter.value }}

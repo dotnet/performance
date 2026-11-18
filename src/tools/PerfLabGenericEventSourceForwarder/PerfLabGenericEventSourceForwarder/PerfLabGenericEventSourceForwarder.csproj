@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFramework>
         <!-- Supported target frameworks -->
-        <TargetFramework Condition="'$(TargetFramework)' == ''">net6.0</TargetFramework>
+        <TargetFramework Condition="'$(TargetFramework)' == ''">net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
     <ItemGroup>

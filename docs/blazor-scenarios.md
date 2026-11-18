@@ -85,7 +85,7 @@ For the purpose of quick reference, the commands can be summarized into the foll
 
 | Scenario                            | Asset Directory | Precommand                                                  | Testcommand                                                       | Postcommand | Supported Framework | Supported Platform |
 |-------------------------------------|-----------------|-------------------------------------------------------------|-------------------------------------------------------------------|-------------|---------------------|--------------------|
-| SOD - New Blazor Template - Publish | blazor          | pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" | test.py sod --scenario-name "SOD - New Blazor Template - Publish" | post.py     | net7.0; net8.0      | Windows;Linux      |
+| SOD - New Blazor Template - Publish | blazor          | pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" | test.py sod --scenario-name "SOD - New Blazor Template - Publish" | post.py     | net10.0; net11.0; net12.0      | Windows;Linux      |
 
 ## Relevant Links
 

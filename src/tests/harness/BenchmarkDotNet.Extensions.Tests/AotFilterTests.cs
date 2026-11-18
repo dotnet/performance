@@ -16,10 +16,10 @@ namespace Tests
     public class AotFilterTests
     {
         [Theory]
-        [InlineData("net8.0", true)]
+        [InlineData("net10.0", true)]
         [InlineData("net11.0", true)]
         [InlineData("net12.0", true)]
-        [InlineData("nativeaot8.0", false)]
+        [InlineData("nativeaot10.0", false)]
         [InlineData("nativeaot12.0", false)]
         [InlineData("monoaot", false)]
         [InlineData("monowasm11.0", true)]

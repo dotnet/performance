@@ -30,6 +30,19 @@ from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
 from shared.versionmanager import versions_write_json, versions_read_json_file_save_env, get_sdk_versions
 from subprocess import CalledProcessError
+from channel_map import ChannelMap
+
+
+def get_linker_dump(app_dir: str) -> Optional[str]:
+    dumps = [
+        os.path.join(app_dir, 'obj', 'Release', framework, 'browser-wasm', 'linked', 'linker-dependencies.xml.gz')
+        for framework in ChannelMap.get_supported_frameworks()
+        if re.fullmatch(r"net\d+\.0", framework)
+    ]
+    dumps = [path for path in dumps if os.path.isfile(path)]
+    if len(dumps) > 1:
+        raise ValueError(f"Multiple current-target linker dumps found under {app_dir}: {dumps}")
+    return dumps[0] if dumps else None
 
 
 class Runner:

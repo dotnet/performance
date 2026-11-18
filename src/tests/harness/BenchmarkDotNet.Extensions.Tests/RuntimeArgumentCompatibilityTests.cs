@@ -74,9 +74,9 @@ namespace Tests
         [Fact]
         public void OtherArgumentsAndRuntimeOrderArePreserved()
         {
-            var input = new[] { "-r", "net8.0", "wasmnet11_0", "--wasmEngine", "engine",
+            var input = new[] { "-r", "net10.0", "wasmnet11_0", "--wasmEngine", "engine",
                 "--wasmProcessTimeout", "20", "--msbuild-arguments", "/p:PublishReadyToRun=true" };
-            var expected = new[] { "-r", "net8.0", "monowasm11_0", "--wasmEngine", "engine",
+            var expected = new[] { "-r", "net10.0", "monowasm11_0", "--wasmEngine", "engine",
                 "--wasmProcessTimeout", "20", "--msbuild-arguments", "/p:PublishReadyToRun=true" };
 
             Assert.Equal(expected, RuntimeArgumentCompatibility.Normalize(input));

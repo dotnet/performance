@@ -1,5 +1,5 @@
 '''
-pre-command: Example call 'python .\pre.py publish -f net7.0-windows10.0.19041.0 -c Release'
+pre-command: Example call 'python .\pre.py publish -f net11.0-windows10.0.19041.0 -c Release'
 '''
 import shutil
 import subprocess

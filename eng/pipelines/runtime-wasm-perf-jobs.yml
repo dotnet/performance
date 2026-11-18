@@ -74,8 +74,8 @@ jobs:
         runKind: micro
         logicalMachine: 'perfviper'
         javascriptEngine: 'v8'
-        # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
-        #additionalSetupParameters: '--dotnet-versions 8.0.0'
+        # For working with a newer SDK and a previous TFM (for example SDK 12 and net11.0)
+        #additionalSetupParameters: '--dotnet-versions 11.0.100'
         additionalJobIdentifier: v8
         downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
         runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
@@ -100,8 +100,8 @@ jobs:
           runkind: micro
           logicalMachine: 'perfviper'
           javascriptEngine: 'v8'
-          # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
-          #additionalSetupParameters: '--dotnet-versions 8.0.0' # passed to ci_setup.py
+          # For working with a newer SDK and a previous TFM (for example SDK 12 and net11.0)
+          #additionalSetupParameters: '--dotnet-versions 11.0.100' # passed to ci_setup.py
           additionalJobIdentifier: v8
           downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}
@@ -124,8 +124,8 @@ jobs:
           projectFile: $(Build.SourcesDirectory)/eng/testing/performance/blazor_perf.proj
           runKind: blazor_scenarios
           isScenario: true
-          # For working with a newer sdk, and previous tfm (eg. 9.0 sdk, and net8.0 tfm)
-          #additionalSetupParameters: '--dotnetversions 8.0.0' # passed to run-performance-job.py
+          # For working with a newer SDK and a previous TFM (for example SDK 12 and net11.0)
+          #additionalSetupParameters: '--dotnet-versions 11.0.100' # passed to run_performance_job.py
           logicalMachine: 'perfviper'
           downloadSpecificBuild: ${{ parameters.downloadSpecificBuild }}
           runtimeRepoAlias: ${{ parameters.runtimeRepoAlias }}

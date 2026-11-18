@@ -26,7 +26,7 @@
 
 # Top level microbenchmark configuration.
 microbenchmark_configurations:
-  framework_version: net7.0
+  framework_version: net11.0
 
 # Configurations that involve capturing a trace.
 trace_configurations:

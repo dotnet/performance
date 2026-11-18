@@ -48,7 +48,6 @@ pr:
     exclude: # don't trigger if only docs and similar files changed
     - docs/*
     - '**/*.md'
-    - scripts/benchmarks_monthly.py
     - 'gc-azure-pipelines.yml'
     - src/benchmarks/gc/*
 

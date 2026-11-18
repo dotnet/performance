@@ -397,16 +397,6 @@ def main(args: CiSetupArgs):
         global_json_path = os.path.join(get_repo_root_path(), 'global.json')
         shutil.copy(os.path.join(get_repo_root_path(), 'global.net10.json'), global_json_path)
         getLogger().info('Overwrote global.json with global.net10.json')
-    if channel_framework in ('net9.0', 'nativeaot9.0'):
-        global_json_path = os.path.join(get_repo_root_path(), 'global.json')
-        shutil.copy(os.path.join(get_repo_root_path(), 'global.net9.json'), global_json_path)
-        getLogger().info('Overwrote global.json with global.net9.json')
-        
-    if channel_framework in ('net8.0', 'nativeaot8.0'):
-        global_json_path = os.path.join(get_repo_root_path(), 'global.json')
-        shutil.copy(os.path.join(get_repo_root_path(), 'global.net8.json'), global_json_path)
-        getLogger().info('Overwrote global.json with global.net8.json')
-             
     # dotnet --info
     dotnet.info(verbose=verbose)
 
