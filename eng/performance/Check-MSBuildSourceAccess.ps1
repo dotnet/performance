@@ -8,28 +8,25 @@ $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 $repository = 'https://dev.azure.com/devdiv/DevDiv/_git/DotNet-msbuild-Trusted'
 
-if ([string]::IsNullOrWhiteSpace($env:SYSTEM_ACCESSTOKEN)) {
-    throw 'Map System.AccessToken to SYSTEM_ACCESSTOKEN for the job identity and source access check.'
-}
-if ([string]::IsNullOrWhiteSpace($env:ADO_COLLECTION_URI)) {
-    throw 'Map System.CollectionUri to ADO_COLLECTION_URI.'
+if ([string]::IsNullOrWhiteSpace($env:MSBUILD_SOURCE_ACCESS_TOKEN)) {
+    throw 'Map a DevDiv-authorized federated token to MSBUILD_SOURCE_ACCESS_TOKEN.'
 }
 if ($Commit -ne 'main' -and $Commit -cnotmatch '^[0-9a-fA-F]{40}$') {
     throw 'Select main or a full MSBuild commit SHA.'
 }
 
 $connection = Invoke-RestMethod `
-    -Uri ($env:ADO_COLLECTION_URI.TrimEnd('/') + '/_apis/connectionData') `
-    -Headers @{ Authorization = "Bearer $env:SYSTEM_ACCESSTOKEN" } `
+    -Uri 'https://dev.azure.com/devdiv/_apis/connectionData' `
+    -Headers @{ Authorization = "Bearer $env:MSBUILD_SOURCE_ACCESS_TOKEN" } `
     -TimeoutSec 60
 $identity = $connection.authenticatedUser
 if ([string]::IsNullOrWhiteSpace($identity.providerDisplayName) -or
     [string]::IsNullOrWhiteSpace($identity.id)) {
-    throw 'Azure DevOps did not return the authenticated job identity.'
+    throw 'DevDiv did not return the authenticated source identity.'
 }
-Write-Host "AzDO job identity: $($identity.providerDisplayName)"
-Write-Host "AzDO job identity ID: $($identity.id)"
-Write-Host "Checking source read access with the job token: $repository"
+Write-Host "DevDiv source identity: $($identity.providerDisplayName)"
+Write-Host "DevDiv source identity ID: $($identity.id)"
+Write-Host "Checking source read access with the federated token: $repository"
 
 $variables = @('GIT_CONFIG_COUNT', 'GIT_CONFIG_KEY_0', 'GIT_CONFIG_VALUE_0',
     'GIT_TERMINAL_PROMPT', 'GCM_INTERACTIVE')
@@ -40,13 +37,13 @@ foreach ($name in $variables) {
 try {
     $env:GIT_CONFIG_COUNT = '1'
     $env:GIT_CONFIG_KEY_0 = "http.$repository.extraheader"
-    $env:GIT_CONFIG_VALUE_0 = "AUTHORIZATION: bearer $env:SYSTEM_ACCESSTOKEN"
+    $env:GIT_CONFIG_VALUE_0 = "AUTHORIZATION: bearer $env:MSBUILD_SOURCE_ACCESS_TOKEN"
     $env:GIT_TERMINAL_PROMPT = '0'
     $env:GCM_INTERACTIVE = 'Never'
 
     $refs = @(git -c credential.helper= ls-remote --exit-code $repository refs/heads/main)
     if ($LASTEXITCODE -ne 0) {
-        throw 'The current AzDO job credential cannot read the MSBuild mirror main ref. Check the preceding Git error for authorization or connectivity failures; local developer access does not establish pipeline access.'
+        throw 'The federated source credential cannot read the MSBuild mirror main ref. Check the preceding Git error for authorization or connectivity failures; local developer access does not establish pipeline access.'
     }
     if ($refs.Count -ne 1 -or $refs[0] -cnotmatch '^([0-9a-f]{40})\s+refs/heads/main$') {
         throw 'The MSBuild mirror did not return exactly one valid main ref.'
