@@ -404,36 +404,37 @@ def build_wasm_coreclr_payload(
     wasm_dotnet_dir = os.path.join(payload_parent_dir, "dotnet")
     wasm_built_nugets_dir = os.path.join(payload_parent_dir, "built-nugets")
 
-    # Extract the SDK from dotnet-none
-    extract_archive_or_copy(
-        browser_wasm_coreclr_archive_or_dir, wasm_dotnet_dir, prefix="staging/dotnet-none/"
-    )
-
     # Extract built NuGet packages (WebAssembly SDK pack, ref pack)
     extract_archive_or_copy(
         browser_wasm_coreclr_archive_or_dir, wasm_built_nugets_dir, prefix="staging/built-nugets/"
     )
     local_package_version = _get_wasm_local_package_version(wasm_built_nugets_dir)
+    coreclr_pack_dest = os.path.join(
+        wasm_dotnet_dir, "packs", "Microsoft.NETCore.App.Runtime.browser-wasm", local_package_version
+    )
+    if os.path.isdir(coreclr_pack_dest) and os.listdir(coreclr_pack_dest):
+        raise ValueError(f"CoreCLR browser-wasm runtime pack destination is not empty: {coreclr_pack_dest}")
+
+    # Extract the SDK from dotnet-none
+    extract_archive_or_copy(
+        browser_wasm_coreclr_archive_or_dir, wasm_dotnet_dir, prefix="staging/dotnet-none/"
+    )
     _ensure_wasm_tool_framework_version(wasm_dotnet_dir, local_package_version)
     has_crossgen2_tasks = _stage_wasm_crossgen2_tasks(
         browser_wasm_coreclr_archive_or_dir, payload_parent_dir)
 
-    runtime_pack_src = os.path.join(
-        browser_wasm_coreclr_archive_or_dir if os.path.isdir(browser_wasm_coreclr_archive_or_dir) else "",
-        "staging", "microsoft.netcore.app.runtime.browser-wasm", "Release"
+    # Reject a runtime pack supplied by the SDK as well.
+    if os.path.isdir(coreclr_pack_dest) and os.listdir(coreclr_pack_dest):
+        raise ValueError(f"CoreCLR browser-wasm runtime pack destination is not empty: {coreclr_pack_dest}")
+    extract_archive_or_copy(
+        browser_wasm_coreclr_archive_or_dir,
+        coreclr_pack_dest,
+        prefix="staging/microsoft.netcore.app.runtime.browser-wasm/Release/",
     )
-    if os.path.isdir(runtime_pack_src):
-        # Install under the local package version that PERFLAB_WASM_PACKAGE_VERSION selects.
-        # The SDK's packs/Microsoft.NETCore.App.Ref can also contain its own bundled version.
-        coreclr_pack_dest = os.path.join(
-            wasm_dotnet_dir, "packs", "Microsoft.NETCore.App.Runtime.browser-wasm", local_package_version
-        )
-        extract_archive_or_copy(
-            browser_wasm_coreclr_archive_or_dir,
-            coreclr_pack_dest,
-            prefix="staging/microsoft.netcore.app.runtime.browser-wasm/Release/",
-        )
-        getLogger().info("Installed CoreCLR browser-wasm runtime pack version %s", local_package_version)
+    runtime_list = os.path.join(coreclr_pack_dest, "data", "RuntimeList.xml")
+    if not os.path.isfile(runtime_list):
+        raise FileNotFoundError(f"CoreCLR browser-wasm runtime pack metadata not found: {runtime_list}")
+    getLogger().info("Installed CoreCLR browser-wasm runtime pack version %s", local_package_version)
 
     permission_dirs = [wasm_dotnet_dir, wasm_built_nugets_dir]
     if has_crossgen2_tasks:
