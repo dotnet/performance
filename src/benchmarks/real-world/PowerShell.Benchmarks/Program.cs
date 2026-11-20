@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Extensions;
 
@@ -12,7 +13,9 @@ namespace MicroBenchmarks
 {
     public sealed class Program
     {
-        public static int Main(string[] args)
+        // Use RunAsync (not Run) so BDN does not install its single-threaded
+        // BenchmarkDotNetSynchronizationContext on the entrypoint thread.
+        public static async Task<int> Main(string[] args)
         {
             var argsList = new List<string>(args);
             int? partitionCount;
@@ -38,9 +41,9 @@ namespace MicroBenchmarks
                 return 1;
             }
 
-            return BenchmarkSwitcher
+            var summaries = await BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
-                .Run(
+                .RunAsync(
                     argsList.ToArray(),
                     RecommendedConfig.Create(
                         artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "BenchmarkDotNet.Artifacts")),
@@ -50,7 +53,8 @@ namespace MicroBenchmarks
                         exclusionFilterValue: exclusionFilterValue,
                         categoryExclusionFilterValue: categoryExclusionFilterValue,
                         getDiffableDisasm: getDiffableDisasm))
-                .ToExitCode();
+                .ConfigureAwait(false);
+            return summaries.ToExitCode();
         }
     }
 }
