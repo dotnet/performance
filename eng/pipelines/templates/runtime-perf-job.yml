@@ -85,6 +85,18 @@ jobs:
         - ${{ step }}
       - ${{ if eq(parameters.osGroup, 'windows') }}:
         - template: /eng/pipelines/common/templates/disable-vsupdate-or-failfast.yml@${{ parameters.runtimeRepoAlias }}
+      # Core_Root layout generation NativeAOT-links tools against the runtime packs, which need the same
+      # Xcode that dotnet/runtime CI uses. The runtime checkout owns that choice; older runtime branches
+      # don't have the script, so keep the agent's default Xcode there.
+      - ${{ if and(eq(parameters.osGroup, 'osx'), eq(parameters.runtimeType, 'coreclr')) }}:
+        - script: |
+            select_xcode="$(Build.SourcesDirectory)/eng/pipelines/common/select-xcode.sh"
+            if [[ -f "$select_xcode" ]]; then
+              bash "$select_xcode"
+            else
+              echo "##vso[task.logissue type=warning]$select_xcode not found in this runtime branch; using the agent's default Xcode."
+            fi
+          displayName: Select Xcode
       - script: |
           $(Build.SourcesDirectory)/eng/common/msbuild.sh $(Build.SourcesDirectory)/eng/testing/performance/add_properties_to_pipeline.proj /t:SetVariables
         displayName: Add Properties To Pipeline Env
