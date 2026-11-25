@@ -85,6 +85,11 @@ jobs:
         - ${{ step }}
       - ${{ if eq(parameters.osGroup, 'windows') }}:
         - template: /eng/pipelines/common/templates/disable-vsupdate-or-failfast.yml@${{ parameters.runtimeRepoAlias }}
+      # Use the same Xcode as dotnet/runtime CI. Core_Root layout generation NativeAOT-links tools against the
+      # runtime packs, and the hosted macOS image defaults to an older Xcode. select-xcode.yml exists on runtime main
+      # but not on older release branches, so only reference it where the M4 job runs (non-release branches).
+      - ${{ if and(eq(parameters.osGroup, 'osx'), eq(parameters.runtimeType, 'coreclr'), not(startswith(variables['Build.SourceBranch'], 'refs/heads/release/')), not(startswith(variables['Build.SourceBranch'], 'refs/heads/internal/release/'))) }}:
+        - template: /eng/pipelines/common/select-xcode.yml@${{ parameters.runtimeRepoAlias }}
       - script: |
           $(Build.SourcesDirectory)/eng/common/msbuild.sh $(Build.SourcesDirectory)/eng/testing/performance/add_properties_to_pipeline.proj /t:SetVariables
         displayName: Add Properties To Pipeline Env
